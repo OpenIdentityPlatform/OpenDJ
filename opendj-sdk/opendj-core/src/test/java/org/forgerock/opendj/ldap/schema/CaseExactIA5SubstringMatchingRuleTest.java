@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -30,10 +31,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_EXACT_IA
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the CaseExactIA5SubstringMatchingRule.
- */
-@SuppressWarnings("javadoc")
+/** Test the CaseExactIA5SubstringMatchingRule. */
 public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
     @Override
@@ -51,7 +49,6 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
         return new Object[][] { { "12345678\uFFFD" }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringFinalMatchData")
     public Object[][] createSubstringFinalMatchData() {
@@ -69,7 +66,6 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
             { "end with space    ", "space", ConditionResult.TRUE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringInitialMatchData")
     public Object[][] createSubstringInitialMatchData() {
@@ -85,7 +81,6 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
             { "this is a value", "THIS", ConditionResult.FALSE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringMiddleMatchData")
     public Object[][] createSubstringMiddleMatchData() {
@@ -107,7 +102,6 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
             { "this is a value", strings("    "), ConditionResult.TRUE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(SMR_CASE_EXACT_IA5_OID);

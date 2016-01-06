@@ -445,7 +445,6 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
     }
 
     void setDryRun(final boolean dryRun) {
-        this.dryRun = true;
+        this.dryRun = dryRun;
     }
-
 }

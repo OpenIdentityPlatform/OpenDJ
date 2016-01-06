@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldif;
 
 import java.io.File;
@@ -684,13 +683,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testLdifNewEntryCollectionDoesntAllowNull() throws Exception {
-
-        EntryReader resultReader = null;
-        try {
-            resultReader = LDIF.newEntryCollectionReader(null);
+        try (EntryReader resultReader = LDIF.newEntryCollectionReader(null)) {
             resultReader.readEntry();
-        } finally {
-            resultReader.close();
         }
     }
 
@@ -739,13 +733,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testLdifNewEntryIteratorReaderDoesntAllowsNull() throws Exception {
-
-        EntryReader resultReader = null;
-        try {
-            resultReader = LDIF.newEntryIteratorReader(null);
+        try (EntryReader resultReader = LDIF.newEntryIteratorReader(null)) {
             resultReader.readEntry();
-        } finally {
-            resultReader.close();
         }
     }
 

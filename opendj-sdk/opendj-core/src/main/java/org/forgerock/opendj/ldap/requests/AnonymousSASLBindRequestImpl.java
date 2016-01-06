@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.requests;
 
 import org.forgerock.opendj.ldap.ByteString;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -37,8 +35,7 @@ import org.forgerock.util.Reject;
 final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<AnonymousSASLBindRequest>
         implements AnonymousSASLBindRequest {
     private static final class Client extends SASLBindClientImpl {
-        private Client(final AnonymousSASLBindRequestImpl initialBindRequest,
-                final String serverName) {
+        private Client(final AnonymousSASLBindRequestImpl initialBindRequest) {
             super(initialBindRequest);
             setNextSASLCredentials(ByteString.valueOfUtf8(initialBindRequest.getTraceString()));
         }
@@ -58,7 +55,7 @@ final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<Anonymo
 
     @Override
     public BindClient createBindClient(final String serverName) {
-        return new Client(this, serverName);
+        return new Client(this);
     }
 
     @Override

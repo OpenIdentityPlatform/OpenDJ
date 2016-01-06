@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.examples;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,7 +77,6 @@ import static org.forgerock.util.Utils.*;
  * client connection. The following code illustrates how this may be achieved:
  *
  * <pre>
- *     {@code
  * final RequestHandlerFactory<LDAPClientContext, RequestContext> proxyFactory =
  *     new RequestHandlerFactory<LDAPClientContext, RequestContext>() {
  *         @Override

@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -66,9 +66,6 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     /** Output directory for source files. */
     @Parameter(defaultValue = "${project.build.directory}/docbkx-sources/shared")
     private File outputDirectory;
-
-    /** Holds descriptions for ACIs. */
-    private Map<String, String> descriptions;
 
     /** Holds documentation for an ACI. */
     private class Aci {

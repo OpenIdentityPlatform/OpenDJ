@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -54,7 +54,7 @@ public class GenerateConfigurationReferenceMojo extends AbstractMojo {
 
     /**
      * The path to the directory where the configuration reference should be written.
-     * This path must be under {@code ${project.build.directory} }.
+     * This path must be under <code>${project.build.directory}</code>.
      */
     @Parameter(defaultValue = "${project.build.directory}/site/configref")
     private String outputDirectory;
@@ -77,7 +77,7 @@ public class GenerateConfigurationReferenceMojo extends AbstractMojo {
 
     /**
      * Creates the output directory where the configuration reference is written.
-     * @throws MojoExecutionException   The output directory is not under {@code ${project.build.directory} }
+     * @throws MojoExecutionException   The output directory is not under <code>${project.build.directory}</code>
      *                                  or could not be created.
      */
     private void createOutputDirectory() throws MojoExecutionException {

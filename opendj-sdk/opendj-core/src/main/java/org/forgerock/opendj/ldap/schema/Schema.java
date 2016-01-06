@@ -1014,8 +1014,7 @@ public final class Schema {
      * <p>
      * This implementation first reads the {@code subschemaSubentry} attribute
      * of the entry in order to identify the schema and then invokes
-     * {@link #readSchemaAsync(Connection, DN, ResultHandler)} to read the
-     * schema.
+     * {@link #readSchemaAsync(Connection, DN)} to read the schema.
      *
      * @param connection
      *            A connection to the Directory Server whose schema is to be

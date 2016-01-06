@@ -31,10 +31,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_I
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the CaseIgnoreIA5SubstringMatchingRule.
- */
-@SuppressWarnings("javadoc")
+/** Test the CaseIgnoreIA5SubstringMatchingRule. */
 public class CaseIgnoreIA5SubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
     @Override
@@ -51,7 +48,6 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends SubstringMatchingRul
         return new Object[][] { { "12345678\uFFFD" }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringFinalMatchData")
     public Object[][] createSubstringFinalMatchData() {
@@ -75,7 +71,6 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends SubstringMatchingRul
             { "end with space    ", "SPACE", ConditionResult.TRUE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringInitialMatchData")
     public Object[][] createSubstringInitialMatchData() {
@@ -95,7 +90,6 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends SubstringMatchingRul
             { "this is a value", "THIS", ConditionResult.TRUE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringMiddleMatchData")
     public Object[][] createSubstringMiddleMatchData() {
@@ -121,7 +115,6 @@ public class CaseIgnoreIA5SubstringMatchingRuleTest extends SubstringMatchingRul
             { "this is a value", strings("    "), ConditionResult.TRUE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(SMR_CASE_IGNORE_IA5_OID);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -31,10 +32,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test the NumericStringSubstringMatchingRule.
- */
-@SuppressWarnings("javadoc")
+/** Test the NumericStringSubstringMatchingRule. */
 @Test
 public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
@@ -52,7 +50,6 @@ public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRul
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringFinalMatchData")
     public Object[][] createSubstringFinalMatchData() {
@@ -67,7 +64,6 @@ public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRul
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringInitialMatchData")
     public Object[][] createSubstringInitialMatchData() {
@@ -84,7 +80,6 @@ public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRul
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringMiddleMatchData")
     public Object[][] createSubstringMiddleMatchData() {
@@ -108,7 +103,6 @@ public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRul
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(SMR_NUMERIC_STRING_OID);

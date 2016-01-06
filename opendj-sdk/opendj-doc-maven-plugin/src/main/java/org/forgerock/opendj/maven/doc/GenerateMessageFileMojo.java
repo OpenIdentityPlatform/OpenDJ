@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -361,10 +361,8 @@ public class GenerateMessageFileMojo extends AbstractMojo {
 
     private void createOutputDirectory() throws IOException {
         File outputDir = new File(outputDirectory);
-        if (outputDir != null && !outputDir.exists()) {
-            if (!outputDir.mkdirs()) {
-                throw new IOException("Failed to create output directory.");
-            }
+        if (!outputDir.exists() && !outputDir.mkdirs()) {
+            throw new IOException("Failed to create output directory.");
         }
     }
 

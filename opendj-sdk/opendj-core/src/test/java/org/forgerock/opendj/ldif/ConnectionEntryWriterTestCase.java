@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2011 ForgeRock AS
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldif;
 
 import org.forgerock.opendj.ldap.Connection;
@@ -56,7 +55,6 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testConnectionEntryWriterWritesEntry() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionEntryWriter writer = null;
 
         final Entry entry =
                 new LinkedHashMapEntry("cn=scarter,dc=example,dc=com").addAttribute("objectclass",
@@ -78,13 +76,10 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
             }
         });
 
-        try {
-            writer = new ConnectionEntryWriter(connection);
+        try (ConnectionEntryWriter writer = new ConnectionEntryWriter(connection)) {
             writer.writeComment("This is a test for the ConnectionEntryWriter");
             writer.writeEntry(entry);
             verify(connection, times(1)).add(any(Entry.class));
-        } finally {
-            writer.close();
         }
     }
 
@@ -95,12 +90,8 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testConnectionEntryWriterDoesntAllowNullComment() throws Exception {
-        ConnectionEntryWriter writer = null;
-        try {
-            writer = new ConnectionEntryWriter(null);
+        try (ConnectionEntryWriter writer = new ConnectionEntryWriter(null)) {
             writer.writeComment(null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -111,11 +102,8 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testConnectionEntryWriterDoesntAllowNull() throws Exception {
-        ConnectionEntryWriter writer = null;
-        try {
-            writer = new ConnectionEntryWriter(null);
-        } finally {
-            writer.close();
+        try (ConnectionEntryWriter writer = new ConnectionEntryWriter(null)) {
+            // nothing to do
         }
     }
 
@@ -128,11 +116,9 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testConnectionEntryWriterClose() throws Exception {
         Connection connection = mock(Connection.class);
-        ConnectionEntryWriter writer = null;
-        try {
-            writer = new ConnectionEntryWriter(connection);
+        try (ConnectionEntryWriter writer = new ConnectionEntryWriter(connection)) {
+            // nothing to do
         } finally {
-            writer.close();
             verify(connection, times(1)).close();
         }
     }
