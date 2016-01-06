@@ -32,6 +32,7 @@ import static org.testng.Assert.*;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -235,9 +236,9 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     assertEquals(oldest.getCSN(), newest.getCSN());
   }
 
-  private class FakeRS extends ReplicationServer
+  private static class FakeRS extends ReplicationServer
   {
-    FakeRS(ReplServerFakeConfiguration cfg) throws ConfigException
+    FakeRS(ReplicationServerCfg cfg) throws ConfigException
     {
       super(cfg);
     }
@@ -255,12 +256,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     final int port = TestCaseUtils.findFreePort();
     final ReplServerFakeConfiguration cfg = new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null);
     cfg.setComputeChangeNumber(true);
-    if (mock)
-    {
-      FakeRS mockRS = new FakeRS(cfg);
-      return mockRS;
-    }
-    return new ReplicationServer(cfg);
+    return mock ? new FakeRS(cfg) : new ReplicationServer(cfg);
   }
 
   private void assertCursorReadsInOrder(DBCursor<ChangeNumberIndexRecord> cursor, long... cns)
