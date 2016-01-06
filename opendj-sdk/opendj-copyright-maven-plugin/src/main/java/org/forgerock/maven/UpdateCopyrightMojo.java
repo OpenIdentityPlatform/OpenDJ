@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2016 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.forgerock.maven;
 
