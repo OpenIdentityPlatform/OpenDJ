@@ -88,6 +88,10 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     @Parameter(required = true, defaultValue = "${project.scm.connection}")
     private String scmRepositoryUrl;
 
+    /** The Git master branch name of the repository. **/
+    @Parameter(required = true, defaultValue = "origin/master")
+    private String gitMasterBranchName;
+
     /**
      * List of file patterns for which copyright check and/or update will be skipped.
      * Pattern can contain the following wildcards (*, ?, **{@literal /}).
@@ -108,7 +112,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = new LinkedList<>(Arrays.asList(
                     "/*", "<!--"));
 
-    private static final class CustomGitExeScmProvider extends GitExeScmProvider {
+    private final class CustomGitExeScmProvider extends GitExeScmProvider {
 
         @Override
         protected GitCommand getDiffCommand() {
@@ -116,7 +120,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
         }
     }
 
-    private static class CustomGitDiffCommand extends GitDiffCommand implements GitCommand {
+    private class CustomGitDiffCommand extends GitDiffCommand implements GitCommand {
 
         @Override
         protected DiffScmResult executeDiffCommand(ScmProviderRepository repo, ScmFileSet fileSet,
@@ -124,7 +128,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             final GitDiffConsumer consumer = new GitDiffConsumer(getLogger(), fileSet.getBasedir());
             final StringStreamConsumer stderr = new CommandLineUtils.StringStreamConsumer();
             final Commandline cl = GitCommandLineUtils.getBaseGitCommandLine(fileSet.getBasedir(), "diff");
-            cl.addArguments(new String[] { "--no-ext-diff", "--relative", "master...HEAD", "." });
+            cl.addArguments(new String[] { "--no-ext-diff", "--relative", gitMasterBranchName + "...HEAD", "." });
 
             if (GitCommandLineUtils.execute(cl, consumer, stderr, getLogger()) != 0) {
                 return new DiffScmResult(cl.toString(), "The git-diff command failed.", stderr.getOutput(), false);
@@ -217,7 +221,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             final ScmFileSet workspaceFileSet = new ScmFileSet(new File(getBaseDir()));
             final DiffScmResult diffMasterHeadResult = getScmManager().diff(
                     getScmRepository(), workspaceFileSet, null, null);
-            ensureCommandSuccess(diffMasterHeadResult, "diff master...HEAD .");
+            ensureCommandSuccess(diffMasterHeadResult, "diff " + gitMasterBranchName + "...HEAD .");
 
             final StatusScmResult statusResult = getScmManager().status(getScmRepository(), workspaceFileSet);
             ensureCommandSuccess(statusResult, "status");
@@ -250,7 +254,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
 
             if (scmFile.getStatus() != ScmFileStatus.UNKNOWN
                     && file.exists()
-                    && !changedFiles.contains(scmFilePath)
+                    && !changedFiles.contains(file)
                     && !fileIsDisabled(scmFilePath)) {
                 changedFiles.add(file);
             }
