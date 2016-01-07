@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.maven;
 
@@ -36,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.testng.ForgeRockTestCase;
-import org.forgerock.util.Utils;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -133,9 +132,7 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
     }
 
     private void checkMofidiedFile(String filePath) throws Exception {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(filePath));
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String mustBeRemoved = null;
             String expectedOutput = null;
             String currentLine;
@@ -148,8 +145,6 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
                 }
             }
             checkIfNewFileIsValid(mustBeRemoved, expectedOutput, filePath + ".tmp");
-        } finally {
-            Utils.closeSilently(reader);
         }
     }
 
@@ -159,10 +154,7 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
             return;
         }
 
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(filePath));
-
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             boolean expectedOutputFound = false;
             String currentLine;
             while ((currentLine = reader.readLine()) != null) {
@@ -180,8 +172,6 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
             if (!expectedOutputFound) {
                 throw new Exception("Generated file " + filePath + " should contains " + expectedOutput);
             }
-        } finally {
-            Utils.closeSilently(reader);
         }
     }
 

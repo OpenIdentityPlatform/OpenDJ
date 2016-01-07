@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2016 ForgeRock AS
  *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
@@ -119,9 +119,6 @@ public final class LDIFDiff extends ConsoleApplication {
         InputStream sourceInputStream = null;
         InputStream targetInputStream = null;
         OutputStream outputStream = null;
-        LDIFEntryReader sourceReader = null;
-        LDIFEntryReader targetReader = null;
-        LDIFChangeRecordWriter outputWriter = null;
 
         try {
             // First source file.
@@ -186,10 +183,11 @@ public final class LDIFDiff extends ConsoleApplication {
             }
 
             // Perform the diff.
-            sourceReader = new LDIFEntryReader(sourceInputStream);
-            targetReader = new LDIFEntryReader(targetInputStream);
-            outputWriter = new LDIFChangeRecordWriter(outputStream);
-            LDIF.copyTo(LDIF.diff(sourceReader, targetReader), outputWriter);
+            try (LDIFEntryReader sourceReader = new LDIFEntryReader(sourceInputStream);
+                LDIFEntryReader targetReader = new LDIFEntryReader(targetInputStream);
+                LDIFChangeRecordWriter outputWriter = new LDIFChangeRecordWriter(outputStream)) {
+                LDIF.copyTo(LDIF.diff(sourceReader, targetReader), outputWriter);
+            }
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
                 errPrintln(ERR_LDIFDIFF_DIFF_FAILED.get(((LocalizableException) e).getMessageObject()));
@@ -198,7 +196,6 @@ public final class LDIFDiff extends ConsoleApplication {
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeSilently(sourceReader, targetReader, outputWriter);
             closeSilently(sourceInputStream, targetInputStream, outputStream);
         }
 

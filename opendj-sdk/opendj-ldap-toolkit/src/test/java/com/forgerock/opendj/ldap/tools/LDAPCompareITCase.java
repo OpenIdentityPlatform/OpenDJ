@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -29,7 +29,6 @@ import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_COMPARE_OPERATION_RESULT_FALSE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_COMPARE_OPERATION_RESULT_TRUE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPCOMPARE_TOOL_DESCRIPTION;
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -40,6 +39,7 @@ import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class LDAPCompareITCase extends ToolsITCase {
 
     private static final int NB_RAND_SIMPLE_COMPARE = 10;
@@ -93,16 +93,12 @@ public class LDAPCompareITCase extends ToolsITCase {
         ByteStringBuilder out = new ByteStringBuilder();
         ByteStringBuilder err = new ByteStringBuilder();
 
-        PrintStream outStream = new PrintStream(out.asOutputStream());
-        PrintStream errStream = new PrintStream(err.asOutputStream());
-
-        try {
+        try (PrintStream outStream = new PrintStream(out.asOutputStream());
+            PrintStream errStream = new PrintStream(err.asOutputStream())) {
             LDAPCompare ldapCompare = new LDAPCompare(outStream, errStream);
 
             ldapCompare.run(arguments);
             checkOuputStreams(out, err, expectedOut, expectedErr);
-        } finally {
-            closeSilently(outStream, errStream);
         }
     }
 }

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -29,7 +29,6 @@ import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_ARGS;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_TOOL_WARMING_UP;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.PrintStream;
 
@@ -38,6 +37,7 @@ import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class AuthRateITCase extends ToolsITCase {
 
     private static final String THROUGHPUT_TEXT = "Recent throughput (ops/second)";
@@ -70,10 +70,8 @@ public class AuthRateITCase extends ToolsITCase {
         ByteStringBuilder out = new ByteStringBuilder();
         ByteStringBuilder err = new ByteStringBuilder();
 
-        PrintStream outStream = new PrintStream(out.asOutputStream());
-        PrintStream errStream = new PrintStream(err.asOutputStream());
-
-        try {
+        try (PrintStream outStream = new PrintStream(out.asOutputStream());
+            PrintStream errStream = new PrintStream(err.asOutputStream())) {
             AuthRate authRate = new AuthRate(outStream, errStream);
 
             authRate.run(arguments);
@@ -88,10 +86,7 @@ public class AuthRateITCase extends ToolsITCase {
                     String[] authRateLineData = authRateResLines[i].split(",");
                     assertThat(authRateLineData[authRateLineData.length - 1].trim()).isEqualTo("0.0");
                 }
-
             }
-        } finally {
-            closeSilently(outStream, errStream);
         }
     }
 }

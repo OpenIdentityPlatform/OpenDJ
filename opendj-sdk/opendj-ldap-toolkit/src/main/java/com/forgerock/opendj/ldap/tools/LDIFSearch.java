@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2015 ForgeRock AS.
+ *      Copyright 2012-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -191,11 +191,8 @@ public final class LDIFSearch extends ConsoleApplication {
 
         if (filename.isPresent()) {
             // Read the filter strings.
-            BufferedReader in = null;
-            try {
-                in = new BufferedReader(new FileReader(filename.getValue()));
+            try (BufferedReader in = new BufferedReader(new FileReader(filename.getValue()))) {
                 String line = null;
-
                 while ((line = in.readLine()) != null) {
                     if ("".equals(line.trim())) {
                         // ignore empty lines.
@@ -209,8 +206,6 @@ public final class LDIFSearch extends ConsoleApplication {
             } catch (final IOException e) {
                 errPrintln(LocalizableMessage.raw(e.toString()));
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
-            } finally {
-                closeSilently(in);
             }
         }
 
@@ -234,8 +229,6 @@ public final class LDIFSearch extends ConsoleApplication {
 
         InputStream sourceInputStream = null;
         OutputStream outputStream = null;
-        LDIFEntryReader sourceReader = null;
-        LDIFEntryWriter outputWriter = null;
 
         try {
             // First source file.
@@ -275,9 +268,10 @@ public final class LDIFSearch extends ConsoleApplication {
             }
 
             // Perform the search.
-            sourceReader = new LDIFEntryReader(sourceInputStream);
-            outputWriter = new LDIFEntryWriter(outputStream);
-            LDIF.copyTo(LDIF.search(sourceReader, search), outputWriter);
+            try (LDIFEntryReader sourceReader = new LDIFEntryReader(sourceInputStream);
+                LDIFEntryWriter outputWriter = new LDIFEntryWriter(outputStream)) {
+                LDIF.copyTo(LDIF.search(sourceReader, search), outputWriter);
+            }
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
                 errPrintln(ERR_LDIFSEARCH_FAILED.get(((LocalizableException) e).getMessageObject()));
@@ -286,7 +280,6 @@ public final class LDIFSearch extends ConsoleApplication {
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeSilently(sourceReader, outputWriter);
             closeSilently(sourceInputStream, outputStream);
         }
 

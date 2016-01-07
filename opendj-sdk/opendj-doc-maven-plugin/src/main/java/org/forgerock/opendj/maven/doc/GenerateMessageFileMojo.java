@@ -157,12 +157,8 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         configuration = getConfiguration();
 
         // FreeMarker takes the data and a Writer to process the template.
-        Writer writer = null;
-        try {
-            writer = new PrintWriter(file);
+        try (Writer writer = new PrintWriter(file)) {
             configuration.getTemplate(template).process(map, writer);
-        } finally {
-            closeSilently(writer);
         }
     }
 
