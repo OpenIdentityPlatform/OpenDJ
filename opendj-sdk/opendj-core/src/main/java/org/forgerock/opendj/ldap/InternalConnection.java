@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS.
+ *      Portions copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.List;
@@ -73,7 +72,6 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         this.serverConnection = serverConnection;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
         final int i = messageID.getAndIncrement();
@@ -81,7 +79,6 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return newSuccessfulLdapPromise((Void) null, i);
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> addAsync(final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -92,32 +89,28 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void addConnectionEventListener(final ConnectionEventListener listener) {
         Reject.ifNull(listener);
         listeners.add(listener);
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<BindResult> bindAsync(final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
         final BindResultLdapPromiseImpl promise =
-                newBindLdapPromise(i, request, null, intermediateResponseHandler, this);
+                newBindLdapPromise(i, request, null, intermediateResponseHandler);
         serverConnection.handleBind(i, 3, request, promise, promise);
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close(final UnbindRequest request, final String reason) {
         final int i = messageID.getAndIncrement();
         serverConnection.handleConnectionClosed(i, request);
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<CompareResult> compareAsync(final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -128,7 +121,6 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> deleteAsync(final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -139,7 +131,6 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -150,21 +141,18 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isClosed() {
         // FIXME: this should be true after close has been called.
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isValid() {
         // FIXME: this should be false if this connection is disconnected.
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> modifyAsync(final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -175,7 +163,6 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -186,14 +173,12 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void removeConnectionEventListener(final ConnectionEventListener listener) {
         Reject.ifNull(listener);
         listeners.remove(listener);
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> searchAsync(final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
@@ -204,14 +189,8 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("InternalConnection(");
-        builder.append(serverConnection);
-        builder.append(')');
-        return builder.toString();
+        return getClass().getSimpleName() + "(" + serverConnection + ')';
     }
-
 }

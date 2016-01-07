@@ -20,10 +20,8 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS.
- *
+ *      Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.examples;
 
 import static org.forgerock.util.Utils.closeSilently;
@@ -115,7 +113,7 @@ public final class UpdateGroupAsync {
                     @Override
                     public Promise<RootDSE, LdapException> apply(BindResult bindResult)
                             throws LdapException {
-                        return RootDSE.readRootDSEAsync(connection, null);
+                        return RootDSE.readRootDSEAsync(connection);
                     }
                 })
                 .thenAsync(new AsyncFunction<RootDSE, Result, LdapException>() {
@@ -191,9 +189,7 @@ public final class UpdateGroupAsync {
         System.exit(resultCode);
     }
 
-    /**
-     * Print usage then exit.
-     */
+    /** Print usage then exit. */
     private static void printUsage() {
         System.err.println("Usage: host port group-dn member-dn {add|del}");
         System.err.println("For example: localhost 1389 "
@@ -224,9 +220,7 @@ public final class UpdateGroupAsync {
         System.out.println(message);
     }
 
-    /**
-     * Constructor not used.
-     */
+    /** Constructor not used. */
     private UpdateGroupAsync() {
         // Not used.
     }

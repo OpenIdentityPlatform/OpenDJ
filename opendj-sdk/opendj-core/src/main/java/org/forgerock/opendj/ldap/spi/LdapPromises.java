@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -51,9 +51,7 @@ import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.Promises;
 
-/**
- * Utility methods for creating and composing {@link LdapPromise}s.
- */
+/** Utility methods for creating and composing {@link LdapPromise}s. */
 public final class LdapPromises {
     private LdapPromises() {
     }
@@ -83,44 +81,13 @@ public final class LdapPromises {
      *         Client that binds to the server.
      * @param intermediateResponseHandler
      *         Handler that consumes intermediate responses from extended operations.
-     * @param connection
-     *         The connection to directory server.
      * @return The new {@link BindResultLdapPromiseImpl}.
      */
     public static BindResultLdapPromiseImpl newBindLdapPromise(
             final int requestID,
             final BindRequest request,
             final BindClient bindClient,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final Connection connection) {
-        return new BindResultLdapPromiseImpl(LdapPromises.<BindResult>newInnerBindOrStartTLSPromise(),
-                                             requestID,
-                                             request,
-                                             bindClient,
-                                             intermediateResponseHandler);
-    }
-
-    /**
-     * Creates a new bind {@link BindResultLdapPromiseImpl}.
-     *
-     * @param requestID
-     *         Identifier of the request.
-     * @param request
-     *         The bind request sent to server.
-     * @param bindClient
-     *         Client that binds to the server.
-     * @param intermediateResponseHandler
-     *         Handler that consumes intermediate responses from extended operations.
-     * @param connection
-     *         The connection to directory server.
-     * @return The new {@link BindResultLdapPromiseImpl}.
-     */
-    public static BindResultLdapPromiseImpl newBindLdapPromise(
-            final int requestID,
-            final BindRequest request,
-            final BindClient bindClient,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final LDAPConnectionImpl connection) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         return new BindResultLdapPromiseImpl(LdapPromises.<BindResult>newInnerBindOrStartTLSPromise(),
                                              requestID,
                                              request,

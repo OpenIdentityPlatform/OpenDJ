@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS.
+ *      Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -62,7 +62,6 @@ import static com.forgerock.opendj.util.StaticUtils.*;
  *      Models </a>
  */
 public final class DN implements Iterable<RDN>, Comparable<DN> {
-
     static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
     static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
     static final byte NORMALIZED_ESC_BYTE = 0x02;
@@ -78,8 +77,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
     private static final ThreadLocal<WeakHashMap<Schema, Map<String, DN>>> CACHE =
             new ThreadLocal<WeakHashMap<Schema, Map<String, DN>>>() {
-
-                /** {@inheritDoc} */
                 @Override
                 protected WeakHashMap<Schema, Map<String, DN>> initialValue() {
                     return new WeakHashMap<>();
@@ -283,7 +280,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
         RDN rdn;
         try {
-            rdn = RDN.decode(null, reader, schema);
+            rdn = RDN.decode(reader, schema);
         } catch (final UnknownSchemaElementException e) {
             final LocalizableMessage message =
                     ERR_DN_TYPE_NOT_FOUND.get(reader.getString(), e.getMessageObject());
@@ -457,13 +454,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         return child(new RDN(attributeType, attributeValue));
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final DN dn) {
         return compareTo(this, dn);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -476,7 +471,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return toNormalizedByteString().hashCode();
@@ -955,7 +949,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @Deprecated This class will eventually be replaced by a compact implementation of a DN.
      */
     public static final class CompactDn implements Comparable<CompactDn> {
-
         /** Original string corresponding to the DN. */
         private final byte[] originalValue;
 
@@ -972,7 +965,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             this.schema = dn.schema;
         }
 
-        /** {@inheritDoc} */
         @Override
         public int compareTo(final CompactDn other) {
             byte[] normValue = getNormalizedValue();
@@ -989,13 +981,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             return DN.valueOf(ByteString.toString(originalValue, 0, originalValue.length), schema);
         }
 
-        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             return Arrays.hashCode(getNormalizedValue());
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
@@ -1008,7 +998,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             return ByteString.toString(originalValue, 0, originalValue.length);
@@ -1030,5 +1019,4 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     public CompactDn compact() {
         return new CompactDn(this);
     }
-
 }

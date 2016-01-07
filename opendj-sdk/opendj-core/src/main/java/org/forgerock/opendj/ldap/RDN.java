@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS.
+ *      Portions copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
@@ -32,11 +31,11 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -140,17 +139,14 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     public static RDN valueOf(final String rdn, final Schema schema) {
         final SubstringReader reader = new SubstringReader(rdn);
         try {
-            return decode(rdn, reader, schema);
+            return decode(reader, schema);
         } catch (final UnknownSchemaElementException e) {
-            final LocalizableMessage message =
-                    ERR_RDN_TYPE_NOT_FOUND.get(rdn, e.getMessageObject());
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(ERR_RDN_TYPE_NOT_FOUND.get(rdn, e.getMessageObject()));
         }
     }
 
-    // FIXME: ensure that the decoded RDN does not contain multiple AVAs
-    // with the same type.
-    static RDN decode(final String rdnString, final SubstringReader reader, final Schema schema) {
+    /** FIXME: ensure that the decoded RDN does not contain multiple AVAs with the same type. */
+    static RDN decode(final SubstringReader reader, final Schema schema) {
         final AVA firstAVA = AVA.decode(reader, schema);
 
         // Skip over any spaces that might be after the attribute value.
@@ -256,7 +252,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         this.stringValue = stringValue;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final RDN rdn) {
         // Identity.
@@ -304,7 +299,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         return 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -343,7 +337,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         return avas[0];
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         // Avoid an algorithm that requires the AVAs to be sorted.
@@ -478,9 +471,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
     private Iterator<AVA> getSortedAvas() {
         TreeSet<AVA> sortedAvas = new TreeSet<>();
-        for (AVA ava : avas) {
-            sortedAvas.add(ava);
-        }
+        Collections.addAll(sortedAvas, avas);
         return sortedAvas.iterator();
     }
 }

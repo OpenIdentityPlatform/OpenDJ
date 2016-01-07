@@ -23,7 +23,7 @@
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 Manuel Gaupp
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -81,9 +81,7 @@ import org.forgerock.util.promise.Promise;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
-/**
- * Schema builders should be used for incremental construction of new schemas.
- */
+/** Schema builders should be used for incremental construction of new schemas. */
 public final class SchemaBuilder {
 
     /** Constant used for name to oid mapping when one name actually maps to multiple numerical OID. */
@@ -108,10 +106,7 @@ public final class SchemaBuilder {
                 SUBSCHEMA_SUBENTRY_ATTRS);
     }
 
-    /**
-     * Constructs a search request for retrieving the named subschema
-     * sub-entry.
-     */
+    /** Constructs a search request for retrieving the named subschema sub-entry. */
     private static SearchRequest getReadSchemaSearchRequest(final DN dn) {
         return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, SUBSCHEMA_FILTER,
                 SUBSCHEMA_ATTRS);
@@ -160,20 +155,13 @@ public final class SchemaBuilder {
     private List<LocalizableMessage> warnings;
     private Options options;
 
-
     /** A schema which should be copied into this builder on any mutation. */
     private Schema copyOnWriteSchema;
 
-    /**
-     * A unique ID which can be used to uniquely identify schemas
-     * constructed without a name.
-     */
+    /** A unique ID which can be used to uniquely identify schemas constructed without a name. */
     private static final AtomicInteger NEXT_SCHEMA_ID = new AtomicInteger();
 
-    /**
-     * Creates a new schema builder with no schema elements and default
-     * compatibility options.
-     */
+    /** Creates a new schema builder with no schema elements and default compatibility options. */
     public SchemaBuilder() {
         preLazyInitBuilder(null, null);
     }
@@ -870,7 +858,7 @@ public final class SchemaBuilder {
             }
 
             // Make sure that the set of attributes was defined.
-            if (attributes == null || attributes.size() == 0) {
+            if (attributes == null || attributes.isEmpty()) {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition));
             }
             useBuilder.attributes(attributes);
@@ -2675,7 +2663,7 @@ public final class SchemaBuilder {
         for (final MatchingRuleUse use : numericOID2MatchingRuleUses.values().toArray(
                 new MatchingRuleUse[numericOID2MatchingRuleUses.values().size()])) {
             try {
-                use.validate(schema, warnings);
+                use.validate(schema);
                 for (final String name : use.getNames()) {
                     registerNameToOIDMapping(StaticUtils.toLowerCase(name), use.getMatchingRuleOID());
                 }
@@ -2688,7 +2676,7 @@ public final class SchemaBuilder {
         for (final NameForm form : numericOID2NameForms.values().toArray(
                 new NameForm[numericOID2NameForms.values().size()])) {
             try {
-                form.validate(schema, warnings);
+                form.validate(schema);
 
                 // build the objectClass2NameForms map
                 final String ocOID = form.getStructuralClass().getOID();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.grizzly;
 
@@ -276,7 +276,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
         }
 
         final BindResultLdapPromiseImpl promise =
-                newBindLdapPromise(messageID, request, context, intermediateResponseHandler, this);
+                newBindLdapPromise(messageID, request, context, intermediateResponseHandler);
 
         try {
             synchronized (stateLock) {
@@ -521,7 +521,6 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> searchAsync(final SearchRequest request,
         final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
@@ -554,13 +553,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LDAPConnection(");
-        builder.append(connection.getLocalAddress());
-        builder.append(',');
-        builder.append(connection.getPeerAddress());
-        builder.append(')');
-        return builder.toString();
+        return getClass().getSimpleName() + "(" + connection.getLocalAddress()
+            + ',' + connection.getPeerAddress() + ')';
     }
 
     @Override

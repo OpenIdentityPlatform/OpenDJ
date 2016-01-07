@@ -21,9 +21,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
-
 package com.forgerock.opendj.ldap.tools;
 
 import static java.util.Locale.ENGLISH;
@@ -83,7 +82,6 @@ public class AddRate extends ConsoleApplication {
     }
 
     private final class AddPerformanceRunner extends PerformanceRunner {
-
         private final class AddStatsHandler extends UpdateStatsResultHandler<Result> {
             private final String entryDN;
 
@@ -169,7 +167,7 @@ public class AddRate extends ConsoleApplication {
                 startPurgeIfMaxNumberAddReached();
                 startToggleDeleteIfAgeThresholdReached(currentTime);
                 try {
-                    String entryToRemove = getEntryToRemove(currentTime);
+                    String entryToRemove = getEntryToRemove();
                     if (entryToRemove != null) {
                         return doDelete(connection, currentTime, entryToRemove);
                     }
@@ -203,15 +201,12 @@ public class AddRate extends ConsoleApplication {
             // FIXME Followings @Checkstyle:ignore tags are related to the maven-checkstyle-plugin
             // issue related here: https://github.com/checkstyle/checkstyle/issues/5
             // @Checkstyle:ignore
-            private String getEntryToRemove(final long currentTime) throws AddRateExecutionEndedException {
+            private String getEntryToRemove() throws AddRateExecutionEndedException {
                 if (isPurgeBranchRunning.get()) {
                     return purgeEntry();
-                }
-
-                if (toggleDelete && entryCount.get() > sizeThreshold) {
+                } else if (toggleDelete && entryCount.get() > sizeThreshold) {
                     return removeFirstAddedEntry();
                 }
-
                 return null;
             }
 
@@ -538,6 +533,5 @@ public class AddRate extends ConsoleApplication {
             new BooleanArgument("scriptFriendly", 'S', "scriptFriendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
         scriptFriendly.setPropertyName("scriptFriendly");
         argParser.addArgument(scriptFriendly);
-
     }
 }

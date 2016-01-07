@@ -446,7 +446,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     }
 
     private BindResultLdapPromiseImpl mockBindAsyncResponse() {
-        final BindResultLdapPromiseImpl bindPromise = newBindLdapPromise(-1, null, null, null, ldapConnection);
+        final BindResultLdapPromiseImpl bindPromise = newBindLdapPromise(-1, null, null, null);
         when(ldapConnection.bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class)))
                 .thenReturn(bindPromise);
         return bindPromise;

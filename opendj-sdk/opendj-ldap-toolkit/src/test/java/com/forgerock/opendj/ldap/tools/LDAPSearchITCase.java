@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -30,7 +30,6 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_AR
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_TOOL_RESULT_CODE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_TOOL_DESCRIPTION;
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -42,9 +41,7 @@ import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Simple integration tests to check the ldapsearch command.
- */
+/** Simple integration tests to check the ldapsearch command. */
 @SuppressWarnings("javadoc")
 public class LDAPSearchITCase extends ToolsITCase {
     private static final int NB_RAND_SIMPLE_SEARCH = 10;
@@ -90,16 +87,11 @@ public class LDAPSearchITCase extends ToolsITCase {
         ByteStringBuilder out = new ByteStringBuilder();
         ByteStringBuilder err = new ByteStringBuilder();
 
-        PrintStream outStream = new PrintStream(out.asOutputStream());
-        PrintStream errStream = new PrintStream(err.asOutputStream());
-        try {
+        try (PrintStream outStream = new PrintStream(out.asOutputStream());
+            PrintStream errStream = new PrintStream(err.asOutputStream())) {
             LDAPSearch ldapSearch = new LDAPSearch(outStream, errStream);
-
-            ldapSearch.run(arguments, false);
+            ldapSearch.run(arguments);
             checkOuputStreams(out, err, expectedOut, expectedErr);
-        } finally {
-            closeSilently(outStream, errStream);
         }
     }
-
 }

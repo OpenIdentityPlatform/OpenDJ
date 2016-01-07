@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -192,7 +192,7 @@ public final class LDAPSearch extends ConsoleApplication {
      */
 
     public static void main(final String[] args) {
-        final int retCode = new LDAPSearch().run(args, false);
+        final int retCode = new LDAPSearch().run(args);
         System.exit(filterExitCode(retCode));
     }
 
@@ -225,7 +225,7 @@ public final class LDAPSearch extends ConsoleApplication {
     }
 
     /** Run ldapsearch with provided command-line arguments. */
-    int run(final String[] args, final boolean returnMatchingEntries) {
+    int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
@@ -471,18 +471,14 @@ public final class LDAPSearch extends ConsoleApplication {
 
         if (filename.isPresent()) {
             // Read the filter strings.
-            BufferedReader in = null;
-            try {
-                in = new BufferedReader(new FileReader(filename.getValue()));
+            try (BufferedReader in = new BufferedReader(new FileReader(filename.getValue()))) {
                 String line = null;
-
                 while ((line = in.readLine()) != null) {
                     if ("".equals(line.trim())) {
                         // ignore empty lines.
                         continue;
                     }
-                    final Filter ldapFilter = Filter.valueOf(line);
-                    filters.add(ldapFilter);
+                    filters.add(Filter.valueOf(line));
                 }
             } catch (final LocalizedIllegalArgumentException e) {
                 errPrintln(e.getMessageObject());
@@ -490,14 +486,6 @@ public final class LDAPSearch extends ConsoleApplication {
             } catch (final IOException e) {
                 errPrintln(LocalizableMessage.raw(e.toString()));
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (final IOException ioe) {
-                        // Ignored.
-                    }
-                }
             }
         }
 
@@ -783,9 +771,7 @@ public final class LDAPSearch extends ConsoleApplication {
             return 0;
         }
 
-        Connection connection = null;
-        try {
-            connection = connectionFactory.getConnection();
+        try (Connection connection = connectionFactory.getConnection()) {
             if (bindRequest != null) {
                 printPasswordPolicyResults(this, connection.bind(bindRequest));
             }
@@ -874,12 +860,11 @@ public final class LDAPSearch extends ConsoleApplication {
                 println(INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT.get(resultHandler.entryCount));
                 println();
             }
+            return 0;
         } catch (final LdapException ere) {
             return printErrorMessage(this, ere);
         } finally {
-            closeSilently(ldifWriter, connection);
+            closeSilently(ldifWriter);
         }
-
-        return 0;
     }
 }

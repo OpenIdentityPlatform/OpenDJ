@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2015 ForgeRock AS
+ *      Portions copyright 2015-2016 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Arrays.*;
@@ -52,7 +51,6 @@ import org.forgerock.util.Reject;
  * attribute types that may be used for a given matching rule.
  */
 public final class MatchingRuleUse extends SchemaElement {
-
     /** A fluent API for incrementally constructing matching rule uses. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;
@@ -245,13 +243,9 @@ public final class MatchingRuleUse extends SchemaElement {
             this.names.remove(name);
             return this;
         }
-
     }
 
-    /**
-     * The OID of the matching rule associated with this matching rule
-     * use definition.
-     */
+    /** The OID of the matching rule associated with this matching rule use definition. */
     private final String oid;
 
     /** The set of user defined names for this definition. */
@@ -260,10 +254,7 @@ public final class MatchingRuleUse extends SchemaElement {
     /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    /**
-     * The set of attribute types with which this matching rule use is
-     * associated.
-     */
+    /** The set of attribute types with which this matching rule use is associated. */
     private final Set<String> attributeOIDs;
 
     private MatchingRule matchingRule;
@@ -471,8 +462,7 @@ public final class MatchingRuleUse extends SchemaElement {
         }
     }
 
-    void validate(final Schema schema, final List<LocalizableMessage> warnings)
-            throws SchemaException {
+    void validate(final Schema schema) throws SchemaException {
         try {
             matchingRule = schema.getMatchingRule(oid);
         } catch (final UnknownSchemaElementException e) {

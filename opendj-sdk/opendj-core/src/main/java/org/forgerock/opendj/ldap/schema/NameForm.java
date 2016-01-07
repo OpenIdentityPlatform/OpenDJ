@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -589,7 +589,7 @@ public final class NameForm extends SchemaElement {
         }
     }
 
-    void validate(final Schema schema, final List<LocalizableMessage> warnings) throws SchemaException {
+    void validate(final Schema schema) throws SchemaException {
         try {
             structuralClass = schema.getObjectClass(structuralClassOID);
         } catch (final UnknownSchemaElementException e) {

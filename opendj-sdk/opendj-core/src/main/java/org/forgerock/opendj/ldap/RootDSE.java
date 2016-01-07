@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -137,9 +137,6 @@ public final class RootDSE {
      * @param connection
      *            A connection to the Directory Server whose Root DSE is to be
      *            read.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
@@ -149,8 +146,7 @@ public final class RootDSE {
      * @throws NullPointerException
      *             If the {@code connection} was {@code null}.
      */
-    public static LdapPromise<RootDSE> readRootDSEAsync(final Connection connection,
-            final LdapResultHandler<? super RootDSE> handler) {
+    public static LdapPromise<RootDSE> readRootDSEAsync(final Connection connection) {
         return connection.searchSingleEntryAsync(SEARCH_REQUEST).then(
             new Function<SearchResultEntry, RootDSE, LdapException>() {
                 @Override
@@ -424,19 +420,16 @@ public final class RootDSE {
         if (attr != null) {
             return Collections.unmodifiableCollection(Collections2.transformedCollection(attr,
                     function, Functions.objectToByteString()));
-        } else {
-            return Collections.emptySet();
         }
+        return Collections.emptySet();
     }
 
     private <N> N getSingleValuedAttribute(final AttributeDescription attributeDescription,
         final Function<ByteString, N, NeverThrowsException> function) {
         final Attribute attr = entry.getAttribute(attributeDescription);
-        if (attr == null || attr.isEmpty()) {
-            return null;
-        } else {
+        if (attr != null && !attr.isEmpty()) {
             return function.apply(attr.firstValue());
         }
+        return null;
     }
-
 }
