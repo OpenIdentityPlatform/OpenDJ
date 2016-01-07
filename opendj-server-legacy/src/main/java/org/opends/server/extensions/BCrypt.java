@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *      Copyright (c) 2006 Damien Miller <djm@mindrot.org>
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above

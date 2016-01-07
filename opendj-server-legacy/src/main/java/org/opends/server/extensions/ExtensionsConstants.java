@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2015 ForgeRock AS.
+ *      Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
