@@ -4,38 +4,38 @@ DO NOT TRANSLATE OR LOCALIZE
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
-Version: chf-http-core.jar (3.0.0)
-Copyright: Copyright 2012-2015 ForgeRock AS.
+Version: chf-http-core.jar (3.0.1)
+Copyright: Copyright 2012-2016 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Copyright 2009 Sun Microsystems Inc.
-           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2011-2016 ForgeRock AS.
            Portions Copyright 2010-2011 ApexIdentity Inc.
 
-Version: chf-http-servlet.jar (3.0.0)
+Version: chf-http-servlet.jar (3.0.1)
 Copyright: Copyright 2012-2015 ForgeRock AS.
            Copyright 2010-2011 ApexIdentity Inc.
            Portions Copyright 2011-2015 ForgeRock AS.
 
-Version: forgerock-audit-core.jar (4.1.0)
+Version: forgerock-audit-core.jar (4.1.1)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright 2013 Cybernetica AS
            Copyright 2006-2008 Sun Microsystems, Inc.
            Portions Copyright 2013-2015 ForgeRock AS.
 
-Version: forgerock-audit-handler-csv.jar (4.1.0)
-Copyright: Copyright 2015 ForgeRock AS.
+Version: forgerock-audit-handler-csv.jar (4.1.1)
+Copyright: Copyright 2015-2016 ForgeRock AS.
 
-Version: forgerock-audit-handler-jdbc.jar (4.1.0)
-Copyright: Copyright 2015 ForgeRock AS.
+Version: forgerock-audit-handler-jdbc.jar (4.1.1)
+Copyright: Copyright 2015-2016 ForgeRock AS.
 
-Version: forgerock-audit-handler-syslog.jar (4.1.0)
+Version: forgerock-audit-handler-syslog.jar (4.1.1)
 Copyright: Copyright 2015 ForgeRock AS.
            Copyright 2013 Cybernetica AS
 
-Version: forgerock-audit-json.jar (4.1.0)
+Version: forgerock-audit-json.jar (4.1.1)
 Copyright: Copyright 2015 ForgeRock AS.
 
-Version: forgerock-util.jar (3.0.1)
+Version: forgerock-util.jar (3.0.2)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
            Portions Copyright 2011-2015 ForgeRock AS.
@@ -120,11 +120,11 @@ Version: OpenDJ-pl.jar (3.0.0)
 Version: OpenDJ-zh_CN.jar (3.0.0)
 Version: OpenDJ-zh_TW.jar (3.0.0)
 Version: quicksetup.jar (3.0.0)
-Copyright: Copyright 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2016 ForgeRock AS.
            Copyright 2005-2011 Sun Microsystems, Inc.
            Copyright 2011-2012 profiq s.r.o.
            Copyright 2013-2014 Manuel Gaupp
-           Portions Copyright 2010-2015 ForgeRock AS.
+           Portions Copyright 2010-2016 ForgeRock AS.
            Portions Copyright 2006-2007 Sun Microsystems, Inc.
            Portions Copyright 2006 Brighton Consulting, Inc.
            Portions Copyright 2009 Parametric Technology Corporation (PTC)
