@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -882,12 +882,14 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     final int run(final ConnectionFactory connectionFactory) {
         final List<Connection> connections = new ArrayList<>();
 
-        Connection connection = null;
         try {
+            validateCanConnectToServer(connectionFactory);
+
             isWarmingUp = warmUpDuration > 0;
             for (int i = 0; i < numConnections; i++) {
+                Connection connection = null;
                 if (keepConnectionsOpen.isPresent() || noRebindArgument.isPresent()) {
-                    connection = connectionFactory.getConnectionAsync().getOrThrow();
+                    connection = connectionFactory.getConnection();
                     connection.addConnectionEventListener(this);
                     connections.add(connection);
                 }
@@ -928,6 +930,12 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         return 0;
+    }
+
+    private void validateCanConnectToServer(ConnectionFactory connectionFactory) throws LdapException {
+        try (Connection c = connectionFactory.getConnection()) {
+            // detects wrong bind parameters, server unreachable (server down, network problem?), etc.
+        }
     }
 
     void setBindRequest(final BindRequest request) {
