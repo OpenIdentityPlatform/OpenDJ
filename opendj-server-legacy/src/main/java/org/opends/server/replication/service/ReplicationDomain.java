@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -36,11 +36,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import net.jcip.annotations.Immutable;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -106,13 +118,10 @@ import org.opends.server.types.DirectoryException;
 public abstract class ReplicationDomain
 {
 
-  /**
-   * Contains all the attributes included for the ECL (External Changelog).
-   */
-  // @Immutable
+  /** Contains all the attributes included for the ECL (External Changelog). */
+  @Immutable
   private static final class ECLIncludes
   {
-
     final Map<Integer, Set<String>> includedAttrsByServer;
     final Set<String> includedAttrsAllServers;
 

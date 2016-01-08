@@ -21,12 +21,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS
+ *      Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
 import java.io.Closeable;
 import java.util.Objects;
+
+import net.jcip.annotations.NotThreadSafe;
 
 import org.opends.server.replication.common.CSN;
 
@@ -88,8 +90,8 @@ import org.opends.server.replication.common.CSN;
  *
  * @param <T>
  *          type of the record being returned
- * \@NotThreadSafe
  */
+@NotThreadSafe
 public interface DBCursor<T> extends Closeable
 {
 

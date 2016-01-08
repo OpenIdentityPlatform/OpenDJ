@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -45,6 +45,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import net.jcip.annotations.GuardedBy;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -777,11 +779,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     }
   }
 
-  /**
-   * Abort all cursors opened on the provided log file.
-   * <p>
-   * @GuardedBy("exclusiveLock")
-   */
+  /** Abort all cursors opened on the provided log file. */
+  @GuardedBy("exclusiveLock")
   private void abortCursorsOpenOnLogFile(LogFile<K, V> logFile)
   {
     for (AbortableLogCursor<K, V> cursor : openCursors)
@@ -985,8 +984,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * <p>
    * All cursors opened on this log are temporarily disabled (closing underlying resources)
    * and then re-open with their previous state.
-   * @GuardedBy("exclusiveLock")
    */
+  @GuardedBy("exclusiveLock")
   private void rotateHeadLogFile() throws ChangelogException
   {
     // Temporarily disable cursors opened on head, saving their state
@@ -1064,10 +1063,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
        + recordParser.encodeKeyToString(highestKey) + LOG_FILE_SUFFIX;
   }
 
-  /**
-   * Update the cursors that were pointing to head after a rotation of the head log file.
-   * @GuardedBy("exclusiveLock")
-   */
+  /** Update the cursors that were pointing to head after a rotation of the head log file. */
+  @GuardedBy("exclusiveLock")
   private void updateOpenedCursorsOnHeadAfterRotation(List<Pair<AbortableLogCursor<K, V>, CursorState<K, V>>> cursors)
       throws ChangelogException
   {
@@ -1086,7 +1083,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     }
   }
 
-  /** @GuardedBy("exclusiveLock") */
+  @GuardedBy("exclusiveLock")
   private void abortAllOpenCursors() throws ChangelogException
   {
     for (AbortableLogCursor<K, V> cursor : openCursors)
@@ -1098,12 +1095,12 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * Disable the cursors opened on the head log file log, by closing their underlying cursor.
    * Returns the state of each cursor just before the close operation.
-   * @GuardedBy("exclusiveLock")
    *
    * @return the pairs (cursor, cursor state) for each cursor pointing to head log file.
    * @throws ChangelogException
    *           If an error occurs.
    */
+  @GuardedBy("exclusiveLock")
   private List<Pair<AbortableLogCursor<K, V>, CursorState<K, V>>> disableOpenedCursorsOnHead()
       throws ChangelogException
   {
@@ -1173,7 +1170,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     return Log.HEAD_LOG_FILE_NAME.equals(logFile.getFile().getName());
   }
 
-  /** @GuardedBy("sharedLock") */
+  @GuardedBy("sharedLock")
   private LogFile<K, V> findLogFileFor(final K key, KeyMatchingStrategy keyMatchingStrategy) throws ChangelogException
   {
     if (key == null || logFiles.lowerKey(key) == null)
@@ -1577,35 +1574,35 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     /**
      * Aborts this cursor. Once aborted, a cursor throws an
      * AbortedChangelogCursorException if it is used.
-     * @GuardedBy("exclusiveLock")
      */
+    @GuardedBy("exclusiveLock")
     void abort()
     {
       mustAbort = true;
     }
 
-    /** @GuardedBy("exclusiveLock") */
+    @GuardedBy("exclusiveLock")
     @Override
     CursorState<K, V> getState() throws ChangelogException
     {
       return delegate.getState();
     }
 
-    /** @GuardedBy("exclusiveLock") */
+    @GuardedBy("exclusiveLock")
     @Override
     void closeUnderlyingCursor()
     {
       delegate.closeUnderlyingCursor();
     }
 
-    /** @GuardedBy("exclusiveLock") */
+    @GuardedBy("exclusiveLock")
     @Override
     void reinitializeTo(final CursorState<K, V> cursorState) throws ChangelogException
     {
       delegate.reinitializeTo(cursorState);
     }
 
-    /** @GuardedBy("exclusiveLock") */
+    @GuardedBy("exclusiveLock")
     @Override
     boolean isAccessingLogFile(LogFile<K, V> logFile)
     {

@@ -21,22 +21,20 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
+
+import net.jcip.annotations.NotThreadSafe;
 
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 
-/**
- * A cursor on ChangeNumberIndexDB.
- *
- * \@NotThreadSafe
- */
+/** A cursor on ChangeNumberIndexDB. */
+@NotThreadSafe
 class FileChangeNumberIndexDBCursor implements DBCursor<ChangeNumberIndexRecord>
 {
-
   /** The underlying cursor. */
   private final DBCursor<Record<Long, ChangeNumberIndexRecord>> cursor;
 

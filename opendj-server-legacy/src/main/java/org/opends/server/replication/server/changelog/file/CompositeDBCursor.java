@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS
+ *      Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+
+import net.jcip.annotations.NotThreadSafe;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -45,8 +47,8 @@ import org.opends.server.util.StaticUtils;
  *
  * @param <T>
  *          The type of data associated with each cursor
- * \@NotThreadSafe
  */
+@NotThreadSafe
 abstract class CompositeDBCursor<T> implements DBCursor<UpdateMsg>
 {
   private static final byte UNINITIALIZED = 0;

@@ -21,14 +21,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
+
+import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import net.jcip.annotations.Immutable;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -50,8 +54,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.messages.ReplicationMessages.*;
-
 /**
  * Represents a replication server database for one server in the topology.
  * <p>
@@ -69,12 +71,8 @@ class FileReplicaDB
   /** The parser of records stored in Replica DB. */
   static final RecordParser<CSN, UpdateMsg> RECORD_PARSER = new ReplicaDBParser();
 
-  /**
-   * Class that allows atomically setting oldest and newest CSNs without
-   * synchronization.
-   *
-   * @Immutable
-   */
+  /** Class that allows atomically setting oldest and newest CSNs without synchronization. */
+  @Immutable
   private static final class CSNLimits
   {
     private final CSN oldestCSN;

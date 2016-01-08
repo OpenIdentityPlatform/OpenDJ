@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -38,6 +38,9 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.Immutable;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -65,7 +68,7 @@ public class ReplicationBroker
    * Immutable class containing information about whether the broker is
    * connected to an RS and data associated to this connected RS.
    */
-  // @Immutable
+  @Immutable
   private static final class ConnectedRS
   {
 
@@ -205,7 +208,7 @@ public class ReplicationBroker
    */
   /** Contains the last known state of the replication topology. */
   private final AtomicReference<Topology> topology = new AtomicReference<>(new Topology());
-  /** <pre>@GuardedBy("this")</pre>. */
+  @GuardedBy("this")
   private volatile int updateDoneCount;
   private volatile boolean connectRequiresRecovery;
 

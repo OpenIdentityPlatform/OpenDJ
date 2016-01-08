@@ -22,20 +22,27 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import net.jcip.annotations.Immutable;
 
 /**
  * This class holds information about a DS connected to the topology. This
  * information is to be exchanged through the replication protocol in topology
  * messages, to keep every member (RS or DS) of the topology aware of the DS
  * topology.
- * <p>
- * @Immutable
  */
+@Immutable
 public final class DSInfo
 {
   /** DS server id. */

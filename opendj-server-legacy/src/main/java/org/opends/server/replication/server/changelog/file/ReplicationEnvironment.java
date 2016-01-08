@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -49,6 +49,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import net.jcip.annotations.GuardedBy;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -207,9 +209,8 @@ class ReplicationEnvironment implements ChangelogStateProvider
    * The current changelogState. This is in-memory version of what is inside the
    * on-disk changelogStateDB. It improves performances in case the
    * changelogState is read often.
-   *
-   * @GuardedBy("domainsLock")
    */
+  @GuardedBy("domainsLock")
   private final ChangelogState changelogState;
 
   /** The list of logs that are in use for Replica DBs. */
@@ -222,11 +223,8 @@ class ReplicationEnvironment implements ChangelogStateProvider
    */
   private List<Log<Long, ChangeNumberIndexRecord>> logsCNIndexDB = new CopyOnWriteArrayList<>();
 
-  /**
-   * Maps each domain DN to a domain id that is used to name directory in file system.
-   *
-   * @GuardedBy("domainsLock")
-   */
+  /** Maps each domain DN to a domain id that is used to name directory in file system. */
+  @GuardedBy("domainsLock")
   private final Map<DN, String> domains = new HashMap<>();
 
   /**

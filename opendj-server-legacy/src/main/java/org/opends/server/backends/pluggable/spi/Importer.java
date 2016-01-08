@@ -21,11 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
+
+import net.jcip.annotations.ThreadSafe;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -34,10 +36,8 @@ import org.forgerock.opendj.ldap.ByteString;
  * Allows to run an import. For performance reasons, imports are run without transactions.
  * <p>
  * Since import is multi threaded, implementations must be thread-safe.
- * <p>
- *
- * @ThreadSafe
  */
+@ThreadSafe
 public interface Importer extends Closeable
 {
   /**
@@ -87,3 +87,4 @@ public interface Importer extends Closeable
   @Override
   void close();
 }
+

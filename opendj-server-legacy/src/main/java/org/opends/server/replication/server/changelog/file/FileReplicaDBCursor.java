@@ -21,12 +21,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+
+import net.jcip.annotations.NotThreadSafe;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -56,9 +58,8 @@ import org.opends.server.replication.server.changelog.file.Log.RepositionableCur
  * record is newly available, a subsequent call to the {@code next()} method will
  * return {@code true} and the record will be available by calling {@code getRecord()}
  * method.
- *
- * \@NotThreadSafe
  */
+@NotThreadSafe
 class FileReplicaDBCursor implements DBCursor<UpdateMsg>
 {
   /** The underlying cursor. */

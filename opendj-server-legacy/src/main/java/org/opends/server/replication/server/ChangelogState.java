@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS
+ *      Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import net.jcip.annotations.ThreadSafe;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -44,9 +46,8 @@ import org.opends.server.types.DN;
  * <p>
  * This class is used during replication initialization to decouple the code
  * that reads the changelogStateDB from the code that makes use of its data.
- *
- * @ThreadSafe
  */
+@ThreadSafe
 public class ChangelogState
 {
   private final ConcurrentSkipListMap<DN, Long> domainToGenerationId = new ConcurrentSkipListMap<>();

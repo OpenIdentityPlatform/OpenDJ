@@ -22,23 +22,25 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
+import static org.opends.messages.ReplicationMessages.*;
+
 import java.util.TreeMap;
+
+import net.jcip.annotations.ThreadSafe;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 
-import static org.opends.messages.ReplicationMessages.*;
-
 /**
  * This class is used to build ordered lists of UpdateMsg.
  * The order is defined by the order of the CSN of the UpdateMsg.
- * @ThreadSafe
  */
+@ThreadSafe
 public class MsgQueue
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

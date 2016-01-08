@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+
+import net.jcip.annotations.GuardedBy;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -272,7 +274,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private final Object pendingStatusMessagesLock = new Object();
 
-  /** @GuardedBy("pendingStatusMessagesLock") */
+  @GuardedBy("pendingStatusMessagesLock")
   private PendingStatusMessages pendingStatusMessages = new PendingStatusMessages();
 
   /**

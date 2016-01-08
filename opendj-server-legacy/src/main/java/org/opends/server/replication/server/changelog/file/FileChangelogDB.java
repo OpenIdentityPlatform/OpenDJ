@@ -42,6 +42,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import net.jcip.annotations.GuardedBy;
+
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.DurationUnit;
@@ -101,9 +103,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /**
    * The handler of the changelog database, the database stores the relation
    * between a change number and the associated cookie.
-   * <p>
-   * @GuardedBy("cnIndexDBLock")
    */
+  @GuardedBy("cnIndexDBLock")
   private FileChangeNumberIndexDB cnIndexDB;
   private final AtomicReference<ChangeNumberIndexer> cnIndexer = new AtomicReference<>();
 

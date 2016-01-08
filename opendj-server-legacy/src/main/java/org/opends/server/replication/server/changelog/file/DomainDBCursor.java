@@ -20,13 +20,15 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import net.jcip.annotations.NotThreadSafe;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -35,11 +37,8 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 
-/**
- * Cursor iterating over a replication domain's replica DBs.
- *
- * \@NotThreadSafe
- */
+/** Cursor iterating over a replication domain's replica DBs. */
+@NotThreadSafe
 public class DomainDBCursor extends CompositeDBCursor<Void>
 {
   /** Replaces null CSNs in ConcurrentSkipListMap that does not support null values. */
