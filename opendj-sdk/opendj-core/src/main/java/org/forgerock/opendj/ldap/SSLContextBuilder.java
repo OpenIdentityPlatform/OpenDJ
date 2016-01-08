@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.security.GeneralSecurityException;
@@ -60,39 +60,24 @@ import javax.net.ssl.TrustManager;
  * </pre>
  */
 public final class SSLContextBuilder {
-
-    /**
-     * SSL protocol: supports some version of SSL; may support other versions.
-     */
+    /** SSL protocol: supports some version of SSL; may support other versions. */
     public static final String PROTOCOL_SSL = "SSL";
-
-    /**
-     * SSL protocol: supports SSL version 2 or higher; may support other
-     * versions.
-     */
+    /** SSL protocol: supports SSL version 2 or higher; may support other versions. */
     public static final String PROTOCOL_SSL2 = "SSLv2";
-
-    /**
-     * SSL protocol: supports SSL version 3; may support other versions.
-     */
+    /** SSL protocol: supports SSL version 3; may support other versions. */
     public static final String PROTOCOL_SSL3 = "SSLv3";
-
-    /**
-     * SSL protocol: supports some version of TLS; may support other versions.
-     */
+    /** SSL protocol: supports some version of TLS; may support other versions. */
     public static final String PROTOCOL_TLS = "TLS";
-
     /**
-     * SSL protocol: supports RFC 2246: TLS version 1.0 ; may support other
-     * versions.
+     * SSL protocol: supports RFC 2246: TLS version 1.0 ; may support other versions.
+     * <p>
+     * This is the default version.
      */
     public static final String PROTOCOL_TLS1 = "TLSv1";
-
-    /**
-     * SSL protocol: supports RFC 4346: TLS version 1.1 ; may support other
-     * versions.
-     */
+    /** SSL protocol: supports RFC 4346: TLS version 1.1 ; may support other versions. */
     public static final String PROTOCOL_TLS1_1 = "TLSv1.1";
+    /** SSL protocol: supports RFC 5246: TLS version 1.2 ; may support other versions. */
+    public static final String PROTOCOL_TLS1_2 = "TLSv1.2";
 
     private TrustManager trustManager;
     private KeyManager keyManager;
@@ -103,9 +88,7 @@ public final class SSLContextBuilder {
     private Provider provider;
     private String providerName;
 
-    /**
-     * Creates a new SSL context builder using default parameters.
-     */
+    /** Creates a new SSL context builder using default parameters. */
     public SSLContextBuilder() {
         // Do nothing.
     }
