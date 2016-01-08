@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions copyright 2013 ForgeRock AS
+  !      Portions copyright 2013-2016 ForgeRock AS
   ! -->
 <adm:managed-object name="http-connection-handler"
   plural-name="http-connection-handlers"
@@ -350,17 +350,16 @@
         <adm:value name="optional">
           <adm:synopsis>
             Clients are requested to provide their own certificates
-            when performing SSL negotiation, but still accept the
-            connection even if the client does not provide a
+            when performing SSL negotiation. The connection is
+            nevertheless accepted if the client does not provide a
             certificate.
           </adm:synopsis>
         </adm:value>
         <adm:value name="required">
           <adm:synopsis>
-            Clients are requested to provide their own certificates
-            when performing SSL negotiation. The connection is
-            nevertheless accepted if the client does not provide a
-            certificate.
+            Clients are required to provide their own certificates
+            when performing SSL negotiation and are refused access
+            if they do not provide a certificate.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
