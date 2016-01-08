@@ -4,7 +4,7 @@ DO NOT TRANSLATE OR LOCALIZE
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 ***************************************************************************
 
-Version: forgerock-util.jar (3.0.1)
+Version: forgerock-util.jar (3.0.2)
 Copyright: Copyright 2011-2015 ForgeRock AS.
            Copyright (c) 2010-2011 ApexIdentity Inc. All rights reserved.
            Portions Copyright 2011-2015 ForgeRock AS.
@@ -42,11 +42,11 @@ Version: opendj-server-legacy-ko.jar (3.0.0)
 Version: opendj-server-legacy-pl.jar (3.0.0)
 Version: opendj-server-legacy-zh_CN.jar (3.0.0)
 Version: opendj-server-legacy-zh_TW.jar (3.0.0)
-Copyright: Copyright 2011-2015 ForgeRock AS.
+Copyright: Copyright 2011-2016 ForgeRock AS.
            Copyright 2005-2011 Sun Microsystems, Inc.
            Copyright 2011-2012 profiq s.r.o.
            Copyright 2013-2014 Manuel Gaupp
-           Portions Copyright 2010-2015 ForgeRock AS.
+           Portions Copyright 2010-2016 ForgeRock AS.
            Portions Copyright 2006-2007 Sun Microsystems, Inc.
            Portions Copyright 2006 Brighton Consulting, Inc.
            Portions Copyright 2009 Parametric Technology Corporation (PTC)
