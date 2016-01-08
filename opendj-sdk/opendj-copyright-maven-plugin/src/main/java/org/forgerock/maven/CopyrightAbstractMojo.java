@@ -100,17 +100,12 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     private List<String> disabledFiles;
 
     /** The file extensions to test. */
-    public static final List<String> CHECKED_EXTENSIONS = new LinkedList<>(Arrays.asList(
-            "bat", "c", "h", "html", "java", "ldif", "Makefile", "mc", "properties", "sh", "txt", "xml", "xsd", "xsl"));
+    public static final List<String> CHECKED_EXTENSIONS = Arrays.asList(
+            "bat", "c", "h", "html", "java", "ldif", "Makefile", "mc", "properties", "sh", "txt", "xml", "xsd", "xsl");
 
-    private static final List<String> EXCLUDED_END_COMMENT_BLOCK_TOKEN = new LinkedList<>(Arrays.asList(
-                    "*/", "-->"));
-
-    private static final List<String> SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN = new LinkedList<>(Arrays.asList(
-                    "*", "#", "rem", "!"));
-
-    private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = new LinkedList<>(Arrays.asList(
-                    "/*", "<!--"));
+    private static final List<String> EXCLUDED_END_COMMENT_BLOCK_TOKEN = Arrays.asList("*/", "-->");
+    private static final List<String> SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN = Arrays.asList("*", "#", "rem", "!");
+    private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = Arrays.asList("/*", "<!--");
 
     private final class CustomGitExeScmProvider extends GitExeScmProvider {
 
@@ -329,7 +324,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     }
 
     private String getCommentToken(String line, boolean includesStartBlock) {
-        List<String> supportedTokens = SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN;
+        final List<String> supportedTokens = new ArrayList<>(SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN);
         if (includesStartBlock) {
             supportedTokens.addAll(SUPPORTED_START_BLOCK_COMMENT_TOKEN);
         }
