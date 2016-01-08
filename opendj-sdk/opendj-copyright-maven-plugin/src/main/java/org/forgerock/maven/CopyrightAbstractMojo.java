@@ -101,7 +101,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
 
     /** The file extensions to test. */
     public static final List<String> CHECKED_EXTENSIONS = new LinkedList<>(Arrays.asList(
-            "bat", "c", "h", "html", "java", "ldif", "Makefile", "mc", "sh", "txt", "xml", "xsd", "xsl"));
+            "bat", "c", "h", "html", "java", "ldif", "Makefile", "mc", "properties", "sh", "txt", "xml", "xsd", "xsl"));
 
     private static final List<String> EXCLUDED_END_COMMENT_BLOCK_TOKEN = new LinkedList<>(Arrays.asList(
                     "*/", "-->"));
