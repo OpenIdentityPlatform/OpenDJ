@@ -304,6 +304,9 @@ Copyright: Copyright 2007 Kasper B. Graversen
 Version: validation-api.jar (1.1.0)
 Copyright: Copyright 2009-2013 Red Hat, Inc. and/or its affiliates, and individual contributors
 
+Version: jcip-annotations.jar (1.0-1)
+Copyright: Copyright 2013 Stephen Connolly.
+
 ==================
 Full license text:
 ==================
