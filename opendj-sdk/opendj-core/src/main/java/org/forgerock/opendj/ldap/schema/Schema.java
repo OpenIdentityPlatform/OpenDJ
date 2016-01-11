@@ -1194,7 +1194,7 @@ public final class Schema {
      * having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the attribute types to retrieve.
+     *            The name of the attribute types to retrieve.
      * @return An unmodifiable collection containing all of the attribute types
      *         having the specified name or numeric OID.
      */
@@ -1245,7 +1245,7 @@ public final class Schema {
      * rules having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the DIT content rules to retrieve.
+     *            The name of the DIT content rules to retrieve.
      * @return An unmodifiable collection containing all of the DIT content
      *         rules having the specified name or numeric OID.
      */
@@ -1285,7 +1285,7 @@ public final class Schema {
      * rules having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the DIT structure rules to retrieve.
+     *            The name of the DIT structure rules to retrieve.
      * @return An unmodifiable collection containing all of the DIT structure
      *         rules having the specified name or numeric OID.
      */
@@ -1334,7 +1334,7 @@ public final class Schema {
      * having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the matching rules to retrieve.
+     *            The name of the matching rules to retrieve.
      * @return An unmodifiable collection containing all of the matching rules
      *         having the specified name or numeric OID.
      */
@@ -1385,7 +1385,7 @@ public final class Schema {
      * uses having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the matching rule uses to retrieve.
+     *            The name of the matching rule uses to retrieve.
      * @return An unmodifiable collection containing all of the matching rule
      *         uses having the specified name or numeric OID.
      */
@@ -1437,7 +1437,7 @@ public final class Schema {
      * having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the name forms to retrieve.
+     *            The name of the name forms to retrieve.
      * @return An unmodifiable collection containing all of the name forms
      *         having the specified name or numeric OID.
      */
@@ -1475,7 +1475,7 @@ public final class Schema {
      * having the specified name or numeric OID.
      *
      * @param name
-     *            The name or OID of the object classes to retrieve.
+     *            The name of the object classes to retrieve.
      * @return An unmodifiable collection containing all of the object classes
      *         having the specified name or numeric OID.
      */
