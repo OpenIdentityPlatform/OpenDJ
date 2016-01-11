@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -4102,9 +4102,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       if (lastRetrievedChange != null)
       {
-        if (logger.isInfoEnabled())
+        if (logger.isDebugEnabled())
         {
-          logger.info(LocalizableMessage.raw("publish loop"
+          logger.debug(LocalizableMessage.raw("publish loop"
                   + " >=" + currentStartCSN + " <=" + endCSN
                   + " nentries=" + op.getEntriesSent()
                   + " result=" + op.getResultCode()
@@ -4114,9 +4114,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       }
       else
       {
-        if (logger.isInfoEnabled())
+        if (logger.isDebugEnabled())
         {
-          logger.info(LocalizableMessage.raw("publish loop"
+          logger.debug(LocalizableMessage.raw("publish loop"
                   + " >=" + currentStartCSN + " <=" + endCSN
                   + " nentries=" + op.getEntriesSent()
                   + " result=" + op.getResultCode()
