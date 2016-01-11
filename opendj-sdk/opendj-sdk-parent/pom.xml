@@ -153,24 +153,6 @@
             <plugins>
                 <plugin>
                     <groupId>org.forgerock.opendj</groupId>
-                    <artifactId>opendj-copyright-maven-plugin</artifactId>
-                    <version>${project.version}</version>
-                    <configuration>
-                        <!-- Disable copyright on README and legal files -->
-                        <disabledFiles>
-                            <disabledFile>README</disabledFile>
-                            <disabledFile>**/README</disabledFile>
-                            <disabledFile>README.txt</disabledFile>
-                            <disabledFile>**/README.txt</disabledFile>
-                            <disabledFile>**/THIRDPARTYREADME.txt</disabledFile>
-                            <disabledFile>legal-notices/CDDLv1_0.txt</disabledFile>
-                            <disabledFile>**/tests/unit-tests-testng/resource/config-changes.ldif</disabledFile>
-                        </disabledFiles>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.forgerock.opendj</groupId>
                     <artifactId>opendj-doc-maven-plugin</artifactId>
                     <version>${project.version}</version>
                 </plugin>
