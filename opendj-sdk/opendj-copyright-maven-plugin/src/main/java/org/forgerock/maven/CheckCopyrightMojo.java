@@ -38,12 +38,13 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 @Mojo(name = "check-copyright", defaultPhase = LifecyclePhase.VALIDATE)
 public class CheckCopyrightMojo extends CopyrightAbstractMojo {
+    private static final String IGNORE_COPYRIGHT_ERRORS_PROPERTY = "ignoreCopyrightErrors";
 
     /**
      * The property that may be used to prevent copyright date problems from
      * failing the build.
      */
-    @Parameter(required = true, property = "ignoreCopyrightErrors", defaultValue = "false")
+    @Parameter(required = true, property = IGNORE_COPYRIGHT_ERRORS_PROPERTY, defaultValue = "false")
     private boolean ignoreCopyrightErrors;
 
     @Parameter(required = true, property = "skipCopyrightCheck", defaultValue = "false")
@@ -74,9 +75,11 @@ public class CheckCopyrightMojo extends CopyrightAbstractMojo {
 
             if (!ignoreCopyrightErrors) {
                 getLog().warn("Fix copyright date problems before proceeding, "
-                                + "or use '-DignoreCopyrightErrors=true' to ignore copyright errors.");
+                        + "or use '-D" + IGNORE_COPYRIGHT_ERRORS_PROPERTY + "=true' to ignore copyright errors.");
                 getLog().warn("You can use update-copyrights maven profile "
                         + "(mvn validate -Pupdate-copyrights) to automatically update copyrights.");
+                getLog().warn("Use '-D" + DIFF_REFERENCE_BRANCH_NAME_PROPERTY + "=branchname' to change the reference "
+                        + "branch which is used against your active local branch to check committed changes.");
                 throw new MojoExecutionException("Found files with potential copyright year updates needed");
             }
         } else {

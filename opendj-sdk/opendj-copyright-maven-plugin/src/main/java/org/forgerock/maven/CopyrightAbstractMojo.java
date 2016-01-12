@@ -69,6 +69,7 @@ import org.codehaus.plexus.util.cli.Commandline;
  * Abstract class which is used for both copyright checks and updates.
  */
 public abstract class CopyrightAbstractMojo extends AbstractMojo {
+    static final String DIFF_REFERENCE_BRANCH_NAME_PROPERTY = "checkCopyrightDiffReferenceBranchName";
 
     /** The Maven Project. */
     @Parameter(required = true, property = "project", readonly = true)
@@ -89,7 +90,7 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     private String scmRepositoryUrl;
 
     /** The Git master branch name of the repository. **/
-    @Parameter(required = true, defaultValue = "origin/master")
+    @Parameter(required = true, property = DIFF_REFERENCE_BRANCH_NAME_PROPERTY, defaultValue = "origin/master")
     private String gitMasterBranchName;
 
     /**
