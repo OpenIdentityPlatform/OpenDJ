@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
@@ -508,9 +509,12 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
-      final long[] selectedIDs = readRange(cursor, getEntryCount(txn), debugBuilder);
-      return newDefinedSet(selectedIDs);
+      if (cursor.next())
+      {
+        return newDefinedSet(readRange(cursor, getEntryCount(txn), debugBuilder));
+      }
     }
+    return null;
   }
 
   private int getEntryCount(final ReadableTransaction txn)
@@ -695,23 +699,24 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     }
   }
 
-  private long[] readRange(final Cursor<ByteString, ByteString> cursor, final int count,
+  private long[] readRange(final Cursor<ByteString, ByteString> definedCursor, final int count,
       final StringBuilder debugBuilder)
   {
+    Reject.ifFalse(definedCursor.isDefined(), "Expected a defined cursor");
     long[] selectedIDs = new long[count];
     int selectedPos = 0;
     if (count > 0)
     {
       do
       {
-        final ByteString key = cursor.getKey();
+        final ByteString key = definedCursor.getKey();
         if (logger.isTraceEnabled())
         {
           logSearchKeyResult(key);
         }
         selectedIDs[selectedPos++] = decodeEntryIDFromVLVKey(key);
       }
-      while (selectedPos < count && cursor.next());
+      while (selectedPos < count && definedCursor.next());
       if (selectedPos < count)
       {
         /*

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -78,7 +78,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class ControlsTestCase extends DirectoryServerTestCase
 {
-
   private static final String BACKEND_BASE_DN = "dc=pluggable-vlv,dc=com";
   private static final String BACKEND_NAME = "pluggable-vlv";
   private static final String VLV_FILTER = "(objectClass=person)";
@@ -404,6 +403,23 @@ public class ControlsTestCase extends DirectoryServerTestCase
     assertThat(responseControls).isNotEmpty();
     final VLVResponseControl vlvResponse = getVLVResponseControl(responseControls);
     assertThat(vlvResponse.getVLVResultCode()).isEqualTo(LDAPResultCode.OFFSET_RANGE_ERROR);
+  }
+
+  @Test
+  public void serverSideSortControlShouldUseVlvIndex() throws Exception
+  {
+    final SearchRequest request =
+        newSearchRequest(BACKEND_BASE_DN, SearchScope.WHOLE_SUBTREE, VLV_FILTER)
+        .addControl(new ServerSideSortRequestControl(mangleSortOrder(SORT_ORDER_1)));
+    final InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
+
+    assertThat(internalSearch.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+    assertThat(getDNs(internalSearch.getSearchEntries())).isEqualTo(getDNs(USERS_BY_SORT_ORDER_1));
+
+    final List<Control> responseControls = internalSearch.getResponseControls();
+    assertThat(responseControls).hasSize(1);
+    final ServerSideSortResponseControl sortResponse = getServerSideSortResponseControl(responseControls);
+    assertThat(sortResponse.getResultCode()).isEqualTo(LDAPResultCode.SUCCESS);
   }
 
   @DataProvider
