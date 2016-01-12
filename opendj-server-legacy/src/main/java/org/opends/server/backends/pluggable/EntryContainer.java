@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.backends.pluggable;
@@ -751,24 +751,7 @@ public class EntryContainer
           // Handle base-object search first.
           if (searchScope == SearchScope.BASE_OBJECT)
           {
-            final Entry baseEntry = fetchBaseEntry(txn, aBaseDN, searchScope);
-            if (!isManageDsaITOperation(searchOperation))
-            {
-              dn2uri.checkTargetForReferral(baseEntry, searchOperation.getScope());
-            }
-
-            if (searchOperation.getFilter().matchesEntry(baseEntry))
-            {
-              searchOperation.returnEntry(baseEntry, null);
-            }
-
-            if (pageRequest != null)
-            {
-              // Indicate no more pages.
-              Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
-              searchOperation.getResponseControls().add(control);
-            }
-
+            searchBaseObject(txn, searchOperation, pageRequest);
             return null;
           }
 
@@ -780,7 +763,7 @@ public class EntryContainer
             debugBuffer = new StringBuilder();
           }
 
-          EntryIDSet entryIDSet = null;
+          EntryIDSet candidateEntryIDs = null;
           boolean candidatesAreInScope = false;
           if (sortRequest != null)
           {
@@ -788,8 +771,8 @@ public class EntryContainer
             {
               try
               {
-                entryIDSet = vlvIndex.evaluate(txn, searchOperation, sortRequest, vlvRequest, debugBuffer);
-                if (entryIDSet != null)
+                candidateEntryIDs = vlvIndex.evaluate(txn, searchOperation, sortRequest, vlvRequest, debugBuffer);
+                if (candidateEntryIDs != null)
                 {
                   searchOperation.addResponseControl(newServerSideSortControl(SUCCESS));
                   candidatesAreInScope = true;
@@ -806,8 +789,8 @@ public class EntryContainer
           // Combining server-side sort with paged result controls
           // requires us to use an entryIDSet where the entryIDs are ordered
           // so further paging can restart where it previously stopped
-          long[] entryIDReorderedSet;
-          if (entryIDSet == null)
+          long[] reorderedCandidateEntryIDs;
+          if (candidateEntryIDs == null)
           {
             if (processSearchWithVirtualAttributeRule(searchOperation, true))
             {
@@ -819,17 +802,12 @@ public class EntryContainer
                 EntryContainer.this, txn, searchOperation, debugBuffer, rootContainer.getMonitorProvider());
 
             // Evaluate the filter against the attribute indexes.
-            entryIDSet = indexFilter.evaluate();
-
-            if (!isBelowFilterThreshold(entryIDSet))
+            candidateEntryIDs = indexFilter.evaluate();
+            if (!isBelowFilterThreshold(candidateEntryIDs))
             {
-              final int lookThroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
-              final int indexLimit =
-                  config.getIndexEntryLimit() == 0 ? CURSOR_ENTRY_LIMIT : config.getIndexEntryLimit();
-              final int idSetLimit = lookThroughLimit > 0 ? Math.min(indexLimit, lookThroughLimit) : indexLimit;
-
+              final int idSetLimit = getEntryIDSetLimit(searchOperation);
               final EntryIDSet scopeSet = getIDSetFromScope(txn, aBaseDN, searchScope, idSetLimit);
-              entryIDSet.retainAll(scopeSet);
+              candidateEntryIDs.retainAll(scopeSet);
               if (debugBuffer != null)
               {
                 debugBuffer.append(" scope=").append(searchScope);
@@ -850,11 +828,11 @@ public class EntryContainer
               try
               {
                 SortOrder sortOrder = sortRequest.getSortOrder();
-                entryIDReorderedSet = sort(txn, entryIDSet, searchOperation, sortOrder, vlvRequest);
+                reorderedCandidateEntryIDs = sort(txn, candidateEntryIDs, searchOperation, sortOrder, vlvRequest);
               }
               catch (DirectoryException de)
               {
-                entryIDReorderedSet = entryIDSet.toLongArray();
+                reorderedCandidateEntryIDs = candidateEntryIDs.toLongArray();
                 serverSideSortControlError(searchOperation, sortRequest, de);
               }
               try
@@ -882,12 +860,12 @@ public class EntryContainer
             }
             else
             {
-              entryIDReorderedSet = entryIDSet.toLongArray();
+              reorderedCandidateEntryIDs = candidateEntryIDs.toLongArray();
             }
           }
           else
           {
-            entryIDReorderedSet = entryIDSet.toLongArray();
+            reorderedCandidateEntryIDs = candidateEntryIDs.toLongArray();
           }
 
           // If requested, construct and return a fictitious entry containing
@@ -895,17 +873,17 @@ public class EntryContainer
           if (debugBuffer != null)
           {
             debugBuffer.append(" final=");
-            entryIDSet.toString(debugBuffer);
+            candidateEntryIDs.toString(debugBuffer);
 
             Entry debugEntry = buildDebugSearchIndexEntry(debugBuffer);
             searchOperation.returnEntry(debugEntry, null);
             return null;
           }
 
-          if (entryIDReorderedSet != null)
+          if (reorderedCandidateEntryIDs != null)
           {
             rootContainer.getMonitorProvider().incrementIndexedSearchCount();
-            searchIndexed(txn, entryIDReorderedSet, candidatesAreInScope, searchOperation, pageRequest);
+            searchIndexed(txn, reorderedCandidateEntryIDs, candidatesAreInScope, searchOperation, pageRequest);
           }
           else
           {
@@ -927,10 +905,8 @@ public class EntryContainer
 
             if (sortRequest != null)
             {
-              // FIXME -- Add support for sorting unindexed searches using indexes
-              // like DSEE currently does.
+              // FIXME OPENDJ-2628: Add support for sorting unindexed searches using indexes like DSEE currently does
               searchOperation.addResponseControl(newServerSideSortControl(UNWILLING_TO_PERFORM));
-
               if (sortRequest.isCritical())
               {
                 throw new DirectoryException(
@@ -941,6 +917,35 @@ public class EntryContainer
             searchNotIndexed(txn, searchOperation, pageRequest);
           }
           return null;
+        }
+
+        private int getEntryIDSetLimit(final SearchOperation searchOperation)
+        {
+          final int lookThroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
+          final int indexLimit = config.getIndexEntryLimit() == 0 ? CURSOR_ENTRY_LIMIT : config.getIndexEntryLimit();
+          return lookThroughLimit > 0 ? Math.min(indexLimit, lookThroughLimit) : indexLimit;
+        }
+
+        private void searchBaseObject(ReadableTransaction txn, SearchOperation searchOperation,
+            PagedResultsControl pageRequest) throws DirectoryException
+        {
+          final Entry baseEntry = fetchBaseEntry(txn, searchOperation.getBaseDN(), searchOperation.getScope());
+          if (!isManageDsaITOperation(searchOperation))
+          {
+            dn2uri.checkTargetForReferral(baseEntry, searchOperation.getScope());
+          }
+
+          if (searchOperation.getFilter().matchesEntry(baseEntry))
+          {
+            searchOperation.returnEntry(baseEntry, null);
+          }
+
+          if (pageRequest != null)
+          {
+            // Indicate no more pages.
+            Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
+            searchOperation.getResponseControls().add(control);
+          }
         }
 
         private void serverSideSortControlError(final SearchOperation searchOperation,

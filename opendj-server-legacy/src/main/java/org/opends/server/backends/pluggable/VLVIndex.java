@@ -517,6 +517,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return null;
   }
 
+  /** Returns the total number of entries (a.k.a records, a.k.a keys) indexed by this VLV index. */
   private int getEntryCount(final ReadableTransaction txn)
   {
     return (int) counter.getCount(txn, COUNT_KEY);
@@ -710,10 +711,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       do
       {
         final ByteString key = definedCursor.getKey();
-        if (logger.isTraceEnabled())
-        {
-          logSearchKeyResult(key);
-        }
+        logSearchKeyResult(key);
         selectedIDs[selectedPos++] = decodeEntryIDFromVLVKey(key);
       }
       while (selectedPos < count && definedCursor.next());
@@ -729,7 +727,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     if (debugBuilder != null)
     {
       debugBuilder.append("[COUNT:");
-      debugBuilder.append(selectedPos);
+      debugBuilder.append(selectedIDs.length);
       debugBuilder.append("]");
     }
     return selectedIDs;
@@ -743,12 +741,15 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   private void logSearchKeyResult(final ByteString key)
   {
-    final StringBuilder searchKeyHex = new StringBuilder();
-    byteArrayToHexPlusAscii(searchKeyHex, key.toByteArray(), 4);
-    final StringBuilder foundKeyHex = new StringBuilder();
-    byteArrayToHexPlusAscii(foundKeyHex, key.toByteArray(), 4);
-    logger.trace("Retrieved a sort values set in VLV vlvIndex %s\n" + "Search Key:%s\nFound Key:%s\n",
-        config.getName(), searchKeyHex, foundKeyHex);
+    if (logger.isTraceEnabled())
+    {
+      final StringBuilder searchKeyHex = new StringBuilder();
+      byteArrayToHexPlusAscii(searchKeyHex, key.toByteArray(), 4);
+      final StringBuilder foundKeyHex = new StringBuilder();
+      byteArrayToHexPlusAscii(foundKeyHex, key.toByteArray(), 4);
+      logger.trace("Retrieved a sort values set in VLV vlvIndex %s\n" + "Search Key:%s\nFound Key:%s\n",
+          config.getName(), searchKeyHex, foundKeyHex);
+    }
   }
 
   boolean verifyEntry(final ReadableTransaction txn, final EntryID entryID, final Entry entry)
