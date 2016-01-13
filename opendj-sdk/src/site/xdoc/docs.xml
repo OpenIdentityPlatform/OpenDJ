@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2015 ForgeRock AS.
+  !      Copyright 2011-2016 ForgeRock AS.
   !
 -->
 <document
@@ -37,8 +37,8 @@
    <p>This core documentation is <strong>in progress</strong> as part of
    the OpenDJ project.</p>
    <p>For completed, released documentation, see <a
-   href="http://docs.forgerock.org/en/opendj/"
-   >docs.forgerock.org</a>.</p>
+    href="https://backstage.forgerock.com/#!/docs/opendj"
+   >ForgeRock BackStage</a>.</p>
    <dl>
     <dt>Release Notes</dt>
     <dd>
@@ -90,6 +90,33 @@
 
     <dt>LDAP SDK Javadoc</dt>
     <dd><a href="./opendj-core/apidocs/index.html">HTML</a></dd>
+   </dl>
+  </section>
+
+  <section name="LDAP Toolkit 3">
+   <p>
+    A snapshot of the OpenDJ LDAP Toolkit 3 documentation
+    is available for reference.
+    This documentation corresponds to the 3.0.0 Maven release,
+    which is available through the ForgeRock Maven repository.
+   </p>
+
+   <p>
+    This documentation has been through the initial part of the review cycle,
+    but has not been through validation (QA) review.
+   </p>
+
+   <dl>
+    <dt>Release Notes</dt>
+    <dd><a href="http://opendj.forgerock.org/opendj-ldap-toolkit/3.0.0/doc/bootstrap/sdk-release-notes/"
+         >HTML (with link to PDF inside)</a></dd>
+
+    <dt>SDK Developer Guide, with Tools Reference</dt>
+    <dd><a href="http://opendj.forgerock.org/opendj-ldap-toolkit/3.0.0/doc/bootstrap/dev-guide/"
+         >HTML (with link to PDF inside)</a></dd>
+
+    <dt>Javadoc</dt>
+    <dd><a href="http://opendj.forgerock.org/opendj-ldap-toolkit/3.0.0/apidocs/">HTML</a></dd>
    </dl>
   </section>
  </body>

@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2015 ForgeRock AS.
+  !      Copyright 2011-2016 ForgeRock AS.
   !
 -->
 <project name="${project.name}"
@@ -79,8 +79,9 @@
   </menu>
 
   <menu name="Released Documentation" inherit="top">
-    <item name="OpenDJ 2.6.0" href="http://docs.forgerock.org/en/opendj/2.6.0/" />
-    <item name="OpenDJ 2.5.0-Xpress1" href="http://docs.forgerock.org/en/opendj/2.5.0-Xpress1/" />
+   <!--<item name="OpenDJ 3" href="https://backstage.forgerock.com/#!/docs/opendj/3" />-->
+   <item name="OpenDJ 2.6.0" href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0" />
+   <item name="OpenDJ 2.5.0-Xpress1 (EOSL)" href="https://backstage.forgerock.com/#!/docs/opendj/2.5.0-Xpress1" />
   </menu>
 
   <menu name="OpenDJ Server Docs" inherit="top">
