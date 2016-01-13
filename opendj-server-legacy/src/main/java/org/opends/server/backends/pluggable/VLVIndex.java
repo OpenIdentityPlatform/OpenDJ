@@ -28,6 +28,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.backends.pluggable.IndexFilter.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -507,11 +508,16 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   private EntryIDSet evaluateNonVLVRequest(final ReadableTransaction txn, final StringBuilder debugBuilder)
   {
-    try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
+    // prevents creating a very large long array holding all the entries stored in the VLV index (see readRange())
+    final int entryCount = getEntryCount(txn);
+    if (entryCount <= CURSOR_ENTRY_LIMIT)
     {
-      if (cursor.next())
+      try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
       {
-        return newDefinedSet(readRange(cursor, getEntryCount(txn), debugBuilder));
+        if (cursor.next())
+        {
+          return newDefinedSet(readRange(cursor, entryCount, debugBuilder));
+        }
       }
     }
     return null;
