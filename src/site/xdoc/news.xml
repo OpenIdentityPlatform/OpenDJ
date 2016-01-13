@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2015 ForgeRock AS.
+  !      Copyright 2011-2016 ForgeRock AS.
   !
 -->
 <document
@@ -37,7 +37,7 @@
    <p>July 04, 2013. OpenDJ 2.6.0 is now available! OpenDJ 2.6.0 is an important
    release of ForgeRock's directory services product, with many key fixes and
    new features. See the <a
-   href="http://docs.forgerock.org/en/opendj/2.6.0/release-notes/">Release
+   href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0/release-notes">Release
    Notes</a> for more. You can get the binaries from the ForgeRock <a
    href="https://download.forgerock.com/#/opendj">OpenDJ download page</a>.</p>
   </section>
@@ -57,7 +57,7 @@
    OpenDJ passwords, 30 additional new features and enhancements, and 150 bug
    fixes. Get OpenDJ 2.5.0 Xpress from the ForgeRock
    <a href="http://forgerock.org/opendj-archive.html">download page</a>. Be sure to
-   read the <a href="http://docs.forgerock.org/en/opendj/2.5.0-Xpress1/release-notes/index.html"
+   read the <a href="https://backstage.forgerock.com/#!/docs/opendj/2.5.0-Xpress1/release-notes"
    >Release Notes</a> for additional information.</p>
 
    <p>February 27, 2012. OpenDJ 2.4.5 is now available. OpenDJ 2.4.5 is an
