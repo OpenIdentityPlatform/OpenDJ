@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.tools;
 import static org.opends.messages.ToolMessages.*;
@@ -171,7 +171,7 @@ public class LDAPToolUtils
     if(valString.charAt(0) == ':')
     {
       controlValue =
-          ByteString.valueOfUtf8(valString.substring(1, valString.length()));
+          ByteString.valueOfBase64(valString.substring(1, valString.length()));
     } else if(valString.charAt(0) == '<')
     {
       // Read data from the file.
