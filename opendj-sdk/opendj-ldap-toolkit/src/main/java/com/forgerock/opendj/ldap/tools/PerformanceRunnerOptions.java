@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -37,7 +37,6 @@ class PerformanceRunnerOptions {
     private ConsoleApplication app;
 
     private boolean supportsRebind = true;
-    private boolean supportAsynchronousRequests = true;
     private boolean supportsMultipleThreadsPerConnection = true;
     private boolean supportsGeneratorArgument = true;
 
@@ -52,14 +51,6 @@ class PerformanceRunnerOptions {
 
     void setSupportsRebind(boolean supportsRebind) {
         this.supportsRebind = supportsRebind;
-    }
-
-    boolean supportsAsynchronousRequests() {
-        return supportAsynchronousRequests;
-    }
-
-    void setSupportsAsynchronousRequests(boolean supportAsynchronousRequests) {
-        this.supportAsynchronousRequests = supportAsynchronousRequests;
     }
 
     boolean supportsMultipleThreadsPerConnection() {

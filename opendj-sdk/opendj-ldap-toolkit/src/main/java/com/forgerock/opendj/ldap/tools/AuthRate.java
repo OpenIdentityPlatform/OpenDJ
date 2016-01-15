@@ -406,7 +406,6 @@ public final class AuthRate extends ConsoleApplication {
             setDefaultPerfToolProperties();
             PerformanceRunnerOptions options = new PerformanceRunnerOptions(argParser, this);
             options.setSupportsRebind(false);
-            options.setSupportsAsynchronousRequests(false);
             options.setSupportsMultipleThreadsPerConnection(false);
 
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);

@@ -157,25 +157,24 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 long startTimeNs = System.nanoTime();
                 promise = performOperation(connection, dataSources.get(), startTimeNs);
                 statsThread.incrementOperationCount();
-                if (!isAsync) {
-                    try {
-                        promise.getOrThrow();
-                    } catch (final InterruptedException e) {
-                        // Ignore and check stop requested
-                        continue;
-                    } catch (final LdapException e) {
-                        if (!stopRequested && e.getCause() instanceof IOException) {
-                            e.getCause().printStackTrace(app.getErrorStream());
-                            stopTool(true);
-                            break;
-                        }
-                        // Ignore. Handled by result handler
-                    } finally {
-                        if (this.connection == null) {
-                            connection.close();
-                        }
+                try {
+                    promise.getOrThrow();
+                } catch (final InterruptedException e) {
+                    // Ignore and check stop requested
+                    continue;
+                } catch (final LdapException e) {
+                    if (!stopRequested && e.getCause() instanceof IOException) {
+                        e.getCause().printStackTrace(app.getErrorStream());
+                        stopTool(true);
+                        break;
+                    }
+                    // Ignore. Handled by result handler
+                } finally {
+                    if (this.connection == null) {
+                        connection.close();
                     }
                 }
+
                 if (targetThroughput > 0) {
                     try {
                         if (sleepTimeMs > 1) {
@@ -241,7 +240,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private long warmUpDurationMs;
     /** Max duration time in ms, 0 for unlimited. **/
     private long maxDurationTimeMs;
-    private boolean isAsync;
     private boolean noRebind;
     private BindRequest bindRequest;
     private int statsIntervalMs;
@@ -253,7 +251,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private final IntegerArgument percentilesArgument;
     private final BooleanArgument keepConnectionsOpen;
     private final BooleanArgument noRebindArgument;
-    private final BooleanArgument asyncArgument;
     private final StringArgument arguments;
     protected final IntegerArgument maxIterationsArgument;
     protected final IntegerArgument warmUpArgument;
@@ -339,15 +336,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             argParser.addArgument(noRebindArgument);
         }
 
-        asyncArgument =
-                new BooleanArgument("asynchronous", 'A', "asynchronous", LocalizableMessage
-                        .raw("Use asynchronous mode and do not "
-                                + "wait for results before sending the next request"));
-        asyncArgument.setPropertyName("asynchronous");
-        if (options.supportsAsynchronousRequests()) {
-            argParser.addArgument(asyncArgument);
-        }
-
         arguments =
                 new StringArgument(
                         "argument",
@@ -402,17 +390,11 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         statsIntervalMs = statsIntervalArgument.getIntValue() * 1000;
         targetThroughput = targetThroughputArgument.getIntValue();
 
-        isAsync = asyncArgument.isPresent();
         noRebind = noRebindArgument.isPresent();
 
         if (!noRebindArgument.isPresent() && this.numThreads > 1) {
             throw new ArgumentException(ERR_TOOL_ARG_MUST_BE_USED_WHEN_ARG_CONDITION.get(
                 "--" + noRebindArgument.getLongIdentifier(), "--" + numThreadsArgument.getLongIdentifier(), "> 1"));
-        }
-
-        if (!noRebindArgument.isPresent() && asyncArgument.isPresent()) {
-            throw new ArgumentException(ERR_TOOL_ARG_NEEDED_WHEN_USING_ARG.get(
-                "--" + noRebindArgument.getLongIdentifier(), asyncArgument.getLongIdentifier()));
         }
 
         if (maxIterationsArgument.isPresent() && maxIterations <= 0) {
@@ -503,10 +485,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         for (final Thread t : workerThreads) {
             t.join();
         }
-    }
-
-    boolean isAsync() {
-        return isAsync;
     }
 
     double[] getPercentiles() {

@@ -69,7 +69,6 @@ class StatsThread extends Thread {
     private static final String AVERAGE_RESPONSE_TIME_MS = STAT_ID_PREFIX + "average_response_time";
     private static final String PERCENTILES = STAT_ID_PREFIX + "percentiles";
     private static final String ERROR_PER_SECOND = STAT_ID_PREFIX + "error_per_second";
-    private static final String REQUEST_PER_RESPONSE = STAT_ID_PREFIX + "request_per_response";
 
     public static final double MS_IN_S = TimeUnit.SECONDS.toMillis(1);
     public static final double NS_IN_MS = TimeUnit.MILLISECONDS.toNanos(1);
@@ -116,7 +115,7 @@ class StatsThread extends Thread {
         void printTitle() {
             final int throughputRawSpan = 2;
             final int responseTimeRawSpan = 2 + percentiles.length;
-            final int additionalStatsRawSpan = 1 + (performanceRunner.isAsync() ? 1 : 0) + additionalColumns.size();
+            final int additionalStatsRawSpan = 1 + additionalColumns.size();
 
             printer.printDashedLine();
             printer.printTitleSection("Throughput", throughputRawSpan);
@@ -146,10 +145,6 @@ class StatsThread extends Thread {
             // Additional stats
             columns.add(separatorColumn());
             columns.add(column(ERROR_PER_SECOND, "err/sec", STANDARD_WIDTH, 1));
-            if (performanceRunner.isAsync()) {
-                columns.add(separatorColumn());
-                columns.add(column(REQUEST_PER_RESPONSE, "req/res", 4, 1));
-            }
             additionalColumns = registerAdditionalColumns();
             if (!additionalColumns.isEmpty()) {
                 columns.addAll(additionalColumns);
@@ -183,9 +178,6 @@ class StatsThread extends Thread {
                         PERCENTILES + percentile, percentile + "% response time", 2));
             }
             columns.add(column(ERROR_PER_SECOND, "errors/second", 1));
-            if (performanceRunner.isAsync()) {
-                columns.add(column(REQUEST_PER_RESPONSE, "Requests/response", 1));
-            }
             columns.addAll(registerAdditionalColumns());
 
 
@@ -352,16 +344,6 @@ class StatsThread extends Thread {
                 return Ratio.of(errorCount.getLastIntervalCount(), durationMsCount.getLastIntervalCount() / MS_IN_S);
             }
         });
-
-        if (performanceRunner.isAsync()) {
-            registry.register(REQUEST_PER_RESPONSE, new RatioGauge() {
-                @Override
-                protected Ratio getRatio() {
-                    return Ratio.of(operationCount.getLastIntervalCount(),
-                            successCount.getLastIntervalCount() + errorCount.getLastIntervalCount());
-                }
-            });
-        }
         registry.register(PERCENTILES, responseTimes);
     }
 
