@@ -96,7 +96,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
@@ -718,7 +717,7 @@ public class EntryContainer
              * sortKeyResponseControl in the searchResultDone message, and not
              * send back any search result entries.
              */
-            searchOperation.addResponseControl(newServerSideSortControl(NO_SUCH_ATTRIBUTE));
+            addServerSideSortControl(searchOperation, NO_SUCH_ATTRIBUTE);
             searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
             return null;
           }
@@ -735,8 +734,7 @@ public class EntryContainer
           {
             if (pageRequest.getSize() == 0)
             {
-              Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
-              searchOperation.getResponseControls().add(control);
+              addPagedResultsControl(searchOperation, pageRequest, null);
               return null;
             }
             if (searchOperation.getSizeLimit() > 0 && pageRequest.getSize() >= searchOperation.getSizeLimit())
@@ -774,7 +772,7 @@ public class EntryContainer
                 candidateEntryIDs = vlvIndex.evaluate(txn, searchOperation, sortRequest, vlvRequest, debugBuffer);
                 if (candidateEntryIDs != null)
                 {
-                  searchOperation.addResponseControl(newServerSideSortControl(SUCCESS));
+                  addServerSideSortControl(searchOperation, SUCCESS);
                   candidatesAreInScope = true;
                   break;
                 }
@@ -839,7 +837,7 @@ public class EntryContainer
               {
                 if (sortRequest.containsSortKeys())
                 {
-                  searchOperation.addResponseControl(newServerSideSortControl(SUCCESS));
+                  addServerSideSortControl(searchOperation, SUCCESS);
                 }
                 else
                 {
@@ -850,7 +848,7 @@ public class EntryContainer
                    * include the sortKeyResponseControl in the searchResultDone
                    * message.
                    */
-                  searchOperation.addResponseControl(newServerSideSortControl(NO_SUCH_ATTRIBUTE));
+                  addServerSideSortControl(searchOperation, NO_SUCH_ATTRIBUTE);
                 }
               }
               catch (DirectoryException de)
@@ -906,7 +904,7 @@ public class EntryContainer
             if (sortRequest != null)
             {
               // FIXME OPENDJ-2628: Add support for sorting unindexed searches using indexes like DSEE currently does
-              searchOperation.addResponseControl(newServerSideSortControl(UNWILLING_TO_PERFORM));
+              addServerSideSortControl(searchOperation, UNWILLING_TO_PERFORM);
               if (sortRequest.isCritical())
               {
                 throw new DirectoryException(
@@ -940,28 +938,23 @@ public class EntryContainer
             searchOperation.returnEntry(baseEntry, null);
           }
 
-          if (pageRequest != null)
-          {
-            // Indicate no more pages.
-            Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
-            searchOperation.getResponseControls().add(control);
-          }
+          // Indicate no more pages.
+          addPagedResultsControl(searchOperation, pageRequest, null);
         }
 
         private void serverSideSortControlError(final SearchOperation searchOperation,
             ServerSideSortRequestControl sortRequest, DirectoryException de) throws DirectoryException
         {
-          searchOperation.addResponseControl(newServerSideSortControl(de.getResultCode().intValue()));
-
+          addServerSideSortControl(searchOperation, de.getResultCode().intValue());
           if (sortRequest.isCritical())
           {
             throw de;
           }
         }
 
-        private ServerSideSortResponseControl newServerSideSortControl(int resultCode)
+        private void addServerSideSortControl(SearchOperation searchOp, int resultCode)
         {
-          return new ServerSideSortResponseControl(resultCode, null);
+          searchOp.addResponseControl(new ServerSideSortResponseControl(resultCode, null));
         }
 
         private EntryIDSet getIDSetFromScope(final ReadableTransaction txn, DN aBaseDN, SearchScope searchScope,
@@ -1134,13 +1127,10 @@ public class EntryContainer
         searchOperation.returnEntry(baseEntry, null);
       }
 
-      if (!manageDsaIT
-          && !dn2uri.returnSearchReferences(txn, searchOperation)
-          && pageRequest != null)
+      if (!manageDsaIT && !dn2uri.returnSearchReferences(txn, searchOperation))
       {
         // Indicate no more pages.
-        Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
-        searchOperation.getResponseControls().add(control);
+        addPagedResultsControl(searchOperation, pageRequest, null);
       }
     }
 
@@ -1214,22 +1204,17 @@ public class EntryContainer
             if ((manageDsaIT || entry.getReferralURLs() == null)
                 && searchOperation.getFilter().matchesEntry(entry))
             {
-              if (pageRequest != null
-                  && searchOperation.getEntriesSent() == pageRequest.getSize())
+              if (isPageFull(searchOperation, pageRequest))
               {
-                // The current page is full.
                 // Set the cookie to remember where we were.
-                ByteString cookie = cursor.getKey();
-                Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
-                searchOperation.getResponseControls().add(control);
+                addPagedResultsControl(searchOperation, pageRequest, cursor.getKey());
                 return;
               }
 
               if (!searchOperation.returnEntry(entry, null))
               {
-                // We have been told to discontinue processing of the
-                // search. This could be due to size limit exceeded or
-                // operation cancelled.
+                // We have been told to discontinue processing of the search.
+                // This could be due to size limit exceeded or operation cancelled
                 return;
               }
             }
@@ -1247,11 +1232,20 @@ public class EntryContainer
       logger.traceException(e);
     }
 
+    // Indicate no more pages.
+    addPagedResultsControl(searchOperation, pageRequest, null);
+  }
+
+  private boolean isPageFull(SearchOperation searchOperation, PagedResultsControl pageRequest)
+  {
+    return pageRequest != null && searchOperation.getEntriesSent() == pageRequest.getSize();
+  }
+
+  private void addPagedResultsControl(SearchOperation searchOp, PagedResultsControl pageRequest, ByteString cookie)
+  {
     if (pageRequest != null)
     {
-      // Indicate no more pages.
-      Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
-      searchOperation.getResponseControls().add(control);
+      searchOp.addResponseControl(new PagedResultsControl(pageRequest.isCritical(), 0, cookie));
     }
   }
 
@@ -1373,22 +1367,17 @@ public class EntryContainer
               && (manageDsaIT || entry.getReferralURLs() == null)
               && filter.matchesEntry(entry))
           {
-            if (pageRequest != null
-                && searchOperation.getEntriesSent() == pageRequest.getSize())
+            if (isPageFull(searchOperation, pageRequest))
             {
-              // The current page is full.
               // Set the cookie to remember where we were.
-              ByteString cookie = entryID.toByteString();
-              Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
-              searchOperation.getResponseControls().add(control);
+              addPagedResultsControl(searchOperation, pageRequest, entryID.toByteString());
               return;
             }
 
             if (!searchOperation.returnEntry(entry, null))
             {
-              // We have been told to discontinue processing of the
-              // search. This could be due to size limit exceeded or
-              // operation cancelled.
+              // We have been told to discontinue processing of the search.
+              // This could be due to size limit exceeded or operation cancelled
               break;
             }
           }
@@ -1409,12 +1398,8 @@ public class EntryContainer
       }
     }
 
-    if (pageRequest != null)
-    {
-      // Indicate no more pages.
-      Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
-      searchOperation.getResponseControls().add(control);
-    }
+    // Indicate no more pages.
+    addPagedResultsControl(searchOperation, pageRequest, null);
   }
 
   private int findStartIndex(Long beginEntryID, long[] entryIDReorderedSet)
@@ -2705,7 +2690,7 @@ public class EntryContainer
       targetIndex = sortMap.size() + 1;
       result = new long[0];
     }
-    searchOperation.addResponseControl(new VLVResponseControl(targetIndex, sortMap.size(), LDAPResultCode.SUCCESS));
+    addVLVResponseControl(searchOperation, targetIndex, sortMap.size(), SUCCESS);
     return result;
   }
 
@@ -2715,10 +2700,8 @@ public class EntryContainer
     int targetOffset = vlvRequest.getOffset();
     if (targetOffset < 0)
     {
-      // The client specified a negative target offset. This
-      // should never be allowed.
-      searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(),
-          LDAPResultCode.OFFSET_RANGE_ERROR));
+      // The client specified a negative target offset. This should never be allowed.
+      addVLVResponseControl(searchOperation, targetOffset, sortMap.size(), OFFSET_RANGE_ERROR);
 
       LocalizableMessage message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
       throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR, message);
@@ -2773,8 +2756,14 @@ public class EntryContainer
       sortedIDs = Arrays.copyOf(sortedIDs, arrayPos);
     }
 
-    searchOperation.addResponseControl(new VLVResponseControl(targetOffset, sortMap.size(), LDAPResultCode.SUCCESS));
+    addVLVResponseControl(searchOperation, targetOffset, sortMap.size(), SUCCESS);
     return sortedIDs;
+  }
+
+  private static void addVLVResponseControl(SearchOperation searchOp, int targetPosition, int contentCount,
+      int vlvResultCode)
+  {
+    searchOp.addResponseControl(new VLVResponseControl(targetPosition, contentCount, vlvResultCode));
   }
 
   /** Get the exclusive lock. */

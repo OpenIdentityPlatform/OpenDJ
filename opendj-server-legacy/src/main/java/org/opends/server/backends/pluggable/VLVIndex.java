@@ -81,12 +81,14 @@ import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
 
 /**
- * This class represents a VLV index. Each record corresponds to a single entry matching
- * the VLV criteria. Keys are a sequence of the entry's normalized attribute values corresponding to
- * the VLV sort order, followed by the entry's entry ID. Records do not have a "value" since all
- * required information is held within the key. The entry ID is included in the key as a
- * "tie-breaker" and ensures that keys correspond to one and only one entry. This ensures that all
- * tree updates can be performed using lock-free operations.
+ * This class represents a VLV index.
+ * <p>
+ * Each record corresponds to a single entry matching the VLV criteria.
+ * Keys are a sequence of the entry's normalized attribute values corresponding to the VLV sort order,
+ * followed by the entry's entry ID.
+ * Records do not have a "value" since all required information is held within the key.
+ * The entry ID is included in the key as a "tie-breaker" and ensures that keys correspond to one and only one entry.
+ * This ensures that all tree updates can be performed using lock-free operations.
  */
 class VLVIndex extends AbstractTree implements ConfigurationChangeListener<BackendVLVIndexCfg>, Closeable
 {
@@ -364,8 +366,13 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     if (shouldInclude(entry))
     {
-      buffer.put(this, toKey(entry, entryID));
+      addEntry0(buffer, entryID, entry);
     }
+  }
+
+  private void addEntry0(final IndexBuffer buffer, final EntryID entryID, final Entry entry)
+  {
+    buffer.put(this, toKey(entry, entryID));
   }
 
   ByteString toKey(final Entry entry, final EntryID entryID)
@@ -394,20 +401,20 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
         if (isSortAttributeModified(mods))
         {
           // Sorted attributes have changed. Reindex the entry.
-          removeEntry(buffer, entryID, oldEntry);
-          addEntry(buffer, entryID, newEntry);
+          removeEntry0(buffer, entryID, oldEntry);
+          addEntry0(buffer, entryID, newEntry);
         }
       }
       else
       {
         // The modifications caused the new entry to be unindexed. Remove from vlvIndex.
-        removeEntry(buffer, entryID, oldEntry);
+        removeEntry0(buffer, entryID, oldEntry);
       }
     }
     else if (shouldInclude(newEntry))
     {
       // The modifications caused the new entry to be indexed. Add to vlvIndex
-      addEntry(buffer, entryID, newEntry);
+      addEntry0(buffer, entryID, newEntry);
     }
   }
 
@@ -434,8 +441,13 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   {
     if (shouldInclude(entry))
     {
-      buffer.remove(this, toKey(entry, entryID));
+      removeEntry0(buffer, entryID, entry);
     }
+  }
+
+  private void removeEntry0(final IndexBuffer buffer, final EntryID entryID, final Entry entry)
+  {
+    buffer.remove(this, toKey(entry, entryID));
   }
 
   void updateIndex(final WriteableTransaction txn, final TreeSet<ByteString> addedkeys,
@@ -516,6 +528,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       {
         if (cursor.next())
         {
+          // FIXME the array returned by readRange() is not ordered like a defined EntryIDSet expects
           return newDefinedSet(readRange(cursor, entryCount, debugBuilder));
         }
       }
@@ -595,9 +608,8 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
         // Treat a non-matching assertion as matching beyond the end of the index.
         targetPosition = currentCount;
       }
-      searchOperation.addResponseControl(new VLVResponseControl(targetPosition + 1, currentCount,
-          LDAPResultCode.SUCCESS));
-      return newDefinedSet(toPrimitiveLongArray(selectedIDs));
+      addVLVResponseControl(searchOperation, targetPosition + 1, currentCount, LDAPResultCode.SUCCESS);
+      return newDefinedSet(toPrimitiveLongArray(selectedIDs)); // FIXME not ordered like a defined EntryIDSet expects
     }
   }
 
@@ -632,7 +644,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     }
     catch (final DecodeException e)
     {
-      searchOperation.addResponseControl(new VLVResponseControl(0, resultSetSize, LDAPResultCode.OFFSET_RANGE_ERROR));
+      addVLVResponseControl(searchOperation, 0, resultSetSize, LDAPResultCode.OFFSET_RANGE_ERROR);
       final String attributeName = primarySortKey.getAttributeType().getNameOrOID();
       throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR, ERR_VLV_BAD_ASSERTION.get(attributeName));
     }
@@ -649,8 +661,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     if (targetOffset < 0)
     {
       // The client specified a negative target offset. This should never be allowed.
-      searchOperation.addResponseControl(new VLVResponseControl(targetOffset, currentCount,
-          LDAPResultCode.OFFSET_RANGE_ERROR));
+      addVLVResponseControl(searchOperation, targetOffset, currentCount, LDAPResultCode.OFFSET_RANGE_ERROR);
       final LocalizableMessage message = ERR_ENTRYIDSORTER_NEGATIVE_START_POS.get();
       throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR, message);
     }
@@ -689,10 +700,10 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       afterCount = 0;
     }
 
+    final long[] selectedIDs;
     final int count = 1 + beforeCount + afterCount;
     try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
-      final long[] selectedIDs;
       if (cursor.positionToIndex(startPos))
       {
         selectedIDs = readRange(cursor, count, debugBuilder);
@@ -701,9 +712,15 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       {
         selectedIDs = new long[0];
       }
-      searchOperation.addResponseControl(new VLVResponseControl(targetOffset, currentCount, LDAPResultCode.SUCCESS));
-      return newDefinedSet(selectedIDs);
     }
+    addVLVResponseControl(searchOperation, targetOffset, currentCount, LDAPResultCode.SUCCESS);
+    return newDefinedSet(selectedIDs); // FIXME not ordered like a defined EntryIDSet expects
+  }
+
+  private static void addVLVResponseControl(SearchOperation searchOp, int targetPosition, int contentCount,
+      int vlvResultCode)
+  {
+    searchOp.addResponseControl(new VLVResponseControl(targetPosition, contentCount, vlvResultCode));
   }
 
   private long[] readRange(final Cursor<ByteString, ByteString> definedCursor, final int count,
@@ -769,6 +786,11 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return false;
   }
 
+  private ByteString encodeVLVKey(final Entry entry, final long entryID)
+  {
+    return encodeVLVKey(sortOrder, entry, entryID);
+  }
+
   static ByteString encodeVLVKey(final SortOrder sortOrder, final Entry entry, final long entryID)
   {
     final ByteStringBuilder builder = new ByteStringBuilder();
@@ -777,46 +799,47 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return builder.toByteString();
   }
 
-  private ByteString encodeVLVKey(final Entry entry, final long entryID)
-  {
-    return encodeVLVKey(sortOrder, entry, entryID);
-  }
-
   private static void encodeVLVKey0(final SortOrder sortOrder, final Entry entry, final ByteStringBuilder builder)
   {
     for (final SortKey sortKey : sortOrder.getSortKeys())
     {
-      final AttributeType attributeType = sortKey.getAttributeType();
-      final MatchingRule matchingRule = sortKey.getEffectiveOrderingRule();
-      ByteString sortValue = null;
-      for (Attribute a : entry.getAttribute(attributeType))
-      {
-        for (ByteString v : a)
-        {
-          try
-          {
-            /*
-             * The RFC states that the lowest value of a multi-valued attribute should be used,
-             * regardless of the sort order.
-             */
-            final ByteString nv = matchingRule.normalizeAttributeValue(v);
-            if (sortValue == null || nv.compareTo(sortValue) < 0)
-            {
-              sortValue = nv;
-            }
-          }
-          catch (final DecodeException e)
-          {
-            /*
-             * This shouldn't happen because the attribute should have already been validated.
-             * If it does then treat the value as missing.
-             */
-            continue;
-          }
-        }
-      }
+      ByteString sortValue = getLowestAttributeValue(entry, sortKey);
       encodeVLVKeyValue(sortValue, builder, sortKey.ascending());
     }
+  }
+
+  /**
+   * The RFC states that the lowest value of a multi-valued attribute should be used,
+   * regardless of the sort order.
+   */
+  private static ByteString getLowestAttributeValue(final Entry entry, final SortKey sortKey)
+  {
+    final AttributeType attributeType = sortKey.getAttributeType();
+    final MatchingRule matchingRule = sortKey.getEffectiveOrderingRule();
+    ByteString sortValue = null;
+    for (Attribute a : entry.getAttribute(attributeType))
+    {
+      for (ByteString v : a)
+      {
+        try
+        {
+          final ByteString nv = matchingRule.normalizeAttributeValue(v);
+          if (sortValue == null || nv.compareTo(sortValue) < 0)
+          {
+            sortValue = nv;
+          }
+        }
+        catch (final DecodeException e)
+        {
+          /*
+           * This shouldn't happen because the attribute should have already been validated.
+           * If it does then treat the value as missing.
+           */
+          continue;
+        }
+      }
+    }
+    return sortValue;
   }
 
   /**
