@@ -32,6 +32,8 @@ import static org.opends.messages.SchemaMessages.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -41,15 +43,18 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.util.CollectionUtils;
 
 /**
@@ -82,24 +87,57 @@ public final class CollationMatchingRuleFactory extends
     return Collections.unmodifiableCollection(matchingRules.values());
   }
 
-  /**
-   * Adds a new mapping of OID and MatchingRule.
-   *
-   * @param oid
-   *          OID of the matching rule
-   * @param matchingRule
-   *          instance of a MatchingRule.
-   */
-  private void addMatchingRule(String oid, MatchingRule matchingRule)
-  {
-    matchingRules.put(oid, matchingRule);
-  }
-
   @Override
   public void initializeMatchingRule(CollationMatchingRuleCfg configuration)
       throws ConfigException, InitializationException
   {
-    final Schema coreSchema = CoreSchema.getInstance();
+    // The core schema contains all supported collation matching rules so read it for initialization.
+    // The server's schemaNG may have different things configured slightly differently
+    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+    Schema coreSchema = CoreSchema.getInstance();
+
+    // on startup, the SDK already has existing matching rules
+    // remove them all before letting the server set them all up
+    // according to what this factory decides must be setup
+    final Set<MatchingRule> defaultMatchingRules = getCollationMatchingRules(coreSchema.getMatchingRules());
+    unregisterMatchingRules(schema, defaultMatchingRules);
+    matchingRules.putAll(collectConfiguredMatchingRules(configuration, coreSchema));
+
+    // Save this configuration.
+    currentConfig = configuration;
+
+    // Register for change events.
+    currentConfig.addCollationChangeListener(this);
+  }
+
+  private void unregisterMatchingRules(org.opends.server.types.Schema schema,
+      final Collection<MatchingRule> matchingRules) throws ConfigException
+  {
+    try
+    {
+      schema.updateSchema(new SchemaUpdater()
+      {
+        @Override
+        public Schema update(SchemaBuilder builder)
+        {
+          for (final MatchingRule rule : matchingRules)
+          {
+            builder.removeMatchingRule(rule.getNameOrOID());
+          }
+          return builder.toSchema();
+        }
+      });
+    }
+    catch (DirectoryException e)
+    {
+      throw new ConfigException(e.getMessageObject(), e);
+    }
+  }
+
+  private Map<String, MatchingRule> collectConfiguredMatchingRules(CollationMatchingRuleCfg configuration,
+      Schema coreSchema)
+  {
+    final Map<String, MatchingRule> results = new HashMap<>();
     for (String collation : configuration.getCollation())
     {
       CollationMapper mapper = new CollationMapper(collation);
@@ -111,40 +149,39 @@ public final class CollationMatchingRuleFactory extends
         logger.error(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT, collation);
         continue;
       }
-
       Locale locale = getLocale(languageTag);
-      if (locale != null)
-      {
-        try
-        {
-          final int[] numericSuffixes = { 1, 2, 3, 4, 5, 6 };
-          for (int suffix : numericSuffixes)
-          {
-            final String oid =  nOID + "." + suffix;
-            addMatchingRule(oid, coreSchema.getMatchingRule(oid));
-          }
-          // the default (equality) matching rule
-          addMatchingRule(nOID, coreSchema.getMatchingRule(nOID));
-        }
-        catch (Exception e)
-        {
-          logger.error(LocalizableMessage.raw("Error when adding a collation matching rule with oid %s, tag %s: %s",
-              nOID, languageTag, e.getMessage()));
-        }
-      }
-      else
+      if (locale == null)
       {
         // This locale is not supported by JVM.
-        logger.error(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE,
-                collation, configuration.dn().toString(), languageTag);
+        logger.error(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE, collation, configuration.dn(), languageTag);
+        continue;
+      }
+
+      final int[] numericSuffixes = { 1, 2, 3, 4, 5, 6 };
+      for (int suffix : numericSuffixes)
+      {
+        final String oid = nOID + "." + suffix;
+        final MatchingRule matchingRule = coreSchema.getMatchingRule(oid);
+        results.put(oid, matchingRule);
+      }
+      // the default (equality) matching rule
+      final MatchingRule defaultEqualityMatchingRule = coreSchema.getMatchingRule(nOID);
+      results.put(nOID, defaultEqualityMatchingRule);
+    }
+    return results;
+  }
+
+  private Set<MatchingRule> getCollationMatchingRules(Collection<MatchingRule> matchingRules)
+  {
+    final Set<MatchingRule> results = new HashSet<>();
+    for (MatchingRule matchingRule : matchingRules)
+    {
+      if (matchingRule.getOID().startsWith("1.3.6.1.4.1.42.2.27.9.4."))
+      {
+        results.add(matchingRule);
       }
     }
-
-    // Save this configuration.
-    currentConfig = configuration;
-
-    // Register for change events.
-    currentConfig.addCollationChangeListener(this);
+    return results;
   }
 
   @Override
@@ -155,9 +192,9 @@ public final class CollationMatchingRuleFactory extends
   }
 
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      CollationMatchingRuleCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(final CollationMatchingRuleCfg configuration)
   {
+    // validation has already been performed in isConfigurationChangeAcceptable()
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     if (!configuration.isEnabled()
@@ -171,39 +208,64 @@ public final class CollationMatchingRuleFactory extends
       return ccr;
     }
 
-    // Since we have come here it means that this Factory is enabled and
-    // there is a change in the CollationMatchingRuleFactory's configuration.
-    // Deregister all the Matching Rule corresponding to this factory.
-    for (MatchingRule rule : getMatchingRules())
-    {
-      DirectoryServer.deregisterMatchingRule(rule);
-    }
+    // Since we have come here it means that this Factory is enabled
+    // and there is a change in the CollationMatchingRuleFactory's configuration.
+    final org.opends.server.types.Schema serverSchema = DirectoryServer.getSchema();
+    final Collection<MatchingRule> existingCollationRules = getCollationMatchingRules(serverSchema.getMatchingRules());
 
     matchingRules.clear();
+    final Map<String, MatchingRule> configuredMatchingRules =
+        collectConfiguredMatchingRules(configuration, CoreSchema.getInstance());
+    matchingRules.putAll(configuredMatchingRules);
 
-    final Schema schema = DirectoryServer.getSchema().getSchemaNG();
-    for (String collation : configuration.getCollation())
+    for (Iterator<MatchingRule> it = existingCollationRules.iterator(); it.hasNext();)
     {
-      // validation has already been performed in isConfigurationChangeAcceptable()
-      CollationMapper mapper = new CollationMapper(collation);
-      String nOID = mapper.getNumericOID();
-      addMatchingRule(nOID, schema.getMatchingRule(nOID));
-    }
-
-    try
-    {
-      for (MatchingRule matchingRule : getMatchingRules())
+      String oid = it.next().getOID();
+      if (configuredMatchingRules.remove(oid) != null)
       {
-        DirectoryServer.registerMatchingRule(matchingRule, false);
+        // no change
+        it.remove();
       }
     }
-    catch (DirectoryException de)
+    try
     {
-      LocalizableMessage message =
-          WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), de.getMessageObject());
-      ccr.setAdminActionRequired(true);
-      ccr.addMessage(message);
+      serverSchema.updateSchema(new SchemaUpdater()
+      {
+        @Override
+        public Schema update(SchemaBuilder builder)
+        {
+          Collection<MatchingRule> defaultMatchingRules = CoreSchema.getInstance().getMatchingRules();
+          for (MatchingRule rule : defaultMatchingRules)
+          {
+            if (configuredMatchingRules.containsKey(rule.getOID()))
+            {
+              try
+              {
+                // added
+                builder.buildMatchingRule(rule).addToSchema();
+              }
+              catch (ConflictingSchemaElementException e)
+              {
+                ccr.setAdminActionRequired(true);
+                ccr.addMessage(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), e.getMessageObject()));
+              }
+            }
+          }
+          for (MatchingRule ruleToRemove : existingCollationRules)
+          {
+            // removed
+            builder.removeMatchingRule(ruleToRemove.getOID());
+          }
+          return builder.toSchema();
+        }
+      });
     }
+    catch (DirectoryException e)
+    {
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+    }
+
     currentConfig = configuration;
     return ccr;
   }
@@ -234,18 +296,16 @@ public final class CollationMatchingRuleFactory extends
       if (nOID == null || languageTag == null)
       {
         configAcceptable = false;
-        LocalizableMessage msg = WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT.get(collation);
-        unacceptableReasons.add(msg);
+        unacceptableReasons.add(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT.get(collation));
         continue;
       }
 
       Locale locale = getLocale(languageTag);
       if (locale == null)
       {
-        LocalizableMessage msg = WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
-                collation, configuration.dn(), languageTag);
-        unacceptableReasons.add(msg);
         configAcceptable = false;
+        unacceptableReasons.add(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
+                collation, configuration.dn(), languageTag));
         continue;
       }
     }
