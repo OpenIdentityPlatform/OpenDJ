@@ -1825,20 +1825,14 @@ final class OnDiskMergeImporter
          */
         mmapBuffer.force();
         mmapBuffer = null;
-        try
-        {
-          return new FileRegionChunkCursor(channel.map(MapMode.READ_ONLY, startOffset, size));
-        }
-        catch (IOException e)
-        {
-          throw new StorageRuntimeException(e);
-        }
+        return new FileRegionChunkCursor(startOffset, size);
       }
 
       /** Cursor through the specific memory-mapped file's region. */
       private final class FileRegionChunkCursor implements MeteredCursor<ByteString, ByteString>
       {
-        private final ByteBuffer region;
+        private final long regionOffset;
+        private final long regionSize;
         private final InputStream asInputStream = new InputStream()
         {
           @Override
@@ -1847,16 +1841,19 @@ final class OnDiskMergeImporter
             return region.get() & 0xFF;
           }
         };
+        private ByteBuffer region;
         private ByteString key, value;
 
-        FileRegionChunkCursor(MappedByteBuffer data)
+        FileRegionChunkCursor(long regionOffset, long regionSize)
         {
-          this.region = data;
+          this.regionOffset = regionOffset;
+          this.regionSize = regionSize;
         }
 
         @Override
         public boolean next()
         {
+          ensureRegionIsMemoryMapped();
           if (!region.hasRemaining())
           {
             key = value = null;
@@ -1883,6 +1880,22 @@ final class OnDiskMergeImporter
           value = ByteString.wrap(keyValueData, keyLength, valueLength);
 
           return true;
+        }
+
+        private void ensureRegionIsMemoryMapped()
+        {
+          if (region == null)
+          {
+            // Because mmap() regions are a counted and limited resources, we create them lazily.
+            try
+            {
+              region = channel.map(MapMode.READ_ONLY, regionOffset, regionSize);
+            }
+            catch (IOException e)
+            {
+              throw new IllegalStateException(e);
+            }
+          }
         }
 
         @Override
@@ -1915,6 +1928,7 @@ final class OnDiskMergeImporter
         public void close()
         {
           key = value = null;
+          region = null;
         }
 
         @Override
@@ -1926,13 +1940,13 @@ final class OnDiskMergeImporter
         @Override
         public long getNbBytesRead()
         {
-          return region.position();
+          return region == null ? 0 : region.position();
         }
 
         @Override
         public long getNbBytesTotal()
         {
-          return region.limit();
+          return regionSize;
         }
       }
     }
