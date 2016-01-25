@@ -56,17 +56,17 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
         build();
 
     final ConfigurationHandler configHandler = new ConfigurationHandler(context);
-    configHandler.initialize();
+    configHandler.initializeWithPartialSchema();
     return configHandler;
   }
 
   @Test
-  public void testInitializeConfiguration() throws Exception
-  {
-    ConfigurationHandler configHandler = getConfigurationHandler();
+    public void testInitializeWithPartialSchemaConfiguration() throws Exception
+    {
+      ConfigurationHandler configHandler = getConfigurationHandler();
 
-    assertTrue(configHandler.hasEntry(DN_CONFIG));
-  }
+      assertTrue(configHandler.hasEntry(DN_CONFIG));
+    }
 
   @Test
   public void testGetEntry() throws Exception
@@ -327,6 +327,12 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
 
     assertTrue(configHandler.hasEntry(DN_CORE_SCHEMA));
     assertEquals(configHandler.getEntry(DN_CORE_SCHEMA).getAttribute("ds-cfg-enabled").firstValueAsString(), "false");
+  }
+
+  @Test
+  public void testChangeListenerIsDeletedWhenConfigEntryIsDeleted()
+  {
+    // TODO
   }
 
   @Test

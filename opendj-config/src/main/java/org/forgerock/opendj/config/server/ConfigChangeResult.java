@@ -12,16 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions copyright 2015 ForgeRock AS.
+ * Portions copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 
 /**
  * This class defines a data structure that can be used to hold information
@@ -81,6 +81,19 @@ public final class ConfigChangeResult {
     public void setResultCodeIfSuccess(ResultCode newResultCode) {
         if (getResultCode() == ResultCode.SUCCESS) {
             setResultCode(newResultCode);
+        }
+    }
+
+    /**
+     * Aggregates the results from the provided config change result.
+     *
+     * @param other
+     *          The config change result to aggregate
+     */
+    public void aggregate(ConfigChangeResult other) {
+        if (other.getResultCode() != ResultCode.SUCCESS) {
+            setResultCodeIfSuccess(other.getResultCode());
+            messages.addAll(other.getMessages());
         }
     }
 
@@ -156,16 +169,7 @@ public final class ConfigChangeResult {
         buffer.append(", adminActionRequired=");
         buffer.append(adminActionRequired);
         buffer.append(", messages={");
-
-        if (!messages.isEmpty()) {
-            final Iterator<LocalizableMessage> iterator = messages.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext()) {
-                buffer.append(",");
-                buffer.append(iterator.next());
-            }
-        }
-
+        Utils.joinAsString(buffer, ",", messages);
         buffer.append("})");
     }
 }
