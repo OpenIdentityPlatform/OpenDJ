@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
 
@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -352,7 +352,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     if (baseDNsArg.isPresent())
     {
-      LinkedList<String> baseDNs = baseDNsArg.getValues();
+      List<String> baseDNs = baseDNsArg.getValues();
       for (String dn : baseDNs)
       {
         if (!isDN(dn))
@@ -1081,45 +1081,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the server bind dn default value in the disable replication
-   * subcommand.
-   * @return the server bind dn default value in the enable replication
-   * subcommand.
-   */
-  public String getDefaultBindDnToDisable()
-  {
-    return getDefaultValue(secureArgsList.bindDnArg);
-  }
-
-  /**
-   * Returns the host name explicitly provided in the status replication
-   * subcommand.
-   * @return the host name explicitly provided in the status replication
-   * subcommand.
-   */
-  public String getHostNameToStatus()
-  {
-    return getValue(secureArgsList.hostNameArg);
-  }
-
-  /**
    * Returns the host name default value in the status replication subcommand.
    * @return the host name default value in the status replication subcommand.
    */
   public String getHostNameToStatusOrDefault()
   {
     return getValueOrDefault(secureArgsList.hostNameArg);
-  }
-
-  /**
-   * Returns the host name explicitly provided in the initialize all replication
-   * subcommand.
-   * @return the host name explicitly provided in the initialize all replication
-   * subcommand.
-   */
-  public String getHostNameToInitializeAll()
-  {
-    return getValue(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1131,50 +1098,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public String getHostNameToInitializeAllOrDefault()
   {
     return getValueOrDefault(secureArgsList.hostNameArg);
-  }
-
-  /**
-   * Returns the host name explicitly provided in the pre external
-   * initialization subcommand.
-   * @return the host name explicitly provided in the pre external
-   * initialization subcommand.
-   */
-  public String getHostNameToPreExternalInitialization()
-  {
-    return getValue(secureArgsList.hostNameArg);
-  }
-
-  /**
-   * Returns the host name default value in the pre external initialization
-   * subcommand.
-   * @return the host name default value in the pre external initialization
-   * subcommand.
-   */
-  public String getDefaultHostNameToPreExternalInitialization()
-  {
-    return getDefaultValue(secureArgsList.hostNameArg);
-  }
-
-  /**
-   * Returns the host name explicitly provided in the post external
-   * initialization subcommand.
-   * @return the host name explicitly provided in the post external
-   * initialization subcommand.
-   */
-  public String getHostNameToPostExternalInitialization()
-  {
-    return getValue(secureArgsList.hostNameArg);
-  }
-
-  /**
-   * Returns the host name default value in the post external initialization
-   * subcommand.
-   * @return the host name default value in the post external initialization
-   * subcommand.
-   */
-  public String getDefaultHostNameToPostExternalInitialization()
-  {
-    return getDefaultValue(secureArgsList.hostNameArg);
   }
 
   /**
@@ -1288,17 +1211,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the server port explicitly provided in the initialize all
-   * replication subcommand.
-   * @return the server port explicitly provided in the initialize all
-   * replication subcommand.  Returns -1 if no port was explicitly provided.
-   */
-  public int getPortToInitializeAll()
-  {
-    return getValue(secureArgsList.portArg);
-  }
-
-  /**
    * Returns the server port default value in the initialize all replication
    * subcommand.
    * @return the server port default value in the initialize all replication
@@ -1307,61 +1219,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public int getPortToInitializeAllOrDefault()
   {
     return getValueOrDefault(secureArgsList.portArg);
-  }
-
-  /**
-   * Returns the server port explicitly provided in the pre external
-   * initialization subcommand.
-   * @return the server port explicitly provided in the pre external
-   * initialization subcommand.  Returns -1 if no port was explicitly provided.
-   */
-  public int getPortToPreExternalInitialization()
-  {
-    return getValue(secureArgsList.portArg);
-  }
-
-  /**
-   * Returns the server port default value in the pre external initialization
-   * subcommand.
-   * @return the server port default value in the pre external initialization
-   * subcommand.
-   */
-  public int getDefaultPortToPreExternalInitialization()
-  {
-    return getDefaultValue(secureArgsList.portArg);
-  }
-
-  /**
-   * Returns the server port explicitly provided in the post external
-   * initialization subcommand.
-   * @return the server port explicitly provided in the post external
-   * initialization subcommand.  Returns -1 if no port was explicitly provided.
-   */
-  public int getPortToPostExternalInitialization()
-  {
-    return getValue(secureArgsList.portArg);
-  }
-
-  /**
-   * Returns the server port default value in the post external initialization
-   * subcommand.
-   * @return the server port default value in the post external initialization
-   * subcommand.
-   */
-  public int getDefaultPortToPostExternalInitialization()
-  {
-    return getDefaultValue(secureArgsList.portArg);
-  }
-
-  /**
-   * Returns the server port explicitly provided in the status replication
-   * subcommand.
-   * @return the server port explicitly provided in the status replication
-   * subcommand.  Returns -1 if no port was explicitly provided.
-   */
-  public int getPortToStatus()
-  {
-    return getValue(secureArgsList.portArg);
   }
 
   /**
@@ -1377,7 +1234,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Returns the list of base DNs provided by the user.
    * @return the list of base DNs provided by the user.
    */
-  public LinkedList<String> getBaseDNs()
+  public List<String> getBaseDNs()
   {
     return baseDNsArg.getValues();
   }

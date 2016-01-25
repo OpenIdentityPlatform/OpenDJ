@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -33,7 +33,6 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -208,25 +207,8 @@ public class TaskScheduleArgs
       }
     }
 
-    if (completionNotificationArg.isPresent()) {
-      LinkedList<String> addrs = completionNotificationArg.getValues();
-      for (String addr : addrs) {
-        if (!StaticUtils.isEmailAddress(addr)) {
-          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(
-                  addr, completionNotificationArg.getLongIdentifier()));
-        }
-      }
-    }
-
-    if (errorNotificationArg.isPresent()) {
-      LinkedList<String> addrs = errorNotificationArg.getValues();
-      for (String addr : addrs) {
-        if (!StaticUtils.isEmailAddress(addr)) {
-          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(
-                  addr, errorNotificationArg.getLongIdentifier()));
-        }
-      }
-    }
+    checkEmailArgument(completionNotificationArg);
+    checkEmailArgument(errorNotificationArg);
 
     if (failedDependencyActionArg.isPresent()) {
 
@@ -240,6 +222,16 @@ public class TaskScheduleArgs
           EnumSet.allOf(FailedDependencyAction.class);
         throw new ArgumentException(ERR_TASKTOOL_INVALID_FDA.get(fda,
             Utils.joinAsString(",", fdaValSet)));
+      }
+    }
+  }
+
+  private void checkEmailArgument(final StringArgument argument) throws ArgumentException {
+    if (argument.isPresent()) {
+      for (final String email : argument.getValues()) {
+        if (!StaticUtils.isEmailAddress(email)) {
+          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(email, argument.getLongIdentifier()));
+        }
       }
     }
   }

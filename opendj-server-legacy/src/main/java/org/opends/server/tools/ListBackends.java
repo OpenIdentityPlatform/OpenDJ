@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -377,15 +378,7 @@ public class ListBackends
     }
     else
     {
-      LinkedList<String> backendIDs;
-      if (backendID.isPresent())
-      {
-        backendIDs = backendID.getValues();
-      }
-      else
-      {
-        backendIDs = new LinkedList<>(backends.keySet());
-      }
+      List<String> backendIDs = backendID.isPresent() ? backendID.getValues() : new LinkedList<>(backends.keySet());
 
       // Figure out the length of the longest backend ID and base DN defined in
       // the server.  We'll use that information to try to align the output.

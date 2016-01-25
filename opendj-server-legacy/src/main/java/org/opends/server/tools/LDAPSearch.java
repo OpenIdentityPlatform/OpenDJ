@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -128,8 +128,8 @@ public class LDAPSearch
    * @throws  LDAPException  If the Directory Server returns an error response.
    */
   public int executeSearch(LDAPConnection connection, String baseDN,
-                           ArrayList<LDAPFilter> filters,
-                           LinkedHashSet<String> attributes,
+                           List<LDAPFilter> filters,
+                           Set<String> attributes,
                            LDAPSearchOptions searchOptions,
                            int wrapColumn )
          throws IOException, LDAPException
@@ -629,58 +629,57 @@ public class LDAPSearch
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPSearchOptions searchOptions = new LDAPSearchOptions();
     LDAPConnection connection = null;
-    ArrayList<LDAPFilter> filters = new ArrayList<>();
-    LinkedHashSet<String> attributes = new LinkedHashSet<>();
+    final List<LDAPFilter> filters = new ArrayList<>();
+    final Set<String> attributes = new LinkedHashSet<>();
 
-    BooleanArgument   continueOnError          = null;
-    BooleanArgument   countEntries             = null;
-    BooleanArgument   dontWrap                 = null;
-    BooleanArgument   noop                     = null;
-    BooleanArgument   reportAuthzID            = null;
-    BooleanArgument   saslExternal             = null;
-    BooleanArgument   showUsage                = null;
-    BooleanArgument   trustAll                 = null;
-    BooleanArgument   usePasswordPolicyControl = null;
-    BooleanArgument   useSSL                   = null;
-    BooleanArgument   startTLS                 = null;
-    BooleanArgument   typesOnly                = null;
-    BooleanArgument   verbose                  = null;
-    FileBasedArgument bindPasswordFile         = null;
-    FileBasedArgument keyStorePasswordFile     = null;
-    FileBasedArgument trustStorePasswordFile   = null;
-    IntegerArgument   port                     = null;
-    IntegerArgument   simplePageSize           = null;
-    IntegerArgument   sizeLimit                = null;
-    IntegerArgument   timeLimit                = null;
-    IntegerArgument   version                  = null;
-    StringArgument    assertionFilter          = null;
-    StringArgument    baseDN                   = null;
-    StringArgument    bindDN                   = null;
-    StringArgument    bindPassword             = null;
-    StringArgument    certNickname             = null;
-    StringArgument    controlStr               = null;
-    StringArgument    dereferencePolicy        = null;
-    StringArgument    encodingStr              = null;
-    StringArgument    filename                 = null;
-    StringArgument    hostName                 = null;
-    StringArgument    keyStorePath             = null;
-    StringArgument    keyStorePassword         = null;
-    StringArgument    matchedValuesFilter      = null;
-    StringArgument    proxyAuthzID             = null;
-    StringArgument    pSearchInfo              = null;
-    StringArgument    saslOptions              = null;
-    MultiChoiceArgument searchScope              = null;
-    StringArgument    sortOrder                = null;
-    StringArgument    trustStorePath           = null;
-    StringArgument    trustStorePassword       = null;
-    IntegerArgument   connectTimeout           = null;
-    StringArgument    vlvDescriptor            = null;
-    StringArgument    effectiveRightsUser      = null;
-    StringArgument    effectiveRightsAttrs     = null;
-    StringArgument    propertiesFileArgument   = null;
-    BooleanArgument   noPropertiesFileArgument = null;
-    BooleanArgument   subEntriesArgument       = null;
-
+    final BooleanArgument continueOnError;
+    final BooleanArgument countEntries;
+    final BooleanArgument dontWrap;
+    final BooleanArgument noop;
+    final BooleanArgument reportAuthzID;
+    final BooleanArgument saslExternal;
+    final BooleanArgument showUsage;
+    final BooleanArgument trustAll;
+    final BooleanArgument usePasswordPolicyControl;
+    final BooleanArgument useSSL;
+    final BooleanArgument startTLS;
+    final BooleanArgument typesOnly;
+    final BooleanArgument verbose;
+    final FileBasedArgument bindPasswordFile;
+    final FileBasedArgument keyStorePasswordFile;
+    final FileBasedArgument trustStorePasswordFile;
+    final IntegerArgument port;
+    final IntegerArgument simplePageSize;
+    final IntegerArgument sizeLimit;
+    final IntegerArgument timeLimit;
+    final IntegerArgument version;
+    final StringArgument assertionFilter;
+    final StringArgument baseDN;
+    final StringArgument bindDN;
+    final StringArgument bindPassword;
+    final StringArgument certNickname;
+    final StringArgument controlStr;
+    final StringArgument dereferencePolicy;
+    final StringArgument encodingStr;
+    final StringArgument filename;
+    final StringArgument hostName;
+    final StringArgument keyStorePath;
+    final StringArgument keyStorePassword;
+    final StringArgument matchedValuesFilter;
+    final StringArgument proxyAuthzID;
+    final StringArgument pSearchInfo;
+    final StringArgument saslOptions;
+    final MultiChoiceArgument searchScope;
+    final StringArgument sortOrder;
+    final StringArgument trustStorePath;
+    final StringArgument trustStorePassword;
+    final IntegerArgument connectTimeout;
+    final StringArgument vlvDescriptor;
+    final StringArgument effectiveRightsUser;
+    final StringArgument effectiveRightsAttrs;
+    final StringArgument propertiesFileArgument;
+    final BooleanArgument noPropertiesFileArgument;
+    final BooleanArgument subEntriesArgument ;
 
     // Create the command-line argument parser for use with this program.
     LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
@@ -1087,8 +1086,7 @@ public class LDAPSearch
       return 0;
     }
 
-    ArrayList<String> filterAndAttributeStrings =
-      argParser.getTrailingArguments();
+    final List<String> filterAndAttributeStrings = argParser.getTrailingArguments();
     if(!filterAndAttributeStrings.isEmpty())
     {
       // the list of trailing arguments should be structured as follow:
@@ -1407,8 +1405,8 @@ public class LDAPSearch
 
     if (matchedValuesFilter.isPresent())
     {
-      LinkedList<String> mvFilterStrings = matchedValuesFilter.getValues();
-      ArrayList<MatchedValuesFilter> mvFilters = new ArrayList<>();
+      List<String> mvFilterStrings = matchedValuesFilter.getValues();
+      List<MatchedValuesFilter> mvFilters = new ArrayList<>();
       for (String s : mvFilterStrings)
       {
         try
@@ -1505,7 +1503,7 @@ public class LDAPSearch
     connectionOptions.setSASLExternal(saslExternal.isPresent());
     if(saslOptions.isPresent())
     {
-      LinkedList<String> values = saslOptions.getValues();
+      List<String> values = saslOptions.getValues();
       for(String saslOption : values)
       {
         if(saslOption.startsWith("mech="))

@@ -2003,7 +2003,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       uData.setMaximumDuration(maximumDuration);
 
-      LinkedList<String> suffixes = argParser.getBaseDNs();
+      List<String> suffixes = argParser.getBaseDNs();
       if (uData.isOnline())
       {
         checkSuffixesForPurgeHistorical(suffixes, ctx, true);
@@ -2724,7 +2724,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      LinkedList<String> suffixes = argParser.getBaseDNs();
+      List<String> suffixes = argParser.getBaseDNs();
       checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, true, uData);
       cancelled = suffixes.isEmpty();
 
@@ -2878,7 +2878,7 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setDisableReplicationServer(disableReplicationServer);
     if (!cancelled && !disableAll)
     {
-      LinkedList<String> suffixes = argParser.getBaseDNs();
+      List<String> suffixes = argParser.getBaseDNs();
       checkSuffixesForDisableReplication(suffixes, ctx, true, !disableReplicationServer);
       cancelled = suffixes.isEmpty() && !disableReplicationServer;
 
@@ -2967,7 +2967,7 @@ public class ReplicationCliMain extends ConsoleApplication
         return false;
       }
 
-      LinkedList<String> suffixes = argParser.getBaseDNs();
+      List<String> suffixes = argParser.getBaseDNs();
       checkSuffixesForInitializeReplication(suffixes, ctx, true);
       if (suffixes.isEmpty())
       {
@@ -3032,7 +3032,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         return false;
       }
-      LinkedList<String> suffixes = argParser.getBaseDNs();
+      List<String> suffixes = argParser.getBaseDNs();
       checkSuffixesForInitializeReplication(suffixes, ctx, true);
       uData.setBaseDNs(suffixes);
       return !suffixes.isEmpty();
@@ -3287,7 +3287,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      LinkedList<String> suffixes = argParser.getBaseDNs();
+      List<String> suffixes = argParser.getBaseDNs();
       cancelled = serversOperations.continueAfterUserInput(suffixes, ctxSource, ctxDestination, true);
       uData.setBaseDNs(suffixes);
     }
@@ -4586,7 +4586,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
       }
 
-      LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
+      List<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedReplicatedSuffixes = new TreeSet<>();
 
       for (String s1 : userProvidedSuffixes)
@@ -4688,7 +4688,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
       }
-      LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
+      List<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes = new TreeSet<>();
       for (String s1 : userProvidedSuffixes)
       {
@@ -4840,7 +4840,7 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln(
             ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
       }
-      LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
+      List<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes = new TreeSet<>();
       for (String s1 : userProvidedSuffixes)
       {

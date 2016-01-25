@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011 profiq s.r.o.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -422,7 +422,7 @@ public class InstallDS extends ConsoleApplication
   {
     if (!isInteractive())
     {
-      initializeUserDataWithParser(uData);
+      initializeNonInteractiveUserDataWithParser(uData);
       return InstallReturnCode.SUCCESSFUL;
     }
 
@@ -440,7 +440,7 @@ public class InstallDS extends ConsoleApplication
 
       boolean promptAgain = true;
       printSummary(uData);
-      while (isInteractive() && promptAgain)
+      while (promptAgain)
       {
         promptAgain = false;
         final ConfirmCode confirm = askForConfirmation();
@@ -682,7 +682,7 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException
    *           if something went wrong checking the data.
    */
-  private void initializeUserDataWithParser(UserData uData) throws UserDataException
+  private void initializeNonInteractiveUserDataWithParser(UserData uData) throws UserDataException
   {
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());

@@ -31,6 +31,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.ArrayList;
 import java.io.IOException;
+import java.util.List;
 
 import org.forgerock.opendj.io.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -122,7 +123,7 @@ public class MatchedValuesControl
 
 
   /** The set of matched values filters for this control. */
-  private final ArrayList<MatchedValuesFilter> filters;
+  private final List<MatchedValuesFilter> filters;
 
 
 
@@ -136,7 +137,7 @@ public class MatchedValuesControl
    *                     return.
    */
   public MatchedValuesControl(boolean isCritical,
-                              ArrayList<MatchedValuesFilter> filters)
+                              List<MatchedValuesFilter> filters)
   {
     super(OID_MATCHED_VALUES, isCritical);
 
@@ -173,7 +174,7 @@ public class MatchedValuesControl
    *
    * @return  The set of filters associated with this matched values control.
    */
-  public ArrayList<MatchedValuesFilter> getFilters()
+  public List<MatchedValuesFilter> getFilters()
   {
     return filters;
   }

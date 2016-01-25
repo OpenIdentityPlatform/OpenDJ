@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2012 profiq, s.r.o.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -558,40 +558,40 @@ public class LDAPModify
     LDAPModifyOptions modifyOptions = new LDAPModifyOptions();
     LDAPConnection connection = null;
 
-    BooleanArgument   continueOnError        = null;
-    BooleanArgument   defaultAdd             = null;
-    BooleanArgument   noop                   = null;
-    BooleanArgument   reportAuthzID          = null;
-    BooleanArgument   saslExternal           = null;
-    BooleanArgument   showUsage              = null;
-    BooleanArgument   startTLS               = null;
-    BooleanArgument   trustAll               = null;
-    BooleanArgument   useSSL                 = null;
-    BooleanArgument   verbose                = null;
-    FileBasedArgument bindPasswordFile       = null;
-    FileBasedArgument keyStorePasswordFile   = null;
-    FileBasedArgument trustStorePasswordFile = null;
-    IntegerArgument   connectTimeout         = null;
-    IntegerArgument   port                   = null;
-    IntegerArgument   version                = null;
-    StringArgument    assertionFilter        = null;
-    StringArgument    bindDN                 = null;
-    StringArgument    bindPassword           = null;
-    StringArgument    certNickname           = null;
-    StringArgument    controlStr             = null;
-    StringArgument    encodingStr            = null;
-    StringArgument    filename               = null;
-    StringArgument    hostName               = null;
-    StringArgument    keyStorePath           = null;
-    StringArgument    keyStorePassword       = null;
-    StringArgument    postReadAttributes     = null;
-    StringArgument    preReadAttributes      = null;
-    StringArgument    proxyAuthzID           = null;
-    StringArgument    saslOptions            = null;
-    StringArgument    trustStorePath         = null;
-    StringArgument    trustStorePassword     = null;
-    StringArgument    propertiesFileArgument   = null;
-    BooleanArgument   noPropertiesFileArgument = null;
+    final BooleanArgument continueOnError;
+    final BooleanArgument defaultAdd;
+    final BooleanArgument noop;
+    final BooleanArgument reportAuthzID;
+    final BooleanArgument saslExternal;
+    final BooleanArgument showUsage;
+    final BooleanArgument startTLS;
+    final BooleanArgument trustAll;
+    final BooleanArgument useSSL;
+    final BooleanArgument verbose;
+    final FileBasedArgument bindPasswordFile;
+    final FileBasedArgument keyStorePasswordFile;
+    final FileBasedArgument trustStorePasswordFile;
+    final IntegerArgument connectTimeout;
+    final IntegerArgument port;
+    final IntegerArgument version;
+    final StringArgument assertionFilter;
+    final StringArgument bindDN;
+    final StringArgument bindPassword;
+    final StringArgument certNickname;
+    final StringArgument controlStr;
+    final StringArgument encodingStr;
+    final StringArgument filename;
+    final StringArgument hostName;
+    final StringArgument keyStorePath;
+    final StringArgument keyStorePassword;
+    final StringArgument postReadAttributes;
+    final StringArgument preReadAttributes;
+    final StringArgument proxyAuthzID;
+    final StringArgument saslOptions;
+    final StringArgument trustStorePath;
+    final StringArgument trustStorePassword;
+    final StringArgument propertiesFileArgument;
+    final BooleanArgument noPropertiesFileArgument;
 
     // Create the command-line argument parser for use with this program.
     LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();

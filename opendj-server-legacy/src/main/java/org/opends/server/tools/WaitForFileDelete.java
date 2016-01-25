@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -166,13 +166,12 @@ public class WaitForFileDelete extends ConsoleApplication
   private int mainWait(String[] args)
   {
     // Create all of the command-line arguments for this program.
-    BooleanArgument showUsage      = null;
-    IntegerArgument timeout        = null;
-    StringArgument  logFilePath    = null;
-    StringArgument  targetFilePath = null;
-    StringArgument  outputFilePath = null;
-    BooleanArgument useLastKnownGoodConfig = null;
-    BooleanArgument quietMode              = null;
+    final BooleanArgument showUsage;
+    final IntegerArgument timeout;
+    final StringArgument logFilePath;
+    final StringArgument targetFilePath;
+    final StringArgument outputFilePath;
+    final BooleanArgument quietMode;
 
     LocalizableMessage toolDescription = INFO_WAIT4DEL_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
@@ -218,8 +217,7 @@ public class WaitForFileDelete extends ConsoleApplication
                                INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get());
       argParser.addArgument(useLastKnownGoodConfig);
 
-      // Not used in this class, but required by the start-ds script
-      // (see issue #3814)
+      // Not used in this class, but required by the start-ds script (see issue #3814)
       quietMode = CommonArguments.getQuiet();
       argParser.addArgument(quietMode);
 

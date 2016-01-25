@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -271,8 +271,7 @@ public class TaskScheduleUserData
     }
   }
 
-  private static StringArgument getArgument(
-      StringArgument argToClone, Collection<?> values)
+  private static StringArgument getArgument(StringArgument argToClone, Collection<?> values)
   {
     StringArgument arg;
     try

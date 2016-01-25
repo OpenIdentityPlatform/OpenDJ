@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -42,6 +42,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -124,7 +125,7 @@ public class LDAPCompare
    * @throws  LDAPException  If the server returns an error response.
    */
   public int readAndExecute(LDAPConnection connection, String attributeType,
-                             byte[] attributeVal, ArrayList<String> lines,
+                             byte[] attributeVal, List<String> lines,
                              LDAPCompareOptions compareOptions)
          throws IOException, LDAPException
   {
@@ -359,41 +360,41 @@ public class LDAPCompare
     LDAPCompareOptions compareOptions = new LDAPCompareOptions();
     LDAPConnection connection = null;
 
-    BooleanArgument   continueOnError        = null;
-    BooleanArgument   noop                   = null;
-    BooleanArgument   saslExternal           = null;
-    BooleanArgument   showUsage              = null;
-    BooleanArgument   useCompareResultCode   = null;
-    BooleanArgument   startTLS               = null;
-    BooleanArgument   trustAll               = null;
-    BooleanArgument   useSSL                 = null;
-    BooleanArgument   verbose                = null;
-    FileBasedArgument bindPasswordFile       = null;
-    FileBasedArgument keyStorePasswordFile   = null;
-    FileBasedArgument trustStorePasswordFile = null;
-    IntegerArgument   port                   = null;
-    IntegerArgument   version                = null;
-    StringArgument    assertionFilter        = null;
-    StringArgument    bindDN                 = null;
-    StringArgument    bindPassword           = null;
-    StringArgument    certNickname           = null;
-    StringArgument    controlStr             = null;
-    StringArgument    encodingStr            = null;
-    StringArgument    filename               = null;
-    StringArgument    hostName               = null;
-    StringArgument    keyStorePath           = null;
-    StringArgument    keyStorePassword       = null;
-    StringArgument    saslOptions            = null;
-    StringArgument    trustStorePath         = null;
-    StringArgument    trustStorePassword     = null;
-    IntegerArgument   connectTimeout         = null;
-    BooleanArgument   scriptFriendlyArgument = null;
-    StringArgument    propertiesFileArgument = null;
-    BooleanArgument   noPropertiesFileArgument = null;
+    final BooleanArgument continueOnError;
+    final BooleanArgument noop;
+    final BooleanArgument saslExternal;
+    final BooleanArgument showUsage;
+    final BooleanArgument useCompareResultCode;
+    final BooleanArgument startTLS;
+    final BooleanArgument trustAll;
+    final BooleanArgument useSSL;
+    final BooleanArgument verbose;
+    final FileBasedArgument bindPasswordFile;
+    final FileBasedArgument keyStorePasswordFile;
+    final FileBasedArgument trustStorePasswordFile;
+    final IntegerArgument port;
+    final IntegerArgument version;
+    final StringArgument assertionFilter;
+    final StringArgument bindDN;
+    final StringArgument bindPassword;
+    final StringArgument certNickname;
+    final StringArgument controlStr;
+    final StringArgument encodingStr;
+    final StringArgument filename;
+    final StringArgument hostName;
+    final StringArgument keyStorePath;
+    final StringArgument keyStorePassword;
+    final StringArgument saslOptions;
+    final StringArgument trustStorePath;
+    final StringArgument trustStorePassword;
+    final IntegerArgument connectTimeout;
+    final StringArgument propertiesFileArgument;
+    final BooleanArgument noPropertiesFileArgument;
+    BooleanArgument scriptFriendlyArgument = null;
 
-    ArrayList<String> dnStrings = new ArrayList<> ();
-    String attributeType = null;
-    byte[] attributeVal = null;
+    final List<String> dnStrings = new ArrayList<> ();
+    final String attributeType;
+    final byte[] attributeVal;
     Reader rdr = null;
 
     // Create the command-line argument parser for use with this program.
