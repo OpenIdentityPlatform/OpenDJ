@@ -17,14 +17,14 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.ServerContextBuilder;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.admin.std.server.CountryStringAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
+import org.forgerock.opendj.server.config.server.CountryStringAttributeSyntaxCfg;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

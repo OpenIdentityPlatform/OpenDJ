@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.std.server.VirtualStaticGroupImplementationCfg;
+import org.forgerock.opendj.server.config.server.VirtualStaticGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;

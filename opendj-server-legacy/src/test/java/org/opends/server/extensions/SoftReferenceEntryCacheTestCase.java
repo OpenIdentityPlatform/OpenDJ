@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -20,10 +20,10 @@ package org.opends.server.extensions;
 
 import java.util.ArrayList;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
-import org.opends.server.admin.std.meta.*;
-import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
+import org.forgerock.opendj.server.config.meta.*;
+import org.forgerock.opendj.server.config.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;

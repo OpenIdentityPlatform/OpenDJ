@@ -15,9 +15,9 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.BcryptPasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.BcryptPasswordStorageSchemeCfg;
+import org.forgerock.opendj.server.config.meta.BcryptPasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.BcryptPasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

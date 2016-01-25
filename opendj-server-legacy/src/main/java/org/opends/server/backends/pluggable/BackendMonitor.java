@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;

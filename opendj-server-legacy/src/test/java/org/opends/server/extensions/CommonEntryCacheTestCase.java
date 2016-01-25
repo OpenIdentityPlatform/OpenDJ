@@ -21,7 +21,7 @@ import static org.testng.Assert.*;
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;

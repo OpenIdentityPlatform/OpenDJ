@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
+import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DirectoryServer;

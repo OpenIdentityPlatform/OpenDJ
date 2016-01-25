@@ -22,11 +22,11 @@ import java.util.TreeSet;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
-import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
-import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
+import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 
 /**
  * This class implement a configuration object for the MultimasterDomain

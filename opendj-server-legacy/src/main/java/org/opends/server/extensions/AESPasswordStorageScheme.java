@@ -12,14 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.AESPasswordStorageSchemeCfg;
+import org.forgerock.opendj.server.config.server.AESPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

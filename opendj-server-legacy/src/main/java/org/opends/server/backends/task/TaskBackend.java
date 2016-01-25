@@ -44,11 +44,10 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.TaskBackendCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -159,9 +158,9 @@ public class TaskBackend
     final DN[] baseDNs = new DN[cfg.getBaseDN().size()];
     cfg.getBaseDN().toArray(baseDNs);
 
-    ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+    Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
-    configEntryDN = configEntry.getDN();
+    configEntryDN = configEntry.getName();
 
 
     // Make sure that the provided set of base DNs contains exactly one value.

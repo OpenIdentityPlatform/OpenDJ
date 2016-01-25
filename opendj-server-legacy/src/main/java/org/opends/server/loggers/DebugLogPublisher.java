@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.DebugLogPublisherCfg;
 
 /**
  * This class defines the set of methods and structures that must be

@@ -31,14 +31,13 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.AttributeSyntaxCfgDefn;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.AttributeSyntaxCfgDefn;
+import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
@@ -96,11 +95,7 @@ public class AttributeSyntaxConfigManager
   public void initializeAttributeSyntaxes()
          throws ConfigException, InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
 
     // Register as an add and delete listener with the root configuration so we
@@ -212,8 +207,7 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        ccr.addMessage(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
-                configuration.dn(), de.getMessageObject()));
+        ccr.addMessage(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(configuration.dn(), de.getMessageObject()));
         ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
     }
@@ -403,8 +397,7 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        ccr.addMessage(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
-                configuration.dn(), de.getMessageObject()));
+        ccr.addMessage(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(configuration.dn(), de.getMessageObject()));
         ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
     }

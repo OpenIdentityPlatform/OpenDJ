@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  * Portions Copyright 2014 Emidio Stani & Andrea Stani
  */
 package org.opends.server.extensions;
@@ -29,7 +29,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.PKCS5S2PasswordStorageSchemeCfg;
+import org.forgerock.opendj.server.config.server.PKCS5S2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;

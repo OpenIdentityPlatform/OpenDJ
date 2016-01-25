@@ -28,14 +28,13 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.server.FractionalLDIFImportPluginCfg;
+import org.forgerock.opendj.server.config.server.PluginCfg;
+import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
+import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.FractionalLDIFImportPluginCfg;
-import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.admin.std.server.ReplicationDomainCfg;
-import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
@@ -169,13 +168,8 @@ public final class FractionalLDIFImportPlugin
    * (not a replicated domain).
    */
   private static FractionalConfig getStaticReplicationDomainFractionalConfig(
-    Entry entry) throws Exception {
-
-    // Retrieve the configuration
-    ServerManagementContext context = ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
-
-
+        Entry entry) throws Exception {
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     ReplicationSynchronizationProviderCfg sync =
       (ReplicationSynchronizationProviderCfg)
       root.getSynchronizationProvider("Multimaster Synchronization");

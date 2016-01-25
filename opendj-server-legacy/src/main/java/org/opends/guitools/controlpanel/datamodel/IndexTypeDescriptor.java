@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 
 /**

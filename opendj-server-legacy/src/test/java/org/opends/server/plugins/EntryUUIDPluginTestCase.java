@@ -26,9 +26,9 @@ import java.util.UUID;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.EntryUUIDPluginCfgDefn;
-import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.EntryUUIDPluginCfgDefn;
+import org.forgerock.opendj.server.config.server.EntryUUIDPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;

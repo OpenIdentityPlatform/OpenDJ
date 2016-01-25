@@ -25,14 +25,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.ExtendedOperationHandlerCfgDefn;
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.ExtendedOperationHandlerCfgDefn;
+import org.forgerock.opendj.server.config.server.ExtendedOperationHandlerCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
@@ -89,8 +88,8 @@ public class ExtendedOperationConfigManager implements
   {
     // Create an internal server management context and retrieve
     // the root configuration which has the extended operation handler relation.
-    ServerManagementContext context = ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
+
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Register add and delete listeners.
     root.addExtendedOperationHandlerAddListener(this);

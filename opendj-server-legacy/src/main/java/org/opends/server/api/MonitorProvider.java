@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;

@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.admin.std.server.GroupImplementationCfg;
+import org.forgerock.opendj.server.config.server.GroupImplementationCfg;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;

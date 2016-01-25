@@ -25,10 +25,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.RandomPasswordGeneratorCfgDefn;
-import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
-import org.opends.server.config.ConfigEntry;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.RandomPasswordGeneratorCfgDefn;
+import org.forgerock.opendj.server.config.server.RandomPasswordGeneratorCfg;
+import org.opends.server.types.Entry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
@@ -70,13 +70,13 @@ public class RandomPasswordGeneratorTestCase
   {
     DN dn = DN.valueOf("cn=Random Password Generator,cn=Password Generators," +
                       "cn=config");
-    ConfigEntry configEntry = DirectoryServer.getConfigEntry(dn);
+    Entry configEntry = DirectoryServer.getConfigEntry(dn);
     assertNotNull(configEntry);
 
     RandomPasswordGeneratorCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           RandomPasswordGeneratorCfgDefn.getInstance(),
-           configEntry.getEntry());
+           configEntry);
 
     RandomPasswordGenerator generator = new RandomPasswordGenerator();
     generator.initializePasswordGenerator(configuration);

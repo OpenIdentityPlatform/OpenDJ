@@ -17,8 +17,8 @@
 package org.opends.server.monitors;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.std.server.VersionMonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.VersionMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.DynamicConstants;

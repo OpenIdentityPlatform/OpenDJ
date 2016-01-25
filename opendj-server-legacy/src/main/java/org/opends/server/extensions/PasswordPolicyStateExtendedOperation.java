@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.admin.std.server.PasswordPolicyStateExtendedOperationHandlerCfg;
+import org.forgerock.opendj.server.config.server.PasswordPolicyStateExtendedOperationHandlerCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;

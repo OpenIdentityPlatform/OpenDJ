@@ -39,15 +39,14 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.admin.std.server.PluginRootCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
+import org.forgerock.opendj.server.config.server.PluginCfg;
+import org.forgerock.opendj.server.config.server.PluginRootCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
@@ -294,15 +293,10 @@ public class PluginConfigManager
   {
     registeredPlugins.clear();
 
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Get the plugin root configuration and register with it as an add and
-    // delete listener so we can be notified if any plugin entries are added or
-    // removed.
+    // delete listener so we can be notified if any plugin entries are added or removed.
     pluginRootConfig = rootConfiguration.getPluginRoot();
     pluginRootConfig.addPluginAddListener(this);
     pluginRootConfig.addPluginDeleteListener(this);

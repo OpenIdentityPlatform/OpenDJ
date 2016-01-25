@@ -20,11 +20,11 @@ import java.net.InetAddress;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.server.ReplicationServerCfg;
 
 /**
  * This Class implements an object that can be used to instantiate

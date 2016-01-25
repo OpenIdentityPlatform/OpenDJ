@@ -43,19 +43,19 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.admin.client.ManagementContext;
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.client.PluggableBackendCfgClient;
-import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
-import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
-import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.server.ReplicationDomainCfg;
-import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
+import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
@@ -428,7 +428,7 @@ public class DeleteBaseDNAndBackendTask extends Task
 
     String backendName = backend.getBackendID();
     DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backendName + ",cn=Backends,cn=config");
-    ConfigEntry configEntry = DirectoryServer.getConfigHandler().getConfigEntry(dn);
+    Entry configEntry = DirectoryServer.getConfigHandler().getConfigEntry(dn);
 
     DNConfigAttribute baseDNAttr =
       new DNConfigAttribute(

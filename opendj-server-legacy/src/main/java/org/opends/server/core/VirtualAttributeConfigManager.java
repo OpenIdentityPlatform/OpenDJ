@@ -38,14 +38,13 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
+import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -100,10 +99,7 @@ public class VirtualAttributeConfigManager
   public void initializeVirtualAttributes()
          throws ConfigException, InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration = managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
 
     // Register as an add and delete listener with the root configuration so we

@@ -47,7 +47,7 @@ import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
+import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.PasswordGenerator;

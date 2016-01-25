@@ -28,9 +28,9 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.opends.server.admin.std.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -65,10 +65,10 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
    * The mapping that holds all of the configuration entries that have been read
    * from the LDIF file.
    */
-  private HashMap<DN,ConfigEntry> configEntries = new HashMap<>();
+  private HashMap<DN,Entry> configEntries = new HashMap<>();
 
   /** The reference to the configuration root entry. */
-  private ConfigEntry configRootEntry;
+  private Entry configRootEntry;
 
   /** The server root. */
   private String serverRoot;
@@ -87,14 +87,14 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public ConfigEntry getConfigEntry(DN entryDN) throws ConfigException
+  public Entry getConfigEntry(DN entryDN) throws ConfigException
   {
     return configEntries.get(entryDN);
   }
 
   /** {@inheritDoc} */
   @Override
-  public ConfigEntry getConfigRootEntry() throws ConfigException
+  public Entry getConfigRootEntry() throws ConfigException
   {
     return configRootEntry;
   }
@@ -157,7 +157,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
           LocalizableMessage message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
           throw new InitializationException(message);
         }
-        configRootEntry = new ConfigEntry(entry, null);
+        configRootEntry = new Entry(entry, null);
 
         baseDNs = new DN[] { configRootEntry.getDN() };
 
@@ -172,7 +172,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
           {
             DN entryDN = entry.getName();
             DN parentDN = entryDN.parent();
-            ConfigEntry parentEntry = null;
+            Entry parentEntry = null;
             if (parentDN != null)
             {
               parentEntry = configEntries.get(parentDN);
@@ -194,7 +194,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
             }
             else
             {
-              ConfigEntry configEntry = new ConfigEntry(entry, parentEntry);
+              Entry configEntry = new Entry(entry, parentEntry);
               parentEntry.addChild(configEntry);
               configEntries.put(entryDN, configEntry);
             }
@@ -294,10 +294,10 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   public Entry getEntry(DN entryDN)
   throws DirectoryException
   {
-    ConfigEntry configEntry = configEntries.get(entryDN);
+    Entry configEntry = configEntries.get(entryDN);
     if (configEntry != null)
     {
-      return configEntry.getEntry();
+      return configEntry;
     }
     return null;
   }
@@ -327,7 +327,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
-    ConfigEntry baseEntry = configEntries.get(entryDN);
+    Entry baseEntry = configEntries.get(entryDN);
     if (baseEntry != null)
     {
       return ConditionResult.valueOf(baseEntry.hasChildren());
@@ -372,7 +372,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   private long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException
   {
-    final ConfigEntry baseEntry = configEntries.get(entryDN);
+    final Entry baseEntry = configEntries.get(entryDN);
     if (baseEntry == null)
     {
       return -1;
@@ -383,7 +383,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
       return baseEntry.getChildren().size();
     }
     long count = 0;
-    for (ConfigEntry child : baseEntry.getChildren().values())
+    for (Entry child : baseEntry.getChildren().values())
     {
       count += numSubordinates(child.getDN(), true);
       count++;

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2013-2014 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.snmp;
 
@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.Vector;
 
-import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.SNMPConnectionHandlerCfg;
 
 /**
  * This class allows to manage the IP-ACL based access rights

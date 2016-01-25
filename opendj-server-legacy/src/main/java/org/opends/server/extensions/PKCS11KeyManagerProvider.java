@@ -28,8 +28,8 @@ import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.PKCS11KeyManagerProviderCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.PKCS11KeyManagerProviderCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

@@ -62,22 +62,21 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.CsvFileAccessLogPublisherCfg;
-import org.opends.server.admin.std.server.CsvFileHTTPAccessLogPublisherCfg;
-import org.opends.server.admin.std.server.ExternalAccessLogPublisherCfg;
-import org.opends.server.admin.std.server.ExternalHTTPAccessLogPublisherCfg;
-import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
-import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
-import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
-import org.opends.server.admin.std.server.LogPublisherCfg;
-import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
-import org.opends.server.admin.std.server.LogRotationPolicyCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
-import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
-import org.opends.server.admin.std.server.TimeLimitLogRotationPolicyCfg;
-import org.opends.server.config.ConfigEntry;
+import org.forgerock.opendj.server.config.server.CsvFileAccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.CsvFileHTTPAccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.ExternalAccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.ExternalHTTPAccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.FileCountLogRetentionPolicyCfg;
+import org.forgerock.opendj.server.config.server.FixedTimeLogRotationPolicyCfg;
+import org.forgerock.opendj.server.config.server.FreeDiskSpaceLogRetentionPolicyCfg;
+import org.forgerock.opendj.server.config.server.LogPublisherCfg;
+import org.forgerock.opendj.server.config.server.LogRetentionPolicyCfg;
+import org.forgerock.opendj.server.config.server.LogRotationPolicyCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.SizeLimitLogRetentionPolicyCfg;
+import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
+import org.forgerock.opendj.server.config.server.TimeLimitLogRotationPolicyCfg;
+import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.StaticUtils;
@@ -504,7 +503,7 @@ public class CommonAudit
   private void addCsvHandlerRotationConfig(PublisherConfig publisher, CsvConfigData config,
       CsvAuditEventHandlerConfiguration auditConfig) throws ConfigException
   {
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     SortedSet<String> rotationPolicies = config.getRotationPolicies();
     if (rotationPolicies.isEmpty())
     {
@@ -542,7 +541,7 @@ public class CommonAudit
   private void addCsvHandlerRetentionConfig(PublisherConfig publisher, CsvConfigData config,
       CsvAuditEventHandlerConfiguration auditConfig) throws ConfigException
   {
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     SortedSet<String> retentionPolicies = config.getRetentionPolicies();
     if (retentionPolicies.isEmpty())
     {
@@ -707,7 +706,7 @@ public class CommonAudit
     PublisherConfig(LogPublisherCfg config) throws ConfigException
     {
       this.config = config;
-      ConfigEntry configEntry = DirectoryServer.getConfigEntry(config.dn());
+      Entry configEntry = DirectoryServer.getConfigEntry(config.dn());
       if (configEntry.hasObjectClass("ds-cfg-csv-file-access-log-publisher"))
       {
         auditType = AuditType.CSV;

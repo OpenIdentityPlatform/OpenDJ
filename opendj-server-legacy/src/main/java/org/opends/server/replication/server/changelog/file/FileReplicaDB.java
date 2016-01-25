@@ -24,8 +24,8 @@ import net.jcip.annotations.Immutable;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;

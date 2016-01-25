@@ -23,7 +23,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicy;
@@ -45,7 +45,7 @@ public abstract class PasswordStorageSchemeTestCase
        extends ExtensionsTestCase
 {
   /** The configuration entry for this password storage scheme. */
-  protected ConfigEntry configEntry;
+  protected Entry configEntry;
 
   /**
    * The string representation of the DN of the configuration entry for this

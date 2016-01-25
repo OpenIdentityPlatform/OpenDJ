@@ -71,16 +71,16 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.AdministrationDataSync;
-import org.opends.server.admin.ClassLoaderProvider;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.AlertHandlerCfg;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.CryptoManagerCfg;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.admin.std.server.PasswordValidatorCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.RootDSEBackendCfg;
-import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.PasswordValidatorCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
+import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
@@ -119,7 +119,7 @@ import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.backends.RootDSEBackend;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
@@ -673,7 +673,7 @@ public final class DirectoryServer
   public static final int DEFAULT_TIMEOUT = 200;
 
   /** Entry point for server configuration. */
-  private org.forgerock.opendj.config.server.ServerManagementContext serverManagementContext;
+  private ServerManagementContext serverManagementContext;
 
   /** Entry point to common audit service, where all audit events must be published. */
   private CommonAudit commonAudit;
@@ -681,7 +681,6 @@ public final class DirectoryServer
   /** Class that prints the version of OpenDJ server to System.out. */
   public static final class DirectoryServerVersionHandler implements VersionHandler
   {
-    /** {@inheritDoc} */
     @Override
     public void printVersion()
     {
@@ -732,7 +731,7 @@ public final class DirectoryServer
     }
 
     @Override
-    public org.forgerock.opendj.config.server.ServerManagementContext getServerManagementContext()
+    public ServerManagementContext getServerManagementContext()
     {
       return serverManagementContext;
     }
@@ -1110,7 +1109,7 @@ public final class DirectoryServer
     {
       schemaHandler.initialize(serverContext);
     }
-    catch (org.forgerock.opendj.config.server.ConfigException e)
+    catch (ConfigException e)
     {
       // TODO : fix message
       throw new InitializationException(LocalizableMessage.raw("Cannot initialize schema handler"), e);
@@ -1517,8 +1516,7 @@ public final class DirectoryServer
   public void initializeCryptoManager()
          throws ConfigException, InitializationException
   {
-    RootCfg root =
-         ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     CryptoManagerCfg cryptoManagerCfg = root.getCryptoManager();
     cryptoManager = new CryptoManagerImpl(serverContext, cryptoManagerCfg);
   }
@@ -1702,7 +1700,7 @@ public final class DirectoryServer
    * @param  changeListeners  The set of change listeners mapped to the DN of
    *                          the corresponding configuration entry.
    */
-  private void getChangeListeners(ConfigEntry configEntry,
+  private void getChangeListeners(Entry configEntry,
       Map<String, List<ConfigAddListener>> addListeners,
       Map<String, List<ConfigDeleteListener>> deleteListeners,
       Map<String, List<ConfigChangeListener>> changeListeners)
@@ -1711,17 +1709,17 @@ public final class DirectoryServer
     put(deleteListeners, configEntry, configEntry.getDeleteListeners());
     put(changeListeners, configEntry, configEntry.getChangeListeners());
 
-    for (ConfigEntry child : configEntry.getChildren().values())
+    for (Entry child : configEntry.getChildren().values())
     {
       getChangeListeners(child, addListeners, deleteListeners, changeListeners);
     }
   }
 
-  private <T> void put(Map<String, List<T>> listeners, ConfigEntry configEntry, List<T> cfgListeners)
+  private <T> void put(Map<String, List<T>> listeners, Entry configEntry, List<T> cfgListeners)
   {
     if (cfgListeners != null && !cfgListeners.isEmpty())
     {
-      listeners.put(configEntry.getDN().toString(), cfgListeners);
+      listeners.put(configEntry.getName().toString(), cfgListeners);
     }
   }
 
@@ -1785,7 +1783,7 @@ public final class DirectoryServer
     RootDSEBackendCfg rootDSECfg;
     try
     {
-      RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
       rootDSECfg = root.getRootDSEBackend();
     }
     catch (Exception e)
@@ -2096,8 +2094,7 @@ public final class DirectoryServer
          throws ConfigException, InitializationException {
   RootDSEBackendCfg rootDSECfg;
   try {
-    RootCfg root =
-         ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     rootDSECfg = root.getRootDSEBackend();
   }  catch (Exception e) {
     logger.traceException(e);
@@ -2149,16 +2146,17 @@ public final class DirectoryServer
 
   /**
    * Retrieves the requested entry from the Directory Server configuration.
+   * <p>
+   * The main difference with {@link #getEntry(DN)} is that virtual attributes are not processed.
+   * This is important when the whole directory server is not initialized yet (when initializing all backends).
    *
    * @param  entryDN  The DN of the configuration entry to retrieve.
-   *
    * @return  The requested entry from the Directory Server configuration.
-   *
-   * @throws  ConfigException  If a problem occurs while trying to retrieve the
-   *                           requested entry.
+   * @throws  ConfigException  If a problem occurs while trying to retrieve the requested entry.
+   * @deprecated use {@link #getEntry(DN)} when possible
    */
-  public static ConfigEntry getConfigEntry(DN entryDN)
-         throws ConfigException
+  @Deprecated
+  public static Entry getConfigEntry(DN entryDN) throws ConfigException
   {
     return directoryServer.configHandler.getConfigEntry(entryDN);
   }

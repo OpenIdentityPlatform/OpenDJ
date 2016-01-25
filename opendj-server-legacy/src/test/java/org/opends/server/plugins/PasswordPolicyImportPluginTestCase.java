@@ -22,9 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordPolicyImportPluginCfgDefn;
-import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.PasswordPolicyImportPluginCfgDefn;
+import org.forgerock.opendj.server.config.server.PasswordPolicyImportPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

@@ -32,7 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.DSInfo;

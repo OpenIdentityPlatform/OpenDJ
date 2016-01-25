@@ -38,7 +38,6 @@ import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.types.Attribute;
@@ -249,7 +248,7 @@ public class RestoreTask extends Task
     // Get the DN of the backend configuration entry from the backup.
     DN configEntryDN = backupDir.getConfigEntryDN();
 
-    ConfigEntry configEntry;
+    Entry configEntry;
     try
     {
       // Get the backend configuration entry.

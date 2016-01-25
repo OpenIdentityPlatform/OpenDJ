@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;

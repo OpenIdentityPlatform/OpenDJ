@@ -40,7 +40,7 @@ import org.forgerock.services.context.RootContext;
 import org.forgerock.util.Pair;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.RuntimeExceptionHandler;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.AccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.controls.TransactionIdControl;

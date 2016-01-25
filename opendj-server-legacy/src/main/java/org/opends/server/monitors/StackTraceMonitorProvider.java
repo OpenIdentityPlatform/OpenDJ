@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.StackTraceMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.InitializationException;
 

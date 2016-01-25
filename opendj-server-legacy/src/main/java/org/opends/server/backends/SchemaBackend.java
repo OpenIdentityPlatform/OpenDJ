@@ -64,13 +64,13 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.SchemaBackendCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -96,7 +96,6 @@ import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
@@ -228,9 +227,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new ConfigException(message);
     }
 
-    ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+    Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
-    configEntryDN = configEntry.getDN();
+    configEntryDN = configEntry.getName();
 
     // Get all of the attribute types that we will use for schema elements.
     attributeTypesType = getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
@@ -259,7 +258,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
 
 
-    configEntryDN = configEntry.getDN();
+    configEntryDN = configEntry.getName();
 
     DN[] newBaseDNs = new DN[cfg.getBaseDN().size()];
     cfg.getBaseDN().toArray(newBaseDNs);
@@ -282,8 +281,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // attributes that we don't recognize will be included directly in the
     // schema entry.
     userDefinedAttributes = new ArrayList<>();
-    addAll(configEntry.getEntry().getUserAttributes().values());
-    addAll(configEntry.getEntry().getOperationalAttributes().values());
+    addAll(configEntry.getUserAttributes().values());
+    addAll(configEntry.getOperationalAttributes().values());
 
     showAllAttributes = cfg.isShowAllAttributes();
 
@@ -3733,9 +3732,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     ArrayList<Attribute> newUserAttrs = new ArrayList<>();
     try
     {
-      ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+      Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
       for (List<Attribute> attrs :
-           configEntry.getEntry().getUserAttributes().values())
+           configEntry.getUserAttributes().values())
       {
         for (Attribute a : attrs)
         {
@@ -3746,7 +3745,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
       for (List<Attribute> attrs :
-           configEntry.getEntry().getOperationalAttributes().values())
+           configEntry.getOperationalAttributes().values())
       {
         for (Attribute a : attrs)
         {

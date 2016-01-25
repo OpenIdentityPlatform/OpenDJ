@@ -11,13 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PBKDF2PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PBKDF2PasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.PBKDF2PasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.PBKDF2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
@@ -69,7 +69,7 @@ public class PBKDF2PasswordStorageSchemeTestCase
     PBKDF2PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
               PBKDF2PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
+          configEntry
           );
 
     scheme.initializePasswordStorageScheme(configuration);

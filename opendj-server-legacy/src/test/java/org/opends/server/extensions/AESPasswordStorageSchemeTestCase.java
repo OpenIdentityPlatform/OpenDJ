@@ -12,14 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.AESPasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.AESPasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.AESPasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.AESPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -55,7 +56,7 @@ public class AESPasswordStorageSchemeTestCase
     AESPasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           AESPasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry());
+          configEntry);
 
     scheme.initializePasswordStorageScheme(configuration);
     return scheme;

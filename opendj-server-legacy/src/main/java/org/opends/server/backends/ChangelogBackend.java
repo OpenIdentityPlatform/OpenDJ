@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.Configuration;
+import org.forgerock.opendj.config.Configuration;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.EntryChangelogNotificationControl;

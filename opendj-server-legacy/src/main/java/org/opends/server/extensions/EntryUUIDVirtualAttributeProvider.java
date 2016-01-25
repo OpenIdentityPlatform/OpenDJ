@@ -24,7 +24,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
+import org.forgerock.opendj.server.config.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;

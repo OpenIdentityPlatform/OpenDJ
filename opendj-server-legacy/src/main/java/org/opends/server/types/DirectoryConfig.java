@@ -33,7 +33,6 @@ import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 
 import com.forgerock.opendj.util.OperatingSystem;
@@ -107,7 +106,7 @@ public final class DirectoryConfig
    * @throws  ConfigException  If a problem occurs while trying to
    *                           retrieve the requested entry.
    */
-  public static ConfigEntry getConfigEntry(DN entryDN)
+  public static Entry getConfigEntry(DN entryDN)
          throws ConfigException
   {
     return DirectoryServer.getConfigEntry(entryDN);

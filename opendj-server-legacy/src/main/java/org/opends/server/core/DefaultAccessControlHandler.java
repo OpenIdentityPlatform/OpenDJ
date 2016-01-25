@@ -16,7 +16,7 @@
  */
 package org.opends.server.core;
 
-import org.opends.server.admin.std.server.AccessControlHandlerCfg;
+import org.forgerock.opendj.server.config.server.AccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;

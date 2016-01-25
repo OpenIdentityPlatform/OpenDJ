@@ -113,9 +113,10 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.ClassLoaderProvider;
+import org.forgerock.opendj.config.ConfigurationFramework;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SomeSchemaElement;
@@ -2314,7 +2315,7 @@ public class Utilities
   public static void deleteConfigSubtree(ConfigHandler confHandler, DN dn)
   throws OpenDsException, ConfigException
   {
-    ConfigEntry confEntry = confHandler.getConfigEntry(dn);
+    Entry confEntry = confHandler.getConfigEntry(dn);
     if (confEntry != null)
     {
       // Copy the values to avoid problems with this recursive method.

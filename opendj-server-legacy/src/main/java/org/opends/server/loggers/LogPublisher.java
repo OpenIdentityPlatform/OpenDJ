@@ -20,7 +20,7 @@ import java.io.Closeable;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.LogPublisherCfg;
+import org.forgerock.opendj.server.config.server.LogPublisherCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;

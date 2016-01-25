@@ -11,14 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
 import static org.mockito.Mockito.when;
 import static org.opends.server.ConfigurationMock.legacyMockCfg;
 
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.testng.annotations.Test;
 

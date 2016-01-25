@@ -31,7 +31,7 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
-import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
+import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.forgerock.opendj.ldap.DN;

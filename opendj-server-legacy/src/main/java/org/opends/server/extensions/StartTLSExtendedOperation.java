@@ -12,12 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.admin.std.server.StartTLSExtendedOperationHandlerCfg;
+import org.forgerock.opendj.server.config.server.StartTLSExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.forgerock.opendj.config.server.ConfigException;

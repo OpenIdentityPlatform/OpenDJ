@@ -29,7 +29,7 @@ import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.forgerock.opendj.server.config.server.ReplicationServerCfg;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;

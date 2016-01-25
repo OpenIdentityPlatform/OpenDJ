@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;

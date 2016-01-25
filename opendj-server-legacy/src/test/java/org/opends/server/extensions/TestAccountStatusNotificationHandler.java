@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.admin.std.server.
+import org.forgerock.opendj.server.config.server.
        AccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.types.AccountStatusNotification;

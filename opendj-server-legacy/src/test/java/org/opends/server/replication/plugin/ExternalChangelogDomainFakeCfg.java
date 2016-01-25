@@ -19,9 +19,9 @@ package org.opends.server.replication.plugin;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 
 /**
  * This class implement a configuration object for the ExternalChangelog domain
@@ -56,6 +56,7 @@ public class ExternalChangelogDomainFakeCfg
   }
 
   /** {@inheritDoc} */
+  @Override
   public Class<? extends ExternalChangelogDomainCfg> configurationClass()
   {
     return null;
@@ -67,6 +68,7 @@ public class ExternalChangelogDomainFakeCfg
    * @param listener
    *          The External Changelog Domain configuration change listener.
    */
+  @Override
   public void addChangeListener(
       ConfigurationChangeListener<ExternalChangelogDomainCfg> listener)
   {}
@@ -79,17 +81,20 @@ public class ExternalChangelogDomainFakeCfg
    * @param listener
    *          The External Changelog Domain configuration change listener.
    */
+  @Override
   public void removeChangeListener(
       ConfigurationChangeListener<ExternalChangelogDomainCfg> listener)
   {}
 
 
 
+  @Override
   public SortedSet<String> getECLInclude()
   {
     return this.pECLInclude;
   }
 
+  @Override
   public SortedSet<String> getECLIncludeForDeletes()
   {
     return this.pECLIncludeForDeletes;
@@ -114,6 +119,7 @@ public class ExternalChangelogDomainFakeCfg
    *
    * @return Returns the value of the "enabled" property.
    */
+  @Override
   public boolean isEnabled()
   {
     return this.pEnabled;

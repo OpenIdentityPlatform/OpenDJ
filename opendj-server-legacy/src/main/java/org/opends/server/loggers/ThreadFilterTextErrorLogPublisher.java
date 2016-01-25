@@ -19,7 +19,7 @@ package org.opends.server.loggers;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
-import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.ErrorLogPublisherCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;

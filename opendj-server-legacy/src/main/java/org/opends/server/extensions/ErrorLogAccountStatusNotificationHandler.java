@@ -24,11 +24,11 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.HashSet;
 import java.util.List;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.meta.
        ErrorLogAccountStatusNotificationHandlerCfgDefn;
-import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
-import org.opends.server.admin.std.server.
+import org.forgerock.opendj.server.config.server.AccountStatusNotificationHandlerCfg;
+import org.forgerock.opendj.server.config.server.
        ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.forgerock.opendj.config.server.ConfigException;

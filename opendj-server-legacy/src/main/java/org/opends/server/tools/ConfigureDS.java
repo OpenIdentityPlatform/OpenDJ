@@ -52,13 +52,13 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.quicksetup.installer.Installer;
-import org.opends.server.admin.DefaultBehaviorProvider;
-import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.StringPropertyDefinition;
-import org.opends.server.admin.std.meta.CryptoManagerCfgDefn;
+import org.forgerock.opendj.config.DefaultBehaviorProvider;
+import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.StringPropertyDefinition;
+import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
@@ -779,7 +779,7 @@ public class ConfigureDS
         final IntegerConfigAttribute portAttr = new IntegerConfigAttribute(
             ATTR_LISTEN_PORT, INFO_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
             true, false, true, true, 1, true, 65535, ldapPort.getIntValue());
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_LDAP_CONNECTION_HANDLER));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_LDAP_CONNECTION_HANDLER));
         configEntry.putConfigAttribute(portAttr);
       }
       catch (final Exception e)
@@ -798,7 +798,7 @@ public class ConfigureDS
         final IntegerConfigAttribute portAttr = new IntegerConfigAttribute(
             ATTR_LISTEN_PORT, INFO_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
             true, false, true, true, 1, true, 65535, adminConnectorPort.getIntValue());
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_ADMIN_CONNECTOR));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_ADMIN_CONNECTOR));
         configEntry.putConfigAttribute(portAttr);
       }
       catch (final Exception e)
@@ -817,7 +817,7 @@ public class ConfigureDS
         final IntegerConfigAttribute portAttr = new IntegerConfigAttribute(
             ATTR_LISTEN_PORT, INFO_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
             true, false, true, true, 1, true, 65535, ldapsPort.getIntValue());
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_LDAPS_CONNECTION_HANDLER));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_LDAPS_CONNECTION_HANDLER));
         configEntry.putConfigAttribute(portAttr);
 
         final BooleanConfigAttribute enablePortAttr = new BooleanConfigAttribute(
@@ -841,7 +841,7 @@ public class ConfigureDS
         final IntegerConfigAttribute portAttr = new IntegerConfigAttribute(
             ATTR_LISTEN_PORT, INFO_JMX_CONNHANDLER_DESCRIPTION_LISTEN_PORT.get(),
             true, false, true, true, 1, true, 65535, jmxPort.getIntValue());
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_JMX_CONNECTION_HANDLER));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_JMX_CONNECTION_HANDLER));
         configEntry.putConfigAttribute(portAttr);
 
         final BooleanConfigAttribute enablePortAttr = new BooleanConfigAttribute(
@@ -863,7 +863,7 @@ public class ConfigureDS
       {
         final BooleanConfigAttribute startTLS = new BooleanConfigAttribute(
             ATTR_ALLOW_STARTTLS, INFO_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_STARTTLS.get(), true, true);
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_LDAP_CONNECTION_HANDLER));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_LDAP_CONNECTION_HANDLER));
         configEntry.putConfigAttribute(startTLS);
       }
       catch (final Exception e)
@@ -884,7 +884,7 @@ public class ConfigureDS
           // Enable the key manager
           final BooleanConfigAttribute enableAttr = new BooleanConfigAttribute(
               ATTR_KEYMANAGER_ENABLED, INFO_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED.get(), true, true);
-          final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(keyManagerProviderDN.getValue()));
+          final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(keyManagerProviderDN.getValue()));
           configEntry.putConfigAttribute(enableAttr);
         }
         catch (final Exception e)
@@ -904,7 +904,7 @@ public class ConfigureDS
           final StringConfigAttribute pathAttr = new StringConfigAttribute(
               ATTR_KEYSTORE_FILE, INFO_FILE_KEYMANAGER_DESCRIPTION_FILE.get(),
               true, true, true, keyManagerPath.getValue());
-          final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(keyManagerProviderDN.getValue()));
+          final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(keyManagerProviderDN.getValue()));
           configEntry.putConfigAttribute(pathAttr);
         }
         catch (final Exception e)
@@ -925,7 +925,7 @@ public class ConfigureDS
         final StringConfigAttribute keyManagerProviderAttr = new StringConfigAttribute(
             ATTR_KEYMANAGER_DN, INFO_LDAP_CONNHANDLER_DESCRIPTION_KEYMANAGER_DN.get(),
             false, false, true, keyManagerProviderDN.getValue());
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
         configEntry.putConfigAttribute(keyManagerProviderAttr);
       }
       catch (final Exception e)
@@ -945,7 +945,7 @@ public class ConfigureDS
         {
           final BooleanConfigAttribute enableAttr = new BooleanConfigAttribute(
               ATTR_TRUSTMANAGER_ENABLED, ERR_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED.get(), true, true);
-          final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(trustManagerProviderDN.getValue()));
+          final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(trustManagerProviderDN.getValue()));
           configEntry.putConfigAttribute(enableAttr);
         }
         catch (final Exception e)
@@ -991,7 +991,7 @@ public class ConfigureDS
         final StringConfigAttribute trustManagerProviderAttr = new StringConfigAttribute(
             ATTR_TRUSTMANAGER_DN, INFO_LDAP_CONNHANDLER_DESCRIPTION_TRUSTMANAGER_DN.get(),
             false, false, true, trustManagerProviderDN.getValue());
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
         configEntry.putConfigAttribute(trustManagerProviderAttr);
       }
       catch (final Exception e)
@@ -1006,7 +1006,7 @@ public class ConfigureDS
   {
     try
     {
-      ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
+      Entry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
       if (arg.isPresent())
       {
         configEntry.putConfigAttribute(configAttr);
@@ -1026,7 +1026,7 @@ public class ConfigureDS
   {
     try
     {
-      final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
+      final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(attributeDN));
       configEntry.removeConfigAttribute(ATTR_SSL_CERT_NICKNAME.toLowerCase());
     }
     catch (final Exception e)
@@ -1044,7 +1044,7 @@ public class ConfigureDS
         final DNConfigAttribute bindDNAttr = new DNConfigAttribute(
             ATTR_ROOTDN_ALTERNATE_BIND_DN, INFO_CONFIG_ROOTDN_DESCRIPTION_ALTERNATE_BIND_DN.get(),
             false, true, false, rootDN);
-        final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_ROOT_USER));
+        final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_ROOT_USER));
         configEntry.putConfigAttribute(bindDNAttr);
 
         final String encodedPassword = SaltedSHA512PasswordStorageScheme.encodeOffline(getBytes(rootPW));
@@ -1066,7 +1066,7 @@ public class ConfigureDS
     {
       final StringConfigAttribute fqdnAttr = new StringConfigAttribute(
             "ds-cfg-server-fqdn", LocalizableMessage.EMPTY, false, false, false, hostName.getValue());
-      final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_DIGEST_MD5_SASL_MECHANISM));
+      final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_DIGEST_MD5_SASL_MECHANISM));
       configEntry.putConfigAttribute(fqdnAttr);
     }
     catch (final Exception e)
@@ -1116,7 +1116,7 @@ public class ConfigureDS
             final StringConfigAttribute keyWrappingTransformation = new StringConfigAttribute(
                 ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION, LocalizableMessage.EMPTY,
                 false, false, true, alternativeCipher);
-            final ConfigEntry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_CRYPTO_MANAGER));
+            final Entry configEntry = configHandler.getConfigEntry(DN.valueOf(DN_CRYPTO_MANAGER));
             configEntry.putConfigAttribute(keyWrappingTransformation);
           }
           catch (final Exception e)

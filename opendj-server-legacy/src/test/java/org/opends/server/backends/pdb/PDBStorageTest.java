@@ -24,7 +24,7 @@ import static org.forgerock.opendj.ldap.ByteString.*;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.PDBBackendCfg;
+import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;

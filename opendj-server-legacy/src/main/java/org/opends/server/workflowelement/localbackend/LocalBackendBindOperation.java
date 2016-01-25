@@ -26,7 +26,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
+import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;

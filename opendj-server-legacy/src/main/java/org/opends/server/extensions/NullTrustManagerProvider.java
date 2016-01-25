@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 import javax.net.ssl.TrustManager;
 
-import org.opends.server.admin.std.server.TrustManagerProviderCfg;
+import org.forgerock.opendj.server.config.server.TrustManagerProviderCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;

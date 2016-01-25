@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DirectoryServerMBean;

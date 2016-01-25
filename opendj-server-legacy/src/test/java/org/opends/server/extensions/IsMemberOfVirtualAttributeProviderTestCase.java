@@ -25,7 +25,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
+import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;

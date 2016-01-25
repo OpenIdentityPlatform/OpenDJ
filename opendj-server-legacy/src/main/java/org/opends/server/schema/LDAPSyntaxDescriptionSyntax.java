@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CommonSchemaElements;

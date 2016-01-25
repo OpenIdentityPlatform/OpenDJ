@@ -26,9 +26,9 @@ import java.util.Iterator;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
+import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.plugins.NullPlugin;
 import org.opends.server.types.DisconnectReason;
 import org.forgerock.opendj.ldap.DN;
@@ -68,7 +68,7 @@ public class DirectoryServerPluginTestCase
     sigList.add("initializePlugin");
     sigList.add("void");
     sigList.add("java.util.Set");
-    sigList.add("org.opends.server.admin.std.server.PluginCfg");
+    sigList.add("org.forgerock.opendj.server.config.server.PluginCfg");
     sigList.add("org.forgerock.opendj.config.server.ConfigException");
     sigList.add("org.opends.server.types.InitializationException");
     expectedAbstractMethods.add(sigList);
@@ -550,6 +550,7 @@ public class DirectoryServerPluginTestCase
     sigList = new LinkedList<>();
     sigList.add("initializeInternal");
     sigList.add("void");
+    sigList.add("org.opends.server.core.ServerContext");
     sigList.add("org.forgerock.opendj.ldap.DN");
     sigList.add("java.util.Set");
     sigList.add("boolean");
@@ -631,7 +632,7 @@ public class DirectoryServerPluginTestCase
     sigList = new LinkedList<>();
     sigList.add("isConfigurationAcceptable");
     sigList.add("boolean");
-    sigList.add("org.opends.server.admin.std.server.PluginCfg");
+    sigList.add("org.forgerock.opendj.server.config.server.PluginCfg");
     sigList.add("java.util.List");
     expectedPublicMethods.add(sigList);
 
@@ -700,7 +701,7 @@ public class DirectoryServerPluginTestCase
       fail("It appears that set of methods defined in the plugin API has " +
            "been altered in a manner that could impact backward " +
            "compatibility.  This will only be allowed under extremely " +
-           "limited circumstances.");
+           "limited circumstances. Missing expected methods:" + expectedPublicMethods);
     }
 
 

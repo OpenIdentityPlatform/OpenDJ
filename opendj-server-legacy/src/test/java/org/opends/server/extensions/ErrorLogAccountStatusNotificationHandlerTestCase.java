@@ -23,12 +23,12 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.ErrorLogAccountStatusNotificationHandlerCfgDefn;
-import org.opends.server.admin.std.server.ErrorLogAccountStatusNotificationHandlerCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.ErrorLogAccountStatusNotificationHandlerCfgDefn;
+import org.forgerock.opendj.server.config.server.ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.types.AccountStatusNotification;
@@ -142,15 +142,15 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
   {
     DN parentDN =
             DN.valueOf("cn=Account Status Notification Handlers,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    Entry parentEntry = DirectoryServer.getConfigEntry(parentDN);
+    Entry configEntry = new Entry(e, parentEntry);
 
     ErrorLogAccountStatusNotificationHandler handler =
          new ErrorLogAccountStatusNotificationHandler();
     ErrorLogAccountStatusNotificationHandlerCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           ErrorLogAccountStatusNotificationHandlerCfgDefn.getInstance(),
-          configEntry.getEntry()
+          configEntry
           );
     handler.initializeStatusNotificationHandler(configuration);
   }

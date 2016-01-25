@@ -21,8 +21,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 

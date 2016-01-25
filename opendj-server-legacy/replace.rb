@@ -182,7 +182,7 @@ class Replace
   NEW_CONFIG = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
-    :stoplist => ["org/opends/server/admin", "api/Config", "MatchingRuleConfigManager"],
+    :stoplist => ["org/opends/server/admin", "api/Config", "MatchingRuleConfigManager", "ConfigEntry"],
     :replacements =>
       [
         /import org.opends.server.admin.std.server\.([^;]+);/,
@@ -193,6 +193,9 @@ class Replace
 
         /import org.opends.server.admin.std.client\.([^;]+);/,
         'import org.forgerock.opendj.server.config.client.\1;',
+
+         /import org.opends.server.config.ConfigEntry;/,
+        'import org.opends.server.types.Entry;',
 
         /import org.opends.server.admin.client\.(\w+);/,
         'import org.forgerock.opendj.config.client.\1;',
@@ -270,7 +273,16 @@ class Replace
         /(\s+)AttributeType (\w+) = (configuration|config|cfg|\w+Cfg).get(\w+)Attribute\(\);/,
         '\1AttributeType \2 = \3.get\4Attribute();',
 
-        /^(\s+)public DN dn\(\)/,
+        /\bConfigEntry\b/,
+        'Entry',
+
+        /configEntry.getEntry\(\)/,
+        'configEntry',
+
+        /configEntry.getDN\(\)/,
+        'configEntry.getName()',
+
+         /^(\s+)public DN dn\(\)/,
         '\1public org.forgerock.opendj.ldap.DN dn()',
 
       ]
@@ -406,7 +418,7 @@ class Replace
 
   ###############################  List of replacements to run #################################
 
-  REPLACEMENTS = [ ATTRTYPE ]
+  REPLACEMENTS = [ NEW_CONFIG ]
 
   ################################### Processing methods ########################################
 

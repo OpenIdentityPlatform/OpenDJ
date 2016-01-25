@@ -20,7 +20,7 @@ import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.DebugLogPublisherCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;

@@ -23,7 +23,7 @@ import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 
@@ -39,7 +39,7 @@ public abstract class GenericMonitorTestCase
        extends MonitorTestCase
 {
   /** The configuration entry for this test case. */
-  protected ConfigEntry configEntry;
+  protected Entry configEntry;
 
 
 

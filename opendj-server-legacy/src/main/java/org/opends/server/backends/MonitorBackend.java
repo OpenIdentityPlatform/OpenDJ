@@ -48,12 +48,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.MonitorBackendCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.MonitorBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -133,9 +132,9 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final ArrayList<Attribute> userAttrs = new ArrayList<>();
     try
     {
-      final ConfigEntry configEntry = DirectoryServer
+      final Entry configEntry = DirectoryServer
           .getConfigEntry(configEntryDN);
-      for (final List<Attribute> attrs : configEntry.getEntry()
+      for (final List<Attribute> attrs : configEntry
           .getUserAttributes().values())
       {
         for (final Attribute a : attrs)
@@ -146,7 +145,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
           }
         }
       }
-      for (final List<Attribute> attrs : configEntry.getEntry()
+      for (final List<Attribute> attrs : configEntry
           .getOperationalAttributes().values())
       {
         for (final Attribute a : attrs)
@@ -183,7 +182,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     Reject.ifNull(config);
 
     final MonitorBackendCfg cfg = config;
-    final ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+    final Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
     // Make sure that a configuration entry was provided. If not, then we will
     // not be able to complete initialization.
@@ -193,14 +192,14 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       throw new ConfigException(message);
     }
 
-    configEntryDN = configEntry.getDN();
+    configEntryDN = configEntry.getName();
 
     // Get the set of user-defined attributes for the configuration entry. Any
     // attributes that we don't recognize will be included directly in the base
     // monitor entry.
     userDefinedAttributes = new ArrayList<>();
-    addAll(userDefinedAttributes, configEntry.getEntry().getUserAttributes().values());
-    addAll(userDefinedAttributes, configEntry.getEntry().getOperationalAttributes().values());
+    addAll(userDefinedAttributes, configEntry.getUserAttributes().values());
+    addAll(userDefinedAttributes, configEntry.getOperationalAttributes().values());
 
     // Construct the set of objectclasses to include in the base monitor entry.
     final ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);

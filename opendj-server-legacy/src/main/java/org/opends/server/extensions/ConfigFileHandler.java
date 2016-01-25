@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.std.server.ConfigFileHandlerBackendCfg;
+import org.forgerock.opendj.server.config.server.ConfigFileHandlerBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
@@ -56,7 +56,7 @@ import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -119,10 +119,10 @@ public class ConfigFileHandler
    * The mapping that holds all of the configuration entries that have been read
    * from the LDIF file.
    */
-  private ConcurrentMap<DN,ConfigEntry> configEntries;
+  private ConcurrentMap<DN,Entry> configEntries;
 
   /** The reference to the configuration root entry. */
-  private ConfigEntry configRootEntry;
+  private Entry configRootEntry;
 
   /** The set of base DNs for this config handler backend. */
   private DN[] baseDNs;
@@ -365,7 +365,7 @@ public class ConfigFileHandler
     // Convert the entry to a configuration entry and put it in the config
     // hash.
     configEntries   = new ConcurrentHashMap<>();
-    configRootEntry = new ConfigEntry(entry, null);
+    configRootEntry = new Entry(entry, null);
     configEntries.put(entry.getName(), configRootEntry);
 
 
@@ -429,7 +429,7 @@ public class ConfigFileHandler
             entryDN, reader.getLastEntryLineNumber(), f.getAbsolutePath()));
       }
 
-      ConfigEntry parentEntry = configEntries.get(parentDN);
+      Entry parentEntry = configEntries.get(parentDN);
       if (parentEntry == null)
       {
         close(reader);
@@ -443,7 +443,7 @@ public class ConfigFileHandler
       // parent entry, and put it into the entry has.
       try
       {
-        ConfigEntry configEntry = new ConfigEntry(entry, parentEntry);
+        Entry configEntry = new Entry(entry, parentEntry);
         parentEntry.addChild(configEntry);
         configEntries.put(entryDN, configEntry);
       }
@@ -754,7 +754,7 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public ConfigEntry getConfigRootEntry()
+  public Entry getConfigRootEntry()
          throws ConfigException
   {
     return configRootEntry;
@@ -762,7 +762,7 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public ConfigEntry getConfigEntry(DN entryDN)
+  public Entry getConfigEntry(DN entryDN)
          throws ConfigException
   {
     return configEntries.get(entryDN);
@@ -825,7 +825,7 @@ public class ConfigFileHandler
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    ConfigEntry baseEntry = configEntries.get(entryDN);
+    Entry baseEntry = configEntries.get(entryDN);
     if (baseEntry != null)
     {
       return ConditionResult.valueOf(baseEntry.hasChildren());
@@ -838,14 +838,14 @@ public class ConfigFileHandler
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
     checkNotNull(baseDN, "baseDN must not be null");
-    final ConfigEntry baseEntry = configEntries.get(baseDN);
+    final Entry baseEntry = configEntries.get(baseDN);
     if (baseEntry == null)
     {
       return -1;
     }
 
     long count = 1;
-    for (ConfigEntry child : baseEntry.getChildren().values())
+    for (Entry child : baseEntry.getChildren().values())
     {
       count += getNumberOfEntriesInBaseDN(child.getDN());
       count++;
@@ -858,7 +858,7 @@ public class ConfigFileHandler
   public long getNumberOfChildren(DN parentDN) throws DirectoryException
   {
     checkNotNull(parentDN, "parentDN must not be null");
-    final ConfigEntry baseEntry = configEntries.get(parentDN);
+    final Entry baseEntry = configEntries.get(parentDN);
     return baseEntry != null ? baseEntry.getChildren().size() : -1;
   }
 
@@ -867,13 +867,13 @@ public class ConfigFileHandler
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    ConfigEntry configEntry = configEntries.get(entryDN);
+    Entry configEntry = configEntries.get(entryDN);
     if (configEntry == null)
     {
       return null;
     }
 
-    return configEntry.getEntry().duplicate(true);
+    return configEntry.duplicate(true);
   }
 
   /** {@inheritDoc} */
@@ -929,7 +929,7 @@ public class ConfigFileHandler
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
-      ConfigEntry parentEntry = configEntries.get(parentDN);
+      Entry parentEntry = configEntries.get(parentDN);
       if (parentEntry == null)
       {
         // The parent entry does not exist.  This is not allowed.
@@ -940,7 +940,7 @@ public class ConfigFileHandler
 
 
       // Encapsulate the provided entry in a config entry.
-      ConfigEntry newEntry = new ConfigEntry(e, parentEntry);
+      Entry newEntry = new Entry(e, parentEntry);
 
 
       // See if the parent entry has any add listeners.  If so, then iterate
@@ -1018,7 +1018,7 @@ public class ConfigFileHandler
     synchronized (configLock)
     {
       // Get the target entry.  If it does not exist, then fail.
-      ConfigEntry entry = configEntries.get(entryDN);
+      Entry entry = configEntries.get(entryDN);
       if (entry == null)
       {
         DN matchedDN = getMatchedDNForDescendantOfConfig(entryDN);
@@ -1037,7 +1037,7 @@ public class ConfigFileHandler
 
       // Get the parent entry.  If there isn't one, then it must be the config
       // root, which we won't allow.
-      ConfigEntry parentEntry = entry.getParent();
+      Entry parentEntry = entry.getParent();
       if (parentEntry == null)
       {
         LocalizableMessage message = ERR_CONFIG_FILE_DELETE_NO_PARENT.get(entryDN);
@@ -1147,7 +1147,7 @@ public class ConfigFileHandler
 
 
       // Get the target entry.  If it does not exist, then fail.
-      ConfigEntry currentEntry = configEntries.get(entryDN);
+      Entry currentEntry = configEntries.get(entryDN);
       if (currentEntry == null)
       {
         DN matchedDN = getMatchedDNForDescendantOfConfig(entryDN);
@@ -1167,7 +1167,7 @@ public class ConfigFileHandler
 
 
       // Create a new config entry to use for the validation testing.
-      ConfigEntry newConfigEntry = new ConfigEntry(e, currentEntry.getParent());
+      Entry newConfigEntry = new Entry(e, currentEntry.getParent());
 
 
       // See if there are any config change listeners registered for this entry.
@@ -1279,7 +1279,7 @@ public class ConfigFileHandler
 
     // First, get the base DN for the search and make sure that it exists.
     DN          baseDN    = searchOperation.getBaseDN();
-    ConfigEntry baseEntry = configEntries.get(baseDN);
+    Entry baseEntry = configEntries.get(baseDN);
     if (baseEntry == null)
     {
       DN matchedDN = getMatchedDNForDescendantOfConfig(baseDN);
@@ -1308,7 +1308,7 @@ public class ConfigFileHandler
       case SINGLE_LEVEL:
         // We are only interested in entries immediately below the base entry.
         // Iterate through them and return the ones that match the filter.
-        for (ConfigEntry child : baseEntry.getChildren().values())
+        for (Entry child : baseEntry.getChildren().values())
         {
           e = child.getEntry().duplicate(true);
           if (filter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
@@ -1329,7 +1329,7 @@ public class ConfigFileHandler
       case SUBORDINATES:
         // We are not interested in the base entry, but we want to check out all
         // of its children.  Use a recursive process to achieve this.
-        for (ConfigEntry child : baseEntry.getChildren().values())
+        for (Entry child : baseEntry.getChildren().values())
         {
           if (! searchSubtree(child, filter, searchOperation))
           {
@@ -1385,7 +1385,7 @@ public class ConfigFileHandler
    *
    * @throws  DirectoryException  If a problem occurs during processing.
    */
-  private boolean searchSubtree(ConfigEntry baseEntry, SearchFilter filter,
+  private boolean searchSubtree(Entry baseEntry, SearchFilter filter,
                                 SearchOperation searchOperation)
           throws DirectoryException
   {
@@ -1395,7 +1395,7 @@ public class ConfigFileHandler
       return false;
     }
 
-    for (ConfigEntry child : baseEntry.getChildren().values())
+    for (Entry child : baseEntry.getChildren().values())
     {
       if (! searchSubtree(child, filter, searchOperation))
       {
@@ -1907,20 +1907,20 @@ public class ConfigFileHandler
    * @throws  DirectoryException  If a problem occurs while attempting to write
    *                              the entry or one of its children.
    */
-  private void writeEntryAndChildren(LDIFWriter writer, ConfigEntry configEntry)
+  private void writeEntryAndChildren(LDIFWriter writer, Entry configEntry)
           throws DirectoryException
   {
     try
     {
       // Write the entry itself to LDIF.
-      writer.writeEntry(configEntry.getEntry());
+      writer.writeEntry(configEntry);
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
       LocalizableMessage message = ERR_CONFIG_FILE_WRITE_ERROR.get(
-          configEntry.getDN(), e);
+          configEntry.getName(), e);
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
@@ -1929,8 +1929,8 @@ public class ConfigFileHandler
     // See if the entry has any children.  If so, then iterate through them and
     // write them and their children.  We'll copy the entries into a tree map
     // so that we have a sensible order in the resulting LDIF.
-    TreeMap<DN,ConfigEntry> childMap = new TreeMap<>(configEntry.getChildren());
-    for (ConfigEntry childEntry : childMap.values())
+    TreeMap<DN,Entry> childMap = new TreeMap<>(configEntry.getChildren());
+    for (Entry childEntry : childMap.values())
     {
       writeEntryAndChildren(writer, childEntry);
     }

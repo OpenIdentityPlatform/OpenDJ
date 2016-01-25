@@ -26,7 +26,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.GroupImplementationCfg;
+import org.forgerock.opendj.server.config.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.extensions.DynamicGroup;
 import org.opends.server.extensions.StaticGroup;

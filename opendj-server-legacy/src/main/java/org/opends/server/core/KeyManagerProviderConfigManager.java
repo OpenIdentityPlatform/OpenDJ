@@ -24,14 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.KeyManagerProviderCfgDefn;
-import org.opends.server.admin.std.server.KeyManagerProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.KeyManagerProviderCfgDefn;
+import org.forgerock.opendj.server.config.server.KeyManagerProviderCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -93,11 +92,7 @@ public class  KeyManagerProviderConfigManager
   public void initializeKeyManagerProviders()
          throws ConfigException, InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
 
     // Register as an add and delete listener with the root configuration so we

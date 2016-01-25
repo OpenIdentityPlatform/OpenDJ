@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap ;
 
@@ -25,9 +25,9 @@ import java.util.List;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
-import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
+import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;

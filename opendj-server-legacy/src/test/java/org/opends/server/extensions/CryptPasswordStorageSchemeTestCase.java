@@ -12,16 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2010-2015 ForgeRock AS.
+ * Portions Copyright 2010-2016 ForgeRock AS.
  * Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  */
 package org.opends.server.extensions;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.CryptPasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.CryptPasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

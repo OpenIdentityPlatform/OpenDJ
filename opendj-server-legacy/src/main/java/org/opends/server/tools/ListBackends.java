@@ -36,7 +36,7 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
@@ -467,7 +467,7 @@ public class ListBackends
       throw new ConfigException(message, e);
     }
 
-    ConfigEntry baseEntry = null;
+    Entry baseEntry = null;
     try
     {
       baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
@@ -488,7 +488,7 @@ public class ListBackends
 
     // Iterate through the immediate children, attempting to parse them as backends.
     TreeMap<String,TreeSet<DN>> backendMap = new TreeMap<>();
-    for (ConfigEntry configEntry : baseEntry.getChildren().values())
+    for (Entry configEntry : baseEntry.getChildren().values())
     {
       // Get the backend ID attribute from the entry.  If there isn't one, then
       // skip the entry.
@@ -512,12 +512,12 @@ public class ListBackends
       }
       catch (ConfigException ce)
       {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getDN(), ce.getMessage());
+        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getName(), ce.getMessage());
         throw new ConfigException(message, ce);
       }
       catch (Exception e)
       {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getDN(), getExceptionMessage(e));
+        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getName(), getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
 
@@ -541,7 +541,7 @@ public class ListBackends
       catch (Exception e)
       {
         LocalizableMessage message = ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(
-            configEntry.getDN(), getExceptionMessage(e));
+            configEntry.getName(), getExceptionMessage(e));
         throw new ConfigException(message, e);
       }
 

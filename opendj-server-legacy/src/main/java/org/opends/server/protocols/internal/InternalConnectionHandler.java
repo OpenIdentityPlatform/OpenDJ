@@ -23,7 +23,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import org.opends.server.admin.std.server.*;
+import org.forgerock.opendj.server.config.server.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.ServerContext;

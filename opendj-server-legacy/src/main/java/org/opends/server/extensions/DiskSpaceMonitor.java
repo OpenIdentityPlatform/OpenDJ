@@ -41,7 +41,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorData;

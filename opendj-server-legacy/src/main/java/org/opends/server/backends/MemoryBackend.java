@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.std.server.MemoryBackendCfg;
+import org.forgerock.opendj.server.config.server.MemoryBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;

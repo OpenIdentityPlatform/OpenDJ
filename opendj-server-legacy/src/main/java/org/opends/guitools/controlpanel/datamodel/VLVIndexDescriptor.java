@@ -21,8 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
 
 /**
  * The class used to describe the VLV index configuration.

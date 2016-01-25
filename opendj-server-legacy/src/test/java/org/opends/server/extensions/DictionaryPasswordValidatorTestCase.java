@@ -28,9 +28,9 @@ import org.testng.annotations.AfterClass;
 
 import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.admin.std.meta.DictionaryPasswordValidatorCfgDefn;
-import org.opends.server.admin.std.server.DictionaryPasswordValidatorCfg;
-import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.DictionaryPasswordValidatorCfgDefn;
+import org.forgerock.opendj.server.config.server.DictionaryPasswordValidatorCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;

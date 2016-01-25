@@ -23,10 +23,10 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.RDN;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 
 /** This class specifies the external changelog feature for a replication domain. */
 public class ExternalChangelogDomain

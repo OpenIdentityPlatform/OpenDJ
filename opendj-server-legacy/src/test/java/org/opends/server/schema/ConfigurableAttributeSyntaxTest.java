@@ -12,14 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.schema;
 
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 
@@ -35,7 +35,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
   public Object[][] createSyntaxTest() throws Exception
   {
     // some config object used later in the test
-    ConfigEntry strictConfig = new ConfigEntry(TestCaseUtils.makeEntry(
+    Entry strictConfig = new Entry(TestCaseUtils.makeEntry(
         "dn: cn=Telephone Number,cn=Syntaxes,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-telephone-number-attribute-syntax",
@@ -46,7 +46,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
         "cn: Telephone Number"
          ), null);
 
-    ConfigEntry relaxedConfig = new ConfigEntry(TestCaseUtils.makeEntry(
+    Entry relaxedConfig = new Entry(TestCaseUtils.makeEntry(
         "dn: cn=Telephone Number,cn=Syntaxes,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-telephone-number-attribute-syntax",

@@ -28,9 +28,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.TrustManagerProviderCfg;
-import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.TrustManagerProviderCfg;
+import org.forgerock.opendj.server.config.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

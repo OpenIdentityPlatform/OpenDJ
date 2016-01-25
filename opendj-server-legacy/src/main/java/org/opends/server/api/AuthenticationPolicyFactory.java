@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.server.api;
@@ -21,7 +21,7 @@ package org.opends.server.api;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.AuthenticationPolicyCfg;
+import org.forgerock.opendj.server.config.server.AuthenticationPolicyCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;

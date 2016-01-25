@@ -12,14 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.MD5PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.MD5PasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.MD5PasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.MD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -55,7 +56,7 @@ public class MD5PasswordStorageSchemeTestCase
     MD5PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           MD5PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
+          configEntry
           );
 
     scheme.initializePasswordStorageScheme(configuration);

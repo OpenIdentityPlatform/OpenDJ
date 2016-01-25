@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
+import org.forgerock.opendj.server.config.server.LDAPAttributeDescriptionListPluginCfg;
+import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;

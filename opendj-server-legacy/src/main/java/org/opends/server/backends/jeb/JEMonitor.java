@@ -19,8 +19,8 @@ package org.opends.server.backends.jeb;
 import static org.opends.server.util.StaticUtils.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 
 import com.sleepycat.je.Environment;

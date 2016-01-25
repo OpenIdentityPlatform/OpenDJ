@@ -39,7 +39,7 @@ import java.util.TimeZone;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.std.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.CoreConfigManager;

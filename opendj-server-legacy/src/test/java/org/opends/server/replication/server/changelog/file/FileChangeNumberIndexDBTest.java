@@ -21,8 +21,8 @@ import static org.testng.Assert.*;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.server.config.server.ReplicationServerCfg;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;

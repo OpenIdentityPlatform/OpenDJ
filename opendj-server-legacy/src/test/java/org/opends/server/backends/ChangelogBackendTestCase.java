@@ -49,7 +49,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
+import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
 import org.opends.server.controls.EntryChangelogNotificationControl;

@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.std.server.ConfigFileHandlerBackendCfg;
+import org.forgerock.opendj.server.config.server.ConfigFileHandlerBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;

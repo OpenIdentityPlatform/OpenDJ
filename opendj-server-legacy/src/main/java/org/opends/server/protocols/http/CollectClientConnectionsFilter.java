@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
@@ -50,7 +50,7 @@ import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DisconnectReason;

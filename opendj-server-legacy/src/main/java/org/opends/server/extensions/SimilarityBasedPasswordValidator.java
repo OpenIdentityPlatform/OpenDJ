@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -29,8 +29,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
 import org.opends.server.util.LevenshteinDistance;
-import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.SimilarityBasedPasswordValidatorCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 
 /**
  * This class provides a password validator that can ensure that the provided

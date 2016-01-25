@@ -32,7 +32,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.admin.Configuration;
+import org.forgerock.opendj.config.Configuration;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.AddOperation;

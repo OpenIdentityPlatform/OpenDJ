@@ -26,14 +26,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.PasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.PasswordStorageSchemeCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
@@ -88,11 +87,7 @@ public class PasswordStorageSchemeConfigManager
   public void initializePasswordStorageSchemes()
          throws ConfigException, InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-      ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-      managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any entry cache entry is added or removed.

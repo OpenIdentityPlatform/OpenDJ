@@ -19,8 +19,8 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.rmi.RemoteException;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorData;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 
 import com.persistit.Management.BufferPoolInfo;

@@ -20,8 +20,8 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.HTTPAccessLogPublisherCfg;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;
 

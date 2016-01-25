@@ -38,15 +38,15 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.LDIFBackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.TrustStoreBackendCfg;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.LDIFBackendCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.TrustStoreBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
@@ -714,9 +714,9 @@ public class EncodePassword
   private static void initializeServerBackends(DirectoryServer directoryServer, PrintStream err)
   throws InitializationException, ConfigException {
     directoryServer.initializeRootDSE();
-    ServerManagementContext context = ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
-    ConfigEntry backendRoot;
+
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
+    Entry backendRoot;
     try {
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
       backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;

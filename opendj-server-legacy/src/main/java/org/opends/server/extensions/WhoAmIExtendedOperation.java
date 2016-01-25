@@ -26,7 +26,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.WhoAmIExtendedOperationHandlerCfg;
+import org.forgerock.opendj.server.config.server.WhoAmIExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.controls.ProxiedAuthV1Control;

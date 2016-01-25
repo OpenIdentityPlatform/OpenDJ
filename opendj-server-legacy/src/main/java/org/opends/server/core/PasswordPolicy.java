@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
+import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.api.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;

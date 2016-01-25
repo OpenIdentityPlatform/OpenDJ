@@ -12,14 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.ClearPasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.ClearPasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.ClearPasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.ClearPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -55,7 +56,7 @@ public class ClearPasswordStorageSchemeTestCase
     ClearPasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           ClearPasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
+          configEntry
           );
 
     scheme.initializePasswordStorageScheme(configuration);

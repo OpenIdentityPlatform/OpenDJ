@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 
@@ -132,15 +132,15 @@ public class ConfigFileHandlerTestCase
    * @param  violatingDNs  A list to which the DN of any entry containing the
    *                       extensibleObject class should be added.
    */
-  private void recursivelyTestNoExtensibleObjects(ConfigEntry configEntry,
+  private void recursivelyTestNoExtensibleObjects(Entry configEntry,
                                                   ArrayList<DN> violatingDNs)
   {
     if (configEntry.hasObjectClass("extensibleObject"))
     {
-      violatingDNs.add(configEntry.getDN());
+      violatingDNs.add(configEntry.getName());
     }
 
-    for (ConfigEntry ce : configEntry.getChildren().values())
+    for (Entry ce : configEntry.getChildren().values())
     {
       recursivelyTestNoExtensibleObjects(ce, violatingDNs);
     }

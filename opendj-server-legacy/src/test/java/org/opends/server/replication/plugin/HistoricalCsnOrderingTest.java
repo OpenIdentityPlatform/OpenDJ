@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;

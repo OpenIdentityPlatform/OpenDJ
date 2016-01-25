@@ -35,7 +35,7 @@ import net.jcip.annotations.Immutable;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;

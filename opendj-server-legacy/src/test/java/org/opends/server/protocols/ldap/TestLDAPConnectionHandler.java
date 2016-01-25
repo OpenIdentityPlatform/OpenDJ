@@ -26,7 +26,7 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -124,7 +124,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
   }
 
   /**
-   *  Start a handler an then give its hasAcceptableConfiguration a ConfigEntry with
+   *  Start a handler an then give its hasAcceptableConfiguration a Entry with
    *  numerous invalid cases and single-valued attrs with duplicate values.
    *
    * @throws Exception if handler cannot be instantiated or the configuration is

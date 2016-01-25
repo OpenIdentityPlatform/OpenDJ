@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.monitors.ConnectionHandlerMonitor;

@@ -22,18 +22,17 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
-import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.EntryCacheCfgDefn;
+import org.forgerock.opendj.server.config.server.EntryCacheCfg;
+import org.forgerock.opendj.server.config.server.EntryCacheMonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
@@ -126,11 +125,7 @@ public class EntryCacheConfigManager
   public void initializeEntryCache()
          throws ConfigException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-      ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-      managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Default entry cache should be already installed with
     // <CODE>initializeDefaultEntryCache()</CODE> method so
@@ -142,7 +137,7 @@ public class EntryCacheConfigManager
     rootConfiguration.addEntryCacheDeleteListener(this);
 
     // Get the base entry cache configuration entry.
-    ConfigEntry entryCacheBase;
+    Entry entryCacheBase;
     try {
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_ENTRY_CACHE_BASE);
       entryCacheBase   = DirectoryServer.getConfigEntry(configEntryDN);
@@ -466,11 +461,7 @@ public class EntryCacheConfigManager
     )
     throws InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-      ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-      managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Load the entry cache class...
     EntryCache<? extends EntryCacheCfg> entryCache =
@@ -488,7 +479,7 @@ public class EntryCacheConfigManager
     // Install and register the monitor for this cache.
     EntryCacheMonitorProvider monitor =
         new EntryCacheMonitorProvider(configuration.dn().
-        rdn().getFirstAVA().getAttributeValue().toString(), entryCache);
+            rdn().getFirstAVA().getAttributeValue().toString(), entryCache);
     try {
       monitor.initializeMonitorProvider((EntryCacheMonitorProviderCfg)
         rootConfiguration.getMonitorProvider(

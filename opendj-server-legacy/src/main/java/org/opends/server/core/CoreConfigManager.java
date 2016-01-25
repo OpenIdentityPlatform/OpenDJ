@@ -23,14 +23,13 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.GlobalCfgDefn;
-import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
-import org.opends.server.admin.std.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
-import org.opends.server.admin.std.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
-import org.opends.server.admin.std.server.GlobalCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.DisabledPrivilege;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
+import org.forgerock.opendj.server.config.server.GlobalCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.loggers.CommonAudit;
 import org.opends.server.types.*;
@@ -75,11 +74,7 @@ public class CoreConfigManager
   public void initializeCoreConfig()
          throws ConfigException, InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
 
     // Get the global configuration and register with it as a change listener.

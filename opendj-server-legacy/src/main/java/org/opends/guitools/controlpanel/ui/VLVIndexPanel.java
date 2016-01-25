@@ -65,12 +65,12 @@ import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.admin.client.ManagementContext;
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.std.client.BackendVLVIndexCfgClient;
-import org.opends.server.admin.std.client.PluggableBackendCfgClient;
-import org.opends.server.admin.std.client.RootCfgClient;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.OpenDsException;
 

@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.TreeMap;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.std.server.ClientConnectionMonitorProviderCfg;
+import org.forgerock.opendj.server.config.server.ClientConnectionMonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorData;

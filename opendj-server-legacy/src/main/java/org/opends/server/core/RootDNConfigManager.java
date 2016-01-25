@@ -25,13 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.RootDNCfg;
-import org.opends.server.admin.std.server.RootDNUserCfg;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.RootDNCfg;
+import org.forgerock.opendj.server.config.server.RootDNUserCfg;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
@@ -89,11 +88,7 @@ public class RootDNConfigManager
   public void initializeRootDNs()
          throws ConfigException, InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
 
     // Get the root DN configuration object, use it to set the default root

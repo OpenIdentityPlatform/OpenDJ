@@ -21,10 +21,10 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
-import org.opends.server.admin.std.meta.*;
-import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
+import org.forgerock.opendj.server.config.meta.*;
+import org.forgerock.opendj.server.config.server.FIFOEntryCacheCfg;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;

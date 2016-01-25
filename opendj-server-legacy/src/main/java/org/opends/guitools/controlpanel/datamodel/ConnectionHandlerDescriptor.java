@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -26,7 +26,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
+import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
 
 /**
  * This class is used to represent a Listener and is aimed to be used by the

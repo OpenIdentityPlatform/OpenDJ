@@ -28,14 +28,13 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.AuthenticationPolicyCfgDefn;
-import org.opends.server.admin.std.server.AuthenticationPolicyCfg;
-import org.opends.server.admin.std.server.PasswordPolicyCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.AuthenticationPolicyCfgDefn;
+import org.forgerock.opendj.server.config.server.AuthenticationPolicyCfg;
+import org.forgerock.opendj.server.config.server.PasswordPolicyCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.SubentryChangeListener;
@@ -83,10 +82,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   public void initializeAuthenticationPolicies() throws ConfigException,
       InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext = ServerManagementContext
-        .getInstance();
-    RootCfg rootConfiguration = managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any password policy entries are added or removed.
@@ -168,9 +164,8 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     DirectoryServer.getSubentryManager().deregisterChangeListener(this);
 
     // Deregister as configuration change listeners.
-    ServerManagementContext managementContext = ServerManagementContext
-        .getInstance();
-    RootCfg rootConfiguration = managementContext.getRootConfiguration();
+
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
     rootConfiguration.removePasswordPolicyAddListener(this);
     rootConfiguration.removePasswordPolicyDeleteListener(this);
   }

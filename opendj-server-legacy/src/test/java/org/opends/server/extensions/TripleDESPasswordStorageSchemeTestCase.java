@@ -12,14 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.TripleDESPasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.TripleDESPasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.TripleDESPasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.TripleDESPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
 
@@ -56,7 +57,7 @@ public class TripleDESPasswordStorageSchemeTestCase
     TripleDESPasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           TripleDESPasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry());
+          configEntry);
 
     scheme.initializePasswordStorageScheme(configuration);
     return scheme;

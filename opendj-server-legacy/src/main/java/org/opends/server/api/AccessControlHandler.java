@@ -19,7 +19,7 @@ package org.opends.server.api;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.AccessControlHandlerCfg;
+import org.forgerock.opendj.server.config.server.AccessControlHandlerCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.core.*;

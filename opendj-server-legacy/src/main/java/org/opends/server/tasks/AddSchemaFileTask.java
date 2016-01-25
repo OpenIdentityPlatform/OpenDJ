@@ -27,7 +27,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;

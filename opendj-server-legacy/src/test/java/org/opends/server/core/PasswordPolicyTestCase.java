@@ -25,11 +25,11 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
-import org.opends.server.admin.std.server.PasswordPolicyCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
+import org.forgerock.opendj.server.config.server.PasswordPolicyCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
@@ -2163,12 +2163,12 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     DN parentDN = DN.valueOf("cn=Password Policies,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    Entry parentEntry = DirectoryServer.getConfigEntry(parentDN);
+    Entry configEntry = new Entry(e, parentEntry);
 
     PasswordPolicyCfg configuration =
       AdminTestCaseUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(),
-          configEntry.getEntry());
+          configEntry);
 
     new PasswordPolicyFactory().createAuthenticationPolicy(configuration);
   }

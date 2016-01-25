@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -19,9 +19,9 @@ import static org.opends.messages.ConfigMessages.*;
 
 import java.util.Collection;
 
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.std.meta.HTTPAccessLogPublisherCfgDefn;
-import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.server.config.meta.HTTPAccessLogPublisherCfgDefn;
+import org.forgerock.opendj.server.config.server.HTTPAccessLogPublisherCfg;
 
 /**
  * This class defines the wrapper that will invoke all registered HTTP access

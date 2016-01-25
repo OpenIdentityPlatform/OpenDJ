@@ -38,9 +38,9 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.AlertHandlerCfg;
-import org.opends.server.admin.std.server.JMXAlertHandlerCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
+import org.forgerock.opendj.server.config.server.JMXAlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.DirectoryServerMBean;

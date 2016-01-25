@@ -27,11 +27,12 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.opends.messages.TaskMessages;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -65,7 +66,7 @@ public class TaskUtils
    * @param configEntry A backend configuration entry.
    * @return The backend ID.
    */
-  public static String getBackendID(ConfigEntry configEntry)
+  public static String getBackendID(Entry configEntry)
   {
     try
     {
@@ -80,12 +81,12 @@ public class TaskUtils
     }
     catch (org.opends.server.config.ConfigException ce)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), ce.getMessage());
       return null;
     }
     catch (Exception e)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), getExceptionMessage(e));
       return null;
     }
   }
@@ -95,9 +96,9 @@ public class TaskUtils
    * by their backend ID.
    * @return A map of backend IDs to their corresponding configuration entries.
    */
-  public static Map<String,ConfigEntry> getBackendConfigEntries()
+  public static Map<String,Entry> getBackendConfigEntries()
   {
-    Map<String,ConfigEntry> configEntries = new HashMap<>();
+    Map<String,Entry> configEntries = new HashMap<>();
 
     // FIXME The error messages should not be the LDIF import messages
 
@@ -113,7 +114,7 @@ public class TaskUtils
       return configEntries;
     }
 
-    ConfigEntry baseEntry;
+    Entry baseEntry;
     try
     {
       baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
@@ -132,7 +133,7 @@ public class TaskUtils
 
     // Iterate through the immediate children, attempting to parse them as
     // backends.
-    for (ConfigEntry configEntry : baseEntry.getChildren().values())
+    for (Entry configEntry : baseEntry.getChildren().values())
     {
       // Get the backend ID attribute from the entry.  If there isn't one, then
       // skip the entry.
@@ -154,12 +155,12 @@ public class TaskUtils
       }
       catch (org.opends.server.config.ConfigException ce)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), ce.getMessage());
         continue;
       }
       catch (Exception e)
       {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
+        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), getExceptionMessage(e));
         continue;
       }
 
@@ -203,7 +204,7 @@ public class TaskUtils
        throws DirectoryException
   {
     DN configEntryDN;
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     try
     {
       BackendCfg cfg = root.getBackend(backendID);
@@ -239,7 +240,7 @@ public class TaskUtils
   public static void disableBackend(String backendID) throws DirectoryException
   {
     DN configEntryDN;
-    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     try
     {
       BackendCfg cfg = root.getBackend(backendID);

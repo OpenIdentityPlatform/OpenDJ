@@ -25,7 +25,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;

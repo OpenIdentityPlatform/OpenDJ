@@ -24,10 +24,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
-import org.opends.server.admin.std.meta.*;
-import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.forgerock.opendj.server.config.meta.*;
+import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;

@@ -33,19 +33,17 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.BackendCfgDefn;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
+import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigEntry;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.WritabilityMode;
@@ -95,8 +93,8 @@ public class BackendConfigManager implements
   {
     // Create an internal server management context and retrieve
     // the root configuration.
-    ServerManagementContext context = ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
+
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Register add and delete listeners.
     root.addBackendAddListener(this);
@@ -104,7 +102,7 @@ public class BackendConfigManager implements
 
     // Get the configuration entry that is at the root of all the backends in
     // the server.
-    ConfigEntry backendRoot;
+    Entry backendRoot;
     try
     {
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);

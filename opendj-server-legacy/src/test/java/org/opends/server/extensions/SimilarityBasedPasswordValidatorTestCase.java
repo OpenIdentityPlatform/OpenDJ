@@ -38,9 +38,9 @@ import org.opends.server.types.Modification;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
-import org.opends.server.admin.std.meta.SimilarityBasedPasswordValidatorCfgDefn;
-import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
-import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.SimilarityBasedPasswordValidatorCfgDefn;
+import org.forgerock.opendj.server.config.server.SimilarityBasedPasswordValidatorCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 
 /**
  * A set of test cases for the Similarity-Based Password Reject.

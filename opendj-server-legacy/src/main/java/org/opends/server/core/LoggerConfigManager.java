@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -29,16 +29,15 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.server.AccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.DebugLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.ErrorLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.HTTPAccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.LogPublisherCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.messages.Severity;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
-import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
-import org.opends.server.admin.std.server.LogPublisherCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.loggers.AbstractLogger;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.DebugLogger;
@@ -177,8 +176,8 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
   {
     // Create an internal server management context and retrieve
     // the root configuration which has the log publisher relation.
-    ServerManagementContext context = ServerManagementContext.getInstance();
-    RootCfg root = context.getRootConfiguration();
+
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
 
     root.addLogPublisherAddListener(this);
     root.addLogPublisherDeleteListener(this);

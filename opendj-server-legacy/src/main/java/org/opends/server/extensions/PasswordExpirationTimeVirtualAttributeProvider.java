@@ -12,21 +12,21 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012 profiq s.r.o.
- * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
-import
-  org.opends.server.admin.std.server.PasswordExpirationTimeVirtualAttributeCfg;
+import org.forgerock.opendj.server.config.server.PasswordExpirationTimeVirtualAttributeCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
+
 import static org.opends.messages.ExtensionMessages.*;
 
 /**

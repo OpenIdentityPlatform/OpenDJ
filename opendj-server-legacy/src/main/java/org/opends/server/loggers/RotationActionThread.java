@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 
 /**
  * This thread is spawned off at the time of file rotation to
@@ -33,7 +33,7 @@ public class RotationActionThread extends DirectoryThread
 
   private ArrayList<ActionType> actions;
   private String filename;
-  private ConfigEntry configEntry;
+  private Entry configEntry;
 
   /**
    * Create the logger thread along with the specified file name,
@@ -46,7 +46,7 @@ public class RotationActionThread extends DirectoryThread
    */
   public RotationActionThread(String filename,
             ArrayList<ActionType> actions,
-            ConfigEntry configEntry)
+            Entry configEntry)
   {
     super("Logger Rotation Action Thread");
 

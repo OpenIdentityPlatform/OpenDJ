@@ -27,16 +27,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.server.config.meta.ConnectionHandlerCfgDefn;
+import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
-import org.opends.server.admin.std.server.AdministrationConnectorCfg;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -230,14 +229,9 @@ public class ConnectionHandlerConfigManager implements
     // Clear the set of connection handlers in case of in-core restart.
     connectionHandlers.clear();
 
-    // Initialize the admin connector.
     initializeAdministrationConnectorConfig();
 
-    // Get the root configuration which acts as the parent of all
-    // connection handlers.
-    ServerManagementContext context = ServerManagementContext
-        .getInstance();
-    RootCfg root = context.getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Register as an add and delete listener so that we can
     // be notified if new connection handlers are added or existing
@@ -279,8 +273,7 @@ public class ConnectionHandlerConfigManager implements
   private void initializeAdministrationConnectorConfig()
     throws ConfigException, InitializationException {
 
-    RootCfg root =
-      ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     AdministrationConnectorCfg administrationConnectorCfg =
       root.getAdministrationConnector();
 

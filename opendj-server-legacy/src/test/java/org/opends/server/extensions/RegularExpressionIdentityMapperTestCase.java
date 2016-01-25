@@ -25,10 +25,10 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.
             RegularExpressionIdentityMapperCfgDefn;
-import org.opends.server.admin.std.server.RegularExpressionIdentityMapperCfg;
+import org.forgerock.opendj.server.config.server.RegularExpressionIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

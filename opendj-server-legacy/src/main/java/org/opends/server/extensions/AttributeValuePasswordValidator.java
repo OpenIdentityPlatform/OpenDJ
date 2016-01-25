@@ -21,9 +21,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.AttributeValuePasswordValidatorCfg;
-import org.opends.server.admin.std.server.PasswordValidatorCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.AttributeValuePasswordValidatorCfg;
+import org.forgerock.opendj.server.config.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;

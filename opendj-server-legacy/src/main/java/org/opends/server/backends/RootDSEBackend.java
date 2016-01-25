@@ -47,11 +47,11 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.RootDSEBackendCfg;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -138,7 +138,7 @@ public class RootDSEBackend
   @Override
   public void openBackend() throws ConfigException, InitializationException
   {
-    ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+    Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
 
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
@@ -149,7 +149,7 @@ public class RootDSEBackend
     }
 
     userDefinedAttributes = new ArrayList<>();
-    addAllUserDefinedAttrs(userDefinedAttributes, configEntry.getEntry());
+    addAllUserDefinedAttrs(userDefinedAttributes, configEntry);
 
 
     // Create the set of base DNs that we will handle.  In this case, it's just
@@ -946,8 +946,8 @@ public class RootDSEBackend
     ArrayList<Attribute> userAttrs = new ArrayList<>();
     try
     {
-      ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
-      addAllUserDefinedAttrs(userAttrs, configEntry.getEntry());
+      Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+      addAllUserDefinedAttrs(userAttrs, configEntry);
     }
     catch (ConfigException e)
     {

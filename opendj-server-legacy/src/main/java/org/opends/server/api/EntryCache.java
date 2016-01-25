@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;

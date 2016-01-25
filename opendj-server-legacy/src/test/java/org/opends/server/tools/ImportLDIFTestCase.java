@@ -24,8 +24,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.Attribute;

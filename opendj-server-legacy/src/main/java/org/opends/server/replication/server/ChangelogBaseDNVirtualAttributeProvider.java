@@ -12,12 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
+import org.forgerock.opendj.server.config.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;

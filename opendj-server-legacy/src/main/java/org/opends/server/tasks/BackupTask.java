@@ -39,13 +39,12 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
-import org.opends.server.admin.std.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.types.BackupConfig;
@@ -101,7 +100,7 @@ public class BackupTask extends Task
    * All the backend configuration entries defined in the server mapped
    * by their backend ID.
    */
-  private Map<String,ConfigEntry> configEntries;
+  private Map<String,Entry> configEntries;
 
   private ArrayList<Backend<?>> backendsToArchive;
 
@@ -254,7 +253,7 @@ public class BackupTask extends Task
 
     if (backUpAll)
     {
-      for (Map.Entry<String,ConfigEntry> mapEntry : configEntries.entrySet())
+      for (Map.Entry<String,Entry> mapEntry : configEntries.entrySet())
       {
         Backend<?> b = DirectoryServer.getBackend(mapEntry.getKey());
         if (b != null && b.supports(BackendOperation.BACKUP))

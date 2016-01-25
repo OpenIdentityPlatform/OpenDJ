@@ -27,9 +27,9 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.CsvFileAccessLogPublisherCfg;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.server.config.server.CsvFileAccessLogPublisherCfg;
 
 /**
  * Common Audit publisher which publishes access events to CSV files.

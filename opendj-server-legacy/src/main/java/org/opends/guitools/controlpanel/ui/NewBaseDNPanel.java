@@ -58,6 +58,8 @@ import javax.swing.event.DocumentListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -75,16 +77,16 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.AdminException;
+import org.forgerock.opendj.config.AdminException;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.std.client.BackendCfgClient;
-import org.opends.server.admin.std.client.BackendIndexCfgClient;
-import org.opends.server.admin.std.client.PluggableBackendCfgClient;
-import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.meta.BackendCfgDefn;
-import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
-import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.BackendCreationHelper;
@@ -997,11 +999,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
         getInfo().initializeConfigurationFramework();
         final File config = Installation.getLocal().getCurrentConfigurationFile();
         final LDAPProfile profile = LDAPProfile.getInstance();
-        try (org.forgerock.opendj.config.client.ManagementContext context =
-            org.forgerock.opendj.config.client.ldap.LDAPManagementContext.newLDIFManagementContext(config, profile))
+        try (ManagementContext context = LDAPManagementContext.newLDIFManagementContext(config, profile))
         {
-          final org.forgerock.opendj.server.config.client.BackendCfgClient backend =
-              context.getRootConfiguration().getBackend(backendName);
+          final BackendCfgClient backend = context.getRootConfiguration().getBackend(backendName);
           final SortedSet<DN> baseDNs = backend.getBaseDN();
           baseDNs.add(DN.valueOf(newBaseDN));
           backend.setBaseDN(baseDNs);

@@ -21,7 +21,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.admin.std.server.PluginCfg;
+import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;

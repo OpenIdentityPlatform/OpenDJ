@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2010-2014 ForgeRock AS.
+ * Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.SaltedSHA512PasswordStorageSchemeCfgDefn;
-import org.opends.server.admin.std.server.SaltedSHA512PasswordStorageSchemeCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.SaltedSHA512PasswordStorageSchemeCfgDefn;
+import org.forgerock.opendj.server.config.server.SaltedSHA512PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
@@ -57,7 +57,7 @@ public class SaltedSHA512PasswordStorageSchemeTestCase
     SaltedSHA512PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           SaltedSHA512PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
+          configEntry
           );
 
     scheme.initializePasswordStorageScheme(configuration);

@@ -23,7 +23,7 @@ import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.SubjectEqualsDNCertificateMapperCfg;
+import org.forgerock.opendj.server.config.server.SubjectEqualsDNCertificateMapperCfg;
 import org.opends.server.api.CertificateMapper;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

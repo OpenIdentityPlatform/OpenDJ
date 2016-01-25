@@ -27,14 +27,14 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
-import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.SNMPConnectionHandlerCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;

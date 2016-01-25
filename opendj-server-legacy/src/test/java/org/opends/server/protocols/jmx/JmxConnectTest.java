@@ -37,9 +37,9 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
-import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
+import org.forgerock.opendj.config.server.AdminTestCaseUtils;
+import org.forgerock.opendj.server.config.meta.JMXConnectionHandlerCfgDefn;
+import org.forgerock.opendj.server.config.server.JMXConnectionHandlerCfg;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperation;

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -20,7 +20,7 @@ package org.opends.server.api;
 import java.util.Collection;
 import java.util.List;
 
-import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.forgerock.opendj.server.config.server.MatchingRuleCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.i18n.LocalizableMessage;

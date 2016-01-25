@@ -21,11 +21,11 @@ import java.util.List;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.Entry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
@@ -65,11 +65,11 @@ public class BackendToolUtils
     try
     {
       final DN backendBaseDN = getBackendBaseDN();
-      final ConfigEntry baseEntry = getBaseEntry(backendBaseDN);
+      final Entry baseEntry = getBaseEntry(backendBaseDN);
 
       // Iterate through the immediate children, attempting to parse them as backends.
       final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
-      for (final ConfigEntry configEntry : baseEntry.getChildren().values())
+      for (final Entry configEntry : baseEntry.getChildren().values())
       {
         final String backendID = getBackendID(configEntry);
         final String backendClassName = getBackendClassName(configEntry);
@@ -91,7 +91,7 @@ public class BackendToolUtils
         catch (final Exception e)
         {
           logger.error(
-              ERR_CANNOT_INSTANTIATE_BACKEND_CLASS, backendClassName, configEntry.getDN(), getExceptionMessage(e));
+              ERR_CANNOT_INSTANTIATE_BACKEND_CLASS, backendClassName, configEntry.getName(), getExceptionMessage(e));
           return ERROR;
         }
 
@@ -109,7 +109,7 @@ public class BackendToolUtils
     }
   }
 
-  private static List<DN> getBaseDNsForEntry(final ConfigEntry configEntry) throws Exception
+  private static List<DN> getBaseDNsForEntry(final Entry configEntry) throws Exception
   {
     try
     {
@@ -120,17 +120,17 @@ public class BackendToolUtils
       {
         return baseDNAttr.activeValues();
       }
-      logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getDN());
+      logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getName());
       return null;
     }
     catch (final Exception e)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, configEntry.getDN(), getExceptionMessage(e));
+      logger.error(ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND, configEntry.getName(), getExceptionMessage(e));
       throw e;
     }
   }
 
-  private static Class<?> getBackendClass(String backendClassName, ConfigEntry configEntry) throws Exception
+  private static Class<?> getBackendClass(String backendClassName, Entry configEntry) throws Exception
   {
     try
     {
@@ -138,12 +138,12 @@ public class BackendToolUtils
     }
     catch (final Exception e)
     {
-      logger.error(ERR_CANNOT_LOAD_BACKEND_CLASS, backendClassName, configEntry.getDN(), getExceptionMessage(e));
+      logger.error(ERR_CANNOT_LOAD_BACKEND_CLASS, backendClassName, configEntry.getName(), getExceptionMessage(e));
       throw e;
     }
   }
 
-  private static String getBackendClassName(final ConfigEntry configEntry) throws Exception
+  private static String getBackendClassName(final Entry configEntry) throws Exception
   {
     try
     {
@@ -154,17 +154,17 @@ public class BackendToolUtils
     }
     catch (final org.opends.server.config.ConfigException ce)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), ce.getMessage());
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getName(), ce.getMessage());
       throw ce;
     }
     catch (final Exception e)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), getExceptionMessage(e));
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getName(), getExceptionMessage(e));
       throw e;
     }
   }
 
-  private static String getBackendID(final ConfigEntry configEntry) throws Exception
+  private static String getBackendID(final Entry configEntry) throws Exception
   {
     try
     {
@@ -175,17 +175,17 @@ public class BackendToolUtils
     }
     catch (final org.opends.server.config.ConfigException ce)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), ce.getMessage());
       throw ce;
     }
     catch (final Exception e)
     {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), getExceptionMessage(e));
+      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), getExceptionMessage(e));
       throw e;
     }
   }
 
-  private static ConfigEntry getBaseEntry(final DN backendBaseDN) throws Exception
+  private static Entry getBaseEntry(final DN backendBaseDN) throws Exception
   {
     try
     {
