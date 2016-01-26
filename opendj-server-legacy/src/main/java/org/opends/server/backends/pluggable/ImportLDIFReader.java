@@ -205,8 +205,8 @@ final class ImportLDIFReader extends LDIFReader
   {
     // Read the set of attributes from the entry.
     Map<ObjectClass, String> objectClasses = new HashMap<>();
-    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<>();
-    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders = new HashMap<>();
+    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<>(lines.size());
+    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders = new HashMap<>(lines.size());
     try
     {
       for (StringBuilder line : lines)
