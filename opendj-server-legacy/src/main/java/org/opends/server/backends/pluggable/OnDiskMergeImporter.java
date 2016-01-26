@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -200,10 +200,10 @@ final class OnDiskMergeImporter
           newThreadFactory(null, SORTER_THREAD_NAME, true));
       final LDIFReaderSource source =
           new LDIFReaderSource(rootContainer, importConfig, PHASE1_IMPORTER_THREAD_NAME, threadCount);
+      final File tempDir = prepareTempDir(backendCfg, importConfig.getTmpDirectory());
       try (final Importer dbStorage = rootContainer.getStorage().startImport();
            final BufferPool bufferPool = new BufferPool(nbBuffer, bufferSize))
       {
-        final File tempDir = prepareTempDir(backendCfg, importConfig.getTmpDirectory());
         final Collection<EntryContainer> entryContainers = rootContainer.getEntryContainers();
         final AbstractTwoPhaseImportStrategy importStrategy = importConfig.getSkipDNValidation()
             ? new SortAndImportWithoutDNValidation(entryContainers, dbStorage, tempDir, bufferPool, sorter)
@@ -215,6 +215,7 @@ final class OnDiskMergeImporter
       finally
       {
         sorter.shutdown();
+        recursiveDelete(tempDir);
       }
       logger.info(NOTE_IMPORT_PHASE_STATS, importer.getTotalTimeInMillis() / 1000, importer.getPhaseOneTimeInMillis()
           / 1000, importer.getPhaseTwoTimeInMillis() / 1000);
@@ -302,13 +303,13 @@ final class OnDiskMergeImporter
       final int threadCount = Runtime.getRuntime().availableProcessors();
       final int nbBuffer = 2 * indexesToRebuild.size() * threadCount;
       final int bufferSize = computeBufferSize(nbBuffer, availableMemory);
-      final File tempDir = prepareTempDir(backendCfg, tmpDirectory);
 
       final ExecutorService sorter = Executors.newFixedThreadPool(
           Runtime.getRuntime().availableProcessors(),
           newThreadFactory(null, SORTER_THREAD_NAME, true));
 
       final OnDiskMergeImporter importer;
+      final File tempDir = prepareTempDir(backendCfg, tmpDirectory);
       try (final Importer dbStorage = rootContainer.getStorage().startImport();
            final BufferPool bufferPool = new BufferPool(nbBuffer, bufferSize))
       {
@@ -322,6 +323,7 @@ final class OnDiskMergeImporter
       finally
       {
         sorter.shutdown();
+        recursiveDelete(tempDir);
       }
 
       final long totalTime = importer.getTotalTimeInMillis();
