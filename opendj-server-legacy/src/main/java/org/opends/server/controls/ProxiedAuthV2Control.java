@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -301,16 +301,26 @@ public class ProxiedAuthV2Control
 
     if (state.isDisabled())
     {
-      LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(userEntry.getName());
+      LocalizableMessage message = ERR_PROXYAUTH2_ACCOUNT_DISABLED.get(userEntry.getName());
       throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
     }
 
     if (state.isPasswordPolicy())
     {
       PasswordPolicyState pwpState = (PasswordPolicyState) state;
-      if (pwpState.isAccountExpired() || pwpState.isLocked() || pwpState.isPasswordExpired())
+      if (pwpState.isAccountExpired())
       {
-        LocalizableMessage message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(userEntry.getName());
+        LocalizableMessage message = ERR_PROXYAUTH2_ACCOUNT_EXPIRED.get(userEntry.getName());
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
+      }
+      if (pwpState.isLocked())
+      {
+        LocalizableMessage message = ERR_PROXYAUTH2_ACCOUNT_LOCKED.get(userEntry.getName());
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
+      }
+      if (pwpState.isPasswordExpired())
+      {
+        LocalizableMessage message = ERR_PROXYAUTH2_PASSWORD_EXPIRED.get(userEntry.getName());
         throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
       }
     }
