@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -528,11 +528,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     public long size()
     {
       return size;
-    }
-
-    @Override
-    public void delete()
-    {
     }
   }
 }
