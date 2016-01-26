@@ -1881,19 +1881,19 @@ public final class SchemaBuilder {
     /**
      * Removes the named attribute type from this schema builder.
      *
-     * @param name
+     * @param nameOrOid
      *            The name or OID of the attribute type to be removed.
      * @return {@code true} if the attribute type was found.
      */
-    public boolean removeAttributeType(final String name) {
+    public boolean removeAttributeType(final String nameOrOid) {
         lazyInitBuilder();
 
-        final AttributeType element = numericOID2AttributeTypes.get(name);
+        final AttributeType element = numericOID2AttributeTypes.get(nameOrOid);
         if (element != null) {
             removeAttributeType(element);
             return true;
         }
-        final List<AttributeType> elements = name2AttributeTypes.get(toLowerCase(name));
+        final List<AttributeType> elements = name2AttributeTypes.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final AttributeType e : elements) {
                 removeAttributeType(e);
@@ -1906,19 +1906,19 @@ public final class SchemaBuilder {
     /**
      * Removes the named DIT content rule from this schema builder.
      *
-     * @param name
+     * @param nameOrOid
      *            The name or OID of the DIT content rule to be removed.
      * @return {@code true} if the DIT content rule was found.
      */
-    public boolean removeDITContentRule(final String name) {
+    public boolean removeDITContentRule(final String nameOrOid) {
         lazyInitBuilder();
 
-        final DITContentRule element = numericOID2ContentRules.get(name);
+        final DITContentRule element = numericOID2ContentRules.get(nameOrOid);
         if (element != null) {
             removeDITContentRule(element);
             return true;
         }
-        final List<DITContentRule> elements = name2ContentRules.get(toLowerCase(name));
+        final List<DITContentRule> elements = name2ContentRules.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final DITContentRule e : elements) {
                 removeDITContentRule(e);
@@ -1949,19 +1949,19 @@ public final class SchemaBuilder {
     /**
      * Removes the named matching rule from this schema builder.
      *
-     * @param name
+     * @param nameOrOid
      *            The name or OID of the matching rule to be removed.
      * @return {@code true} if the matching rule was found.
      */
-    public boolean removeMatchingRule(final String name) {
+    public boolean removeMatchingRule(final String nameOrOid) {
         lazyInitBuilder();
 
-        final MatchingRule element = numericOID2MatchingRules.get(name);
+        final MatchingRule element = numericOID2MatchingRules.get(nameOrOid);
         if (element != null) {
             removeMatchingRule(element);
             return true;
         }
-        final List<MatchingRule> elements = name2MatchingRules.get(toLowerCase(name));
+        final List<MatchingRule> elements = name2MatchingRules.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final MatchingRule e : elements) {
                 removeMatchingRule(e);
@@ -1974,19 +1974,19 @@ public final class SchemaBuilder {
     /**
      * Removes the named matching rule use from this schema builder.
      *
-     * @param name
+     * @param nameOrOid
      *            The name or OID of the matching rule use to be removed.
      * @return {@code true} if the matching rule use was found.
      */
-    public boolean removeMatchingRuleUse(final String name) {
+    public boolean removeMatchingRuleUse(final String nameOrOid) {
         lazyInitBuilder();
 
-        final MatchingRuleUse element = numericOID2MatchingRuleUses.get(name);
+        final MatchingRuleUse element = numericOID2MatchingRuleUses.get(nameOrOid);
         if (element != null) {
             removeMatchingRuleUse(element);
             return true;
         }
-        final List<MatchingRuleUse> elements = name2MatchingRuleUses.get(toLowerCase(name));
+        final List<MatchingRuleUse> elements = name2MatchingRuleUses.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final MatchingRuleUse e : elements) {
                 removeMatchingRuleUse(e);
@@ -1999,19 +1999,19 @@ public final class SchemaBuilder {
     /**
      * Removes the named name form from this schema builder.
      *
-     * @param name
+     * @param nameOrOid
      *            The name or OID of the name form to be removed.
      * @return {@code true} if the name form was found.
      */
-    public boolean removeNameForm(final String name) {
+    public boolean removeNameForm(final String nameOrOid) {
         lazyInitBuilder();
 
-        final NameForm element = numericOID2NameForms.get(name);
+        final NameForm element = numericOID2NameForms.get(nameOrOid);
         if (element != null) {
             removeNameForm(element);
             return true;
         }
-        final List<NameForm> elements = name2NameForms.get(toLowerCase(name));
+        final List<NameForm> elements = name2NameForms.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final NameForm e : elements) {
                 removeNameForm(e);
@@ -2024,19 +2024,19 @@ public final class SchemaBuilder {
     /**
      * Removes the named object class from this schema builder.
      *
-     * @param name
+     * @param nameOrOid
      *            The name or OID of the object class to be removed.
      * @return {@code true} if the object class was found.
      */
-    public boolean removeObjectClass(final String name) {
+    public boolean removeObjectClass(final String nameOrOid) {
         lazyInitBuilder();
 
-        final ObjectClass element = numericOID2ObjectClasses.get(name);
+        final ObjectClass element = numericOID2ObjectClasses.get(nameOrOid);
         if (element != null) {
             removeObjectClass(element);
             return true;
         }
-        final List<ObjectClass> elements = name2ObjectClasses.get(toLowerCase(name));
+        final List<ObjectClass> elements = name2ObjectClasses.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final ObjectClass e : elements) {
                 removeObjectClass(e);
