@@ -252,14 +252,13 @@ public final class ConnectionFactoryProvider {
         reportAuthzIDArg = CommonArguments.getReportAuthzId();
         argumentParser.addArgument(reportAuthzIDArg);
 
-        connectTimeOut = CommonArguments.getConnectTimeOut();
+        connectTimeOut = CommonArguments.getConnectTimeOutHidden();
         argumentParser.addArgument(connectTimeOut);
 
         usePasswordPolicyControlArg =
-                new BooleanArgument("usepwpolicycontrol", null, OPTION_LONG_USE_PW_POLICY_CTL,
-                        INFO_DESCRIPTION_USE_PWP_CONTROL.get());
-        usePasswordPolicyControlArg.setPropertyName(OPTION_LONG_USE_PW_POLICY_CTL);
-        argumentParser.addArgument(usePasswordPolicyControlArg);
+                BooleanArgument.builder(OPTION_LONG_USE_PW_POLICY_CTL)
+                        .description(INFO_DESCRIPTION_USE_PWP_CONTROL.get())
+                        .buildAndAddToParser(argumentParser);
     }
 
     /**

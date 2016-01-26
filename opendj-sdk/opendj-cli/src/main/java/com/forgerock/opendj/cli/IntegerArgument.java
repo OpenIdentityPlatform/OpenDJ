@@ -36,241 +36,82 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * potentially only those in a given range.
  */
 public final class IntegerArgument extends Argument {
-    /** Indicates whether a lower bound will be enforced for this argument. */
-    private final boolean hasLowerBound;
 
     /**
-     * Indicates whether an upper bound will be enforced for this
-     * argument.
+     * Returns a builder which can be used for incrementally constructing a new
+     * {@link IntegerArgument}.
+     *
+     * @param name
+     *         The generic name that will be used to refer to this argument.
+     * @return A builder to continue building the {@link IntegerArgument}.
      */
-    private final boolean hasUpperBound;
+    public static Builder builder(final String name) {
+        return new Builder(name);
+    }
+
+    /** A fluent API for incrementally constructing {@link IntegerArgument}. */
+    public static final class Builder extends ArgumentBuilder<Builder, Integer, IntegerArgument> {
+        private int lowerBound = Integer.MIN_VALUE;
+        private int upperBound = Integer.MAX_VALUE;
+
+        private Builder(final String name) {
+            super(name);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Sets the lower bound of this {@link IntegerArgument}.
+         *
+         * @param lowerBound
+         *         The lower bound value.
+         * @return This builder.
+         */
+        public Builder lowerBound(final int lowerBound) {
+            this.lowerBound = lowerBound;
+            return getThis();
+        }
+
+        /**
+         * Sets the range of this {@link IntegerArgument}.
+         *
+         * @param lowerBound
+         *          The range lower bound value.
+         * @param upperBound
+         *          The range upper bound value.
+         * @return This builder.
+         */
+        public Builder range(final int lowerBound, final int upperBound) {
+            this.lowerBound = lowerBound;
+            this.upperBound = upperBound;
+            return getThis();
+        }
+
+        @Override
+        public IntegerArgument buildArgument() throws ArgumentException {
+            return new IntegerArgument(this, lowerBound, upperBound);
+        }
+    }
 
     /** The lower bound that will be enforced for this argument. */
     private final int lowerBound;
-
     /** The upper bound that will be enforced for this argument. */
     private final int upperBound;
 
-    /**
-     * Creates a new integer argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param isMultiValued
-     *            Indicates whether this argument may be specified more than
-     *            once to provide multiple values.
-     * @param needsValue
-     *            Indicates whether this argument requires a value.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param defaultValue
-     *            The default value that should be used for this argument if
-     *            none is provided in a properties file or on the command line.
-     *            This may be <CODE>null</CODE> if there is no generic default.
-     * @param propertyName
-     *            The name of the property in a property file that may be used
-     *            to override the default value but will be overridden by a
-     *            command-line argument.
-     * @param hasLowerBound
-     *            Indicates whether a lower bound should be enforced for values
-     *            of this argument.
-     * @param lowerBound
-     *            The lower bound that should be enforced for values of this
-     *            argument.
-     * @param hasUpperBound
-     *            Indicates whether an upperbound should be enforced for values
-     *            of this argument.
-     * @param upperBound
-     *            The upper bound that should be enforced for values of this
-     *            argument.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    public IntegerArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired, final boolean isMultiValued,
-            final boolean needsValue, final LocalizableMessage valuePlaceholder,
-            final int defaultValue, final String propertyName, final boolean hasLowerBound,
-            final int lowerBound, final boolean hasUpperBound, final int upperBound,
-            final LocalizableMessage description) throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued, needsValue,
-                valuePlaceholder, String.valueOf(defaultValue), propertyName, description);
-
-        this.hasLowerBound = hasLowerBound;
-        this.hasUpperBound = hasUpperBound;
+    private IntegerArgument(final Builder builder, final int lowerBound, final int upperBound)
+            throws ArgumentException {
+        super(builder);
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
 
-        if (hasLowerBound && hasUpperBound && (lowerBound > upperBound)) {
+        if (lowerBound > upperBound) {
             final LocalizableMessage message =
-                    ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(name, lowerBound, upperBound);
+                    ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(builder.longIdentifier, lowerBound, upperBound);
             throw new ArgumentException(message);
         }
-    }
-
-    /**
-     * Creates a new integer argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param isMultiValued
-     *            Indicates whether this argument may be specified more than
-     *            once to provide multiple values.
-     * @param needsValue
-     *            Indicates whether this argument requires a value.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param defaultValue
-     *            The default value that should be used for this argument if
-     *            none is provided in a properties file or on the command line.
-     *            This may be <CODE>null</CODE> if there is no generic default.
-     * @param propertyName
-     *            The name of the property in a property file that may be used
-     *            to override the default value but will be overridden by a
-     *            command-line argument.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    public IntegerArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired, final boolean isMultiValued,
-            final boolean needsValue, final LocalizableMessage valuePlaceholder,
-            final int defaultValue, final String propertyName, final LocalizableMessage description)
-            throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued, needsValue,
-                valuePlaceholder, String.valueOf(defaultValue), propertyName, description);
-
-        hasLowerBound = false;
-        hasUpperBound = false;
-        lowerBound = Integer.MIN_VALUE;
-        upperBound = Integer.MAX_VALUE;
-    }
-
-    /**
-     * Creates a new integer argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param needsValue
-     *            Indicates whether this argument requires a value.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param hasLowerBound
-     *            Indicates whether a lower bound should be enforced for values
-     *            of this argument.
-     * @param lowerBound
-     *            The lower bound that should be enforced for values of this
-     *            argument.
-     * @param hasUpperBound
-     *            Indicates whether an upperbound should be enforced for values
-     *            of this argument.
-     * @param upperBound
-     *            The upper bound that should be enforced for values of this
-     *            argument.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    public IntegerArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired, final boolean needsValue,
-            final LocalizableMessage valuePlaceholder, final boolean hasLowerBound,
-            final int lowerBound, final boolean hasUpperBound, final int upperBound,
-            final LocalizableMessage description) throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
-                valuePlaceholder, null, null, description);
-
-        this.hasLowerBound = hasLowerBound;
-        this.hasUpperBound = hasUpperBound;
-        this.lowerBound = lowerBound;
-        this.upperBound = upperBound;
-
-        if (hasLowerBound && hasUpperBound && (lowerBound > upperBound)) {
-            final LocalizableMessage message =
-                    ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND.get(name, lowerBound, upperBound);
-            throw new ArgumentException(message);
-        }
-    }
-
-    /**
-     * Creates a new integer argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param needsValue
-     *            Indicates whether this argument requires a value.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    public IntegerArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired, final boolean needsValue,
-            final LocalizableMessage valuePlaceholder, final LocalizableMessage description)
-            throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, isRequired, false, needsValue,
-                valuePlaceholder, null, null, description);
-
-        hasLowerBound = false;
-        hasUpperBound = false;
-        lowerBound = Integer.MIN_VALUE;
-        upperBound = Integer.MAX_VALUE;
     }
 
     /**
@@ -289,19 +130,19 @@ public final class IntegerArgument extends Argument {
     public boolean valueIsAcceptable(final String valueString, final LocalizableMessageBuilder invalidReason) {
         try {
             final int intValue = Integer.parseInt(valueString);
-            if (hasLowerBound && intValue < lowerBound) {
-                invalidReason.append(ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get(getPropertyName(), intValue, lowerBound));
+            if (intValue < lowerBound) {
+                invalidReason.append(ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get(longIdentifier, intValue, lowerBound));
                 return false;
             }
 
-            if (hasUpperBound && intValue > upperBound) {
-                invalidReason.append(ERR_INTARG_VALUE_ABOVE_UPPER_BOUND.get(getPropertyName(), intValue, upperBound));
+            if (intValue > upperBound) {
+                invalidReason.append(ERR_INTARG_VALUE_ABOVE_UPPER_BOUND.get(longIdentifier, intValue, upperBound));
                 return false;
             }
 
             return true;
         } catch (final NumberFormatException e) {
-            invalidReason.append(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, getPropertyName()));
+            invalidReason.append(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, longIdentifier));
             return false;
         }
     }

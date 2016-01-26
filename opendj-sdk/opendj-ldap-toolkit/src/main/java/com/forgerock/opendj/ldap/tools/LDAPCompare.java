@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -177,11 +177,10 @@ public final class LDAPCompare extends ConsoleApplication {
             argParser.addArgument(proxyAuthzID);
 
             assertionFilter =
-                    new StringArgument("assertionfilter", null, OPTION_LONG_ASSERTION_FILE, false,
-                            false, true, INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_ASSERTION_FILTER.get());
-            assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
-            argParser.addArgument(assertionFilter);
+                    StringArgument.builder(OPTION_LONG_ASSERTION_FILE)
+                            .description(INFO_DESCRIPTION_ASSERTION_FILTER.get())
+                            .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             controlStr = CommonArguments.getControl();
             argParser.addArgument(controlStr);

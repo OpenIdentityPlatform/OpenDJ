@@ -26,6 +26,10 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_SIZE_LIMIT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_TIME_LIMIT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static org.forgerock.util.Utils.closeSilently;
@@ -98,49 +102,49 @@ public final class LDIFSearch extends ConsoleApplication {
         final IntegerArgument sizeLimit;
         try {
             outputFilename =
-                    new StringArgument("outputFilename", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
-                            OPTION_LONG_OUTPUT_LDIF_FILENAME, false, false, true,
-                            INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get(), "stdout", null,
-                            INFO_LDIFSEARCH_DESCRIPTION_OUTPUT_FILENAME
-                                    .get(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()));
-            argParser.addArgument(outputFilename);
-
+                    StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_OUTPUT_LDIF_FILENAME)
+                            .description(INFO_LDIFSEARCH_DESCRIPTION_OUTPUT_FILENAME.get(
+                                    INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()))
+                            .defaultValue("stdout")
+                            .valuePlaceholder(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             baseDN =
-                    new StringArgument("baseDN", OPTION_SHORT_BASEDN, OPTION_LONG_BASEDN, true,
-                            false, true, INFO_BASEDN_PLACEHOLDER.get(), null, null,
-                            INFO_SEARCH_DESCRIPTION_BASEDN.get());
-            baseDN.setPropertyName(OPTION_LONG_BASEDN);
-            argParser.addArgument(baseDN);
+                    StringArgument.builder(OPTION_LONG_BASEDN)
+                            .shortIdentifier(OPTION_SHORT_BASEDN)
+                            .description(INFO_SEARCH_DESCRIPTION_BASEDN.get())
+                            .required()
+                            .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             searchScope = CommonArguments.getSearchScope();
             argParser.addArgument(searchScope);
 
             filename =
-                    new StringArgument("filename", OPTION_SHORT_FILENAME, OPTION_LONG_FILENAME,
-                            false, false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-                            INFO_SEARCH_DESCRIPTION_FILENAME.get());
-            searchScope.setPropertyName(OPTION_LONG_FILENAME);
-            argParser.addArgument(filename);
-
+                    StringArgument.builder(OPTION_LONG_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_FILENAME)
+                            .description(INFO_SEARCH_DESCRIPTION_FILENAME.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             typesOnly =
-                    new BooleanArgument("typesOnly", 'A', "typesOnly", INFO_DESCRIPTION_TYPES_ONLY
-                            .get());
-            typesOnly.setPropertyName("typesOnly");
-            argParser.addArgument(typesOnly);
-
+                    BooleanArgument.builder("typesOnly")
+                            .shortIdentifier('A')
+                            .description(INFO_DESCRIPTION_TYPES_ONLY.get())
+                            .buildAndAddToParser(argParser);
             sizeLimit =
-                    new IntegerArgument("sizeLimit", 'z', "sizeLimit", false, false, true,
-                            INFO_SIZE_LIMIT_PLACEHOLDER.get(), 0, null,
-                            INFO_SEARCH_DESCRIPTION_SIZE_LIMIT.get());
-            sizeLimit.setPropertyName("sizeLimit");
-            argParser.addArgument(sizeLimit);
-
+                    IntegerArgument.builder("sizeLimit")
+                            .shortIdentifier('z')
+                            .description(INFO_SEARCH_DESCRIPTION_SIZE_LIMIT.get())
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_SIZE_LIMIT_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             timeLimit =
-                    new IntegerArgument("timeLimit", 'l', "timeLimit", false, false, true,
-                            INFO_TIME_LIMIT_PLACEHOLDER.get(), 0, null,
-                            INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get());
-            timeLimit.setPropertyName("timeLimit");
-            argParser.addArgument(timeLimit);
+                    IntegerArgument.builder("timeLimit")
+                            .shortIdentifier('l')
+                            .description(INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get())
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);

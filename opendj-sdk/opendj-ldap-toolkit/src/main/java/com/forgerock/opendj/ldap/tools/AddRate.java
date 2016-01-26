@@ -26,6 +26,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
@@ -40,7 +41,6 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -293,7 +293,6 @@ public class AddRate extends ConsoleApplication {
 
         private AddPerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
             super(options);
-            maxIterationsArgument.setPropertyName("maxNumberOfAdd");
         }
 
         @Override
@@ -441,45 +440,60 @@ public class AddRate extends ConsoleApplication {
 
             /* Entries generation parameters */
             resourcePathArg =
-                new StringArgument("resourcepath", 'r', MakeLDIF.OPTION_LONG_RESOURCE_PATH, false, false, true,
-                    INFO_PATH_PLACEHOLDER.get(), null, null, INFO_ADDRATE_DESCRIPTION_RESOURCE_PATH.get());
-            resourcePathArg.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RESOURCE_PATH.get());
-            argParser.addArgument(resourcePathArg);
+                    StringArgument.builder(MakeLDIF.OPTION_LONG_RESOURCE_PATH)
+                            .shortIdentifier('r')
+                            .description(INFO_ADDRATE_DESCRIPTION_RESOURCE_PATH.get())
+                            .docDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RESOURCE_PATH.get())
+                            .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             randomSeedArg =
-                new IntegerArgument("randomseed", 'R', OPTION_LONG_RANDOM_SEED, false, false, true,
-                    INFO_SEED_PLACEHOLDER.get(), 0, null, INFO_ADDRATE_DESCRIPTION_SEED.get());
-            argParser.addArgument(randomSeedArg);
-
+                    IntegerArgument.builder(OPTION_LONG_RANDOM_SEED)
+                            .shortIdentifier('R')
+                            .description(INFO_ADDRATE_DESCRIPTION_SEED.get())
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_SEED_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             constantsArg =
-                new StringArgument("constant", 'g', MakeLDIF.OPTION_LONG_CONSTANT, false, true, true,
-                    INFO_CONSTANT_PLACEHOLDER.get(), null, null, INFO_ADDRATE_DESCRIPTION_CONSTANT.get());
-            argParser.addArgument(constantsArg);
+                    StringArgument.builder(MakeLDIF.OPTION_LONG_CONSTANT)
+                            .shortIdentifier('g')
+                            .description(INFO_ADDRATE_DESCRIPTION_CONSTANT.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_CONSTANT_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             /* addrate specifics arguments */
             deleteMode =
-                new MultiChoiceArgument<>("deletemode", 'C', "deleteMode", false, true,
-                    INFO_DELETEMODE_PLACEHOLDER.get(), Arrays.asList(DeleteStrategy.values()), false,
-                    INFO_ADDRATE_DESCRIPTION_DELETEMODE.get());
-            deleteMode.setDefaultValue(DeleteStrategy.FIFO.toString());
-            argParser.addArgument(deleteMode);
+                    MultiChoiceArgument.<DeleteStrategy>builder("deleteMode")
+                            .shortIdentifier('C')
+                            .description(INFO_ADDRATE_DESCRIPTION_DELETEMODE.get())
+                            .allowedValues(DeleteStrategy.values())
+                            .defaultValue(DeleteStrategy.FIFO)
+                            .valuePlaceholder(INFO_DELETEMODE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             deleteSizeThreshold =
-                new IntegerArgument("deletesizethreshold", 's', "deleteSizeThreshold", false, false, true,
-                    INFO_DELETESIZETHRESHOLD_PLACEHOLDER.get(), DEFAULT_SIZE_THRESHOLD, "deleteSizeThreshold", true,
-                    SIZE_THRESHOLD_LOWERBOUND, false, Integer.MAX_VALUE,
-                    INFO_ADDRATE_DESCRIPTION_DELETESIZETHRESHOLD.get());
-            argParser.addArgument(deleteSizeThreshold);
+                    IntegerArgument.builder("deleteSizeThreshold")
+                            .shortIdentifier('s')
+                            .description(INFO_ADDRATE_DESCRIPTION_DELETESIZETHRESHOLD.get())
+                            .lowerBound(SIZE_THRESHOLD_LOWERBOUND)
+                            .defaultValue(DEFAULT_SIZE_THRESHOLD)
+                            .valuePlaceholder(INFO_DELETESIZETHRESHOLD_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             deleteAgeThreshold =
-                new IntegerArgument("deleteagethreshold", 'a', "deleteAgeThreshold", false, true,
-                    INFO_DELETEAGETHRESHOLD_PLACEHOLDER.get(), true, AGE_THRESHOLD_LOWERBOUND, false,
-                    Integer.MAX_VALUE, INFO_ADDRATE_DESCRIPTION_DELETEAGETHRESHOLD.get());
-            deleteAgeThreshold.setPropertyName(deleteAgeThreshold.getLongIdentifier());
-            argParser.addArgument(deleteAgeThreshold);
+                    IntegerArgument.builder("deleteAgeThreshold")
+                            .shortIdentifier('a')
+                            .description(INFO_ADDRATE_DESCRIPTION_DELETEAGETHRESHOLD.get())
+                            .lowerBound(AGE_THRESHOLD_LOWERBOUND)
+                            .valuePlaceholder(INFO_DELETEAGETHRESHOLD_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
-            noPurgeArgument = new BooleanArgument("nopurge", 'n', "noPurge", INFO_ADDRATE_DESCRIPTION_NOPURGE.get());
-            argParser.addArgument(noPurgeArgument);
+            noPurgeArgument =
+                    BooleanArgument.builder("noPurge")
+                        .shortIdentifier('n')
+                        .description(INFO_ADDRATE_DESCRIPTION_NOPURGE.get())
+                        .buildAndAddToParser(argParser);
         } catch (final ArgumentException ae) {
             errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -530,8 +544,9 @@ public class AddRate extends ConsoleApplication {
         argParser.addArgument(verbose);
 
         scriptFriendly =
-            new BooleanArgument("scriptFriendly", 'S', "scriptFriendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
-        scriptFriendly.setPropertyName("scriptFriendly");
-        argParser.addArgument(scriptFriendly);
+                BooleanArgument.builder("scriptFriendly")
+                        .shortIdentifier('S')
+                        .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
+                        .buildAndAddToParser(argParser);
     }
 }

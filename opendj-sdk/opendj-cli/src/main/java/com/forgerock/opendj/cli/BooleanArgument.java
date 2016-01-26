@@ -28,7 +28,6 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
@@ -39,32 +38,42 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * default value will always be "false".
  */
 public final class BooleanArgument extends Argument {
+
     /**
-     * Creates a new Boolean argument with the provided information.
+     * Returns a builder which can be used for incrementally constructing a new
+     * {@link BooleanArgument}.
      *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
      * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
+     *         The long identifier that will be used to refer to this argument.
+     * @return A builder to continue building the {@link BooleanArgument}.
      */
-    public BooleanArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final LocalizableMessage description)
-            throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, false, false, false, null, String
-                .valueOf(false), null, description);
+    public static Builder builder(final String longIdentifier) {
+        return new Builder(longIdentifier);
     }
 
-    /** {@inheritDoc} */
+    /** A fluent API for incrementally constructing {@link BooleanArgument}. */
+    public static final class Builder extends ArgumentBuilder<Builder, Boolean, BooleanArgument> {
+        private Builder(final String longIdentifier) {
+            super(longIdentifier);
+            this.needsValue = false;
+            this.defaultValue = false;
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public BooleanArgument buildArgument() throws ArgumentException {
+            return new BooleanArgument(this);
+        }
+    }
+
+    private BooleanArgument(final Builder builder) throws ArgumentException {
+        super(builder);
+    }
+
     @Override
     public final void addValue(final String valueString) {
         if (valueString != null) {
@@ -83,7 +92,7 @@ public final class BooleanArgument extends Argument {
     public boolean valueIsAcceptable(final String valueString, final LocalizableMessageBuilder invalidReason) {
         // This argument type should never have a value, so any value
         // provided will be unacceptable.
-        invalidReason.append(ERR_BOOLEANARG_NO_VALUE_ALLOWED.get(getName()));
+        invalidReason.append(ERR_BOOLEANARG_NO_VALUE_ALLOWED.get(longIdentifier));
 
         return false;
     }

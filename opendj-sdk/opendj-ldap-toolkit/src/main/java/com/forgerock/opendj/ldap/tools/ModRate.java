@@ -189,11 +189,12 @@ public final class ModRate extends ConsoleApplication {
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
             baseDN =
-                    new StringArgument("targetDN", OPTION_SHORT_BASEDN, OPTION_LONG_TARGETDN, true,
-                            false, true, INFO_TARGETDN_PLACEHOLDER.get(), null, null,
-                            INFO_MODRATE_TOOL_DESCRIPTION_TARGETDN.get());
-            baseDN.setPropertyName(OPTION_LONG_BASEDN);
-            argParser.addArgument(baseDN);
+                    StringArgument.builder(OPTION_LONG_TARGETDN)
+                            .shortIdentifier(OPTION_SHORT_BASEDN)
+                            .description(INFO_MODRATE_TOOL_DESCRIPTION_TARGETDN.get())
+                            .required()
+                            .valuePlaceholder(INFO_TARGETDN_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             verbose = CommonArguments.getVerbose();
             argParser.addArgument(verbose);
@@ -203,10 +204,10 @@ public final class ModRate extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
 
             scriptFriendly =
-                    new BooleanArgument("scriptFriendly", 'S', "scriptFriendly",
-                            INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
-            scriptFriendly.setPropertyName("scriptFriendly");
-            argParser.addArgument(scriptFriendly);
+                    BooleanArgument.builder("scriptFriendly")
+                            .shortIdentifier('S')
+                            .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
+                            .buildAndAddToParser(argParser);
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
             errPrintln(message);

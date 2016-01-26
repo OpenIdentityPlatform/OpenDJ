@@ -168,7 +168,12 @@ public class SubCommand implements DocDescriptionSupplement {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
-    @Override
+    /**
+     * Sets a supplement to the description intended for use in generated reference documentation.
+     *
+     * @param docDescriptionSupplement
+     *            The supplement to the description for use in generated reference documentation.
+     */
     public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
         this.docDescriptionSupplement = docDescriptionSupplement;
     }
@@ -205,20 +210,15 @@ public class SubCommand implements DocDescriptionSupplement {
     }
 
     /**
-     * Retrieves the subcommand argument with the specified name.
+     * Retrieves the subcommand argument with the specified long identifier.
      *
-     * @param name
-     *            The name of the argument to retrieve.
-     * @return The subcommand argument with the specified name, or <CODE>null</CODE> if there is no such argument.
+     * @param longIdentifier
+     *            The long identifier of the argument to retrieve.
+     * @return The subcommand argument with the specified long identifier,
+     *         or <CODE>null</CODE> if there is no such argument.
      */
-    public Argument getArgumentForName(String name) {
-        for (Argument a : arguments) {
-            if (a.getName().equals(name)) {
-                return a;
-            }
-        }
-
-        return null;
+    public Argument getArgumentForLongIdentifier(final String longIdentifier) {
+        return longIDMap.get(parser.longArgumentsCaseSensitive() ? longIdentifier : toLowerCase(longIdentifier));
     }
 
     /**
@@ -231,53 +231,40 @@ public class SubCommand implements DocDescriptionSupplement {
      *             associated with this subcommand.
      */
     public void addArgument(Argument argument) throws ArgumentException {
-        String argumentName = argument.getName();
-        for (Argument a : arguments) {
-            if (argumentName.equals(a.getName())) {
-                LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME.get(name, argumentName);
-                throw new ArgumentException(message);
-            }
+        final String argumentLongID = argument.getLongIdentifier();
+        if (getArgumentForLongIdentifier(argumentLongID) != null) {
+            throw new ArgumentException(ERR_ARG_SUBCOMMAND_DUPLICATE_ARGUMENT_NAME.get(name, argumentLongID));
         }
 
-        if (parser.hasGlobalArgument(argumentName)) {
-            LocalizableMessage message = ERR_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT.get(argumentName, name);
-            throw new ArgumentException(message);
+        if (parser.hasGlobalArgument(argumentLongID)) {
+            throw new ArgumentException(ERR_ARG_SUBCOMMAND_ARGUMENT_GLOBAL_CONFLICT.get(argumentLongID, name));
         }
 
         Character shortID = argument.getShortIdentifier();
         if (shortID != null) {
             if (shortIDMap.containsKey(shortID)) {
-                LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.get(argumentName, name,
-                        String.valueOf(shortID), shortIDMap.get(shortID).getName());
-                throw new ArgumentException(message);
+                throw new ArgumentException(ERR_ARG_SUBCOMMAND_DUPLICATE_SHORT_ID.get(
+                        argumentLongID, name, String.valueOf(shortID), shortIDMap.get(shortID).getLongIdentifier()));
             }
 
             Argument arg = parser.getGlobalArgumentForShortID(shortID);
             if (arg != null) {
-                LocalizableMessage message = ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.get(argumentName,
-                        name, String.valueOf(shortID), arg.getName());
-                throw new ArgumentException(message);
+                throw new ArgumentException(ERR_ARG_SUBCOMMAND_ARGUMENT_SHORT_ID_GLOBAL_CONFLICT.get(
+                        argumentLongID, name, String.valueOf(shortID), arg.getLongIdentifier()));
             }
         }
 
         String longID = argument.getLongIdentifier();
-        if (longID != null) {
-            if (!parser.longArgumentsCaseSensitive()) {
-                longID = toLowerCase(longID);
-            }
-
+        if (!parser.longArgumentsCaseSensitive()) {
+            longID = toLowerCase(longID);
             if (longIDMap.containsKey(longID)) {
-                LocalizableMessage message = ERR_ARG_SUBCOMMAND_DUPLICATE_LONG_ID.get(argumentName, name,
-                        argument.getLongIdentifier(), longIDMap.get(longID).getName());
-                throw new ArgumentException(message);
+                throw new ArgumentException(ERR_ARG_SUBCOMMAND_DUPLICATE_LONG_ID.get(argumentLongID, name));
             }
+        }
 
-            Argument arg = parser.getGlobalArgumentForLongID(longID);
-            if (arg != null) {
-                LocalizableMessage message = ERR_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT.get(argumentName,
-                        name, argument.getLongIdentifier(), arg.getName());
-                throw new ArgumentException(message);
-            }
+        Argument arg = parser.getGlobalArgumentForLongID(longID);
+        if (arg != null) {
+            throw new ArgumentException(ERR_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT.get(argumentLongID, name));
         }
 
         arguments.add(argument);

@@ -241,32 +241,33 @@ public final class SearchRate extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
 
             baseDN =
-                    new StringArgument("baseDN", OPTION_SHORT_BASEDN, OPTION_LONG_BASEDN, true,
-                            false, true, INFO_BASEDN_PLACEHOLDER.get(), null, null,
-                            INFO_SEARCHRATE_TOOL_DESCRIPTION_BASEDN.get());
-            baseDN.setPropertyName(OPTION_LONG_BASEDN);
-            argParser.addArgument(baseDN);
+                    StringArgument.builder(OPTION_LONG_BASEDN)
+                            .shortIdentifier(OPTION_SHORT_BASEDN)
+                            .description(INFO_SEARCHRATE_TOOL_DESCRIPTION_BASEDN.get())
+                            .required()
+                            .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             searchScope = CommonArguments.getSearchScope();
             argParser.addArgument(searchScope);
 
             dereferencePolicy =
-                    new MultiChoiceArgument<>("derefpolicy", 'a',
-                            "dereferencePolicy", false, true, INFO_DEREFERENCE_POLICE_PLACEHOLDER
-                                    .get(), DereferenceAliasesPolicy.values(), false,
-                            INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
-            dereferencePolicy.setPropertyName("dereferencePolicy");
-            dereferencePolicy.setDefaultValue(DereferenceAliasesPolicy.NEVER);
-            argParser.addArgument(dereferencePolicy);
+                    MultiChoiceArgument.<DereferenceAliasesPolicy>builder("dereferencePolicy")
+                            .shortIdentifier('a')
+                            .description(INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get())
+                            .allowedValues(DereferenceAliasesPolicy.values())
+                            .defaultValue(DereferenceAliasesPolicy.NEVER)
+                            .valuePlaceholder(INFO_DEREFERENCE_POLICE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             verbose = CommonArguments.getVerbose();
             argParser.addArgument(verbose);
 
             scriptFriendly =
-                    new BooleanArgument("scriptFriendly", 'S', "scriptFriendly",
-                            INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
-            scriptFriendly.setPropertyName("scriptFriendly");
-            argParser.addArgument(scriptFriendly);
+                    BooleanArgument.builder("scriptFriendly")
+                            .shortIdentifier('S')
+                            .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
+                            .buildAndAddToParser(argParser);
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
             errPrintln(message);

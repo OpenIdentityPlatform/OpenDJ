@@ -22,10 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE;
+import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
@@ -127,46 +130,42 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
             newPW =
-                    new StringArgument("newpw", 'n', "newPassword", false, false, true,
-                            INFO_NEW_PASSWORD_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get());
-            newPW.setPropertyName("newPassword");
-            argParser.addArgument(newPW);
-
+                    StringArgument.builder("newPassword")
+                            .shortIdentifier('n')
+                            .description(INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get())
+                            .valuePlaceholder(INFO_NEW_PASSWORD_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             newPWFile =
-                    new FileBasedArgument("newpwfile", 'F', "newPasswordFile", false, false,
-                            INFO_FILE_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get());
-            newPWFile.setPropertyName("newPasswordFile");
-            argParser.addArgument(newPWFile);
-
+                    FileBasedArgument.builder("newPasswordFile")
+                            .shortIdentifier('F')
+                            .description(INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             currentPW =
-                    new StringArgument("currentpw", 'c', "currentPassword", false, false, true,
-                            INFO_CURRENT_PASSWORD_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get());
-            currentPW.setPropertyName("currentPassword");
-            argParser.addArgument(currentPW);
-
+                    StringArgument.builder("currentPassword")
+                            .shortIdentifier('c')
+                            .description(INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get())
+                            .valuePlaceholder(INFO_CURRENT_PASSWORD_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             currentPWFile =
-                    new FileBasedArgument("currentpwfile", 'C', "currentPasswordFile", false,
-                            false, INFO_FILE_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get());
-            currentPWFile.setPropertyName("currentPasswordFile");
-            argParser.addArgument(currentPWFile);
-
+                    FileBasedArgument.builder("currentPasswordFile")
+                            .shortIdentifier('C')
+                            .description(INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             proxyAuthzID =
-                    new StringArgument("authzid", 'a', "authzID", false, false, true,
-                            INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get());
-            proxyAuthzID.setPropertyName("authzID");
-            argParser.addArgument(proxyAuthzID);
-
+                    StringArgument.builder("authzID")
+                            .shortIdentifier('a')
+                            .description(INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get())
+                            .valuePlaceholder(INFO_PROXYAUTHID_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             controlStr =
-                    new StringArgument("control", 'J', "control", false, true, true,
-                            INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_CONTROLS.get());
-            controlStr.setPropertyName("control");
-            argParser.addArgument(controlStr);
+                    StringArgument.builder("control")
+                            .shortIdentifier('J')
+                            .description(INFO_DESCRIPTION_CONTROLS.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             version = CommonArguments.getLdapVersion();
             argParser.addArgument(version);

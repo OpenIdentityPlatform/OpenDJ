@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
@@ -56,85 +55,41 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * multiple lines, then only the first line will be read.
  */
 public final class FileBasedArgument extends Argument {
+
+    /**
+     * Returns a builder which can be used for incrementally constructing a new
+     * {@link FileBasedArgument}.
+     *
+     * @param longIdentifier
+     *         The generic long identifier that will be used to refer to this argument.
+     * @return A builder to continue building the {@link FileBasedArgument}.
+     */
+    public static Builder builder(final String longIdentifier) {
+        return new Builder(longIdentifier);
+    }
+
+    /** A fluent API for incrementally constructing {@link FileBasedArgument}. */
+    public static final class Builder extends ArgumentBuilder<Builder, String, FileBasedArgument> {
+        private Builder(final String longIdentifier) {
+            super(longIdentifier);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        @Override
+        public FileBasedArgument buildArgument() throws ArgumentException {
+            return new FileBasedArgument(this);
+        }
+    }
+
     /** The mapping between filenames specified and the first lines read from those files. */
     private final Map<String, String> namesToValues = new LinkedHashMap<>();
 
-    /**
-     * Creates a new file-based argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param isMultiValued
-     *            Indicates whether this argument may be specified more than
-     *            once to provide multiple values.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param defaultValue
-     *            The default value that should be used for this argument if
-     *            none is provided in a properties file or on the command line.
-     *            This may be <CODE>null</CODE> if there is no generic default.
-     * @param propertyName
-     *            The name of the property in a property file that may be used
-     *            to override the default value but will be overridden by a
-     *            command-line argument.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    public FileBasedArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired, final boolean isMultiValued,
-            final LocalizableMessage valuePlaceholder, final String defaultValue,
-            final String propertyName, final LocalizableMessage description)
-            throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, isRequired, isMultiValued, true,
-                valuePlaceholder, defaultValue, propertyName, description);
-    }
-
-    /**
-     * Creates a new file-based argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    public FileBasedArgument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired,
-            final LocalizableMessage valuePlaceholder, final LocalizableMessage description)
-            throws ArgumentException {
-        super(name, shortIdentifier, longIdentifier, isRequired, false, true, valuePlaceholder,
-                null, null, description);
+    private FileBasedArgument(final Builder builder) throws ArgumentException {
+        super(builder);
     }
 
     /**
@@ -188,12 +143,12 @@ public final class FileBasedArgument extends Argument {
         try {
             valueFile = new File(valueString);
             if (!valueFile.exists()) {
-                invalidReason.append(ERR_FILEARG_NO_SUCH_FILE.get(valueString, getName()));
+                invalidReason.append(ERR_FILEARG_NO_SUCH_FILE.get(valueString, longIdentifier));
                 return false;
             }
         } catch (final Exception e) {
-            invalidReason.append(ERR_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE.get(valueString,
-                    getName(), getExceptionMessage(e)));
+            invalidReason.append(ERR_FILEARG_CANNOT_VERIFY_FILE_EXISTENCE.get(
+                    valueString, longIdentifier, getExceptionMessage(e)));
             return false;
         }
 
@@ -202,16 +157,16 @@ public final class FileBasedArgument extends Argument {
         try (BufferedReader reader = new BufferedReader(new FileReader(valueFile))) {
             line = reader.readLine();
         } catch (final FileNotFoundException e) {
-            invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(valueString, getName(), getExceptionMessage(e)));
+            invalidReason.append(ERR_FILEARG_CANNOT_OPEN_FILE.get(valueString, longIdentifier, getExceptionMessage(e)));
             return false;
         } catch (final IOException e) {
-            invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(valueString, getName(), getExceptionMessage(e)));
+            invalidReason.append(ERR_FILEARG_CANNOT_READ_FILE.get(valueString, longIdentifier, getExceptionMessage(e)));
             return false;
         }
 
         // If the line read is null, then that means the file was empty.
         if (line == null) {
-            invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString, getName()));
+            invalidReason.append(ERR_FILEARG_EMPTY_FILE.get(valueString, longIdentifier));
             return false;
         }
 

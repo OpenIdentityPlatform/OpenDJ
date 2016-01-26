@@ -87,12 +87,13 @@ public final class LDIFDiff extends ConsoleApplication {
         final StringArgument outputFilename;
         try {
             outputFilename =
-                    new StringArgument("outputFilename", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
-                            OPTION_LONG_OUTPUT_LDIF_FILENAME, false, false, true,
-                            INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get(), "stdout", null,
-                            INFO_LDIFDIFF_DESCRIPTION_OUTPUT_FILENAME
-                                    .get(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()));
-            argParser.addArgument(outputFilename);
+                    StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_OUTPUT_LDIF_FILENAME)
+                            .description(INFO_LDIFDIFF_DESCRIPTION_OUTPUT_FILENAME.get(
+                                    INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()))
+                            .defaultValue("stdout")
+                            .valuePlaceholder(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             showUsage = CommonArguments.getShowUsage();
             argParser.addArgument(showUsage);

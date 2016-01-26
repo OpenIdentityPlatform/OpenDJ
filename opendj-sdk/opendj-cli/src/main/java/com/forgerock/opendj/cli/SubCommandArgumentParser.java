@@ -207,58 +207,44 @@ public class SubCommandArgumentParser extends ArgumentParser {
      *             defined.
      */
     public void addGlobalArgument(Argument argument, ArgumentGroup group) throws ArgumentException {
-        String argumentName = argument.getName();
-        if (globalArgumentMap.containsKey(argumentName)) {
-            throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_NAME.get(argumentName));
+        String longID = argument.getLongIdentifier();
+        if (globalArgumentMap.containsKey(longID)) {
+            throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_NAME.get(longID));
         }
         for (SubCommand s : subCommands.values()) {
-            if (s.getArgumentForName(argumentName) != null) {
+            if (s.getArgumentForLongIdentifier(longID) != null) {
                 throw new ArgumentException(ERR_SUBCMDPARSER_GLOBAL_ARG_NAME_SUBCMD_CONFLICT.get(
-                        argumentName, s.getName()));
+                        longID, s.getName()));
             }
         }
 
         Character shortID = argument.getShortIdentifier();
         if (shortID != null) {
             if (globalShortIDMap.containsKey(shortID)) {
-                String name = globalShortIDMap.get(shortID).getName();
-
+                String conflictingLongID = globalShortIDMap.get(shortID).getLongIdentifier();
                 throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_SHORT_ID.get(
-                        shortID, argumentName, name));
+                        shortID, longID, conflictingLongID));
             }
 
             for (SubCommand s : subCommands.values()) {
                 if (s.getArgument(shortID) != null) {
-                    String cmdName = s.getName();
-                    String name = s.getArgument(shortID).getName();
-
+                    String conflictingLongID = s.getArgument(shortID).getLongIdentifier();
                     throw new ArgumentException(ERR_SUBCMDPARSER_GLOBAL_ARG_SHORT_ID_CONFLICT.get(
-                            shortID, argumentName, name, cmdName));
+                            shortID, longID, conflictingLongID, s.getName()));
                 }
             }
         }
 
-        String longID = argument.getLongIdentifier();
-        if (longID != null) {
-            if (!longArgumentsCaseSensitive()) {
-                longID = toLowerCase(longID);
-            }
-
+        if (!longArgumentsCaseSensitive()) {
+            longID = toLowerCase(longID);
             if (globalLongIDMap.containsKey(longID)) {
-                String name = globalLongIDMap.get(longID).getName();
-
-                throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(
-                        argument.getLongIdentifier(), argumentName, name));
+                throw new ArgumentException(ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(longID));
             }
+        }
 
-            for (SubCommand s : subCommands.values()) {
-                if (s.getArgument(longID) != null) {
-                    String cmdName = s.getName();
-                    String name = s.getArgument(longID).getName();
-
-                    throw new ArgumentException(ERR_SUBCMDPARSER_GLOBAL_ARG_LONG_ID_CONFLICT.get(
-                            argument.getLongIdentifier(), argumentName, name, cmdName));
-                }
+        for (SubCommand s : subCommands.values()) {
+            if (s.getArgument(longID) != null) {
+                throw new ArgumentException(ERR_SUBCMDPARSER_GLOBAL_ARG_LONG_ID_CONFLICT.get(longID, s.getName()));
             }
         }
 
@@ -1143,11 +1129,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 if (a.isHidden()) {
                     continue;
                 }
-                // Return a generic FQDN for localhost as the default hostname
-                // in reference documentation.
-                if (isHostNameArgument(a)) {
-                    a.setDefaultValue("localhost.localdomain");
-                }
 
                 Map<String, Object> option = new HashMap<>();
                 String optionSynopsis = getOptionSynopsis(a);
@@ -1162,7 +1143,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     // Let this build its own arbitrarily formatted additional info.
                     info.put("usage", subCommandUsageHandler.getArgumentAdditionalInfo(subCommand, a, nameOption));
                 } else {
-                    String defaultValue = a.getDefaultValue();
+                    // Return a generic FQDN for localhost as the default hostname in reference documentation.
+                    final String defaultValue = isHostNameArgument(a) ? "localhost.localdomain" : a.getDefaultValue();
                     info.put("default", defaultValue != null ? REF_DEFAULT.get(defaultValue) : null);
 
                     // If there is a supplement to the description for this argument,
@@ -1238,5 +1220,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
         map.put("subcommands", commands);
         applyTemplate(builder, "dscfgReference.ftl", map);
+    }
+
+    @Override
+    public void replaceArgument(final Argument argument) {
+        replaceArgumentInCollections(globalLongIDMap, globalShortIDMap, globalArgumentList, argument);
     }
 }

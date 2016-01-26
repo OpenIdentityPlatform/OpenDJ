@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -259,14 +259,11 @@ public final class LDAPModify extends ConsoleApplication {
         BindRequest bindRequest;
 
         BooleanArgument continueOnError;
-        // TODO: Remove this due to new LDIF reader api?
-        BooleanArgument defaultAdd;
         BooleanArgument noop;
         BooleanArgument showUsage;
         IntegerArgument version;
         StringArgument assertionFilter;
         StringArgument controlStr;
-        StringArgument encodingStr;
         StringArgument filename;
         StringArgument postReadAttributes;
         StringArgument preReadAttributes;
@@ -285,63 +282,54 @@ public final class LDAPModify extends ConsoleApplication {
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            defaultAdd =
-                    new BooleanArgument("defaultAdd", 'a', "defaultAdd",
-                            INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
-            argParser.addArgument(defaultAdd);
+            // TODO: Remove this due to new LDIF reader api?
+            BooleanArgument.builder("defaultAdd")
+                    .shortIdentifier('a')
+                    .description(INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get())
+                    .buildAndAddToParser(argParser);
 
+            StringArgument.builder("encoding")
+                    .shortIdentifier('i')
+                    .description(INFO_DESCRIPTION_ENCODING.get())
+                    .valuePlaceholder(INFO_ENCODING_PLACEHOLDER.get())
+                    .buildAndAddToParser(argParser);
             filename =
-                    new StringArgument("filename", OPTION_SHORT_FILENAME, OPTION_LONG_FILENAME,
-                            false, false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
-            filename.setPropertyName(OPTION_LONG_FILENAME);
-            argParser.addArgument(filename);
-
+                    StringArgument.builder(OPTION_LONG_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_FILENAME)
+                            .description(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             proxyAuthzID =
-                    new StringArgument("proxy_authzid", OPTION_SHORT_PROXYAUTHID,
-                            OPTION_LONG_PROXYAUTHID, false, false, true,
-                            INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROXY_AUTHZID.get());
-            proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
-            argParser.addArgument(proxyAuthzID);
-
+                    StringArgument.builder(OPTION_LONG_PROXYAUTHID)
+                            .shortIdentifier(OPTION_SHORT_PROXYAUTHID)
+                            .description(INFO_DESCRIPTION_PROXY_AUTHZID.get())
+                            .valuePlaceholder(INFO_PROXYAUTHID_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             assertionFilter =
-                    new StringArgument("assertionfilter", null, OPTION_LONG_ASSERTION_FILE, false,
-                            false, true, INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_ASSERTION_FILTER.get());
-            assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
-            argParser.addArgument(assertionFilter);
-
+                    StringArgument.builder(OPTION_LONG_ASSERTION_FILE)
+                            .description(INFO_DESCRIPTION_ASSERTION_FILTER.get())
+                            .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             preReadAttributes =
-                    new StringArgument("prereadattrs", null, "preReadAttributes", false, false,
-                            true, INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PREREAD_ATTRS.get());
-            preReadAttributes.setPropertyName("preReadAttributes");
-            argParser.addArgument(preReadAttributes);
-
+                    StringArgument.builder("preReadAttributes")
+                            .description(INFO_DESCRIPTION_PREREAD_ATTRS.get())
+                            .valuePlaceholder(INFO_ATTRIBUTE_LIST_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             postReadAttributes =
-                    new StringArgument("postreadattrs", null, "postReadAttributes", false, false,
-                            true, INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_POSTREAD_ATTRS.get());
-            postReadAttributes.setPropertyName("postReadAttributes");
-            argParser.addArgument(postReadAttributes);
-
+                    StringArgument.builder("postReadAttributes")
+                            .description(INFO_DESCRIPTION_POSTREAD_ATTRS.get())
+                            .valuePlaceholder(INFO_ATTRIBUTE_LIST_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             controlStr =
-                    new StringArgument("control", 'J', "control", false, true, true,
-                            INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_CONTROLS.get());
-            controlStr.setPropertyName("control");
-            argParser.addArgument(controlStr);
+                    StringArgument.builder("control")
+                            .shortIdentifier('J')
+                            .description(INFO_DESCRIPTION_CONTROLS.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             version = CommonArguments.getLdapVersion();
             argParser.addArgument(version);
-
-            encodingStr =
-                    new StringArgument("encoding", 'i', "encoding", false, false, true,
-                            INFO_ENCODING_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_ENCODING
-                                    .get());
-            encodingStr.setPropertyName("encoding");
-            argParser.addArgument(encodingStr);
 
             continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);

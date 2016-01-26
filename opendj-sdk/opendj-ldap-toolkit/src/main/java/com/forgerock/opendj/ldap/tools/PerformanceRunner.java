@@ -262,11 +262,15 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         ArgumentParser argParser = options.getArgumentParser();
 
         this.app = options.getConsoleApplication();
+
         numThreadsArgument =
-                new IntegerArgument("numThreads", 't', "numThreads", false, false, true,
-                        LocalizableMessage.raw("{numThreads}"), 1, null, true, 1, false, 0,
-                        LocalizableMessage.raw("Number of worker threads per connection"));
-        numThreadsArgument.setPropertyName("numThreads");
+                IntegerArgument.builder("numThreads")
+                        .shortIdentifier('t')
+                        .description(LocalizableMessage.raw("Number of worker threads per connection"))
+                        .lowerBound(1)
+                        .defaultValue(1)
+                        .valuePlaceholder(LocalizableMessage.raw("{numThreads}"))
+                        .buildArgument();
         if (options.supportsMultipleThreadsPerConnection()) {
             argParser.addArgument(numThreadsArgument);
         } else {
@@ -274,87 +278,87 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         numConnectionsArgument =
-                new IntegerArgument("numConnections", 'c', "numConnections", false, false, true,
-                        LocalizableMessage.raw("{numConnections}"), 1, null, true, 1, false, 0,
-                        LocalizableMessage.raw("Number of connections"));
-        numConnectionsArgument.setPropertyName("numConnections");
-        argParser.addArgument(numConnectionsArgument);
-
+                IntegerArgument.builder("numConnections")
+                        .shortIdentifier('c')
+                        .description(LocalizableMessage.raw("Number of connections"))
+                        .lowerBound(1)
+                        .defaultValue(1)
+                        .valuePlaceholder(LocalizableMessage.raw("{numConnections}"))
+                        .buildAndAddToParser(argParser);
         maxIterationsArgument =
-                new IntegerArgument("maxIterations", 'm', "maxIterations", false, false, true,
-                        LocalizableMessage.raw("{maxIterations}"), 0, null,
-                        LocalizableMessage.raw("Max iterations, 0 for unlimited"));
-        maxIterationsArgument.setPropertyName("maxIterations");
-        argParser.addArgument(maxIterationsArgument);
-
+                IntegerArgument.builder("maxIterations")
+                        .shortIdentifier('m')
+                        .description(LocalizableMessage.raw("Max iterations, 0 for unlimited"))
+                        .defaultValue(0)
+                        .valuePlaceholder(LocalizableMessage.raw("{maxIterations}"))
+                        .buildAndAddToParser(argParser);
         maxDurationArgument =
-            new IntegerArgument("maxDuration", 'd', "maxDuration", false, false, true,
-                LocalizableMessage.raw("{maxDuration}"), 0, null, true, 1, false, 0,
-                LocalizableMessage.raw("Maximum duration in seconds, 0 for unlimited"));
-        argParser.addArgument(maxDurationArgument);
-
+                IntegerArgument.builder("maxDuration")
+                        .shortIdentifier('d')
+                        .description(LocalizableMessage.raw("Maximum duration in seconds, 0 for unlimited"))
+                        .lowerBound(1)
+                        .defaultValue(0)
+                        .valuePlaceholder(LocalizableMessage.raw("{maxDuration}"))
+                        .buildAndAddToParser(argParser);
         warmUpArgument =
-            new IntegerArgument("warmUpDuration", 'B', "warmUpDuration", false, false, true,
-                LocalizableMessage.raw("{warmUpDuration}"), 0, null,
-                LocalizableMessage.raw("Warm up duration in seconds"));
-        argParser.addArgument(warmUpArgument);
-
+                IntegerArgument.builder("warmUpDuration")
+                        .shortIdentifier('B')
+                        .description(LocalizableMessage.raw("Warm up duration in seconds"))
+                        .defaultValue(0)
+                        .valuePlaceholder(LocalizableMessage.raw("{warmUpDuration}"))
+                        .buildAndAddToParser(argParser);
         statsIntervalArgument =
-                new IntegerArgument("statInterval", 'i', "statInterval", false, false, true,
-                        LocalizableMessage.raw("{statInterval}"), 5, null, true, 1, false, 0,
-                        LocalizableMessage.raw("Display results each specified number of seconds"));
-        statsIntervalArgument.setPropertyName("statInterval");
-        argParser.addArgument(statsIntervalArgument);
-
+                IntegerArgument.builder("statInterval")
+                        .shortIdentifier('i')
+                        .description(LocalizableMessage.raw("Display results each specified number of seconds"))
+                        .lowerBound(1)
+                        .defaultValue(5)
+                        .valuePlaceholder(LocalizableMessage.raw("{statInterval}"))
+                        .buildAndAddToParser(argParser);
         targetThroughputArgument =
-                new IntegerArgument("targetThroughput", 'M', "targetThroughput", false, false,
-                        true, LocalizableMessage.raw("{targetThroughput}"), 0, null,
-                        LocalizableMessage.raw("Target average throughput to achieve"));
-        targetThroughputArgument.setPropertyName("targetThroughput");
-        argParser.addArgument(targetThroughputArgument);
-
+                IntegerArgument.builder("targetThroughput")
+                        .shortIdentifier('M')
+                        .description(LocalizableMessage.raw("Target average throughput to achieve"))
+                        .defaultValue(0)
+                        .valuePlaceholder(LocalizableMessage.raw("{targetThroughput}"))
+                        .buildAndAddToParser(argParser);
         percentilesArgument =
-                new IntegerArgument("percentile", 'e', "percentile", false, true,
-                        LocalizableMessage.raw("{percentile}"), true, 0, true, 100,
-                        LocalizableMessage.raw("Calculate max response time for a "
-                                + "percentile of operations"));
-        percentilesArgument.setPropertyName("percentile");
-        percentilesArgument.setMultiValued(true);
-        argParser.addArgument(percentilesArgument);
-
+                IntegerArgument.builder("percentile")
+                        .shortIdentifier('e')
+                        .description(
+                                LocalizableMessage.raw("Calculate max response time for a percentile of operations"))
+                        .multiValued()
+                        .range(0, 100)
+                        .valuePlaceholder(LocalizableMessage.raw("{percentile}"))
+                        .buildAndAddToParser(argParser);
         keepConnectionsOpen =
-                new BooleanArgument("keepConnectionsOpen", 'f', "keepConnectionsOpen",
-                        LocalizableMessage.raw("Keep connections open"));
-        keepConnectionsOpen.setPropertyName("keepConnectionsOpen");
-        argParser.addArgument(keepConnectionsOpen);
-
+                BooleanArgument.builder("keepConnectionsOpen")
+                        .shortIdentifier('f')
+                        .description(LocalizableMessage.raw("Keep connections open"))
+                        .buildAndAddToParser(argParser);
         noRebindArgument =
-                new BooleanArgument("noRebind", 'F', "noRebind", LocalizableMessage
-                        .raw("Keep connections open and do not rebind"));
-        noRebindArgument.setPropertyName("noRebind");
+                BooleanArgument.builder("noRebind")
+                        .shortIdentifier('F')
+                        .description(LocalizableMessage.raw("Keep connections open and do not rebind"))
+                        .buildArgument();
         if (options.supportsRebind()) {
             argParser.addArgument(noRebindArgument);
         }
 
         arguments =
-                new StringArgument(
-                        "argument",
-                        'g',
-                        "argument",
-                        false,
-                        true,
-                        true,
-                        LocalizableMessage.raw("{generator function or static string}"),
-                        null,
-                        null,
-                        LocalizableMessage
+                StringArgument.builder("argument")
+                        .shortIdentifier('g')
+                        .description(LocalizableMessage
                                 .raw("Argument used to evaluate the Java "
                                         + "style format strings in program parameters (ie. Base DN, "
                                         + "Search Filter). The set of all arguments provided form the "
                                         + "the argument list in order. Besides static string "
                                         + "arguments, they can be generated per iteration with the "
                                         + "following functions: " + StaticUtils.EOL
-                                        + DataSource.getUsage()));
+                                        + DataSource.getUsage()))
+                        .multiValued()
+                        .valuePlaceholder(LocalizableMessage.raw("{generator function or static string}"))
+                        .buildArgument();
         if (options.supportsGeneratorArgument()) {
             argParser.addArgument(arguments);
         }

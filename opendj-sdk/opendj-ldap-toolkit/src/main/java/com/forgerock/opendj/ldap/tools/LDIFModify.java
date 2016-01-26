@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2015 ForgeRock AS.
+ *      Copyright 2012-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -94,12 +94,13 @@ public final class LDIFModify extends ConsoleApplication {
         final StringArgument outputFilename;
         try {
             outputFilename =
-                    new StringArgument("outputFilename", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
-                            OPTION_LONG_OUTPUT_LDIF_FILENAME, false, false, true,
-                            INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get(), "stdout", null,
-                            INFO_LDIFMODIFY_DESCRIPTION_OUTPUT_FILENAME
-                                    .get(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()));
-            argParser.addArgument(outputFilename);
+                    StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_OUTPUT_LDIF_FILENAME)
+                            .description(INFO_LDIFMODIFY_DESCRIPTION_OUTPUT_FILENAME.get(
+                                    INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get()))
+                            .defaultValue("stdout")
+                            .valuePlaceholder(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);

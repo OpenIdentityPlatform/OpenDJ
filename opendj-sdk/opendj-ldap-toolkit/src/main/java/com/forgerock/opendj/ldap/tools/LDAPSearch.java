@@ -84,6 +84,12 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_SIMPLE_PAGE_SIZE;
+import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_SIZE_LIMIT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_TIME_LIMIT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static org.forgerock.util.Utils.*;
@@ -271,146 +277,132 @@ public final class LDAPSearch extends ConsoleApplication {
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
             baseDN =
-                    new StringArgument("baseDN", OPTION_SHORT_BASEDN, OPTION_LONG_BASEDN, true,
-                            false, true, INFO_BASEDN_PLACEHOLDER.get(), null, null,
-                            INFO_SEARCH_DESCRIPTION_BASEDN.get());
-            baseDN.setPropertyName(OPTION_LONG_BASEDN);
-            argParser.addArgument(baseDN);
+                    StringArgument.builder(OPTION_LONG_BASEDN)
+                            .shortIdentifier(OPTION_SHORT_BASEDN)
+                            .description(INFO_SEARCH_DESCRIPTION_BASEDN.get())
+                            .required()
+                            .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             searchScope = CommonArguments.getSearchScope();
             argParser.addArgument(searchScope);
 
             filename =
-                    new StringArgument("filename", OPTION_SHORT_FILENAME, OPTION_LONG_FILENAME,
-                            false, false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-                            INFO_SEARCH_DESCRIPTION_FILENAME.get());
-            searchScope.setPropertyName(OPTION_LONG_FILENAME);
-            argParser.addArgument(filename);
-
+                    StringArgument.builder(OPTION_LONG_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_FILENAME)
+                            .description(INFO_SEARCH_DESCRIPTION_FILENAME.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             proxyAuthzID =
-                    new StringArgument("proxy_authzid", OPTION_SHORT_PROXYAUTHID,
-                            OPTION_LONG_PROXYAUTHID, false, false, true,
-                            INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROXY_AUTHZID.get());
-            proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
-            argParser.addArgument(proxyAuthzID);
-
+                    StringArgument.builder(OPTION_LONG_PROXYAUTHID)
+                            .shortIdentifier(OPTION_SHORT_PROXYAUTHID)
+                            .description(INFO_DESCRIPTION_PROXY_AUTHZID.get())
+                            .valuePlaceholder(INFO_PROXYAUTHID_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             pSearchInfo =
-                    new StringArgument("psearchinfo", 'C', "persistentSearch", false, false, true,
-                            INFO_PSEARCH_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PSEARCH_INFO.get());
-            pSearchInfo.setPropertyName("persistentSearch");
-            pSearchInfo.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_PSEARCH_INFO.get());
-            argParser.addArgument(pSearchInfo);
-
+                    StringArgument.builder("persistentSearch")
+                            .shortIdentifier('C')
+                            .description(INFO_DESCRIPTION_PSEARCH_INFO.get())
+                            .docDescriptionSupplement(SUPPLEMENT_DESCRIPTION_PSEARCH_INFO.get())
+                            .valuePlaceholder(INFO_PSEARCH_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             simplePageSize =
-                    new IntegerArgument("simplepagesize", null, "simplePageSize", false, false,
-                            true, INFO_NUM_ENTRIES_PLACEHOLDER.get(), 1000, null, true, 1, false,
-                            0, INFO_DESCRIPTION_SIMPLE_PAGE_SIZE.get());
-            simplePageSize.setPropertyName("simplePageSize");
-            argParser.addArgument(simplePageSize);
-
+                    IntegerArgument.builder("simplePageSize")
+                            .description(INFO_DESCRIPTION_SIMPLE_PAGE_SIZE.get())
+                            .lowerBound(1)
+                            .defaultValue(1000)
+                            .valuePlaceholder(INFO_NUM_ENTRIES_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             assertionFilter =
-                    new StringArgument("assertionfilter", null, OPTION_LONG_ASSERTION_FILE, false,
-                            false, true, INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_ASSERTION_FILTER.get());
-            assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
-            argParser.addArgument(assertionFilter);
-
+                    StringArgument.builder(OPTION_LONG_ASSERTION_FILE)
+                            .description(INFO_DESCRIPTION_ASSERTION_FILTER.get())
+                            .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             matchedValuesFilter =
-                    new StringArgument("matchedvalues", null, "matchedValuesFilter", false, true,
-                            true, INFO_FILTER_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_MATCHED_VALUES_FILTER.get());
-            matchedValuesFilter.setPropertyName("matchedValuesFilter");
-            argParser.addArgument(matchedValuesFilter);
-
+                    StringArgument.builder("matchedValuesFilter")
+                            .description(INFO_DESCRIPTION_MATCHED_VALUES_FILTER.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_FILTER_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             sortOrder =
-                    new StringArgument("sortorder", 'S', "sortOrder", false, false, true,
-                            INFO_SORT_ORDER_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_SORT_ORDER.get());
-            sortOrder.setPropertyName("sortOrder");
-            argParser.addArgument(sortOrder);
-
+                    StringArgument.builder("sortOrder")
+                            .shortIdentifier('S')
+                            .description(INFO_DESCRIPTION_SORT_ORDER.get())
+                            .valuePlaceholder(INFO_SORT_ORDER_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             vlvDescriptor =
-                    new StringArgument("vlvdescriptor", 'G', "virtualListView", false, false, true,
-                            INFO_VLV_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_VLV.get());
-            vlvDescriptor.setPropertyName("virtualListView");
-            argParser.addArgument(vlvDescriptor);
-
+                    StringArgument.builder("virtualListView")
+                            .shortIdentifier('G')
+                            .description(INFO_DESCRIPTION_VLV.get())
+                            .valuePlaceholder(INFO_VLV_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             controlStr =
-                    new StringArgument("control", 'J', "control", false, true, true,
-                            INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_CONTROLS.get());
-            controlStr.setPropertyName("control");
-            controlStr.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_CONTROLS.get());
-            argParser.addArgument(controlStr);
-
+                    StringArgument.builder("control")
+                            .shortIdentifier('J')
+                            .description(INFO_DESCRIPTION_CONTROLS.get())
+                            .docDescriptionSupplement(SUPPLEMENT_DESCRIPTION_CONTROLS.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             effectiveRightsUser =
-                    new StringArgument("effectiveRightsUser", OPTION_SHORT_EFFECTIVERIGHTSUSER,
-                            OPTION_LONG_EFFECTIVERIGHTSUSER, false, false, true,
-                            INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_EFFECTIVERIGHTS_USER.get());
-            effectiveRightsUser.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSUSER);
-            argParser.addArgument(effectiveRightsUser);
-
+                    StringArgument.builder(OPTION_LONG_EFFECTIVERIGHTSUSER)
+                            .shortIdentifier(OPTION_SHORT_EFFECTIVERIGHTSUSER)
+                            .description(INFO_DESCRIPTION_EFFECTIVERIGHTS_USER.get())
+                            .valuePlaceholder(INFO_PROXYAUTHID_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             effectiveRightsAttrs =
-                    new StringArgument("effectiveRightsAttrs", OPTION_SHORT_EFFECTIVERIGHTSATTR,
-                            OPTION_LONG_EFFECTIVERIGHTSATTR, false, true, true,
-                            INFO_ATTRIBUTE_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_EFFECTIVERIGHTS_ATTR.get());
-            effectiveRightsAttrs.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSATTR);
-            argParser.addArgument(effectiveRightsAttrs);
+                    StringArgument.builder(OPTION_LONG_EFFECTIVERIGHTSATTR)
+                            .shortIdentifier(OPTION_SHORT_EFFECTIVERIGHTSATTR)
+                            .description(INFO_DESCRIPTION_EFFECTIVERIGHTS_ATTR.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
 
             version = CommonArguments.getLdapVersion();
             argParser.addArgument(version);
 
-            final StringArgument encodingStr =
-                    new StringArgument("encoding", 'i', "encoding", false, false, true,
-                            INFO_ENCODING_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_ENCODING
-                                    .get());
-            encodingStr.setPropertyName("encoding");
-            argParser.addArgument(encodingStr);
+            StringArgument.builder("encoding")
+                    .shortIdentifier('i')
+                    .description(INFO_DESCRIPTION_ENCODING.get())
+                    .valuePlaceholder(INFO_ENCODING_PLACEHOLDER.get())
+                    .buildAndAddToParser(argParser);
 
             dereferencePolicy =
-                    new MultiChoiceArgument<>("derefpolicy", 'a',
-                            "dereferencePolicy", false, true, INFO_DEREFERENCE_POLICE_PLACEHOLDER
-                                    .get(), DereferenceAliasesPolicy.values(), false,
-                            INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
-            dereferencePolicy.setPropertyName("dereferencePolicy");
-            dereferencePolicy.setDefaultValue(DereferenceAliasesPolicy.NEVER);
-            argParser.addArgument(dereferencePolicy);
-
+                    MultiChoiceArgument.<DereferenceAliasesPolicy>builder("dereferencePolicy")
+                            .shortIdentifier('a')
+                            .description(INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get())
+                            .allowedValues(DereferenceAliasesPolicy.values())
+                            .defaultValue(DereferenceAliasesPolicy.NEVER)
+                            .valuePlaceholder(INFO_DEREFERENCE_POLICE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             typesOnly =
-                    new BooleanArgument("typesOnly", 'A', "typesOnly", INFO_DESCRIPTION_TYPES_ONLY
-                            .get());
-            typesOnly.setPropertyName("typesOnly");
-            argParser.addArgument(typesOnly);
-
+                    BooleanArgument.builder("typesOnly")
+                            .shortIdentifier('A')
+                            .description(INFO_DESCRIPTION_TYPES_ONLY.get())
+                            .buildAndAddToParser(argParser);
             sizeLimit =
-                    new IntegerArgument("sizeLimit", 'z', "sizeLimit", false, false, true,
-                            INFO_SIZE_LIMIT_PLACEHOLDER.get(), 0, null,
-                            INFO_SEARCH_DESCRIPTION_SIZE_LIMIT.get());
-            sizeLimit.setPropertyName("sizeLimit");
-            argParser.addArgument(sizeLimit);
-
+                    IntegerArgument.builder("sizeLimit")
+                            .shortIdentifier('z')
+                            .description(INFO_SEARCH_DESCRIPTION_SIZE_LIMIT.get())
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_SIZE_LIMIT_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             timeLimit =
-                    new IntegerArgument("timeLimit", 'l', "timeLimit", false, false, true,
-                            INFO_TIME_LIMIT_PLACEHOLDER.get(), 0, null,
-                            INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get());
-            timeLimit.setPropertyName("timeLimit");
-            argParser.addArgument(timeLimit);
-
+                    IntegerArgument.builder("timeLimit")
+                            .shortIdentifier('l')
+                            .description(INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get())
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
             dontWrap =
-                    new BooleanArgument("dontwrap", 't', "dontWrap", INFO_DESCRIPTION_DONT_WRAP
-                            .get());
-            dontWrap.setPropertyName("dontWrap");
-            argParser.addArgument(dontWrap);
-
+                    BooleanArgument.builder("dontWrap")
+                            .shortIdentifier('t')
+                            .description(INFO_DESCRIPTION_DONT_WRAP.get())
+                            .buildAndAddToParser(argParser);
             countEntries =
-                    new BooleanArgument("countentries", null, "countEntries",
-                            INFO_DESCRIPTION_COUNT_ENTRIES.get());
-            countEntries.setPropertyName("countEntries");
-            argParser.addArgument(countEntries);
+                    BooleanArgument.builder("countEntries")
+                            .description(INFO_DESCRIPTION_COUNT_ENTRIES.get())
+                            .buildAndAddToParser(argParser);
 
             final BooleanArgument continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);

@@ -39,12 +39,4 @@ public interface DocDescriptionSupplement {
      *         or LocalizableMessage.EMPTY if there is no supplement.
      */
     LocalizableMessage getDocDescriptionSupplement();
-
-    /**
-     * Sets a supplement to the description intended for use in generated reference documentation.
-     *
-     * @param docDescriptionSupplement  The supplement to the description
-     *                                  for use in generated reference documentation.
-     */
-    void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement);
 }

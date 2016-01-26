@@ -38,10 +38,12 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -68,6 +70,15 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 public class ArgumentParser implements ToolRefDocContainer {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+    private static final Set<String> HOST_LONG_IDENTIFIERS = new HashSet<>(Arrays.asList(
+            OPTION_LONG_HOST,
+            OPTION_LONG_REFERENCED_HOST_NAME,
+            "host1",
+            "host2",
+            "hostSource",
+            "hostDestination"));
+
     /**
      * The name of the OpenDJ configuration direction in the user home
      * directory.
@@ -286,9 +297,9 @@ public class ArgumentParser implements ToolRefDocContainer {
     public void addArgument(final Argument argument, ArgumentGroup group) throws ArgumentException {
         final Character shortID = argument.getShortIdentifier();
         if (shortID != null && shortIDMap.containsKey(shortID)) {
-            final String conflictingName = shortIDMap.get(shortID).getName();
+            final String conflictingID = shortIDMap.get(shortID).getLongIdentifier();
             throw new ArgumentException(
-                    ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument.getName(), shortID, conflictingName));
+                    ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument.getLongIdentifier(), shortID, conflictingID));
         }
 
         // JNR: what is the requirement for the following code?
@@ -305,16 +316,9 @@ public class ArgumentParser implements ToolRefDocContainer {
             }
         }
 
-        String longID = argument.getLongIdentifier();
-        if (longID != null) {
-            if (!longArgumentsCaseSensitive) {
-                longID = toLowerCase(longID);
-            }
-            if (longIDMap.containsKey(longID)) {
-                final String conflictingName = longIDMap.get(longID).getName();
-                throw new ArgumentException(ERR_ARGPARSER_DUPLICATE_LONG_ID.get(
-                    argument.getName(), argument.getLongIdentifier(), conflictingName));
-            }
+        final String longID = formatLongIdentifier(argument.getLongIdentifier());
+        if (longIDMap.containsKey(longID)) {
+            throw new ArgumentException(ERR_ARGPARSER_DUPLICATE_LONG_ID.get(argument.getLongIdentifier()));
         }
 
         if (shortID != null) {
@@ -335,8 +339,10 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     private BooleanArgument getVersionArgument(final boolean displayShortIdentifier) throws ArgumentException {
-        return new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, displayShortIdentifier ? OPTION_SHORT_PRODUCT_VERSION
-                : null, OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION.get());
+        return BooleanArgument.builder(OPTION_LONG_PRODUCT_VERSION)
+                .shortIdentifier(displayShortIdentifier ? OPTION_SHORT_PRODUCT_VERSION : null)
+                .description(INFO_DESCRIPTION_PRODUCT_VERSION.get())
+                .buildArgument();
     }
 
     /**
@@ -459,7 +465,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      *         <CODE>null</CODE> if there is no such argument.
      */
     public Argument getArgumentForLongID(final String longID) {
-        return longIDMap.get(longID);
+        return longIDMap.get(formatLongIdentifier(longID));
     }
 
     /**
@@ -531,7 +537,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * A supplement to the description for this tool
      * intended for use in generated reference documentation.
      */
-    private DocDescriptionSupplement docToolDescriptionSupplement;
+    private DocSubcommandDescriptionSupplement docToolDescriptionSupplement;
 
     @Override
     public LocalizableMessage getDocToolDescriptionSupplement() {
@@ -551,7 +557,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * A supplement to the description for all subcommands of this tool,
      * intended for use in generated reference documentation.
      */
-    private class DocSubcommandsDescriptionSupplement implements DocDescriptionSupplement {
+    private class DocSubcommandDescriptionSupplement implements DocDescriptionSupplement {
         /** A supplement to the description intended for use in generated reference documentation. */
         private LocalizableMessage docDescriptionSupplement;
 
@@ -560,13 +566,12 @@ public class ArgumentParser implements ToolRefDocContainer {
             return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
         }
 
-        @Override
-        public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
+        private void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
             this.docDescriptionSupplement = docDescriptionSupplement;
         }
     }
 
-    private DocDescriptionSupplement docSubcommandsDescriptionSupplement;
+    private DocSubcommandDescriptionSupplement docSubcommandsDescriptionSupplement;
 
     @Override
     public LocalizableMessage getDocSubcommandsDescriptionSupplement() {
@@ -582,11 +587,11 @@ public class ArgumentParser implements ToolRefDocContainer {
         this.docSubcommandsDescriptionSupplement.setDocDescriptionSupplement(supplement);
     }
 
-    private DocDescriptionSupplement constructIfNull(DocDescriptionSupplement supplement) {
+    private DocSubcommandDescriptionSupplement constructIfNull(DocSubcommandDescriptionSupplement supplement) {
         if (supplement != null) {
             return supplement;
         }
-        return new DocSubcommandsDescriptionSupplement();
+        return new DocSubcommandDescriptionSupplement();
     }
 
     /**
@@ -708,15 +713,15 @@ public class ArgumentParser implements ToolRefDocContainer {
                     continue;
                 }
 
-                // Return a generic FQDN for localhost as the default hostname
-                // in reference documentation.
+                final Map<String, Object> argumentMap = getArgumentMap(a);
+                // Return a generic FQDN for localhost as the default hostname in reference documentation.
                 if (isHostNameArgument(a)) {
-                    a.setDefaultValue("localhost.localdomain");
+                    argumentMap.put("default", REF_DEFAULT.get("localhost.localdomain"));
                 }
 
                 // Return a generic message as default backend type depends on the server distribution.
-                if (a.getName().equalsIgnoreCase(OPTION_LONG_BACKEND_TYPE)) {
-                    a.setDefaultValue(REF_DEFAULT_BACKEND_TYPE.get().toString());
+                if (a.getLongIdentifier().equals(OPTION_LONG_BACKEND_TYPE)) {
+                    argumentMap.put("default", REF_DEFAULT_BACKEND_TYPE.get().toString());
                 }
 
                 // The help argument should be added at the end.
@@ -725,7 +730,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                     continue;
                 }
 
-                options.add(getArgumentMap(a));
+                options.add(argumentMap);
             }
             group.put("options", options);
             if (!options.isEmpty()) {
@@ -753,13 +758,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * @return true if this argument is for setting a hostname.
      */
     boolean isHostNameArgument(final Argument a) {
-        final String name = a.getName();
-        return name.equalsIgnoreCase(OPTION_LONG_HOST)
-                || name.equalsIgnoreCase(OPTION_LONG_REFERENCED_HOST_NAME)
-                || name.equalsIgnoreCase("host1")
-                || name.equalsIgnoreCase("host2")
-                || name.equalsIgnoreCase("hostSource")
-                || name.equalsIgnoreCase("hostDestination");
+        return HOST_LONG_IDENTIFIERS.contains(a.getLongIdentifier());
     }
 
     /**
@@ -948,7 +947,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      * @return true if the provided argument is the usage argument, false otherwise
      */
     boolean isUsageArgument(final Argument a) {
-        return usageArgument != null && usageArgument.getName().equals(a.getName());
+        return usageArgument != null && usageArgument.getLongIdentifier().equals(a.getLongIdentifier());
     }
 
     /** Prints the version. */
@@ -1063,9 +1062,7 @@ public class ArgumentParser implements ToolRefDocContainer {
 
                 // If we're not case-sensitive, then convert the name to lowercase.
                 final String origArgName = argName;
-                if (!longArgumentsCaseSensitive) {
-                    argName = toLowerCase(argName);
-                }
+                argName = formatLongIdentifier(argName);
 
                 // Get the argument with the specified name.
                 final Argument a = longIDMap.get(argName);
@@ -1579,10 +1576,9 @@ public class ArgumentParser implements ToolRefDocContainer {
     void normalizeArguments(final Properties argumentProperties, final List<Argument> arguments)
             throws ArgumentException {
         for (final Argument a : arguments) {
-            if (!a.isPresent()
-                    // See if there is a value in the properties that can be used
-                    && argumentProperties != null && a.getPropertyName() != null) {
-                final String value = argumentProperties.getProperty(a.getPropertyName().toLowerCase());
+            // See if there is a value in the properties that can be used
+            if (!a.isPresent() && argumentProperties != null) {
+                final String value = argumentProperties.getProperty(a.getLongIdentifier().toLowerCase());
                 final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
                 if (value != null) {
                     boolean addValue = (a instanceof BooleanArgument) || a.valueIsAcceptable(value, invalidReason);
@@ -1591,7 +1587,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                         if (a.needsValue()) {
                             a.setPresent(true);
                         }
-                        a.setValueSetByProperty(true);
+                        a.valueSetByProperty();
                     }
                 }
             }
@@ -1604,7 +1600,7 @@ public class ArgumentParser implements ToolRefDocContainer {
 
                 // If there is still no value and the argument is required, then that's a problem.
                 if (!a.hasValue() && a.isRequired()) {
-                    throw new ArgumentException(ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName()));
+                    throw new ArgumentException(ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getLongIdentifier()));
                 }
             }
         }
@@ -1655,5 +1651,38 @@ public class ArgumentParser implements ToolRefDocContainer {
             return fileArg.getValue();
         }
         return null;
+    }
+
+    /**
+     * Replace the provided {@link Argument} from this parser by the provided {@link Argument}.
+     * If the {@link Argument} is not present in this parser, do nothing.
+     *
+     * @param argument
+     *          The {@link Argument} to replace.
+     */
+    public void replaceArgument(final Argument argument) {
+        replaceArgumentInCollections(longIDMap, shortIDMap, argumentList, argument);
+    }
+
+    void replaceArgumentInCollections(final Map<String, Argument> longIDToArg,
+            final Map<Character, Argument> shortIDToArg, final List<Argument> argumentList, final Argument argument) {
+        final String longID = formatLongIdentifier(argument.getLongIdentifier());
+        if (!longIDToArg.containsKey(longID)) {
+            return;
+        }
+        longIDToArg.put(longID, argument);
+        shortIDToArg.put(argument.getShortIdentifier(), argument);
+        argumentList.remove(argument);
+        argumentList.add(argument);
+        for (final ArgumentGroup group : argumentGroups) {
+            if (group.getArguments().contains(argument)) {
+                group.removeArgument(argument);
+                group.addArgument(argument);
+            }
+        }
+    }
+
+    String formatLongIdentifier(final String longIdentifier) {
+        return longArgumentsCaseSensitive ? longIdentifier : toLowerCase(longIdentifier);
     }
 }

@@ -22,11 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_MAKELDIF_DESCRIPTION_SEED;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static org.forgerock.util.Utils.closeSilently;
@@ -90,28 +92,39 @@ public final class MakeLDIF extends ConsoleApplication {
         StringArgument resourcePath;
         StringArgument constants;
         try {
-            resourcePath = new StringArgument("resourcepath", 'r', OPTION_LONG_RESOURCE_PATH, false, false, true,
-                    INFO_PATH_PLACEHOLDER.get(), null, null, INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get());
-            resourcePath.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RESOURCE_PATH.get());
-            argParser.addArgument(resourcePath);
+            resourcePath =
+                    StringArgument.builder(OPTION_LONG_RESOURCE_PATH)
+                            .shortIdentifier('r')
+                            .description(INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get())
+                            .docDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RESOURCE_PATH.get())
+                            .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
+            ldifFile =
+                    StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_OUTPUT_LDIF_FILENAME)
+                            .description(INFO_MAKELDIF_DESCRIPTION_LDIF.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
+            randomSeed =
+                    IntegerArgument.builder(OPTION_LONG_RANDOM_SEED)
+                            .shortIdentifier(OPTION_SHORT_RANDOM_SEED)
+                            .description(INFO_MAKELDIF_DESCRIPTION_SEED.get())
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_SEED_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
+            constants =
+                    StringArgument.builder(OPTION_LONG_CONSTANT)
+                            .shortIdentifier('c')
+                            .description(INFO_MAKELDIF_DESCRIPTION_CONSTANT.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_CONSTANT_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
+            showUsage =
+                    BooleanArgument.builder(OPTION_LONG_HELP)
+                            .shortIdentifier(OPTION_SHORT_HELP)
+                            .description(INFO_MAKELDIF_DESCRIPTION_HELP.get())
+                            .buildAndAddToParser(argParser);
 
-            ldifFile = new StringArgument("ldiffile", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
-                    OPTION_LONG_OUTPUT_LDIF_FILENAME, false, false, true, INFO_FILE_PLACEHOLDER.get(),
-                    null, null, INFO_MAKELDIF_DESCRIPTION_LDIF.get());
-            argParser.addArgument(ldifFile);
-
-            randomSeed = new IntegerArgument("randomseed", OPTION_SHORT_RANDOM_SEED, OPTION_LONG_RANDOM_SEED, false,
-                    false, true, INFO_SEED_PLACEHOLDER.get(), 0, null, INFO_MAKELDIF_DESCRIPTION_SEED.get());
-            argParser.addArgument(randomSeed);
-
-            constants = new StringArgument("constant", 'c', OPTION_LONG_CONSTANT, false, true, true,
-                    INFO_CONSTANT_PLACEHOLDER.get(),
-                    null, null, INFO_MAKELDIF_DESCRIPTION_CONSTANT.get());
-            argParser.addArgument(constants);
-
-            showUsage = new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                    INFO_MAKELDIF_DESCRIPTION_HELP.get());
-            argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (ArgumentException ae) {
             errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));

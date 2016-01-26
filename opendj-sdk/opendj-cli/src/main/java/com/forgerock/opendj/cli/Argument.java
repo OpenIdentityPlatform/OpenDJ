@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a generic argument that may be used in the argument list
@@ -41,38 +42,194 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * order to provide specific functionality.
  */
 public abstract class Argument implements DocDescriptionSupplement {
-    /** Indicates whether this argument should be hidden in the usage information. */
-    private boolean isHidden;
-    /** Indicates whether this argument may be specified more than once for multiple values. */
-    private boolean isMultiValued;
-    /** Indicates whether this argument was provided in the set of command-line arguments. */
-    private boolean isPresent;
-    /** Indicates whether this argument is required to have a value. */
-    private boolean isRequired;
-    /** Indicates whether this argument requires a value. */
-    private boolean needsValue;
-    /** The default value for the argument if none other is provided. */
-    private String defaultValue;
+
+    /**
+     * An abstract base class to build a generic {@link Argument}.
+     *
+     * @param <B>
+     *         The concrete {@link ArgumentBuilder} subclass.
+     * @param <T>
+     *         The default value type of the {@link Argument}.
+     * @param <A>
+     *         The concrete {@link Argument} type to build.
+     */
+    static abstract class ArgumentBuilder<B extends ArgumentBuilder<B, T, A>, T, A extends Argument> {
+        T defaultValue;
+        LocalizableMessage description;
+        LocalizableMessage docDescriptionSupplement;
+        boolean hidden;
+        final String longIdentifier;
+        boolean multiValued;
+        boolean needsValue = true;
+        boolean required;
+        Character shortIdentifier;
+        LocalizableMessage valuePlaceholder;
+
+        ArgumentBuilder(final String longIdentifier) {
+            Reject.ifNull(longIdentifier, "An argument must have a long identifier");
+            this.longIdentifier = longIdentifier;
+        }
+
+        abstract B getThis();
+
+        /**
+         * Build the argument.
+         *
+         * @return The argument built.
+         * @throws ArgumentException
+         *         If there is a problem with any of the parameters used to
+         *         create this argument.
+         */
+        public abstract A buildArgument() throws ArgumentException;
+
+        /**
+         * Build the argument and add it to the provided {@link ArgumentParser}.
+         *
+         * @param parser
+         *         The argument parser.
+         * @return The argument built.
+         * @throws ArgumentException
+         *         If there is a problem with any of the parameters used to
+         *         create this argument.
+         */
+        public A buildAndAddToParser(final ArgumentParser parser) throws ArgumentException {
+            final A arg = buildArgument();
+            parser.addArgument(arg);
+            return arg;
+        }
+
+        /**
+         * Build the argument and add it to the provided {@link SubCommand}.
+         *
+         * @param subCommand
+         *         The sub command.
+         * @return The argument built.
+         * @throws ArgumentException
+         *         If there is a problem with any of the parameters used to
+         *         create this argument.
+         */
+        public A buildAndAddToSubCommand(final SubCommand subCommand) throws ArgumentException {
+            final A arg = buildArgument();
+            subCommand.addArgument(arg);
+            return arg;
+        }
+
+        /**
+         * Sets this argument default value.
+         *
+         * @param defaultValue
+         *         The default value.
+         * @return This builder.
+         */
+        public B defaultValue(final T defaultValue) {
+            this.defaultValue = defaultValue;
+            return getThis();
+        }
+
+        /**
+         * Sets this argument description.
+         *
+         * @param description
+         *         The localized description.
+         * @return This builder.
+         */
+        public B description(final LocalizableMessage description) {
+            this.description = description;
+            return getThis();
+        }
+
+        /**
+         * Sets a supplement to the description intended for use in generated reference documentation.
+         *
+         * @param docDescriptionSupplement
+         *         The supplement to the description for use in generated reference documentation.
+         * @return This builder.
+         */
+        public B docDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
+            this.docDescriptionSupplement = docDescriptionSupplement;
+            return getThis();
+        }
+
+        /**
+         * Specifies that this argument is hidden.
+         *
+         * @return This builder.
+         */
+        public B hidden() {
+            this.hidden = true;
+            return getThis();
+        }
+
+        /**
+         * Specifies that this argument may have multiple values.
+         *
+         * @return This builder.
+         */
+        public B multiValued() {
+            this.multiValued = true;
+            return getThis();
+        }
+
+        /**
+         * Specifies that this argument is required.
+         *
+         * @return This builder.
+         */
+        public B required() {
+            this.required = true;
+            return getThis();
+        }
+
+        /**
+         * Sets this argument single-character identifier.
+         *
+         * @param shortIdentifier
+         *         The single-character identifier.
+         * @return This builder.
+         */
+        public B shortIdentifier(final Character shortIdentifier) {
+            this.shortIdentifier = shortIdentifier;
+            return getThis();
+        }
+
+        /**
+         * Sets this argument value placeholder, which will be used in usage information.
+         *
+         * @param valuePlaceholder
+         *         The localized value placeholder.
+         * @return This builder.
+         */
+        public B valuePlaceholder(final LocalizableMessage valuePlaceholder) {
+            this.valuePlaceholder = valuePlaceholder;
+            return getThis();
+        }
+    }
+
+    /** The long identifier for this argument. */
+    final String longIdentifier;
 
     /** The single-character identifier for this argument. */
     private final Character shortIdentifier;
-    /** The long identifier for this argument. */
-    private final String longIdentifier;
-
     /** The unique ID of the description for this argument. */
     private final LocalizableMessage description;
+    /** Indicates whether this argument should be hidden in the usage information. */
+    private final boolean isHidden;
+    /** Indicates whether this argument may be specified more than once for multiple values. */
+    private final boolean isMultiValued;
+    /** Indicates whether this argument is required to have a value. */
+    private final boolean isRequired;
+    /** Indicates whether this argument requires a value. */
+    private final boolean needsValue;
+    /** The default value for the argument if none other is provided. */
+    private final String defaultValue;
+    /** The value placeholder for this argument, which will be used in usage information. */
+    private final LocalizableMessage valuePlaceholder;
 
     /** The set of values for this argument. */
     private final LinkedList<String> values = new LinkedList<>();
 
-    /** The generic name that will be used to refer to this argument. */
-    private final String name;
-
-    /** The name of the property that can be used to set the default value. */
-    private String propertyName;
-
-    /** The value placeholder for this argument, which will be used in usage information. */
-    private LocalizableMessage valuePlaceholder;
+    /** Indicates whether this argument was provided in the set of command-line arguments. */
+    private boolean isPresent;
 
     /**
      * Indicates whether this argument was provided in the set of
@@ -80,71 +237,24 @@ public abstract class Argument implements DocDescriptionSupplement {
      */
     private boolean isValueSetByProperty;
 
-    /**
-     * Creates a new argument with the provided information.
-     *
-     * @param name
-     *            The generic name that should be used to refer to this
-     *            argument.
-     * @param shortIdentifier
-     *            The single-character identifier for this argument, or
-     *            <CODE>null</CODE> if there is none.
-     * @param longIdentifier
-     *            The long identifier for this argument, or <CODE>null</CODE> if
-     *            there is none.
-     * @param isRequired
-     *            Indicates whether this argument must be specified on the
-     *            command line.
-     * @param isMultiValued
-     *            Indicates whether this argument may be specified more than
-     *            once to provide multiple values.
-     * @param needsValue
-     *            Indicates whether this argument requires a value.
-     * @param valuePlaceholder
-     *            The placeholder for the argument value that will be displayed
-     *            in usage information, or <CODE>null</CODE> if this argument
-     *            does not require a value.
-     * @param defaultValue
-     *            The default value that should be used for this argument if
-     *            none is provided in a properties file or on the command line.
-     *            This may be <CODE>null</CODE> if there is no generic default.
-     * @param propertyName
-     *            The name of the property in a property file that may be used
-     *            to override the default value but will be overridden by a
-     *            command-line argument.
-     * @param description
-     *            LocalizableMessage for the description of this argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to
-     *             create this argument.
-     */
-    protected Argument(final String name, final Character shortIdentifier,
-            final String longIdentifier, final boolean isRequired, final boolean isMultiValued,
-            final boolean needsValue, final LocalizableMessage valuePlaceholder,
-            final String defaultValue, final String propertyName,
-            final LocalizableMessage description) throws ArgumentException {
-        this.name = name;
-        this.shortIdentifier = shortIdentifier;
-        this.longIdentifier = longIdentifier;
-        this.isRequired = isRequired;
-        this.isMultiValued = isMultiValued;
-        this.needsValue = needsValue;
-        this.valuePlaceholder = valuePlaceholder;
-        this.defaultValue = defaultValue;
-        this.propertyName = propertyName;
-        this.description = description;
-        this.isValueSetByProperty = false;
-
-        if (shortIdentifier == null && longIdentifier == null) {
-            throw new ArgumentException(ERR_ARG_NO_IDENTIFIER.get(name));
-        }
+    <B extends ArgumentBuilder<B, T, A>, T, A extends Argument> Argument(final ArgumentBuilder<B, T, A> builder)
+            throws ArgumentException {
+        this.shortIdentifier = builder.shortIdentifier;
+        this.longIdentifier = builder.longIdentifier;
+        this.isRequired = builder.required;
+        this.isMultiValued = builder.multiValued;
+        this.needsValue = builder.needsValue;
+        this.valuePlaceholder = builder.valuePlaceholder;
+        this.defaultValue = builder.defaultValue != null ? String.valueOf(builder.defaultValue) : null;
+        this.description = builder.description;
+        this.isHidden = builder.hidden;
+        this.docDescriptionSupplement = builder.docDescriptionSupplement;
 
         if (needsValue && valuePlaceholder == null) {
-            throw new ArgumentException(ERR_ARG_NO_VALUE_PLACEHOLDER.get(name));
+            throw new ArgumentException(ERR_ARG_NO_VALUE_PLACEHOLDER.get(longIdentifier));
         }
 
         isPresent = false;
-        isHidden = false;
     }
 
     /**
@@ -201,11 +311,6 @@ public abstract class Argument implements DocDescriptionSupplement {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
-    @Override
-    public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
-        this.docDescriptionSupplement = docDescriptionSupplement;
-    }
-
     /**
      * Retrieves the value of this argument as an integer.
      *
@@ -216,19 +321,19 @@ public abstract class Argument implements DocDescriptionSupplement {
      */
     public int getIntValue() throws ArgumentException {
         if (values.isEmpty()) {
-            throw new ArgumentException(ERR_ARG_NO_INT_VALUE.get(name));
+            throw new ArgumentException(ERR_ARG_NO_INT_VALUE.get(longIdentifier));
         }
 
         final Iterator<String> iterator = values.iterator();
         final String valueString = iterator.next();
         if (iterator.hasNext()) {
-            throw new ArgumentException(ERR_ARG_INT_MULTIPLE_VALUES.get(name));
+            throw new ArgumentException(ERR_ARG_INT_MULTIPLE_VALUES.get(longIdentifier));
         }
 
         try {
             return Integer.parseInt(valueString);
         } catch (final Exception e) {
-            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
+            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, longIdentifier), e);
         }
     }
 
@@ -241,29 +346,6 @@ public abstract class Argument implements DocDescriptionSupplement {
      */
     public String getLongIdentifier() {
         return longIdentifier;
-    }
-
-    /**
-     * Retrieves the generic name that will be used to refer to this argument.
-     *
-     * @return The generic name that will be used to refer to this argument.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Retrieves the name of a property in a properties file that may be used to
-     * set the default value for this argument if it is present. A value read
-     * from a properties file will override the default value returned from the
-     * <CODE>getDefaultValue</CODE>, but the properties file value will be
-     * overridden by a value supplied on the command line.
-     *
-     * @return The name of a property in a properties file that may be used to
-     *         set the default value for this argument if it is present.
-     */
-    public String getPropertyName() {
-        return propertyName;
     }
 
     /**
@@ -388,44 +470,6 @@ public abstract class Argument implements DocDescriptionSupplement {
     }
 
     /**
-     * Specifies the default value that will be used for this argument if it is
-     * not specified on the command line and it is not set from a properties
-     * file.
-     *
-     * @param defaultValue
-     *            The default value that will be used for this argument if it is
-     *            not specified on the command line and it is not set from a
-     *            properties file.
-     */
-    public void setDefaultValue(final String defaultValue) {
-        this.defaultValue = defaultValue;
-    }
-
-    /**
-     * Specifies whether this argument should be hidden from the usage
-     * information.
-     *
-     * @param isHidden
-     *            Indicates whether this argument should be hidden from the
-     *            usage information.
-     */
-    public void setHidden(final boolean isHidden) {
-        this.isHidden = isHidden;
-    }
-
-    /**
-     * Specifies whether this argument may be provided more than once on the
-     * command line to specify multiple values.
-     *
-     * @param isMultiValued
-     *            Indicates whether this argument may be provided more than once
-     *            on the command line to specify multiple values.
-     */
-    public void setMultiValued(final boolean isMultiValued) {
-        this.isMultiValued = isMultiValued;
-    }
-
-    /**
      * Specifies whether this argument is present in the parsed set of
      * command-line arguments.
      *
@@ -437,52 +481,8 @@ public abstract class Argument implements DocDescriptionSupplement {
         this.isPresent = isPresent;
     }
 
-    /**
-     * Specifies the name of a property in a properties file that may be used to
-     * set the default value for this argument if it is present.
-     *
-     * @param propertyName
-     *            The name of a property in a properties file that may be used
-     *            to set the default value for this argument if it is present.
-     */
-    public void setPropertyName(final String propertyName) {
-        this.propertyName = propertyName;
-    }
-
-    /**
-     * Specifies whether this argument is required to have at least one value.
-     *
-     * @param isRequired
-     *            Indicates whether this argument is required to have at least
-     *            one value.
-     */
-    public void setRequired(final boolean isRequired) {
-        this.isRequired = isRequired;
-    }
-
-    /**
-     * Specifies the value placeholder that will be displayed for this argument
-     * in the generated usage information. It may be <CODE>null</CODE> only if
-     * <CODE>needsValue()</CODE> returns <CODE>false</CODE>.
-     *
-     * @param valuePlaceholder
-     *            The value placeholder that will be displayed for this argument
-     *            in the generated usage information.
-     */
-    public void setValuePlaceholder(final LocalizableMessage valuePlaceholder) {
-        this.valuePlaceholder = valuePlaceholder;
-    }
-
-    /**
-     * Specifies whether this argument was provided in the set of properties
-     * found is a properties file.
-     *
-     * @param isValueSetByProperty
-     *            Specify whether this argument was provided in the set of
-     *            properties found is a properties file.
-     */
-    public void setValueSetByProperty(final boolean isValueSetByProperty) {
-        this.isValueSetByProperty = isValueSetByProperty;
+    void valueSetByProperty() {
+        isValueSetByProperty = true;
     }
 
     /**
@@ -518,5 +518,15 @@ public abstract class Argument implements DocDescriptionSupplement {
         sb.append(", values=").append(values);
         sb.append(")");
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(final Object arg) {
+        return this == arg || (arg instanceof Argument && ((Argument) arg).longIdentifier.equals(this.longIdentifier));
+    }
+
+    @Override
+    public int hashCode() {
+        return longIdentifier.hashCode();
     }
 }
