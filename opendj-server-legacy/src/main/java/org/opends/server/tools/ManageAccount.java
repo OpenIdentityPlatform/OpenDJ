@@ -23,11 +23,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
@@ -467,7 +471,7 @@ public class ManageAccount
    * The name of the argument that will be used for holding the value(s) to use
    * for the target operation.
    */
-  private static final String ARG_OP_VALUE = "opvalue";
+  private static final String ARG_OP_VALUE = "operationValue";
 
 
 
@@ -840,117 +844,124 @@ public class ManageAccount
 
     try
     {
-      host = new StringArgument("host", OPTION_SHORT_HOST,
-                                OPTION_LONG_HOST, false, false, true,
-                                INFO_HOST_PLACEHOLDER.get(), "127.0.0.1", null,
-                                INFO_PWPSTATE_DESCRIPTION_HOST.get());
+      host =
+              StringArgument.builder(OPTION_LONG_HOST)
+                      .shortIdentifier(OPTION_SHORT_HOST)
+                      .description(INFO_PWPSTATE_DESCRIPTION_HOST.get())
+                      .defaultValue("127.0.0.1")
+                      .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(host);
 
-      port = new IntegerArgument(
-              "port", OPTION_SHORT_PORT,
-              OPTION_LONG_PORT, false, false, true,
-              INFO_PORT_PLACEHOLDER.get(),
-              AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
-              null, true, 1,
-              true, 65535, INFO_PWPSTATE_DESCRIPTION_PORT.get());
+      port =
+              IntegerArgument.builder(OPTION_LONG_PORT)
+                      .shortIdentifier(OPTION_SHORT_PORT)
+                      .description(INFO_PWPSTATE_DESCRIPTION_PORT.get())
+                      .range(1, 65535)
+                      .defaultValue(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT)
+                      .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(port);
 
-      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
-                                  OPTION_LONG_BINDDN, false, false, true,
-                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
-                                  INFO_PWPSTATE_DESCRIPTION_BINDDN.get());
+      bindDN =
+              StringArgument.builder(OPTION_LONG_BINDDN)
+                      .shortIdentifier(OPTION_SHORT_BINDDN)
+                      .description(INFO_PWPSTATE_DESCRIPTION_BINDDN.get())
+                      .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(bindDN);
 
-      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
-                                  OPTION_LONG_BINDPWD, false, false,
-                                  true,
-                                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                                  INFO_PWPSTATE_DESCRIPTION_BINDPW.get());
+      bindPW =
+              StringArgument.builder(OPTION_LONG_BINDPWD)
+                      .shortIdentifier(OPTION_SHORT_BINDPWD)
+                      .description(INFO_PWPSTATE_DESCRIPTION_BINDPW.get())
+                      .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(bindPW);
 
-      bindPWFile = new FileBasedArgument(
-              "bindpwfile",
-              OPTION_SHORT_BINDPWD_FILE,
-              OPTION_LONG_BINDPWD_FILE,
-              false, false,
-              INFO_BINDPWD_FILE_PLACEHOLDER.get(),
-              null, null,
-              INFO_PWPSTATE_DESCRIPTION_BINDPWFILE.get());
+      bindPWFile =
+              FileBasedArgument.builder(OPTION_LONG_BINDPWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
+                      .description(INFO_PWPSTATE_DESCRIPTION_BINDPWFILE.get())
+                      .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(bindPWFile);
 
-      targetDN = new StringArgument("targetdn", 'b', "targetDN", true, false,
-                                    true, INFO_TARGETDN_PLACEHOLDER.get(), null,
-                                    null,
-                                    INFO_PWPSTATE_DESCRIPTION_TARGETDN.get());
+      targetDN =
+              StringArgument.builder("targetDN")
+                      .shortIdentifier('b')
+                      .description(INFO_PWPSTATE_DESCRIPTION_TARGETDN.get())
+                      .required()
+                      .valuePlaceholder(INFO_TARGETDN_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(targetDN);
 
-      saslOption = new StringArgument(
-              "sasloption", OPTION_SHORT_SASLOPTION,
-              OPTION_LONG_SASLOPTION, false,
-              true, true,
-              INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
-              INFO_PWPSTATE_DESCRIPTION_SASLOPTIONS.get());
+      saslOption =
+              StringArgument.builder(OPTION_LONG_SASLOPTION)
+                      .shortIdentifier(OPTION_SHORT_SASLOPTION)
+                      .description(INFO_PWPSTATE_DESCRIPTION_SASLOPTIONS.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_SASL_OPTION_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(saslOption);
 
       trustAll = CommonArguments.getTrustAll();
       argParser.addGlobalArgument(trustAll);
 
-      keyStoreFile = new StringArgument("keystorefile",
-                                        OPTION_SHORT_KEYSTOREPATH,
-                                        OPTION_LONG_KEYSTOREPATH,
-                                        false, false, true,
-                                        INFO_KEYSTOREPATH_PLACEHOLDER.get(),
-                                        null, null,
-                                        INFO_PWPSTATE_DESCRIPTION_KSFILE.get());
+      keyStoreFile =
+              StringArgument.builder(OPTION_LONG_KEYSTOREPATH)
+                      .shortIdentifier(OPTION_SHORT_KEYSTOREPATH)
+                      .description(INFO_PWPSTATE_DESCRIPTION_KSFILE.get())
+                      .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(keyStoreFile);
 
-      keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
-                                      OPTION_LONG_KEYSTORE_PWD,
-                                      false, false, true,
-                                      INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
-                                      null, null,
-                                      INFO_PWPSTATE_DESCRIPTION_KSPW.get());
+      keyStorePW =
+              StringArgument.builder(OPTION_LONG_KEYSTORE_PWD)
+                      .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD)
+                      .description(INFO_PWPSTATE_DESCRIPTION_KSPW.get())
+                      .valuePlaceholder(INFO_KEYSTORE_PWD_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(keyStorePW);
 
-      keyStorePWFile = new FileBasedArgument("keystorepwfile",
-                                OPTION_SHORT_KEYSTORE_PWD_FILE,
-                                OPTION_LONG_KEYSTORE_PWD_FILE, false, false,
-                                INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null,
-                                null,
-                                INFO_PWPSTATE_DESCRIPTION_KSPWFILE.get());
+      keyStorePWFile =
+              FileBasedArgument.builder(OPTION_LONG_KEYSTORE_PWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD_FILE)
+                      .description(INFO_PWPSTATE_DESCRIPTION_KSPWFILE.get())
+                      .valuePlaceholder(INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(keyStorePWFile);
 
-      certNickname = new StringArgument(
-              "certnickname", 'N', "certNickname",
-              false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
-              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
+      certNickname =
+              StringArgument.builder("certNickname")
+                      .shortIdentifier('N')
+                      .description(INFO_DESCRIPTION_CERT_NICKNAME.get())
+                      .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(certNickname);
 
-      trustStoreFile = new StringArgument(
-              "truststorefile",
-              OPTION_SHORT_TRUSTSTOREPATH,
-              OPTION_LONG_TRUSTSTOREPATH,
-              false, false, true,
-              INFO_TRUSTSTOREPATH_PLACEHOLDER.get(),
-              null, null,
-              INFO_PWPSTATE_DESCRIPTION_TSFILE.get());
+      trustStoreFile =
+              StringArgument.builder(OPTION_LONG_TRUSTSTOREPATH)
+                      .shortIdentifier(OPTION_SHORT_TRUSTSTOREPATH)
+                      .description(INFO_PWPSTATE_DESCRIPTION_TSFILE.get())
+                      .valuePlaceholder(INFO_TRUSTSTOREPATH_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(trustStoreFile);
 
-      trustStorePW = new StringArgument(
-              "truststorepw", 'T',
-              OPTION_LONG_TRUSTSTORE_PWD,
-              false, false,
-              true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null,
-              null, INFO_PWPSTATE_DESCRIPTION_TSPW.get());
+      trustStorePW =
+              StringArgument.builder(OPTION_LONG_TRUSTSTORE_PWD)
+                      .shortIdentifier('T')
+                      .description(INFO_PWPSTATE_DESCRIPTION_TSPW.get())
+                      .valuePlaceholder(INFO_TRUSTSTORE_PWD_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(trustStorePW);
 
-      trustStorePWFile = new FileBasedArgument("truststorepwfile",
-                                  OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                                  OPTION_LONG_TRUSTSTORE_PWD_FILE,
-                                  false, false,
-                                  INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(),
-                                  null, null,
-                                  INFO_PWPSTATE_DESCRIPTION_TSPWFILE.get());
+      trustStorePWFile =
+              FileBasedArgument.builder(OPTION_LONG_TRUSTSTORE_PWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_TRUSTSTORE_PWD_FILE)
+                      .description(INFO_PWPSTATE_DESCRIPTION_TSPWFILE.get())
+                      .valuePlaceholder(INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get())
+                      .buildArgument();
       argParser.addGlobalArgument(trustStorePWFile);
 
       verbose = CommonArguments.getVerbose();
@@ -978,11 +989,13 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_SET_ACCOUNT_DISABLED_STATE.get();
       SubCommand sc = new SubCommand(argParser, SC_SET_ACCOUNT_DISABLED_STATE,
                                      msg);
-      sc.addArgument(new MultiChoiceArgument(ARG_OP_VALUE, 'O',
-                              "operationValue", true, false, true,
-                              INFO_TRUE_FALSE_PLACEHOLDER.get(), null, null,
-                              booleanValues, false,
-                              INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get()));
+      sc.addArgument(MultiChoiceArgument.<String>builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get())
+              .required()
+              .allowedValues(booleanValues)
+              .valuePlaceholder(INFO_TRUE_FALSE_PLACEHOLDER.get())
+              .buildArgument());
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_DISABLED_STATE.get();
       new SubCommand(argParser, SC_CLEAR_ACCOUNT_DISABLED_STATE, msg);
@@ -992,10 +1005,11 @@ public class ManageAccount
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_ACCOUNT_EXPIRATION_TIME.get();
       sc = new SubCommand(argParser, SC_SET_ACCOUNT_EXPIRATION_TIME, msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_EXPIRATION_TIME.get();
@@ -1014,10 +1028,11 @@ public class ManageAccount
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_CHANGED_TIME.get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_TIME, msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_CHANGED_TIME.get();
@@ -1031,10 +1046,11 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_EXPIRATION_WARNED_TIME
               .get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_EXP_WARNED_TIME, msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME
@@ -1057,19 +1073,23 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_ADD_AUTH_FAILURE_TIME.get();
       sc = new SubCommand(argParser, SC_ADD_AUTHENTICATION_FAILURE_TIME,
               msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .multiValued()
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_AUTH_FAILURE_TIMES.get();
       sc = new SubCommand(argParser, SC_SET_AUTHENTICATION_FAILURE_TIMES,
                           msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUES.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUES.get())
+              .multiValued()
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_AUTH_FAILURE_TIMES.get();
@@ -1093,10 +1113,11 @@ public class ManageAccount
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_LAST_LOGIN_TIME.get();
       sc = new SubCommand(argParser, SC_SET_LAST_LOGIN_TIME, msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_LAST_LOGIN_TIME.get();
@@ -1111,11 +1132,13 @@ public class ManageAccount
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_RESET_STATE.get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_RESET_STATE, msg);
-      sc.addArgument(new MultiChoiceArgument(ARG_OP_VALUE, 'O',
-                              "operationValue", true, false, true,
-                              INFO_TRUE_FALSE_PLACEHOLDER.get(), null, null,
-                              booleanValues, false,
-                              INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get()));
+      sc.addArgument(MultiChoiceArgument.<String>builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get())
+              .required()
+              .allowedValues(booleanValues)
+              .valuePlaceholder(INFO_TRUE_FALSE_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_RESET_STATE.get();
@@ -1131,18 +1154,22 @@ public class ManageAccount
 
       msg = INFO_DESCRIPTION_PWPSTATE_ADD_GRACE_LOGIN_USE_TIME.get();
       sc = new SubCommand(argParser, SC_ADD_GRACE_LOGIN_USE_TIME, msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .multiValued()
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_GRACE_LOGIN_USE_TIMES.get();
       sc = new SubCommand(argParser, SC_SET_GRACE_LOGIN_USE_TIMES, msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUES.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUES.get())
+              .multiValued()
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_GRACE_LOGIN_USE_TIMES.get();
@@ -1160,10 +1187,11 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_SET_PW_CHANGED_BY_REQUIRED_TIME.get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
                           msg);
-      sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
+      sc.addArgument(StringArgument.builder(ARG_OP_VALUE)
+              .shortIdentifier('O')
+              .description(INFO_DESCRIPTION_OPERATION_TIME_VALUE.get())
+              .valuePlaceholder(INFO_TIME_PLACEHOLDER.get())
+              .buildArgument());
       sc.setHidden(true);
 
       msg =
@@ -1396,7 +1424,7 @@ public class ManageAccount
     }
     else if (subCommandName.equals(SC_SET_ACCOUNT_DISABLED_STATE))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         String valueStr = a.getValue();
@@ -1430,7 +1458,7 @@ public class ManageAccount
     }
     else if (subCommandName.equals(SC_SET_ACCOUNT_EXPIRATION_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_ACCOUNT_EXPIRATION_TIME, a.getValue());
@@ -1454,7 +1482,7 @@ public class ManageAccount
     }
     else if (subCommandName.equals(SC_SET_PASSWORD_CHANGED_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_PASSWORD_CHANGED_TIME, a.getValue());
@@ -1474,7 +1502,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_SET_PASSWORD_EXP_WARNED_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_PASSWORD_EXPIRATION_WARNED_TIME,
@@ -1508,7 +1536,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_ADD_AUTHENTICATION_FAILURE_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_ADD_AUTHENTICATION_FAILURE_TIME,
@@ -1521,7 +1549,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_SET_AUTHENTICATION_FAILURE_TIMES))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         ArrayList<String> valueList = new ArrayList<>(a.getValues());
@@ -1557,7 +1585,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_SET_LAST_LOGIN_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_LAST_LOGIN_TIME, a.getValue());
@@ -1581,7 +1609,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_SET_PASSWORD_RESET_STATE))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         String valueStr = a.getValue();
@@ -1620,7 +1648,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_ADD_GRACE_LOGIN_USE_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_ADD_GRACE_LOGIN_USE_TIME, a.getValue());
@@ -1632,7 +1660,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_SET_GRACE_LOGIN_USE_TIMES))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         ArrayList<String> valueList = new ArrayList<>(a.getValues());
@@ -1661,7 +1689,7 @@ public class ManageAccount
     }
     else if(subCommandName.equals(SC_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME))
     {
-      Argument a = subCommand.getArgumentForName(ARG_OP_VALUE);
+      Argument a = subCommand.getArgumentForLongIdentifier(ARG_OP_VALUE);
       if (a != null && a.isPresent())
       {
         encode(writer, OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,

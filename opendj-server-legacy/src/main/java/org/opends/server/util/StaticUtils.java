@@ -2491,8 +2491,7 @@ public final class StaticUtils
         for (Argument otherArg : args) {
           if (arg != otherArg && arg.isPresent() && otherArg.isPresent()) {
             throw new ArgumentException(
-                    ToolMessages.ERR_INCOMPATIBLE_ARGUMENTS.get(
-                            arg.getName(), otherArg.getName()));
+                    ToolMessages.ERR_INCOMPATIBLE_ARGUMENTS.get(arg.getLongIdentifier(), otherArg.getLongIdentifier()));
           }
         }
       }

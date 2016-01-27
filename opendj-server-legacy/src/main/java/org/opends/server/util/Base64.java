@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS.
+ *      Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -487,53 +487,46 @@ public final class Base64
       encodeSubCommand = new SubCommand(argParser, "encode",
                                         INFO_BASE64_ENCODE_DESCRIPTION.get());
 
-
-      encodedData = new StringArgument("encodeddata", 'd', "encodedData", false,
-                             false, true, INFO_DATA_PLACEHOLDER.get(), null,
-                             null,
-                             INFO_BASE64_ENCODED_DATA_DESCRIPTION.get());
-      decodeSubCommand.addArgument(encodedData);
-
-
-      encodedFile = new StringArgument("encodedfile", 'f', "encodedDataFile",
-                             false, false, true, INFO_PATH_PLACEHOLDER.get(),
-                             null, null,
-                             INFO_BASE64_ENCODED_FILE_DESCRIPTION.get());
-      decodeSubCommand.addArgument(encodedFile);
-
-
-      toRawFile = new StringArgument("torawfile", 'o', "toRawFile", false,
-                                     false, true, INFO_PATH_PLACEHOLDER.get(),
-                                     null, null,
-                                     INFO_BASE64_TO_RAW_FILE_DESCRIPTION.get());
-      decodeSubCommand.addArgument(toRawFile);
-
-
-      rawData = new StringArgument("rawdata", 'd', "rawData", false, false,
-                                   true, INFO_DATA_PLACEHOLDER.get(), null,
-                                   null,
-                                   INFO_BASE64_RAW_DATA_DESCRIPTION.get());
-      encodeSubCommand.addArgument(rawData);
-
-
-      rawFile = new StringArgument("rawfile", 'f', "rawDataFile", false, false,
-                                   true, INFO_PATH_PLACEHOLDER.get(), null,
-                                   null,
-                                   INFO_BASE64_RAW_FILE_DESCRIPTION.get());
-      encodeSubCommand.addArgument(rawFile);
-
-
-      toEncodedFile = new StringArgument("toencodedfile", 'o', "toEncodedFile",
-                               false, false, true, INFO_PATH_PLACEHOLDER.get(),
-                               null, null,
-                               INFO_BASE64_TO_ENCODED_FILE_DESCRIPTION.get());
-      encodeSubCommand.addArgument(toEncodedFile);
-
+      encodedData =
+              StringArgument.builder("encodedData")
+                      .shortIdentifier('d')
+                      .description(INFO_BASE64_ENCODED_DATA_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_DATA_PLACEHOLDER.get())
+                      .buildAndAddToSubCommand(decodeSubCommand);
+      encodedFile =
+              StringArgument.builder("encodedDataFile")
+                      .shortIdentifier('f')
+                      .description(INFO_BASE64_ENCODED_FILE_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToSubCommand(decodeSubCommand);
+      toRawFile =
+              StringArgument.builder("toRawFile")
+                      .shortIdentifier('o')
+                      .description(INFO_BASE64_TO_RAW_FILE_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToSubCommand(decodeSubCommand);
+      rawData =
+              StringArgument.builder("rawData")
+                      .shortIdentifier('d')
+                      .description(INFO_BASE64_RAW_DATA_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_DATA_PLACEHOLDER.get())
+                      .buildAndAddToSubCommand(encodeSubCommand);
+      rawFile =
+              StringArgument.builder("rawDataFile")
+                      .shortIdentifier('f')
+                      .description(INFO_BASE64_RAW_FILE_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToSubCommand(encodeSubCommand);
+      toEncodedFile =
+              StringArgument.builder("toEncodedFile")
+                      .shortIdentifier('o')
+                      .description(INFO_BASE64_TO_ENCODED_FILE_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToSubCommand(encodeSubCommand);
 
       ArrayList<SubCommand> subCommandList = new ArrayList<>(2);
       subCommandList.add(decodeSubCommand);
       subCommandList.add(encodeSubCommand);
-
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addGlobalArgument(showUsage);

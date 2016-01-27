@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -242,53 +242,59 @@ public class RebuildIndex extends TaskTool
     argParser.setShortToolDescription(REF_SHORT_DESC_REBUILD_INDEX.get());
 
     configClass =
-        new StringArgument("configclass", 'C', "configClass", true, false,
-            true, INFO_CONFIGCLASS_PLACEHOLDER.get(), ConfigFileHandler.class
-                .getName(), null, INFO_DESCRIPTION_CONFIG_CLASS.get());
-    configClass.setHidden(true);
-    argParser.addArgument(configClass);
-
+            StringArgument.builder("configClass")
+                    .shortIdentifier('C')
+                    .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                    .hidden()
+                    .required()
+                    .defaultValue(ConfigFileHandler.class.getName())
+                    .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                    .buildAndAddToParser(argParser);
     configFile =
-        new StringArgument("configfile", 'f', "configFile", true, false, true,
-            INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
-            INFO_DESCRIPTION_CONFIG_FILE.get());
-    configFile.setHidden(true);
-    argParser.addArgument(configFile);
+            StringArgument.builder("configFile")
+                    .shortIdentifier('f')
+                    .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                    .hidden()
+                    .required()
+                    .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                    .buildAndAddToParser(argParser);
 
-
-    baseDNString =
-        new StringArgument("basedn", 'b', "baseDN", true, isMultipleBackends,
-            true, INFO_BASEDN_PLACEHOLDER.get(), null, null,
-            INFO_REBUILDINDEX_DESCRIPTION_BASE_DN.get());
-    argParser.addArgument(baseDNString);
-
+    final StringArgument.Builder builder =
+            StringArgument.builder("baseDN")
+                    .shortIdentifier('b')
+                    .description(INFO_REBUILDINDEX_DESCRIPTION_BASE_DN.get())
+                    .required()
+                    .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get());
+    if (isMultipleBackends) {
+      builder.multiValued();
+    }
+    baseDNString = builder.buildAndAddToParser(argParser);
 
     indexList =
-        new StringArgument("index", 'i', "index", false, true, true,
-            INFO_INDEX_PLACEHOLDER.get(), null, null,
-            INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get());
-    argParser.addArgument(indexList);
-
+            StringArgument.builder("index")
+                    .shortIdentifier('i')
+                    .description(INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_INDEX_PLACEHOLDER.get())
+                    .buildAndAddToParser(argParser);
     rebuildAll =
-        new BooleanArgument("rebuildAll", null, "rebuildAll",
-            INFO_REBUILDINDEX_DESCRIPTION_REBUILD_ALL.get());
-    argParser.addArgument(rebuildAll);
-
+            BooleanArgument.builder("rebuildAll")
+                    .description(INFO_REBUILDINDEX_DESCRIPTION_REBUILD_ALL.get())
+                    .buildAndAddToParser(argParser);
     rebuildDegraded =
-        new BooleanArgument("rebuildDegraded", null, "rebuildDegraded",
-            INFO_REBUILDINDEX_DESCRIPTION_REBUILD_DEGRADED.get());
-    argParser.addArgument(rebuildDegraded);
-
+            BooleanArgument.builder("rebuildDegraded")
+                    .description(INFO_REBUILDINDEX_DESCRIPTION_REBUILD_DEGRADED.get())
+                    .buildAndAddToParser(argParser);
     clearDegradedState =
-        new BooleanArgument("clearDegradedState", null, "clearDegradedState",
-            INFO_REBUILDINDEX_DESCRIPTION_CLEAR_DEGRADED_STATE.get());
-    argParser.addArgument(clearDegradedState);
-
+            BooleanArgument.builder("clearDegradedState")
+                    .description(INFO_REBUILDINDEX_DESCRIPTION_CLEAR_DEGRADED_STATE.get())
+                    .buildAndAddToParser(argParser);
     tmpDirectory =
-        new StringArgument("tmpdirectory", null, "tmpdirectory", false, false,
-            true, INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get(), "import-tmp",
-            null, INFO_REBUILDINDEX_DESCRIPTION_TEMP_DIRECTORY.get());
-    argParser.addArgument(tmpDirectory);
+            StringArgument.builder("tmpdirectory")
+                    .description(INFO_REBUILDINDEX_DESCRIPTION_TEMP_DIRECTORY.get())
+                    .defaultValue("import-tmp")
+                    .valuePlaceholder(INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get())
+                    .buildAndAddToParser(argParser);
 
     final BooleanArgument displayUsage = CommonArguments.getShowUsage();
     argParser.addArgument(displayUsage);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel;
 
@@ -133,7 +133,6 @@ public class ControlPanelArgumentParser extends ArgumentParser
     addArgument(remoteArg);
 
     connectTimeoutArg = CommonArguments.getConnectTimeOut();
-    connectTimeoutArg.setHidden(false);
     addArgument(connectTimeoutArg);
 
     showUsageArg = CommonArguments.getShowUsage();

@@ -108,50 +108,49 @@ public class TaskScheduleArgs
 
   private void createTaskArguments() throws ArgumentException
   {
-    startArg = new StringArgument(OPTION_LONG_START_DATETIME,
-        OPTION_SHORT_START_DATETIME, OPTION_LONG_START_DATETIME, false, false,
-        true, INFO_START_DATETIME_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_START_DATETIME.get());
+    startArg =
+            StringArgument.builder(OPTION_LONG_START_DATETIME)
+                    .shortIdentifier(OPTION_SHORT_START_DATETIME)
+                    .description(INFO_DESCRIPTION_START_DATETIME.get())
+                    .valuePlaceholder(INFO_START_DATETIME_PLACEHOLDER.get())
+                    .buildArgument();
+    recurringArg =
+            StringArgument.builder(OPTION_LONG_RECURRING_TASK)
+                    .shortIdentifier(OPTION_SHORT_RECURRING_TASK)
+                    .description(INFO_DESCRIPTION_RECURRING_TASK.get())
+                    .valuePlaceholder(INFO_RECURRING_TASK_PLACEHOLDER.get())
+                    .buildArgument();
+    completionNotificationArg =
+            StringArgument.builder(OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL)
+                    .shortIdentifier(OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL)
+                    .description(INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_EMAIL_ADDRESS_PLACEHOLDER.get())
+                    .buildArgument();
+    errorNotificationArg =
+            StringArgument.builder(OPTION_LONG_ERROR_NOTIFICATION_EMAIL)
+                    .shortIdentifier(OPTION_SHORT_ERROR_NOTIFICATION_EMAIL)
+                    .description(INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_EMAIL_ADDRESS_PLACEHOLDER.get())
+                    .buildArgument();
+    dependencyArg =
+            StringArgument.builder(OPTION_LONG_DEPENDENCY)
+                    .shortIdentifier(OPTION_SHORT_DEPENDENCY)
+                    .description(INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_TASK_ID_PLACEHOLDER.get())
+                    .buildArgument();
 
-    recurringArg = new StringArgument(OPTION_LONG_RECURRING_TASK,
-        OPTION_SHORT_RECURRING_TASK, OPTION_LONG_RECURRING_TASK, false, false,
-        true, INFO_RECURRING_TASK_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_RECURRING_TASK.get());
-
-    completionNotificationArg = new StringArgument(
-        OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
-        OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL,
-        OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL, false, true, true,
-        INFO_EMAIL_ADDRESS_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get());
-
-    errorNotificationArg = new StringArgument(
-        OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
-        OPTION_SHORT_ERROR_NOTIFICATION_EMAIL,
-        OPTION_LONG_ERROR_NOTIFICATION_EMAIL, false, true, true,
-        INFO_EMAIL_ADDRESS_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get());
-
-    dependencyArg = new StringArgument(OPTION_LONG_DEPENDENCY,
-        OPTION_SHORT_DEPENDENCY, OPTION_LONG_DEPENDENCY, false, true, true,
-        INFO_TASK_ID_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
-
-    Set<FailedDependencyAction> fdaValSet =
-      EnumSet.allOf(FailedDependencyAction.class);
-    failedDependencyActionArg = new StringArgument(
-        OPTION_LONG_FAILED_DEPENDENCY_ACTION,
-        OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
-        OPTION_LONG_FAILED_DEPENDENCY_ACTION, false, true, true,
-        INFO_ACTION_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
-            Utils.joinAsString(",", fdaValSet),
-            FailedDependencyAction.defaultValue().name()));
-
-    for (Argument arg : getArguments())
-    {
-      arg.setPropertyName(arg.getLongIdentifier());
-    }
+    final Set<FailedDependencyAction> fdaValSet = EnumSet.allOf(FailedDependencyAction.class);
+    failedDependencyActionArg =
+            StringArgument.builder(OPTION_LONG_FAILED_DEPENDENCY_ACTION)
+            .shortIdentifier(OPTION_SHORT_FAILED_DEPENDENCY_ACTION)
+            .description(INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
+                    Utils.joinAsString(",", fdaValSet), FailedDependencyAction.defaultValue().name()))
+            .multiValued()
+            .valuePlaceholder(INFO_ACTION_PLACEHOLDER.get())
+            .buildArgument();
   }
 
   /**

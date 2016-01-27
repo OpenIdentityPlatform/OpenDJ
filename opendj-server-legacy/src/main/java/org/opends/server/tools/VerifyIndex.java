@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -128,48 +128,45 @@ public class VerifyIndex
     try
     {
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                              ConfigFileHandler.class.getName(), null,
-                              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       configFile =
-           new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       baseDNString =
-           new StringArgument("basedn", OPTION_SHORT_BASEDN,
-                              OPTION_LONG_BASEDN, true, false, true,
-                              INFO_BASEDN_PLACEHOLDER.get(), null, null,
-                              INFO_VERIFYINDEX_DESCRIPTION_BASE_DN.get());
-      argParser.addArgument(baseDNString);
-
-
+              StringArgument.builder(OPTION_LONG_BASEDN)
+                      .shortIdentifier(OPTION_SHORT_BASEDN)
+                      .description(INFO_VERIFYINDEX_DESCRIPTION_BASE_DN.get())
+                      .required()
+                      .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       indexList =
-           new StringArgument("index", 'i', "index",
-                              false, true, true,
-                              INFO_INDEX_PLACEHOLDER.get(), null, null,
-                              INFO_VERIFYINDEX_DESCRIPTION_INDEX_NAME.get());
-      argParser.addArgument(indexList);
-
+              StringArgument.builder("index")
+                      .shortIdentifier('i')
+                      .description(INFO_VERIFYINDEX_DESCRIPTION_INDEX_NAME.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_INDEX_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       cleanMode =
-           new BooleanArgument("clean", 'c', "clean",
-                               INFO_VERIFYINDEX_DESCRIPTION_VERIFY_CLEAN.get());
-      argParser.addArgument(cleanMode);
-
+              BooleanArgument.builder("clean")
+                      .shortIdentifier('c')
+                      .description(INFO_VERIFYINDEX_DESCRIPTION_VERIFY_CLEAN.get())
+                      .buildAndAddToParser(argParser);
       countErrors =
-           new BooleanArgument("counterrors", null, "countErrors",
-                               INFO_VERIFYINDEX_DESCRIPTION_COUNT_ERRORS.get());
-      argParser.addArgument(countErrors);
+              BooleanArgument.builder("countErrors")
+                      .description(INFO_VERIFYINDEX_DESCRIPTION_COUNT_ERRORS.get())
+                      .buildAndAddToParser(argParser);
 
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -494,28 +494,29 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             StringArgument arg;
 
             try {
+                final StringArgument.Builder argBuilder = StringArgument.builder(argName);
                 if (isCreate && sz == 0) {
                     // The final path element in create-xxx sub-commands should
                     // have a different usage.
                     PropertyDefinition<?> pd = r.getNamingPropertyDefinition();
-
                     if (pd != null) {
                         // Use syntax and description from naming property.
                         PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(false);
                         LocalizableMessage usage = LocalizableMessage.raw("{" + b.getUsage(pd) + "}");
-                        arg = new StringArgument(argName, null, argName, false, true, usage,
-                                INFO_DSCFG_DESCRIPTION_NAME_CREATE_EXT.get(d.getUserFriendlyName(), pd.getName(),
-                                        pd.getSynopsis()));
+                        argBuilder.description(INFO_DSCFG_DESCRIPTION_NAME_CREATE_EXT.get(
+                                        d.getUserFriendlyName(), pd.getName(), pd.getSynopsis()))
+                                  .valuePlaceholder(usage);
                     } else {
-                        arg = new StringArgument(argName, null, argName, false, true, INFO_NAME_PLACEHOLDER.get(),
-                                INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
+                        argBuilder.description(INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()))
+                                  .valuePlaceholder(INFO_NAME_PLACEHOLDER.get());
                     }
                 } else {
                     // A normal naming argument.
-                    arg = new StringArgument(argName, null, argName, false, true, INFO_NAME_PLACEHOLDER.get(),
-                            INFO_DSCFG_DESCRIPTION_NAME.get(d.getUserFriendlyName()));
+                    argBuilder.description(INFO_DSCFG_DESCRIPTION_NAME.get(d.getUserFriendlyName()))
+                              .valuePlaceholder(INFO_NAME_PLACEHOLDER.get())
+                              .buildArgument();
                 }
-                subCommand.addArgument(arg);
+                arg = argBuilder.buildAndAddToSubCommand(subCommand);
                 arguments.add(arg);
             } catch (ArgumentException e) {
                 this.e = e;
@@ -542,13 +543,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
 
             String argName = CLIProfile.getInstance().getNamingArgument(r);
-            StringArgument arg;
 
             try {
-                arg = new StringArgument(argName, null, argName, false, true, INFO_NAME_PLACEHOLDER.get(),
-                        INFO_DSCFG_DESCRIPTION_NAME.get(d.getUserFriendlyName()));
-                subCommand.addArgument(arg);
-                arguments.add(arg);
+                arguments.add(StringArgument.builder(argName)
+                        .description(INFO_DSCFG_DESCRIPTION_NAME.get(d.getUserFriendlyName()))
+                        .valuePlaceholder(INFO_NAME_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand));
             } catch (ArgumentException e) {
                 this.e = e;
             }
@@ -985,9 +985,11 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             if (app.confirmAction(msg, true)) {
                 try {
                     String argName = CLIProfile.getInstance().getNamingArgument(r);
-                    StringArgument arg = new StringArgument(argName, null, argName, false, true,
-                            INFO_NAME_PLACEHOLDER.get(),
-                            INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
+                    StringArgument arg =
+                            StringArgument.builder(argName)
+                                    .description(INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()))
+                                    .valuePlaceholder(INFO_NAME_PLACEHOLDER.get())
+                                    .buildArgument();
                     if (r instanceof InstantiableRelationDefinition) {
                         arg.addValue(children.get(children.firstKey()));
                     } else {
@@ -1041,8 +1043,11 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                     return MenuResult.cancel();
                 }
                 String argName = CLIProfile.getInstance().getNamingArgument(r);
-                StringArgument arg = new StringArgument(argName, null, argName, false, true,
-                        INFO_NAME_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
+                StringArgument arg =
+                        StringArgument.builder(argName)
+                                .description(INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()))
+                                .valuePlaceholder(INFO_NAME_PLACEHOLDER.get())
+                                .buildArgument();
                 if (r instanceof InstantiableRelationDefinition) {
                     arg.addValue(result.getValue());
                 } else {
@@ -1095,10 +1100,13 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *             If the property name argument could not be registered.
      */
     protected final void registerPropertyNameArgument(SubCommand subCommand) throws ArgumentException {
-        this.propertyArgument = new StringArgument(OPTION_DSCFG_LONG_PROPERTY, OPTION_DSCFG_SHORT_PROPERTY,
-                OPTION_DSCFG_LONG_PROPERTY, false, true, true, INFO_PROPERTY_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_PROP.get());
-        subCommand.addArgument(propertyArgument);
+        propertyArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_PROPERTY)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_PROPERTY)
+                        .description(INFO_DSCFG_DESCRIPTION_PROP.get())
+                        .multiValued()
+                        .valuePlaceholder(INFO_PROPERTY_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
     }
 
     /**
@@ -1110,10 +1118,11 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *             If the record mode argument could not be registered.
      */
     protected final void registerRecordModeArgument(SubCommand subCommand) throws ArgumentException {
-        this.recordModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_RECORD, OPTION_DSCFG_SHORT_RECORD,
-                OPTION_DSCFG_LONG_RECORD, INFO_DSCFG_DESCRIPTION_RECORD.get());
-        this.recordModeArgument.setPropertyName(OPTION_DSCFG_LONG_RECORD);
-        subCommand.addArgument(recordModeArgument);
+        recordModeArgument =
+                BooleanArgument.builder(OPTION_DSCFG_LONG_RECORD)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_RECORD)
+                        .description(INFO_DSCFG_DESCRIPTION_RECORD.get())
+                        .buildAndAddToSubCommand(subCommand);
     }
 
     /**
@@ -1125,12 +1134,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *             If the unit-size argument could not be registered.
      */
     protected final void registerUnitSizeArgument(SubCommand subCommand) throws ArgumentException {
-        this.unitSizeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_SIZE, OPTION_DSCFG_SHORT_UNIT_SIZE,
-                OPTION_DSCFG_LONG_UNIT_SIZE, false, true, INFO_UNIT_PLACEHOLDER.get(),
-                INFO_DSCFG_DESCRIPTION_UNIT_SIZE.get());
-        this.unitSizeArgument.setPropertyName(OPTION_DSCFG_LONG_UNIT_SIZE);
-
-        subCommand.addArgument(unitSizeArgument);
+        unitSizeArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_UNIT_SIZE)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_UNIT_SIZE)
+                        .description(INFO_DSCFG_DESCRIPTION_UNIT_SIZE.get())
+                        .valuePlaceholder(INFO_UNIT_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
     }
 
     /**
@@ -1142,12 +1151,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *             If the unit-time argument could not be registered.
      */
     protected final void registerUnitTimeArgument(SubCommand subCommand) throws ArgumentException {
-        this.unitTimeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_TIME, OPTION_DSCFG_SHORT_UNIT_TIME,
-                OPTION_DSCFG_LONG_UNIT_TIME, false, true, INFO_UNIT_PLACEHOLDER.get(),
-                INFO_DSCFG_DESCRIPTION_UNIT_TIME.get());
-        this.unitTimeArgument.setPropertyName(OPTION_DSCFG_LONG_UNIT_TIME);
-
-        subCommand.addArgument(unitTimeArgument);
+        unitTimeArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_UNIT_TIME)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_UNIT_TIME)
+                        .description(INFO_DSCFG_DESCRIPTION_UNIT_TIME.get())
+                        .valuePlaceholder(INFO_UNIT_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
     }
 
     /**

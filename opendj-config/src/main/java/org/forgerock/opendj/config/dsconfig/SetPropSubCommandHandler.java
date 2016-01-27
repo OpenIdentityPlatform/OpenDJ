@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  *      Portions Copyright 2012 profiq, s.r.o.
  */
 package org.forgerock.opendj.config.dsconfig;
@@ -80,7 +80,7 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 /**
  * A sub-command handler which is used to modify the properties of a managed object.
- * <p>
+ * <p/>
  * This sub-command implements the various set-xxx-prop sub-commands.
  */
 final class SetPropSubCommandHandler extends SubCommandHandler {
@@ -149,14 +149,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
      * Creates a new set-xxx-prop sub-command for an instantiable relation.
      *
      * @param parser
-     *            The sub-command argument parser.
+     *         The sub-command argument parser.
      * @param path
-     *            The parent managed object path.
+     *         The parent managed object path.
      * @param r
-     *            The instantiable relation.
+     *         The instantiable relation.
      * @return Returns the new set-xxx-prop sub-command.
      * @throws ArgumentException
-     *             If the sub-command could not be created successfully.
+     *         If the sub-command could not be created successfully.
      */
     public static SetPropSubCommandHandler create(SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
             InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
@@ -167,14 +167,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
      * Creates a new set-xxx-prop sub-command for an optional relation.
      *
      * @param parser
-     *            The sub-command argument parser.
+     *         The sub-command argument parser.
      * @param path
-     *            The parent managed object path.
+     *         The parent managed object path.
      * @param r
-     *            The optional relation.
+     *         The optional relation.
      * @return Returns the new set-xxx-prop sub-command.
      * @throws ArgumentException
-     *             If the sub-command could not be created successfully.
+     *         If the sub-command could not be created successfully.
      */
     public static SetPropSubCommandHandler create(SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
             OptionalRelationDefinition<?, ?> r) throws ArgumentException {
@@ -185,14 +185,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
      * Creates a new set-xxx-prop sub-command for a set relation.
      *
      * @param parser
-     *            The sub-command argument parser.
+     *         The sub-command argument parser.
      * @param path
-     *            The parent managed object path.
+     *         The parent managed object path.
      * @param r
-     *            The set relation.
+     *         The set relation.
      * @return Returns the new set-xxx-prop sub-command.
      * @throws ArgumentException
-     *             If the sub-command could not be created successfully.
+     *         If the sub-command could not be created successfully.
      */
     public static SetPropSubCommandHandler create(SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
             SetRelationDefinition<?, ?> r) throws ArgumentException {
@@ -203,14 +203,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
      * Creates a new set-xxx-prop sub-command for a singleton relation.
      *
      * @param parser
-     *            The sub-command argument parser.
+     *         The sub-command argument parser.
      * @param path
-     *            The parent managed object path.
+     *         The parent managed object path.
      * @param r
-     *            The singleton relation.
+     *         The singleton relation.
      * @return Returns the new set-xxx-prop sub-command.
      * @throws ArgumentException
-     *             If the sub-command could not be created successfully.
+     *         If the sub-command could not be created successfully.
      */
     public static SetPropSubCommandHandler create(SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
             SingletonRelationDefinition<?, ?> r) throws ArgumentException {
@@ -222,20 +222,20 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
      * object.
      *
      * @param app
-     *            The console application.
+     *         The console application.
      * @param context
-     *            The management context.
+     *         The management context.
      * @param mo
-     *            The managed object to be configured.
+     *         The managed object to be configured.
      * @param handler
-     *            The SubCommandHandler whose command builder properties must be updated.
+     *         The SubCommandHandler whose command builder properties must be updated.
      * @return Returns a MenuResult.success() if the managed object was configured successfully, or MenuResult.quit(),
-     *         or MenuResult.cancel(), if the managed object was edited interactively and the user chose to quit or
-     *         cancel.
+     * or MenuResult.cancel(), if the managed object was edited interactively and the user chose to quit or
+     * cancel.
      * @throws ClientException
-     *             If an unrecoverable client exception occurred whilst interacting with the server.
+     *         If an unrecoverable client exception occurred whilst interacting with the server.
      * @throws ClientException
-     *             If an error occurred whilst interacting with the console.
+     *         If an error occurred whilst interacting with the console.
      */
     public static MenuResult<Void> modifyManagedObject(ConsoleApplication app, ManagementContext context,
             ManagedObject<?> mo, SubCommandHandler handler) throws ClientException {
@@ -414,9 +414,12 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                                                 String argName = CLIProfile.getInstance().getNamingArgument(
                                                         path.getRelationDefinition());
                                                 try {
-                                                    StringArgument arg = new StringArgument(argName, null, argName,
-                                                            false, true, INFO_NAME_PLACEHOLDER.get(),
-                                                            INFO_DSCFG_DESCRIPTION_NAME.get(d.getUserFriendlyName()));
+                                                    StringArgument arg =
+                                                            StringArgument.builder(argName)
+                                                                    .description(INFO_DSCFG_DESCRIPTION_NAME.get(
+                                                                            d.getUserFriendlyName()))
+                                                                    .valuePlaceholder(INFO_NAME_PLACEHOLDER.get())
+                                                                    .buildArgument();
                                                     arg.addValue(name);
                                                     builder.addArgument(arg);
                                                 } catch (Throwable t) {
@@ -426,10 +429,13 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                                             }
 
                                             try {
-                                                StringArgument arg = new StringArgument(OPTION_DSCFG_LONG_SET,
-                                                        OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true,
-                                                        true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                                                        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+                                                StringArgument arg =
+                                                        StringArgument.builder(OPTION_DSCFG_LONG_SET)
+                                                                .shortIdentifier(OPTION_DSCFG_SHORT_SET)
+                                                                .description(INFO_DSCFG_DESCRIPTION_PROP_VAL.get())
+                                                                .multiValued()
+                                                                .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                                                                .buildArgument();
                                                 PropertyDefinition<?> propertyDefinition = cvc.getPropertyDefinition();
                                                 arg.addValue(propertyDefinition.getName() + ':'
                                                         + castAndGetArgumentValue(propertyDefinition, cvc.getValue()));
@@ -567,28 +573,37 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         this.namingArgs = createNamingArgs(subCommand, path, false);
 
         // Create the --set argument.
-        this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET,
-                OPTION_DSCFG_LONG_SET, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-        this.subCommand.addArgument(this.propertySetArgument);
-
+        propertySetArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_SET)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_SET)
+                        .description(INFO_DSCFG_DESCRIPTION_PROP_VAL.get())
+                        .multiValued()
+                        .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
         // Create the --reset argument.
-        this.propertyResetArgument = new StringArgument(OPTION_DSCFG_LONG_RESET, OPTION_DSCFG_SHORT_RESET,
-                OPTION_DSCFG_LONG_RESET, false, true, true, INFO_PROPERTY_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
-        this.subCommand.addArgument(this.propertyResetArgument);
-
+        propertyResetArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_RESET)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_RESET)
+                        .description(INFO_DSCFG_DESCRIPTION_RESET_PROP.get())
+                        .multiValued()
+                        .valuePlaceholder(INFO_PROPERTY_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
         // Create the --add argument.
-        this.propertyAddArgument = new StringArgument(OPTION_DSCFG_LONG_ADD, OPTION_DSCFG_SHORT_ADD,
-                OPTION_DSCFG_LONG_ADD, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
-        this.subCommand.addArgument(this.propertyAddArgument);
-
+        this.propertyAddArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_ADD)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_ADD)
+                        .description(INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get())
+                        .multiValued()
+                        .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
         // Create the --remove argument.
-        this.propertyRemoveArgument = new StringArgument(OPTION_DSCFG_LONG_REMOVE, OPTION_DSCFG_SHORT_REMOVE,
-                OPTION_DSCFG_LONG_REMOVE, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
-        this.subCommand.addArgument(this.propertyRemoveArgument);
+        this.propertyRemoveArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_REMOVE)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_REMOVE)
+                        .description(INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get())
+                        .multiValued()
+                        .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(this.subCommand);
 
         // Register the tags associated with the child managed objects.
         addTags(path.getManagedObjectDefinition().getAllTags());
@@ -864,12 +879,12 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
      * modification proposed by the user in the provided PropertyEditorModification object.
      *
      * @param mod
-     *            the object describing the modification made.
+     *         the object describing the modification made.
      * @param <T>
-     *            the type of the property to be retrieved.
+     *         the type of the property to be retrieved.
      * @return the argument representing the modification.
      * @throws ArgumentException
-     *             if there is a problem creating the argument.
+     *         if there is a problem creating the argument.
      */
     private static <T> Argument createArgument(PropertyEditorModification<T> mod) throws ArgumentException {
         StringArgument arg;
@@ -879,28 +894,47 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
         switch (mod.getType()) {
         case RESET:
-            arg = new StringArgument(OPTION_DSCFG_LONG_RESET, OPTION_DSCFG_SHORT_RESET, OPTION_DSCFG_LONG_RESET, false,
-                    true, true, INFO_PROPERTY_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_RESET)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_RESET)
+                            .description(INFO_DSCFG_DESCRIPTION_RESET_PROP.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_PROPERTY_PLACEHOLDER.get())
+                            .buildArgument();
             arg.addValue(propName);
             break;
         case REMOVE:
-            arg = new StringArgument(OPTION_DSCFG_LONG_REMOVE, OPTION_DSCFG_SHORT_REMOVE, OPTION_DSCFG_LONG_REMOVE,
-                    false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                    INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_REMOVE)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_REMOVE)
+                            .description(INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                            .buildArgument();
             for (T value : mod.getModificationValues()) {
                 arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
             }
             break;
         case ADD:
-            arg = new StringArgument(OPTION_DSCFG_LONG_ADD, OPTION_DSCFG_SHORT_ADD, OPTION_DSCFG_LONG_ADD, false, true,
-                    true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_ADD)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_ADD)
+                            .description(INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                            .buildArgument();
             for (T value : mod.getModificationValues()) {
                 arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
             }
             break;
         case SET:
-            arg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true,
-                    true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_SET)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_SET)
+                            .description(INFO_DSCFG_DESCRIPTION_PROP_VAL.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                            .buildArgument();
             for (T value : mod.getModificationValues()) {
                 arg.addValue(propName + ':' + getArgumentValue(propertyDefinition, value));
             }

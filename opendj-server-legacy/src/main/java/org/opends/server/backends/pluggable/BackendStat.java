@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -362,15 +362,22 @@ public class BackendStat
     if (!globalArgumentsInitialized)
     {
       configClass =
-          new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS, OPTION_LONG_CONFIG_CLASS, true, false, true,
-              INFO_CONFIGCLASS_PLACEHOLDER.get(), ConfigFileHandler.class.getName(), null,
-              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildArgument();
       configFile =
-          new StringArgument("configfile", 'f', "configFile", true, false, true, INFO_CONFIGFILE_PLACEHOLDER.get(),
-              null, null, INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildArgument();
 
       showUsageArgument = CommonArguments.getShowUsage();
 
@@ -398,47 +405,60 @@ public class BackendStat
                            INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_BACKENDS.get());
 
       // list-base-dns
-      SubCommand sub = new SubCommand(parser, LIST_BASE_DNS,
-                                      INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_ENTRY_CONTAINERS.get());
-      addBackendArgument(sub);
+      addBackendArgument(new SubCommand(
+              parser, LIST_BASE_DNS, INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_ENTRY_CONTAINERS.get()));
 
       // list-indexes
-      sub = new SubCommand(parser, LIST_INDEXES, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEXES.get());
-      addBackendBaseDNArguments(sub, false, false, true);
+      final SubCommand listIndexes = new SubCommand(
+              parser, LIST_INDEXES, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEXES.get());
+      addBackendBaseDNArguments(listIndexes, false, false);
 
       // show-index-status
-      sub = new SubCommand(parser, SHOW_INDEX_STATUS, INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_INDEX_STATUS.get());
-      sub.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEX_STATUS.get());
-      addBackendBaseDNArguments(sub, true, true, true);
+      final SubCommand showIndexStatus = new SubCommand(
+              parser, SHOW_INDEX_STATUS, INFO_DESCRIPTION_BACKEND_DEBUG_SUBCMD_LIST_INDEX_STATUS.get());
+      showIndexStatus.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_INDEX_STATUS.get());
+      addBackendBaseDNArguments(showIndexStatus, true, true);
 
       // dump-index
-      sub = new SubCommand(parser, DUMP_INDEX, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_INDEX.get());
-      addBackendBaseDNArguments(sub, true, false, true);
-      sub.addArgument(new StringArgument(INDEXNAME_NAME, 'i', INDEXNAME, true, false, true,
-                                         INFO_INDEX_NAME_PLACEHOLDER.get(), null, null,
-                                         INFO_DESCRIPTION_BACKEND_DEBUG_INDEX_NAME.get()));
-      addDumpSubCommandArguments(sub);
-      BooleanArgument skipDecode =
-          new BooleanArgument(SKIPDECODE_NAME, 'p', SKIPDECODE, INFO_DESCRIPTION_BACKEND_DEBUG_SKIP_DECODE.get());
-      sub.addArgument(skipDecode);
+      final SubCommand dumpIndex = new SubCommand(
+              parser, DUMP_INDEX, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_INDEX.get());
+      addBackendBaseDNArguments(dumpIndex, true, false);
+      dumpIndex.addArgument(StringArgument.builder(INDEXNAME)
+              .shortIdentifier('i')
+              .description(INFO_DESCRIPTION_BACKEND_DEBUG_INDEX_NAME.get())
+              .required()
+              .valuePlaceholder(INFO_INDEX_NAME_PLACEHOLDER.get())
+              .buildArgument());
+      addDumpSubCommandArguments(dumpIndex);
+      dumpIndex.addArgument(BooleanArgument.builder(SKIPDECODE)
+              .shortIdentifier('p')
+              .description(INFO_DESCRIPTION_BACKEND_DEBUG_SKIP_DECODE.get())
+              .buildArgument());
 
       // list-raw-dbs
-      sub = new SubCommand(parser, LIST_RAW_DBS, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_RAW_DBS.get());
-      addBackendArgument(sub);
-      BooleanArgument useSIUnits =
-          new BooleanArgument(USESIUNITS_NAME, 'u', USESIUNITS, INFO_DESCRIPTION_BACKEND_TOOL_USE_SI_UNITS.get());
-      sub.addArgument(useSIUnits);
+      final SubCommand listRawDBs = new SubCommand(
+              parser, LIST_RAW_DBS, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_LIST_RAW_DBS.get());
+      addBackendArgument(listRawDBs);
+      listRawDBs.addArgument(BooleanArgument.builder(USESIUNITS)
+              .shortIdentifier('u')
+              .description(INFO_DESCRIPTION_BACKEND_TOOL_USE_SI_UNITS.get())
+              .buildArgument());
 
       // dump-raw-db
-      sub = new SubCommand(parser, DUMP_RAW_DB, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_RAW_DB.get());
-      addBackendArgument(sub);
-      sub.addArgument(new StringArgument(DBNAME_NAME, 'd', DBNAME, true, false, true,
-                                         INFO_DATABASE_NAME_PLACEHOLDER.get(), null, null,
-                                         INFO_DESCRIPTION_BACKEND_DEBUG_RAW_DB_NAME.get()));
-      addDumpSubCommandArguments(sub);
-      BooleanArgument singleLine =
-          new BooleanArgument(SINGLELINE_NAME, 'l', SINGLELINE, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_SINGLE_LINE.get());
-      sub.addArgument(singleLine);
+      final SubCommand dumbRawDB = new SubCommand(
+              parser, DUMP_RAW_DB, INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_DUMP_RAW_DB.get());
+      addBackendArgument(dumbRawDB);
+      dumbRawDB.addArgument(StringArgument.builder(DBNAME)
+              .shortIdentifier('d')
+              .description(INFO_DESCRIPTION_BACKEND_DEBUG_RAW_DB_NAME.get())
+              .required()
+              .valuePlaceholder(INFO_DATABASE_NAME_PLACEHOLDER.get())
+              .buildArgument());
+      addDumpSubCommandArguments(dumbRawDB);
+      dumbRawDB.addArgument(BooleanArgument.builder(SINGLELINE)
+              .shortIdentifier('l')
+              .description(INFO_DESCRIPTION_BACKEND_TOOL_SUBCMD_SINGLE_LINE.get())
+              .buildArgument());
 
       subCommandsInitialized = true;
     }
@@ -447,44 +467,84 @@ public class BackendStat
   private void addBackendArgument(SubCommand sub) throws ArgumentException
   {
     sub.addArgument(
-        new StringArgument(BACKENDID_NAME, 'n', BACKENDID, true, false, true, INFO_BACKENDNAME_PLACEHOLDER.get(), null,
-            null, INFO_DESCRIPTION_BACKEND_DEBUG_BACKEND_ID.get()));
+            StringArgument.builder(BACKENDID)
+                    .shortIdentifier('n')
+                    .description(INFO_DESCRIPTION_BACKEND_DEBUG_BACKEND_ID.get())
+                    .required()
+                    .valuePlaceholder(INFO_BACKENDNAME_PLACEHOLDER.get())
+                    .buildArgument());
   }
 
-  private void addBackendBaseDNArguments(SubCommand sub, boolean isRequired, boolean isMultiValued, boolean needsValue)
+  private void addBackendBaseDNArguments(SubCommand sub, boolean isRequired, boolean isMultiValued)
       throws ArgumentException
   {
     addBackendArgument(sub);
-    sub.addArgument(new StringArgument(BASEDN_NAME, 'b', BASEDN, isRequired, isMultiValued, needsValue,
-        INFO_BASEDN_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKEND_DEBUG_BASE_DN.get()));
+    final StringArgument.Builder builder = StringArgument.builder(BASEDN)
+            .shortIdentifier('b')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_BASE_DN.get())
+            .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get());
+    if (isMultiValued)
+    {
+      builder.multiValued();
+    }
+    if (isRequired) {
+      builder.required();
+    }
+    sub.addArgument(builder.buildArgument());
   }
 
   private void addDumpSubCommandArguments(SubCommand sub) throws ArgumentException
   {
-    sub.addArgument(new BooleanArgument(STATSONLY_NAME, 'q', STATSONLY,
-        INFO_DESCRIPTION_BACKEND_DEBUG_STATS_ONLY.get()));
+    sub.addArgument(BooleanArgument.builder(STATSONLY)
+            .shortIdentifier('q')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_STATS_ONLY.get())
+            .buildArgument());
+
     sub.addArgument(newMaxKeyValueArg());
     sub.addArgument(newMinKeyValueArg());
-    sub.addArgument(new StringArgument(MAXHEXKEYVALUE_NAME, 'X', MAXHEXKEYVALUE, false, false, true,
-        INFO_MAX_KEY_VALUE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKEND_DEBUG_MAX_KEY_VALUE.get()));
-    sub.addArgument(new StringArgument(MINHEXKEYVALUE_NAME, 'x', MINHEXKEYVALUE, false, false, true,
-        INFO_MIN_KEY_VALUE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKEND_DEBUG_MIN_KEY_VALUE.get()));
-    sub.addArgument(new IntegerArgument(MAXDATASIZE_NAME, 'S', MAXDATASIZE, false, false, true,
-        INFO_MAX_DATA_SIZE_PLACEHOLDER.get(), -1, null, INFO_DESCRIPTION_BACKEND_DEBUG_MAX_DATA_SIZE.get()));
-    sub.addArgument(new IntegerArgument(MINDATASIZE_NAME, 's', MINDATASIZE, false, false, true,
-        INFO_MIN_DATA_SIZE_PLACEHOLDER.get(), -1, null, INFO_DESCRIPTION_BACKEND_DEBUG_MIN_DATA_SIZE.get()));
+    sub.addArgument(StringArgument.builder(MAXHEXKEYVALUE)
+            .shortIdentifier('X')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_MAX_KEY_VALUE.get())
+            .valuePlaceholder(INFO_MAX_KEY_VALUE_PLACEHOLDER.get())
+            .buildArgument());
+
+    sub.addArgument(StringArgument.builder(MINHEXKEYVALUE)
+            .shortIdentifier('x')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_MIN_KEY_VALUE.get())
+            .valuePlaceholder(INFO_MIN_KEY_VALUE_PLACEHOLDER.get())
+            .buildArgument());
+
+    sub.addArgument(IntegerArgument.builder(MAXDATASIZE)
+            .shortIdentifier('S')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_MAX_DATA_SIZE.get())
+            .defaultValue(-1)
+            .valuePlaceholder(INFO_MAX_DATA_SIZE_PLACEHOLDER.get())
+            .buildArgument());
+
+    sub.addArgument(IntegerArgument.builder(MINDATASIZE)
+            .shortIdentifier('s')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_MIN_DATA_SIZE.get())
+            .defaultValue(-1)
+            .valuePlaceholder(INFO_MIN_DATA_SIZE_PLACEHOLDER.get())
+            .buildArgument());
   }
 
   private StringArgument newMinKeyValueArg() throws ArgumentException
   {
-    return new StringArgument(MINKEYVALUE_NAME, 'k', MINKEYVALUE, false, false, true,
-        INFO_MIN_KEY_VALUE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKEND_DEBUG_MIN_KEY_VALUE.get());
+    return StringArgument.builder(MINKEYVALUE)
+            .shortIdentifier('k')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_MIN_KEY_VALUE.get())
+            .valuePlaceholder(INFO_MIN_KEY_VALUE_PLACEHOLDER.get())
+            .buildArgument();
   }
 
   private StringArgument newMaxKeyValueArg() throws ArgumentException
   {
-    return new StringArgument(MAXKEYVALUE_NAME, 'K', MAXKEYVALUE, false, false, true,
-        INFO_MAX_KEY_VALUE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKEND_DEBUG_MAX_KEY_VALUE.get());
+    return StringArgument.builder(MAXKEYVALUE)
+            .shortIdentifier('K')
+            .description(INFO_DESCRIPTION_BACKEND_DEBUG_MAX_KEY_VALUE.get())
+            .valuePlaceholder(INFO_MAX_KEY_VALUE_PLACEHOLDER.get())
+            .buildArgument();
   }
 
   /**

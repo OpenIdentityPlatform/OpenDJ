@@ -27,6 +27,8 @@
 package org.opends.server.tools.makeldif;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_MAKELDIF_DESCRIPTION_SEED;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
@@ -167,54 +169,50 @@ public class MakeLDIF
 
     try
     {
-      configFile = new StringArgument("configfile", 'c', "configFile", true,
-                                      false, true,
-                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
-      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                                       OPTION_LONG_CONFIG_CLASS, false,
-                                       false, true,
-                                       INFO_CONFIGCLASS_PLACEHOLDER.get(), null,
-                                       null,
-                                       INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('c')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       resourcePath =
-           new StringArgument("resourcepath", 'r', "resourcePath", true, false,
-                              true, INFO_PATH_PLACEHOLDER.get(), null, null,
-                              INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get());
-      resourcePath.setHidden(true);
-      argParser.addArgument(resourcePath);
-
-
+              StringArgument.builder("resourcePath")
+                      .shortIdentifier('r')
+                      .description(INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       templatePath =
-              new StringArgument("templatefile", 't', "templateFile",
-                                 true, false, true, INFO_FILE_PLACEHOLDER.get(),
-                                 null, null,
-                                 INFO_MAKELDIF_DESCRIPTION_TEMPLATE.get());
-      argParser.addArgument(templatePath);
-
-
-      ldifFile = new StringArgument("ldiffile", 'o', "ldifFile", true, false,
-                                    true, INFO_FILE_PLACEHOLDER.get(), null,
-                                    null, INFO_MAKELDIF_DESCRIPTION_LDIF.get());
-      argParser.addArgument(ldifFile);
-
-
-      randomSeed = new IntegerArgument("randomseed", OPTION_SHORT_RANDOM_SEED,
-                                       OPTION_LONG_RANDOM_SEED, false,
-                                       false, true, INFO_SEED_PLACEHOLDER.get(),
-                                       0, null,
-                                       INFO_MAKELDIF_DESCRIPTION_SEED.get());
-      argParser.addArgument(randomSeed);
-
+              StringArgument.builder("templateFile")
+                      .shortIdentifier('t')
+                      .description(INFO_MAKELDIF_DESCRIPTION_TEMPLATE.get())
+                      .required()
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      ldifFile =
+              StringArgument.builder("ldifFile")
+                      .shortIdentifier('o')
+                      .description(INFO_MAKELDIF_DESCRIPTION_LDIF.get())
+                      .required()
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      randomSeed =
+              IntegerArgument.builder(OPTION_LONG_RANDOM_SEED)
+                      .shortIdentifier(OPTION_SHORT_RANDOM_SEED)
+                      .description(INFO_MAKELDIF_DESCRIPTION_SEED.get())
+                      .defaultValue(0)
+                      .valuePlaceholder(INFO_SEED_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

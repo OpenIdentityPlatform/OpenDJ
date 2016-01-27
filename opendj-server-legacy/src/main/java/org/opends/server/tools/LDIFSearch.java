@@ -27,6 +27,8 @@
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
@@ -151,77 +153,82 @@ public class LDIFSearch
 
     try
     {
-      ldifFile = new StringArgument(
-              "ldiffile", 'l', "ldifFile", false, true,
-              true, INFO_LDIFFILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFSEARCH_DESCRIPTION_LDIF_FILE.get());
-      argParser.addArgument(ldifFile);
-
-      baseDNString = new StringArgument(
-              "basedn", OPTION_SHORT_BASEDN,
-              OPTION_LONG_BASEDN, false, true,
-              true, INFO_BASEDN_PLACEHOLDER.get(), "", null,
-              INFO_LDIFSEARCH_DESCRIPTION_BASEDN.get());
-      argParser.addArgument(baseDNString);
-
-      scopeString = new MultiChoiceArgument<>(
-              "scope", 's', "searchScope", false, false,
-              true, INFO_SCOPE_PLACEHOLDER.get(), SCOPE_STRING_SUB,
-              null, scopeStrings, false,
-              INFO_LDIFSEARCH_DESCRIPTION_SCOPE.get());
-      argParser.addArgument(scopeString);
-
-      configFile = new StringArgument(
-              "configfile", 'c', "configFile", false,
-              false, true, INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                             OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                             ConfigFileHandler.class.getName(), null,
-                             INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-      filterFile = new StringArgument("filterfile", 'f', "filterFile", false,
-          false, true, INFO_FILTER_FILE_PLACEHOLDER.get(), null, null,
-          INFO_LDIFSEARCH_DESCRIPTION_FILTER_FILE.get());
-      argParser.addArgument(filterFile);
-
-      outputFile = new StringArgument(
-              "outputfile", 'o', "outputFile", false,
-              false, true, INFO_OUTPUT_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFSEARCH_DESCRIPTION_OUTPUT_FILE.get());
-      argParser.addArgument(outputFile);
-
+      ldifFile =
+              StringArgument.builder("ldifFile")
+                      .shortIdentifier('l')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_LDIF_FILE.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      baseDNString =
+              StringArgument.builder(OPTION_LONG_BASEDN)
+                      .shortIdentifier(OPTION_SHORT_BASEDN)
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_BASEDN.get())
+                      .multiValued()
+                      .defaultValue("")
+                      .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      scopeString =
+              MultiChoiceArgument.<String>builder("searchScope")
+                      .shortIdentifier('s')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_SCOPE.get())
+                      .allowedValues(scopeStrings)
+                      .defaultValue(SCOPE_STRING_SUB)
+                      .valuePlaceholder(INFO_SCOPE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('c')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      filterFile =
+              StringArgument.builder("filterFile")
+                      .shortIdentifier('f')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_FILTER_FILE.get())
+                      .valuePlaceholder(INFO_FILTER_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      outputFile =
+              StringArgument.builder("outputFile")
+                      .shortIdentifier('o')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_OUTPUT_FILE.get())
+                      .valuePlaceholder(INFO_OUTPUT_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       overwriteExisting =
-           new BooleanArgument(
-                   "overwriteexisting", 'O',"overwriteExisting",
-                   INFO_LDIFSEARCH_DESCRIPTION_OVERWRITE_EXISTING.get());
-      argParser.addArgument(overwriteExisting);
-
-      dontWrap = new BooleanArgument(
-              "dontwrap", 'T', "dontWrap",
-              INFO_LDIFSEARCH_DESCRIPTION_DONT_WRAP.get());
-      argParser.addArgument(dontWrap);
-
-      sizeLimit = new IntegerArgument(
-              "sizelimit", 'z', "sizeLimit", false,
-              false, true, INFO_SIZE_LIMIT_PLACEHOLDER.get(), 0, null,
-              true, 0, false, 0,
-              INFO_LDIFSEARCH_DESCRIPTION_SIZE_LIMIT.get());
-      argParser.addArgument(sizeLimit);
-
-      timeLimit = new IntegerArgument(
-              "timelimit", 't', "timeLimit", false,
-              false, true, INFO_TIME_LIMIT_PLACEHOLDER.get(), 0, null,
-              true, 0, false, 0,
-              INFO_LDIFSEARCH_DESCRIPTION_TIME_LIMIT.get());
-      argParser.addArgument(timeLimit);
-
+              BooleanArgument.builder("overwriteExisting")
+                      .shortIdentifier('O')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_OVERWRITE_EXISTING.get())
+                      .buildAndAddToParser(argParser);
+      dontWrap =
+              BooleanArgument.builder("dontWrap")
+                      .shortIdentifier('T')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_DONT_WRAP.get())
+                      .buildAndAddToParser(argParser);
+      sizeLimit =
+              IntegerArgument.builder("sizeLimit")
+                      .shortIdentifier('z')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_SIZE_LIMIT.get())
+                      .lowerBound(0)
+                      .defaultValue(0)
+                      .valuePlaceholder(INFO_SIZE_LIMIT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      timeLimit =
+              IntegerArgument.builder("timeLimit")
+                      .shortIdentifier('t')
+                      .description(INFO_LDIFSEARCH_DESCRIPTION_TIME_LIMIT.get())
+                      .lowerBound(0)
+                      .defaultValue(0)
+                      .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

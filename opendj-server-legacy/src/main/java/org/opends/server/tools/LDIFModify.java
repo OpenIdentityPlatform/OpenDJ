@@ -435,47 +435,43 @@ public class LDIFModify
 
     try
     {
-      configFile = new StringArgument("configfile", 'c', "configFile", true,
-                                      false, true,
-                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
-      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                             OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                             ConfigFileHandler.class.getName(), null,
-                             INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
-      sourceFile = new StringArgument("sourceldif", 's', "sourceLDIF", true,
-                                      false, true,
-                                      INFO_LDIFFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_LDIFMODIFY_DESCRIPTION_SOURCE.get());
-      argParser.addArgument(sourceFile);
-
-
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('c')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      sourceFile =
+              StringArgument.builder("sourceLDIF")
+                      .shortIdentifier('s')
+                      .description(INFO_LDIFMODIFY_DESCRIPTION_SOURCE.get())
+                      .required()
+                      .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       changesFile =
-              new StringArgument("changesldif", 'm', "changesLDIF", true,
-                                 false, true, INFO_LDIFFILE_PLACEHOLDER.get(),
-                                 null, null,
-                                 INFO_LDIFMODIFY_DESCRIPTION_CHANGES.get());
-      argParser.addArgument(changesFile);
-
-
-      targetFile = new StringArgument("targetldif", 't', "targetLDIF", true,
-                                      false, true,
-                                      INFO_LDIFFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_LDIFMODIFY_DESCRIPTION_TARGET.get());
-      argParser.addArgument(targetFile);
-
+              StringArgument.builder("changesLDIF")
+                      .shortIdentifier('m')
+                      .description(INFO_LDIFMODIFY_DESCRIPTION_CHANGES.get())
+                      .required()
+                      .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      targetFile =
+              StringArgument.builder("targetLDIF")
+                      .shortIdentifier('t')
+                      .description(INFO_LDIFMODIFY_DESCRIPTION_TARGET.get())
+                      .required()
+                      .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

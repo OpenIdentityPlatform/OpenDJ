@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -159,91 +160,76 @@ public class EncodePassword
     argParser.setShortToolDescription(REF_SHORT_DESC_ENCODE_PASSWORD.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser.
     try
     {
-      listSchemes = new BooleanArgument(
-              "listschemes", 'l', "listSchemes",
-              INFO_ENCPW_DESCRIPTION_LISTSCHEMES.get());
-      argParser.addArgument(listSchemes);
-
-      interactivePassword = new BooleanArgument(
-              "interactivePassword", 'i',
-              "interactivePassword",
-              INFO_ENCPW_DESCRIPTION_INPUT_PW.get());
-      argParser.addArgument(interactivePassword);
-
-      clearPassword = new StringArgument("clearpw", 'c', "clearPassword", false,
-                                         false, true, INFO_CLEAR_PWD.get(),
-                                         null, null,
-                                         INFO_ENCPW_DESCRIPTION_CLEAR_PW.get());
-      argParser.addArgument(clearPassword);
-
-
+      listSchemes =
+              BooleanArgument.builder("listSchemes")
+                      .shortIdentifier('l')
+                      .description(INFO_ENCPW_DESCRIPTION_LISTSCHEMES.get())
+                      .buildAndAddToParser(argParser);
+      interactivePassword =
+              BooleanArgument.builder("interactivePassword")
+                      .shortIdentifier('i')
+                      .description(INFO_ENCPW_DESCRIPTION_INPUT_PW.get())
+                      .buildAndAddToParser(argParser);
+      clearPassword =
+              StringArgument.builder("clearPassword")
+                      .shortIdentifier('c')
+                      .description(INFO_ENCPW_DESCRIPTION_CLEAR_PW.get())
+                      .valuePlaceholder(INFO_CLEAR_PWD.get())
+                      .buildAndAddToParser(argParser);
       clearPasswordFile =
-           new FileBasedArgument("clearpwfile", 'f', "clearPasswordFile", false,
-                                 false, INFO_FILE_PLACEHOLDER.get(), null, null,
-                                 INFO_ENCPW_DESCRIPTION_CLEAR_PW_FILE.get());
-      argParser.addArgument(clearPasswordFile);
-
-
-      encodedPassword = new StringArgument(
-              "encodedpw", 'e', "encodedPassword",
-              false, false, true, INFO_ENCODED_PWD_PLACEHOLDER.get(),
-              null, null,
-              INFO_ENCPW_DESCRIPTION_ENCODED_PW.get());
-      argParser.addArgument(encodedPassword);
-
-
+              FileBasedArgument.builder("clearPasswordFile")
+                      .shortIdentifier('f')
+                      .description(INFO_ENCPW_DESCRIPTION_CLEAR_PW_FILE.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      encodedPassword =
+              StringArgument.builder("encodedPassword")
+                      .shortIdentifier('e')
+                      .description(INFO_ENCPW_DESCRIPTION_ENCODED_PW.get())
+                      .valuePlaceholder(INFO_ENCODED_PWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       encodedPasswordFile =
-           new FileBasedArgument("encodedpwfile", 'E', "encodedPasswordFile",
-                                 false, false, INFO_FILE_PLACEHOLDER.get(),
-                                 null, null,
-                                 INFO_ENCPW_DESCRIPTION_ENCODED_PW_FILE.get());
-      argParser.addArgument(encodedPasswordFile);
-
-
-      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                                       OPTION_LONG_CONFIG_CLASS,
-                                       true, false, true,
-                                       INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                                       ConfigFileHandler.class.getName(), null,
-                                       INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
-      configFile = new StringArgument("configfile", 'F', "configFile",
-                                      true, false, true,
-                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
-      schemeName = new StringArgument("scheme", 's', "storageScheme", false,
-                                      false, true,
-                                      INFO_STORAGE_SCHEME_PLACEHOLDER.get(),
-                                      null, null,
-                                      INFO_ENCPW_DESCRIPTION_SCHEME.get());
-      argParser.addArgument(schemeName);
-
-
-      authPasswordSyntax = new BooleanArgument(
-              "authpasswordsyntax", 'a',
-              "authPasswordSyntax",
-              INFO_ENCPW_DESCRIPTION_AUTHPW.get());
-      argParser.addArgument(authPasswordSyntax);
-
-
+              FileBasedArgument.builder("encodedPasswordFile")
+                      .shortIdentifier('E')
+                      .description(INFO_ENCPW_DESCRIPTION_ENCODED_PW_FILE.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('F')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      schemeName =
+              StringArgument.builder("storageScheme")
+                      .shortIdentifier('s')
+                      .description(INFO_ENCPW_DESCRIPTION_SCHEME.get())
+                      .valuePlaceholder(INFO_STORAGE_SCHEME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      authPasswordSyntax =
+              BooleanArgument.builder("authPasswordSyntax")
+                      .shortIdentifier('a')
+                      .description(INFO_ENCPW_DESCRIPTION_AUTHPW.get())
+                      .buildAndAddToParser(argParser);
       useCompareResultCode =
-           new BooleanArgument("usecompareresultcode", 'r',
-                               "useCompareResultCode",
-                               INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT.get());
-      argParser.addArgument(useCompareResultCode);
-
+              BooleanArgument.builder("useCompareResultCode")
+                      .shortIdentifier('r')
+                      .description(INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

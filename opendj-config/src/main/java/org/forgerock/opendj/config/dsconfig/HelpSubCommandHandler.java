@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -620,18 +620,23 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         LocalizableMessage desc = INFO_DSCFG_DESCRIPTION_SUBCMD_HELPPROP.get();
         this.subCommand = new SubCommand(parser, name, false, 0, 0, null, desc);
 
-        this.categoryArgument = new StringArgument(OPTION_DSCFG_LONG_CATEGORY, OPTION_DSCFG_SHORT_CATEGORY,
-                OPTION_DSCFG_LONG_CATEGORY, false, false, true, INFO_CATEGORY_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_HELP_CATEGORY.get());
-        this.subCommand.addArgument(this.categoryArgument);
-
-        this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE, OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE,
-                false, false, true, INFO_TYPE_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_HELP_TYPE.get());
-        this.subCommand.addArgument(this.typeArgument);
-
-        this.inheritedModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_INHERITED, OPTION_DSCFG_SHORT_INHERITED,
-                OPTION_DSCFG_LONG_INHERITED, INFO_DSCFG_DESCRIPTION_HELP_INHERITED.get());
-        subCommand.addArgument(inheritedModeArgument);
+        categoryArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_CATEGORY)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_CATEGORY)
+                        .description(INFO_DSCFG_DESCRIPTION_HELP_CATEGORY.get())
+                        .valuePlaceholder(INFO_CATEGORY_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
+        typeArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_TYPE)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_TYPE)
+                        .description(INFO_DSCFG_DESCRIPTION_HELP_TYPE.get())
+                        .valuePlaceholder(INFO_TYPE_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
+        inheritedModeArgument =
+                BooleanArgument.builder(OPTION_DSCFG_LONG_INHERITED)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_INHERITED)
+                        .description(INFO_DSCFG_DESCRIPTION_HELP_INHERITED.get())
+                        .buildAndAddToSubCommand(subCommand);
 
         // Register common arguments.
         registerPropertyNameArgument(this.subCommand);

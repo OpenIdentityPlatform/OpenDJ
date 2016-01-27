@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2015 ForgeRock AS.
+ *      Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -121,33 +121,31 @@ public class CreateRCScript
 
     try
     {
-      outputFile = new StringArgument("outputfile", 'f', "outputFile", true,
-                                      false, true, INFO_PATH_PLACEHOLDER.get(),
-                                      null, null,
-                                      INFO_CREATERC_OUTFILE_DESCRIPTION.get());
-      argParser.addArgument(outputFile);
-
-
-      userName = new StringArgument("username", 'u', "userName", false, false,
-                                    true, INFO_USER_NAME_PLACEHOLDER.get(),
-                                    null, null,
-                                    INFO_CREATERC_USER_DESCRIPTION.get());
-      argParser.addArgument(userName);
-
-
-      javaHome = new StringArgument("javahome", 'j', "javaHome", false, false,
-                                    true, INFO_PATH_PLACEHOLDER.get(), null,
-                                    null,
-                                    INFO_CREATERC_JAVA_HOME_DESCRIPTION.get());
-      argParser.addArgument(javaHome);
-
-
-      javaArgs = new StringArgument("javaargs", 'J', "javaArgs", false, false,
-                                    true, INFO_ARGS_PLACEHOLDER.get(), null,
-                                    null,
-                                    INFO_CREATERC_JAVA_ARGS_DESCRIPTION.get());
-      argParser.addArgument(javaArgs);
-
+      outputFile =
+              StringArgument.builder("outputFile")
+                      .shortIdentifier('f')
+                      .description(INFO_CREATERC_OUTFILE_DESCRIPTION.get())
+                      .required()
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      userName =
+              StringArgument.builder("userName")
+                      .shortIdentifier('u')
+                      .description(INFO_CREATERC_USER_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_USER_NAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      javaHome =
+              StringArgument.builder("javaHome")
+                      .shortIdentifier('j')
+                      .description(INFO_CREATERC_JAVA_HOME_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      javaArgs =
+              StringArgument.builder("javaArgs")
+                      .shortIdentifier('J')
+                      .description(INFO_CREATERC_JAVA_ARGS_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_ARGS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

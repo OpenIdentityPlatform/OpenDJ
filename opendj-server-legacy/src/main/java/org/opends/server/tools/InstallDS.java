@@ -210,28 +210,32 @@ public class InstallDS extends ConsoleApplication
 
   private final BackendTypeHelper backendTypeHelper = new BackendTypeHelper();
 
+  /** The argument parser. */
+  private InstallDSArgumentParser argParser;
+
   /** Different variables we use when the user decides to provide data again. */
   private NewSuffixOptions.Type lastResetPopulateOption;
   private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> lastResetBackendType;
-
   private String lastResetImportFile;
   private String lastResetRejectedFile;
   private String lastResetSkippedFile;
-
   private Integer lastResetNumEntries;
   private Boolean lastResetEnableSSL;
   private Boolean lastResetEnableStartTLS;
-
   private SecurityOptions.CertificateType lastResetCertType;
   private String lastResetKeyStorePath;
-
   private Boolean lastResetEnableWindowsService;
   private Boolean lastResetStartServer;
+  private String lastResetBaseDN = Installation.DEFAULT_INTERACTIVE_BASE_DN;
+  private String lastResetDirectoryManagerDN;
+  private Integer lastResetLdapPort;
+  private Integer lastResetLdapsPort;
+  private Integer lastResetAdminConnectorPort;
+  private Integer lastResetJmxPort;
+
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The argument parser. */
-  private InstallDSArgumentParser argParser;
 
   /**
    * Constructor for the InstallDS object.
@@ -337,6 +341,12 @@ public class InstallDS extends ConsoleApplication
       println(ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       return InstallReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
+
+    lastResetDirectoryManagerDN = argParser.directoryManagerDNArg.getDefaultValue();
+    lastResetLdapPort = Integer.parseInt(argParser.ldapPortArg.getDefaultValue());
+    lastResetLdapsPort = Integer.parseInt(argParser.ldapsPortArg.getDefaultValue());
+    lastResetAdminConnectorPort = Integer.parseInt(argParser.adminConnectorPortArg.getDefaultValue());
+    lastResetJmxPort = Integer.parseInt(argParser.jmxPortArg.getDefaultValue());
 
     // Validate user provided data
     try
@@ -983,7 +993,7 @@ public class InstallDS extends ConsoleApplication
   private void promptIfRequiredForDirectoryManager(UserData uData) throws UserDataException, ClientException
   {
     final LinkedList<String> dns = promptIfRequiredForDNs(
-        argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(), true);
+            argParser.directoryManagerDNArg, lastResetDirectoryManagerDN, INFO_INSTALLDS_PROMPT_ROOT_DN.get(), true);
     uData.setDirectoryManagerDn(dns.getFirst());
 
     int nTries = 0;
@@ -1028,6 +1038,8 @@ public class InstallDS extends ConsoleApplication
    *
    * @param arg
    *          the Argument that the user provided to specify the DNs.
+   * @param valueToSuggest
+   *          the value to suggest by default on prompt.
    * @param promptMsg
    *          the prompt message to be displayed.
    * @param includeLineBreak
@@ -1036,8 +1048,8 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException
    *           if something went wrong checking the data.
    */
-  private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
-      LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
+  private LinkedList<String> promptIfRequiredForDNs(StringArgument arg, String valueToSuggest,
+          LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
   {
     final LinkedList<String> dns = new LinkedList<>();
 
@@ -1059,7 +1071,7 @@ public class InstallDS extends ConsoleApplication
         }
         try
         {
-          final String dn = readInput(promptMsg, arg.getDefaultValue());
+          final String dn = readInput(promptMsg, valueToSuggest);
           firstPrompt = false;
           dns.add(dn);
           prompted = true;
@@ -1120,20 +1132,20 @@ public class InstallDS extends ConsoleApplication
 
     final List<Integer> usedPorts = new LinkedList<>();
     //  Determine the LDAP port number.
-    final int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
-        INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
+    final int ldapPort = promptIfRequiredForPortData(
+            argParser.ldapPortArg, lastResetLdapPort, INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
     uData.setServerPort(ldapPort);
     usedPorts.add(ldapPort);
 
     //  Determine the Admin Connector port number.
     final int adminConnectorPort = promptIfRequiredForPortData(argParser.adminConnectorPortArg,
-        INFO_INSTALLDS_PROMPT_ADMINCONNECTORPORT.get(), usedPorts, true);
+            lastResetAdminConnectorPort, INFO_INSTALLDS_PROMPT_ADMINCONNECTORPORT.get(), usedPorts, true);
     uData.setAdminConnectorPort(adminConnectorPort);
     usedPorts.add(adminConnectorPort);
 
     if (argParser.jmxPortArg.isPresent())
     {
-      final int jmxPort = promptIfRequiredForPortData(argParser.jmxPortArg,
+      final int jmxPort = promptIfRequiredForPortData(argParser.jmxPortArg, lastResetJmxPort,
           INFO_INSTALLDS_PROMPT_JMXPORT.get(), usedPorts, true);
       uData.setServerJMXPort(jmxPort);
     }
@@ -1150,6 +1162,8 @@ public class InstallDS extends ConsoleApplication
    *
    * @param portArg
    *          the Argument that the user provided to specify the port.
+   * @param valueToSuggest
+   *          the value to suggest by default on prompt.
    * @param promptMsg
    *          the prompt message to be displayed.
    * @param usedPorts
@@ -1159,7 +1173,7 @@ public class InstallDS extends ConsoleApplication
    *          whether to include a line break before the first prompt or not.
    * @return a valid port number.
    */
-  private int promptIfRequiredForPortData(IntegerArgument portArg, LocalizableMessage promptMsg,
+  private int promptIfRequiredForPortData(IntegerArgument portArg, Integer valueToSuggest, LocalizableMessage promptMsg,
       Collection<Integer> usedPorts, boolean includeLineBreak)
   {
     int portNumber = -1;
@@ -1172,11 +1186,6 @@ public class InstallDS extends ConsoleApplication
         boolean prompted = false;
         if (usedProvided || !portArg.isPresent())
         {
-          int defaultValue = -1;
-          if (portArg.getDefaultValue() != null)
-          {
-            defaultValue = Integer.parseInt(portArg.getDefaultValue());
-          }
           if (firstPrompt && includeLineBreak)
           {
             println();
@@ -1186,7 +1195,7 @@ public class InstallDS extends ConsoleApplication
           {
             try
             {
-              portNumber = readPort(promptMsg, defaultValue);
+              portNumber = readPort(promptMsg, valueToSuggest);
             }
             catch (final ClientException ce)
             {
@@ -1267,14 +1276,9 @@ public class InstallDS extends ConsoleApplication
     }
 
     uData.setBackendType(getOrPromptForBackendType());
-
-    // Add default value for base DN on first prompt
-    if (argParser.baseDNArg.getDefaultValue() == null)
-    {
-      argParser.baseDNArg.setDefaultValue(Installation.DEFAULT_INTERACTIVE_BASE_DN);
-    }
     // Check the validity of the base DNs
-    final List<String> baseDNs = promptIfRequiredForDNs(argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
+    final List<String> baseDNs = promptIfRequiredForDNs(
+            argParser.baseDNArg, lastResetBaseDN, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
     return promptIfRequiredForDataOptions(baseDNs);
 
   }
@@ -1600,8 +1604,8 @@ public class InstallDS extends ConsoleApplication
         enableSSL = confirmAction(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(), defaultValue);
         if (enableSSL)
         {
-          ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
-              INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
+          ldapsPort = promptIfRequiredForPortData(
+                  argParser.ldapsPortArg, lastResetLdapsPort, INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
         }
       }
       catch (final ClientException ce)
@@ -1611,8 +1615,8 @@ public class InstallDS extends ConsoleApplication
     }
     else
     {
-      ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
-          INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, true);
+      ldapsPort = promptIfRequiredForPortData(
+              argParser.ldapsPortArg, lastResetLdapsPort, INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, true);
       enableSSL = true;
     }
 
@@ -2541,20 +2545,20 @@ public class InstallDS extends ConsoleApplication
     try
     {
       argParser.initializeArguments();
-      argParser.directoryManagerDNArg.setDefaultValue(uData.getDirectoryManagerDn());
-      argParser.ldapPortArg.setDefaultValue(String.valueOf(uData.getServerPort()));
-      argParser.adminConnectorPortArg.setDefaultValue(String.valueOf(uData.getAdminConnectorPort()));
+      lastResetDirectoryManagerDN = uData.getDirectoryManagerDn();
+      lastResetLdapPort = uData.getServerPort();
+      lastResetAdminConnectorPort = uData.getAdminConnectorPort();
 
       final int jmxPort = uData.getServerJMXPort();
       if (jmxPort != -1)
       {
-        argParser.jmxPortArg.setDefaultValue(String.valueOf(jmxPort));
+        lastResetJmxPort = jmxPort;
       }
 
       final LinkedList<String> baseDNs = uData.getNewSuffixOptions().getBaseDns();
       if (!baseDNs.isEmpty())
       {
-        argParser.baseDNArg.setDefaultValue(baseDNs.getFirst());
+        lastResetBaseDN = baseDNs.getFirst();
       }
 
       final NewSuffixOptions suffixOptions = uData.getNewSuffixOptions();
@@ -2574,7 +2578,7 @@ public class InstallDS extends ConsoleApplication
       final SecurityOptions sec = uData.getSecurityOptions();
       if (sec.getEnableSSL())
       {
-        argParser.ldapsPortArg.setDefaultValue(String.valueOf(sec.getSslPort()));
+        lastResetLdapsPort = sec.getSslPort();
       }
       lastResetEnableSSL = sec.getEnableSSL();
       lastResetEnableStartTLS = sec.getEnableStartTLS();

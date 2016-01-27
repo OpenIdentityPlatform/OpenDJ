@@ -180,42 +180,40 @@ public class WaitForFileDelete extends ConsoleApplication
     try
     {
       targetFilePath =
-           new StringArgument("targetfile", 'f', "targetFile", true, false,
-                              true, INFO_PATH_PLACEHOLDER.get(), null, null,
-                              INFO_WAIT4DEL_DESCRIPTION_TARGET_FILE.get());
-      argParser.addArgument(targetFilePath);
+              StringArgument.builder("targetFile")
+                      .shortIdentifier('f')
+                      .description(INFO_WAIT4DEL_DESCRIPTION_TARGET_FILE.get())
+                      .required()
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      logFilePath =
+              StringArgument.builder("logFile")
+                      .shortIdentifier('l')
+                      .description(INFO_WAIT4DEL_DESCRIPTION_LOG_FILE.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      outputFilePath =
+              StringArgument.builder("outputFile")
+                      .shortIdentifier('o')
+                      .description(INFO_WAIT4DEL_DESCRIPTION_OUTPUT_FILE.get())
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      timeout =
+              IntegerArgument.builder("timeout")
+                      .shortIdentifier('t')
+                      .description(INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get())
+                      .required()
+                      .lowerBound(0)
+                      .defaultValue(DirectoryServer.DEFAULT_TIMEOUT)
+                      .valuePlaceholder(INFO_SECONDS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
 
-      logFilePath = new StringArgument(
-              "logfile", 'l', "logFile", false, false,
-              true, INFO_PATH_PLACEHOLDER.get(), null, null,
-              INFO_WAIT4DEL_DESCRIPTION_LOG_FILE.get());
-      argParser.addArgument(logFilePath);
-
-
-      outputFilePath = new StringArgument(
-              "outputfile", 'o', "outputFile",
-              false, false,
-              true, INFO_PATH_PLACEHOLDER.get(), null, null,
-              INFO_WAIT4DEL_DESCRIPTION_OUTPUT_FILE.get());
-      argParser.addArgument(outputFilePath);
-
-
-      timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
-                                    true, INFO_SECONDS_PLACEHOLDER.get(),
-                                    DirectoryServer.DEFAULT_TIMEOUT,
-                                    null, true, 0, false,
-                                    0, INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get());
-      argParser.addArgument(timeout);
-
-
-      // Not used in this class, but required by the start-ds script
-      // (see issue #3814)
-      useLastKnownGoodConfig =
-           new BooleanArgument("lastknowngoodconfig", 'L',
-                               "useLastKnownGoodConfig",
-                               INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get());
-      argParser.addArgument(useLastKnownGoodConfig);
+      // Not used in this class, but required by the start-ds script (see issue #3814)
+      BooleanArgument.builder("useLastKnownGoodConfig")
+              .shortIdentifier('L')
+              .description(INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get())
+              .buildAndAddToParser(argParser);
 
       // Not used in this class, but required by the start-ds script (see issue #3814)
       quietMode = CommonArguments.getQuiet();

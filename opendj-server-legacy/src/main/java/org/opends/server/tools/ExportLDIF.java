@@ -175,129 +175,112 @@ public class ExportLDIF extends TaskTool {
     try
     {
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                              ConfigFileHandler.class.getName(), null,
-                              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       configFile =
-           new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       ldifFile =
-           new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
-                              OPTION_LONG_LDIF_FILE,true, false, true,
-                              INFO_LDIFFILE_PLACEHOLDER.get(), null, null,
-                              INFO_LDIFEXPORT_DESCRIPTION_LDIF_FILE.get());
-      argParser.addArgument(ldifFile);
-
-
-      appendToLDIF = new BooleanArgument(
-                   "appendldif", 'a', "appendToLDIF",
-                   INFO_LDIFEXPORT_DESCRIPTION_APPEND_TO_LDIF.get());
-      argParser.addArgument(appendToLDIF);
-
-
+              StringArgument.builder(OPTION_LONG_LDIF_FILE)
+                      .shortIdentifier(OPTION_SHORT_LDIF_FILE)
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_LDIF_FILE.get())
+                      .required()
+                      .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      appendToLDIF =
+              BooleanArgument.builder("appendToLDIF")
+                      .shortIdentifier('a')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_APPEND_TO_LDIF.get())
+                      .buildAndAddToParser(argParser);
       backendID =
-           new StringArgument("backendid", 'n', "backendID", true, false, true,
-                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                              INFO_LDIFEXPORT_DESCRIPTION_BACKEND_ID.get());
-      argParser.addArgument(backendID);
-
-
+              StringArgument.builder("backendID")
+                      .shortIdentifier('n')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_BACKEND_ID.get())
+                      .required()
+                      .valuePlaceholder(INFO_BACKENDNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       includeBranchStrings =
-           new StringArgument("includebranch", 'b', "includeBranch", false,
-                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_BRANCH.get());
-      argParser.addArgument(includeBranchStrings);
-
-
+              StringArgument.builder("includeBranch")
+                      .shortIdentifier('b')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_BRANCH.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BRANCH_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeBranchStrings =
-           new StringArgument("excludebranch", 'B', "excludeBranch", false,
-                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_BRANCH.get());
-      argParser.addArgument(excludeBranchStrings);
-
-
+              StringArgument.builder("excludeBranch")
+                      .shortIdentifier('B')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_BRANCH.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BRANCH_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       includeAttributeStrings =
-           new StringArgument(
-                   "includeattribute", 'i', "includeAttribute",
-                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
-                   null,
-                   INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get());
-      argParser.addArgument(includeAttributeStrings);
-
-
+              StringArgument.builder("includeAttribute")
+                      .shortIdentifier('i')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeAttributeStrings =
-           new StringArgument(
-                   "excludeattribute", 'e', "excludeAttribute",
-                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
-                   null,
-                   INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get());
-      argParser.addArgument(excludeAttributeStrings);
-
-
+              StringArgument.builder("excludeAttribute")
+                      .shortIdentifier('e')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       includeFilterStrings =
-           new StringArgument("includefilter", 'I', "includeFilter",
-                              false, true, true, INFO_FILTER_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_FILTER.get());
-      argParser.addArgument(includeFilterStrings);
-
-
+              StringArgument.builder("includeFilter")
+                      .shortIdentifier('I')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_FILTER.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_FILTER_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeFilterStrings =
-           new StringArgument("excludefilter", 'E', "excludeFilter",
-                              false, true, true, INFO_FILTER_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER.get());
-      argParser.addArgument(excludeFilterStrings);
-
-
+              StringArgument.builder("excludeFilter")
+                      .shortIdentifier('E')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_FILTER_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeOperationalAttrs =
-           new BooleanArgument("excludeoperational", 'O', "excludeOperational",
-                    INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL.get());
-      argParser.addArgument(excludeOperationalAttrs);
-
-
+              BooleanArgument.builder("excludeOperational")
+                      .shortIdentifier('O')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_OPERATIONAL.get())
+                      .buildAndAddToParser(argParser);
       wrapColumn =
-           new IntegerArgument("wrapcolumn", null, "wrapColumn", false, false,
-                               true, INFO_WRAP_COLUMN_PLACEHOLDER.get(), 0,
-                               null, true, 0, false, 0,
-                               INFO_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN.get());
-      argParser.addArgument(wrapColumn);
-
-
+              IntegerArgument.builder("wrapColumn")
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN.get())
+                      .lowerBound(0)
+                      .defaultValue(0)
+                      .valuePlaceholder(INFO_WRAP_COLUMN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       compressLDIF =
-           new BooleanArgument("compressldif", OPTION_SHORT_COMPRESS,
-                               OPTION_LONG_COMPRESS,
-                               INFO_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF.get());
-      argParser.addArgument(compressLDIF);
-
-
+              BooleanArgument.builder(OPTION_LONG_COMPRESS)
+                      .shortIdentifier(OPTION_SHORT_COMPRESS)
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_COMPRESS_LDIF.get())
+                      .buildAndAddToParser(argParser);
       encryptLDIF =
-           new BooleanArgument("encryptldif", 'y', "encryptLDIF",
-                               INFO_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF.get());
-      encryptLDIF.setHidden(true); // See issue #27
-      argParser.addArgument(encryptLDIF);
-
-
+              BooleanArgument.builder("encryptLDIF")
+                      .shortIdentifier('y')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF.get())
+                      .hidden() // See issue #27
+                      .buildAndAddToParser(argParser);
       signHash =
-           new BooleanArgument("signhash", 's', "signHash",
-                               INFO_LDIFEXPORT_DESCRIPTION_SIGN_HASH.get());
-      signHash.setHidden(true); // See issue #28
-      argParser.addArgument(signHash);
-
+              BooleanArgument.builder("signHash")
+                      .shortIdentifier('s')
+                      .description(INFO_LDIFEXPORT_DESCRIPTION_SIGN_HASH.get())
+                      .hidden() // See issue #28
+                      .buildAndAddToParser(argParser);
 
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
@@ -311,14 +294,7 @@ public class ExportLDIF extends TaskTool {
 
 
     // Init the default values so that they can appear also on the usage.
-    try
-    {
-      argParser.getArguments().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
+    argParser.getArguments().initArgumentsWithConfiguration(argParser);
 
     // Parse the command-line arguments provided to this program.
     try

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -158,10 +158,11 @@ public abstract class TaskTool implements TaskScheduleInformation {
         argParser.addArgument(arg, taskGroup);
       }
 
-      testIfOfflineArg = new BooleanArgument("testIfOffline", null,
-          "testIfOffline", INFO_DESCRIPTION_TEST_IF_OFFLINE.get());
-      testIfOfflineArg.setHidden(true);
-      argParser.addArgument(testIfOfflineArg);
+      testIfOfflineArg =
+              BooleanArgument.builder("testIfOffline")
+                      .description(INFO_DESCRIPTION_TEST_IF_OFFLINE.get())
+                      .hidden()
+                      .buildAndAddToParser(argParser);
     } catch (ArgumentException e) {
       // should never happen
     }

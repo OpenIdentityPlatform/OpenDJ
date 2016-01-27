@@ -276,14 +276,19 @@ public class TaskScheduleUserData
     StringArgument arg;
     try
     {
-      arg = new StringArgument(argToClone.getName(),
-          argToClone.getShortIdentifier(), argToClone.getLongIdentifier(),
-          argToClone.isRequired(), argToClone.isMultiValued(),
-          argToClone.needsValue(),
-          argToClone.getValuePlaceholder(),
-          argToClone.getDefaultValue(),
-          argToClone.getPropertyName(),
-          argToClone.getDescription());
+      StringArgument.Builder argBuilder =
+              StringArgument.builder(argToClone.getLongIdentifier())
+                      .shortIdentifier(argToClone.getShortIdentifier())
+                      .description(argToClone.getDescription())
+                      .defaultValue(argToClone.getDefaultValue())
+                      .valuePlaceholder(argToClone.getValuePlaceholder());
+      if (argToClone.isRequired()) {
+        argBuilder.required();
+      }
+      if (argToClone.isMultiValued()) {
+        argBuilder.multiValued();
+      }
+      arg = argBuilder.buildArgument();
     }
     catch (ArgumentException e)
     {

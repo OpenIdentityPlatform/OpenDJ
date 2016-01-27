@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
@@ -202,35 +201,36 @@ public class ManageTasks extends ConsoleApplication {
 
     // Initialize all the command-line argument types and register them with the parser
     try {
-       StringArgument propertiesFileArgument = new StringArgument(
-          "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
-          true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-          INFO_DESCRIPTION_PROP_FILE_PATH.get());
-      argParser.addArgument(propertiesFileArgument);
+      StringArgument propertiesFileArgument =
+              StringArgument.builder(OPTION_LONG_PROP_FILE_PATH)
+                      .description(INFO_DESCRIPTION_PROP_FILE_PATH.get())
+                      .valuePlaceholder(INFO_PROP_FILE_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-      BooleanArgument noPropertiesFileArgument = new BooleanArgument(
-          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-          INFO_DESCRIPTION_NO_PROP_FILE.get());
-      argParser.addArgument(noPropertiesFileArgument);
+      BooleanArgument noPropertiesFileArgument =
+              BooleanArgument.builder(OPTION_LONG_NO_PROP_FILE)
+                      .description(INFO_DESCRIPTION_NO_PROP_FILE.get())
+                      .buildAndAddToParser(argParser);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      task = new StringArgument(
-              "info", 'i', "info",
-              false, true, INFO_TASK_ID_PLACEHOLDER.get(),
-              INFO_TASKINFO_TASK_ARG_DESCRIPTION.get());
-      argParser.addArgument(task);
-
-      cancel = new StringArgument(
-              "cancel", 'c', "cancel",
-              false, true, INFO_TASK_ID_PLACEHOLDER.get(),
-              INFO_TASKINFO_TASK_ARG_CANCEL.get());
-      argParser.addArgument(cancel);
-
-      summary = new BooleanArgument(
-              "summary", 's', "summary",
-              INFO_TASKINFO_SUMMARY_ARG_DESCRIPTION.get());
-      argParser.addArgument(summary);
+      task =
+              StringArgument.builder("info")
+                      .shortIdentifier('i')
+                      .description(INFO_TASKINFO_TASK_ARG_DESCRIPTION.get())
+                      .valuePlaceholder(INFO_TASK_ID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      cancel =
+              StringArgument.builder("cancel")
+                      .shortIdentifier('c')
+                      .description(INFO_TASKINFO_TASK_ARG_CANCEL.get())
+                      .valuePlaceholder(INFO_TASK_ID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      summary =
+              BooleanArgument.builder("summary")
+                      .shortIdentifier('s')
+                      .description(INFO_TASKINFO_SUMMARY_ARG_DESCRIPTION.get())
+                      .buildAndAddToParser(argParser);
 
       noPrompt = CommonArguments.getNoPrompt();
       argParser.addArgument(noPrompt);
@@ -245,12 +245,7 @@ public class ManageTasks extends ConsoleApplication {
       return 1;
     }
 
-    try
-    {
-      argParser.getArguments().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ignored) {}
-
+    argParser.getArguments().initArgumentsWithConfiguration(argParser);
     // Parse the command-line arguments provided to this program.
     try {
       argParser.parseArguments(args);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -172,22 +172,27 @@ public class ConfigureWindowsService
 
     try
     {
-      enableService = new BooleanArgument("enableservice", 'e', "enableService",
-          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE.get());
-      argParser.addArgument(enableService);
-
-      disableService = new BooleanArgument("disableservice", 'd', "disableService",
-          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE.get());
-      argParser.addArgument(disableService);
-
-      serviceState = new BooleanArgument("servicestate", 's', "serviceState",
-          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE.get());
-      argParser.addArgument(serviceState);
-
-      cleanupService = new StringArgument("cleanupservice", 'c', "cleanupService", false, false, true,
-          INFO_SERVICE_NAME_PLACEHOLDER.get(), null, null,
-          INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP.get());
-      argParser.addArgument(cleanupService);
+      enableService =
+              BooleanArgument.builder("enableService")
+                      .shortIdentifier('e')
+                      .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_ENABLE.get())
+                      .buildAndAddToParser(argParser);
+      disableService =
+              BooleanArgument.builder("disableService")
+                      .shortIdentifier('d')
+                      .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE.get())
+                      .buildAndAddToParser(argParser);
+      serviceState =
+              BooleanArgument.builder("serviceState")
+                      .shortIdentifier('s')
+                      .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE.get())
+                      .buildAndAddToParser(argParser);
+      cleanupService =
+              StringArgument.builder("cleanupService")
+                      .shortIdentifier('c')
+                      .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP.get())
+                      .valuePlaceholder(INFO_SERVICE_NAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

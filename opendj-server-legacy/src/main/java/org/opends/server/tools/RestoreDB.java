@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -168,50 +168,45 @@ public class RestoreDB extends TaskTool {
       argParser.setShortToolDescription(REF_SHORT_DESC_RESTORE.get());
 
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                              ConfigFileHandler.class.getName(), null,
-                              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       configFile =
-           new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       backupIDString =
-           new StringArgument("backupid", 'I', "backupID", false, false, true,
-                              INFO_BACKUPID_PLACEHOLDER.get(), null, null,
-                              INFO_RESTOREDB_DESCRIPTION_BACKUP_ID.get());
-      argParser.addArgument(backupIDString);
-
-
+              StringArgument.builder("backupID")
+                      .shortIdentifier('I')
+                      .description(INFO_RESTOREDB_DESCRIPTION_BACKUP_ID.get())
+                      .valuePlaceholder(INFO_BACKUPID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       backupDirectory =
-           new StringArgument("backupdirectory", 'd', "backupDirectory", true,
-                              false, true, INFO_BACKUPDIR_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_RESTOREDB_DESCRIPTION_BACKUP_DIR.get());
-      argParser.addArgument(backupDirectory);
-
-
-      listBackups = new BooleanArgument(
-              "listbackups", 'l', "listBackups",
-              INFO_RESTOREDB_DESCRIPTION_LIST_BACKUPS.get());
-      argParser.addArgument(listBackups);
-
-
-      verifyOnly = new BooleanArgument(
-              "verifyonly", OPTION_SHORT_DRYRUN,
-              OPTION_LONG_DRYRUN,
-              INFO_RESTOREDB_DESCRIPTION_VERIFY_ONLY.get());
-      argParser.addArgument(verifyOnly);
-
+              StringArgument.builder("backupDirectory")
+                      .shortIdentifier('d')
+                      .description(INFO_RESTOREDB_DESCRIPTION_BACKUP_DIR.get())
+                      .required()
+                      .valuePlaceholder(INFO_BACKUPDIR_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      listBackups =
+              BooleanArgument.builder("listBackups")
+                      .shortIdentifier('l')
+                      .description(INFO_RESTOREDB_DESCRIPTION_LIST_BACKUPS.get())
+                      .buildAndAddToParser(argParser);
+      verifyOnly =
+              BooleanArgument.builder(OPTION_LONG_DRYRUN)
+                      .shortIdentifier(OPTION_SHORT_DRYRUN)
+                      .description(INFO_RESTOREDB_DESCRIPTION_VERIFY_ONLY.get())
+                      .buildAndAddToParser(argParser);
 
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
@@ -224,14 +219,7 @@ public class RestoreDB extends TaskTool {
     }
 
     // Init the default values so that they can appear also on the usage.
-    try
-    {
-      argParser.getArguments().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
+    argParser.getArguments().initArgumentsWithConfiguration(argParser);
 
     // Parse the command-line arguments provided to this program.
     try

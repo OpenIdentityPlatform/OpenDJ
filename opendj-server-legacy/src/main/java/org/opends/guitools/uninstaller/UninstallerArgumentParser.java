@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS.
+ *      Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.uninstaller;
 
@@ -64,6 +64,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   private BooleanArgument removeLDIFFilesArg;
 
   private StringArgument referencedHostNameArg;
+  private StringArgument adminUidArg;
 
   /** This CLI is always using the administration connector with SSL. */
   private final boolean alwaysSSL = true;
@@ -103,98 +104,92 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     LinkedHashSet<Argument> args = new LinkedHashSet<>();
+    adminUidArg = CommonArguments.getAdminUid(INFO_DESCRIPTION_ADMIN_UID.get());
     cliArg = CommonArguments.getCLI();
     args.add(cliArg);
 
-    removeAllArg = new BooleanArgument(
-        "remove-all",
-        'a',
-        "remove-all",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_ALL.get()
-        );
+    removeAllArg =
+            BooleanArgument.builder("remove-all")
+                    .shortIdentifier('a')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_ALL.get())
+                    .buildArgument();
     args.add(removeAllArg);
-    removeServerLibrariesArg = new BooleanArgument(
-        "server-libraries",
-        'l',
-        "server-libraries",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_SERVER_LIBRARIES.get()
-        );
+
+    removeServerLibrariesArg =
+            BooleanArgument.builder("server-libraries")
+                    .shortIdentifier('l')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_SERVER_LIBRARIES.get())
+                    .buildArgument();
     args.add(removeServerLibrariesArg);
-    removeDatabasesArg = new BooleanArgument(
-        "databases",
-        'd',
-        "databases",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_DATABASES.get()
-        );
+
+    removeDatabasesArg =
+            BooleanArgument.builder("databases")
+                    .shortIdentifier('d')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_DATABASES.get())
+                    .buildArgument();
     args.add(removeDatabasesArg);
-    removeLogFilesArg = new BooleanArgument(
-        "log-files",
-        'L',
-        "log-files",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LOG_FILES.get()
-        );
+
+    removeLogFilesArg =
+            BooleanArgument.builder("log-files")
+                    .shortIdentifier('L')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LOG_FILES.get())
+                    .buildArgument();
     args.add(removeLogFilesArg);
-    removeConfigurationFilesArg = new BooleanArgument(
-        "configuration-files",
-        'c',
-        "configuration-files",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_CONFIGURATION_FILES.get()
-        );
+
+    removeConfigurationFilesArg =
+            BooleanArgument.builder("configuration-files")
+                    .shortIdentifier('c')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_CONFIGURATION_FILES.get())
+                    .buildArgument();
     args.add(removeConfigurationFilesArg);
-    removeBackupFilesArg = new BooleanArgument(
-        "backup-files",
-        'b',
-        "backup-files",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_BACKUP_FILES.get()
-        );
+
+    removeBackupFilesArg =
+            BooleanArgument.builder("backup-files")
+                    .shortIdentifier('b')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_BACKUP_FILES.get())
+                    .buildArgument();
     args.add(removeBackupFilesArg);
-    removeLDIFFilesArg = new BooleanArgument(
-        "ldif-files",
-        'e',
-        "ldif-files",
-        INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LDIF_FILES.get()
-        );
+
+    removeLDIFFilesArg =
+            BooleanArgument.builder("ldif-files")
+                    .shortIdentifier('e')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LDIF_FILES.get())
+                    .buildArgument();
     args.add(removeLDIFFilesArg);
 
     noPromptArg = CommonArguments.getNoPrompt();
     args.add(noPromptArg);
 
-    forceOnErrorArg = new BooleanArgument(
-        "forceOnError",
-        'f',
-        "forceOnError",
-        INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(
-            "--"+noPromptArg.getLongIdentifier()));
+    forceOnErrorArg =
+            BooleanArgument.builder("forceOnError")
+                    .shortIdentifier('f')
+                    .description(INFO_UNINSTALLDS_DESCRIPTION_FORCE.get("--" + noPromptArg.getLongIdentifier()))
+                    .buildArgument();
     args.add(forceOnErrorArg);
 
     quietArg = CommonArguments.getQuiet();
     args.add(quietArg);
 
-    for (Argument arg : args)
-    {
-      arg.setPropertyName(arg.getLongIdentifier());
-    }
-
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
     int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
     if (index != -1)
     {
-      defaultArgs.add(index, secureArgsList.adminUidArg);
+      defaultArgs.add(index, adminUidArg);
       defaultArgs.remove(secureArgsList.bindDnArg);
     }
     else
     {
-      defaultArgs.add(secureArgsList.adminUidArg);
+      defaultArgs.add(adminUidArg);
     }
-    secureArgsList.adminUidArg.setHidden(false);
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
-    referencedHostNameArg = new StringArgument("referencedHostName",
-        OPTION_SHORT_HOST,
-        OPTION_LONG_REFERENCED_HOST_NAME, false, false, true,
-        INFO_HOST_PLACEHOLDER.get(),
-        UserData.getDefaultHostName(), OPTION_LONG_REFERENCED_HOST_NAME,
-        INFO_DESCRIPTION_REFERENCED_HOST.get());
+    referencedHostNameArg =
+            StringArgument.builder(OPTION_LONG_REFERENCED_HOST_NAME)
+                    .shortIdentifier(OPTION_SHORT_HOST)
+                    .description(INFO_DESCRIPTION_REFERENCED_HOST.get())
+                    .defaultValue(UserData.getDefaultHostName())
+                    .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                    .buildArgument();
     defaultArgs.add(referencedHostNameArg);
 
     args.addAll(defaultArgs);
@@ -329,7 +324,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultAdministratorUID()
   {
-    return secureArgsList.adminUidArg.getDefaultValue();
+    return adminUidArg.getDefaultValue();
   }
 
   /**

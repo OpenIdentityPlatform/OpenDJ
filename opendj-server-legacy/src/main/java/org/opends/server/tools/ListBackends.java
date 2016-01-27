@@ -148,38 +148,36 @@ public class ListBackends
     try
     {
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                              ConfigFileHandler.class.getName(), null,
-                              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       configFile =
-           new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
-      backendID = new StringArgument(
-              "backendid", 'n', "backendID", false,
-              true, true, INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-              INFO_LISTBACKENDS_DESCRIPTION_BACKEND_ID.get());
-      argParser.addArgument(backendID);
-
-
-      baseDN = new StringArgument(
-              "basedn", OPTION_SHORT_BASEDN,
-              OPTION_LONG_BASEDN, false, true, true,
-              INFO_BASEDN_PLACEHOLDER.get(), null, null,
-              INFO_LISTBACKENDS_DESCRIPTION_BASE_DN.get());
-      argParser.addArgument(baseDN);
-
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      backendID =
+              StringArgument.builder("backendID")
+                      .shortIdentifier('n')
+                      .description(INFO_LISTBACKENDS_DESCRIPTION_BACKEND_ID.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BACKENDNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      baseDN =
+              StringArgument.builder(OPTION_LONG_BASEDN)
+                      .shortIdentifier(OPTION_SHORT_BASEDN)
+                      .description(INFO_LISTBACKENDS_DESCRIPTION_BASE_DN.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);

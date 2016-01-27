@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  *      Portions copyright 2015 Edan Idzerda
  */
 package org.opends.server.util;
@@ -534,42 +534,52 @@ public final class EMailMessage
 
     try
     {
-      host = new StringArgument("host", 'h', "host", true, true, true,
-                                INFO_HOST_PLACEHOLDER.get(), "127.0.0.1", null,
-                                INFO_EMAIL_HOST_DESCRIPTION.get());
-      argParser.addArgument(host);
-
-
-      from = new StringArgument("from", 'f', "from", true, false, true,
-                                INFO_ADDRESS_PLACEHOLDER.get(), null, null,
-                                INFO_EMAIL_FROM_DESCRIPTION.get());
-      argParser.addArgument(from);
-
-
-      to = new StringArgument("to", 't', "to", true, true, true,
-                              INFO_ADDRESS_PLACEHOLDER.get(),
-                              null, null, INFO_EMAIL_TO_DESCRIPTION.get());
-      argParser.addArgument(to);
-
-
-      subject = new StringArgument("subject", 's', "subject", true, false, true,
-                                   INFO_SUBJECT_PLACEHOLDER.get(), null, null,
-                                   INFO_EMAIL_SUBJECT_DESCRIPTION.get());
-      argParser.addArgument(subject);
-
-
-      bodyFile = new StringArgument("bodyfile", 'b', "body", true, true, true,
-                                    INFO_PATH_PLACEHOLDER.get(), null, null,
-                                    INFO_EMAIL_BODY_DESCRIPTION.get());
-      argParser.addArgument(bodyFile);
-
-
-      attachFile = new StringArgument("attachfile", 'a', "attach", false, true,
-                                      true, INFO_PATH_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_EMAIL_ATTACH_DESCRIPTION.get());
-      argParser.addArgument(attachFile);
-
+      host =
+              StringArgument.builder("host")
+                      .shortIdentifier('h')
+                      .description(INFO_EMAIL_HOST_DESCRIPTION.get())
+                      .multiValued()
+                      .required()
+                      .defaultValue("127.0.0.1")
+                      .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      from =
+              StringArgument.builder("from")
+                      .shortIdentifier('f')
+                      .description(INFO_EMAIL_FROM_DESCRIPTION.get())
+                      .required()
+                      .valuePlaceholder(INFO_ADDRESS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      to =
+              StringArgument.builder("to")
+                      .shortIdentifier('t')
+                      .description(INFO_EMAIL_TO_DESCRIPTION.get())
+                      .multiValued()
+                      .required()
+                      .valuePlaceholder(INFO_ADDRESS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      subject =
+              StringArgument.builder("subject")
+                      .shortIdentifier('s')
+                      .description(INFO_EMAIL_SUBJECT_DESCRIPTION.get())
+                      .required()
+                      .valuePlaceholder(INFO_SUBJECT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      bodyFile =
+              StringArgument.builder("body")
+                      .shortIdentifier('b')
+                      .description(INFO_EMAIL_BODY_DESCRIPTION.get())
+                      .multiValued()
+                      .required()
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      attachFile =
+              StringArgument.builder("attach")
+                      .shortIdentifier('a')
+                      .description(INFO_EMAIL_ATTACH_DESCRIPTION.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

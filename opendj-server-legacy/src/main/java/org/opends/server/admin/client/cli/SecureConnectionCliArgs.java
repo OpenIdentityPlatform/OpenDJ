@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
@@ -44,6 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.forgerock.opendj.cli.ArgumentParser;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
@@ -84,7 +84,7 @@ public final class SecureConnectionCliArgs
   /** The 'bindDN' global argument. */
   public StringArgument bindDnArg;
   /** The 'adminUID' global argument. */
-  public StringArgument adminUidArg;
+  public StringArgument adminUidHiddenArg;
   /** The 'bindPasswordFile' global argument. */
   public FileBasedArgument bindPasswordFileArg;
   /** The 'bindPassword' global argument. */
@@ -166,11 +166,11 @@ public final class SecureConnectionCliArgs
    */
   public String getAdministratorUID()
   {
-    if (adminUidArg.isPresent())
+    if (adminUidHiddenArg.isPresent())
     {
-      return adminUidArg.getValue();
+      return adminUidHiddenArg.getValue();
     }
-    return adminUidArg.getDefaultValue();
+    return adminUidHiddenArg.getDefaultValue();
   }
 
   /**
@@ -182,7 +182,7 @@ public final class SecureConnectionCliArgs
    */
   public boolean useAdminUID()
   {
-    return !adminUidArg.isHidden();
+    return !adminUidHiddenArg.isHidden();
   }
 
   /**
@@ -229,32 +229,17 @@ public final class SecureConnectionCliArgs
       argList.add(useStartTLSArg);
     }
 
-    String defaultHostName;
-    try
-    {
-      defaultHostName = InetAddress.getLocalHost().getHostName();
-    }
-    catch (Exception e)
-    {
-      defaultHostName = "Unknown (" + e + ")";
-    }
-    hostNameArg = CommonArguments.getHostName(defaultHostName);
+    hostNameArg = CommonArguments.getHostName(getDefaultHostName());
     argList.add(hostNameArg);
 
-    portArg = CommonArguments.getPort(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
-                                      alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
+    portArg = createPortArgument(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT);
     argList.add(portArg);
 
     bindDnArg = CommonArguments.getBindDN(CliConstants.DEFAULT_ROOT_USER_DN);
     argList.add(bindDnArg);
 
-    // It is up to the classes that required admin UID to make this argument
-    // visible and add it.
-    adminUidArg = new StringArgument("adminUID", 'I', OPTION_LONG_ADMIN_UID, false, false, true,
-                                     INFO_ADMINUID_PLACEHOLDER.get(), CliConstants.GLOBAL_ADMIN_UID,
-                                     null, INFO_DESCRIPTION_ADMIN_UID.get());
-    adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
-    adminUidArg.setHidden(true);
+    // Classes that required admin UID to be not hidden must use CommonsArguments.getAdminUid().
+    adminUidHiddenArg = CommonArguments.getAdminUidHidden(INFO_DESCRIPTION_ADMIN_UID.get());
 
     bindPasswordArg = CommonArguments.getBindPassword();
     argList.add(bindPasswordArg);
@@ -290,7 +275,6 @@ public final class SecureConnectionCliArgs
     argList.add(certNicknameArg);
 
     connectTimeoutArg = CommonArguments.getConnectTimeOut();
-    connectTimeoutArg.setHidden(false);
     argList.add(connectTimeoutArg);
 
     return argList;
@@ -309,6 +293,23 @@ public final class SecureConnectionCliArgs
       return hostNameArg.getValue();
     }
     return hostNameArg.getDefaultValue();
+  }
+
+  /**
+   * Returns the current hostname.
+   *
+   * If the hostname resolution fails, this method returns {@literal "localhost"}.
+   * @return the current hostname
+     */
+  public String getDefaultHostName() {
+    try
+    {
+      return InetAddress.getLocalHost().getHostName();
+    }
+    catch (Exception e)
+    {
+      return "localhost";
+    }
   }
 
   /**
@@ -636,17 +637,27 @@ public final class SecureConnectionCliArgs
    * Updates the default values of the port and the trust store with what is
    * read in the configuration.
    *
-   * @throws ConfigException
-   *           if there is an error reading the configuration.
+   * @param parser
+   *        The argument parser where the secure connection arguments were added.
    */
-  public void initArgumentsWithConfiguration() throws ConfigException
-  {
-    portArg.setDefaultValue(String.valueOf(getPortFromConfig()));
-
-    String truststoreFileAbsolute = getTruststoreFileFromConfig();
-    if (truststoreFileAbsolute != null)
+  public void initArgumentsWithConfiguration(final ArgumentParser parser) {
+    try
     {
-      trustStorePathArg.setDefaultValue(truststoreFileAbsolute);
+      portArg = createPortArgument(getPortFromConfig());
+      trustStorePathArg = CommonArguments.getTrustStorePathArgument(getTruststoreFileFromConfig());
+      parser.replaceArgument(portArg);
+      parser.replaceArgument(trustStorePathArg);
     }
+    catch (ConfigException | ArgumentException e)
+    {
+      logger.error(LocalizableMessage.raw(
+              "Internal error while reading arguments of this program from configuration"), e);
+    }
+  }
+
+  private IntegerArgument createPortArgument(final int defaultValue) throws ArgumentException
+  {
+    return CommonArguments.getPort(
+            defaultValue, alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
   }
 }

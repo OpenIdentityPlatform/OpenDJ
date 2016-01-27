@@ -22,11 +22,15 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
@@ -183,7 +187,6 @@ public class StopDS
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
     BooleanArgument   checkStoppability;
     BooleanArgument   quietMode;
-    BooleanArgument   windowsNetStop;
     BooleanArgument   restart;
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;
@@ -208,179 +211,136 @@ public class StopDS
 
     try
     {
-      propertiesFileArgument = new StringArgument("propertiesFilePath",
-          null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-          INFO_DESCRIPTION_PROP_FILE_PATH.get());
-      argParser.addArgument(propertiesFileArgument);
+      propertiesFileArgument =
+              StringArgument.builder(OPTION_LONG_PROP_FILE_PATH)
+                      .description(INFO_DESCRIPTION_PROP_FILE_PATH.get())
+                      .valuePlaceholder(INFO_PROP_FILE_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-      noPropertiesFileArgument = new BooleanArgument(
-          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-          INFO_DESCRIPTION_NO_PROP_FILE.get());
-      argParser.addArgument(noPropertiesFileArgument);
+      noPropertiesFileArgument =
+              BooleanArgument.builder(OPTION_LONG_NO_PROP_FILE)
+                      .description(INFO_DESCRIPTION_NO_PROP_FILE.get())
+                      .buildAndAddToParser(argParser);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      host = new StringArgument("host", OPTION_SHORT_HOST,
-                                OPTION_LONG_HOST, false, false, true,
-                                INFO_HOST_PLACEHOLDER.get(), "127.0.0.1", null,
-                                INFO_STOPDS_DESCRIPTION_HOST.get());
-      host.setPropertyName(OPTION_LONG_HOST);
-      argParser.addArgument(host);
-
-      port = new IntegerArgument(
-              "port", OPTION_SHORT_PORT,
-              OPTION_LONG_PORT, false, false, true,
-              INFO_PORT_PLACEHOLDER.get(),
-              AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
-              null, true, 1,
-              true, 65535, INFO_STOPDS_DESCRIPTION_PORT.get());
-      port.setPropertyName(OPTION_LONG_PORT);
-      argParser.addArgument(port);
-
-      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
-                                  OPTION_LONG_BINDDN, false, false, true,
-                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
-                                  INFO_STOPDS_DESCRIPTION_BINDDN.get());
-      bindDN.setPropertyName(OPTION_LONG_BINDDN);
-      argParser.addArgument(bindDN);
-
-      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
-                                  OPTION_LONG_BINDPWD, false, false,
-                                  true,
-                                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                                  INFO_STOPDS_DESCRIPTION_BINDPW.get());
-      bindPW.setPropertyName(OPTION_LONG_BINDPWD);
-      argParser.addArgument(bindPW);
-
-      bindPWFile = new FileBasedArgument(
-              "bindpwfile",
-              OPTION_SHORT_BINDPWD_FILE,
-              OPTION_LONG_BINDPWD_FILE,
-              false, false,
-              INFO_BINDPWD_FILE_PLACEHOLDER.get(),
-              null, null,
-              INFO_STOPDS_DESCRIPTION_BINDPWFILE.get());
-      bindPWFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
-      argParser.addArgument(bindPWFile);
-
-      saslOption = new StringArgument(
-              "sasloption", OPTION_SHORT_SASLOPTION,
-              OPTION_LONG_SASLOPTION, false,
-              true, true,
-              INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
-              INFO_STOPDS_DESCRIPTION_SASLOPTIONS.get());
-      saslOption.setPropertyName(OPTION_LONG_SASLOPTION);
-      argParser.addArgument(saslOption);
-
-      proxyAuthzID = new StringArgument(
-              "proxyauthzid",
-              OPTION_SHORT_PROXYAUTHID,
-              OPTION_LONG_PROXYAUTHID, false,
-              false, true,
-              INFO_PROXYAUTHID_PLACEHOLDER.get(), null,
-              null,
-              INFO_STOPDS_DESCRIPTION_PROXYAUTHZID.get());
-      proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
-      argParser.addArgument(proxyAuthzID);
-
-      stopReason = new StringArgument(
-              "stopreason", 'r', "stopReason", false,
-              false, true, INFO_STOP_REASON_PLACEHOLDER.get(), null, null,
-              INFO_STOPDS_DESCRIPTION_STOP_REASON.get());
-      stopReason.setPropertyName("stopReason");
-      argParser.addArgument(stopReason);
-
-      checkStoppability = new BooleanArgument("checkstoppability", null,
-              "checkStoppability",
-              INFO_STOPDS_CHECK_STOPPABILITY.get());
-      checkStoppability.setHidden(true);
-      argParser.addArgument(checkStoppability);
-
-      windowsNetStop = new BooleanArgument("windowsnetstop", null,
-          "windowsNetStop", INFO_STOPDS_DESCRIPTION_WINDOWS_NET_STOP.get());
-      windowsNetStop.setHidden(true);
-      argParser.addArgument(windowsNetStop);
+      host =
+              StringArgument.builder(OPTION_LONG_HOST)
+                      .shortIdentifier(OPTION_SHORT_HOST)
+                      .description(INFO_STOPDS_DESCRIPTION_HOST.get())
+                      .defaultValue("127.0.0.1")
+                      .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      port =
+              IntegerArgument.builder(OPTION_LONG_PORT)
+                      .shortIdentifier(OPTION_SHORT_PORT)
+                      .description(INFO_STOPDS_DESCRIPTION_PORT.get())
+                      .range(1, 65535)
+                      .defaultValue(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT)
+                      .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      bindDN =
+              StringArgument.builder(OPTION_LONG_BINDDN)
+                      .shortIdentifier(OPTION_SHORT_BINDDN)
+                      .description(INFO_STOPDS_DESCRIPTION_BINDDN.get())
+                      .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      bindPW =
+              StringArgument.builder(OPTION_LONG_BINDPWD)
+                      .shortIdentifier(OPTION_SHORT_BINDPWD)
+                      .description(INFO_STOPDS_DESCRIPTION_BINDPW.get())
+                      .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      bindPWFile =
+              FileBasedArgument.builder(OPTION_LONG_BINDPWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
+                      .description(INFO_STOPDS_DESCRIPTION_BINDPWFILE.get())
+                      .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      saslOption =
+              StringArgument.builder(OPTION_LONG_SASLOPTION)
+                      .shortIdentifier(OPTION_SHORT_SASLOPTION)
+                      .description(INFO_STOPDS_DESCRIPTION_SASLOPTIONS.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_SASL_OPTION_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      proxyAuthzID =
+              StringArgument.builder(OPTION_LONG_PROXYAUTHID)
+                      .shortIdentifier(OPTION_SHORT_PROXYAUTHID)
+                      .description(INFO_STOPDS_DESCRIPTION_PROXYAUTHZID.get())
+                      .valuePlaceholder(INFO_PROXYAUTHID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      stopReason =
+              StringArgument.builder("stopReason")
+                      .shortIdentifier('r')
+                      .description(INFO_STOPDS_DESCRIPTION_STOP_REASON.get())
+                      .valuePlaceholder(INFO_STOP_REASON_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      checkStoppability =
+              BooleanArgument.builder(OPTION_LONG_CHECK_STOPPABILITY)
+                      .description(INFO_STOPDS_CHECK_STOPPABILITY.get())
+                      .hidden()
+                      .buildAndAddToParser(argParser);
+      BooleanArgument.builder(OPTION_LONG_WINDOWS_NET_STOP)
+              .description(INFO_STOPDS_DESCRIPTION_WINDOWS_NET_STOP.get())
+              .hidden()
+              .buildAndAddToParser(argParser);
 
       restart = CommonArguments.getRestart();
       argParser.addArgument(restart);
 
-      stopTimeStr = new StringArgument("stoptime", 't', "stopTime", false,
-                                       false, true,
-                                       INFO_STOP_TIME_PLACEHOLDER.get(), null,
-                                       null,
-                                       INFO_STOPDS_DESCRIPTION_STOP_TIME.get());
-      stopTimeStr.setPropertyName("stopTime");
-      argParser.addArgument(stopTimeStr);
+      stopTimeStr =
+              StringArgument.builder("stopTime")
+                      .shortIdentifier('t')
+                      .description(INFO_STOPDS_DESCRIPTION_STOP_TIME.get())
+                      .valuePlaceholder(INFO_STOP_TIME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       trustAll = CommonArguments.getTrustAll();
       argParser.addArgument(trustAll);
 
-      keyStoreFile = new StringArgument("keystorefile",
-                                        OPTION_SHORT_KEYSTOREPATH,
-                                        OPTION_LONG_KEYSTOREPATH,
-                                        false, false, true,
-                                        INFO_KEYSTOREPATH_PLACEHOLDER.get(),
-                                        null, null,
-                                        INFO_STOPDS_DESCRIPTION_KSFILE.get());
-      keyStoreFile.setPropertyName(OPTION_LONG_KEYSTOREPATH);
-      argParser.addArgument(keyStoreFile);
-
-      keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
-                                      OPTION_LONG_KEYSTORE_PWD,
-                                      false, false, true,
-                                      INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
-                                      null, null,
-                                      INFO_STOPDS_DESCRIPTION_KSPW.get());
-      keyStorePW.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
-      argParser.addArgument(keyStorePW);
-
-      keyStorePWFile = new FileBasedArgument(
-              "keystorepwfile",
-              OPTION_SHORT_KEYSTORE_PWD_FILE,
-              OPTION_LONG_KEYSTORE_PWD_FILE,
-              false, false,
-              INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(),
-              null, null,
-              INFO_STOPDS_DESCRIPTION_KSPWFILE.get());
-      keyStorePWFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
-      argParser.addArgument(keyStorePWFile);
-
-      certNickname = new StringArgument(
-              "certnickname", 'N', "certNickname",
-              false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
-              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
-      certNickname.setPropertyName("certNickname");
-      argParser.addArgument(certNickname);
-
-      trustStoreFile = new StringArgument("truststorefile",
-                                          OPTION_SHORT_TRUSTSTOREPATH,
-                                          OPTION_LONG_TRUSTSTOREPATH,
-                                          false, false, true,
-                                          INFO_TRUSTSTOREPATH_PLACEHOLDER.get(),
-                                          null, null,
-                                          INFO_STOPDS_DESCRIPTION_TSFILE.get());
-      trustStoreFile.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
-      argParser.addArgument(trustStoreFile);
-
-      trustStorePW = new StringArgument(
-              "truststorepw", 'T',
-              OPTION_LONG_TRUSTSTORE_PWD,
-              false, false,
-              true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null,
-              null, INFO_STOPDS_DESCRIPTION_TSPW.get());
-      trustStorePW.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
-      argParser.addArgument(trustStorePW);
-
-      trustStorePWFile = new FileBasedArgument("truststorepwfile",
-                                  OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                                  OPTION_LONG_TRUSTSTORE_PWD_FILE,
-                                  false, false,
-                                  INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(),
-                                  null, null,
-                                  INFO_STOPDS_DESCRIPTION_TSPWFILE.get());
-      trustStorePWFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
-      argParser.addArgument(trustStorePWFile);
+      keyStoreFile =
+              StringArgument.builder(OPTION_LONG_KEYSTOREPATH)
+                      .shortIdentifier(OPTION_SHORT_KEYSTOREPATH)
+                      .description(INFO_STOPDS_DESCRIPTION_KSFILE.get())
+                      .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      keyStorePW =
+              StringArgument.builder(OPTION_LONG_KEYSTORE_PWD)
+                      .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD)
+                      .description(INFO_STOPDS_DESCRIPTION_KSPW.get())
+                      .valuePlaceholder(INFO_KEYSTORE_PWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      keyStorePWFile =
+              FileBasedArgument.builder(OPTION_LONG_KEYSTORE_PWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD_FILE)
+                      .description(INFO_STOPDS_DESCRIPTION_KSPWFILE.get())
+                      .valuePlaceholder(INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      certNickname =
+              StringArgument.builder("certNickname")
+                      .shortIdentifier('N')
+                      .description(INFO_DESCRIPTION_CERT_NICKNAME.get())
+                      .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      trustStoreFile =
+              StringArgument.builder(OPTION_LONG_TRUSTSTOREPATH)
+                      .shortIdentifier(OPTION_SHORT_TRUSTSTOREPATH)
+                      .description(INFO_STOPDS_DESCRIPTION_TSFILE.get())
+                      .valuePlaceholder(INFO_TRUSTSTOREPATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      trustStorePW =
+              StringArgument.builder(OPTION_LONG_TRUSTSTORE_PWD)
+                      .shortIdentifier('T')
+                      .description(INFO_STOPDS_DESCRIPTION_TSPW.get())
+                      .valuePlaceholder(INFO_TRUSTSTORE_PWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      trustStorePWFile =
+              FileBasedArgument.builder(OPTION_LONG_TRUSTSTORE_PWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_TRUSTSTORE_PWD_FILE)
+                      .description(INFO_STOPDS_DESCRIPTION_TSPWFILE.get())
+                      .valuePlaceholder(INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       quietMode = CommonArguments.getQuiet();
       argParser.addArgument(quietMode);
@@ -711,24 +671,19 @@ public class StopDS
       quietMode = true;
     }
 
-    BooleanArgument restart =
-      (BooleanArgument)argParser.getArgumentForLongID(OPTION_LONG_RESTART);
-    boolean restartPresent = restart.isPresent();
-    BooleanArgument windowsNetStop =
-      (BooleanArgument)argParser.getArgumentForLongID("windowsnetstop");
-    boolean windowsNetStopPresent = windowsNetStop.isPresent();
+    final boolean restartPresent = argParser.getArgumentForLongID(OPTION_LONG_RESTART).isPresent();
+    final boolean windowsNetStopPresent = argParser.getArgumentForLongID(OPTION_LONG_WINDOWS_NET_STOP).isPresent();
 
     // Check if this is a stop through protocol.
-    LinkedList<Argument> list = argParser.getArgumentList();
     boolean stopThroughProtocol = false;
-    for (Argument arg: list)
+    for (final Argument arg: argParser.getArgumentList())
     {
-      if (!OPTION_LONG_RESTART.toLowerCase().equals(arg.getName()) &&
-          !OPTION_LONG_QUIET.equals(arg.getName()) &&
-          !OPTION_LONG_HELP.toLowerCase().equals(arg.getName()) &&
-          !"checkstoppability".equals(arg.getName()) &&
-          !"windowsnetstop".equals(arg.getName()) &&
-          ! OPTION_LONG_NO_PROP_FILE.equals(arg.getLongIdentifier()))
+      if (!OPTION_LONG_RESTART.equals(arg.getLongIdentifier()) &&
+          !OPTION_LONG_QUIET.equals(arg.getLongIdentifier()) &&
+          !OPTION_LONG_HELP.equals(arg.getLongIdentifier()) &&
+          !OPTION_LONG_CHECK_STOPPABILITY.equals(arg.getLongIdentifier()) &&
+          !OPTION_LONG_WINDOWS_NET_STOP.equals(arg.getLongIdentifier()) &&
+          !OPTION_LONG_NO_PROP_FILE.equals(arg.getLongIdentifier()))
       {
         stopThroughProtocol |= arg.isPresent();
       }

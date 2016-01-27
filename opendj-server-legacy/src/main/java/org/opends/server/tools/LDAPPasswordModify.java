@@ -22,10 +22,19 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_CONNECTION_TIMEOUT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE;
+import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIMEOUT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -192,221 +201,155 @@ public class LDAPPasswordModify
 
     try
     {
-      propertiesFileArgument = new StringArgument("propertiesFilePath",
-          null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-          INFO_DESCRIPTION_PROP_FILE_PATH.get());
-      argParser.addArgument(propertiesFileArgument);
+      propertiesFileArgument =
+              StringArgument.builder(OPTION_LONG_PROP_FILE_PATH)
+                      .description(INFO_DESCRIPTION_PROP_FILE_PATH.get())
+                      .valuePlaceholder(INFO_PROP_FILE_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-      noPropertiesFileArgument = new BooleanArgument(
-          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-          INFO_DESCRIPTION_NO_PROP_FILE.get());
-      argParser.addArgument(noPropertiesFileArgument);
+      noPropertiesFileArgument =
+              BooleanArgument.builder(OPTION_LONG_NO_PROP_FILE)
+                      .description(INFO_DESCRIPTION_NO_PROP_FILE.get())
+                      .buildAndAddToParser(argParser);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      ldapHost = new StringArgument("ldaphost", OPTION_SHORT_HOST,
-                                    OPTION_LONG_HOST, false, false,
-                                    true, INFO_HOST_PLACEHOLDER.get(),
-                                    "127.0.0.1", null,
-                                    INFO_LDAPPWMOD_DESCRIPTION_HOST.get());
-      ldapHost.setPropertyName(OPTION_LONG_HOST);
-      argParser.addArgument(ldapHost);
-
-
-      ldapPort = new IntegerArgument(
-              "ldapport", OPTION_SHORT_PORT,
-              OPTION_LONG_PORT, false, false,
-              true, INFO_PORT_PLACEHOLDER.get(), 389,
-              null, true, 1, true,
-              65535, INFO_LDAPPWMOD_DESCRIPTION_PORT.get());
-      ldapPort.setPropertyName(OPTION_LONG_PORT);
-      argParser.addArgument(ldapPort);
-
-
-      useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
-                                   OPTION_LONG_USE_SSL,
-                                   INFO_LDAPPWMOD_DESCRIPTION_USE_SSL.get());
-      useSSL.setPropertyName(OPTION_LONG_USE_SSL);
-      argParser.addArgument(useSSL);
-
-
-      useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
-                             OPTION_LONG_START_TLS,
-                             INFO_LDAPPWMOD_DESCRIPTION_USE_STARTTLS.get());
-      useStartTLS.setPropertyName(OPTION_LONG_START_TLS);
-      argParser.addArgument(useStartTLS);
-
-
-      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
-                                  OPTION_LONG_BINDDN, false, false, true,
-                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
-                                  INFO_LDAPPWMOD_DESCRIPTION_BIND_DN.get());
-      bindDN.setPropertyName(OPTION_LONG_BINDDN);
-      argParser.addArgument(bindDN);
-
-
-      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
-                                  OPTION_LONG_BINDPWD, false, false,
-                                  true, INFO_BINDPWD_PLACEHOLDER.get(), null,
-                                  null,
-                                  INFO_LDAPPWMOD_DESCRIPTION_BIND_PW.get());
-      bindPW.setPropertyName(OPTION_LONG_BINDPWD);
-      argParser.addArgument(bindPW);
-
-
+      ldapHost =
+              StringArgument.builder(OPTION_LONG_HOST)
+                      .shortIdentifier(OPTION_SHORT_HOST)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_HOST.get())
+                      .defaultValue("127.0.0.1")
+                      .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      ldapPort =
+              IntegerArgument.builder(OPTION_LONG_PORT)
+                      .shortIdentifier(OPTION_SHORT_PORT)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_PORT.get())
+                      .range(1, 65535)
+                      .defaultValue(389)
+                      .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      useSSL =
+              BooleanArgument.builder(OPTION_LONG_USE_SSL)
+                      .shortIdentifier(OPTION_SHORT_USE_SSL)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_USE_SSL.get())
+                      .buildAndAddToParser(argParser);
+      useStartTLS =
+              BooleanArgument.builder(OPTION_LONG_START_TLS)
+                      .shortIdentifier(OPTION_SHORT_START_TLS)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_USE_STARTTLS.get())
+                      .buildAndAddToParser(argParser);
+      bindDN =
+              StringArgument.builder(OPTION_LONG_BINDDN)
+                      .shortIdentifier(OPTION_SHORT_BINDDN)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_BIND_DN.get())
+                      .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      bindPW =
+              StringArgument.builder(OPTION_LONG_BINDPWD)
+                      .shortIdentifier(OPTION_SHORT_BINDPWD)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_BIND_PW.get())
+                      .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       bindPWFile =
-           new FileBasedArgument("bindpwfile", OPTION_SHORT_BINDPWD_FILE,
-                                 OPTION_LONG_BINDPWD_FILE, false,
-                                 false, INFO_BINDPWD_FILE_PLACEHOLDER.get(),
-                                 null, null,
-                                 INFO_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE.get());
-      bindPWFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
-      argParser.addArgument(bindPWFile);
-
-
-      authzID = new StringArgument("authzid", 'a', "authzID", false, false,
-                                   true, INFO_PROXYAUTHID_PLACEHOLDER.get(),
-                                   null, null,
-                                   INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get());
-      authzID.setPropertyName("authzID");
-      argParser.addArgument(authzID);
-
-
+              FileBasedArgument.builder(OPTION_LONG_BINDPWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE.get())
+                      .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      authzID =
+              StringArgument.builder("authzID")
+                      .shortIdentifier('a')
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get())
+                      .valuePlaceholder(INFO_PROXYAUTHID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       provideDNForAuthzID =
-           new BooleanArgument("providednforauthzid", 'A',"provideDNForAuthzID",
-                    INFO_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID.get());
-      provideDNForAuthzID.setPropertyName("provideDNForAuthzID");
-      argParser.addArgument(provideDNForAuthzID);
-
-
-      newPW = new StringArgument("newpw", 'n', "newPassword", false, false,
-                                 true, INFO_NEW_PASSWORD_PLACEHOLDER.get(),
-                                 null, null,
-                                 INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get());
-      newPW.setPropertyName("newPassword");
-      argParser.addArgument(newPW);
-
-
-      newPWFile = new FileBasedArgument(
-              "newpwfile", 'N', "newPasswordFile",
-              false, false, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get());
-      newPWFile.setPropertyName("newPasswordFile");
-      argParser.addArgument(newPWFile);
-
-
+              BooleanArgument.builder("provideDNForAuthzID")
+                      .shortIdentifier('A')
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID.get())
+                      .buildAndAddToParser(argParser);
+      newPW =
+              StringArgument.builder("newPassword")
+                      .shortIdentifier('n')
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get())
+                      .valuePlaceholder(INFO_NEW_PASSWORD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      newPWFile =
+              FileBasedArgument.builder("newPasswordFile")
+                      .shortIdentifier('N')
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       currentPW =
-           new StringArgument("currentpw", 'c', "currentPassword", false, false,
-                              true, INFO_CURRENT_PASSWORD_PLACEHOLDER.get(),
-                              null,  null,
-                              INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get());
-      currentPW.setPropertyName("currentPassword");
-      argParser.addArgument(currentPW);
-
-
+              StringArgument.builder("currentPassword")
+                      .shortIdentifier('c')
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get())
+                      .valuePlaceholder(INFO_CURRENT_PASSWORD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       currentPWFile =
-           new FileBasedArgument(
-                   "currentpwfile", 'C', "currentPasswordFile",
-                   false, false, INFO_FILE_PLACEHOLDER.get(), null, null,
-                   INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get());
-      currentPWFile.setPropertyName("currentPasswordFile");
-      argParser.addArgument(currentPWFile);
-
+              FileBasedArgument.builder("currentPasswordFile")
+                      .shortIdentifier('C')
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       trustAll = CommonArguments.getTrustAll();
       argParser.addArgument(trustAll);
 
-
       sslKeyStore =
-           new StringArgument("keystorepath", OPTION_SHORT_KEYSTOREPATH,
-                              OPTION_LONG_KEYSTOREPATH, false, false,
-                              true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE.get());
-      sslKeyStore.setPropertyName(OPTION_LONG_KEYSTOREPATH);
-      argParser.addArgument(sslKeyStore);
-
-
+              StringArgument.builder(OPTION_LONG_KEYSTOREPATH)
+                      .shortIdentifier(OPTION_SHORT_KEYSTOREPATH)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE.get())
+                      .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       sslKeyStorePIN =
-           new StringArgument("keystorepassword",
-                              OPTION_SHORT_KEYSTORE_PWD,
-                              OPTION_LONG_KEYSTORE_PWD ,
-                              false, false, true,
-                              INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN.get());
-      sslKeyStorePIN.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
-      argParser.addArgument(sslKeyStorePIN);
-
-
+              StringArgument.builder(OPTION_LONG_KEYSTORE_PWD)
+                      .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN.get())
+                      .valuePlaceholder(INFO_KEYSTORE_PWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       sslKeyStorePINFile =
-           new FileBasedArgument(
-                   "keystorepasswordfile",
-                   OPTION_SHORT_KEYSTORE_PWD_FILE,
-                   OPTION_LONG_KEYSTORE_PWD_FILE,
-                   false, false, INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(),
-                   null, null,
-                   INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE.get());
-      sslKeyStorePINFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
-      argParser.addArgument(sslKeyStorePINFile);
-
-      certNickname = new StringArgument("certnickname", null, "certNickname",
-          false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null, null,
-          INFO_DESCRIPTION_CERT_NICKNAME.get());
-      certNickname.setPropertyName("certNickname");
-      argParser.addArgument(certNickname);
-
-
-
+              FileBasedArgument.builder(OPTION_LONG_KEYSTORE_PWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD_FILE)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE.get())
+                      .valuePlaceholder(INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      certNickname =
+              StringArgument.builder("certNickname")
+                      .description(INFO_DESCRIPTION_CERT_NICKNAME.get())
+                      .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       sslTrustStore =
-           new StringArgument("truststorepath",
-                              OPTION_SHORT_TRUSTSTOREPATH,
-                              OPTION_LONG_TRUSTSTOREPATH, false,
-                              false, true,
-                              INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, null,
-                              INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE.get());
-      sslTrustStore.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
-      argParser.addArgument(sslTrustStore);
-
-
+              StringArgument.builder(OPTION_LONG_TRUSTSTOREPATH)
+                      .shortIdentifier(OPTION_SHORT_TRUSTSTOREPATH)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE.get())
+                      .valuePlaceholder(INFO_TRUSTSTOREPATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       sslTrustStorePIN =
-           new StringArgument("truststorepassword", null,
-                              OPTION_LONG_TRUSTSTORE_PWD,
-                              false, false, true,
-                              INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, null,
-                              INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN.get());
-      sslTrustStorePIN.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
-      argParser.addArgument(sslTrustStorePIN);
-
-
+              StringArgument.builder(OPTION_LONG_TRUSTSTORE_PWD)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN.get())
+                      .valuePlaceholder(INFO_TRUSTSTORE_PWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       sslTrustStorePINFile =
-           new FileBasedArgument("truststorepasswordfile",
-                    OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                    OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                    INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null,
-                    null, INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE.get());
-      sslTrustStorePINFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
-      argParser.addArgument(sslTrustStorePINFile);
-
-
+              FileBasedArgument.builder(OPTION_LONG_TRUSTSTORE_PWD_FILE)
+                      .shortIdentifier(OPTION_SHORT_TRUSTSTORE_PWD_FILE)
+                      .description(INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE.get())
+                      .valuePlaceholder(INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       controlStr =
-           new StringArgument("control", 'J', "control", false, true, true,
-                    INFO_LDAP_CONTROL_PLACEHOLDER.get(),
-                    null, null, INFO_DESCRIPTION_CONTROLS.get());
-      controlStr.setPropertyName("control");
-      argParser.addArgument(controlStr);
-
-      int defaultTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
-      connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
-          null, OPTION_LONG_CONNECT_TIMEOUT,
-          false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
-          defaultTimeout, null,
-          true, 0, false, Integer.MAX_VALUE,
-          INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
-      connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
-      argParser.addArgument(connectTimeout);
-
+              StringArgument.builder("control")
+                      .shortIdentifier('J')
+                      .description(INFO_DESCRIPTION_CONTROLS.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      connectTimeout =
+              IntegerArgument.builder(OPTION_LONG_CONNECT_TIMEOUT)
+                      .description(INFO_DESCRIPTION_CONNECTION_TIMEOUT.get())
+                      .lowerBound(0)
+                      .defaultValue(CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT)
+                      .valuePlaceholder(INFO_TIMEOUT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);

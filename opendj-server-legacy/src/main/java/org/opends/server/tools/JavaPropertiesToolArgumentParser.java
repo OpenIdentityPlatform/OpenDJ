@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -84,22 +84,24 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     quietArg = CommonArguments.getQuiet();
     addArgument(quietArg);
 
-    propertiesFileArg = new StringArgument("propertiesFile",
-        'p', "propertiesFile", false,
-        false, true, INFO_PATH_PLACEHOLDER.get(), getDefaultPropertiesValue(),
-        "propertiesFile",
-        INFO_JAVAPROPERTIES_DESCRIPTION_PROPERTIES_FILE.get(
-            getDefaultPropertiesValue()));
-    propertiesFileArg.setHidden(true);
+    propertiesFileArg =
+            StringArgument.builder("propertiesFile")
+                    .shortIdentifier('p')
+                    .description(INFO_JAVAPROPERTIES_DESCRIPTION_PROPERTIES_FILE.get(getDefaultPropertiesValue()))
+                    .hidden()
+                    .defaultValue(getDefaultPropertiesValue())
+                    .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(propertiesFileArg);
 
-    destinationFileArg = new StringArgument("destinationFile",
-        'd', "destinationFile", false,
-        false, true, INFO_PATH_PLACEHOLDER.get(), getDefaultDestinationValue(),
-        "destinationFile",
-        INFO_JAVAPROPERTIES_DESCRIPTION_DESTINATION_FILE.get(
-            getDefaultDestinationValue()));
-    destinationFileArg.setHidden(true);
+    destinationFileArg =
+            StringArgument.builder("destinationFile")
+                    .shortIdentifier('d')
+                    .description(INFO_JAVAPROPERTIES_DESCRIPTION_DESTINATION_FILE.get(getDefaultDestinationValue()))
+                    .hidden()
+                    .defaultValue(getDefaultDestinationValue())
+                    .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(destinationFileArg);
 
     showUsageArg = CommonArguments.getShowUsage();

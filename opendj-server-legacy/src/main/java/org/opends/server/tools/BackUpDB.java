@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -143,7 +143,6 @@ public class BackUpDB extends TaskTool
   /** Define the command-line arguments that may be used with this program. */
   private BooleanArgument backUpAll;
   private BooleanArgument compress;
-  private BooleanArgument displayUsage;
   private BooleanArgument encrypt;
   private BooleanArgument hash;
   private BooleanArgument incremental;
@@ -174,97 +173,80 @@ public class BackUpDB extends TaskTool
     try
     {
       configClass =
-           new StringArgument(
-                   "configclass", OPTION_SHORT_CONFIG_CLASS,
-                   OPTION_LONG_CONFIG_CLASS, true, false,
-                   true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                   ConfigFileHandler.class.getName(), null,
-                   INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       configFile =
-           new StringArgument(
-                   "configfile", 'f', "configFile", true, false,
-                   true, INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
-                   INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       backendID =
-           new StringArgument(
-                   "backendid", 'n', "backendID", false, true, true,
-                   INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                   INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
-      argParser.addArgument(backendID);
-
-
-      backUpAll = new BooleanArgument(
-                  "backupall", 'a', "backUpAll",
-                  INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get());
-      argParser.addArgument(backUpAll);
-
-
+              StringArgument.builder("backendID")
+                      .shortIdentifier('n')
+                      .description(INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BACKENDNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      backUpAll =
+              BooleanArgument.builder("backUpAll")
+                      .shortIdentifier('a')
+                      .description(INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get())
+                      .buildAndAddToParser(argParser);
       backupIDString =
-           new StringArgument(
-                   "backupid", 'I', "backupID", false, false, true,
-                   INFO_BACKUPID_PLACEHOLDER.get(), null, null,
-                   INFO_BACKUPDB_DESCRIPTION_BACKUP_ID.get());
-      argParser.addArgument(backupIDString);
-
-
+              StringArgument.builder("backupID")
+                      .shortIdentifier('I')
+                      .description(INFO_BACKUPDB_DESCRIPTION_BACKUP_ID.get())
+                      .valuePlaceholder(INFO_BACKUPID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       backupDirectory =
-           new StringArgument(
-                   "backupdirectory", 'd', "backupDirectory", true,
-                   false, true, INFO_BACKUPDIR_PLACEHOLDER.get(), null, null,
-                   INFO_BACKUPDB_DESCRIPTION_BACKUP_DIR.get());
-      argParser.addArgument(backupDirectory);
-
-
-      incremental = new BooleanArgument(
-                  "incremental", 'i', "incremental",
-                  INFO_BACKUPDB_DESCRIPTION_INCREMENTAL.get());
-      argParser.addArgument(incremental);
-
-
+              StringArgument.builder("backupDirectory")
+                      .shortIdentifier('d')
+                      .description(INFO_BACKUPDB_DESCRIPTION_BACKUP_DIR.get())
+                      .required()
+                      .valuePlaceholder(INFO_BACKUPDIR_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      incremental =
+              BooleanArgument.builder("incremental")
+                      .shortIdentifier('i')
+                      .description(INFO_BACKUPDB_DESCRIPTION_INCREMENTAL.get())
+                      .buildAndAddToParser(argParser);
       incrementalBaseID =
-           new StringArgument(
-                   "incrementalbaseid", 'B', "incrementalBaseID",
-                   false, false, true, INFO_BACKUPID_PLACEHOLDER.get(), null,
-                   null,
-                   INFO_BACKUPDB_DESCRIPTION_INCREMENTAL_BASE_ID.get());
-      argParser.addArgument(incrementalBaseID);
-
-
-      compress = new BooleanArgument(
-                  "compress", OPTION_SHORT_COMPRESS,
-                  OPTION_LONG_COMPRESS,
-                  INFO_BACKUPDB_DESCRIPTION_COMPRESS.get());
-      argParser.addArgument(compress);
-
-
-      encrypt = new BooleanArgument(
-                  "encrypt", 'y', "encrypt",
-                  INFO_BACKUPDB_DESCRIPTION_ENCRYPT.get());
-      argParser.addArgument(encrypt);
-
-
-      hash = new BooleanArgument(
-                  "hash", 'A', "hash",
-                  INFO_BACKUPDB_DESCRIPTION_HASH.get());
-      argParser.addArgument(hash);
-
-
+              StringArgument.builder("incrementalBaseID")
+                      .shortIdentifier('B')
+                      .description(INFO_BACKUPDB_DESCRIPTION_INCREMENTAL_BASE_ID.get())
+                      .valuePlaceholder(INFO_BACKUPID_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      compress =
+              BooleanArgument.builder(OPTION_LONG_COMPRESS)
+                      .shortIdentifier(OPTION_SHORT_COMPRESS)
+                      .description(INFO_BACKUPDB_DESCRIPTION_COMPRESS.get())
+                      .buildAndAddToParser(argParser);
+      encrypt =
+              BooleanArgument.builder("encrypt")
+                      .shortIdentifier('y')
+                      .description(INFO_BACKUPDB_DESCRIPTION_ENCRYPT.get())
+                      .buildAndAddToParser(argParser);
+      hash =
+              BooleanArgument.builder("hash")
+                      .shortIdentifier('A')
+                      .description(INFO_BACKUPDB_DESCRIPTION_HASH.get())
+                      .buildAndAddToParser(argParser);
       signHash =
-           new BooleanArgument(
-                   "signhash", 's', "signHash",
-                   INFO_BACKUPDB_DESCRIPTION_SIGN_HASH.get());
-      argParser.addArgument(signHash);
+              BooleanArgument.builder("signHash")
+                      .shortIdentifier('s')
+                      .description(INFO_BACKUPDB_DESCRIPTION_SIGN_HASH.get())
+                      .buildAndAddToParser(argParser);
 
-
-      displayUsage = CommonArguments.getShowUsage();
+      final BooleanArgument displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
@@ -275,14 +257,7 @@ public class BackUpDB extends TaskTool
     }
 
     // Init the default values so that they can appear also on the usage.
-    try
-    {
-      argParser.getArguments().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
+    argParser.getArguments().initArgumentsWithConfiguration(argParser);
 
     // Parse the command-line arguments provided to this program.
     try

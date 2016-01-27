@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.tools.status;
 
@@ -62,7 +62,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -227,14 +226,7 @@ public class StatusCli extends ConsoleApplication
       return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
     }
 
-    try
-    {
-      argParser.getSecureArgsList().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
+    argParser.getSecureArgsList().initArgumentsWithConfiguration(argParser);
 
     // Validate user provided data
     try {

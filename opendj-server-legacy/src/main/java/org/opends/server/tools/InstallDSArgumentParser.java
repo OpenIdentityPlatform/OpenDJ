@@ -26,6 +26,11 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_JMXPORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_ROOT_USER_PWD_FILE_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -126,23 +131,23 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    testOnlyArg = new BooleanArgument(
-            OPTION_LONG_TESTONLY_ARGUMENT.toLowerCase(), null,
-            OPTION_LONG_TESTONLY_ARGUMENT,
-            INFO_ARGUMENT_DESCRIPTION_TESTONLY.get());
-    testOnlyArg.setHidden(true);
-    testOnlyArg.setPropertyName(OPTION_LONG_TESTONLY_ARGUMENT);
+    testOnlyArg =
+            BooleanArgument.builder(OPTION_LONG_TESTONLY_ARGUMENT)
+                    .description(INFO_ARGUMENT_DESCRIPTION_TESTONLY.get())
+                    .hidden()
+                    .buildArgument();
     addArgument(testOnlyArg);
 
     cliArg = CommonArguments.getCLI();
     addArgument(cliArg);
 
-    String defaultProgName = Installation.getSetupFileName();
-    progNameArg = new StringArgument(
-        "programName".toLowerCase(), 'P', "programName", false,
-        false, true, INFO_PROGRAM_NAME_PLACEHOLDER.get(), defaultProgName,
-        "programName", INFO_INSTALLDS_DESCRIPTION_PROGNAME.get());
-    progNameArg.setHidden(true);
+    progNameArg = StringArgument.builder("programName")
+            .shortIdentifier('P')
+            .description(INFO_INSTALLDS_DESCRIPTION_PROGNAME.get())
+            .hidden()
+            .defaultValue(Installation.getSetupFileName())
+            .valuePlaceholder(INFO_PROGRAM_NAME_PLACEHOLDER.get())
+            .buildArgument();
     addArgument(progNameArg);
 
     noPromptArg = CommonArguments.getNoPrompt();
@@ -154,59 +159,69 @@ public class InstallDSArgumentParser extends ArgumentParser
     verboseArg = CommonArguments.getVerbose();
     addArgument(verboseArg);
 
-    propertiesFileArgument = new StringArgument(
-        OPTION_LONG_PROP_FILE_PATH.toLowerCase(), null,
-        OPTION_LONG_PROP_FILE_PATH, false,
-        false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    propertiesFileArgument =
+            StringArgument.builder(OPTION_LONG_PROP_FILE_PATH)
+                    .description(INFO_DESCRIPTION_PROP_FILE_PATH.get())
+                    .valuePlaceholder(INFO_PROP_FILE_PATH_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(propertiesFileArgument);
     setFilePropertiesArgument(propertiesFileArgument);
 
-    noPropertiesFileArgument = new BooleanArgument(
-        OPTION_LONG_NO_PROP_FILE.toLowerCase(), null, OPTION_LONG_NO_PROP_FILE,
-        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    noPropertiesFileArgument =
+            BooleanArgument.builder(OPTION_LONG_NO_PROP_FILE)
+                    .description(INFO_DESCRIPTION_NO_PROP_FILE.get())
+                    .buildArgument();
     addArgument(noPropertiesFileArgument);
     setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-    baseDNArg = new StringArgument(
-        OPTION_LONG_BASEDN.toLowerCase(), OPTION_SHORT_BASEDN,
-        OPTION_LONG_BASEDN, false, true, true,
-        INFO_BASEDN_PLACEHOLDER.get(),
-        null, OPTION_LONG_BASEDN,
-        INFO_INSTALLDS_DESCRIPTION_BASEDN.get());
+    baseDNArg =
+            StringArgument.builder(OPTION_LONG_BASEDN)
+                    .shortIdentifier(OPTION_SHORT_BASEDN)
+                    .description(INFO_INSTALLDS_DESCRIPTION_BASEDN.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(baseDNArg);
 
-    addBaseEntryArg = new BooleanArgument(
-        "addBaseEntry".toLowerCase(), 'a', "addBaseEntry",
-        INFO_INSTALLDS_DESCRIPTION_ADDBASE.get());
-    addBaseEntryArg.setPropertyName("addBaseEntry");
+    addBaseEntryArg =
+            BooleanArgument.builder("addBaseEntry")
+                    .shortIdentifier('a')
+                    .description(INFO_INSTALLDS_DESCRIPTION_ADDBASE.get())
+                    .buildArgument();
     addArgument(addBaseEntryArg);
 
-    importLDIFArg = new StringArgument(
-        OPTION_LONG_LDIF_FILE.toLowerCase(), OPTION_SHORT_LDIF_FILE,
-        OPTION_LONG_LDIF_FILE, false,
-        true, true, INFO_LDIFFILE_PLACEHOLDER.get(),
-        null, OPTION_LONG_LDIF_FILE,
-        INFO_INSTALLDS_DESCRIPTION_IMPORTLDIF.get());
+    importLDIFArg =
+            StringArgument.builder(OPTION_LONG_LDIF_FILE)
+                    .shortIdentifier(OPTION_SHORT_LDIF_FILE)
+                    .description(INFO_INSTALLDS_DESCRIPTION_IMPORTLDIF.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(importLDIFArg);
 
-    rejectedImportFileArg = new StringArgument(
-        "rejectFile".toLowerCase(), 'R', "rejectFile", false, false,
-        true, INFO_REJECT_FILE_PLACEHOLDER.get(), null, "rejectFile",
-        INFO_INSTALLDS_DESCRIPTION_REJECTED_FILE.get());
+    rejectedImportFileArg =
+            StringArgument.builder("rejectFile")
+                    .shortIdentifier('R')
+                    .description(INFO_INSTALLDS_DESCRIPTION_REJECTED_FILE.get())
+                    .valuePlaceholder(INFO_REJECT_FILE_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(rejectedImportFileArg);
 
-    skippedImportFileArg = new StringArgument(
-        "skipFile".toLowerCase(), null, "skipFile", false, false,
-        true, INFO_SKIP_FILE_PLACEHOLDER.get(), null, "skipFile",
-        INFO_INSTALLDS_DESCRIPTION_SKIPPED_FILE.get());
+    skippedImportFileArg =
+            StringArgument.builder("skipFile")
+                    .description(INFO_INSTALLDS_DESCRIPTION_SKIPPED_FILE.get())
+                    .valuePlaceholder(INFO_SKIP_FILE_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(skippedImportFileArg);
 
-    sampleDataArg = new IntegerArgument(
-        "sampleData".toLowerCase(), 'd', "sampleData", false,
-        false, true, INFO_NUM_ENTRIES_PLACEHOLDER.get(), 0, "sampleData",
-        true, 0, false, 0,
-        INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get());
+    sampleDataArg =
+            IntegerArgument.builder("sampleData")
+                    .shortIdentifier('d')
+                    .description(INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get())
+                    .lowerBound(0)
+                    .defaultValue(0)
+                    .valuePlaceholder(INFO_NUM_ENTRIES_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(sampleDataArg);
 
     int defaultLdapPort = UserData.getDefaultPort();
@@ -214,12 +229,15 @@ public class InstallDSArgumentParser extends ArgumentParser
     {
       defaultLdapPort = 389;
     }
-    ldapPortArg = new IntegerArgument(
-        "ldapPort".toLowerCase(), OPTION_SHORT_PORT,
-        "ldapPort", false, false,
-        true, INFO_PORT_PLACEHOLDER.get(), defaultLdapPort,
-        "ldapPort", true, 1, true, 65535,
-        INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
+
+    ldapPortArg =
+            IntegerArgument.builder("ldapPort")
+                    .shortIdentifier(OPTION_SHORT_PORT)
+                    .description(INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get())
+                    .range(1, 65535)
+                    .defaultValue(defaultLdapPort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(ldapPortArg);
 
     int defaultAdminPort = UserData.getDefaultAdminConnectorPort();
@@ -228,75 +246,80 @@ public class InstallDSArgumentParser extends ArgumentParser
       defaultAdminPort =
         AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
     }
-    adminConnectorPortArg = new IntegerArgument(
-        "adminConnectorPort".toLowerCase(), null,
-        "adminConnectorPort", false, false,
-        true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort,
-        "adminConnectorPort", true, 1, true, 65535,
-        INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get());
+
+    adminConnectorPortArg =
+            IntegerArgument.builder("adminConnectorPort")
+                    .description(INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get())
+                    .range(1, 65535)
+                    .defaultValue(defaultAdminPort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(adminConnectorPortArg);
 
-    jmxPortArg = new IntegerArgument(
-        "jmxPort".toLowerCase(), 'x', "jmxPort", false, false,
-        true, INFO_JMXPORT_PLACEHOLDER.get(),
-        CliConstants.DEFAULT_JMX_PORT, "jmxPort", true,
-        1, true, 65535,
-        INFO_INSTALLDS_DESCRIPTION_JMXPORT.get());
+    jmxPortArg =
+            IntegerArgument.builder("jmxPort")
+                    .shortIdentifier('x')
+                    .description(INFO_INSTALLDS_DESCRIPTION_JMXPORT.get())
+                    .range(1, 65535)
+                    .defaultValue(CliConstants.DEFAULT_JMX_PORT)
+                    .valuePlaceholder(INFO_JMXPORT_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(jmxPortArg);
 
-    skipPortCheckArg = new BooleanArgument(
-        "skipPortCheck".toLowerCase(), 'S', "skipPortCheck",
-        INFO_INSTALLDS_DESCRIPTION_SKIPPORT.get());
-    skipPortCheckArg.setPropertyName("skipPortCheck");
+    skipPortCheckArg =
+            BooleanArgument.builder("skipPortCheck")
+                    .shortIdentifier('S')
+                    .description(INFO_INSTALLDS_DESCRIPTION_SKIPPORT.get())
+                    .buildArgument();
     addArgument(skipPortCheckArg);
 
-    directoryManagerDNArg = new StringArgument(
-        OPTION_LONG_ROOT_USER_DN.toLowerCase(), OPTION_SHORT_ROOT_USER_DN,
-        OPTION_LONG_ROOT_USER_DN, false, false,
-        true, INFO_ROOT_USER_DN_PLACEHOLDER.get(),
-        "cn=Directory Manager",
-        OPTION_LONG_ROOT_USER_DN, INFO_INSTALLDS_DESCRIPTION_ROOTDN.get());
+    directoryManagerDNArg =
+            StringArgument.builder(OPTION_LONG_ROOT_USER_DN)
+                    .shortIdentifier(OPTION_SHORT_ROOT_USER_DN)
+                    .description(INFO_INSTALLDS_DESCRIPTION_ROOTDN.get())
+                    .defaultValue("cn=Directory Manager")
+                    .valuePlaceholder(INFO_ROOT_USER_DN_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(directoryManagerDNArg);
 
-    directoryManagerPwdStringArg = new StringArgument(
-        "rootUserPassword".toLowerCase(), OPTION_SHORT_BINDPWD,
-        "rootUserPassword",
-        false, false, true,
-        INFO_ROOT_USER_PWD_PLACEHOLDER.get(), null,
-        "rootUserPassword",
-        INFO_INSTALLDS_DESCRIPTION_ROOTPW.get());
+    directoryManagerPwdStringArg =
+            StringArgument.builder("rootUserPassword")
+                    .shortIdentifier(OPTION_SHORT_BINDPWD)
+                    .description(INFO_INSTALLDS_DESCRIPTION_ROOTPW.get())
+                    .valuePlaceholder(INFO_ROOT_USER_PWD_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(directoryManagerPwdStringArg);
 
-    directoryManagerPwdFileArg = new FileBasedArgument(
-        "rootUserPasswordFile".toLowerCase(),
-        OPTION_SHORT_BINDPWD_FILE,
-        "rootUserPasswordFile", false, false,
-        INFO_ROOT_USER_PWD_FILE_PLACEHOLDER.get(),
-        null, "rootUserPasswordFile",
-        INFO_INSTALLDS_DESCRIPTION_ROOTPWFILE.get());
+    directoryManagerPwdFileArg =
+            FileBasedArgument.builder("rootUserPasswordFile")
+                    .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
+                    .description(INFO_INSTALLDS_DESCRIPTION_ROOTPWFILE.get())
+                    .valuePlaceholder(INFO_ROOT_USER_PWD_FILE_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(directoryManagerPwdFileArg);
 
-    enableWindowsServiceArg = new BooleanArgument(
-        "enableWindowsService".toLowerCase(), 'e',
-        "enableWindowsService",
-        INFO_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get());
-    enableWindowsServiceArg.setPropertyName("enableWindowsService");
+    enableWindowsServiceArg =
+            BooleanArgument.builder("enableWindowsService")
+                    .shortIdentifier('e')
+                    .description(INFO_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get())
+                    .buildArgument();
     if (isWindows())
     {
       addArgument(enableWindowsServiceArg);
     }
 
-    doNotStartArg = new BooleanArgument(
-        "doNotStart".toLowerCase(), 'O', "doNotStart",
-        INFO_INSTALLDS_DESCRIPTION_DO_NOT_START.get());
-    doNotStartArg.setPropertyName("doNotStart");
+    doNotStartArg =
+            BooleanArgument.builder("doNotStart")
+                    .shortIdentifier('O')
+                    .description(INFO_INSTALLDS_DESCRIPTION_DO_NOT_START.get())
+                    .buildArgument();
     addArgument(doNotStartArg);
 
-    enableStartTLSArg = new BooleanArgument(
-        "enableStartTLS".toLowerCase(), OPTION_SHORT_START_TLS,
-        "enableStartTLS",
-        INFO_INSTALLDS_DESCRIPTION_ENABLE_STARTTLS.get());
-    enableStartTLSArg.setPropertyName("enableStartTLS");
+    enableStartTLSArg =
+            BooleanArgument.builder("enableStartTLS")
+                    .shortIdentifier(OPTION_SHORT_START_TLS)
+                    .description(INFO_INSTALLDS_DESCRIPTION_ENABLE_STARTTLS.get())
+                    .buildArgument();
     addArgument(enableStartTLSArg);
 
     int defaultSecurePort = UserData.getDefaultSslPort(defaultLdapPort);
@@ -304,79 +327,85 @@ public class InstallDSArgumentParser extends ArgumentParser
     {
       defaultSecurePort = 636;
     }
-    ldapsPortArg = new IntegerArgument(
-        "ldapsPort".toLowerCase(), OPTION_SHORT_USE_SSL,
-        "ldapsPort", false, false,
-        true, INFO_PORT_PLACEHOLDER.get(), defaultSecurePort,
-        "ldapsPort", true, 1, true, 65535,
-        INFO_INSTALLDS_DESCRIPTION_LDAPSPORT.get());
+
+    ldapsPortArg =
+            IntegerArgument.builder("ldapsPort")
+                    .shortIdentifier(OPTION_SHORT_USE_SSL)
+                    .description(INFO_INSTALLDS_DESCRIPTION_LDAPSPORT.get())
+                    .range(1, 65535)
+                    .defaultValue(defaultSecurePort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(ldapsPortArg);
 
-    generateSelfSignedCertificateArg = new BooleanArgument(
-        "generateSelfSignedCertificate".toLowerCase(),
-        null, "generateSelfSignedCertificate",
-        INFO_INSTALLDS_DESCRIPTION_USE_SELF_SIGNED.get());
-    generateSelfSignedCertificateArg.setPropertyName(
-        "generateSelfSignedCertificate");
+    generateSelfSignedCertificateArg =
+            BooleanArgument.builder("generateSelfSignedCertificate")
+                    .description(INFO_INSTALLDS_DESCRIPTION_USE_SELF_SIGNED.get())
+                    .buildArgument();
     addArgument(generateSelfSignedCertificateArg);
 
-    hostNameArg = new StringArgument(OPTION_LONG_HOST.toLowerCase(),
-        OPTION_SHORT_HOST,
-        OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        UserData.getDefaultHostName(),
-        null, INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get());
-    hostNameArg.setPropertyName(OPTION_LONG_HOST);
+    hostNameArg =
+            StringArgument.builder(OPTION_LONG_HOST)
+                    .shortIdentifier(OPTION_SHORT_HOST)
+                    .description(INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get())
+                    .defaultValue(UserData.getDefaultHostName())
+                    .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                    .buildArgument();
     addDefaultArgument(hostNameArg);
 
-    usePkcs11Arg = new BooleanArgument("usePkcs11Keystore".toLowerCase(),
-        null, "usePkcs11Keystore",
-        INFO_INSTALLDS_DESCRIPTION_USE_PKCS11.get());
-    usePkcs11Arg.setPropertyName("usePkcs11Keystore");
+    usePkcs11Arg =
+            BooleanArgument.builder("usePkcs11Keystore")
+                    .description(INFO_INSTALLDS_DESCRIPTION_USE_PKCS11.get())
+                    .buildArgument();
     addArgument(usePkcs11Arg);
 
-    useJavaKeyStoreArg = new StringArgument("useJavaKeystore".toLowerCase(),
-        null, "useJavaKeystore", false, false,
-        true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, "useJavaKeystore",
-        INFO_INSTALLDS_DESCRIPTION_USE_JAVAKEYSTORE.get());
+    useJavaKeyStoreArg =
+            StringArgument.builder("useJavaKeystore")
+                    .description(INFO_INSTALLDS_DESCRIPTION_USE_JAVAKEYSTORE.get())
+                    .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(useJavaKeyStoreArg);
 
-    useJCEKSArg = new StringArgument("useJCEKS".toLowerCase(),
-        null, "useJCEKS", false, false,
-        true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, "useJCEKS",
-        INFO_INSTALLDS_DESCRIPTION_USE_JCEKS.get());
+    useJCEKSArg =
+            StringArgument.builder("useJCEKS")
+                    .description(INFO_INSTALLDS_DESCRIPTION_USE_JCEKS.get())
+                    .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(useJCEKSArg);
 
-    usePkcs12Arg = new StringArgument("usePkcs12keyStore".toLowerCase(),
-        null, "usePkcs12keyStore", false, false,
-        true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, "usePkcs12keyStore",
-        INFO_INSTALLDS_DESCRIPTION_USE_PKCS12.get());
+    usePkcs12Arg =
+            StringArgument.builder("usePkcs12keyStore")
+                    .description(INFO_INSTALLDS_DESCRIPTION_USE_PKCS12.get())
+                    .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(usePkcs12Arg);
 
-    keyStorePasswordArg = new StringArgument(
-        OPTION_LONG_KEYSTORE_PWD.toLowerCase(),
-        OPTION_SHORT_KEYSTORE_PWD,
-        OPTION_LONG_KEYSTORE_PWD, false, false, true,
-        INFO_KEYSTORE_PWD_PLACEHOLDER.get(), null, OPTION_LONG_KEYSTORE_PWD,
-        INFO_INSTALLDS_DESCRIPTION_KEYSTOREPASSWORD.get());
+    keyStorePasswordArg =
+            StringArgument.builder(OPTION_LONG_KEYSTORE_PWD)
+                    .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD)
+                    .description(INFO_INSTALLDS_DESCRIPTION_KEYSTOREPASSWORD.get())
+                    .valuePlaceholder(INFO_KEYSTORE_PWD_PLACEHOLDER.get())
+                    .buildArgument();
     addDefaultArgument(keyStorePasswordArg);
 
-    keyStorePasswordFileArg = new FileBasedArgument(
-        OPTION_LONG_KEYSTORE_PWD_FILE.toLowerCase(),
-        OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
-        false, INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null,
-        OPTION_LONG_KEYSTORE_PWD_FILE,
-        INFO_INSTALLDS_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
+    keyStorePasswordFileArg =
+            FileBasedArgument.builder(OPTION_LONG_KEYSTORE_PWD_FILE)
+                    .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD_FILE)
+                    .description(INFO_INSTALLDS_DESCRIPTION_KEYSTOREPASSWORD_FILE.get())
+                    .valuePlaceholder(INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get())
+                    .buildArgument();
     addDefaultArgument(keyStorePasswordFileArg);
 
-    certNicknameArg = new StringArgument(
-        OPTION_LONG_CERT_NICKNAME.toLowerCase(),
-        OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
-        false, true, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
-        OPTION_LONG_CERT_NICKNAME,
-        INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get());
+    certNicknameArg =
+            StringArgument.builder(OPTION_LONG_CERT_NICKNAME)
+                    .shortIdentifier(OPTION_SHORT_CERT_NICKNAME)
+                    .description(INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
+                    .buildArgument();
     addDefaultArgument(certNicknameArg);
 
-    connectTimeoutArg = CommonArguments.getConnectTimeOut();
+    connectTimeoutArg = CommonArguments.getConnectTimeOutHidden();
     addArgument(connectTimeoutArg);
 
     acceptLicense = CommonArguments.getAcceptLicense();
@@ -386,15 +415,14 @@ public class InstallDSArgumentParser extends ArgumentParser
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
 
-    backendTypeArg = new StringArgument(
-        OPTION_LONG_BACKEND_TYPE.toLowerCase(),
-        OPTION_SHORT_BACKEND_TYPE, OPTION_LONG_BACKEND_TYPE,
-        false, false, true, INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get(),
-        BackendTypeHelper.filterSchemaBackendName(
-            new BackendTypeHelper().getBackendTypes().get(0).getName()),
-        OPTION_LONG_BACKEND_TYPE,
-        INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get()
-    );
+    backendTypeArg =
+            StringArgument.builder(OPTION_LONG_BACKEND_TYPE)
+                    .shortIdentifier(OPTION_SHORT_BACKEND_TYPE)
+                    .description(INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get())
+                    .defaultValue(BackendTypeHelper.filterSchemaBackendName(
+                            new BackendTypeHelper().getBackendTypes().get(0).getName()))
+                    .valuePlaceholder(INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get())
+                    .buildArgument();
     addArgument(backendTypeArg);
   }
 

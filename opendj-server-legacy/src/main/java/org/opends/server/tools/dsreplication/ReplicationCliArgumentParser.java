@@ -27,6 +27,8 @@
 package org.opends.server.tools.dsreplication;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -198,6 +200,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /** the 'change-number' argument for task reset-changenumber. */
   IntegerArgument resetChangeNumber;
+
+  /** The "adminUid" non hidden argument */
+  StringArgument adminUidArg;
 
   /** The text of the enable replication subcommand. */
   static final String ENABLE_REPLICATION_SUBCMD_NAME = "enable";
@@ -417,35 +422,33 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     int index = 0;
 
-    baseDNsArg = new StringArgument("baseDNs", OPTION_SHORT_BASEDN,
-        OPTION_LONG_BASEDN, false, true, true, INFO_BASEDN_PLACEHOLDER.get(),
-        null,
-        null, INFO_DESCRIPTION_REPLICATION_BASEDNS.get());
-    baseDNsArg.setPropertyName(OPTION_LONG_BASEDN);
+    baseDNsArg =
+            StringArgument.builder(OPTION_LONG_BASEDN)
+                    .shortIdentifier(OPTION_SHORT_BASEDN)
+                    .description(INFO_DESCRIPTION_REPLICATION_BASEDNS.get())
+                    .multiValued()
+                    .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                    .buildArgument();
     defaultArgs.add(index++, baseDNsArg);
 
-    secureArgsList.adminUidArg = new StringArgument("adminUID", 'I',
-        OPTION_LONG_ADMIN_UID, false, false, true,
-        INFO_ADMINUID_PLACEHOLDER.get(),
-        Constants.GLOBAL_ADMIN_UID, null,
-        INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
-            ENABLE_REPLICATION_SUBCMD_NAME));
-    getAdminUidArg().setPropertyName(OPTION_LONG_ADMIN_UID);
-    getAdminUidArg().setHidden(false);
-    defaultArgs.add(index++, getAdminUidArg());
+    adminUidArg = CommonArguments.getAdminUid(
+            INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
+    defaultArgs.add(index++, adminUidArg);
 
-    secureArgsList.bindPasswordArg = new StringArgument(
-        OPTION_LONG_ADMIN_PWD.toLowerCase(),
-        OPTION_SHORT_BINDPWD, OPTION_LONG_ADMIN_PWD, false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
+    secureArgsList.bindPasswordArg =
+            StringArgument.builder(OPTION_LONG_ADMIN_PWD)
+                    .shortIdentifier(OPTION_SHORT_BINDPWD)
+                    .description(INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get())
+                    .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
+                    .buildArgument();
     defaultArgs.add(index++, secureArgsList.bindPasswordArg);
 
-    secureArgsList.bindPasswordFileArg = new FileBasedArgument(
-        OPTION_LONG_ADMIN_PWD_FILE.toLowerCase(),
-        OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_ADMIN_PWD_FILE, false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
+    secureArgsList.bindPasswordFileArg =
+            FileBasedArgument.builder(OPTION_LONG_ADMIN_PWD_FILE)
+                    .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
+                    .description(INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get())
+                    .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
+                    .buildArgument();
     defaultArgs.add(index++, secureArgsList.bindPasswordFileArg);
 
     defaultArgs.remove(verboseArg);
@@ -475,12 +478,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     configFileArg = CommonArguments.getConfigFile();
     defaultArgs.add(index++, configFileArg);
-
-    for (int i=0; i<index; i++)
-    {
-      Argument arg = defaultArgs.get(i);
-      arg.setPropertyName(arg.getLongIdentifier());
-    }
 
     this.propertiesFileArgument = CommonArguments.getPropertiesFile();
     defaultArgs.add(this.propertiesFileArgument);
@@ -534,136 +531,145 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     createServerArgs1();
     createServerArgs2();
 
-    skipPortCheckArg = new BooleanArgument(
-        "skipportcheck", 'S', "skipPortCheck",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_SKIPPORT.get());
-
-    noSchemaReplicationArg = new BooleanArgument(
-        "noschemareplication", null, "noSchemaReplication",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_SCHEMA_REPLICATION.get());
-
-    useSecondServerAsSchemaSourceArg = new BooleanArgument(
-        "usesecondserverasschemasource", null, "useSecondServerAsSchemaSource",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SECOND_AS_SCHEMA_SOURCE.get(
-            "--"+noSchemaReplicationArg.getLongIdentifier()));
+    skipPortCheckArg =
+            BooleanArgument.builder("skipPortCheck")
+                    .shortIdentifier('S')
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_SKIPPORT.get())
+                    .buildArgument();
+    noSchemaReplicationArg =
+            BooleanArgument.builder("noSchemaReplication")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_NO_SCHEMA_REPLICATION.get())
+                    .buildArgument();
+    useSecondServerAsSchemaSourceArg =
+            BooleanArgument.builder("useSecondServerAsSchemaSource")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SECOND_AS_SCHEMA_SOURCE.get(
+                            "--" + noSchemaReplicationArg.getLongIdentifier()))
+                    .buildArgument();
 
     enableReplicationSubCmd = new SubCommand(this,
         ENABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_ENABLE_REPLICATION.get());
-
-    Argument[] argsToAdd = {
-          server1.hostNameArg, server1.portArg, server1.bindDnArg, server1.bindPasswordArg,
-          server1.bindPasswordFileArg, server1.replicationPortArg, server1.secureReplicationArg,
-          server1.noReplicationServerArg, server1.onlyReplicationServerArg,
-          server2.hostNameArg, server2.portArg, server2.bindDnArg, server2.bindPasswordArg,
-          server2.bindPasswordFileArg, server2.replicationPortArg, server2.secureReplicationArg,
-          server2.noReplicationServerArg, server2.onlyReplicationServerArg,
-          skipPortCheckArg, noSchemaReplicationArg, useSecondServerAsSchemaSourceArg
-    };
-    for (Argument arg : argsToAdd)
-    {
-      arg.setPropertyName(arg.getLongIdentifier());
-      enableReplicationSubCmd.addArgument(arg);
-    }
+    addArgumentsToSubCommand(enableReplicationSubCmd,
+            server1.hostNameArg, server1.portArg, server1.bindDnArg, server1.bindPasswordArg,
+            server1.bindPasswordFileArg, server1.replicationPortArg, server1.secureReplicationArg,
+            server1.noReplicationServerArg, server1.onlyReplicationServerArg,
+            server2.hostNameArg, server2.portArg, server2.bindDnArg, server2.bindPasswordArg,
+            server2.bindPasswordFileArg, server2.replicationPortArg, server2.secureReplicationArg,
+            server2.noReplicationServerArg, server2.onlyReplicationServerArg,
+            skipPortCheckArg, noSchemaReplicationArg, useSecondServerAsSchemaSourceArg);
   }
 
   private void createServerArgs1() throws ArgumentException
   {
     ServerArgs server = server1;
-    server.hostNameArg = new StringArgument("host1", OPTION_SHORT_HOST,
-        "host1", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        getDefaultHostValue(),
-        null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
-
-    server.portArg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        defaultAdminPort, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
-
-    server.bindDnArg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
-        "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        "cn=Directory Manager", null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
-
-    server.bindPasswordArg = new StringArgument("bindPassword1",
-        null, "bindPassword1", false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
-
-    server.bindPasswordFileArg = new FileBasedArgument("bindPasswordFile1",
-        null, "bindPasswordFile1", false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
-
-    server.replicationPortArg = new IntegerArgument("replicationPort1", 'r',
-        "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        8989, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
-
-    server.secureReplicationArg = new BooleanArgument("secureReplication1", null,
-        "secureReplication1",
-        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
-
-    server.noReplicationServerArg = new BooleanArgument(
-        "noreplicationserver1", null, "noReplicationServer1",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get());
-
-    server.onlyReplicationServerArg = new BooleanArgument(
-        "onlyreplicationserver1", null, "onlyReplicationServer1",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get());
+    server.hostNameArg =
+            StringArgument.builder("host1")
+                    .shortIdentifier(OPTION_SHORT_HOST)
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get())
+                    .defaultValue(secureArgsList.getDefaultHostName())
+                    .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                    .buildArgument();
+    server.portArg =
+            IntegerArgument.builder("port1")
+                    .shortIdentifier(OPTION_SHORT_PORT)
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get())
+                    .range(1, 65336)
+                    .defaultValue(defaultAdminPort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
+    server.bindDnArg =
+            StringArgument.builder("bindDN1")
+                    .shortIdentifier(OPTION_SHORT_BINDDN)
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get())
+                    .defaultValue("cn=Directory Manager")
+                    .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
+                    .buildArgument();
+    server.bindPasswordArg =
+            StringArgument.builder("bindPassword1")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get())
+                    .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
+                    .buildArgument();
+    server.bindPasswordFileArg =
+            FileBasedArgument.builder("bindPasswordFile1")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get())
+                    .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
+                    .buildArgument();
+    server.replicationPortArg =
+            IntegerArgument.builder("replicationPort1")
+                    .shortIdentifier('r')
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get())
+                    .range(1, 65336)
+                    .defaultValue(8989)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
+    server.secureReplicationArg =
+            BooleanArgument.builder("secureReplication1")
+                    .description(INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get())
+                    .buildArgument();
+    server.noReplicationServerArg =
+            BooleanArgument.builder("noReplicationServer1")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get())
+                    .buildArgument();
+    server.onlyReplicationServerArg =
+            BooleanArgument.builder("onlyReplicationServer1")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get())
+                    .buildArgument();
   }
 
   private void createServerArgs2() throws ArgumentException
   {
     ServerArgs server = server2;
-    server.hostNameArg = new StringArgument("host2", 'O',
-        "host2", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        getDefaultHostValue(),
-        null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
-
-    server.portArg = new IntegerArgument("port2", null, "port2",
-        false, false, true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
-
-    server.bindDnArg = new StringArgument("bindDN2", null,
-        "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        "cn=Directory Manager", null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
-
-    server.bindPasswordArg = new StringArgument("bindPassword2",
-        null, "bindPassword2", false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
-
-    server.bindPasswordFileArg = new FileBasedArgument("bindPasswordFile2",
-        'F', "bindPasswordFile2", false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
-
-    server.replicationPortArg = new IntegerArgument("replicationPort2", 'R',
-        "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        8989, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
-
-    server.secureReplicationArg = new BooleanArgument("secureReplication2", null,
-        "secureReplication2",
-        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get());
-
-    server.noReplicationServerArg = new BooleanArgument(
-        "noreplicationserver2", null, "noReplicationServer2",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get());
-
-    server.onlyReplicationServerArg = new BooleanArgument(
-        "onlyreplicationserver2", null, "onlyReplicationServer2",
-        INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get());
+    server.hostNameArg =
+            StringArgument.builder("host2")
+                    .shortIdentifier('O')
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get())
+                    .defaultValue(secureArgsList.getDefaultHostName())
+                    .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                    .buildArgument();
+    server.portArg =
+            IntegerArgument.builder("port2")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get())
+                    .range(1, 65336)
+                    .defaultValue(defaultAdminPort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
+    server.bindDnArg =
+            StringArgument.builder("bindDN2")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get())
+                    .defaultValue("cn=Directory Manager")
+                    .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
+                    .buildArgument();
+    server.bindPasswordArg =
+            StringArgument.builder("bindPassword2")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get())
+                    .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
+                    .buildArgument();
+    server.bindPasswordFileArg =
+            FileBasedArgument.builder("bindPasswordFile2")
+                    .shortIdentifier('F')
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get())
+                    .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
+                    .buildArgument();
+    server.replicationPortArg =
+            IntegerArgument.builder("replicationPort2")
+                    .shortIdentifier('R')
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get())
+                    .range(1, 65336)
+                    .defaultValue(8989)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
+    server.secureReplicationArg =
+            BooleanArgument.builder("secureReplication2")
+                    .description(INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get())
+                    .buildArgument();
+    server.noReplicationServerArg =
+            BooleanArgument.builder("noReplicationServer2")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get())
+                    .buildArgument();
+    server.onlyReplicationServerArg =
+            BooleanArgument.builder("onlyReplicationServer2")
+                    .description(INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get())
+                    .buildArgument();
   }
 
   /**
@@ -678,18 +684,22 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     disableReplicationSubCmd = new SubCommand(this,
         DISABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_DISABLE_REPLICATION.get());
-    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    secureArgsList.bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
-        OPTION_LONG_BINDDN, false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        "cn=Directory Manager", OPTION_LONG_BINDDN,
-        INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
-    disableReplicationServerArg = new BooleanArgument(
-        "disablereplicationserver", null, "disableReplicationServer",
-        INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get());
-    disableAllArg = new BooleanArgument(
-        "disableall", 'a', "disableAll",
-        INFO_DESCRIPTION_DISABLE_ALL.get());
-
+    secureArgsList.bindDnArg =
+            StringArgument.builder(OPTION_LONG_BINDDN)
+                    .shortIdentifier(OPTION_SHORT_BINDDN)
+                    .description(INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get())
+                    .defaultValue("cn=Directory Manager")
+                    .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
+                    .buildArgument();
+    disableReplicationServerArg =
+            BooleanArgument.builder("disableReplicationServer")
+                    .shortIdentifier('a')
+                    .description(INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get())
+                    .buildArgument();
+    disableAllArg =
+            BooleanArgument.builder("disableAll")
+                    .description(INFO_DESCRIPTION_DISABLE_ALL.get())
+                    .buildArgument();
 
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.bindDnArg,
@@ -708,39 +718,42 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     initializeReplicationSubCmd = new SubCommand(this, INITIALIZE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_INITIALIZE_REPLICATION.get(INITIALIZE_ALL_REPLICATION_SUBCMD_NAME));
-
-    Argument[] argsToAdd = {
-        hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg
-    };
-    setSubCommandArguments(initializeReplicationSubCmd, argsToAdd);
+    addArgumentsToSubCommand(initializeReplicationSubCmd,
+        hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg);
   }
 
   private void createRelatedServersOptions() throws ArgumentException
   {
-    hostNameSourceArg = new StringArgument("hostSource", OPTION_SHORT_HOST,
-        "hostSource", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        getDefaultHostValue(), null,
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
-
-    portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
-        "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        defaultAdminPort, null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
-
-    hostNameDestinationArg = new StringArgument("hostDestination", 'O',
-        "hostDestination", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        getDefaultHostValue(), null,
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
-
-    portDestinationArg = new IntegerArgument("portDestination", null,
-        "portDestination", false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        defaultAdminPort,
-        null,
-        true, 1,
-        true, 65336,
-        INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
+    final String defaultHostName = secureArgsList.getDefaultHostName();
+    hostNameSourceArg =
+            StringArgument.builder("hostSource")
+                    .shortIdentifier(OPTION_SHORT_HOST)
+                    .description(INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get())
+                    .defaultValue(defaultHostName)
+                    .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                    .buildArgument();
+    portSourceArg =
+            IntegerArgument.builder("portSource")
+                    .shortIdentifier(OPTION_SHORT_PORT)
+                    .description(INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get())
+                    .range(1, 65336)
+                    .defaultValue(defaultAdminPort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
+    hostNameDestinationArg =
+            StringArgument.builder("hostDestination")
+                    .shortIdentifier('O')
+                    .description(INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get())
+                    .defaultValue(defaultHostName)
+                    .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                    .buildArgument();
+    portDestinationArg =
+            IntegerArgument.builder("portDestination")
+                    .description(INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get())
+                    .range(1, 65336)
+                    .defaultValue(defaultAdminPort)
+                    .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                    .buildArgument();
   }
 
   /**
@@ -756,7 +769,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INITIALIZE_ALL_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_INITIALIZE_ALL_REPLICATION.get(
             INITIALIZE_REPLICATION_SUBCMD_NAME));
-    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg };
     for (Argument arg : argsToAdd)
@@ -779,13 +791,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_PRE_EXTERNAL_INITIALIZATION.get(
             POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    BooleanArgument externalInitializationLocalOnlyArg = new BooleanArgument(
-        "local-only",
-        'l',
-        "local-only",
-        LocalizableMessage.EMPTY);
-    externalInitializationLocalOnlyArg.setHidden(true);
+    BooleanArgument externalInitializationLocalOnlyArg =
+            BooleanArgument.builder("local-only")
+                    .shortIdentifier('l')
+                    .description(LocalizableMessage.EMPTY)
+                    .hidden()
+                    .buildArgument();
 
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg,
@@ -811,7 +822,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_POST_EXTERNAL_INITIALIZATION.get(
             PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg };
     for (Argument arg : argsToAdd)
@@ -824,27 +834,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     resetChangelogNumber = new SubCommand(this, RESET_CHANGE_NUMBER_SUBCMD_NAME,
         INFO_DESCRIPTION_RESET_CHANGE_NUMBER.get());
-
     resetChangeNumber = newChangeNumberArgument();
-    Argument[] argsToAdd = {
-        hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg, resetChangeNumber
-    };
-    setSubCommandArguments(resetChangelogNumber, argsToAdd);
-  }
-
-  private void setSubCommandArguments(SubCommand subCommand, Argument[] argsToAdd) throws ArgumentException
-  {
-    for (Argument arg : argsToAdd)
-    {
-      arg.setPropertyName(arg.getLongIdentifier());
-      subCommand.addArgument(arg);
-    }
+    addArgumentsToSubCommand(resetChangelogNumber,
+            hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg, resetChangeNumber);
   }
 
   IntegerArgument newChangeNumberArgument() throws ArgumentException
   {
-    return new IntegerArgument("change-number", null, "change-number",
-        false, true, INFO_CHANGE_NUMBER_PLACEHOLDER.get(), INFO_DESCRIPTION_START_CHANGE_NUMBER.get());
+    return IntegerArgument.builder("change-number")
+            .description(INFO_DESCRIPTION_START_CHANGE_NUMBER.get())
+            .valuePlaceholder(INFO_CHANGE_NUMBER_PLACEHOLDER.get())
+            .buildArgument();
   }
 
   /**
@@ -858,19 +858,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     statusReplicationSubCmd = new SubCommand(this,
         STATUS_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_STATUS_REPLICATION.get());
-    scriptFriendlyArg = new BooleanArgument(
-        "script-friendly",
-        's',
-        "script-friendly",
-        INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
-    scriptFriendlyArg.setPropertyName(scriptFriendlyArg.getLongIdentifier());
-    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, scriptFriendlyArg };
-    for (Argument arg : argsToAdd)
-    {
-      statusReplicationSubCmd.addArgument(arg);
-    }
+    scriptFriendlyArg =
+            BooleanArgument.builder("script-friendly")
+                    .shortIdentifier('s')
+                    .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
+                    .buildArgument();
+    addArgumentsToSubCommand(
+            statusReplicationSubCmd, secureArgsList.hostNameArg, secureArgsList.portArg, scriptFriendlyArg);
   }
 
   /**
@@ -879,41 +873,32 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * initializeGlobalArguments has already been called and that hostNameArg and
    * portArg have been created.
    */
-  private void createPurgeHistoricalSubCommand()
-  throws ArgumentException
+  private void createPurgeHistoricalSubCommand() throws ArgumentException
   {
-    maximumDurationArg = new IntegerArgument(
-        "maximumDuration",
-        null, // shortId
-        "maximumDuration",
-        true, // isRequired
-        false, // isMultivalued
-        true,  // needsValue
-        INFO_MAXIMUM_DURATION_PLACEHOLDER.get(),
-        PurgeConflictsHistoricalTask.DEFAULT_MAX_DURATION,
-        null,
-        true, 0,
-        false, Integer.MAX_VALUE,
-        INFO_DESCRIPTION_PURGE_HISTORICAL_MAXIMUM_DURATION.get());
+    maximumDurationArg =
+            IntegerArgument.builder("maximumDuration")
+                    .description(INFO_DESCRIPTION_PURGE_HISTORICAL_MAXIMUM_DURATION.get())
+                    .required()
+                    .lowerBound(0)
+                    .defaultValue(PurgeConflictsHistoricalTask.DEFAULT_MAX_DURATION)
+                    .valuePlaceholder(INFO_MAXIMUM_DURATION_PLACEHOLDER.get())
+                    .buildArgument();
 
     purgeHistoricalSubCmd = new SubCommand(
         this,
         PURGE_HISTORICAL_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_PURGE_HISTORICAL.get());
 
-    Argument[] argsToAdd = {
-        secureArgsList.hostNameArg,
-        secureArgsList.portArg,
-        maximumDurationArg};
+    addArgumentsToSubCommand(purgeHistoricalSubCmd,
+            secureArgsList.hostNameArg, secureArgsList.portArg, maximumDurationArg);
+    addArgumentsToSubCommand(purgeHistoricalSubCmd, taskArgs.getArguments());
+  }
 
-    for (Argument arg : argsToAdd)
+  private void addArgumentsToSubCommand(final SubCommand subCommand, final Argument... args) throws ArgumentException
+  {
+    for (final Argument arg : args)
     {
-      arg.setPropertyName(arg.getLongIdentifier());
-      purgeHistoricalSubCmd.addArgument(arg);
-    }
-    for (Argument arg : taskArgs.getArguments())
-    {
-      purgeHistoricalSubCmd.addArgument(arg);
+      subCommand.addArgument(arg);
     }
   }
 
@@ -989,7 +974,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   StringArgument getAdminUidArg()
   {
-    return secureArgsList.adminUidArg;
+    return adminUidArg;
   }
 
   /**
@@ -1655,30 +1640,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       buf.append(LINE_SEPARATOR);
     }
     buf.append(message);
-  }
-
-  /**
-   * Returns the default value to be used for the host.
-   * @return the default value to be used for the host.
-   */
-  private String getDefaultHostValue()
-  {
-    if (defaultLocalHostValue == null)
-    {
-      try
-      {
-        defaultLocalHostValue =
-          java.net.InetAddress.getLocalHost().getHostName();
-      }
-      catch (Throwable t)
-      {
-      }
-      if (defaultLocalHostValue == null)
-      {
-        defaultLocalHostValue = "localhost";
-      }
-    }
-    return defaultLocalHostValue;
   }
 
   /**

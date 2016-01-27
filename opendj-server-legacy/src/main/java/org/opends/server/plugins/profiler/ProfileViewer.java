@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
 
@@ -121,15 +121,18 @@ public class ProfileViewer
     try
     {
       fileNames =
-        new StringArgument("filenames", 'f', "fileName", true, true, true,
-                           INFO_FILE_PLACEHOLDER.get(), null, null,
-                           INFO_PROFILEVIEWER_DESCRIPTION_FILENAMES.get());
-      argParser.addArgument(fileNames);
-
-      useGUI = new BooleanArgument(
-              "usegui", 'g', "useGUI",
-              INFO_PROFILEVIEWER_DESCRIPTION_USE_GUI.get());
-      argParser.addArgument(useGUI);
+              StringArgument.builder("fileName")
+                      .shortIdentifier('f')
+                      .description(INFO_PROFILEVIEWER_DESCRIPTION_FILENAMES.get())
+                      .multiValued()
+                      .required()
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      useGUI =
+              BooleanArgument.builder("useGUI")
+                      .shortIdentifier('g')
+                      .description(INFO_PROFILEVIEWER_DESCRIPTION_USE_GUI.get())
+                      .buildAndAddToParser(argParser);
 
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.uninstaller;
 
@@ -1962,7 +1962,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           LocalizableMessage msg =
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
-              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
+              parser.getSecureArgsList().adminUidHiddenArg.getLongIdentifier(),
               "--"+OPTION_LONG_BINDPWD,
               "--"+OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),

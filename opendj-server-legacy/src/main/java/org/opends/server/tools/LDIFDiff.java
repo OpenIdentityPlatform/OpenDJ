@@ -174,79 +174,76 @@ public class LDIFDiff
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {
-      sourceLDIF = new StringArgument(
-              "sourceldif", 's', "sourceLDIF", true,
-              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFDIFF_DESCRIPTION_SOURCE_LDIF.get());
-      argParser.addArgument(sourceLDIF);
-
-      targetLDIF = new StringArgument(
-              "targetldif", 't', "targetLDIF", true,
-              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFDIFF_DESCRIPTION_TARGET_LDIF.get());
-      argParser.addArgument(targetLDIF);
-
-      outputLDIF = new StringArgument(
-              "outputldif", 'o', "outputLDIF", false,
-              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF.get());
-      argParser.addArgument(outputLDIF);
-
-      ignoreAttrsFile = new StringArgument(
-              "ignoreattrs", 'a', "ignoreAttrs", false,
-              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFDIFF_DESCRIPTION_IGNORE_ATTRS.get());
-      argParser.addArgument(ignoreAttrsFile);
-
-      ignoreEntriesFile = new StringArgument(
-              "ignoreentries", 'e', "ignoreEntries", false,
-              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-              INFO_LDIFDIFF_DESCRIPTION_IGNORE_ENTRIES.get());
-      argParser.addArgument(ignoreEntriesFile);
-
+      sourceLDIF =
+              StringArgument.builder("sourceLDIF")
+                      .shortIdentifier('s')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_SOURCE_LDIF.get())
+                      .required()
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      targetLDIF =
+              StringArgument.builder("targetLDIF")
+                      .shortIdentifier('t')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_TARGET_LDIF.get())
+                      .required()
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      outputLDIF =
+              StringArgument.builder("outputLDIF")
+                      .shortIdentifier('o')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      ignoreAttrsFile =
+              StringArgument.builder("ignoreAttrs")
+                      .shortIdentifier('a')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_IGNORE_ATTRS.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      ignoreEntriesFile =
+              StringArgument.builder("ignoreEntries")
+                      .shortIdentifier('e')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_IGNORE_ENTRIES.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       overwriteExisting =
-           new BooleanArgument(
-                   "overwriteexisting", 'O',
-                   "overwriteExisting",
-                   INFO_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING.get());
-      argParser.addArgument(overwriteExisting);
-
+              BooleanArgument.builder("overwriteExisting")
+                      .shortIdentifier('O')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_OVERWRITE_EXISTING.get())
+                      .buildAndAddToParser(argParser);
       singleValueChanges =
-           new BooleanArgument(
-                   "singlevaluechanges", 'S', "singleValueChanges",
-                   INFO_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES.get());
-      argParser.addArgument(singleValueChanges);
-
+              BooleanArgument.builder("singleValueChanges")
+                      .shortIdentifier('S')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_SINGLE_VALUE_CHANGES.get())
+                      .buildAndAddToParser(argParser);
       doCheckSchema =
-        new BooleanArgument(
-                "checkschema", null, "checkSchema",
-                INFO_LDIFDIFF_DESCRIPTION_CHECK_SCHEMA.get());
-      argParser.addArgument(doCheckSchema);
-
-      configFile = new StringArgument("configfile", 'c', "configFile", false,
-                                      false, true,
-                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-      configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                             OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                             ConfigFileHandler.class.getName(), null,
-                             INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
+              BooleanArgument.builder("checkSchema")
+                      .description(INFO_LDIFDIFF_DESCRIPTION_CHECK_SCHEMA.get())
+                      .buildAndAddToParser(argParser);
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('c')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage =  CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
 
       useCompareResultCode =
-          new BooleanArgument("usecompareresultcode", 'r',
-              "useCompareResultCode",
-              INFO_LDIFDIFF_DESCRIPTION_USE_COMPARE_RESULT.get());
-      argParser.addArgument(useCompareResultCode);
+              BooleanArgument.builder("useCompareResultCode")
+                      .shortIdentifier('r')
+                      .description(INFO_LDIFDIFF_DESCRIPTION_USE_COMPARE_RESULT.get())
+                      .buildAndAddToParser(argParser);
 
       argParser.setUsageArgument(showUsage);
     }

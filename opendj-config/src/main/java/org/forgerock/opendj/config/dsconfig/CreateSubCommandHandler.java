@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -917,32 +917,34 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         // Build the -t option usage.
         this.typeUsage = getSubTypesUsage(r.getChildDefinition());
 
-        // Create the --property argument which is used to specify
-        // property values.
-        this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET,
-                OPTION_DSCFG_LONG_SET, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
-        this.subCommand.addArgument(this.propertySetArgument);
+        // Create the --property argument which is used to specify property values.
+        this.propertySetArgument =
+                StringArgument.builder(OPTION_DSCFG_LONG_SET)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_SET)
+                        .description(INFO_DSCFG_DESCRIPTION_PROP_VAL.get())
+                        .multiValued()
+                        .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                        .buildAndAddToSubCommand(subCommand);
+
+        final StringArgument.Builder typeArgumentBuilder = StringArgument.builder(OPTION_DSCFG_LONG_TYPE)
+                .shortIdentifier(OPTION_DSCFG_SHORT_TYPE)
+                .valuePlaceholder(INFO_TYPE_PLACEHOLDER.get());
 
         if (!types.containsKey(DSConfig.GENERIC_TYPE)) {
             // The option is mandatory when non-interactive.
-            this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false,
-                    false, true, INFO_TYPE_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_TYPE.get(r
-                            .getChildDefinition().getUserFriendlyName(), typeUsage));
+            typeArgumentBuilder.description(INFO_DSCFG_DESCRIPTION_TYPE.get(
+                    r.getChildDefinition().getUserFriendlyName(), typeUsage));
         } else {
             // The option has a sensible default "generic".
-            this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false,
-                    false, true, INFO_TYPE_PLACEHOLDER.get(), DSConfig.GENERIC_TYPE, null,
-                    INFO_DSCFG_DESCRIPTION_TYPE_DEFAULT.get(r.getChildDefinition().getUserFriendlyName(),
-                            DSConfig.GENERIC_TYPE, typeUsage));
-
-            // Hide the option if it defaults to generic and generic is the
-            // only possible value.
+            typeArgumentBuilder.description(INFO_DSCFG_DESCRIPTION_TYPE_DEFAULT.get(
+                                       r.getChildDefinition().getUserFriendlyName(), DSConfig.GENERIC_TYPE, typeUsage))
+                               .defaultValue(DSConfig.GENERIC_TYPE);
+            // Hide the option if it defaults to generic and generic is the only possible value.
             if (types.size() == 1) {
-                this.typeArgument.setHidden(true);
+                typeArgumentBuilder.hidden();
             }
         }
-        this.subCommand.addArgument(this.typeArgument);
+        typeArgument = typeArgumentBuilder.buildAndAddToSubCommand(subCommand);
 
         // Register the tags associated with the child managed objects.
         addTags(relation.getChildDefinition().getAllTags());
@@ -1144,9 +1146,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             commandBuilder.addArgument(typeArgument);
         } else {
             // Set the type provided by the user
-            StringArgument arg = new StringArgument(typeArgument.getName(), OPTION_DSCFG_SHORT_TYPE,
-                    OPTION_DSCFG_LONG_TYPE, false, false, true, INFO_TYPE_PLACEHOLDER.get(),
-                    typeArgument.getDefaultValue(), typeArgument.getPropertyName(), typeArgument.getDescription());
+            StringArgument arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_TYPE)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_TYPE)
+                            .description(typeArgument.getDescription())
+                            .defaultValue(typeArgument.getDefaultValue())
+                            .valuePlaceholder(INFO_TYPE_PLACEHOLDER.get())
+                            .buildArgument();
             arg.addValue(getTypeName(d));
             commandBuilder.addArgument(arg);
         }
@@ -1155,9 +1161,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
              * We might have some conflicts in terms of arguments: the user might have provided some values that
              * were not good and then these have overwritten when asking for them interactively: filter them
              */
-            StringArgument filteredArg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET,
-                    OPTION_DSCFG_LONG_SET, false, true, true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
-                    INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+            StringArgument filteredArg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_SET)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_SET)
+                            .description(INFO_DSCFG_DESCRIPTION_PROP_VAL.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                            .buildArgument();
             for (String value : propertySetArgument.getValues()) {
                 if (canAddValue(commandBuilder, value)) {
                     filteredArg.addValue(value);
@@ -1172,16 +1182,18 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         List<Argument> argsCopy = new LinkedList<>(commandBuilder.getArguments());
         for (Argument arg : argsCopy) {
             if (arg != null
-                    && (OPTION_DSCFG_LONG_RESET.equals(arg.getName())
-                            || OPTION_DSCFG_LONG_REMOVE.equals(arg.getName()))) {
+                    && (OPTION_DSCFG_LONG_RESET.equals(arg.getLongIdentifier())
+                            || OPTION_DSCFG_LONG_REMOVE.equals(arg.getLongIdentifier()))) {
                 commandBuilder.removeArgument(arg);
             }
         }
 
         if (isNameProvidedInteractively) {
-            StringArgument arg = new StringArgument(providedNamingArgName, null, providedNamingArgName, false,
-                    true, INFO_NAME_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d
-                            .getUserFriendlyName()));
+            StringArgument arg =
+                    StringArgument.builder(providedNamingArgName)
+                            .description(INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()))
+                            .valuePlaceholder(INFO_NAME_PLACEHOLDER.get())
+                            .buildArgument();
             arg.addValue(child.getManagedObjectPath().getName());
             commandBuilder.addArgument(arg);
         } else {
@@ -1201,7 +1213,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         String propName = value.substring(0, index);
         for (Argument arg : commandBuilder.getArguments()) {
             for (String value2 : arg.getValues()) {
-                String prop2Name = getPropName(arg.getName(), value2);
+                String prop2Name = getPropName(arg.getLongIdentifier(), value2);
                 if (propName.equalsIgnoreCase(prop2Name)) {
                     return false;
                 }
@@ -1245,18 +1257,31 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         switch (mod.getType()) {
         case ADD:
         case SET:
-            arg = new StringArgument(OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true,
-                    true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_SET)
+                            .shortIdentifier(OPTION_DSCFG_SHORT_SET)
+                            .description(INFO_DSCFG_DESCRIPTION_PROP_VAL.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                            .buildArgument();
             addValues(mod, arg);
             return arg;
         case RESET:
-            arg = new StringArgument(OPTION_DSCFG_LONG_RESET, null, OPTION_DSCFG_LONG_RESET, false, true, true,
-                    INFO_PROPERTY_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_RESET)
+                            .description(INFO_DSCFG_DESCRIPTION_RESET_PROP.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_PROPERTY_PLACEHOLDER.get())
+                            .buildArgument();
             arg.addValue(mod.getPropertyDefinition().getName());
             return arg;
         case REMOVE:
-            arg = new StringArgument(OPTION_DSCFG_LONG_REMOVE, null, OPTION_DSCFG_LONG_REMOVE, false, true, true,
-                    INFO_VALUE_SET_PLACEHOLDER.get(), null, null, INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
+            arg =
+                    StringArgument.builder(OPTION_DSCFG_LONG_REMOVE)
+                            .description(INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get())
+                            .multiValued()
+                            .valuePlaceholder(INFO_VALUE_SET_PLACEHOLDER.get())
+                            .buildArgument();
             addValues(mod, arg);
             return arg;
         default:

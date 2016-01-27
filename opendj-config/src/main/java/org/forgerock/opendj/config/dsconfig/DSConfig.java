@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -943,29 +943,36 @@ public final class DSConfig extends ConsoleApplication {
             advancedModeArgument = CommonArguments.getAdvancedMode();
             showUsageArgument = CommonArguments.getShowUsage();
 
-            batchArgument = new BooleanArgument(OPTION_LONG_BATCH, null, OPTION_LONG_BATCH,
-                    INFO_DESCRIPTION_BATCH.get());
-
-            batchFileArgument = new StringArgument(OPTION_LONG_BATCH_FILE_PATH, OPTION_SHORT_BATCH_FILE_PATH,
-                    OPTION_LONG_BATCH_FILE_PATH, false, false, true, INFO_BATCH_FILE_PATH_PLACEHOLDER.get(), null,
-                    null, INFO_DESCRIPTION_BATCH_FILE_PATH.get());
-
-            displayEquivalentArgument = new BooleanArgument(OPTION_LONG_DISPLAY_EQUIVALENT, null,
-                    OPTION_LONG_DISPLAY_EQUIVALENT, INFO_DSCFG_DESCRIPTION_DISPLAY_EQUIVALENT.get());
-
-            equivalentCommandFileArgument = new StringArgument(OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
-                    OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, false, false, true, INFO_PATH_PLACEHOLDER.get(), null,
-                    null, INFO_DSCFG_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
-
-            propertiesFileArgument = new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false,
-                    false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-                    INFO_DESCRIPTION_PROP_FILE_PATH.get());
-
-            noPropertiesFileArgument = new BooleanArgument("noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-                    INFO_DESCRIPTION_NO_PROP_FILE.get());
+            batchArgument =
+                    BooleanArgument.builder(OPTION_LONG_BATCH)
+                            .description(INFO_DESCRIPTION_BATCH.get())
+                            .buildArgument();
+            batchFileArgument =
+                    StringArgument.builder(OPTION_LONG_BATCH_FILE_PATH)
+                            .shortIdentifier(OPTION_SHORT_BATCH_FILE_PATH)
+                            .description(INFO_DESCRIPTION_BATCH_FILE_PATH.get())
+                            .valuePlaceholder(INFO_BATCH_FILE_PATH_PLACEHOLDER.get())
+                            .buildArgument();
+            displayEquivalentArgument =
+                    BooleanArgument.builder(OPTION_LONG_DISPLAY_EQUIVALENT)
+                            .description(INFO_DSCFG_DESCRIPTION_DISPLAY_EQUIVALENT.get())
+                            .buildArgument();
+            equivalentCommandFileArgument =
+                    StringArgument.builder(OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH)
+                            .description(INFO_DSCFG_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get())
+                            .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
+                            .buildArgument();
+            propertiesFileArgument =
+                    StringArgument.builder(OPTION_LONG_PROP_FILE_PATH)
+                            .description(INFO_DESCRIPTION_PROP_FILE_PATH.get())
+                            .valuePlaceholder(INFO_PROP_FILE_PATH_PLACEHOLDER.get())
+                            .buildArgument();
+            noPropertiesFileArgument =
+                    BooleanArgument.builder(OPTION_LONG_NO_PROP_FILE)
+                            .description(INFO_DESCRIPTION_NO_PROP_FILE.get())
+                            .buildArgument();
 
             // Register the global arguments.
-
             ArgumentGroup toolOptionsGroup = new ArgumentGroup(INFO_DSCFG_DESCRIPTION_OPTIONS_ARGS.get(), 2);
             parser.addGlobalArgument(advancedModeArgument, toolOptionsGroup);
 
@@ -1033,8 +1040,10 @@ public final class DSConfig extends ConsoleApplication {
 
                 String option = OPTION_LONG_HELP + "-" + tag.getName();
                 String synopsis = tag.getSynopsis().toString().toLowerCase();
-                BooleanArgument arg = new BooleanArgument(option, null, option,
-                        INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE.get(synopsis));
+                BooleanArgument arg =
+                        BooleanArgument.builder(option)
+                                .description(INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE.get(synopsis))
+                                .buildArgument();
 
                 parser.addGlobalArgument(arg);
                 parser.setUsageGroupArgument(arg, subCommands);
@@ -1042,8 +1051,10 @@ public final class DSConfig extends ConsoleApplication {
 
             // Register the --help-all argument.
             String option = OPTION_LONG_HELP + "-all";
-            BooleanArgument arg = new BooleanArgument(option, null, option,
-                    INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL.get());
+            BooleanArgument arg =
+                    BooleanArgument.builder(option)
+                            .description(INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL.get())
+                            .buildArgument();
 
             parser.addGlobalArgument(arg);
             parser.setUsageGroupArgument(arg, allSubCommands);

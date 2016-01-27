@@ -26,9 +26,11 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
@@ -149,7 +151,6 @@ public class ImportLDIF extends TaskTool {
 
   /** Define the command-line arguments that may be used with this program. */
   private BooleanArgument countRejects;
-  private BooleanArgument displayUsage;
   private BooleanArgument isCompressed;
   private BooleanArgument isEncrypted;
   private BooleanArgument overwrite;
@@ -202,14 +203,7 @@ public class ImportLDIF extends TaskTool {
     }
 
     // Init the default values so that they can appear also on the usage.
-    try
-    {
-      argParser.getArguments().initArgumentsWithConfiguration();
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
+    argParser.getArguments().initArgumentsWithConfiguration(argParser);
 
     // Parse the command-line arguments provided to this program.
     try
@@ -295,186 +289,155 @@ public class ImportLDIF extends TaskTool {
   private void createArguments(LDAPConnectionArgumentParser argParser) throws ArgumentException
   {
       configClass =
-           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                              OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                              ConfigFileHandler.class.getName(), null,
-                              INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       configFile =
-           new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       ldifFiles =
-           new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
-                              OPTION_LONG_LDIF_FILE, false, true, true,
-                              INFO_LDIFFILE_PLACEHOLDER.get(), null, null,
-                              INFO_LDIFIMPORT_DESCRIPTION_LDIF_FILE.get());
-      argParser.addArgument(ldifFiles);
-
-
+              StringArgument.builder(OPTION_LONG_LDIF_FILE)
+                      .shortIdentifier(OPTION_SHORT_LDIF_FILE)
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_LDIF_FILE.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_LDIFFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       templateFile =
-           new StringArgument("templatefile", 'A', "templateFile", false, false,
-                              true, INFO_TEMPLATE_FILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE.get());
-      argParser.addArgument(templateFile);
-
+              StringArgument.builder("templateFile")
+                      .shortIdentifier('A')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE.get())
+                      .valuePlaceholder(INFO_TEMPLATE_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       backendID =
-           new StringArgument("backendid", 'n', "backendID", false, false, true,
-                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
-                              INFO_LDIFIMPORT_DESCRIPTION_BACKEND_ID.get());
-      argParser.addArgument(backendID);
-
+              StringArgument.builder("backendID")
+                      .shortIdentifier('n')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_BACKEND_ID.get())
+                      .valuePlaceholder(INFO_BACKENDNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       clearBackend =
-          new BooleanArgument("clearbackend", 'F', "clearBackend",
-                              INFO_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND.get());
-      argParser.addArgument(clearBackend);
-
-
+              BooleanArgument.builder("clearBackend")
+                      .shortIdentifier('F')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND.get())
+                      .buildAndAddToParser(argParser);
       includeBranchStrings =
-           new StringArgument("includebranch", 'b', "includeBranch", false,
-                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_BRANCH.get());
-      argParser.addArgument(includeBranchStrings);
-
-
+              StringArgument.builder("includeBranch")
+                      .shortIdentifier('b')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_BRANCH.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BRANCH_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeBranchStrings =
-           new StringArgument("excludebranch", 'B', "excludeBranch", false,
-                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_BRANCH.get());
-      argParser.addArgument(excludeBranchStrings);
-
-
+              StringArgument.builder("excludeBranch")
+                      .shortIdentifier('B')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_BRANCH.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_BRANCH_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       includeAttributeStrings =
-           new StringArgument(
-                   "includeattribute", 'i', "includeAttribute",
-                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
-                   null,
-                   INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get());
-      argParser.addArgument(includeAttributeStrings);
-
-
+              StringArgument.builder("includeAttribute")
+                      .shortIdentifier('i')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeAttributeStrings =
-           new StringArgument(
-                   "excludeattribute", 'e', "excludeAttribute",
-                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
-                   null,
-                   INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get());
-      argParser.addArgument(excludeAttributeStrings);
-
-
+              StringArgument.builder("excludeAttribute")
+                      .shortIdentifier('e')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       includeFilterStrings =
-           new StringArgument(
-                   "includefilter", 'I', "includeFilter",
-                   false, true, true, INFO_FILTER_PLACEHOLDER.get(), null, null,
-                   INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_FILTER.get());
-      argParser.addArgument(includeFilterStrings);
-
-
+              StringArgument.builder("includeFilter")
+                      .shortIdentifier('I')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_FILTER.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_FILTER_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       excludeFilterStrings =
-           new StringArgument("excludefilter", 'E', "excludeFilter",
-                              false, true, true, INFO_FILTER_PLACEHOLDER.get(),
-                              null, null,
-                              INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_FILTER.get());
-      argParser.addArgument(excludeFilterStrings);
-
-
+              StringArgument.builder("excludeFilter")
+                      .shortIdentifier('E')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_FILTER.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_FILTER_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       rejectFile =
-           new StringArgument("rejectfile", 'R', "rejectFile", false, false,
-                              true, INFO_REJECT_FILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_LDIFIMPORT_DESCRIPTION_REJECT_FILE.get());
-      argParser.addArgument(rejectFile);
-
-
+              StringArgument.builder("rejectFile")
+                      .shortIdentifier('R')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_REJECT_FILE.get())
+                      .valuePlaceholder(INFO_REJECT_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       skipFile =
-           new StringArgument("skipfile", null, "skipFile", false, false,
-                              true, INFO_SKIP_FILE_PLACEHOLDER.get(), null,
-                              null,
-                              INFO_LDIFIMPORT_DESCRIPTION_SKIP_FILE.get());
-      argParser.addArgument(skipFile);
-
-
+              StringArgument.builder("skipFile")
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_SKIP_FILE.get())
+                      .valuePlaceholder(INFO_SKIP_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       overwrite =
-           new BooleanArgument("overwrite", 'O', "overwrite",
-                               INFO_LDIFIMPORT_DESCRIPTION_OVERWRITE.get());
-      argParser.addArgument(overwrite);
-
-
+              BooleanArgument.builder("overwrite")
+                      .shortIdentifier('O')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_OVERWRITE.get())
+                      .buildAndAddToParser(argParser);
       randomSeed =
-           new IntegerArgument("randomseed", OPTION_SHORT_RANDOM_SEED,
-                               OPTION_LONG_RANDOM_SEED, false, false,
-                               true, INFO_SEED_PLACEHOLDER.get(),
-                               0, null, false, 0, false, 0,
-                               INFO_LDIFIMPORT_DESCRIPTION_RANDOM_SEED.get());
-      argParser.addArgument(randomSeed);
-
-
+              IntegerArgument.builder(OPTION_LONG_RANDOM_SEED)
+                      .shortIdentifier(OPTION_SHORT_RANDOM_SEED)
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_RANDOM_SEED.get())
+                      .defaultValue(0)
+                      .valuePlaceholder(INFO_SEED_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       skipSchemaValidation =
-           new BooleanArgument("skipschema", 'S', "skipSchemaValidation",
-                    INFO_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION.get());
-      argParser.addArgument(skipSchemaValidation);
-
-
+              BooleanArgument.builder("skipSchemaValidation")
+                      .shortIdentifier('S')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION.get())
+                      .buildAndAddToParser(argParser);
       skipDNValidation =
-           new BooleanArgument("skipDNValidation", null, "skipDNValidation",
-                    INFO_LDIFIMPORT_DESCRIPTION_DN_VALIDATION.get());
-      argParser.addArgument(skipDNValidation);
-
-
-      threadCount = new IntegerArgument("threadCount", null, "threadCount",
-              false, false, true,
-              INFO_LDIFIMPORT_THREAD_COUNT_PLACEHOLDER.get(),
-              0, null,
-              true, 1, true, Integer.MAX_VALUE,
-              INFO_LDIFIMPORT_DESCRIPTION_THREAD_COUNT.get());
-      argParser.addArgument(threadCount);
-
+              BooleanArgument.builder("skipDNValidation")
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_DN_VALIDATION.get())
+                      .buildAndAddToParser(argParser);
+      threadCount =
+              IntegerArgument.builder("threadCount")
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_THREAD_COUNT.get())
+                      .lowerBound(1)
+                      .defaultValue(0)
+                      .valuePlaceholder(INFO_LDIFIMPORT_THREAD_COUNT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       tmpDirectory =
-           new StringArgument("tmpdirectory", null, "tmpdirectory", false,
-                   false, true, INFO_LDIFIMPORT_TEMP_DIR_PLACEHOLDER.get(),
-                   "import-tmp",
-                    null, INFO_LDIFIMPORT_DESCRIPTION_TEMP_DIRECTORY.get());
-      argParser.addArgument(tmpDirectory);
-
-
+              StringArgument.builder("tmpdirectory")
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_TEMP_DIRECTORY.get())
+                      .defaultValue("import-tmp")
+                      .valuePlaceholder(INFO_LDIFIMPORT_TEMP_DIR_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       countRejects =
-           new BooleanArgument("countrejects", null, "countRejects",
-                               INFO_LDIFIMPORT_DESCRIPTION_COUNT_REJECTS.get());
-      argParser.addArgument(countRejects);
-
-
+              BooleanArgument.builder("countRejects")
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_COUNT_REJECTS.get())
+                      .buildAndAddToParser(argParser);
       isCompressed =
-           new BooleanArgument("iscompressed", 'c', "isCompressed",
-                               INFO_LDIFIMPORT_DESCRIPTION_IS_COMPRESSED.get());
-      argParser.addArgument(isCompressed);
-
-
+              BooleanArgument.builder("isCompressed")
+                      .shortIdentifier('c')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_IS_COMPRESSED.get())
+                      .buildAndAddToParser(argParser);
       isEncrypted =
-           new BooleanArgument("isencrypted", 'y', "isEncrypted",
-                               INFO_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED.get());
-      isEncrypted.setHidden(true); //See issue #27
-      argParser.addArgument(isEncrypted);
+              BooleanArgument.builder("isEncrypted")
+                      .shortIdentifier('y')
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED.get())
+                      .hidden() //See issue #27
+                      .buildAndAddToParser(argParser);
+      quietMode =
+              BooleanArgument.builder(OPTION_LONG_QUIET)
+                      .shortIdentifier(OPTION_SHORT_QUIET)
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_QUIET.get())
+                      .buildAndAddToParser(argParser);
 
-
-      quietMode = new BooleanArgument("quietmode", OPTION_SHORT_QUIET,
-                                      OPTION_LONG_QUIET,
-                                      INFO_LDIFIMPORT_DESCRIPTION_QUIET.get());
-      argParser.addArgument(quietMode);
-
-
-      displayUsage = CommonArguments.getShowUsage();
+    final BooleanArgument displayUsage = showUsageArgument();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
   }

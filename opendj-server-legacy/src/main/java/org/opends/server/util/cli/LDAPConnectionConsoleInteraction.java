@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
@@ -630,9 +630,9 @@ public class LDAPConnectionConsoleInteraction
 
     // Get the LDAP bind credentials.
     state.bindDN = secureArgsList.bindDnArg.getValue();
-    state.adminUID= secureArgsList.adminUidArg.getValue();
+    state.adminUID= secureArgsList.adminUidHiddenArg.getValue();
     final boolean useAdmin = secureArgsList.useAdminUID();
-    if (useAdmin && secureArgsList.adminUidArg.isPresent())
+    if (useAdmin && secureArgsList.adminUidHiddenArg.isPresent())
     {
       state.providedAdminUID = state.adminUID;
     }
@@ -737,9 +737,9 @@ public class LDAPConnectionConsoleInteraction
         }
         if (addAdmin)
         {
-          copySecureArgsList.adminUidArg.clearValues();
-          copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
-          commandBuilder.addArgument(copySecureArgsList.adminUidArg);
+          copySecureArgsList.adminUidHiddenArg.clearValues();
+          copySecureArgsList.adminUidHiddenArg.addValue(getAdministratorUID());
+          commandBuilder.addArgument(copySecureArgsList.adminUidHiddenArg);
         }
         else if (addBindDN)
         {
@@ -750,9 +750,9 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (useAdmin)
       {
-        copySecureArgsList.adminUidArg.clearValues();
-        copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
-        commandBuilder.addArgument(copySecureArgsList.adminUidArg);
+        copySecureArgsList.adminUidHiddenArg.clearValues();
+        copySecureArgsList.adminUidHiddenArg.addValue(getAdministratorUID());
+        commandBuilder.addArgument(copySecureArgsList.adminUidHiddenArg);
       }
       else
       {
@@ -1978,8 +1978,8 @@ public class LDAPConnectionConsoleInteraction
     secureArgsList.useStartTLSArg.setPresent(state.useStartTLS);
     if (adminUid != null)
     {
-      secureArgsList.adminUidArg.addValue(adminUid);
-      secureArgsList.adminUidArg.setPresent(true);
+      secureArgsList.adminUidHiddenArg.addValue(adminUid);
+      secureArgsList.adminUidHiddenArg.setPresent(true);
     }
     if (bindDn != null)
     {
@@ -2025,8 +2025,8 @@ public class LDAPConnectionConsoleInteraction
     secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
     secureArgsList.bindPasswordFileArg.setPresent(false);
     state.bindPassword = null;
-    secureArgsList.adminUidArg.clearValues();
-    secureArgsList.adminUidArg.setPresent(false);
+    secureArgsList.adminUidHiddenArg.clearValues();
+    secureArgsList.adminUidHiddenArg.setPresent(false);
   }
 
   private void initializeTrustManager() throws ArgumentException

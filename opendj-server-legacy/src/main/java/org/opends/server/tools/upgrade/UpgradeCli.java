@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools.upgrade;
 
@@ -229,16 +229,14 @@ public final class UpgradeCli extends ConsoleApplication implements
       noPrompt = CommonArguments.getNoPrompt();
       verbose = CommonArguments.getVerbose();
       quietMode = CommonArguments.getQuiet();
-
       ignoreErrors =
-          new BooleanArgument(OPTION_LONG_IGNORE_ERRORS, null,
-              OPTION_LONG_IGNORE_ERRORS, INFO_UPGRADE_OPTION_IGNORE_ERRORS
-                  .get());
-
-      force = new BooleanArgument(OPTION_LONG_FORCE_UPGRADE, null,
-          OPTION_LONG_FORCE_UPGRADE,
-          INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT));
-
+              BooleanArgument.builder(OPTION_LONG_IGNORE_ERRORS)
+                      .description(INFO_UPGRADE_OPTION_IGNORE_ERRORS.get())
+                      .buildArgument();
+      force =
+              BooleanArgument.builder(OPTION_LONG_FORCE_UPGRADE)
+                      .description(INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT))
+                      .buildArgument();
       acceptLicense = CommonArguments.getAcceptLicense();
       showUsageArgument = CommonArguments.getShowUsage();
 

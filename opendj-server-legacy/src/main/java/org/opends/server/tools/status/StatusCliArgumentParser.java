@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools.status;
 
@@ -109,10 +109,13 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
 
     initializeGlobalArguments(defaultArgs);
 
-    refreshArg = new IntegerArgument("refresh", 'r',
-        "refresh", false, true, INFO_PERIOD_PLACEHOLDER.get(),
-        true, 1, false, Integer.MAX_VALUE,
-        INFO_DESCRIPTION_REFRESH_PERIOD.get());
+    refreshArg =
+            IntegerArgument.builder("refresh")
+                    .shortIdentifier('r')
+                    .description(INFO_DESCRIPTION_REFRESH_PERIOD.get())
+                    .lowerBound(1)
+                    .valuePlaceholder(INFO_PERIOD_PLACEHOLDER.get())
+                    .buildArgument();
     addGlobalArgument(refreshArg, ioArgGroup);
   }
 

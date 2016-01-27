@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.server.setup.cli;
 
@@ -249,7 +249,7 @@ public final class SetupCli extends ConsoleApplication {
         keyStorePassword = addGlobal(CommonArguments.getKeyStorePassword());
         keyStorePasswordFile = addGlobal(CommonArguments.getKeyStorePasswordFile());
         certNickname = addGlobal(CommonArguments.getCertNickName());
-        connectTimeout = CommonArguments.getConnectTimeOut();
+        connectTimeout = CommonArguments.getConnectTimeOutHidden();
 
         // Utility Input Output Options.
         noPrompt = addGlobal(CommonArguments.getNoPrompt());

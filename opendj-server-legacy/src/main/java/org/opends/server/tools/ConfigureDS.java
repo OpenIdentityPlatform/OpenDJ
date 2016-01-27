@@ -22,10 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_JMXPORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
@@ -365,19 +368,22 @@ public class ConfigureDS
   {
     try
     {
-      configFile = new StringArgument(
-          "configfile", 'c', "configFile",
-          true, false, true, INFO_CONFIGFILE_PLACEHOLDER.get(),
-          null, null, INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-      configClass = new StringArgument(
-          "configclass", OPTION_SHORT_CONFIG_CLASS, OPTION_LONG_CONFIG_CLASS,
-          false, false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-          ConfigFileHandler.class.getName(), null, INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('c')
+                      .description(INFO_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
+                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
+                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       String defaultHostName;
       try
@@ -390,106 +396,117 @@ public class ConfigureDS
         defaultHostName = "localhost";
       }
 
-      hostName = new StringArgument(
-          OPTION_LONG_HOST.toLowerCase(), OPTION_SHORT_HOST, OPTION_LONG_HOST,
-          false, false, true, INFO_HOST_PLACEHOLDER.get(),
-          defaultHostName, null, INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get());
-      argParser.addArgument(hostName);
-
-      ldapPort = new IntegerArgument(
-          "ldapport", OPTION_SHORT_PORT, "ldapPort",
-          false, false, true, INFO_LDAPPORT_PLACEHOLDER.get(),
-          389, null, true, 1, true, 65535, INFO_CONFIGDS_DESCRIPTION_LDAP_PORT.get());
-      argParser.addArgument(ldapPort);
-
-      adminConnectorPort = new IntegerArgument(
-          "adminConnectorPort".toLowerCase(), null, "adminConnectorPort",
-          false, false, true, INFO_PORT_PLACEHOLDER.get(),
-          4444, "adminConnectorPort", true, 1, true, 65535, INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get());
-      argParser.addArgument(adminConnectorPort);
-
-      ldapsPort = new IntegerArgument(
-          "ldapsPort", 'P', "ldapsPort",
-          false, false, true, INFO_LDAPPORT_PLACEHOLDER.get(),
-          636, null, true, 1, true, 65535, INFO_CONFIGDS_DESCRIPTION_LDAPS_PORT.get());
-      argParser.addArgument(ldapsPort);
-
-      enableStartTLS = new BooleanArgument(
-          "enableStartTLS", OPTION_SHORT_START_TLS, "enableStartTLS",
-          INFO_CONFIGDS_DESCRIPTION_ENABLE_START_TLS.get());
-      argParser.addArgument(enableStartTLS);
-
-      jmxPort = new IntegerArgument(
-          "jmxport", 'x', "jmxPort",
-          false, false, true, INFO_JMXPORT_PLACEHOLDER.get(),
-          CliConstants.DEFAULT_JMX_PORT, null, true, 1, true, 65535, INFO_CONFIGDS_DESCRIPTION_JMX_PORT.get());
-      argParser.addArgument(jmxPort);
-
-      keyManagerProviderDN = new StringArgument(
-          "keymanagerproviderdn", 'k', "keyManagerProviderDN",
-          false, false, true, INFO_KEY_MANAGER_PROVIDER_DN_PLACEHOLDER.get(),
-          null, null, INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN.get());
-      argParser.addArgument(keyManagerProviderDN);
-
-      trustManagerProviderDN = new StringArgument(
-          "trustmanagerproviderdn", 't', "trustManagerProviderDN",
-          false, false, true, INFO_TRUST_MANAGER_PROVIDER_DN_PLACEHOLDER.get(),
-          null, null, INFO_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN.get());
-      argParser.addArgument(trustManagerProviderDN);
-
-      keyManagerPath = new StringArgument(
-          "keymanagerpath", 'm', "keyManagerPath",
-          false, false, true, INFO_KEY_MANAGER_PATH_PLACEHOLDER.get(),
-          null, null, INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH.get());
-      argParser.addArgument(keyManagerPath);
-
-      certNickNames = new StringArgument(
-          "certnickname", 'a', "certNickName",
-          false, true, true, INFO_NICKNAME_PLACEHOLDER.get(),
-          null, null, INFO_CONFIGDS_DESCRIPTION_CERTNICKNAME.get());
-      argParser.addArgument(certNickNames);
-
-      baseDNString = new StringArgument(
-          "basedn", OPTION_SHORT_BASEDN, OPTION_LONG_BASEDN,
-          false, true, true, INFO_BASEDN_PLACEHOLDER.get(),
-          "dc=example,dc=com", null, INFO_CONFIGDS_DESCRIPTION_BASE_DN.get());
-      argParser.addArgument(baseDNString);
-
-      rootDNString = new StringArgument(
-          "rootdn", OPTION_SHORT_ROOT_USER_DN, OPTION_LONG_ROOT_USER_DN,
-          false, false, true, INFO_ROOT_USER_DN_PLACEHOLDER.get(),
-          "cn=Directory Manager", null, INFO_CONFIGDS_DESCRIPTION_ROOT_DN.get());
-      argParser.addArgument(rootDNString);
-
-      rootPassword = new StringArgument(
-          "rootpw", OPTION_SHORT_BINDPWD, "rootPassword",
-          false, false, true, INFO_ROOT_USER_PWD_PLACEHOLDER.get(),
-          null, null, INFO_CONFIGDS_DESCRIPTION_ROOT_PW.get());
-      argParser.addArgument(rootPassword);
-
-      rootPasswordFile = new FileBasedArgument(
-          "rootpwfile", OPTION_SHORT_BINDPWD_FILE, "rootPasswordFile",
-          false, false, INFO_FILE_PLACEHOLDER.get(),
-          null, null, INFO_CONFIGDS_DESCRIPTION_ROOT_PW_FILE.get());
-      argParser.addArgument(rootPasswordFile);
+      hostName =
+              StringArgument.builder(OPTION_LONG_HOST)
+                      .shortIdentifier(OPTION_SHORT_HOST)
+                      .description(INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get())
+                      .defaultValue(defaultHostName)
+                      .valuePlaceholder(INFO_HOST_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      ldapPort =
+              IntegerArgument.builder("ldapPort")
+                      .shortIdentifier(OPTION_SHORT_PORT)
+                      .description(INFO_CONFIGDS_DESCRIPTION_LDAP_PORT.get())
+                      .range(1, 65535)
+                      .defaultValue(389)
+                      .valuePlaceholder(INFO_LDAPPORT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      adminConnectorPort =
+              IntegerArgument.builder("adminConnectorPort")
+                      .description(INFO_INSTALLDS_DESCRIPTION_ADMINCONNECTORPORT.get())
+                      .range(1, 65535)
+                      .defaultValue(4444)
+                      .valuePlaceholder(INFO_PORT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      ldapsPort =
+              IntegerArgument.builder("ldapsPort")
+                      .shortIdentifier('P')
+                      .description(INFO_CONFIGDS_DESCRIPTION_LDAPS_PORT.get())
+                      .range(1, 65535)
+                      .defaultValue(636)
+                      .valuePlaceholder(INFO_LDAPPORT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      enableStartTLS =
+              BooleanArgument.builder("enableStartTLS")
+                      .shortIdentifier(OPTION_SHORT_START_TLS)
+                      .description(INFO_CONFIGDS_DESCRIPTION_ENABLE_START_TLS.get())
+                      .buildAndAddToParser(argParser);
+      jmxPort =
+              IntegerArgument.builder("jmxPort")
+                      .shortIdentifier('x')
+                      .description(INFO_CONFIGDS_DESCRIPTION_JMX_PORT.get())
+                      .range(1, 65535)
+                      .defaultValue(CliConstants.DEFAULT_JMX_PORT)
+                      .valuePlaceholder(INFO_JMXPORT_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      keyManagerProviderDN =
+              StringArgument.builder("keyManagerProviderDN")
+                      .shortIdentifier('k')
+                      .description(INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN.get())
+                      .valuePlaceholder(INFO_KEY_MANAGER_PROVIDER_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      trustManagerProviderDN =
+              StringArgument.builder("trustManagerProviderDN")
+                      .shortIdentifier('t')
+                      .description(INFO_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN.get())
+                      .valuePlaceholder(INFO_TRUST_MANAGER_PROVIDER_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      keyManagerPath =
+              StringArgument.builder("keyManagerPath")
+                      .shortIdentifier('m')
+                      .description(INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH.get())
+                      .valuePlaceholder(INFO_KEY_MANAGER_PATH_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      certNickNames =
+              StringArgument.builder("certNickName")
+                      .shortIdentifier('a')
+                      .description(INFO_CONFIGDS_DESCRIPTION_CERTNICKNAME.get())
+                      .multiValued()
+                      .valuePlaceholder(INFO_NICKNAME_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      baseDNString =
+              StringArgument.builder(OPTION_LONG_BASEDN)
+                      .shortIdentifier(OPTION_SHORT_BASEDN)
+                      .description(INFO_CONFIGDS_DESCRIPTION_BASE_DN.get())
+                      .multiValued()
+                      .defaultValue("dc=example,dc=com")
+                      .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      rootDNString =
+              StringArgument.builder(OPTION_LONG_ROOT_USER_DN)
+                      .shortIdentifier(OPTION_SHORT_ROOT_USER_DN)
+                      .description(INFO_CONFIGDS_DESCRIPTION_ROOT_DN.get())
+                      .defaultValue("cn=Directory Manager")
+                      .valuePlaceholder(INFO_ROOT_USER_DN_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      rootPassword =
+              StringArgument.builder("rootPassword")
+                      .shortIdentifier(OPTION_SHORT_BINDPWD)
+                      .description(INFO_CONFIGDS_DESCRIPTION_ROOT_PW.get())
+                      .valuePlaceholder(INFO_ROOT_USER_PWD_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      rootPasswordFile =
+              FileBasedArgument.builder("rootPasswordFile")
+                      .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
+                      .description(INFO_CONFIGDS_DESCRIPTION_ROOT_PW_FILE.get())
+                      .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
 
       showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
 
-      serverRoot = new StringArgument(
-          "serverRoot", OPTION_SHORT_SERVER_ROOT, OPTION_LONG_SERVER_ROOT,
-          false, false, true, INFO_SERVER_ROOT_DIR_PLACEHOLDER.get(),
-          null, null, null);
-      serverRoot.setHidden(true);
-      argParser.addArgument(serverRoot);
-
-      backendType = new StringArgument(
-          OPTION_LONG_BACKEND_TYPE.toLowerCase(), null, OPTION_LONG_BACKEND_TYPE,
-          false, false, true, INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get(),
-          null, OPTION_LONG_BACKEND_TYPE, INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get()
-      );
-      argParser.addArgument(backendType);
+      serverRoot =
+              StringArgument.builder(OPTION_LONG_SERVER_ROOT)
+                      .shortIdentifier(OPTION_SHORT_SERVER_ROOT)
+                      .hidden()
+                      .valuePlaceholder(INFO_SERVER_ROOT_DIR_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      backendType =
+              StringArgument.builder(OPTION_LONG_BACKEND_TYPE)
+                      .description(INFO_INSTALLDS_DESCRIPTION_BACKEND_TYPE.get())
+                      .valuePlaceholder(INFO_INSTALLDS_BACKEND_TYPE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
     }
     catch (final ArgumentException ae)
     {

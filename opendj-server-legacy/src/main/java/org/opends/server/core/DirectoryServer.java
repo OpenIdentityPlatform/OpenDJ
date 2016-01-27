@@ -6831,11 +6831,10 @@ public final class DirectoryServer
   public static void main(String[] args)
   {
     // Define the arguments that may be provided to the server.
+    final BooleanArgument displayUsage;
     BooleanArgument checkStartability      = null;
     BooleanArgument quietMode              = null;
     IntegerArgument timeout                = null;
-    BooleanArgument windowsNetStart        = null;
-    BooleanArgument displayUsage           = null;
     BooleanArgument fullVersion            = null;
     BooleanArgument noDetach               = null;
     BooleanArgument systemInfo             = null;
@@ -6853,64 +6852,67 @@ public final class DirectoryServer
     // Initialize all the command-line argument types and register them with the parser.
     try
     {
-      configClass = new StringArgument("configclass", 'C', "configClass",
-                                       true, false, true,
-                                       INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                                       ConfigFileHandler.class.getName(), null,
-                                       INFO_DSCORE_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-      configFile = new StringArgument("configfile", 'f', "configFile",
-                                      true, false, true,
-                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                                      null,
-                                      INFO_DSCORE_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-      checkStartability = new BooleanArgument("checkstartability", null,
-                              "checkStartability",
-                              INFO_DSCORE_DESCRIPTION_CHECK_STARTABILITY.get());
-      checkStartability.setHidden(true);
-      argParser.addArgument(checkStartability);
-
-      windowsNetStart = new BooleanArgument("windowsnetstart", null, "windowsNetStart",
-                              INFO_DSCORE_DESCRIPTION_WINDOWS_NET_START.get());
-      windowsNetStart.setHidden(true);
-      argParser.addArgument(windowsNetStart);
-
-      fullVersion = new BooleanArgument("fullversion", 'F', "fullVersion",
-                                        INFO_DSCORE_DESCRIPTION_FULLVERSION.get());
-      fullVersion.setHidden(true);
-      argParser.addArgument(fullVersion);
-
-      systemInfo = new BooleanArgument("systeminfo", 's', "systemInfo",
-                                       INFO_DSCORE_DESCRIPTION_SYSINFO.get());
-      argParser.addArgument(systemInfo);
-
+      BooleanArgument.builder("windowsNetStart")
+              .description(INFO_DSCORE_DESCRIPTION_WINDOWS_NET_START.get())
+              .hidden()
+              .buildAndAddToParser(argParser);
+      configClass =
+              StringArgument.builder("configClass")
+                      .shortIdentifier('C')
+                      .description(INFO_DSCORE_DESCRIPTION_CONFIG_CLASS.get())
+                      .hidden()
+                      .required()
+                      .defaultValue(ConfigFileHandler.class.getName())
+                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      configFile =
+              StringArgument.builder("configFile")
+                      .shortIdentifier('f')
+                      .description(INFO_DSCORE_DESCRIPTION_CONFIG_FILE.get())
+                      .hidden()
+                      .required()
+                      .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
+      checkStartability =
+              BooleanArgument.builder("checkStartability")
+                      .description(INFO_DSCORE_DESCRIPTION_CHECK_STARTABILITY.get())
+                      .hidden()
+                      .buildAndAddToParser(argParser);
+      fullVersion =
+              BooleanArgument.builder("fullVersion")
+                      .shortIdentifier('F')
+                      .description(INFO_DSCORE_DESCRIPTION_FULLVERSION.get())
+                      .hidden()
+                      .buildAndAddToParser(argParser);
+      systemInfo =
+              BooleanArgument.builder("systemInfo")
+                      .shortIdentifier('s')
+                      .description(INFO_DSCORE_DESCRIPTION_SYSINFO.get())
+                      .buildAndAddToParser(argParser);
       useLastKnownGoodConfig =
-           new BooleanArgument("lastknowngoodconfig", 'L',
-                               "useLastKnownGoodConfig",
-                               INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get());
-      argParser.addArgument(useLastKnownGoodConfig);
-
-      noDetach = new BooleanArgument("nodetach", 'N', "nodetach",
-                                     INFO_DSCORE_DESCRIPTION_NODETACH.get());
-      argParser.addArgument(noDetach);
+              BooleanArgument.builder("useLastKnownGoodConfig")
+                      .shortIdentifier('L')
+                      .description(INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get())
+                      .buildAndAddToParser(argParser);
+      noDetach =
+              BooleanArgument.builder("nodetach")
+                      .shortIdentifier('N')
+                      .description(INFO_DSCORE_DESCRIPTION_NODETACH.get())
+                      .buildAndAddToParser(argParser);
 
       quietMode = CommonArguments.getQuiet();
       argParser.addArgument(quietMode);
 
-      // Not used in this class, but required by the start-ds script
-      // (see issue #3814)
-      timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
-                                    true, INFO_SECONDS_PLACEHOLDER.get(),
-                                    DEFAULT_TIMEOUT,
-                                    null, true, 0, false,
-                                    0, INFO_DSCORE_DESCRIPTION_TIMEOUT.get());
-      argParser.addArgument(timeout);
-
+      // Not used in this class, but required by the start-ds script (see issue #3814)
+      timeout =
+              IntegerArgument.builder("timeout")
+                      .shortIdentifier('t')
+                      .description(INFO_DSCORE_DESCRIPTION_TIMEOUT.get())
+                      .required()
+                      .lowerBound(0)
+                      .defaultValue(DEFAULT_TIMEOUT)
+                      .valuePlaceholder(INFO_SECONDS_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);

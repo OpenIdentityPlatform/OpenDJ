@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -167,9 +167,11 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         this.namingArgs = createNamingArgs(subCommand, c, false);
 
         // Create the --force argument which is used to force deletion.
-        this.forceArgument = new BooleanArgument(OPTION_DSCFG_LONG_FORCE, OPTION_DSCFG_SHORT_FORCE,
-                OPTION_DSCFG_LONG_FORCE, INFO_DSCFG_DESCRIPTION_FORCE.get(ufpn));
-        subCommand.addArgument(forceArgument);
+        this.forceArgument =
+                BooleanArgument.builder(OPTION_DSCFG_LONG_FORCE)
+                        .shortIdentifier(OPTION_DSCFG_SHORT_FORCE)
+                        .description(INFO_DSCFG_DESCRIPTION_FORCE.get(ufpn))
+                        .buildAndAddToSubCommand(subCommand);
 
         // Register the tags associated with the child managed objects.
         addTags(relation.getChildDefinition().getAllTags());
