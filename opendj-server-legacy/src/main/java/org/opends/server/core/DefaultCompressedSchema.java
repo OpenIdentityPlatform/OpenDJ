@@ -26,6 +26,10 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -42,10 +46,6 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.types.DirectoryException;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a default implementation of a compressed schema manager
@@ -78,7 +78,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
   /** {@inheritDoc} */
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,
-      final String attributeName, final Collection<String> attributeOptions)
+      final String attributeName, final Iterable<String> attributeOptions)
       throws DirectoryException
   {
     save();
@@ -236,8 +236,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
         // are the attribute options.
         writer.writeStartSequence();
         int adCounter = 1;
-        for (final Entry<byte[], Entry<String, Collection<String>>> mapEntry :
-            getAllAttributes())
+        for (final Entry<byte[], Entry<String, Iterable<String>>> mapEntry : getAllAttributes())
         {
           writer.writeStartSequence();
           writer.writeOctetString(ByteString.wrap(mapEntry.getKey()));

@@ -22,12 +22,16 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.Collection;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -153,7 +157,43 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public boolean hasAllOptions(Collection<String> options)
   {
-    return AttributeDescription.containsAllOptions(getOptions(), options);
+    // FIXME use AttributeDescription instead
+    return containsAllOptions(getOptions(), options);
+  }
+
+  private static boolean containsAllOptions(Collection<String> options1, Collection<String> options2)
+  {
+    if (options1 == options2)
+    {
+      return true;
+    }
+    else if (isEmpty(options2))
+    {
+      return true;
+    }
+    else if (isEmpty(options1))
+    {
+      return false;
+    }
+    // normalize all options before calling containsAll()
+    Set<String> set1 = toLowercaseSet(options1);
+    Set<String> set2 = toLowercaseSet(options2);
+    return set1.size() >= set2.size() && set1.containsAll(set2);
+  }
+
+  private static boolean isEmpty(Collection<String> col)
+  {
+    return col == null || col.isEmpty();
+  }
+
+  private static SortedSet<String> toLowercaseSet(Collection<String> strings)
+  {
+    final SortedSet<String> results = new TreeSet<>();
+    for (String s : strings)
+    {
+      results.add(toLowerCase(s));
+    }
+    return results;
   }
 
   @Override
@@ -186,7 +226,24 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public boolean hasOption(String option)
   {
-    return AttributeDescription.containsOption(getOptions(), option);
+    // FIXME use AttributeDescription instead
+    return containsOption(getOptions(), option);
+  }
+
+  private static boolean containsOption(Set<String> options, String optionToFind)
+  {
+    String normToFind = toLowerCase(optionToFind);
+
+    // Cannot use Set.contains() because the options are not normalized.
+    for (String o : options)
+    {
+      String norm = toLowerCase(o);
+      if (norm.equals(normToFind))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

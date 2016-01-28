@@ -105,7 +105,7 @@ final class PersistentCompressedSchema extends CompressedSchema
 
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,
-      final String attributeName, final Collection<String> attributeOptions)
+      final String attributeName, final Iterable<String> attributeOptions)
       throws DirectoryException
   {
     try

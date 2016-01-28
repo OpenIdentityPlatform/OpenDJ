@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -44,13 +44,12 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.CollectionUtils;
-
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides an interface for creating new non-virtual
@@ -1549,7 +1548,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    * @return <code>true</code> if this attribute builder was
    *         modified.
    */
-  public boolean setOptions(Collection<String> options)
+  public boolean setOptions(Iterable<String> options)
   {
     boolean isModified = false;
 

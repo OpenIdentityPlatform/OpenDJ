@@ -29,16 +29,28 @@ package org.opends.server.replication.plugin;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeDescriptions;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
@@ -304,7 +316,7 @@ public class EntryHistorical
 
     // Read from this entryHistorical,
     // Create one empty if none was existing in this entryHistorical.
-    AttributeDescription attrDesc = AttributeDescription.create(modAttr);
+    AttributeDescription attrDesc = AttributeDescriptions.create(modAttr);
     AttrHistorical attrHist = attributesHistorical.get(attrDesc);
     if (attrHist == null)
     {

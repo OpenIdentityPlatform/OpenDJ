@@ -47,6 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.jcip.annotations.GuardedBy;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -56,6 +57,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeDescriptions;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
@@ -77,9 +79,9 @@ public class CompressedSchema
   private static final class Mappings
   {
     /** Maps encoded representation's ID to its attribute description (the List's index is the ID). */
-    private final List<Entry<AttributeType, Set<String>>> adDecodeMap = new CopyOnWriteArrayList<>();
+    private final List<AttributeDescription> adDecodeMap = new CopyOnWriteArrayList<>();
     /** Maps attribute description to its encoded representation's ID. */
-    private final Map<Entry<AttributeType, Set<String>>, Integer> adEncodeMap;
+    private final Map<AttributeDescription, Integer> adEncodeMap;
     /** Maps encoded representation's ID to its object class (the List's index is the ID). */
     private final List<Map<ObjectClass, String>> ocDecodeMap = new CopyOnWriteArrayList<>();
     /** Maps object class to its encoded representation's ID. */
@@ -174,11 +176,11 @@ public class CompressedSchema
    */
   private void reloadAttributeTypeMaps(Mappings mappings, Mappings newMappings)
   {
-    for (Entry<Entry<AttributeType, Set<String>>, Integer> entry : mappings.adEncodeMap.entrySet())
+    for (Entry<AttributeDescription, Integer> entry : mappings.adEncodeMap.entrySet())
     {
-      Entry<AttributeType, Set<String>> ad = entry.getKey();
+      AttributeDescription ad = entry.getKey();
       Integer id = entry.getValue();
-      loadAttributeToMaps(id, ad.getKey().getNameOrOID(), ad.getValue(), newMappings);
+      loadAttributeToMaps(id, ad.getAttributeType().getNameOrOID(), ad.getOptions(), newMappings);
     }
   }
 
@@ -214,21 +216,20 @@ public class CompressedSchema
 
     // Before returning the attribute, make sure that the attribute type is not stale.
     final Mappings mappings = reloadMappingsIfSchemaChanged(false);
-    final Entry<AttributeType, Set<String>> ad = mappings.adDecodeMap.get(id);
+    final AttributeDescription ad = mappings.adDecodeMap.get(id);
     if (ad == null)
     {
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(id));
     }
 
-    AttributeType attrType = ad.getKey();
-    Set<String> options = ad.getValue();
+    AttributeType attrType = ad.getAttributeType();
 
     // Determine the number of values for the attribute.
     final int numValues = reader.readBERLength();
 
     // For the common case of a single value with no options, generate less garbage.
-    if (numValues == 1 && options.isEmpty())
+    if (numValues == 1 && !ad.hasOptions())
     {
       return Attributes.create(attrType, readValue(reader));
     }
@@ -236,7 +237,7 @@ public class CompressedSchema
     {
       // Read the appropriate number of values.
       final AttributeBuilder builder = new AttributeBuilder(attrType);
-      builder.setOptions(options);
+      builder.setOptions(ad.getOptions());
       for (int i = 0; i < numValues; i++)
       {
         builder.add(readValue(reader));
@@ -318,9 +319,7 @@ public class CompressedSchema
       final Attribute attribute) throws DirectoryException
   {
     // Re-use or allocate a new ID.
-    final AttributeType type = attribute.getAttributeType();
-    final Set<String> options = attribute.getOptions();
-    int id = getAttributeId(new SimpleImmutableEntry<>(type, options));
+    int id = getAttributeId(AttributeDescriptions.create(attribute));
 
     // Encode the attribute.
     final byte[] idBytes = encodeId(id);
@@ -334,7 +333,7 @@ public class CompressedSchema
     }
   }
 
-  private int getAttributeId(final Entry<AttributeType, Set<String>> ad) throws DirectoryException
+  private int getAttributeId(final AttributeDescription ad) throws DirectoryException
   {
     // avoid lazy registration races
     boolean shared = true;
@@ -357,7 +356,7 @@ public class CompressedSchema
         id = mappings.adDecodeMap.size();
         mappings.adDecodeMap.add(ad);
         mappings.adEncodeMap.put(ad, id);
-        storeAttribute(encodeId(id), ad.getKey().getNameOrOID(), ad.getValue());
+        storeAttribute(encodeId(id), ad.getAttributeType().getNameOrOID(), ad.getOptions());
       }
       return id;
     }
@@ -434,17 +433,17 @@ public class CompressedSchema
    *
    * @return A view of the encoded attributes in this compressed schema.
    */
-  protected final Iterable<Entry<byte[], Entry<String, Collection<String>>>> getAllAttributes()
+  protected final Iterable<Entry<byte[], Entry<String, Iterable<String>>>> getAllAttributes()
   {
-    return new Iterable<Entry<byte[], Entry<String, Collection<String>>>>()
+    return new Iterable<Entry<byte[], Entry<String, Iterable<String>>>>()
     {
       @Override
-      public Iterator<Entry<byte[], Entry<String, Collection<String>>>> iterator()
+      public Iterator<Entry<byte[], Entry<String, Iterable<String>>>> iterator()
       {
-        return new Iterator<Entry<byte[], Entry<String, Collection<String>>>>()
+        return new Iterator<Entry<byte[], Entry<String, Iterable<String>>>>()
         {
           private int id;
-          private List<Entry<AttributeType, Set<String>>> adDecodeMap = getMappings().adDecodeMap;
+          private List<AttributeDescription> adDecodeMap = getMappings().adDecodeMap;
 
           @Override
           public boolean hasNext()
@@ -453,15 +452,14 @@ public class CompressedSchema
           }
 
           @Override
-          public Entry<byte[], Entry<String, Collection<String>>> next()
+          public Entry<byte[], Entry<String, Iterable<String>>> next()
           {
             final byte[] encodedAttribute = encodeId(id);
-            final Entry<AttributeType, Set<String>> ad = adDecodeMap.get(id++);
-            return new SimpleImmutableEntry<byte[],
-                                            Entry<String, Collection<String>>>(
+            final AttributeDescription ad = adDecodeMap.get(id++);
+            return new SimpleImmutableEntry<byte[], Entry<String, Iterable<String>>>(
                 encodedAttribute,
-                new SimpleImmutableEntry<String, Collection<String>>(ad
-                    .getKey().getNameOrOID(), ad.getValue()));
+                new SimpleImmutableEntry<String, Iterable<String>>(
+                    ad.getAttributeType().getNameOrOID(), ad.getOptions()));
           }
 
           @Override
@@ -531,7 +529,7 @@ public class CompressedSchema
    *          The non-null but possibly empty set of attribute options.
    * @return The attribute type description.
    */
-  protected final Entry<AttributeType, Set<String>> loadAttribute(
+  protected final AttributeDescription loadAttribute(
       final byte[] encodedAttribute, final String attributeName,
       final Collection<String> attributeOptions)
   {
@@ -552,12 +550,12 @@ public class CompressedSchema
    *          attribute description encodeMap and decodeMap maps id to entry
    * @return The attribute type description.
    */
-  private Entry<AttributeType, Set<String>> loadAttributeToMaps(final int id, final String attributeName,
-      final Collection<String> attributeOptions, final Mappings mappings)
+  private AttributeDescription loadAttributeToMaps(final int id, final String attributeName,
+      final Iterable<String> attributeOptions, final Mappings mappings)
   {
     final AttributeType type = DirectoryServer.getAttributeTypeOrDefault(attributeName);
     final Set<String> options = getOptions(attributeOptions);
-    final Entry<AttributeType, Set<String>> ad = new SimpleImmutableEntry<>(type, options);
+    final AttributeDescription ad = AttributeDescriptions.create(type, options);
     exclusiveLock.lock();
     try
     {
@@ -583,17 +581,25 @@ public class CompressedSchema
     }
   }
 
-  private Set<String> getOptions(final Collection<String> attributeOptions)
+  private Set<String> getOptions(final Iterable<String> attributeOptions)
   {
-    switch (attributeOptions.size())
+    Iterator<String> it = attributeOptions.iterator();
+    if (!it.hasNext())
     {
-    case 0:
       return Collections.emptySet();
-    case 1:
-      return Collections.singleton(attributeOptions.iterator().next());
-    default:
-      return new LinkedHashSet<>(attributeOptions);
     }
+    String firstOption = it.next();
+    if (!it.hasNext())
+    {
+      return Collections.singleton(firstOption);
+    }
+    LinkedHashSet<String> results = new LinkedHashSet<>();
+    results.add(firstOption);
+    while (it.hasNext())
+    {
+      results.add(it.next());
+    }
+    return results;
   }
 
   /**
@@ -695,7 +701,7 @@ public class CompressedSchema
    *           If an error occurred while persisting the encoded attribute.
    */
   protected void storeAttribute(final byte[] encodedAttribute,
-      final String attributeName, final Collection<String> attributeOptions)
+      final String attributeName, final Iterable<String> attributeOptions)
       throws DirectoryException
   {
     // Do nothing by default.
@@ -706,7 +712,7 @@ public class CompressedSchema
    * to do nothing. Calls to this method are synchronized, so implementations
    * can assume that this method is not being called by other threads. Note that
    * this method is not thread-safe with respect to
-   * {@link #storeAttribute(byte[], String, Collection)}.
+   * {@link #storeAttribute(byte[], String, Iterable)}.
    *
    * @param encodedObjectClasses
    *          The encoded object classes.

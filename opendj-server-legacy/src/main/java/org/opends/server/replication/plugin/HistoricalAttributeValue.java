@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -40,7 +41,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeDescription;
+import org.opends.server.types.AttributeDescriptions;
 import org.opends.server.types.Modification;
 
 /**
@@ -137,7 +138,7 @@ class HistoricalAttributeValue
         isModDN = true;
       }
     }
-    this.attrDesc = attrType != null ? AttributeDescription.create(attrType, options) : null;
+    this.attrDesc = attrType != null ? AttributeDescriptions.create(attrType, options) : null;
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
@@ -166,7 +167,7 @@ class HistoricalAttributeValue
     return attrDesc != null ? attrDesc.getAttributeType() : null;
   }
 
-  private Set<String> getOptions()
+  private Iterable<String> getOptions()
   {
     return attrDesc != null ? attrDesc.getOptions() : Collections.<String> emptySet();
   }
