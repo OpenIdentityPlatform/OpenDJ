@@ -31,6 +31,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -119,8 +121,8 @@ public final class AttributeBuilder implements Iterable<ByteString>
   {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /** The attribute type for this attribute. */
-    private final AttributeType attributeType;
+    /** The attribute description for this attribute. */
+    private final AttributeDescription attributeDescription;
 
     /** The name of this attribute as provided by the end user. */
     private final String name;
@@ -143,9 +145,9 @@ public final class AttributeBuilder implements Iterable<ByteString>
      * @param values
      *          The attribute values.
      */
-    private RealAttribute(AttributeType attributeType, String name, Set<AttributeValue> values)
+    private RealAttribute(AttributeDescription attributeDescription, String name, Set<AttributeValue> values)
     {
-      this.attributeType = attributeType;
+      this.attributeDescription = attributeDescription;
       this.name = name;
       this.values = values;
     }
@@ -154,7 +156,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public final ConditionResult approximatelyEqualTo(ByteString assertionValue)
     {
-      MatchingRule matchingRule = attributeType.getApproximateMatchingRule();
+      MatchingRule matchingRule = getAttributeType().getApproximateMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
@@ -196,7 +198,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public final boolean contains(ByteString value)
     {
-      return values.contains(createAttributeValue(attributeType, value));
+      return values.contains(createAttributeValue(getAttributeType(), value));
     }
 
     @Override
@@ -222,12 +224,38 @@ public final class AttributeBuilder implements Iterable<ByteString>
     }
 
     @Override
-    public final AttributeType getAttributeType()
+    public AttributeDescription getAttributeDescription()
     {
-      return attributeType;
+      return attributeDescription;
     }
 
+    @Override
+    public Set<String> getOptions()
+    {
+      return Collections.unmodifiableSet(toSet(attributeDescription.getOptions()));
+    }
 
+    @Override
+    public boolean hasOption(String option)
+    {
+      return attributeDescription.hasOption(option);
+    }
+
+    private Set<String> toSet(Iterable<String> options)
+    {
+      Set<String> results = new HashSet<>();
+      for (String option : options)
+      {
+        results.add(option);
+      }
+      return results;
+    }
+
+    @Override
+    public boolean hasOptions()
+    {
+      return attributeDescription.hasOptions();
+    }
 
     @Override
     public final String getName()
@@ -235,12 +263,10 @@ public final class AttributeBuilder implements Iterable<ByteString>
       return name;
     }
 
-
-
     @Override
     public final ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
     {
-      MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
+      MatchingRule matchingRule = getAttributeType().getOrderingMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
@@ -297,7 +323,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public final ConditionResult lessThanOrEqualTo(ByteString assertionValue)
     {
-      MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
+      MatchingRule matchingRule = getAttributeType().getOrderingMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
@@ -342,7 +368,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public final ConditionResult matchesSubstring(ByteString subInitial, List<ByteString> subAny, ByteString subFinal)
     {
-      MatchingRule matchingRule = attributeType.getSubstringMatchingRule();
+      MatchingRule matchingRule = getAttributeType().getSubstringMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
@@ -421,15 +447,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
   private static final class RealAttributeManyOptions
     extends RealAttribute
   {
-
-    /** The normalized options. */
-    private final SortedSet<String> normalizedOptions;
-
-    /** The options. */
-    private final Set<String> options;
-
-
-
     /**
      * Creates a new real attribute that has multiple options.
      *
@@ -448,28 +465,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
         AttributeType attributeType, String name, Set<AttributeValue> values, Set<String> options,
         SortedSet<String> normalizedOptions)
     {
-      super(attributeType, name, values);
-      this.options = options;
-      this.normalizedOptions = normalizedOptions;
-    }
-
-    @Override
-    public Set<String> getOptions()
-    {
-      return options;
-    }
-
-    @Override
-    public boolean hasOption(String option)
-    {
-      String s = toLowerCase(option);
-      return normalizedOptions.contains(s);
-    }
-
-    @Override
-    public boolean hasOptions()
-    {
-      return true;
+      super(AttributeDescription.create(attributeType, options), name, values);
     }
   }
 
@@ -492,7 +488,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
      */
     private RealAttributeNoOptions(AttributeType attributeType, String name, Set<AttributeValue> values)
     {
-      super(attributeType, name, values);
+      super(AttributeDescription.create(attributeType), name, values);
     }
 
     @Override
@@ -506,30 +502,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     {
       return Collections.emptySet();
     }
-
-    @Override
-    public boolean hasAllOptions(Collection<String> options)
-    {
-      return options == null || options.isEmpty();
-    }
-
-    @Override
-    public boolean hasOption(String option)
-    {
-      return false;
-    }
-
-    @Override
-    public boolean hasOptions()
-    {
-      return false;
-    }
-
-    @Override
-    public boolean optionsEqual(Set<String> options)
-    {
-      return options == null || options.isEmpty();
-    }
   }
 
 
@@ -540,14 +512,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
   private static final class RealAttributeSingleOption
     extends RealAttribute
   {
-    /** The normalized single option. */
-    private final String normalizedOption;
-
-    /** A singleton set containing the single option. */
-    private final Set<String> option;
-
-
-
     /**
      * Creates a new real attribute that has a single option.
      *
@@ -566,28 +530,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
         Set<AttributeValue> values,
         String option)
     {
-      super(attributeType, name, values);
-      this.option = Collections.singleton(option);
-      this.normalizedOption = toLowerCase(option);
-    }
-
-    @Override
-    public Set<String> getOptions()
-    {
-      return option;
-    }
-
-    @Override
-    public boolean hasOption(String option)
-    {
-      String s = toLowerCase(option);
-      return normalizedOption.equals(s);
-    }
-
-    @Override
-    public boolean hasOptions()
-    {
-      return true;
+      super(AttributeDescription.create(attributeType, option), name, values);
     }
   }
 

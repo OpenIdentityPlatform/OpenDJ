@@ -734,7 +734,7 @@ public class ReferentialIntegrityPlugin
       if(e.hasAttribute(type))
       {
         ByteString value = ByteString.valueOfUtf8(oldEntryDN.toString());
-        if (e.hasValue(type, null, value))
+        if (e.hasValue(type, value))
         {
           mods.add(new Modification(ModificationType.DELETE, Attributes
               .create(type, value)));
@@ -1071,10 +1071,7 @@ public class ReferentialIntegrityPlugin
         break;
       }
 
-      AttributeType attrType      = mod.getAttribute().getAttributeType();
-      Set<String> attrOptions     = mod.getAttribute().getOptions();
-      Attribute modifiedAttribute = entry.getExactAttribute(attrType,
-                                                            attrOptions);
+      Attribute modifiedAttribute = entry.getExactAttribute(mod.getAttribute().getAttributeDescription());
       if (modifiedAttribute != null)
       {
         PluginResult.PreOperation result =

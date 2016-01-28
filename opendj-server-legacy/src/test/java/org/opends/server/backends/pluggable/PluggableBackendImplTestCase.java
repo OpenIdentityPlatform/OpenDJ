@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -83,7 +84,6 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DN;
@@ -688,7 +688,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     ModifyOperation modifyOp = mock(ModifyOperation.class);
     when(modifyOp.getModifications()).thenReturn(mods);
     backend.replaceEntry(oldEntry, newEntry, modifyOp);
-    assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, null, modifyValue));
+    assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, modifyValue));
 
     final List<Entry> returnedEntries = new ArrayList<>();
     backend.search(createSearchOperation(

@@ -1325,7 +1325,7 @@ public class LocalBackendModifyOperation
         RDN rdn = modifiedEntry.getName().rdn();
         if (rdn != null
             && rdn.hasAttributeType(t)
-            && !modifiedEntry.hasValue(t, attr.getOptions(), rdn.getAttributeValue(t)))
+            && !modifiedEntry.hasValue(attr.getAttributeDescription(), rdn.getAttributeValue(t)))
         {
           throw newDirectoryException(currentEntry,
               ResultCode.NOT_ALLOWED_ON_RDN,
@@ -1380,7 +1380,7 @@ public class LocalBackendModifyOperation
     RDN rdn = modifiedEntry.getName().rdn();
     if (rdn != null
         && rdn.hasAttributeType(t)
-        && !modifiedEntry.hasValue(t, attr.getOptions(), rdn.getAttributeValue(t)))
+        && !modifiedEntry.hasValue(attr.getAttributeDescription(), rdn.getAttributeValue(t)))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
           ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getName()));
@@ -1436,7 +1436,7 @@ public class LocalBackendModifyOperation
     }
 
     // Get the attribute that is to be incremented.
-    Attribute a = modifiedEntry.getExactAttribute(t, attr.getOptions());
+    Attribute a = modifiedEntry.getExactAttribute(attr.getAttributeDescription());
     if (a == null)
     {
       throw newDirectoryException(modifiedEntry,

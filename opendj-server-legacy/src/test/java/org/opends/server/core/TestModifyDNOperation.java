@@ -325,8 +325,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertEquals(newEntry.hasValue(attribute, null, b("user.0")), user0Exists);
-      assertEquals(newEntry.hasValue(attribute, null, b("user.test0")), userTest0Exists);
+      assertEquals(newEntry.hasValue(attribute, b("user.0")), user0Exists);
+      assertEquals(newEntry.hasValue(attribute, b("user.test0")), userTest0Exists);
     }
   }
 

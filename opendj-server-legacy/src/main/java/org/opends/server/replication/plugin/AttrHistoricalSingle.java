@@ -170,7 +170,7 @@ public class AttrHistoricalSingle extends AttrHistorical
             modsIterator.remove();
           }
           else if (newValue != null &&
-              !modifiedEntry.hasValue(type, modAttr.getOptions(), newValue))
+              !modifiedEntry.hasValue(modAttr.getAttributeDescription(), newValue))
           {
             conflict = true;
             modsIterator.remove();

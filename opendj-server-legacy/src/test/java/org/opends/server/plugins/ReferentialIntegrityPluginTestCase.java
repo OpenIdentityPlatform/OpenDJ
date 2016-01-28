@@ -44,7 +44,12 @@ import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.GroupManager;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -68,9 +73,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * Unit test to test Referential Integrity plugin.
- */
+/** Unit test to test Referential Integrity plugin. */
 @SuppressWarnings("javadoc")
 public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
@@ -1123,7 +1126,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     for (SearchResultEntry entry : operation.getSearchEntries()) {
       for(String dn : dns) {
         ByteString value = ByteString.valueOfUtf8(dn);
-        assertEquals(entry.hasValue(type, null, value), expected);
+        assertEquals(entry.hasValue(type, value), expected);
       }
     }
   }

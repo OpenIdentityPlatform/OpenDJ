@@ -209,9 +209,9 @@ public class UserAttr implements KeywordBindRule {
         if (!result.isEmpty()) {
             ByteString val= ByteString.valueOfUtf8(attrVal);
             SearchResultEntry resultEntry = result.getFirst();
-            if(resultEntry.hasValue(attrType, null, val)) {
+            if(resultEntry.hasValue(attrType, val)) {
                 Entry e=evalCtx.getResourceEntry();
-                if(e.hasValue(attrType, null, val))
+                if(e.hasValue(attrType, val))
                 {
                     matched=EnumEvalResult.TRUE;
                 }

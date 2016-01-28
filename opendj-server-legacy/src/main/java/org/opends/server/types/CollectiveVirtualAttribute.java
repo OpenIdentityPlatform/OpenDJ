@@ -27,14 +27,14 @@
 
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class defines a collective virtual attribute, which is a
@@ -68,20 +68,23 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
     return attribute.contains(value);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesEqualityAssertion(ByteString assertionValue)
   {
     return attribute.matchesEqualityAssertion(assertionValue);
   }
 
-  /** {@inheritDoc} */
+  @Override
+  public AttributeDescription getAttributeDescription()
+  {
+    return attribute.getAttributeDescription();
+  }
+
   @Override
   public AttributeType getAttributeType() {
     return attribute.getAttributeType();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getOptions() {
     return attribute.getOptions();

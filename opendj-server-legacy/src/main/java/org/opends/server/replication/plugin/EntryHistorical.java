@@ -46,7 +46,6 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeDescriptions;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -316,7 +315,7 @@ public class EntryHistorical
 
     // Read from this entryHistorical,
     // Create one empty if none was existing in this entryHistorical.
-    AttributeDescription attrDesc = AttributeDescriptions.create(modAttr);
+    AttributeDescription attrDesc = modAttr.getAttributeDescription();
     AttrHistorical attrHist = attributesHistorical.get(attrDesc);
     if (attrHist == null)
     {

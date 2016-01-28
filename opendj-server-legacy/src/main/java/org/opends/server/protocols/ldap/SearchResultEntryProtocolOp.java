@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
@@ -551,7 +552,8 @@ public class SearchResultEntryProtocolOp
     for (LDAPAttribute a : getAttributes())
     {
       Attribute     attr     = a.toAttribute();
-      AttributeType attrType = attr.getAttributeType();
+      AttributeDescription attrDesc = attr.getAttributeDescription();
+      AttributeType attrType = attrDesc.getAttributeType();
 
       if (attrType.isObjectClass())
       {
@@ -593,7 +595,7 @@ public class SearchResultEntryProtocolOp
           boolean attributeSeen = false;
           for (int i = 0; i < attrs.size(); i++) {
             Attribute ea = attrs.get(i);
-            if (ea.optionsEqual(attr.getOptions()))
+            if (ea.getAttributeDescription().equals(attrDesc))
             {
               AttributeBuilder builder = new AttributeBuilder(ea);
               builder.addAll(attr);

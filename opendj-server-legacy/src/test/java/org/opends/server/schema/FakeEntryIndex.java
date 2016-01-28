@@ -38,6 +38,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -80,7 +81,7 @@ class FakeEntryIndex
 
   void add(Entry entry) throws DecodeException
   {
-    Attribute attribute = entry.getExactAttribute(attrType, Collections.<String>emptySet());
+    Attribute attribute = entry.getExactAttribute(AttributeDescription.create(attrType));
     for (ByteString key : index(attribute))
     {
       Set<Entry> entries = index.get(key);

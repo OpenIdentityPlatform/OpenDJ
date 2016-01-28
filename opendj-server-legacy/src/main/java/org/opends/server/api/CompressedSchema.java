@@ -57,7 +57,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeDescriptions;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
@@ -319,7 +318,7 @@ public class CompressedSchema
       final Attribute attribute) throws DirectoryException
   {
     // Re-use or allocate a new ID.
-    int id = getAttributeId(AttributeDescriptions.create(attribute));
+    int id = getAttributeId(attribute.getAttributeDescription());
 
     // Encode the attribute.
     final byte[] idBytes = encodeId(id);

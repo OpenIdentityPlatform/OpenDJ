@@ -31,6 +31,7 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
@@ -1419,24 +1421,25 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute values.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
-  public void testAttributeHasAllOptions(int testCase, Attribute a,
+  public void testAttributeDescriptionIsSubTypeOf(int testCase, Attribute a,
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    Assert.assertTrue(a.hasAllOptions(null));
-    Assert.assertTrue(a.hasAllOptions(Collections.<String> emptySet()));
-    Assert.assertTrue(a.hasAllOptions(Arrays.asList(options)));
+    AttributeDescription attrDesc = a.getAttributeDescription();
+    Assert.assertTrue(attrDesc.isSubTypeOf(AttributeDescription.create(type)));
+    Assert.assertTrue(attrDesc.isSubTypeOf(AttributeDescription.create(type, options)));
 
     if (options.length > 1)
     {
-      Assert.assertTrue(a.hasAllOptions(Arrays.asList(options).subList(1, options.length)));
+      List<String> options2 = Arrays.asList(options).subList(1, options.length);
+      Assert.assertTrue(attrDesc.isSubTypeOf(AttributeDescription.create(type, options2)));
     }
 
     List<String> tmp = newArrayList(options);
     tmp.add("xxxx");
-    Assert.assertFalse(a.hasAllOptions(tmp));
+    Assert.assertFalse(attrDesc.isSubTypeOf(AttributeDescription.create(type, tmp)));
 
-    Assert.assertFalse(a.hasAllOptions(newHashSet("xxxx")));
+    Assert.assertFalse(attrDesc.isSubTypeOf(AttributeDescription.create(type, "xxxx")));
 
     tmp.clear();
     for (String option : options)
@@ -1444,10 +1447,8 @@ public class AttributeBuilderTest extends TypesTestCase
       // Assumes internal normalization to lower-case.
       tmp.add(option.toUpperCase());
     }
-    Assert.assertTrue(a.hasAllOptions(tmp));
+    Assert.assertTrue(attrDesc.isSubTypeOf(AttributeDescription.create(type, tmp)));
   }
-
-
 
   /**
    * Tests {@link Attribute#hashCode()}.
@@ -1758,21 +1759,22 @@ public class AttributeBuilderTest extends TypesTestCase
    *          The expected attribute values.
    */
   @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeNotNull")
-  public void testAttributeOptionsEquals(int testCase, Attribute a,
+  public void testAttributeDescriptionEquals(int testCase, Attribute a,
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    // Check optionsEquals.
-    Assert.assertTrue(a.optionsEqual(newHashSet(options)));
+    // Check attributeDescription.equals()
+    AttributeDescription attrDesc = a.getAttributeDescription();
+    Assert.assertTrue(attrDesc.equals(AttributeDescription.create(type, options)));
 
     if (options.length > 1)
     {
-      Assert.assertFalse(a.optionsEqual(Collections.singleton(options[0])));
+      Assert.assertFalse(attrDesc.equals(AttributeDescription.create(type, options[0])));
     }
 
     Set<String> stmp = newHashSet(options);
     stmp.add("xxxx");
-    Assert.assertFalse(a.optionsEqual(stmp));
+    Assert.assertFalse(attrDesc.equals(AttributeDescription.create(type, stmp)));
 
     stmp.clear();
     for (String option : options)
@@ -1780,7 +1782,7 @@ public class AttributeBuilderTest extends TypesTestCase
       // Assumes internal normalization to lower-case.
       stmp.add(option.toUpperCase());
     }
-    Assert.assertTrue(a.optionsEqual(stmp));
+    Assert.assertTrue(attrDesc.equals(AttributeDescription.create(type, stmp)));
   }
 
 

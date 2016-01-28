@@ -26,12 +26,12 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
@@ -44,7 +44,13 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -234,7 +240,9 @@ public class HistoricalTest extends ReplicationTestCase
     final DN dn2 = DN.valueOf("cn=test2," + TEST_ROOT_DN_STRING);
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
     final AttributeType attrType = DirectoryServer.getAttributeType("displayname");
+    final AttributeDescription attrDesc = AttributeDescription.create(attrType);
     final AttributeType entryuuidType = DirectoryServer.getAttributeType("entryuuid");
+    final AttributeDescription entryuuidDesc = AttributeDescription.create(entryuuidType);
 
     /*
      * Open a session to the replicationServer using the broker API.
@@ -244,7 +252,7 @@ public class HistoricalTest extends ReplicationTestCase
       openReplicationSession(baseDN, 2, 100, replServerPort, 1000);
 
 
-    // Clear the backend and create top entrye
+    // Clear the backend and create top entry
     TestCaseUtils.initializeTestBackend(true);
 
     // Add the first test entry.
@@ -259,7 +267,7 @@ public class HistoricalTest extends ReplicationTestCase
        );
 
     // Read the entry back to get its UUID.
-    String entryuuid = getEntryValue(dn1, entryuuidType);
+    String entryuuid = getEntryValue(dn1, entryuuidDesc);
 
     // Add the second test entry.
     TestCaseUtils.addEntry(
@@ -274,7 +282,7 @@ public class HistoricalTest extends ReplicationTestCase
        );
 
     // Read the entry back to get its UUID.
-    String entryuuid2 = getEntryValue(dn2, entryuuidType);
+    String entryuuid2 = getEntryValue(dn2, entryuuidDesc);
 
     long now = System.currentTimeMillis();
     final int serverId1 = 3;
@@ -287,7 +295,7 @@ public class HistoricalTest extends ReplicationTestCase
 
     // Replay an add of a value A at time t1 on a first server.
     publishModify(broker, t1, dn1, entryuuid, attrType, "A");
-    waitUntilEntryValueEquals(dn1, attrType, "A");
+    waitUntilEntryValueEquals(dn1, attrDesc, "A");
 
     // Replay an add of a value B at time t2 on a second server.
     publishModify(broker, t2, dn1, entryuuid, attrType, "B");
@@ -299,22 +307,22 @@ public class HistoricalTest extends ReplicationTestCase
     t2 = new CSN(now+4,  0,  serverId2);
 
     publishModify(broker, t2, dn2, entryuuid2, attrType, "B");
-    waitUntilEntryValueEquals(dn2, attrType, "B");
+    waitUntilEntryValueEquals(dn2, attrDesc, "B");
 
     // Replay an add of a value A at time t1 on a first server.
     publishModify(broker, t1, dn2, entryuuid2, attrType, "A");
 
     // See how the conflicts were resolved.
     // The two values should be the first value added.
-    waitUntilEntryValueEquals(dn1, attrType, "A");
-    waitUntilEntryValueEquals(dn2, attrType, "A");
+    waitUntilEntryValueEquals(dn1, attrDesc, "A");
+    waitUntilEntryValueEquals(dn2, attrDesc, "A");
 
     TestCaseUtils.deleteEntry(dn1);
     TestCaseUtils.deleteEntry(dn2);
   }
 
-  private void waitUntilEntryValueEquals(final DN entryDN, final AttributeType attrType, final String expectedValue)
-      throws Exception
+  private void waitUntilEntryValueEquals(final DN entryDN, final AttributeDescription attrDesc,
+      final String expectedValue) throws Exception
   {
     final TestTimer timer = new TestTimer.Builder()
       .maxSleep(2, SECONDS)
@@ -325,16 +333,16 @@ public class HistoricalTest extends ReplicationTestCase
       @Override
       public Void call() throws Exception
       {
-        assertEquals(getEntryValue(entryDN, attrType), expectedValue);
+        assertEquals(getEntryValue(entryDN, attrDesc), expectedValue);
         return null;
       }
     });
   }
 
-  private String getEntryValue(final DN dn, final AttributeType attrType) throws Exception
+  private String getEntryValue(final DN dn, AttributeDescription attrDesc) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    Attribute attr = entry.getExactAttribute(attrType, Collections.<String> emptySet());
+    Attribute attr = entry.getExactAttribute(attrDesc);
     Assertions.assertThat(attr).hasSize(1);
     return attr.iterator().next().toString();
   }

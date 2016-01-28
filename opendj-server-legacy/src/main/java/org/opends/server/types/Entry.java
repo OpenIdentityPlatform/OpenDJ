@@ -28,12 +28,24 @@ package org.opends.server.types;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
@@ -393,7 +405,7 @@ public class Entry
    */
   public boolean hasAttribute(AttributeType attributeType)
   {
-    return hasAttribute(attributeType, null, true);
+    return hasAttribute(AttributeDescription.create(attributeType), true);
   }
 
 
@@ -412,7 +424,7 @@ public class Entry
   public boolean hasAttribute(AttributeType attributeType,
                               boolean includeSubordinates)
   {
-    return hasAttribute(attributeType, null, includeSubordinates);
+    return hasAttribute(AttributeDescription.create(attributeType), includeSubordinates);
   }
 
 
@@ -423,50 +435,42 @@ public class Entry
    * attribute of the specified attribute will also be used in the
    * determination.
    *
-   * @param attributeType
-   *          The attribute type for which to make the determination.
-   * @param options
-   *          The set of options to use in the determination.
+   * @param attributeDescription
+   *          The attribute description for which to make the determination.
    * @return <CODE>true</CODE> if this entry contains the specified
    *         attribute, or <CODE>false</CODE> if not.
    */
-  public boolean hasAttribute(AttributeType attributeType, Set<String> options)
+  public boolean hasAttribute(AttributeDescription attributeDescription)
   {
-    return hasAttribute(attributeType, options, true);
+    return hasAttribute(attributeDescription, true);
   }
 
-
-
   /**
-   * Indicates whether this entry contains the specified attribute
-   * with all of the options in the provided set.
+   * Indicates whether this entry contains the specified attribute with all of the options in the
+   * provided set.
    *
-   * @param attributeType
-   *          The attribute type for which to make the determination.
-   * @param options
-   *          The set of options to use in the determination.
+   * @param attributeDescription
+   *          The attribute description for which to make the determination.
    * @param includeSubordinates
-   *          Whether to include any subordinate attributes of the
-   *          attribute type being retrieved.
-   * @return <CODE>true</CODE> if this entry contains the specified
-   *         attribute, or <CODE>false</CODE> if not.
+   *          Whether to include any subordinate attributes of the attribute type being retrieved.
+   * @return <CODE>true</CODE> if this entry contains the specified attribute, or <CODE>false</CODE>
+   *         if not.
    */
-  public boolean hasAttribute(
-      AttributeType attributeType,
-      Set<String> options,
-      boolean includeSubordinates)
+  public boolean hasAttribute(AttributeDescription attributeDescription, boolean includeSubordinates)
   {
+    AttributeType attributeType = attributeDescription.getAttributeType();
+
     // Handle object class.
     if (attributeType.isObjectClass())
     {
-      return !objectClasses.isEmpty() && (options == null || options.isEmpty());
+      return !objectClasses.isEmpty() && !attributeDescription.hasOptions();
     }
 
     if (!includeSubordinates)
     {
       // It's possible that there could be an attribute without any
       // values, which we should treat as not having the requested attribute.
-      Attribute attribute = getExactAttribute(attributeType, options);
+      Attribute attribute = getExactAttribute(attributeDescription);
       return attribute != null && !attribute.isEmpty();
     }
 
@@ -478,7 +482,7 @@ public class Entry
       {
         // It's possible that there could be an attribute without any
         // values, which we should treat as not having the requested attribute.
-        if (!attribute.isEmpty() && attribute.hasAllOptions(options))
+        if (!attribute.isEmpty() && attribute.getAttributeDescription().isSubTypeOf(attributeDescription))
         {
           return true;
         }
@@ -495,7 +499,7 @@ public class Entry
         {
           // It's possible that there could be an attribute without any values,
           // which we should treat as not having the requested attribute.
-          if (!attribute.isEmpty() && attribute.hasAllOptions(options))
+          if (!attribute.isEmpty() && attribute.getAttributeDescription().isSubTypeOf(attributeDescription))
           {
             return true;
           }
@@ -712,9 +716,28 @@ public class Entry
    *          attribute type is not present in this entry with the
    *          provided set of options.
    */
-  public List<Attribute> getAttribute(AttributeType attributeType,
-                                      Set<String> options)
+  @Deprecated
+  public List<Attribute> getAttribute(AttributeType attributeType, Set<String> options)
   {
+    return getAttribute(AttributeDescription.create(attributeType, options));
+  }
+
+  /**
+   * Retrieves the requested attribute element(s) for the specified
+   * attribute description.  The list returned may include multiple elements
+   * if the same attribute exists in the entry multiple times with
+   * different sets of options. It may also include any subordinate
+   * attributes of the attribute being retrieved.
+   *
+   * @param  attributeDescription The attribute description to retrieve.
+   * @return  The requested attribute element(s) for the specified
+   *          attribute type, or an empty list if the specified
+   *          attribute type is not present in this entry with the
+   *          provided set of options.
+   */
+  public List<Attribute> getAttribute(AttributeDescription attributeDescription)
+  {
+    AttributeType attributeType = attributeDescription.getAttributeType();
     List<Attribute> attributes = new LinkedList<>();
     if (!attributeType.isObjectClass())
     {
@@ -737,7 +760,7 @@ public class Entry
         {
           if (attributeType.isObjectClass()
               && !objectClasses.isEmpty()
-              && (options == null || options.isEmpty()))
+              && !attributeDescription.hasOptions())
           {
             attributes.add(getObjectClassAttribute());
             return attributes;
@@ -748,7 +771,7 @@ public class Entry
       attributes.addAll(attrs);
     }
 
-    onlyKeepAttributesWithAllOptions(attributes, options);
+    onlyKeepAttributesWithAllOptions(attributes, attributeDescription);
 
     return attributes;
   }
@@ -845,9 +868,10 @@ public class Entry
    *          the attributes Map where to find the attributes
    * @return the filtered List of attributes
    */
-  private List<Attribute> getAttribute(AttributeType attributeType,
-      Set<String> options, Map<AttributeType, List<Attribute>> attrs)
+  private List<Attribute> getAttribute(AttributeDescription attributeDescription,
+      Map<AttributeType, List<Attribute>> attrs)
   {
+    AttributeType attributeType = attributeDescription.getAttributeType();
     List<Attribute> attributes = new LinkedList<>();
     addAllIfNotNull(attributes, attrs.get(attributeType));
 
@@ -856,7 +880,7 @@ public class Entry
       addAllIfNotNull(attributes, attrs.get(at));
     }
 
-    onlyKeepAttributesWithAllOptions(attributes, options);
+    onlyKeepAttributesWithAllOptions(attributes, attributeDescription);
     return attributes;
   }
 
@@ -865,17 +889,16 @@ public class Entry
    *
    * @param attributes
    *          the attributes to filter.
-   * @param options
-   *          the options to look for
+   * @param attributeDescription
+   *          contains the options to look for
    */
-  private void onlyKeepAttributesWithAllOptions(List<Attribute> attributes,
-      Set<String> options)
+  private void onlyKeepAttributesWithAllOptions(List<Attribute> attributes, AttributeDescription attributeDescription)
   {
     Iterator<Attribute> iterator = attributes.iterator();
     while (iterator.hasNext())
     {
       Attribute a = iterator.next();
-      if (!a.hasAllOptions(options))
+      if (!a.getAttributeDescription().isSubTypeOf(attributeDescription))
       {
         iterator.remove();
       }
@@ -941,19 +964,15 @@ public class Entry
    * elements if the same attribute exists in the entry multiple times
    * with different sets of options.
    *
-   * @param  attributeType  The attribute type to retrieve.
-   * @param  options        The set of attribute options to include in
-   *                        matching elements.
+   * @param  attributeDescription  The attribute description to retrieve.
    *
    * @return  The requested attribute element(s) for the specified
    *          attribute type, or an empty list if there is no such
    *          operational attribute with the specified set of options.
    */
-  public List<Attribute> getOperationalAttribute(
-                              AttributeType attributeType,
-                              Set<String> options)
+  public List<Attribute> getOperationalAttribute(AttributeDescription attributeDescription)
   {
-    return getAttribute(attributeType, options, operationalAttributes);
+    return getAttribute(attributeDescription, operationalAttributes);
   }
 
 
@@ -1058,12 +1077,9 @@ public class Entry
    *           parsed as an integer of if the existing attribute
    *           values could not be parsed as integers.
    */
-  public void incrementAttribute(
-      Attribute attribute) throws DirectoryException
+  public void incrementAttribute(Attribute attribute) throws DirectoryException
   {
-    // Get the attribute that is to be incremented.
-    AttributeType attributeType = attribute.getAttributeType();
-    Attribute a = getExactAttribute(attributeType, attribute.getOptions());
+    Attribute a = getExactAttribute(attribute.getAttributeDescription());
     if (a == null)
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(
@@ -1186,7 +1202,9 @@ public class Entry
   {
     attachment = null;
 
-    if (attribute.getAttributeType().isObjectClass())
+    AttributeDescription attrDesc = attribute.getAttributeDescription();
+    AttributeType attrType = attrDesc.getAttributeType();
+    if (attrType.isObjectClass())
     {
       if (attribute.isEmpty())
       {
@@ -1196,8 +1214,7 @@ public class Entry
 
       boolean allSuccessful = true;
 
-      MatchingRule rule =
-          attribute.getAttributeType().getEqualityMatchingRule();
+      MatchingRule rule = attrType.getEqualityMatchingRule();
       for (ByteString v : attribute)
       {
         String ocName = toLowerName(rule, v);
@@ -1223,8 +1240,7 @@ public class Entry
       return allSuccessful;
     }
 
-    AttributeType attributeType = attribute.getAttributeType();
-    List<Attribute> attributes = getAttributes(attributeType);
+    List<Attribute> attributes = getAttributes(attrType);
     if (attributes == null)
     {
       // There are no attributes with the same attribute type.
@@ -1236,11 +1252,10 @@ public class Entry
     }
 
     // There are already attributes with the same attribute type.
-    Set<String> options = attribute.getOptions();
     for (int i = 0; i < attributes.size(); i++)
     {
       Attribute a = attributes.get(i);
-      if (a.optionsEqual(options))
+      if (a.getAttributeDescription().equals(attrDesc))
       {
         if (attribute.isEmpty())
         {
@@ -1273,7 +1288,7 @@ public class Entry
         // If the attribute list is now empty remove it.
         if (attributes.isEmpty())
         {
-          removeAttributes(attributeType);
+          removeAttributes(attrType);
         }
 
         return true;
@@ -1297,23 +1312,37 @@ public class Entry
     }
   }
 
+  /**
+   * Indicates whether this entry contains the specified attribute value.
+   *
+   * @param attributeDescription
+   *          The attribute description for the attribute.
+   * @param value
+   *          The value for the attribute.
+   * @return {@code true} if this entry contains the specified attribute value, {@code false}
+   *         otherwise.
+   */
+  public boolean hasValue(AttributeDescription attributeDescription, ByteString value)
+  {
+    Attribute attr = getExactAttribute(attributeDescription);
+    return attr != null && attr.contains(value);
+  }
 
   /**
-   * Indicates whether this entry contains the specified attribute
-   * value.
+   * Indicates whether this entry contains the specified attribute value.
    *
-   * @param  attributeType  The attribute type for the attribute.
-   * @param  options        The set of options for the attribute.
-   * @param  value          The value for the attribute.
-   *
-   * @return  <CODE>true</CODE> if this entry contains the specified
-   *          attribute value, or <CODE>false</CODE> if it does not.
+   * @param attributeType
+   *          The attribute type for the attribute.
+   * @param value
+   *          The value for the attribute.
+   * @return {@code true} if this entry contains the specified attribute value, {@code false}
+   *         otherwise.
    */
-  public boolean hasValue(AttributeType attributeType, Set<String> options, ByteString value)
+  public boolean hasValue(AttributeType attributeType, ByteString value)
   {
     for (Attribute a : getAttribute(attributeType))
     {
-      if (a.optionsEqual(options) && a.contains(value))
+      if (!a.hasOptions() && a.contains(value))
       {
         return true;
       }
@@ -2430,7 +2459,7 @@ public class Entry
           for (int i = 0; i < targetList.size(); i++)
           {
             Attribute otherAttribute = targetList.get(i);
-            if (otherAttribute.optionsEqual(a.getOptions()))
+            if (otherAttribute.getAttributeDescription().equals(a.getAttributeDescription()))
             {
               targetList.set(i, Attributes.merge(a, otherAttribute));
               found = true;
@@ -2939,9 +2968,7 @@ public class Entry
           {
             if (inheritFromEntry != null)
             {
-              collectiveAttr = inheritFromEntry.getExactAttribute(
-                      collectiveAttr.getAttributeType(),
-                      collectiveAttr.getOptions());
+              collectiveAttr = inheritFromEntry.getExactAttribute(collectiveAttr.getAttributeDescription());
               if (collectiveAttr == null || collectiveAttr.isEmpty())
               {
                 continue;
@@ -4233,24 +4260,21 @@ public class Entry
    * does not contain an attribute with the specified attribute type
    * and options.
    *
-   * @param attributeType
-   *          The attribute type to retrieve.
-   * @param options
-   *          The set of attribute options.
+   * @param attributeDescription
+   *          The attribute description to retrieve.
    * @return The requested attribute element for the specified
    *         attribute type and options, or <code>null</code> if the
    *         specified attribute type is not present in this entry
    *         with the provided set of options.
    */
-  public Attribute getExactAttribute(AttributeType attributeType,
-      Set<String> options)
+  public Attribute getExactAttribute(AttributeDescription attributeDescription)
   {
-    List<Attribute> attributes = getAttributes(attributeType);
+    List<Attribute> attributes = getAttributes(attributeDescription.getAttributeType());
     if (attributes != null)
     {
       for (Attribute attribute : attributes)
       {
-        if (attribute.optionsEqual(options))
+        if (attribute.getAttributeDescription().equals(attributeDescription))
         {
           return attribute;
         }
@@ -4280,9 +4304,9 @@ public class Entry
   {
     attachment = null;
 
-    AttributeType attributeType = attribute.getAttributeType();
-
-    if (attribute.getAttributeType().isObjectClass())
+    AttributeDescription attrDesc = attribute.getAttributeDescription();
+    AttributeType attrType = attrDesc.getAttributeType();
+    if (attrType.isObjectClass())
     {
       // We will not do any validation of the object classes - this is
       // left to the caller.
@@ -4291,16 +4315,14 @@ public class Entry
         objectClasses.clear();
       }
 
-      MatchingRule rule =
-          attribute.getAttributeType().getEqualityMatchingRule();
+      MatchingRule rule = attrType.getEqualityMatchingRule();
       for (ByteString v : attribute)
       {
         String name = v.toString();
         String lowerName = toLowerName(rule, v);
 
         // Create a default object class if necessary.
-        ObjectClass oc =
-          DirectoryServer.getObjectClass(lowerName, true);
+        ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
 
         if (replace)
         {
@@ -4322,7 +4344,7 @@ public class Entry
       return;
     }
 
-    List<Attribute> attributes = getAttributes(attributeType);
+    List<Attribute> attributes = getAttributes(attrType);
     if (attributes == null)
     {
       // Do nothing if we are deleting a non-existing attribute.
@@ -4332,16 +4354,15 @@ public class Entry
       }
 
       // We are adding the first attribute with this attribute type.
-      putAttributes(attributeType, newArrayList(attribute));
+      putAttributes(attrType, newArrayList(attribute));
       return;
     }
 
     // There are already attributes with the same attribute type.
-    Set<String> options = attribute.getOptions();
     for (int i = 0; i < attributes.size(); i++)
     {
       Attribute a = attributes.get(i);
-      if (a.optionsEqual(options))
+      if (a.getAttributeDescription().equals(attrDesc))
       {
         if (replace)
         {
@@ -4355,7 +4376,7 @@ public class Entry
 
             if (attributes.isEmpty())
             {
-              removeAttributes(attributeType);
+              removeAttributes(attrType);
             }
           }
         }
@@ -4634,6 +4655,15 @@ public class Entry
       AttributeType attrType, String attrName, Set<String> options,
       boolean omitValues, boolean omitReal, boolean omitVirtual)
   {
+    AttributeDescription attrDesc = AttributeDescription.create(attrType, options);
+    mergeAttributeLists(sourceList, destMap, attrDesc, attrName, omitValues, omitReal, omitVirtual);
+  }
+
+  private void mergeAttributeLists(List<Attribute> sourceList,
+      Map<AttributeType, List<Attribute>> destMap,
+      AttributeDescription attrDesc, String attrName,
+      boolean omitValues, boolean omitReal, boolean omitVirtual)
+  {
     if (sourceList == null)
     {
       return;
@@ -4644,7 +4674,7 @@ public class Entry
       if (attribute.isEmpty()
           || (omitReal && attribute.isReal())
           || (omitVirtual && attribute.isVirtual())
-          || !attribute.hasAllOptions(options))
+          || !attribute.getAttributeDescription().isSubTypeOf(attrDesc))
       {
         continue;
       }
@@ -4653,10 +4683,11 @@ public class Entry
         // If a non-default attribute name was provided or if the
         // attribute has options then we will need to rebuild the
         // attribute so that it contains the user-requested names and options.
-        AttributeType subAttrType = attribute.getAttributeType();
+        AttributeDescription subAttrDesc = attribute.getAttributeDescription();
+        AttributeType subAttrType = subAttrDesc.getAttributeType();
 
         if ((attrName != null && !attrName.equals(attribute.getName()))
-            || (options != null && !options.isEmpty()))
+            || attrDesc.hasOptions())
         {
           AttributeBuilder builder = new AttributeBuilder();
 
@@ -4664,7 +4695,7 @@ public class Entry
           // the same type as the requested type. This might not be the case for
           // sub-types e.g. requesting "name" and getting back "cn" - we don't
           // want to rename "name" to "cn".
-          if (attrName == null || !subAttrType.equals(attrType))
+          if (attrName == null || !subAttrType.equals(attrDesc.getAttributeType()))
           {
             builder.setAttributeType(subAttrType, attribute.getName());
           }
@@ -4673,10 +4704,7 @@ public class Entry
             builder.setAttributeType(subAttrType, attrName);
           }
 
-          if (options != null)
-          {
-            builder.setOptions(options);
-          }
+          builder.setOptions(attrDesc.getOptions());
 
           // Now add in remaining options from original attribute
           // (this will not overwrite options already present).
@@ -4721,7 +4749,7 @@ public class Entry
           for (int i = 0; i < attrList.size(); i++)
           {
             Attribute otherAttribute = attrList.get(i);
-            if (otherAttribute.optionsEqual(attribute.getOptions()))
+            if (otherAttribute.getAttributeDescription().equals(subAttrDesc))
             {
               // Assume that wildcards appear first in an attribute
               // list with more specific attribute names afterwards:

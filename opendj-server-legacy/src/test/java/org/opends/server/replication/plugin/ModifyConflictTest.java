@@ -26,13 +26,13 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -1204,7 +1204,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getExactAttribute(getAttributeType(attrName), Collections.<String> emptySet());
+    Attribute attr = entry.getExactAttribute(AttributeDescription.create(getAttributeType(attrName)));
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {

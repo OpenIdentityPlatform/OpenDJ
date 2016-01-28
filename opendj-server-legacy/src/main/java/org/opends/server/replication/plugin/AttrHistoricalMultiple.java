@@ -472,8 +472,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
          * MOD to make sure the delete is going to succeed
          */
         if (!deleteIt
-            || (!modifiedEntry.hasValue(modAttr.getAttributeType(), modAttr
-                .getOptions(), val) && ! addedInCurrentOp))
+            || (!modifiedEntry.hasValue(modAttr.getAttributeDescription(), val) && ! addedInCurrentOp))
         {
           // this value was already deleted before and therefore
           // this should not be replayed.

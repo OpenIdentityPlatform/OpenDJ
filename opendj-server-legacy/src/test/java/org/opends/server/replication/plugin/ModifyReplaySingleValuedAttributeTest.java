@@ -31,13 +31,11 @@ import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -376,9 +374,7 @@ public class ModifyReplaySingleValuedAttributeTest extends ReplicationTestCase
     entryHistorical.replayOperation(op, entry);
     entry.applyModification(new Modification(REPLACE, entryHistorical.encodeAndPurge()));
 
-    AttributeType attrType = expectedDsSyncHist.getAttributeType();
-    Attribute actual = entry.getExactAttribute(attrType, Collections.<String> emptySet());
-
+    Attribute actual = entry.getExactAttribute(expectedDsSyncHist.getAttributeDescription());
     Assert.assertEquals(actual, expectedDsSyncHist, "wrong final value for ds-sync-hist attribute");
   }
 
@@ -414,9 +410,7 @@ public class ModifyReplaySingleValuedAttributeTest extends ReplicationTestCase
       entry.applyModification(new Modification(REPLACE, entryHistorical.encodeAndPurge()));
     }
 
-    AttributeType attrType = expectedDsSyncHist.getAttributeType();
-    Attribute actual = entry.getExactAttribute(attrType, Collections.<String> emptySet());
-
+    Attribute actual = entry.getExactAttribute(expectedDsSyncHist.getAttributeDescription());
     Assert.assertEquals(actual, expectedDsSyncHist, "wrong final value for ds-sync-hist attribute");
   }
 

@@ -30,13 +30,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -143,7 +143,7 @@ public final class TimeBasedMatchingRuleTest
     Collection<DN> results = new ArrayList<>();
     for (Entry entry : makeEntries())
     {
-      Attribute attribute = entry.getExactAttribute(attrType, Collections.<String> emptySet());
+      Attribute attribute = entry.getExactAttribute(AttributeDescription.create(attrType));
       if (attribute != null)
       {
         ByteString attrValue = rule.normalizeAttributeValue(attribute.iterator().next());

@@ -26,15 +26,15 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -124,6 +124,13 @@ public interface Attribute extends Iterable<ByteString>
   AttributeType getAttributeType();
 
   /**
+   * Retrieves the attribute description for this attribute.
+   *
+   * @return The attribute description for this attribute.
+   */
+  AttributeDescription getAttributeDescription();
+
+  /**
    * Retrieves the user-provided name for this attribute.
    *
    * @return The user-provided name for this attribute.
@@ -140,11 +147,11 @@ public interface Attribute extends Iterable<ByteString>
   String getNameWithOptions();
 
   /**
-   * Retrieves the unmodifiable set of attribute options for this
-   * attribute. The returned set of options are not normalized.
+   * Retrieves the unmodifiable set of attribute options for this attribute. The returned set of
+   * options are not normalized.
    *
-   * @return The unmodifiable set of attribute options for this
-   *         attribute.
+   * @return The unmodifiable set of attribute options for this attribute.
+   * @Deprecated use {@link #getAttributeDescription()}
    */
   Set<String> getOptions();
 
@@ -162,18 +169,8 @@ public interface Attribute extends Iterable<ByteString>
   ConditionResult greaterThanOrEqualTo(ByteString assertionValue);
 
   /**
-   * Indicates whether this attribute has all of the options in the provided collection.
-   *
-   * @param options
-   *          The collection of options for which to make the determination (may be {@code null}).
-   * @return {@code true} if this attribute has all of the specified options,
-   *         or {@code false} if it does not have at least one of them.
-   */
-  boolean hasAllOptions(Collection<String> options);
-
-  /**
-   * Retrieves the hash code for this attribute. It will be calculated
-   * as the sum of the hash code for the attribute type and all values.
+   * Retrieves the hash code for this attribute. It will be calculated as the sum of the hash code
+   * for the attribute type and all values.
    *
    * @return The hash code for this attribute.
    */
@@ -264,18 +261,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   ConditionResult matchesSubstring(ByteString subInitial,
       List<ByteString> subAny, ByteString subFinal);
-
-  /**
-   * Indicates whether this attribute has exactly the specified set of
-   * options.
-   *
-   * @param options
-   *          The set of options for which to make the determination
-   *          (may be {@code null}).
-   * @return {@code true} if this attribute has exactly the
-   *         specified set of options.
-   */
-  boolean optionsEqual(Set<String> options);
 
   /**
    * Returns the number of attribute values in this attribute.

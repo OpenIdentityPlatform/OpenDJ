@@ -26,17 +26,13 @@
  */
 package org.opends.server.core;
 
-
-
 import java.util.List;
 import java.util.Set;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
@@ -45,14 +41,18 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPModify;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of generic test cases for the Directory Server password policy class.
@@ -4315,7 +4315,7 @@ public class PasswordPolicyTestCase
     assertNotNull(entry);
     AttributeType pwdHistory = DirectoryServer.getAttributeType("pwdhistory");
     assertNotNull(pwdHistory);
-    Attribute historyAttr = entry.getExactAttribute(pwdHistory, null);
+    Attribute historyAttr = entry.getExactAttribute(AttributeDescription.create(pwdHistory));
     assertNotNull(historyAttr);
     assertThat(historyAttr).hasSize(3);
 

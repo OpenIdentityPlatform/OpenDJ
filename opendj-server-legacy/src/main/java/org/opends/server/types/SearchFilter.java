@@ -43,6 +43,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -67,6 +68,8 @@ public final class SearchFilter
 
   private static SearchFilter objectClassPresent;
 
+  /** The attribute description for this filter. */
+  private final AttributeDescription attributeDescription;
   /** The attribute type for this filter. */
   private final AttributeType attributeType;
 
@@ -90,9 +93,6 @@ public final class SearchFilter
   private final LinkedHashSet<SearchFilter> filterComponents;
   /** The not filter component for this search filter. */
   private final SearchFilter notComponent;
-
-  /** The set of options for the attribute type in this filter. */
-  private final Set<String> attributeOptions;
 
   /** The matching rule ID for this search filter. */
   private final String matchingRuleID;
@@ -151,8 +151,10 @@ public final class SearchFilter
     this.filterType        = filterType;
     this.filterComponents  = new LinkedHashSet<>(filterComponents);
     this.notComponent      = notComponent;
+    this.attributeDescription = attributeType != null
+        ? AttributeDescription.create(attributeType, attributeOptions)
+        : null;
     this.attributeType     = attributeType;
-    this.attributeOptions  = attributeOptions;
     this.assertionValue    = assertionValue;
     this.subInitialElement = subInitialElement;
     this.subAnyElements    = subAnyElements;
@@ -2638,7 +2640,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    List<Attribute> attrs = entry.getAttribute(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2742,7 +2744,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    List<Attribute> attrs = entry.getAttribute(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2843,7 +2845,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    List<Attribute> attrs = entry.getAttribute(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2941,7 +2943,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    List<Attribute> attrs = entry.getAttribute(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -3032,8 +3034,7 @@ public final class SearchFilter
 
     // See if the entry has an attribute with the requested type.
     // If so, then it's a match.  If not, then it's not a match.
-    ConditionResult result = ConditionResult.valueOf(
-        entry.hasAttribute(attributeType, attributeOptions));
+    ConditionResult result = ConditionResult.valueOf(entry.hasAttribute(attributeDescription));
     if (logger.isTraceEnabled())
     {
       logger.trace(
@@ -3085,7 +3086,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeType, attributeOptions);
+    List<Attribute> attrs = entry.getAttribute(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -3387,7 +3388,7 @@ public final class SearchFilter
     }
     else
     {
-      for (Attribute a : entry.getAttribute(attributeType, attributeOptions))
+      for (Attribute a : entry.getAttribute(attributeDescription))
       {
         for (ByteString v : a)
         {
@@ -3522,21 +3523,18 @@ public final class SearchFilter
         return andOrEqual(f);
       case NOT:
         return notComponent.equals(f.notComponent);
-      case EQUALITY:
-        return typeAndOptionsAndAssertionEqual(f);
       case SUBSTRING:
         return substringEqual(f);
-      case GREATER_OR_EQUAL:
-        return typeAndOptionsAndAssertionEqual(f);
-      case LESS_OR_EQUAL:
-        return typeAndOptionsAndAssertionEqual(f);
       case PRESENT:
-        return attributeType.equals(f.attributeType) &&
-                optionsEqual(attributeOptions, f.attributeOptions);
-      case APPROXIMATE_MATCH:
-        return typeAndOptionsAndAssertionEqual(f);
+        return attributeDescription.equals(f.attributeDescription);
       case EXTENSIBLE_MATCH:
         return extensibleEqual(f);
+      case EQUALITY:
+      case APPROXIMATE_MATCH:
+      case GREATER_OR_EQUAL:
+      case LESS_OR_EQUAL:
+        return attributeDescription.equals(f.attributeDescription)
+            && assertionValue.equals(f.assertionValue);
       default:
         return false;
     }
@@ -3559,28 +3557,15 @@ public final class SearchFilter
     return true;
   }
 
-
-  private boolean typeAndOptionsAndAssertionEqual(SearchFilter f)
-  {
-    return attributeType.equals(f.attributeType)
-        && optionsEqual(attributeOptions, f.attributeOptions)
-        && assertionValue.equals(f.assertionValue);
-  }
-
-
   private boolean substringEqual(SearchFilter other)
   {
-    if (! attributeType.equals(other.attributeType))
+    if (!attributeDescription.equals(other.attributeDescription))
     {
       return false;
     }
 
     MatchingRule rule = attributeType.getSubstringMatchingRule();
     if (rule == null)
-    {
-      return false;
-    }
-    if (! optionsEqual(attributeOptions, other.attributeOptions))
     {
       return false;
     }
@@ -3625,17 +3610,9 @@ public final class SearchFilter
         return false;
       }
     }
-    else
+    else if (!attributeDescription.equals(f.attributeDescription))
     {
-      if (! attributeType.equals(f.attributeType))
-      {
-        return false;
-      }
-
-      if (! optionsEqual(attributeOptions, f.attributeOptions))
-      {
-        return false;
-      }
+      return false;
     }
 
     if (dnAttributes != f.dnAttributes)
@@ -3698,56 +3675,6 @@ public final class SearchFilter
 
     return true;
   }
-
-
-  /**
-   * Indicates whether the two provided sets of attribute options
-   * should be considered equal.
-   *
-   * @param  options1  The first set of attribute options for which to
-   *                   make the determination.
-   * @param  options2  The second set of attribute options for which
-   *                   to make the determination.
-   *
-   * @return  {@code true} if the sets of attribute options are equal,
-   *          or {@code false} if not.
-   */
-  private static boolean optionsEqual(Set<String> options1,
-                                      Set<String> options2)
-  {
-    if (options1 == null || options1.isEmpty())
-    {
-      return options2 == null || options2.isEmpty();
-    }
-    else if (options2 == null || options2.isEmpty())
-    {
-      return false;
-    }
-    else
-    {
-      if (options1.size() != options2.size())
-      {
-        return false;
-      }
-
-      HashSet<String> lowerOptions = new HashSet<>(options1.size());
-      for (String option : options1)
-      {
-        lowerOptions.add(toLowerCase(option));
-      }
-
-      for (String option : options2)
-      {
-        if (! lowerOptions.remove(toLowerCase(option)))
-        {
-          return false;
-        }
-      }
-
-      return lowerOptions.isEmpty();
-    }
-  }
-
 
   /**
    * Retrieves the hash code for this search filter.
@@ -3896,17 +3823,11 @@ public final class SearchFilter
         buffer.append(")");
         break;
       case EQUALITY:
-        buffer.append("(");
-        buffer.append(attributeType.getNameOrOID());
-        appendOptions(buffer);
-        buffer.append("=");
-        valueToFilterString(buffer, assertionValue);
-        buffer.append(")");
+        appendEquation(buffer, "=");
         break;
       case SUBSTRING:
         buffer.append("(");
-        buffer.append(attributeType.getNameOrOID());
-        appendOptions(buffer);
+        buffer.append(attributeDescription);
         buffer.append("=");
 
         if (subInitialElement != null)
@@ -3933,42 +3854,25 @@ public final class SearchFilter
         buffer.append(")");
         break;
       case GREATER_OR_EQUAL:
-        buffer.append("(");
-        buffer.append(attributeType.getNameOrOID());
-        appendOptions(buffer);
-        buffer.append(">=");
-        valueToFilterString(buffer, assertionValue);
-        buffer.append(")");
+        appendEquation(buffer, ">=");
         break;
       case LESS_OR_EQUAL:
-        buffer.append("(");
-        buffer.append(attributeType.getNameOrOID());
-        appendOptions(buffer);
-        buffer.append("<=");
-        valueToFilterString(buffer, assertionValue);
-        buffer.append(")");
+        appendEquation(buffer, "<=");
         break;
       case PRESENT:
         buffer.append("(");
-        buffer.append(attributeType.getNameOrOID());
-        appendOptions(buffer);
+        buffer.append(attributeDescription);
         buffer.append("=*)");
         break;
       case APPROXIMATE_MATCH:
-        buffer.append("(");
-        buffer.append(attributeType.getNameOrOID());
-        appendOptions(buffer);
-        buffer.append("~=");
-        valueToFilterString(buffer, assertionValue);
-        buffer.append(")");
+        appendEquation(buffer, "~=");
         break;
       case EXTENSIBLE_MATCH:
         buffer.append("(");
 
-        if (attributeType != null)
+        if (attributeDescription != null)
         {
-          buffer.append(attributeType.getNameOrOID());
-          appendOptions(buffer);
+          buffer.append(attributeDescription);
         }
 
         if (dnAttributes)
@@ -3989,19 +3893,14 @@ public final class SearchFilter
     }
   }
 
-
-  private void appendOptions(StringBuilder buffer)
+  private void appendEquation(StringBuilder buffer, String operator)
   {
-    if (attributeOptions != null && !attributeOptions.isEmpty())
-    {
-      for (String option : attributeOptions)
-      {
-        buffer.append(";");
-        buffer.append(option);
-      }
-    }
+    buffer.append("(");
+    buffer.append(attributeDescription);
+    buffer.append(operator);
+    valueToFilterString(buffer, assertionValue);
+    buffer.append(")");
   }
-
 
 
   /**

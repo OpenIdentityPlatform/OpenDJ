@@ -35,7 +35,6 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -45,7 +44,9 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
@@ -66,7 +67,6 @@ import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -481,7 +481,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Entry found <" + baseDN + ">");
 
       AttributeType synchronizationGenIDType = DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-      Attribute attr = resultEntry.getExactAttribute(synchronizationGenIDType, new HashSet<String>());
+      Attribute attr = resultEntry.getExactAttribute(AttributeDescription.create(synchronizationGenIDType));
       return Long.valueOf(attr.iterator().next().toString());
     }
     return -1;

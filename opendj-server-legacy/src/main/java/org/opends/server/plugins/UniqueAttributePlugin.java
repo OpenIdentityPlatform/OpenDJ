@@ -26,7 +26,13 @@
  */
 package org.opends.server.plugins;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -36,6 +42,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
@@ -52,9 +59,25 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.opends.server.types.operation.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -148,7 +171,7 @@ public class UniqueAttributePlugin
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
+        Backend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
@@ -253,13 +276,9 @@ public class UniqueAttributePlugin
 
         case INCREMENT:
           // We could calculate the new value, but we'll just take it from the updated entry.
-          for (Attribute updatedAttr : modifyOperation.getModifiedEntry().getAttribute(t, a.getOptions()))
+          Attribute updatedAttr = modifyOperation.getModifiedEntry().getExactAttribute(a.getAttributeDescription());
+          if (updatedAttr != null)
           {
-            if (! updatedAttr.optionsEqual(a.getOptions()))
-            {
-              continue;
-            }
-
             for (ByteString v : updatedAttr)
             {
               PreOperation stop = checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
@@ -442,13 +461,9 @@ public class UniqueAttributePlugin
 
         case INCREMENT:
           // We could calculate the new value, but we'll just take it from the updated entry.
-          for (Attribute updatedAttr : modifyOperation.getModifiedEntry().getAttribute(t, a.getOptions()))
+          Attribute updatedAttr = modifyOperation.getModifiedEntry().getExactAttribute(a.getAttributeDescription());
+          if (updatedAttr != null)
           {
-            if (! updatedAttr.optionsEqual(a.getOptions()))
-            {
-              continue;
-            }
-
             for (ByteString v : updatedAttr)
             {
               sendAlertForUnresolvedConflict(modifyOperation, entryDN,
@@ -703,7 +718,7 @@ public class UniqueAttributePlugin
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
+        Backend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
@@ -833,13 +848,9 @@ public class UniqueAttributePlugin
 
         case INCREMENT:
           // We could calculate the new value, but we'll just take it from the updated entry.
-          for (Attribute updatedAttr : modifyOperation.getModifiedEntry().getAttribute(t, a.getOptions()))
+          Attribute updatedAttr = modifyOperation.getModifiedEntry().getExactAttribute(a.getAttributeDescription());
+          if (updatedAttr != null)
           {
-            if (!updatedAttr.optionsEqual(a.getOptions()))
-            {
-              continue;
-            }
-
             for (ByteString v : updatedAttr)
             {
               uniqueAttrValue2Dn.remove(v);

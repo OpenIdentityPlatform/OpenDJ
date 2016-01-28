@@ -30,11 +30,10 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 
 /** An abstract base class for implementing new types of {@link Attribute}. */
@@ -84,9 +83,7 @@ public abstract class AbstractAttribute implements Attribute
     }
 
     Attribute a = (Attribute) o;
-    return getAttributeType().equals(a.getAttributeType())
-        && valuesEqual(a)
-        && optionsEqual(a.getOptions());
+    return getAttributeDescription().equals(a.getAttributeDescription()) && valuesEqual(a);
   }
 
   private boolean valuesEqual(Attribute a)
@@ -119,6 +116,12 @@ public abstract class AbstractAttribute implements Attribute
     return getAttributeType().getNameOrOID();
   }
 
+  @Override
+  public AttributeType getAttributeType()
+  {
+    return getAttributeDescription().getAttributeType();
+  }
+
   /**
    * {@inheritDoc}
    * <p>
@@ -143,57 +146,6 @@ public abstract class AbstractAttribute implements Attribute
       buffer.append(option);
     }
     return buffer.toString();
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation returns {@code true} if the provided
-   * collection of options is {@code null} or empty. If the
-   * collection is non-empty and this attribute does not have any
-   * options then it returns {@code false}. Otherwise, {@code true} is
-   * returned if all the provided options are present.
-   */
-  @Override
-  public boolean hasAllOptions(Collection<String> options)
-  {
-    // FIXME use AttributeDescription instead
-    return containsAllOptions(getOptions(), options);
-  }
-
-  private static boolean containsAllOptions(Collection<String> options1, Collection<String> options2)
-  {
-    if (options1 == options2)
-    {
-      return true;
-    }
-    else if (isEmpty(options2))
-    {
-      return true;
-    }
-    else if (isEmpty(options1))
-    {
-      return false;
-    }
-    // normalize all options before calling containsAll()
-    Set<String> set1 = toLowercaseSet(options1);
-    Set<String> set2 = toLowercaseSet(options2);
-    return set1.size() >= set2.size() && set1.containsAll(set2);
-  }
-
-  private static boolean isEmpty(Collection<String> col)
-  {
-    return col == null || col.isEmpty();
-  }
-
-  private static SortedSet<String> toLowercaseSet(Collection<String> strings)
-  {
-    final SortedSet<String> results = new TreeSet<>();
-    for (String s : strings)
-    {
-      results.add(toLowerCase(s));
-    }
-    return results;
   }
 
   @Override
@@ -274,29 +226,6 @@ public abstract class AbstractAttribute implements Attribute
   public boolean isReal()
   {
     return !isVirtual();
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation returns !{@link #hasOptions()} if the
-   * provided set of options is <code>null</code>. Otherwise it
-   * checks that the size of the provided set of options is equal to
-   * the size of this attribute's options, return <code>false</code>
-   * if the sizes differ. If the sizes are the same then each option
-   * in the provided set is checked using
-   * {@link #hasOption(String)} and <code>true</code> is
-   * returned if all the provided options are present.
-   */
-  @Override
-  public boolean optionsEqual(Set<String> options)
-  {
-    if (options != null)
-    {
-      return getOptions().size() == options.size()
-          && hasAllOptions(options);
-    }
-    return !hasOptions();
   }
 
   @Override

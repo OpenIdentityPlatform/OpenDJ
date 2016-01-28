@@ -41,14 +41,15 @@ import java.util.ListIterator;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -56,7 +57,6 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFReader;
@@ -69,15 +69,13 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
-
-import static com.forgerock.opendj.cli.Utils.*;
 
 /**
  * This class provides a program that may be used to determine the differences
@@ -841,7 +839,7 @@ public class LDIFDiff
           while (attrIterator.hasNext())
           {
             Attribute a = attrIterator.next();
-            if (a.optionsEqual(sourceAttr.getOptions()))
+            if (a.getAttributeDescription().equals(sourceAttr.getAttributeDescription()))
             {
               targetAttr = a;
               attrIterator.remove();

@@ -42,6 +42,7 @@ import javax.mail.MessagingException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -832,7 +833,7 @@ public abstract class Task implements Comparable<Task>
       logMessages.add(messageString);
 
       final AttributeType type = DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES);
-      final Attribute attr = taskEntry.getExactAttribute(type, Collections.<String> emptySet());
+      final Attribute attr = taskEntry.getExactAttribute(AttributeDescription.create(type));
       final AttributeBuilder builder = attr != null ? new AttributeBuilder(attr) : new AttributeBuilder(type);
       builder.add(messageString);
       taskEntry.putAttribute(type, builder.toAttributeList());

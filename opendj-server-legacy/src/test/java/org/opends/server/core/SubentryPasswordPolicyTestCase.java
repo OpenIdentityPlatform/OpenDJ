@@ -31,10 +31,10 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.PasswordValidator;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
@@ -420,7 +420,7 @@ public class SubentryPasswordPolicyTestCase
     // Make sure that default policy is in effect
     // for the user entry.
     assertTrue(testEntry.hasAttribute(attrType));
-    assertTrue(testEntry.hasValue(attrType, null,
+    assertTrue(testEntry.hasValue(attrType,
             ByteString.valueOfUtf8(defaultPolicy.getDN().toString())));
 
     // Add new subentry policy with the
@@ -443,7 +443,7 @@ public class SubentryPasswordPolicyTestCase
     assertNotNull(testEntry);
 
     assertTrue(testEntry.hasAttribute(attrType));
-    assertTrue(testEntry.hasValue(attrType, null, ByteString.valueOfUtf8("cn=Temp Policy," + SUFFIX)));
+    assertTrue(testEntry.hasValue(attrType, ByteString.valueOfUtf8("cn=Temp Policy," + SUFFIX)));
 
     // Remove subentry policy and make sure
     // default policy is in effect again.
@@ -454,7 +454,7 @@ public class SubentryPasswordPolicyTestCase
     assertNotNull(testEntry);
 
     assertTrue(testEntry.hasAttribute(attrType));
-    assertTrue(testEntry.hasValue(attrType, null,
+    assertTrue(testEntry.hasValue(attrType,
             ByteString.valueOfUtf8(defaultPolicy.getDN().toString())));
   }
 }

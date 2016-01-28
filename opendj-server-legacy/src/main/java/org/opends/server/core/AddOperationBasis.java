@@ -34,11 +34,24 @@ import java.util.Map;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
@@ -356,7 +369,7 @@ public class AddOperationBasis
               boolean attributeSeen = false;
               for (int i = 0; i < attrs.size(); i++) {
                 Attribute ea = attrs.get(i);
-                if (ea.optionsEqual(attr.getOptions()))
+                if (ea.getAttributeDescription().equals(attr.getAttributeDescription()))
                 {
                   AttributeBuilder builder = new AttributeBuilder(ea);
                   builder.addAll(attr);

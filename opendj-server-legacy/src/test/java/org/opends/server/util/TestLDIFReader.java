@@ -321,18 +321,15 @@ public final class TestLDIFReader extends UtilTestCase {
         + "objectClass: top\n" + "objectClass: person\n" + "cn: john\n"
         + "sn: smith\n";
 
-    LDIFReader reader = createLDIFReader(ldifString);
-
-    try {
+    try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
 
-      Assert.assertEquals(entry.getName(), DN
-          .valueOf("cn=john, dc=foo, dc=com"));
+      Assert.assertEquals(entry.getName(), DN.valueOf("cn=john, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOfUtf8("john")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOfUtf8("smith")));
+      Assert.assertTrue(entry.hasValue(AT_CN, ByteString.valueOfUtf8("john")));
+      Assert.assertTrue(entry.hasValue(AT_SN, ByteString.valueOfUtf8("smith")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -340,8 +337,6 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(reader.getEntriesRead(), 1);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), 1);
-    } finally {
-      reader.close();
     }
   }
 
@@ -358,14 +353,10 @@ public final class TestLDIFReader extends UtilTestCase {
         + "sn: smith\n" + "description: once upon a time\n"
         + "  in the west\n";
 
-    LDIFReader reader = createLDIFReader(ldifString);
-
-    try {
+    try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOfUtf8("once upon a time in the west")));
-    } finally {
-      reader.close();
+      Assert.assertTrue(entry.hasValue(AT_DESCR, ByteString.valueOfUtf8("once upon a time in the west")));
     }
   }
 
@@ -382,14 +373,10 @@ public final class TestLDIFReader extends UtilTestCase {
         + "sn: smith\n"
         + "description:: b25jZSB1cG9uIGEgdGltZSBpbiB0aGUgd2VzdA==\n";
 
-    LDIFReader reader = createLDIFReader(ldifString);
-
-    try {
+    try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOfUtf8("once upon a time in the west")));
-    } finally {
-      reader.close();
+      Assert.assertTrue(entry.hasValue(AT_DESCR, ByteString.valueOfUtf8("once upon a time in the west")));
     }
   }
 
@@ -407,20 +394,17 @@ public final class TestLDIFReader extends UtilTestCase {
         + "objectClass: top\n" + "objectClass: person\n" + "cn: anne\n"
         + "sn: other\n" + "\n";
 
-    LDIFReader reader = createLDIFReader(ldifString);
-
-    try {
+    try (LDIFReader reader = createLDIFReader(ldifString)) {
       reader.readEntry();
       Entry entry = reader.readEntry();
 
       Assert.assertNotNull(entry);
 
-      Assert.assertEquals(entry.getName(), DN
-          .valueOf("cn=anne, dc=foo, dc=com"));
+      Assert.assertEquals(entry.getName(), DN.valueOf("cn=anne, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOfUtf8("anne")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOfUtf8("other")));
+      Assert.assertTrue(entry.hasValue(AT_CN, ByteString.valueOfUtf8("anne")));
+      Assert.assertTrue(entry.hasValue(AT_SN, ByteString.valueOfUtf8("other")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -428,8 +412,6 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(reader.getEntriesRead(), 2);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), 7);
-    } finally {
-      reader.close();
     }
   }
 

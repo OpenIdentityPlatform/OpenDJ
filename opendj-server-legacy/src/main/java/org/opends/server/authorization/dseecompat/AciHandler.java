@@ -34,10 +34,12 @@ import java.util.SortedSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
@@ -53,9 +55,26 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
+import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendCompareOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -718,7 +737,7 @@ public final class AciHandler extends
           && resourceEntry.hasAttribute(modAttrType))
       {
         container.setCurrentAttributeType(modAttrType);
-        for (Attribute a : resourceEntry.getAttribute(modAttrType, modAttr.getOptions()))
+        for (Attribute a : resourceEntry.getAttribute(modAttr.getAttributeDescription()))
         {
           for (ByteString v : a)
           {
@@ -758,7 +777,7 @@ public final class AciHandler extends
             break;
           case INCREMENT:
             Entry modifiedEntry = operation.getModifiedEntry();
-            for (Attribute attr : modifiedEntry.getAttribute(modAttrType, modAttr.getOptions()))
+            for (Attribute attr : modifiedEntry.getAttribute(modAttr.getAttributeDescription()))
             {
               for (ByteString val : attr)
               {
@@ -1301,8 +1320,7 @@ public final class AciHandler extends
         logger.debug(INFO_ACI_ADD_FAILED_PRIVILEGE, entry.getName(), clientDN);
         return false;
       }
-      List<Attribute> attributeList =
-          entry.getOperationalAttribute(aciType, null);
+      List<Attribute> attributeList = entry.getOperationalAttribute(AttributeDescription.create(aciType));
       for (Attribute attribute : attributeList)
       {
         for (ByteString value : attribute)

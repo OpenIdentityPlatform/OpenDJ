@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -44,7 +45,6 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -335,7 +335,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
-      assertTrue(entry.hasValue(attrType, null, ByteString.valueOfUtf8(value)));
+      assertTrue(entry.hasValue(attrType, ByteString.valueOfUtf8(value)));
     }
   }
 
@@ -346,7 +346,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
-      assertFalse(entry.hasValue(attrType, null, ByteString.valueOfUtf8(value)));
+      assertFalse(entry.hasValue(attrType, ByteString.valueOfUtf8(value)));
     }
   }
 
@@ -368,7 +368,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(searchOperation.getEntriesSent(), 1);
     AttributeType attrType = DirectoryServer.getAttributeType("collectiveattributesubentries");
     Entry e = searchOperation.getSearchEntries().getFirst();
-    assertTrue(e.hasValue(attrType, null, ByteString.valueOfObject(collectiveSubentry.getName())));
+    assertTrue(e.hasValue(attrType, ByteString.valueOfObject(collectiveSubentry.getName())));
   }
 
   @Test

@@ -39,6 +39,7 @@ import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
@@ -302,45 +303,45 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.hasAttribute(mnType));
 
     LinkedHashSet<String> options = null;
-    assertTrue(e.hasAttribute(ocType, options));
-    assertTrue(e.hasAttribute(cnType, options));
-    assertTrue(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, options, false));
-    assertFalse(e.hasAttribute(uidType, options));
-    assertTrue(e.hasAttribute(mnType, options));
+    assertTrue(e.hasAttribute(AttributeDescription.create(ocType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(cnType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(nameType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), false));
+    assertFalse(e.hasAttribute(AttributeDescription.create(uidType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(mnType, options), true));
 
     options = new LinkedHashSet<>();
-    assertTrue(e.hasAttribute(ocType, options));
-    assertTrue(e.hasAttribute(cnType, options));
-    assertTrue(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, options, false));
-    assertFalse(e.hasAttribute(uidType, options));
-    assertTrue(e.hasAttribute(mnType, options));
+    assertTrue(e.hasAttribute(AttributeDescription.create(ocType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(cnType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(nameType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), false));
+    assertFalse(e.hasAttribute(AttributeDescription.create(uidType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(mnType, options), true));
 
     options.add("lang-en-US");
-    assertFalse(e.hasAttribute(ocType, options));
-    assertTrue(e.hasAttribute(cnType, options));
-    assertTrue(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, options, false));
-    assertFalse(e.hasAttribute(uidType, options));
-    assertFalse(e.hasAttribute(mnType, options));
+    assertFalse(e.hasAttribute(AttributeDescription.create(ocType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(cnType, options), true));
+    assertTrue(e.hasAttribute(AttributeDescription.create(nameType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), false));
+    assertFalse(e.hasAttribute(AttributeDescription.create(uidType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(mnType, options), true));
 
     options.add("lang-en-GB");
-    assertFalse(e.hasAttribute(ocType, options));
-    assertFalse(e.hasAttribute(cnType, options));
-    assertFalse(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, options, false));
-    assertFalse(e.hasAttribute(uidType, options));
-    assertFalse(e.hasAttribute(mnType, options));
+    assertFalse(e.hasAttribute(AttributeDescription.create(ocType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(cnType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), false));
+    assertFalse(e.hasAttribute(AttributeDescription.create(uidType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(mnType, options), true));
 
     options.clear();
     options.add("lang-en-GB");
-    assertFalse(e.hasAttribute(ocType, options));
-    assertFalse(e.hasAttribute(cnType, options));
-    assertFalse(e.hasAttribute(nameType, options));
-    assertFalse(e.hasAttribute(nameType, options, false));
-    assertFalse(e.hasAttribute(uidType, options));
-    assertFalse(e.hasAttribute(mnType, options));
+    assertFalse(e.hasAttribute(AttributeDescription.create(ocType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(cnType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(nameType, options), false));
+    assertFalse(e.hasAttribute(AttributeDescription.create(uidType, options), true));
+    assertFalse(e.hasAttribute(AttributeDescription.create(mnType, options), true));
   }
 
 
@@ -618,39 +619,39 @@ public final class TestEntry extends TypesTestCase {
     assertThat(e.getOperationalAttribute(mnType)).hasSize(1);
 
     LinkedHashSet<String> options = null;
-    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(mnType, options)).hasSize(1);
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(mnType, options))).hasSize(1);
 
     options = new LinkedHashSet<>();
-    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(mnType, options)).hasSize(1);
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(mnType, options))).hasSize(1);
 
     options.add("lang-en-US");
-    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(mnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(mnType, options))).isEmpty();
 
     options.add("lang-en-GB");
-    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(mnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(mnType, options))).isEmpty();
 
     options.clear();
     options.add("lang-en-GB");
-    assertThat(e.getOperationalAttribute(ocType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(cnType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(nameType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(uidType, options)).isEmpty();
-    assertThat(e.getOperationalAttribute(mnType, options)).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getOperationalAttribute(AttributeDescription.create(mnType, options))).isEmpty();
   }
 }

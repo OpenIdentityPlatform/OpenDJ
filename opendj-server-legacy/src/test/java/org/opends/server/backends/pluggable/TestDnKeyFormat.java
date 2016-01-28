@@ -400,7 +400,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
             boolean found = false;
 
             for (Attribute attrAfter : listAfter) {
-              if (attrAfter.optionsEqual(attrBefore.getOptions())) {
+              if (attrAfter.getAttributeDescription().equals(attrBefore.getAttributeDescription())) {
                 // Found the corresponding attribute
                 assertEquals(attrBefore, attrAfter);
                 found = true;

@@ -26,17 +26,16 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Utils;
 import org.opends.server.api.VirtualAttributeProvider;
 
@@ -53,10 +52,8 @@ import org.opends.server.api.VirtualAttributeProvider;
 public final class VirtualAttribute
   extends AbstractAttribute
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** The attribute type. */
-  private final AttributeType attributeType;
+  /** The attribute description. */
+  private final AttributeDescription attributeDescription;
   /** The entry with which this virtual attribute is associated. */
   private final Entry entry;
   /** The virtual attribute provider for this virtual attribute. */
@@ -80,7 +77,7 @@ public final class VirtualAttribute
   public VirtualAttribute(AttributeType attributeType, Entry entry,
       VirtualAttributeRule rule)
   {
-    this.attributeType = attributeType;
+    this.attributeDescription = AttributeDescription.create(attributeType);
     this.entry = entry;
     this.rule = rule;
     this.provider = rule.getProvider();
@@ -111,15 +108,15 @@ public final class VirtualAttribute
   }
 
   @Override
-  public AttributeType getAttributeType()
-  {
-    return attributeType;
-  }
-
-  @Override
   public String getNameWithOptions()
   {
     return getName();
+  }
+
+  @Override
+  public AttributeDescription getAttributeDescription()
+  {
+    return attributeDescription;
   }
 
   @Override
@@ -146,12 +143,6 @@ public final class VirtualAttribute
   public ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
   {
     return provider.greaterThanOrEqualTo(entry, rule, assertionValue);
-  }
-
-  @Override
-  public boolean hasAllOptions(Collection<String> options)
-  {
-    return options == null || options.isEmpty();
   }
 
   @Override
@@ -195,12 +186,6 @@ public final class VirtualAttribute
       List<ByteString> subAny, ByteString subFinal)
   {
     return provider.matchesSubstring(entry, rule, subInitial, subAny, subFinal);
-  }
-
-  @Override
-  public boolean optionsEqual(Set<String> options)
-  {
-    return options == null || options.isEmpty();
   }
 
   @Override
