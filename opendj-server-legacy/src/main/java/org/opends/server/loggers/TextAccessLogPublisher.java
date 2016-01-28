@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -49,8 +49,27 @@ import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.controls.TransactionIdControl;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AbandonOperation;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
+import org.opends.server.core.UnbindOperation;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Operation;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
@@ -818,7 +837,7 @@ public final class TextAccessLogPublisher extends
   {
     appendLabel(buffer, "dn", compareOperation.getRawEntryDN());
     buffer.append(" attr=");
-    buffer.append(compareOperation.getAttributeType().getNameOrOID());
+    buffer.append(compareOperation.getAttributeDescription().getAttributeType().getNameOrOID());
     appendRequestControls(compareOperation, buffer);
     if (compareOperation.isSynchronizationOperation())
     {

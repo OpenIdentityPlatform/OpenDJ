@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -410,7 +410,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       final OpenDJAccessAuditEventBuilder<?> builder)
   {
     builder.ldapDn(compareOperation.getRawEntryDN().toString());
-    builder.ldapAttr(compareOperation.getAttributeType().getNameOrOID());
+    builder.ldapAttr(compareOperation.getAttributeDescription().getAttributeType().getNameOrOID());
   }
 
   private void appendDeleteRequest(final DeleteOperation deleteOperation,

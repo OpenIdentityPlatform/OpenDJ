@@ -26,9 +26,7 @@
  */
 package org.opends.server.core;
 
-import java.util.Set;
-
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 
@@ -51,93 +49,51 @@ public abstract class CompareOperationWrapper extends
     super(compare);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public String getRawAttributeType()
   {
     return getOperation().getRawAttributeType();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void setRawAttributeType(String rawAttributeType)
   {
     getOperation().setRawAttributeType(rawAttributeType);
   }
 
-
-  /** {@inheritDoc} */
   @Override
-  public AttributeType getAttributeType()
+  public AttributeDescription getAttributeDescription()
   {
-    return getOperation().getAttributeType();
+    return getOperation().getAttributeDescription();
   }
 
-
-  /** {@inheritDoc} */
-  @Override
-  public void setAttributeType(AttributeType attributeType)
-  {
-    getOperation().setAttributeType(attributeType);
-  }
-
-
-  /** {@inheritDoc} */
-  @Override
-  public Set<String> getAttributeOptions()
-  {
-    return getOperation().getAttributeOptions();
-  }
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void setAttributeOptions(Set<String> attributeOptions)
-  {
-    getOperation().setAttributeOptions(attributeOptions);
-  }
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAssertionValue()
   {
     return getOperation().getAssertionValue();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void setAssertionValue(ByteString assertionValue)
   {
     getOperation().setAssertionValue(assertionValue);
   }
-
-
 }

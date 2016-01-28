@@ -488,43 +488,43 @@ public final class TestEntry extends TypesTestCase {
     assertThat(e.getAttribute("modifiersname")).hasSize(1);
 
     LinkedHashSet<String> options = null;
-    assertThat(e.getAttribute(ocType, options)).hasSize(1);
-    assertThat(e.getAttribute(cnType, options)).hasSize(2);
-    assertThat(e.getAttribute(nameType, options)).hasSize(6);
+    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).hasSize(1);
+    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).hasSize(2);
+    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).hasSize(6);
 
-    assertThat(e.getAttribute(uidType, options)).isEmpty();
-    assertThat(e.getAttribute(mnType, options)).hasSize(1);
+    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).hasSize(1);
 
     options = new LinkedHashSet<>();
-    assertThat(e.getAttribute(ocType, options)).hasSize(1);
-    assertThat(e.getAttribute(cnType, options)).hasSize(2);
-    assertThat(e.getAttribute(nameType, options)).hasSize(6);
+    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).hasSize(1);
+    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).hasSize(2);
+    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).hasSize(6);
 
-    assertThat(e.getAttribute(uidType, options)).isEmpty();
-    assertThat(e.getAttribute(mnType, options)).hasSize(1);
+    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).hasSize(1);
 
     options.add("lang-en-US");
-    assertThat(e.getAttribute(ocType, options)).isEmpty();
-    assertThat(e.getAttribute(cnType, options)).hasSize(1);
-    assertThat(e.getAttribute(nameType, options)).hasSize(3);
+    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).hasSize(1);
+    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).hasSize(3);
 
-    assertThat(e.getAttribute(uidType, options)).isEmpty();
-    assertThat(e.getAttribute(mnType, options)).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).isEmpty();
 
     options.add("lang-en-GB");
-    assertThat(e.getAttribute(ocType, options)).isEmpty();
-    assertThat(e.getAttribute(cnType, options)).isEmpty();
-    assertThat(e.getAttribute(nameType, options)).isEmpty();
-    assertThat(e.getAttribute(uidType, options)).isEmpty();
-    assertThat(e.getAttribute(mnType, options)).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).isEmpty();
 
     options.clear();
     options.add("lang-en-GB");
-    assertThat(e.getAttribute(ocType, options)).isEmpty();
-    assertThat(e.getAttribute(cnType, options)).isEmpty();
-    assertThat(e.getAttribute(nameType, options)).isEmpty();
-    assertThat(e.getAttribute(uidType, options)).isEmpty();
-    assertThat(e.getAttribute(mnType, options)).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).isEmpty();
   }
 
 

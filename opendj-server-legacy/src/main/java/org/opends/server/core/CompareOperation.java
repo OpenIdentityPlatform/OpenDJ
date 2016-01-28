@@ -26,11 +26,10 @@
  */
 package org.opends.server.core;
 
-import java.util.Set;
-
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
 
 
 /**
@@ -88,40 +87,13 @@ public interface CompareOperation extends Operation
    */
   void setRawAttributeType(String rawAttributeType);
 
-
   /**
-   * Retrieves the attribute type for this compare operation.  This should not
-   * be called by pre-parse plugins because the processed attribute type will
-   * not be available yet.
+   * Retrieves the attribute description for this compare operation. This should not be called by
+   * pre-parse plugins because the processed attribute description will not be available yet.
    *
-   * @return  The attribute type for this compare operation.
+   * @return The attribute description for this compare operation.
    */
-  AttributeType getAttributeType();
-
-
-  /**
-   * Specifies the attribute type for this compare operation.
-   *
-   * @param attributeType  The attribute type for this compare operation.
-   */
-  void setAttributeType(AttributeType attributeType);
-
-
-  /**
-   * Retrieves the attribute options for this compare operation. This should
-   * not be called by the pre-parse plugins because the processed attribute
-   * options will not be available yet.
-   *
-   * @return  The attribute options for this compare operation.
-   */
-  Set<String> getAttributeOptions();
-
-  /**
-   * Specifies the attribute options for this compare operation.
-   *
-   * @param attributeOptions The attribute options for this compare operation.
-   */
-  void setAttributeOptions(Set<String> attributeOptions);
+  AttributeDescription getAttributeDescription();
 
   /**
    * Retrieves the assertion value for this compare operation.
@@ -145,6 +117,7 @@ public interface CompareOperation extends Operation
    *
    * @return  The proxied authorization target DN for this compare operation
    */
+  @Override
   DN getProxiedAuthorizationDN();
 
 
@@ -154,6 +127,7 @@ public interface CompareOperation extends Operation
    * @param proxiedAuthorizationDN  The proxied authorization target DN for
    *                                this compare operation
    */
+  @Override
   void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 }

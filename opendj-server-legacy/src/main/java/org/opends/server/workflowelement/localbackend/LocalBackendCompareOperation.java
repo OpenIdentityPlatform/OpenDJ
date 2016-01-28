@@ -27,21 +27,30 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.CompareOperationWrapper;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
@@ -230,17 +239,13 @@ public class LocalBackendCompareOperation
         return;
       }
 
-
-      // Get the base attribute type and set of options.
-      Set<String> options = getAttributeOptions();
-      AttributeType attrType = getAttributeType();
-
       // Actually perform the compare operation.
-      List<Attribute> attrList = entry.getAttribute(attrType, options);
+      AttributeDescription attrDesc = getAttributeDescription();
+      List<Attribute> attrList = entry.getAttribute(attrDesc);
       if (attrList.isEmpty())
       {
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
-        Arg2<Object, Object> errorMsg = options == null
+        Arg2<Object, Object> errorMsg = attrDesc.hasOptions()
             ? WARN_COMPARE_OP_NO_SUCH_ATTR
             : WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS;
         appendErrorMessage(errorMsg.get(entryDN, getRawAttributeType()));

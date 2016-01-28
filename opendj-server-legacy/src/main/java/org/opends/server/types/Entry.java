@@ -702,28 +702,6 @@ public class Entry
 
   /**
    * Retrieves the requested attribute element(s) for the specified
-   * attribute type.  The list returned may include multiple elements
-   * if the same attribute exists in the entry multiple times with
-   * different sets of options. It may also include any subordinate
-   * attributes of the attribute being retrieved.
-   *
-   * @param  attributeType       The attribute type to retrieve.
-   * @param  options             The set of attribute options to
-   *                             include in matching elements.
-   *
-   * @return  The requested attribute element(s) for the specified
-   *          attribute type, or an empty list if the specified
-   *          attribute type is not present in this entry with the
-   *          provided set of options.
-   */
-  @Deprecated
-  public List<Attribute> getAttribute(AttributeType attributeType, Set<String> options)
-  {
-    return getAttribute(AttributeDescription.create(attributeType, options));
-  }
-
-  /**
-   * Retrieves the requested attribute element(s) for the specified
    * attribute description.  The list returned may include multiple elements
    * if the same attribute exists in the entry multiple times with
    * different sets of options. It may also include any subordinate

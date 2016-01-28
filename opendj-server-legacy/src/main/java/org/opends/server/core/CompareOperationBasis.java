@@ -27,16 +27,25 @@
 package org.opends.server.core;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.ClientConnection;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendCompareOperation;
@@ -59,14 +68,11 @@ public class CompareOperationBasis
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The attribute type for this compare operation. */
-  private AttributeType attributeType;
+  /** The attribute description for this compare operation. */
+  private AttributeDescription attributeDescription;
 
   /** The assertion value for the compare operation. */
   private ByteString assertionValue;
-
-  /** The set of attribute options. */
-  private Set<String> attributeOptions;
 
   /** The raw, unprocessed entry DN as included in the client request. */
   private ByteString rawEntryDN;
@@ -115,8 +121,7 @@ public class CompareOperationBasis
 
     responseControls       = new ArrayList<>();
     entryDN                = null;
-    attributeType          = null;
-    attributeOptions       = null;
+    attributeDescription = null;
     cancelRequest          = null;
     proxiedAuthorizationDN = null;
   }
@@ -146,7 +151,7 @@ public class CompareOperationBasis
 
 
     this.entryDN        = entryDN;
-    this.attributeType  = attributeType;
+    this.attributeDescription = AttributeDescription.create(attributeType);
     this.assertionValue = assertionValue;
 
     responseControls       = new ArrayList<>();
@@ -154,7 +159,6 @@ public class CompareOperationBasis
     rawAttributeType       = attributeType.getNameOrOID();
     cancelRequest          = null;
     proxiedAuthorizationDN = null;
-    attributeOptions       = new HashSet<>();
   }
 
   /** {@inheritDoc} */
@@ -200,23 +204,33 @@ public class CompareOperationBasis
     return rawAttributeType;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawAttributeType(String rawAttributeType)
   {
     this.rawAttributeType = rawAttributeType;
 
-    attributeType = null;
-    attributeOptions = null;
+    attributeDescription = null;
   }
 
-  private void getAttributeTypeAndOptions() {
+  @Override
+  public final AttributeDescription getAttributeDescription()
+  {
+    if (attributeDescription == null)
+    {
+      attributeDescription = getAttributeDescription0();
+    }
+    return attributeDescription;
+  }
+
+  private AttributeDescription getAttributeDescription0()
+  {
     String baseName;
     int semicolonPos = rawAttributeType.indexOf(';');
+    Set<String> attributeOptions;
     if (semicolonPos > 0) {
       baseName = toLowerCase(rawAttributeType.substring(0, semicolonPos));
 
-      attributeOptions = new HashSet<>();
+      attributeOptions = new LinkedHashSet<>();
       int nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
       while (nextPos > 0)
       {
@@ -233,44 +247,9 @@ public class CompareOperationBasis
       baseName = toLowerCase(rawAttributeType);
       attributeOptions  = null;
     }
-    attributeType = DirectoryServer.getAttributeType(baseName);
+    return AttributeDescription.create(DirectoryServer.getAttributeType(baseName), attributeOptions);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public final AttributeType getAttributeType()
-  {
-    if (attributeType == null) {
-      getAttributeTypeAndOptions();
-    }
-    return attributeType;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setAttributeType(AttributeType attributeType)
-  {
-    this.attributeType = attributeType;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Set<String> getAttributeOptions()
-  {
-    if (attributeOptions == null) {
-      getAttributeTypeAndOptions();
-    }
-    return attributeOptions;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setAttributeOptions(Set<String> attributeOptions)
-  {
-    this.attributeOptions = attributeOptions;
-  }
-
-  /** {@inheritDoc} */
   @Override
   public final ByteString getAssertionValue()
   {

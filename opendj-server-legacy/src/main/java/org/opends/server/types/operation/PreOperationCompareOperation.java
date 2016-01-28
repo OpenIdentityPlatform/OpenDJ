@@ -28,7 +28,7 @@ package org.opends.server.types.operation;
 
 
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -79,11 +79,11 @@ public interface PreOperationCompareOperation
 
 
   /**
-   * Retrieves the attribute type for this compare operation.
+   * Retrieves the attribute description for this compare operation.
    *
-   * @return  The attribute type for this compare operation.
+   * @return The attribute description for this compare operation.
    */
-  AttributeType getAttributeType();
+  AttributeDescription getAttributeDescription();
 
 
 
