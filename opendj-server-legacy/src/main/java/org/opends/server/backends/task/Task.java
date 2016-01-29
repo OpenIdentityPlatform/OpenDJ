@@ -44,12 +44,20 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager.DNLock;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.util.EMailMessage;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -820,44 +828,14 @@ public abstract class Task implements Comparable<Task>
     }
     try
     {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("[");
-      buffer.append(TimeThread.getLocalTime());
-      buffer.append("] severity=\"");
-      buffer.append(severity.name());
-      buffer.append("\" msgCount=");
-      buffer.append(logMessageCounter++);
-      buffer.append(" msgID=");
-      buffer.append(message.resourceName());
-      buffer.append("-");
-      buffer.append(message.ordinal());
-      buffer.append(" message=\"");
-      buffer.append(message);
-      buffer.append("\"");
-      if (exception != null)
-      {
-        buffer.append(" exception=\"");
-        buffer.append(StaticUtils.stackTraceToSingleLineString(exception));
-        buffer.append("\"");
-      }
-
-      String messageString = buffer.toString();
+      String messageString = buildLogMessage(severity, message, exception);
       logMessages.add(messageString);
 
-      AttributeType type = DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES);
-
-      final List<Attribute> attrList = taskEntry.getAttribute(type);
-      ByteString value = ByteString.valueOfUtf8(messageString);
-      if (attrList.isEmpty())
-      {
-        taskEntry.putAttribute(type, newArrayList(Attributes.create(type, value)));
-      }
-      else
-      {
-        AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
-        builder.add(value);
-        attrList.set(0, builder.toAttribute());
-      }
+      final AttributeType type = DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES);
+      final Attribute attr = taskEntry.getExactAttribute(type, Collections.<String> emptySet());
+      final AttributeBuilder builder = attr != null ? new AttributeBuilder(attr) : new AttributeBuilder(type);
+      builder.add(messageString);
+      taskEntry.putAttribute(type, builder.toAttributeList());
     }
     finally
     {
@@ -866,6 +844,31 @@ public abstract class Task implements Comparable<Task>
         lock.unlock();
       }
     }
+  }
+
+  private String buildLogMessage(Severity severity, LocalizableMessage message, Throwable exception)
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("[");
+    buffer.append(TimeThread.getLocalTime());
+    buffer.append("] severity=\"");
+    buffer.append(severity.name());
+    buffer.append("\" msgCount=");
+    buffer.append(logMessageCounter++);
+    buffer.append(" msgID=");
+    buffer.append(message.resourceName());
+    buffer.append("-");
+    buffer.append(message.ordinal());
+    buffer.append(" message=\"");
+    buffer.append(message);
+    buffer.append("\"");
+    if (exception != null)
+    {
+      buffer.append(" exception=\"");
+      buffer.append(StaticUtils.stackTraceToSingleLineString(exception));
+      buffer.append("\"");
+    }
+    return buffer.toString();
   }
 
   /**
