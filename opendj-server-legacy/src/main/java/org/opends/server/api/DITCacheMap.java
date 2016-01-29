@@ -737,6 +737,12 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     }
 
     @Override
+    public boolean isEmpty()
+    {
+      return !(new SubtreeSetIterator(this.key).hasNext());
+    }
+
+    @Override
     public int size()
     {
       int size = 0;

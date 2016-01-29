@@ -607,6 +607,22 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
   private void doPostDelete(Entry entry)
   {
+    // Fast-path for deleted entries which do not have subordinate sub-entries.
+    lock.readLock().lock();
+    try
+    {
+      final Collection<SubEntry> subtree = dit2SubEntry.getSubtree(entry.getName());
+      if (subtree.isEmpty())
+      {
+        return;
+      }
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
+
+    // Slow-path.
     lock.writeLock().lock();
     try
     {
@@ -626,6 +642,11 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     final boolean oldEntryIsSubentry = isSubEntry(oldEntry);
     final boolean newEntryIsSubentry = isSubEntry(newEntry);
+    if (!oldEntryIsSubentry && !newEntryIsSubentry)
+    {
+      return; // Nothing to do.
+    }
+
     boolean notify = false;
     lock.writeLock().lock();
     try
