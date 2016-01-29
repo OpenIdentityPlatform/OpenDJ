@@ -26,8 +26,8 @@
  */
 package org.opends.server.types;
 
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +36,6 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
 
 /**
  * This class contains various methods for manipulating
@@ -407,10 +406,5 @@ public final class Attributes
       }
     }
     return builder.toAttribute();
-  }
-
-  private static AttributeType getAttributeTypeOrDefault(String attributeName)
-  {
-    return DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeName), attributeName);
   }
 }

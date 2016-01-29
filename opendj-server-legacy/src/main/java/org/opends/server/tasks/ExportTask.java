@@ -492,7 +492,7 @@ public class ExportTask extends Task
     HashSet<AttributeType> attributes = new HashSet<>();
     for (String attrName : attributeStrings)
     {
-      attributes.add(DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName));
+      attributes.add(DirectoryServer.getAttributeTypeOrDefault(attrName));
     }
     return attributes;
   }

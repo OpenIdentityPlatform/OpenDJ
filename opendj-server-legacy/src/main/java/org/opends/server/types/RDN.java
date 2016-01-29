@@ -667,12 +667,11 @@ public final class RDN
     // Create the new RDN with the provided information.  However,
     // don't return it yet because this could be a multi-valued RDN.
     String name            = attributeName.toString();
-    String lowerName       = toLowerCase(name);
 
     // If using default is a problem, it will be caught later either
     // by not finding the target entry or by not allowing the entry
     // to be added.
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, name);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name);
 
     RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
 
@@ -781,8 +780,7 @@ public final class RDN
       if (pos >= length)
       {
         name      = attributeName.toString();
-        lowerName = toLowerCase(name);
-        attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName.toString(), name);
+        attrType = DirectoryServer.getAttributeTypeOrDefault(name);
 
         rdn.addValue(attrType, name, ByteString.empty());
         return rdn;
@@ -796,11 +794,10 @@ public final class RDN
 
       // Update the RDN to include the new attribute/value.
       name            = attributeName.toString();
-      lowerName       = toLowerCase(name);
       // If using default is a problem, it will be caught later either
       // by not finding the target entry or by not allowing the entry
       // to be added.
-      attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, name);
+      attrType = DirectoryServer.getAttributeTypeOrDefault(name);
 
       rdn.addValue(attrType, name, parsedValue.toByteString());
 

@@ -810,27 +810,16 @@ public final class DN implements Comparable<DN>, Serializable
 
   private static RDN newRDN(ByteString attrName, ByteString value)
   {
-    String lowerName = toLC(attrName);
-    String attributeNameString = attrName.toString();
-    AttributeType attrType = getAttributeTypeOrDefault(lowerName, attributeNameString);
-
-    return new RDN(attrType, attributeNameString, value);
+    String name = attrName.toString();
+    AttributeType attrType = getAttributeTypeOrDefault(name);
+    return new RDN(attrType, name, value);
   }
 
   private static void addValue(ByteString attributeName, RDN rdn, ByteString empty)
   {
-    String lowerName = toLC(attributeName);
-    String attributeNameString = attributeName.toString();
-    AttributeType attrType = getAttributeTypeOrDefault(lowerName, attributeNameString);
-
-    rdn.addValue(attrType, attributeNameString, empty);
-  }
-
-  private static String toLC(ByteString attributeName)
-  {
-    StringBuilder lowerName = new StringBuilder();
-    toLowerCase(attributeName, lowerName, true);
-    return lowerName.toString();
+    String name = attributeName.toString();
+    AttributeType attrType = getAttributeTypeOrDefault(name);
+    rdn.addValue(attrType, name, empty);
   }
 
   /**
@@ -1123,19 +1112,15 @@ public final class DN implements Comparable<DN>, Serializable
 
   private static RDN newRDN(StringBuilder attributeName, ByteString value)
   {
-    String        name      = attributeName.toString();
-    String        lowerName = toLowerCase(name);
-    AttributeType attrType = getAttributeTypeOrDefault(lowerName, name);
-
+    String name = attributeName.toString();
+    AttributeType attrType = getAttributeTypeOrDefault(name);
     return new RDN(attrType, name, value);
   }
 
   private static void addValue(StringBuilder attributeName, RDN rdn, ByteString empty)
   {
     String name = attributeName.toString();
-    String lowerName = toLowerCase(name);
-    AttributeType attrType = getAttributeTypeOrDefault(lowerName, name);
-
+    AttributeType attrType = getAttributeTypeOrDefault(name);
     rdn.addValue(attrType, name, empty);
   }
 

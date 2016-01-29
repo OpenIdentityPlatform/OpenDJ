@@ -800,15 +800,13 @@ public class LDIFReader implements Closeable
     String attrDescr = line.substring(0, colonPos);
     final Attribute attribute = parseAttrDescription(attrDescr);
     final String attrName = attribute.getName();
-    final String lowerName = toLowerCase(attrName);
 
     // Now parse the attribute value.
-    ByteString value = parseSingleValue(lines, line, entryDN,
-        colonPos, attrName);
+    ByteString value = parseSingleValue(lines, line, entryDN, colonPos, attrName);
 
     // See if this is an objectclass or an attribute.  Then get the
     // corresponding definition and add the value to the appropriate hash.
-    if (lowerName.equals("objectclass"))
+    if (attrName.equalsIgnoreCase("objectclass"))
     {
       if (! importConfig.includeObjectClasses())
       {
@@ -840,7 +838,7 @@ public class LDIFReader implements Closeable
     }
     else
     {
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, attrName);
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
       if (! importConfig.includeAttribute(attrType))
       {
         if (logger.isTraceEnabled())

@@ -1910,7 +1910,7 @@ public class LDAPFilter
       if (semicolonPos > 0)
       {
         String baseName = attributeType.substring(0, semicolonPos);
-        attrType = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(baseName), baseName);
+        attrType = DirectoryServer.getAttributeTypeOrDefault(baseName);
         options = new HashSet<>();
         StringTokenizer tokenizer =
              new StringTokenizer(attributeType.substring(semicolonPos+1), ";");
@@ -1922,7 +1922,7 @@ public class LDAPFilter
       else
       {
         options = null;
-        attrType = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeType), attributeType);
+        attrType = DirectoryServer.getAttributeTypeOrDefault(attributeType);
       }
     }
 

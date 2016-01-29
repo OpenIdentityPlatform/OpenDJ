@@ -243,7 +243,7 @@ public class RecurringTask
   private Attribute getSingleAttribute(Entry taskEntry, String attrName, Arg1<Object> noEntryErrorMsg,
       Arg1<Object> multipleEntriesErrorMsg, Arg1<Object> noAttrValueErrorMsg) throws DirectoryException
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName.toLowerCase(), attrName);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
     List<Attribute> attrList = taskEntry.getAttribute(attrType);
     if (attrList.isEmpty())
     {

@@ -700,11 +700,11 @@ public class ChangelogBackend extends Backend<Configuration>
     case 2:
       // It is probably "changeNumber=xxx,cn=changelog", use equality filter
       // But it also could be "<service-id>,cn=changelog" so need to check on attribute
-      equalityFilter = buildSearchFilterFrom(baseDN, CHANGE_NUMBER_ATTR_LC, CHANGE_NUMBER_ATTR);
+      equalityFilter = buildSearchFilterFrom(baseDN, CHANGE_NUMBER_ATTR);
       break;
     default:
       // "replicationCSN=xxx,<service-id>,cn=changelog" : use equality filter
-      equalityFilter = buildSearchFilterFrom(baseDN, "replicationcsn", "replicationCSN");
+      equalityFilter = buildSearchFilterFrom(baseDN, "replicationCSN");
       break;
     }
 
@@ -717,10 +717,10 @@ public class ChangelogBackend extends Backend<Configuration>
    * @return the search filter or {@code null} if attribute is not present in
    *         the provided DN
    */
-  private SearchFilter buildSearchFilterFrom(final DN baseDN, final String lowerCaseAttr, final String upperCaseAttr)
+  private SearchFilter buildSearchFilterFrom(final DN baseDN, final String attrName)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerCaseAttr, upperCaseAttr);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1502,7 +1502,7 @@ public class ChangelogBackend extends Backend<Configuration>
       final Map<AttributeType, List<Attribute>> userAttrs,
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrNameLowercase, attrNameUppercase);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrNameUppercase);
     final Attribute a = addByType
         ? Attributes.create(attrType, attrValue)
         : Attributes.create(attrNameUppercase, attrValue);

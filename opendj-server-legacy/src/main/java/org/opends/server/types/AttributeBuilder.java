@@ -973,7 +973,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
   private static AttributeType getAttributeTypeOrDefault(String attributeName)
   {
-    return DirectoryServer.getAttributeTypeOrDefault(toLowerCase(attributeName), attributeName);
+    return DirectoryServer.getAttributeTypeOrDefault(attributeName);
   }
 
   /** The attribute type for this attribute. */

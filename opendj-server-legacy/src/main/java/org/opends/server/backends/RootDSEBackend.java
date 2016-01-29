@@ -441,36 +441,32 @@ public class RootDSEBackend
     Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
     Attribute publicNamingContextAttr = createAttribute(
-        ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC,
-        DirectoryServer.getPublicNamingContexts().keySet());
+        ATTR_NAMING_CONTEXTS, DirectoryServer.getPublicNamingContexts().keySet());
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "ds-private-naming-contexts" attribute.
     Attribute privateNamingContextAttr = createAttribute(
-        ATTR_PRIVATE_NAMING_CONTEXTS, ATTR_PRIVATE_NAMING_CONTEXTS,
-        DirectoryServer.getPrivateNamingContexts().keySet());
+        ATTR_PRIVATE_NAMING_CONTEXTS, DirectoryServer.getPrivateNamingContexts().keySet());
     addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedControl" attribute.
     Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL,
-        ATTR_SUPPORTED_CONTROL_LC, DirectoryServer.getSupportedControls());
+        DirectoryServer.getSupportedControls());
     addAttribute(supportedControlAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedExtension" attribute.
     Attribute supportedExtensionAttr = createAttribute(
-        ATTR_SUPPORTED_EXTENSION, ATTR_SUPPORTED_EXTENSION_LC, DirectoryServer
-            .getSupportedExtensions().keySet());
+        ATTR_SUPPORTED_EXTENSION, DirectoryServer.getSupportedExtensions().keySet());
     addAttribute(supportedExtensionAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedFeature" attribute.
     Attribute supportedFeatureAttr = createAttribute(ATTR_SUPPORTED_FEATURE,
-        ATTR_SUPPORTED_FEATURE_LC, DirectoryServer.getSupportedFeatures());
+        DirectoryServer.getSupportedFeatures());
     addAttribute(supportedFeatureAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedSASLMechanisms" attribute.
     Attribute supportedSASLMechAttr = createAttribute(
-        ATTR_SUPPORTED_SASL_MECHANISMS, ATTR_SUPPORTED_SASL_MECHANISMS_LC,
-        DirectoryServer.getSupportedSASLMechanisms().keySet());
+        ATTR_SUPPORTED_SASL_MECHANISMS, DirectoryServer.getSupportedSASLMechanisms().keySet());
     addAttribute(supportedSASLMechAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedLDAPVersions" attribute.
@@ -480,13 +476,12 @@ public class RootDSEBackend
       versionStrings.add(ldapVersion.toString());
     }
     Attribute supportedLDAPVersionAttr = createAttribute(
-        ATTR_SUPPORTED_LDAP_VERSION, ATTR_SUPPORTED_LDAP_VERSION_LC, versionStrings);
+        ATTR_SUPPORTED_LDAP_VERSION, versionStrings);
     addAttribute(supportedLDAPVersionAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedAuthPasswordSchemes" attribute.
     Attribute supportedAuthPWSchemesAttr = createAttribute(
-        ATTR_SUPPORTED_AUTH_PW_SCHEMES, ATTR_SUPPORTED_AUTH_PW_SCHEMES_LC,
-        DirectoryServer.getAuthPasswordStorageSchemes().keySet());
+        ATTR_SUPPORTED_AUTH_PW_SCHEMES, DirectoryServer.getAuthPasswordStorageSchemes().keySet());
     addAttribute(supportedAuthPWSchemesAttr, dseUserAttrs, dseOperationalAttrs);
 
 
@@ -519,14 +514,12 @@ public class RootDSEBackend
 
     // Add the "supportedTLSProtocols" attribute.
     Attribute supportedTLSProtocolsAttr = createAttribute(
-        ATTR_SUPPORTED_TLS_PROTOCOLS, ATTR_SUPPORTED_TLS_PROTOCOLS_LC,
-        supportedTlsProtocols);
+        ATTR_SUPPORTED_TLS_PROTOCOLS, supportedTlsProtocols);
     addAttribute(supportedTLSProtocolsAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedTLSCiphers" attribute.
     Attribute supportedTLSCiphersAttr = createAttribute(
-        ATTR_SUPPORTED_TLS_CIPHERS, ATTR_SUPPORTED_TLS_CIPHERS_LC,
-        supportedTlsCiphers);
+        ATTR_SUPPORTED_TLS_CIPHERS, supportedTlsCiphers);
     addAttribute(supportedTLSCiphersAttr, dseUserAttrs, dseOperationalAttrs);
 
     addAll(staticDSEAttributes, dseUserAttrs, dseOperationalAttrs);
@@ -584,17 +577,13 @@ public class RootDSEBackend
    *
    * @param name
    *          The name for the attribute.
-   * @param lowerName
-   *          The name for the attribute formatted in all lowercase
-   *          characters.
    * @param values
    *          The set of values to use for the attribute.
    * @return The constructed attribute.
    */
-  private Attribute createAttribute(String name, String lowerName,
-                                    Collection<? extends Object> values)
+  private Attribute createAttribute(String name, Collection<? extends Object> values)
   {
-    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(lowerName, name);
+    AttributeType type = DirectoryServer.getAttributeTypeOrDefault(name);
 
     AttributeBuilder builder = new AttributeBuilder(type, name);
     builder.addAllStrings(values);

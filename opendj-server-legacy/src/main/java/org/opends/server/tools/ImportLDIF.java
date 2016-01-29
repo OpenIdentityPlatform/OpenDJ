@@ -720,7 +720,7 @@ public class ImportLDIF extends TaskTool {
         }
         else
         {
-          excludeAttributes.add(DirectoryServer.getAttributeTypeOrDefault(lowerName, attrName));
+          excludeAttributes.add(DirectoryServer.getAttributeTypeOrDefault(attrName));
         }
       }
     }
@@ -748,7 +748,7 @@ public class ImportLDIF extends TaskTool {
         }
         else
         {
-          includeAttributes.add(DirectoryServer.getAttributeTypeOrDefault(lowerName, attrName));
+          includeAttributes.add(DirectoryServer.getAttributeTypeOrDefault(attrName));
         }
       }
     }

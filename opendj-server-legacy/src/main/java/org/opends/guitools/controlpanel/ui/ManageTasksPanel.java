@@ -672,11 +672,10 @@ public class ManageTasksPanel extends StatusGenericPanel
     {
       final Attribute attribute = parseAttrDescription(wholeName);
       final String attrName = attribute.getName();
-      final String lowerName = toLowerCase(attrName);
 
       // See if this is an objectclass or an attribute.  Then get the
       // corresponding definition and add the value to the appropriate hash.
-      if (lowerName.equals("objectclass"))
+      if (attrName.equalsIgnoreCase("objectclass"))
       {
         for (Object value : csr.getAttributeValues(attrName))
         {
@@ -695,7 +694,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       else
       {
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(lowerName, attrName);
+        AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
         for (Object value : csr.getAttributeValues(attrName))
         {

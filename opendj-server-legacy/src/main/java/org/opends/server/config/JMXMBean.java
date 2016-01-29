@@ -399,7 +399,7 @@ public final class JMXMBean
   {
     // It's possible that this is a monitor attribute rather than a configurable
     // one. Check all of those.
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name.toLowerCase(), name);
+    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name);
     for (MonitorProvider<? extends MonitorProviderCfg> monitor : monitorProviders)
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
@@ -581,7 +581,7 @@ public final class JMXMBean
 
       // It's possible that this is a monitor attribute rather than a
       // configurable one. Check all of those.
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name.toLowerCase(), name);
+      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name);
 
 monitorLoop:
       for (MonitorProvider<? extends MonitorProviderCfg> monitor :
