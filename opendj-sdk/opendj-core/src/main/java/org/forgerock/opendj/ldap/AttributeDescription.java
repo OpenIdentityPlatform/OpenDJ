@@ -27,6 +27,7 @@
 package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -587,8 +588,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
-     * Creates an attribute description having the provided attribute type and
-     * options.
+     * Creates an attribute description having the provided attribute type and options.
      *
      * @param attributeType
      *            The attribute type.
@@ -598,23 +598,38 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @throws NullPointerException
      *             If {@code attributeType} or {@code options} was {@code null}.
      */
-    public static AttributeDescription create(final AttributeType attributeType,
-            final String... options) {
+    public static AttributeDescription create(final AttributeType attributeType, final String... options) {
+        return create(attributeType, Arrays.asList(options));
+    }
+
+    /**
+     * Creates an attribute description having the provided attribute type and options.
+     *
+     * @param attributeType
+     *            The attribute type.
+     * @param options
+     *            The attribute options.
+     * @return The attribute description.
+     * @throws NullPointerException
+     *             If {@code attributeType} or {@code options} was {@code null}.
+     */
+    public static AttributeDescription create(final AttributeType attributeType, final Collection<String> options) {
         Reject.ifNull(attributeType);
         Reject.ifNull(options);
 
-        switch (options.length) {
+        switch (options.size()) {
         case 0:
             return create(attributeType);
         case 1:
-            return create(attributeType, options[0]);
+            return create(attributeType, options.iterator().next());
         default:
-            final String[] optionsList = new String[options.length];
-            final String[] normalizedOptions = new String[options.length];
+            final String[] optionsList = new String[options.size()];
+            final String[] normalizedOptions = new String[options.size()];
 
+            final Iterator<String> it = options.iterator();
             final String oid = attributeType.getNameOrOID();
             final StringBuilder builder =
-                    new StringBuilder(oid.length() + options[0].length() + options[1].length() + 2);
+                    new StringBuilder(oid.length() + it.next().length() + it.next().length() + 2);
             builder.append(oid);
 
             int i = 0;
@@ -622,8 +637,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 builder.append(';');
                 builder.append(option);
                 optionsList[i] = option;
-                final String normalizedOption = toLowerCase(option);
-                normalizedOptions[i++] = normalizedOption;
+                normalizedOptions[i++] = toLowerCase(option);
             }
             Arrays.sort(normalizedOptions);
 
