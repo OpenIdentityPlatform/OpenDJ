@@ -42,7 +42,23 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -60,6 +76,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
@@ -72,7 +89,14 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -86,15 +110,56 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
-import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.protocol.AddContext;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.DeleteContext;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ModifyContext;
+import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.ModifyDnContext;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.OperationContext;
+import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.opends.server.types.operation.*;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.Schema;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostOperationOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
@@ -690,10 +755,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Now extract fractional configuration if any
-    Iterator<String> exclIt =
-        getAttributeValueIterator(resultEntry, REPLICATION_FRACTIONAL_EXCLUDE);
-    Iterator<String> inclIt =
-        getAttributeValueIterator(resultEntry, REPLICATION_FRACTIONAL_INCLUDE);
+    Iterator<ByteString> exclIt = getAttributeValueIterator(resultEntry, REPLICATION_FRACTIONAL_EXCLUDE);
+    Iterator<ByteString> inclIt = getAttributeValueIterator(resultEntry, REPLICATION_FRACTIONAL_INCLUDE);
 
     // Compare backend and local fractional configuration
     return isFractionalConfigConsistent(fractionalConfig, exclIt, inclIt);
@@ -705,7 +768,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final SearchResultEntry resultEntry = getFirstResult(searchOperation);
     if (resultEntry != null)
     {
-      AttributeType synchronizationGenIDType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
+      AttributeType synchronizationGenIDType = DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
       List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
       if (!attrs.isEmpty())
       {
@@ -724,16 +787,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return null;
   }
 
-  private Iterator<String> getAttributeValueIterator(SearchResultEntry resultEntry, String attrName)
+  private Iterator<ByteString> getAttributeValueIterator(SearchResultEntry resultEntry, String attrName)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
     List<Attribute> exclAttrs = resultEntry.getAttribute(attrType);
     if (!exclAttrs.isEmpty())
     {
       Attribute exclAttr = exclAttrs.get(0);
       if (exclAttr != null)
       {
-        return new AttributeValueStringIterator(exclAttr.iterator());
+        return exclAttr.iterator();
       }
     }
     return null;
@@ -753,14 +816,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * configuration stored in the local variables.
    */
   static boolean isFractionalConfigConsistent(
-      FractionalConfig fractionalConfig, Iterator<String> exclIt,
-      Iterator<String> inclIt)
+      FractionalConfig fractionalConfig, Iterator<ByteString> exclIt, Iterator<ByteString> inclIt)
   {
-    /*
-     * Parse fractional configuration stored in passed fractional configuration
-     * attributes values
-     */
-
+    // Parse fractional configuration stored in passed fractional configuration attributes values
     Map<String, Set<String>> storedFractionalSpecificClassesAttributes = new HashMap<>();
     Set<String> storedFractionalAllClassesAttributes = new HashSet<>();
 
@@ -808,44 +866,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // been checked
       logger.info(NOTE_ERR_FRACTIONAL, fractionalConfig.getBaseDn(), stackTraceToSingleLineString(e));
       return false;
-    }
-  }
-
-  /**
-   * Utility class to have get a string iterator from an AtributeValue iterator.
-   * Assuming the attribute values are strings.
-   */
-  static class AttributeValueStringIterator implements Iterator<String>
-  {
-    private final Iterator<ByteString> attrValIt;
-
-    /**
-     * Creates a new AttributeValueStringIterator object.
-     * @param attrValIt The underlying attribute iterator to use, assuming
-     * internal values are strings.
-     */
-    AttributeValueStringIterator(Iterator<ByteString> attrValIt)
-    {
-      this.attrValIt = attrValIt;
-    }
-
-    @Override
-    public boolean hasNext()
-    {
-      return attrValIt.hasNext();
-    }
-
-    @Override
-    public String next()
-    {
-      return attrValIt.next().toString();
-    }
-
-    // Should not be needed anyway
-    @Override
-    public void remove()
-    {
-      attrValIt.remove();
     }
   }
 
@@ -1084,7 +1104,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     // Create a list of filtered attributes for this entry
     Entry concernedEntry = modifyDNOperation.getOriginalEntry();
-    Set<String> fractionalConcernedAttributes =
+    Set<AttributeType> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig,
       concernedEntry.getObjectClasses().keySet());
 
@@ -1115,7 +1135,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       AttributeType attributeType = rdn.getAttributeType(i);
       // Is it present in the fractional attributes established list ?
       boolean foundAttribute =
-          exists(fractionalConcernedAttributes, attributeType);
+          fractionalConcernedAttributes.contains(attributeType);
       if (canRemoveAttribute(fractionalExclusive, foundAttribute)
           && !newRdn.hasAttributeType(attributeType)
           && !modifyDNOperation.deleteOldRDN())
@@ -1134,18 +1154,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     return inconsistentOperation;
-  }
-
-  private boolean exists(Set<String> attrNames, AttributeType attrTypeToFind)
-  {
-    for (String attrName : attrNames)
-    {
-      if (DirectoryServer.getAttributeTypeOrNull(attrName).equals(attrTypeToFind))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -1175,7 +1183,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * fractional replication configuration
      */
 
-    Set<String> fractionalConcernedAttributes =
+    Set<AttributeType> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig, classes.keySet());
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
     if (fractionalExclusive && fractionalConcernedAttributes.isEmpty())
@@ -1204,8 +1212,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       if (isMandatoryAttribute(entryClasses, attributeType)
       // Do not remove an attribute if it is a prohibited one
           || isFractionalProhibited(attributeType)
-          || !canRemoveAttribute(attributeType, fractionalExclusive,
-              fractionalConcernedAttributes))
+          || !canRemoveAttribute(attributeType, fractionalExclusive, fractionalConcernedAttributes))
       {
         continue;
       }
@@ -1303,29 +1310,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    }
 
   private static boolean canRemoveAttribute(AttributeType attributeType,
-      boolean fractionalExclusive, Set<String> fractionalConcernedAttributes)
+      boolean fractionalExclusive, Set<AttributeType> fractionalConcernedAttributes)
   {
-    String attributeName = attributeType.getNameOrOID();
-    String attributeOid = attributeType.getOID();
-
-    // Is the current attribute part of the established list ?
-    boolean foundAttribute = contains(fractionalConcernedAttributes, attributeName, attributeOid);
     // Now remove the attribute or modification if:
     // - exclusive mode and attribute is in configuration
     // - inclusive mode and attribute is not in configuration
-    return canRemoveAttribute(fractionalExclusive, foundAttribute);
+    return canRemoveAttribute(fractionalExclusive,
+        fractionalConcernedAttributes.contains(attributeType));
   }
 
-  private static boolean canRemoveAttribute(boolean fractionalExclusive,
-      boolean foundAttribute)
+  private static boolean canRemoveAttribute(boolean fractionalExclusive, boolean foundAttribute)
   {
     return (foundAttribute && fractionalExclusive)
         || (!foundAttribute && !fractionalExclusive);
-  }
-
-  private static boolean contains(Set<String> attrNames, String attrName, String attrOID)
-  {
-    return attrNames.contains(attrOID) || attrNames.contains(attrName.toLowerCase());
   }
 
   /**
@@ -1336,16 +1333,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return The list of attributes of the entry to be excluded/included
    * when the operation will be performed.
    */
-  private static Set<String> createFractionalConcernedAttrList(
+  private static Set<AttributeType> createFractionalConcernedAttrList(
     FractionalConfig fractionalConfig, Set<ObjectClass> entryObjectClasses)
   {
     /*
-     * Is the concerned entry of a type concerned by fractional replication
-     * configuration ? If yes, add the matching attribute names to a set of
-     * attributes to take into account for filtering
-     * (inclusive or exclusive mode).
-     * Using a Set to avoid duplicate attributes (from 2 inheriting classes for
-     * instance)
+     * Is the concerned entry of a type concerned by fractional replication configuration ?
+     * If yes, add the matching attribute names to a set of attributes
+     * to take into account for filtering (inclusive or exclusive mode).
+     * Using a Set to avoid duplicate attributes (from 2 inheriting classes for instance)
      */
     Set<String> fractionalConcernedAttributes = new HashSet<>();
 
@@ -1372,7 +1367,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // Add to the set any attribute which is class independent
     fractionalConcernedAttributes.addAll(fractionalAllClassesAttributes);
 
-    return fractionalConcernedAttributes;
+    Set<AttributeType> results = new HashSet<>();
+    for (String attrName : fractionalConcernedAttributes)
+    {
+      results.add(DirectoryServer.getAttributeType(attrName));
+    }
+    return results;
   }
 
   /**
@@ -1397,9 +1397,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
 
     Entry modifiedEntry = modifyOperation.getCurrentEntry();
-    Set<String> fractionalConcernedAttributes =
-      createFractionalConcernedAttrList(fractionalConfig,
-      modifiedEntry.getObjectClasses().keySet());
+    Set<AttributeType> fractionalConcernedAttributes =
+        createFractionalConcernedAttrList(fractionalConfig, modifiedEntry.getObjectClasses().keySet());
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
     if (fractionalExclusive && fractionalConcernedAttributes.isEmpty())
     {
@@ -3274,7 +3273,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       SearchResultEntry resultEntry = result.get(0);
       if (resultEntry != null)
       {
-        AttributeType synchronizationGenIDType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_GENERATION_ID);
+        AttributeType synchronizationGenIDType = DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
         List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
         if (!attrs.isEmpty())
         {
@@ -4690,15 +4689,15 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
      *         not fractional, exclusive fractional or inclusive fractional
      *         modes
      */
-    private static int parseFractionalConfig (
-      Iterator<String> exclIt, Iterator<String> inclIt,
+    private static int parseFractionalConfig(
+      Iterator<?> exclIt, Iterator<?> inclIt,
       Map<String, Set<String>> fractionalSpecificClassesAttributes,
       Set<String> fractionalAllClassesAttributes) throws ConfigException
     {
       // Determine if fractional-exclude or fractional-include property is used:
       // only one of them is allowed
       int fractionalMode;
-      Iterator<String> iterator;
+      Iterator<?> iterator;
       if (exclIt != null && exclIt.hasNext())
       {
         if (inclIt != null && inclIt.hasNext())
@@ -4727,13 +4726,12 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       {
         // Parse a value with the form class:attr1,attr2...
         // or *:attr1,attr2...
-        String fractCfgStr = iterator.next();
+        String fractCfgStr = iterator.next().toString();
         StringTokenizer st = new StringTokenizer(fractCfgStr, ":");
         int nTokens = st.countTokens();
         if (nTokens < 2)
         {
-          throw new ConfigException(NOTE_ERR_FRACTIONAL_CONFIG_WRONG_FORMAT.
-            get(fractCfgStr));
+          throw new ConfigException(NOTE_ERR_FRACTIONAL_CONFIG_WRONG_FORMAT.get(fractCfgStr));
         }
         // Get the class name
         String classNameLower = st.nextToken().toLowerCase();

@@ -226,7 +226,7 @@ public class PatternRDN
         return false;
       }
 
-      AttributeType rdnAttrType = DirectoryServer.getAttributeTypeOrNull(rdnKey);
+      AttributeType rdnAttrType = DirectoryServer.getAttributeType(rdnKey);
       if (!matchValuePattern(patternMap.get(rdnKey), rdnAttrType, rdnMap.get(rdnKey)))
       {
         return false;

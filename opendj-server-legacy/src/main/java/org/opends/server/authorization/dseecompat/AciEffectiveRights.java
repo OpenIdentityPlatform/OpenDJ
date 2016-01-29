@@ -232,15 +232,15 @@ public class AciEffectiveRights {
   {
     if (aclRights == null)
     {
-      aclRights = DirectoryServer.getAttributeTypeOrNull(aclRightsAttrStr);
+      aclRights = DirectoryServer.getAttributeType(aclRightsAttrStr);
     }
     if (aclRightsInfo == null)
     {
-      aclRightsInfo = DirectoryServer.getAttributeTypeOrNull(aclRightsInfoAttrStr);
+      aclRightsInfo = DirectoryServer.getAttributeType(aclRightsInfoAttrStr);
     }
     if (dnAttributeType == null)
     {
-      dnAttributeType = DirectoryServer.getAttributeTypeOrNull(dnAttrStr);
+      dnAttributeType = DirectoryServer.getAttributeType(dnAttrStr);
     }
 
     // Check if the attributes aclRights and aclRightsInfo were requested and

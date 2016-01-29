@@ -177,8 +177,6 @@ public class ReferentialIntegrityPlugin
    */
   private LinkedHashMap<AttributeType, SearchFilter> attrFiltMap = new LinkedHashMap<>();
 
-
-  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ReferentialIntegrityPluginCfg pluginCfg)
@@ -194,8 +192,7 @@ public class ReferentialIntegrityPlugin
 
     applyConfigurationChange(pluginCfg);
 
-    // Set up log file. Note: it is not allowed to change once the plugin is
-    // active.
+    // Set up log file. Note: it is not allowed to change once the plugin is active.
     setUpLogFile(pluginCfg.getLogFile());
     interval=pluginCfg.getUpdateInterval();
 
@@ -208,7 +205,6 @@ public class ReferentialIntegrityPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
           ReferentialIntegrityPluginCfg newConfiguration)
@@ -222,7 +218,6 @@ public class ReferentialIntegrityPlugin
             new LinkedHashSet<>(newConfiguration.getAttributeType());
 
     // Load the attribute-filter mapping
-
     LinkedHashMap<AttributeType, SearchFilter> newAttrFiltMap = new LinkedHashMap<>();
 
     for (String attrFilt : newConfiguration.getCheckReferencesFilterCriteria())
@@ -231,18 +226,15 @@ public class ReferentialIntegrityPlugin
       String attr = attrFilt.substring(0, sepInd);
       String filtStr = attrFilt.substring(sepInd + 1);
 
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attr);
+      AttributeType attrType = DirectoryServer.getAttributeType(attr);
       try
       {
-        SearchFilter filter = SearchFilter.createFilterFromString(filtStr);
-        newAttrFiltMap.put(attrType, filter);
+        newAttrFiltMap.put(attrType, SearchFilter.createFilterFromString(filtStr));
       }
-      catch (DirectoryException de)
+      catch (DirectoryException unexpected)
       {
-        /* This should never happen because the filter has already
-         * been verified.
-         */
-        logger.error(de.getMessageObject());
+        // This should never happen because the filter has already been verified.
+        logger.error(unexpected.getMessageObject());
       }
     }
 
@@ -275,8 +267,6 @@ public class ReferentialIntegrityPlugin
     return ccr;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -378,8 +368,6 @@ public class ReferentialIntegrityPlugin
     return isAcceptable;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
           ReferentialIntegrityPluginCfg configuration,
@@ -388,8 +376,6 @@ public class ReferentialIntegrityPlugin
     return isConfigurationAcceptable(configuration, unacceptableReasons);
   }
 
-
-  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.PostOperation
@@ -419,9 +405,6 @@ public class ReferentialIntegrityPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.PostOperation doPostOperation(
@@ -447,7 +430,6 @@ public class ReferentialIntegrityPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.SubordinateModifyDN processSubordinateModifyDN(
@@ -468,7 +450,6 @@ public class ReferentialIntegrityPlugin
     return PluginResult.SubordinateModifyDN.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public PluginResult.SubordinateDelete processSubordinateDelete(
@@ -948,8 +929,6 @@ public class ReferentialIntegrityPlugin
     return name;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin() {
     currentConfiguration.removeReferentialIntegrityChangeListener(this);
@@ -1055,7 +1034,6 @@ public class ReferentialIntegrityPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation doPreOperation(
     PreOperationModifyOperation modifyOperation)

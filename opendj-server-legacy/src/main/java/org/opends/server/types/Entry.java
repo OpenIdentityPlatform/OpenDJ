@@ -2832,7 +2832,7 @@ public class Entry
     }
 
     // Get collective attribute exclusions.
-    AttributeType exclusionsType = DirectoryServer.getAttributeTypeOrNull(ATTR_COLLECTIVE_EXCLUSIONS_LC);
+    AttributeType exclusionsType = DirectoryServer.getAttributeType(ATTR_COLLECTIVE_EXCLUSIONS_LC);
     List<Attribute> exclusionsAttrList = operationalAttributes.get(exclusionsType);
     Set<String> exclusionsNameSet = new HashSet<>();
     if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())

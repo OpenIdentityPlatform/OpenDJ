@@ -53,6 +53,7 @@ import org.opends.server.types.SearchResultEntry;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.replication.plugin.EntryHistorical.*;
 
 /**
  * This class implements a ServerState that is stored in the backend
@@ -220,7 +221,7 @@ class PersistentServerState
    */
   private void updateStateFromEntry(SearchResultEntry resultEntry)
   {
-    AttributeType synchronizationStateType = DirectoryServer.getAttributeTypeOrNull(REPLICATION_STATE);
+    AttributeType synchronizationStateType = DirectoryServer.getAttributeType(REPLICATION_STATE);
     List<Attribute> attrs = resultEntry.getAttribute(synchronizationStateType);
     if (!attrs.isEmpty())
     {
@@ -317,7 +318,7 @@ class PersistentServerState
    */
   private final void checkAndUpdateServerState()
   {
-    final AttributeType histType = DirectoryServer.getAttributeTypeOrNull(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+    final AttributeType histType = DirectoryServer.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
     // Retrieves the entries that have changed since the
     // maxCsn stored in the serverState

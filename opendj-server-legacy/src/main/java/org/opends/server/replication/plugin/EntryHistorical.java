@@ -269,7 +269,7 @@ public class EntryHistorical
    */
   public static void setHistoricalAttrToOperation(PreOperationAddOperation addOperation)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(HISTORICAL_ATTRIBUTE_NAME);
+    AttributeType attrType = DirectoryServer.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     String attrValue = encodeHistorical(OperationContext.getCSN(addOperation), "add");
     List<Attribute> attrs = Attributes.createAsList(attrType, attrValue);
     addOperation.setAttribute(attrType, attrs);
@@ -357,8 +357,7 @@ public class EntryHistorical
       purgeDate = TimeThread.getTime() - purgeDelayInMillisec;
     }
 
-    AttributeType historicalAttrType = DirectoryServer.getAttributeTypeOrNull(HISTORICAL_ATTRIBUTE_NAME);
-    AttributeBuilder builder = new AttributeBuilder(historicalAttrType);
+    AttributeBuilder builder = new AttributeBuilder(HISTORICAL_ATTRIBUTE_NAME);
 
     for (Map.Entry<AttributeDescription, AttrHistorical> mapEntry : attributesHistorical.entrySet())
     {
@@ -685,7 +684,7 @@ public class EntryHistorical
    */
   public static String getEntryUUID(Entry entry)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType attrType = DirectoryServer.getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = entry.getOperationalAttribute(attrType);
     return extractEntryUUID(uuidAttrs, entry.getName());
   }
@@ -700,7 +699,7 @@ public class EntryHistorical
    */
   public static String getEntryUUID(PreOperationAddOperation op)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType attrType = DirectoryServer.getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = op.getOperationalAttributes().get(attrType);
     return extractEntryUUID(uuidAttrs, op.getEntryDN());
   }

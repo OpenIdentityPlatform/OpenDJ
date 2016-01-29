@@ -26,24 +26,35 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.*;
+import org.opends.server.admin.std.server.FractionalLDIFImportPluginCfg;
+import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.plugin.LDAPReplicationDomain.AttributeValueStringIterator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain.FractionalConfig;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -323,17 +334,17 @@ public final class FractionalLDIFImportPlugin
     {
       // This is the root entry, try to read a fractional configuration from it
       Attribute exclAttr = getAttribute(REPLICATION_FRACTIONAL_EXCLUDE, entry);
-      Iterator<String> exclIt = null;
+      Iterator<ByteString> exclIt = null;
       if (exclAttr != null)
       {
-        exclIt = new AttributeValueStringIterator(exclAttr.iterator());
+        exclIt = exclAttr.iterator();
       }
 
       Attribute inclAttr = getAttribute(REPLICATION_FRACTIONAL_INCLUDE, entry);
-      Iterator<String> inclIt = null;
+      Iterator<ByteString> inclIt = null;
       if (inclAttr != null)
       {
-        inclIt = new AttributeValueStringIterator(inclAttr.iterator());
+        inclIt = inclAttr.iterator();
       }
 
       // Compare backend and local fractional configuration
@@ -405,9 +416,8 @@ public final class FractionalLDIFImportPlugin
 
   private Attribute getAttribute(String attributeName, Entry entry)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attributeName);
-    List<Attribute> inclAttrs = entry.getAttribute(attrType);
-    return !inclAttrs.isEmpty() ? inclAttrs.get(0) : null;
+    List<Attribute> attrs = entry.getAttribute(DirectoryServer.getAttributeType(attributeName));
+    return !attrs.isEmpty() ? attrs.get(0) : null;
   }
 
   /**

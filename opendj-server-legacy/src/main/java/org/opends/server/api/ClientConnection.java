@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.AuthenticatedUsers;
 import org.opends.server.core.DirectoryServer;
@@ -48,7 +49,6 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -1066,7 +1066,7 @@ public abstract class ClientConnection
       newPrivileges.addAll(DirectoryServer.getRootPrivileges());
     }
 
-    AttributeType privType = DirectoryServer.getAttributeTypeOrNull(OP_ATTR_PRIVILEGE_NAME);
+    AttributeType privType = DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME);
     for (Attribute a : entry.getAttribute(privType))
     {
       for (ByteString v : a)
