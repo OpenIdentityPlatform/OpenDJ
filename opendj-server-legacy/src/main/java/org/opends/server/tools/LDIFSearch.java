@@ -484,7 +484,7 @@ public class LDIFSearch
     LinkedHashSet<AttributeType> operationalAttributeTypes = new LinkedHashSet<>();
     for (String attributeName : attributeNames)
     {
-      AttributeType t = DirectoryServer.getAttributeTypeOrDefault(attributeName);
+      AttributeType t = DirectoryServer.getAttributeType(attributeName);
       if (t.isOperational())
       {
         operationalAttributeTypes.add(t);

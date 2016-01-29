@@ -274,7 +274,7 @@ public class AciEffectiveRights {
         }
         else
         {
-          nonRightsAttrs.add(DirectoryServer.getAttributeTypeOrDefault(a));
+          nonRightsAttrs.add(DirectoryServer.getAttributeType(a));
         }
       }
     }
@@ -406,7 +406,7 @@ public class AciEffectiveRights {
       // Only add the aclRights information if the aclRights attribute type was seen.
       if(hasAttrMask(mask, ACL_RIGHTS))  {
         String typeStr = aclRightsAttributeLevelStr + ";" + a.getNameOrOID();
-        AttributeType attributeType = DirectoryServer.getAttributeTypeOrDefault(typeStr);
+        AttributeType attributeType = DirectoryServer.getAttributeType(typeStr);
         Attribute attr = Attributes.create(attributeType, evalInfo.toString());
         //It is possible that the user might have specified the same attributes
         //in both the search and the specific attribute part of the control.
@@ -641,7 +641,7 @@ public class AciEffectiveRights {
     if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       //Build the attribute type.
       String typeStr = aclRightsInfoAttrLogsStr + ";" + rightStr + ";" + aType.getNameOrOID();
-      AttributeType attributeType = DirectoryServer.getAttributeTypeOrDefault(typeStr);
+      AttributeType attributeType = DirectoryServer.getAttributeType(typeStr);
       Attribute attr = Attributes.create(attributeType, container.getEvalSummary());
       // The attribute type might have already been added, probably
       // not but it is possible.

@@ -25,21 +25,15 @@
  *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a tag that is used to base presence of one attribute on
@@ -120,8 +114,7 @@ public class IfAbsentTag
       throw new InitializationException(message);
     }
 
-    String lowerName = toLowerCase(arguments[0]);
-    AttributeType t = DirectoryServer.getAttributeTypeOrDefault(lowerName);
+    AttributeType t = DirectoryServer.getAttributeType(arguments[0]);
     if (! branch.hasAttribute(t))
     {
       LocalizableMessage message =
@@ -168,8 +161,7 @@ public class IfAbsentTag
       throw new InitializationException(message);
     }
 
-    String lowerName = toLowerCase(arguments[0]);
-    attributeType = DirectoryServer.getAttributeTypeOrDefault(lowerName);
+    attributeType = DirectoryServer.getAttributeType(arguments[0]);
     if (! template.hasAttribute(attributeType))
     {
       LocalizableMessage message =

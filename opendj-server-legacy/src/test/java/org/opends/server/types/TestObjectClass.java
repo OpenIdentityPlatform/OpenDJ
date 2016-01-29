@@ -342,8 +342,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     types = new AttributeType[10];
 
     for (int i = 0; i < types.length; i++) {
-      String name = "testType" + i;
-      types[i] = DirectoryServer.getAttributeTypeOrDefault(name);
+      types[i] = DirectoryServer.getAttributeType("testType" + i);
     }
   }
 

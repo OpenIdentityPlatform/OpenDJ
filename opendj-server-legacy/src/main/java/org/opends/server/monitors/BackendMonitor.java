@@ -86,12 +86,12 @@ public class BackendMonitor
   {
     monitorName = backend.getBackendID() + " Backend";
 
-    backendIDType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_ID);
-    baseDNType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_BASE_DN);
-    entryCountType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_ENTRY_COUNT);
-    baseDNEntryCountType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BASE_DN_ENTRY_COUNT);
-    isPrivateType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_IS_PRIVATE);
-    writabilityModeType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_BACKEND_WRITABILITY_MODE);
+    backendIDType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_ID);
+    baseDNType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_BASE_DN);
+    entryCountType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT);
+    baseDNEntryCountType = DirectoryServer.getAttributeType(ATTR_MONITOR_BASE_DN_ENTRY_COUNT);
+    isPrivateType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_IS_PRIVATE);
+    writabilityModeType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_WRITABILITY_MODE);
   }
 
   @Override

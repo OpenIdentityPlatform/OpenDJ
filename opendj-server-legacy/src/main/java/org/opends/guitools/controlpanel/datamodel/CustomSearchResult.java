@@ -319,7 +319,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       }
       else
       {
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
+        AttributeType attrType = DirectoryServer.getAttributeType(attrName);
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
         for (Object value : getAttributeValues(attrName))
         {

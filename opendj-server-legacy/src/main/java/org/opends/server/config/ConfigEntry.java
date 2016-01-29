@@ -195,7 +195,7 @@ public final class ConfigEntry
    */
   public ConfigAttribute getConfigAttribute(ConfigAttribute stub) throws ConfigException
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(stub.getName());
+    AttributeType attrType = DirectoryServer.getAttributeType(stub.getName());
     List<Attribute> attrList = entry.getAttribute(attrType);
     return !attrList.isEmpty() ? stub.getConfigAttribute(attrList) : null;
   }

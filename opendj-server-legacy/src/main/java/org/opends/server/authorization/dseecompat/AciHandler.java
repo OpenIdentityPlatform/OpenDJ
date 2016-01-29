@@ -124,10 +124,10 @@ public final class AciHandler extends
    */
   private static void initStatics()
   {
-    aciType = getAttributeTypeOrDefault("aci");
-    globalAciType = getAttributeTypeOrDefault(ATTR_AUTHZ_GLOBAL_ACI);
-    debugSearchIndex = getAttributeTypeOrDefault(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
-    refAttrType = getAttributeTypeOrDefault(ATTR_REFERRAL_URL);
+    aciType = getAttributeType("aci");
+    globalAciType = getAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
+    debugSearchIndex = getAttributeType(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
+    refAttrType = getAttributeType(ATTR_REFERRAL_URL);
 
     try
     {
@@ -310,7 +310,7 @@ public final class AciHandler extends
       baseName = toLowerCase(rawAttributeType);
     }
 
-    container.setCurrentAttributeType(getAttributeTypeOrDefault(baseName));
+    container.setCurrentAttributeType(getAttributeType(baseName));
     container.setCurrentAttributeValue(operation.getAssertionValue());
     return isAllowed(container, operation);
   }

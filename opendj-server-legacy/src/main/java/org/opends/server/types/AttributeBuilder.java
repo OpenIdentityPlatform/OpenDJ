@@ -971,11 +971,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return builder.toAttribute();
   }
 
-  private static AttributeType getAttributeTypeOrDefault(String attributeName)
-  {
-    return DirectoryServer.getAttributeTypeOrDefault(attributeName);
-  }
-
   /** The attribute type for this attribute. */
   private AttributeType attributeType;
   /** The name of this attribute as provided by the end user. */
@@ -1091,7 +1086,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(String attributeName)
   {
-    this(getAttributeTypeOrDefault(attributeName), attributeName);
+    this(DirectoryServer.getAttributeType(attributeName), attributeName);
   }
 
 
@@ -1496,7 +1491,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public void setAttributeType(String attributeName)
   {
-    setAttributeType(getAttributeTypeOrDefault(attributeName), attributeName);
+    setAttributeType(DirectoryServer.getAttributeType(attributeName), attributeName);
   }
 
   /**

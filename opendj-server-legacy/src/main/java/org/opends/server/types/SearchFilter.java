@@ -2060,7 +2060,7 @@ public final class SearchFilter
     if (attributeType == null)
     {
       String typeStr = attrType.substring(0, lowerType.length());
-      attributeType = DirectoryServer.getAttributeTypeOrDefault(typeStr);
+      attributeType = DirectoryServer.getAttributeType(typeStr);
     }
     return attributeType;
   }

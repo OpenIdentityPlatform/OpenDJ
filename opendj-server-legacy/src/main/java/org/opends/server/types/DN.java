@@ -811,14 +811,14 @@ public final class DN implements Comparable<DN>, Serializable
   private static RDN newRDN(ByteString attrName, ByteString value)
   {
     String name = attrName.toString();
-    AttributeType attrType = getAttributeTypeOrDefault(name);
+    AttributeType attrType = getAttributeType(name);
     return new RDN(attrType, name, value);
   }
 
   private static void addValue(ByteString attributeName, RDN rdn, ByteString empty)
   {
     String name = attributeName.toString();
-    AttributeType attrType = getAttributeTypeOrDefault(name);
+    AttributeType attrType = getAttributeType(name);
     rdn.addValue(attrType, name, empty);
   }
 
@@ -1113,14 +1113,14 @@ public final class DN implements Comparable<DN>, Serializable
   private static RDN newRDN(StringBuilder attributeName, ByteString value)
   {
     String name = attributeName.toString();
-    AttributeType attrType = getAttributeTypeOrDefault(name);
+    AttributeType attrType = getAttributeType(name);
     return new RDN(attrType, name, value);
   }
 
   private static void addValue(StringBuilder attributeName, RDN rdn, ByteString empty)
   {
     String name = attributeName.toString();
-    AttributeType attrType = getAttributeTypeOrDefault(name);
+    AttributeType attrType = getAttributeType(name);
     rdn.addValue(attrType, name, empty);
   }
 

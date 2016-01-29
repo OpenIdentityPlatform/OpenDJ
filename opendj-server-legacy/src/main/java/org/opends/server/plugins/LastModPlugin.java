@@ -90,10 +90,10 @@ public final class LastModPlugin
 
     // Get the attribute types for the attributes that we will use.  This needs
     // to be done in the constructor in order to make the associated variables "final".
-    createTimestampType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATE_TIMESTAMP_LC);
-    creatorsNameType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATORS_NAME_LC);
-    modifiersNameType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_MODIFIERS_NAME_LC);
-    modifyTimestampType = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_MODIFY_TIMESTAMP_LC);
+    createTimestampType = DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC);
+    creatorsNameType = DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC);
+    modifiersNameType = DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC);
+    modifyTimestampType = DirectoryServer.getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC);
   }
 
 

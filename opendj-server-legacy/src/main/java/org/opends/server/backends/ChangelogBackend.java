@@ -200,10 +200,10 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /** The attribute type for the "creatorsName" attribute. */
   private static final AttributeType CREATORS_NAME_TYPE =
-      DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_CREATORS_NAME_LC);
+      DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC);
   /** The attribute type for the "modifiersName" attribute. */
   private static final AttributeType MODIFIERS_NAME_TYPE =
-      DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_MODIFIERS_NAME_LC);
+      DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC);
 
   /** The base DN for the external change log. */
   public static final DN CHANGELOG_BASE_DN;
@@ -720,7 +720,7 @@ public class ChangelogBackend extends Backend<Configuration>
   private SearchFilter buildSearchFilterFrom(final DN baseDN, final String attrName)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1502,7 +1502,7 @@ public class ChangelogBackend extends Backend<Configuration>
       final Map<AttributeType, List<Attribute>> userAttrs,
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrNameUppercase);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrNameUppercase);
     final Attribute a = addByType
         ? Attributes.create(attrType, attrValue)
         : Attributes.create(attrNameUppercase, attrValue);

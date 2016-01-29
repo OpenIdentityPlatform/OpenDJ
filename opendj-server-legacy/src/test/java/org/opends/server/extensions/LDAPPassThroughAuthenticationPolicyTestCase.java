@@ -73,7 +73,6 @@ import static org.testng.Assert.*;
 /**
  * Test LDAP authentication mappingPolicy implementation.
  */
-@SuppressWarnings("javadoc")
 public class LDAPPassThroughAuthenticationPolicyTestCase extends
     ExtensionsTestCase
 {
@@ -598,10 +597,9 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    MockPolicyCfg withMappedAttribute(final String atype)
+    MockPolicyCfg withMappedAttribute(final String attrName)
     {
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(toLowerCase(atype));
-      mappedAttributes.add(attrType);
+      mappedAttributes.add(DirectoryServer.getAttributeType(attrName));
       return this;
     }
 

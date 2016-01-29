@@ -147,26 +147,26 @@ public class ImportTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeLdifFile = getAttributeTypeOrDefault(ATTR_IMPORT_LDIF_FILE);
-    AttributeType typeTemplateFile = getAttributeTypeOrDefault(ATTR_IMPORT_TEMPLATE_FILE);
-    AttributeType typeBackendID = getAttributeTypeOrDefault(ATTR_IMPORT_BACKEND_ID);
-    AttributeType typeIncludeBranch = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_BRANCH);
-    AttributeType typeExcludeBranch = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_BRANCH);
-    AttributeType typeIncludeAttribute = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
-    AttributeType typeExcludeAttribute = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
-    AttributeType typeIncludeFilter = getAttributeTypeOrDefault(ATTR_IMPORT_INCLUDE_FILTER);
-    AttributeType typeExcludeFilter = getAttributeTypeOrDefault(ATTR_IMPORT_EXCLUDE_FILTER);
-    AttributeType typeRejectFile = getAttributeTypeOrDefault(ATTR_IMPORT_REJECT_FILE);
-    AttributeType typeSkipFile = getAttributeTypeOrDefault(ATTR_IMPORT_SKIP_FILE);
-    AttributeType typeOverwrite = getAttributeTypeOrDefault(ATTR_IMPORT_OVERWRITE);
-    AttributeType typeSkipSchemaValidation = getAttributeTypeOrDefault(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
-    AttributeType typeIsCompressed = getAttributeTypeOrDefault(ATTR_IMPORT_IS_COMPRESSED);
-    AttributeType typeIsEncrypted = getAttributeTypeOrDefault(ATTR_IMPORT_IS_ENCRYPTED);
-    AttributeType typeClearBackend = getAttributeTypeOrDefault(ATTR_IMPORT_CLEAR_BACKEND);
-    AttributeType typeRandomSeed = getAttributeTypeOrDefault(ATTR_IMPORT_RANDOM_SEED);
-    AttributeType typeThreadCount = getAttributeTypeOrDefault(ATTR_IMPORT_THREAD_COUNT);
-    AttributeType typeTmpDirectory = getAttributeTypeOrDefault(ATTR_IMPORT_TMP_DIRECTORY);
-    AttributeType typeDNCheckPhase2 = getAttributeTypeOrDefault(ATTR_IMPORT_SKIP_DN_VALIDATION);
+    AttributeType typeLdifFile = getAttributeType(ATTR_IMPORT_LDIF_FILE);
+    AttributeType typeTemplateFile = getAttributeType(ATTR_IMPORT_TEMPLATE_FILE);
+    AttributeType typeBackendID = getAttributeType(ATTR_IMPORT_BACKEND_ID);
+    AttributeType typeIncludeBranch = getAttributeType(ATTR_IMPORT_INCLUDE_BRANCH);
+    AttributeType typeExcludeBranch = getAttributeType(ATTR_IMPORT_EXCLUDE_BRANCH);
+    AttributeType typeIncludeAttribute = getAttributeType(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
+    AttributeType typeExcludeAttribute = getAttributeType(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
+    AttributeType typeIncludeFilter = getAttributeType(ATTR_IMPORT_INCLUDE_FILTER);
+    AttributeType typeExcludeFilter = getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER);
+    AttributeType typeRejectFile = getAttributeType(ATTR_IMPORT_REJECT_FILE);
+    AttributeType typeSkipFile = getAttributeType(ATTR_IMPORT_SKIP_FILE);
+    AttributeType typeOverwrite = getAttributeType(ATTR_IMPORT_OVERWRITE);
+    AttributeType typeSkipSchemaValidation = getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
+    AttributeType typeIsCompressed = getAttributeType(ATTR_IMPORT_IS_COMPRESSED);
+    AttributeType typeIsEncrypted = getAttributeType(ATTR_IMPORT_IS_ENCRYPTED);
+    AttributeType typeClearBackend = getAttributeType(ATTR_IMPORT_CLEAR_BACKEND);
+    AttributeType typeRandomSeed = getAttributeType(ATTR_IMPORT_RANDOM_SEED);
+    AttributeType typeThreadCount = getAttributeType(ATTR_IMPORT_THREAD_COUNT);
+    AttributeType typeTmpDirectory = getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
+    AttributeType typeDNCheckPhase2 = getAttributeType(ATTR_IMPORT_SKIP_DN_VALIDATION);
 
     ArrayList<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
     ldifFiles = new ArrayList<>(ldifFilestmp.size());
@@ -788,7 +788,7 @@ public class ImportTask extends Task
     final HashSet<AttributeType> attrTypes = new HashSet<>(attrNames.size());
     for (String attrName : attrNames)
     {
-      attrTypes.add(DirectoryServer.getAttributeTypeOrDefault(attrName));
+      attrTypes.add(DirectoryServer.getAttributeType(attrName));
     }
     return attrTypes;
   }

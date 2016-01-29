@@ -844,7 +844,7 @@ public abstract class Task implements Comparable<Task>
       String messageString = buffer.toString();
       logMessages.add(messageString);
 
-      AttributeType type = DirectoryServer.getAttributeTypeOrDefault(ATTR_TASK_LOG_MESSAGES);
+      AttributeType type = DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES);
 
       final List<Attribute> attrList = taskEntry.getAttribute(type);
       ByteString value = ByteString.valueOfUtf8(messageString);

@@ -233,7 +233,7 @@ public class CompareOperationBasis
       baseName = toLowerCase(rawAttributeType);
       attributeOptions  = null;
     }
-    attributeType = DirectoryServer.getAttributeTypeOrDefault(baseName);
+    attributeType = DirectoryServer.getAttributeType(baseName);
   }
 
   /** {@inheritDoc} */

@@ -902,8 +902,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       Entry actual = new Entry(dbEntry.getName(), dbEntry.getObjectClasses(), dbEntry.getUserAttributes(), null);
 
       // Remove the userPassword because it will have been encoded.
-      expected.removeAttribute(DirectoryServer.getAttributeTypeOrDefault("userpassword"));
-      actual.removeAttribute(DirectoryServer.getAttributeTypeOrDefault("userpassword"));
+      expected.removeAttribute(DirectoryServer.getAttributeType("userpassword"));
+      actual.removeAttribute(DirectoryServer.getAttributeType("userpassword"));
 
       assertThat(actual).isEqualTo(expected);
     }

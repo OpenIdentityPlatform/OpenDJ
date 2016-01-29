@@ -178,7 +178,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      someMemberAttributeType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MEMBER);
+      someMemberAttributeType = DirectoryServer.getAttributeType(ATTR_MEMBER);
     }
     else if (hasGroupOfNamesClass)
     {
@@ -189,11 +189,11 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      someMemberAttributeType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MEMBER);
+      someMemberAttributeType = DirectoryServer.getAttributeType(ATTR_MEMBER);
     }
     else if (hasGroupOfUniqueNamesClass)
     {
-      someMemberAttributeType = DirectoryServer.getAttributeTypeOrDefault(ATTR_UNIQUE_MEMBER_LC);
+      someMemberAttributeType = DirectoryServer.getAttributeType(ATTR_UNIQUE_MEMBER_LC);
     }
     else
     {

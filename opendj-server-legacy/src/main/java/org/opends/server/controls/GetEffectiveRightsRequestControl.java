@@ -120,7 +120,7 @@ public class GetEffectiveRightsRequestControl extends Control
             reader.readStartSequence();
             while(reader.hasNextElement()) {
               String attrStr = reader.readOctetStringAsString();
-              attrs.add(DirectoryServer.getAttributeTypeOrDefault(attrStr));
+              attrs.add(DirectoryServer.getAttributeType(attrStr));
             }
             reader.readEndSequence();
           }

@@ -39,13 +39,13 @@ import org.opends.server.admin.std.meta.UniqueAttributePluginCfgDefn;
 import org.opends.server.admin.std.server.UniqueAttributePluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.testng.annotations.*;
 
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -732,7 +732,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   deleteAttrsFromEntry(DN dn, String... attrTypeStrings) throws Exception {
     LinkedList<Modification> mods = new LinkedList<>();
     for(String attrTypeString : attrTypeStrings) {
-     AttributeType attrType = getAttrType(attrTypeString);
+     AttributeType attrType = getAttributeType(attrTypeString);
      mods.add(new Modification(ModificationType.DELETE,
          Attributes.empty(attrType)));
     }
@@ -787,7 +787,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    * @param attrTypeString The attribute type string to remove.
    */
   private void delAttribute(Entry entry, String attrTypeString) {
-    entry.removeAttribute(getAttrType(attrTypeString));
+    entry.removeAttribute(getAttributeType(attrTypeString));
   }
 
   /**
@@ -815,10 +815,6 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
           ModificationType modificationType, String... attrValues) {
     mods.add(new Modification(modificationType,
         Attributes.create(attrName, attrValues)));
-  }
-
-  private AttributeType getAttrType(String attrTypeString) {
-    return DirectoryServer.getAttributeTypeOrDefault(attrTypeString);
   }
 
   /**

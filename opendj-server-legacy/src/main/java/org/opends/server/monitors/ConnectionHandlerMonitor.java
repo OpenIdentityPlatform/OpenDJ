@@ -96,11 +96,11 @@ public class ConnectionHandlerMonitor
   {
     monitorName = connectionHandler.getConnectionHandlerName();
 
-    connectionsType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_CONNECTION);
-    listenerType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_LISTENER);
-    numConnectionsType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS);
-    protocolType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONNHANDLER_PROTOCOL);
-    configDnType = DirectoryServer.getAttributeTypeOrDefault(ATTR_MONITOR_CONFIG_DN);
+    connectionsType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_CONNECTION);
+    listenerType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_LISTENER);
+    numConnectionsType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS);
+    protocolType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_PROTOCOL);
+    configDnType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONFIG_DN);
   }
 
 

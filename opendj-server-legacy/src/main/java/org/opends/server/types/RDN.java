@@ -671,7 +671,7 @@ public final class RDN
     // If using default is a problem, it will be caught later either
     // by not finding the target entry or by not allowing the entry
     // to be added.
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name);
+    AttributeType attrType = DirectoryServer.getAttributeType(name);
 
     RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
 
@@ -780,7 +780,7 @@ public final class RDN
       if (pos >= length)
       {
         name      = attributeName.toString();
-        attrType = DirectoryServer.getAttributeTypeOrDefault(name);
+        attrType = DirectoryServer.getAttributeType(name);
 
         rdn.addValue(attrType, name, ByteString.empty());
         return rdn;
@@ -797,7 +797,7 @@ public final class RDN
       // If using default is a problem, it will be caught later either
       // by not finding the target entry or by not allowing the entry
       // to be added.
-      attrType = DirectoryServer.getAttributeTypeOrDefault(name);
+      attrType = DirectoryServer.getAttributeType(name);
 
       rdn.addValue(attrType, name, parsedValue.toByteString());
 

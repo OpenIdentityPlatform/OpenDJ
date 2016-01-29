@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -586,7 +586,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOp = new CompareOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        targetDN, DirectoryServer.getAttributeTypeOrDefault("cn"),
+        targetDN, DirectoryServer.getAttributeType("cn"),
         ByteString.valueOfUtf8("PWReset Target"));
     assertSuccess(hasProxyPrivilege, compareOp);
 
@@ -699,7 +699,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOp = new CompareOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        targetDN, DirectoryServer.getAttributeTypeOrDefault("cn"),
+        targetDN, DirectoryServer.getAttributeType("cn"),
         ByteString.valueOfUtf8("PWReset Target"));
     assertSuccess(hasProxyPrivilege, compareOp);
 

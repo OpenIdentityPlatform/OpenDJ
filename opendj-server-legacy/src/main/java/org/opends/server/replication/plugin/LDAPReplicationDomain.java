@@ -3427,7 +3427,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       Set<AttributeType> includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings)
       {
-        includeAttributes.add(DirectoryServer.getAttributeTypeOrDefault(attrName));
+        includeAttributes.add(DirectoryServer.getAttributeType(attrName));
       }
       exportConfig.setIncludeAttributes(includeAttributes);
     }

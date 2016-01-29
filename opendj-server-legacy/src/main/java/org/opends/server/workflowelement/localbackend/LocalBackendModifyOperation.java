@@ -830,7 +830,7 @@ public class LocalBackendModifyOperation
         processModification(m);
       }
       else if (!isInternalOrSynchro(m)
-          && t.equals(getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_DISABLED)))
+          && t.equals(getAttributeType(OP_ATTR_ACCOUNT_DISABLED)))
       {
         enabledStateChanged = true;
         isEnabled = !pwPolicyState.isDisabled();

@@ -72,7 +72,7 @@ public final class EntryUUIDPlugin
   /** Mandatory default constructor of this Directory Server plugin. */
   public EntryUUIDPlugin()
   {
-    entryUUIDType = DirectoryServer.getAttributeTypeOrDefault(ENTRYUUID);
+    entryUUIDType = DirectoryServer.getAttributeType(ENTRYUUID);
   }
 
   @Override

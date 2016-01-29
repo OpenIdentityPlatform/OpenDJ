@@ -72,7 +72,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     TestCaseUtils.startServer();
 
     //Setup the DN to use in the response tests.
-    AttributeType attribute = DirectoryServer.getAttributeTypeOrDefault("testAttribute");
+    AttributeType attribute = DirectoryServer.getAttributeType("testAttribute");
     ByteString attributeValue = ByteString.valueOfUtf8("testValue");
     dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }

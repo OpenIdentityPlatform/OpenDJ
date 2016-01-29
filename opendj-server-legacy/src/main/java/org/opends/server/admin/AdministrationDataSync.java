@@ -109,8 +109,8 @@ public final class AdministrationDataSync
       return;
     }
 
-    AttributeType attrType1 = DirectoryServer.getAttributeTypeOrDefault("adminport".toLowerCase());
-    AttributeType attrType2 = DirectoryServer.getAttributeTypeOrDefault("adminEnabled".toLowerCase());
+    AttributeType attrType1 = DirectoryServer.getAttributeType("adminport");
+    AttributeType attrType2 = DirectoryServer.getAttributeType("adminEnabled");
 
     LinkedList<Modification> mods = new LinkedList<>();
     mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrType1, adminPort)));
@@ -137,7 +137,7 @@ public final class AdministrationDataSync
     String val = getAttr("cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config", "ds-cfg-enabled");
     if (val != null)
     {
-      ldapsPortEnable = "true".equals(val.toLowerCase());
+      ldapsPortEnable = "true".equalsIgnoreCase(val);
     }
     if (ldapPort == null && ldapsPort == null)
     {
@@ -257,7 +257,7 @@ public final class AdministrationDataSync
       adminConnectorEntry = result.getFirst();
     }
 
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
     List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
     if (!attrs.isEmpty())
     {

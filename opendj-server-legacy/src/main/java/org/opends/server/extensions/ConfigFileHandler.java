@@ -1128,7 +1128,7 @@ public class ConfigFileHandler
       }
 
       AttributeType privType =
-           DirectoryServer.getAttributeTypeOrDefault(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME);
+           DirectoryServer.getAttributeType(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME);
       for (Modification m : modifyOperation.getModifications())
       {
         if (m.getAttribute().getAttributeType().equals(privType))

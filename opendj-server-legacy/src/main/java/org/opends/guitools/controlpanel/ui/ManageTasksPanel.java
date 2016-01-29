@@ -694,7 +694,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       else
       {
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(attrName);
+        AttributeType attrType = DirectoryServer.getAttributeType(attrName);
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
         for (Object value : csr.getAttributeValues(attrName))
         {

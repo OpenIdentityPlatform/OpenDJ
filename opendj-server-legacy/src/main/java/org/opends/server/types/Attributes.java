@@ -184,7 +184,7 @@ public final class Attributes
    */
   public static Attribute create(String attributeName, String valueString)
   {
-    return create(getAttributeTypeOrDefault(attributeName), attributeName, valueString);
+    return create(getAttributeType(attributeName), attributeName, valueString);
   }
 
   /**
@@ -286,7 +286,7 @@ public final class Attributes
    */
   public static Attribute empty(String attributeName)
   {
-    return empty(getAttributeTypeOrDefault(attributeName), attributeName);
+    return empty(getAttributeType(attributeName), attributeName);
   }
 
 

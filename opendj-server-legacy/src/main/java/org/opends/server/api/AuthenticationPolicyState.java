@@ -281,7 +281,7 @@ public abstract class AuthenticationPolicyState
    */
   public boolean isDisabled()
   {
-    final AttributeType type = DirectoryServer.getAttributeTypeOrDefault(OP_ATTR_ACCOUNT_DISABLED);
+    final AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED);
     try
     {
       isDisabled = getBoolean(userEntry, type);

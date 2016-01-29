@@ -839,7 +839,7 @@ public class MatchedValuesFilter
   {
     if (attributeType == null && rawAttributeType != null)
     {
-      attributeType = DirectoryServer.getAttributeTypeOrDefault(rawAttributeType);
+      attributeType = DirectoryServer.getAttributeType(rawAttributeType);
     }
     return attributeType;
   }

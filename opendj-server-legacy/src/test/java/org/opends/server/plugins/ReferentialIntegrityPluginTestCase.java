@@ -62,6 +62,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -1061,15 +1062,11 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   deleteAttrsEntry(DN dn, String... attrTypeStrings) throws Exception {
     LinkedList<Modification> mods = new LinkedList<>();
     for(String attrTypeString : attrTypeStrings) {
-      AttributeType attrType = getAttrType(attrTypeString);
+      AttributeType attrType = getAttributeType(attrTypeString);
       mods.add(new Modification(ModificationType.DELETE,
           Attributes.empty(attrType)));
     }
     getRootConnection().processModify(dn, mods);
-  }
-
-  private AttributeType getAttrType(String attrTypeString) {
-    return DirectoryServer.getAttributeTypeOrDefault(attrTypeString);
   }
 
   private void deleteEntries(String... dns) throws Exception{
@@ -1120,7 +1117,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                                      String attr,
                                      String... dns)
           throws Exception {
-    AttributeType type= getAttrType(attr);
+    AttributeType type= getAttributeType(attr);
     final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(" + attr + "=*)");
     InternalSearchOperation operation = getRootConnection().processSearch(request);
     for (SearchResultEntry entry : operation.getSearchEntries()) {

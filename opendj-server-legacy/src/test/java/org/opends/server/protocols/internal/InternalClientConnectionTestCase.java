@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -467,7 +467,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
          conn.processCompare(DN.valueOf("cn=test,o=test"),
-                             DirectoryServer.getAttributeTypeOrDefault("cn"),
+                             DirectoryServer.getAttributeType("cn"),
                              ByteString.valueOfUtf8("test"));
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }

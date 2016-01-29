@@ -2526,19 +2526,18 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the attribute type for the provided lowercase name or OID.  It
+   * Retrieves the attribute type for the provided name or OID.  It
    * can optionally return a generated "default" version if the requested
    * attribute type is not defined in the schema.
    *
-   * @param  lowerName      The lowercase name or OID for the attribute type to
-   *                        retrieve.
+   * @param  nameOrOid      The name or OID for the attribute type to retrieve.
    * @return  The requested attribute type, or <CODE>null</CODE> if there is no
    *          attribute with the specified type defined in the server schema and
    *          a default type should not be returned.
    */
-  public static AttributeType getAttributeTypeOrDefault(String lowerName)
+  public static AttributeType getAttributeType(String nameOrOid)
   {
-    return getAttributeType(lowerName, getDefaultAttributeSyntax());
+    return getAttributeType(nameOrOid, getDefaultAttributeSyntax());
   }
 
   /**
