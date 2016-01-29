@@ -535,7 +535,7 @@ public class AttributeBuilderTest extends TypesTestCase
     TestCaseUtils.startServer();
 
     // Initialize the CN attribute type used in all tests.
-    cnType = DirectoryServer.getAttributeTypeOrNull("cn");
+    cnType = DirectoryServer.getAttributeType("cn");
     Assert.assertNotNull(cnType);
 
     cnValue = ByteString.valueOfUtf8("john doe");

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -443,7 +443,7 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-fingerprint-attribute"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-fingerprint-attribute"));
 
     ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
     ModifyOperation modifyOperation =
@@ -463,7 +463,7 @@ public class FingerprintCertificateMapperTestCase
   {
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-fingerprint-algorithm"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-fingerprint-algorithm"));
 
     ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
     ModifyOperation modifyOperation =

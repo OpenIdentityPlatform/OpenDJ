@@ -88,7 +88,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     CSN csn2 = new CSN(TimeThread.getTime(), 123,  45);
     CSN csn3 = new CSN(TimeThread.getTime(), 67894123,  45678);
 
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("description");
+    AttributeType type = DirectoryServer.getAttributeType("description");
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
@@ -325,7 +325,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
 
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("description");
+    AttributeType type = DirectoryServer.getAttributeType("description");
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);

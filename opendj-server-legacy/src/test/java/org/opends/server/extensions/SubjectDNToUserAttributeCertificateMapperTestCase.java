@@ -542,7 +542,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
          throws Exception
   {
     String mapperDN = "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-subject-attribute"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-subject-attribute"));
 
     ArrayList<Modification> mods = newArrayList(new Modification(ModificationType.DELETE, a));
     ModifyOperation modifyOperation =
@@ -652,7 +652,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
   {
     String mapperDN = "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
 
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("ds-cfg-user-base-dn");
+    AttributeType attrType = DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {

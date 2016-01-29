@@ -37,10 +37,19 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawModification;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -177,10 +186,10 @@ public final class TestLDIFReader extends UtilTestCase {
     OC_PERSON = DirectoryServer.getObjectClass("person");
 
     AT_OC = DirectoryServer.getObjectClassAttributeType();
-    AT_CN = DirectoryServer.getAttributeTypeOrNull("cn");
-    AT_SN = DirectoryServer.getAttributeTypeOrNull("sn");
-    AT_DESCR = DirectoryServer.getAttributeTypeOrNull("description");
-    AT_TELN = DirectoryServer.getAttributeTypeOrNull("telephonenumber");
+    AT_CN = DirectoryServer.getAttributeType("cn");
+    AT_SN = DirectoryServer.getAttributeType("sn");
+    AT_DESCR = DirectoryServer.getAttributeType("description");
+    AT_TELN = DirectoryServer.getAttributeType("telephonenumber");
 
     // Create a temporary file containing an attribute value.
     TEMP_FILE = File.createTempFile("tmp", "txt");
@@ -560,7 +569,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(), ModificationType.REPLACE);
-      attr = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("postaladdress"));
+      attr = Attributes.empty(DirectoryServer.getAttributeType("postaladdress"));
       Assert.assertEquals(mod.getAttribute(), attr);
 
       // Change record #7.

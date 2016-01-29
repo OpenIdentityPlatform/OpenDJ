@@ -26,8 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import static org.opends.server.types.AcceptRejectWarn.*;
 import static org.testng.Assert.*;
 
@@ -35,6 +33,7 @@ import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPModify;
@@ -454,7 +453,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: domain",
          "dc: example");
 
-    AttributeType creatorsNameType = DirectoryServer.getAttributeTypeOrNull("creatorsname");
+    AttributeType creatorsNameType = DirectoryServer.getAttributeType("creatorsname");
     assertTrue(creatorsNameType.isOperational());
 
     AttributeBuilder builder = new AttributeBuilder(creatorsNameType,

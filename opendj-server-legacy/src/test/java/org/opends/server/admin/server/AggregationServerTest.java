@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -873,7 +873,7 @@ public final class AggregationServerTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
     assertSetEquals(child.getAggregationProperty(), new String[0]);
   }
 
@@ -884,7 +884,7 @@ public final class AggregationServerTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
 
     // Test normalization.
     assertSetEquals(child.getAggregationProperty(), "LDAP Connection Handler");
@@ -901,7 +901,7 @@ public final class AggregationServerTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
     assertSetEquals(child.getAggregationProperty(), "LDAPS Connection Handler",
         "LDAP Connection Handler");
   }

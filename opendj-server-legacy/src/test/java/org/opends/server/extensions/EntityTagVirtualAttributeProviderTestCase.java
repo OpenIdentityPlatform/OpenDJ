@@ -221,7 +221,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     TestCaseUtils.startServer();
 
     // Initialize the provider.
-    config.getExcludedAttribute().add(DirectoryServer.getAttributeTypeOrNull("modifytimestamp"));
+    config.getExcludedAttribute().add(DirectoryServer.getAttributeType("modifytimestamp"));
     provider.initializeVirtualAttributeProvider(config);
   }
 
@@ -453,7 +453,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     final SearchOperation searchOp = mock(SearchOperation.class);
 
     VirtualAttributeRule rule = new VirtualAttributeRule(
-        DirectoryServer.getAttributeTypeOrNull(ETAG), provider,
+        DirectoryServer.getAttributeType(ETAG), provider,
         Collections.<DN> emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN> emptySet(), Collections.<SearchFilter> emptySet(),
         VirtualAttributeCfgDefn.ConflictBehavior.REAL_OVERRIDES_VIRTUAL);
@@ -739,7 +739,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
 
   private VirtualAttributeRule getRule()
   {
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("etag");
+    AttributeType type = DirectoryServer.getAttributeType("etag");
     return new VirtualAttributeRule(type, provider,
         Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN>emptySet(),

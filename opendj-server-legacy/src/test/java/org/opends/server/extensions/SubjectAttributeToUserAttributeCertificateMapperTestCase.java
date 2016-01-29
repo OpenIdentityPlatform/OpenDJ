@@ -716,7 +716,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
   {
     String mapperDN = "cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config";
 
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeTypeOrNull("ds-cfg-subject-attribute-mapping"));
+    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-subject-attribute-mapping"));
 
     ArrayList<Modification> mods = newArrayList(
         new Modification(ModificationType.DELETE, a));
@@ -896,7 +896,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
   {
     String mapperDN = "cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config";
 
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("ds-cfg-user-base-dn");
+    AttributeType attrType = DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
     AttributeBuilder builder = new AttributeBuilder(attrType);
     if (baseDNs != null)
     {

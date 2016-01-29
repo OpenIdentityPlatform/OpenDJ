@@ -446,7 +446,7 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
 
-    AttributeType cnAttrType = DirectoryServer.getAttributeTypeOrNull("cn");
+    AttributeType cnAttrType = DirectoryServer.getAttributeType("cn");
     CompareOperation compareOperation = conn.processCompare(
         DN.valueOf("cn=config"), cnAttrType, ByteString.valueOfUtf8("config"));
     if (hasPrivilege)

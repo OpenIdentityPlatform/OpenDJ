@@ -1187,7 +1187,7 @@ public class AddOperationTestCase
          "objectClass: organization",
          "o: test");
 
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull("description");
+    AttributeType attrType = DirectoryServer.getAttributeType("description");
     Map<AttributeType,List<Attribute>> userAttrs = entry.getUserAttributes();
     userAttrs.put(attrType, newArrayList(Attributes.empty(attrType)));
 

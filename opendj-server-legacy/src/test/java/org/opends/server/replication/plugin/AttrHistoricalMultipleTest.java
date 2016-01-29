@@ -162,7 +162,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     assertEquals(attrInfo4.getValuesHistorical().size(), 1);
 
     // Check
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull(ATTRIBUTE_NAME);
+    AttributeType type = DirectoryServer.getAttributeType(ATTRIBUTE_NAME);
     attrInfo3.delete(Attributes.create(type, att), updateTime) ;
     assertEquals(attrInfo3.getValuesHistorical().size(), 1);
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -144,7 +144,7 @@ public class DependencyTest extends ReplicationTestCase
       int sequence;
       for (sequence = 1; sequence<=addSequenceLength; sequence ++)
       {
-        entry.removeAttribute(getAttributeTypeOrNull("entryuuid"));
+        entry.removeAttribute(getAttributeType("entryuuid"));
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<ByteString>());
         addDN = DN.valueOf("dc=dependency" + sequence + "," + addDN);
@@ -271,7 +271,7 @@ public class DependencyTest extends ReplicationTestCase
           baseDN, brokerId, 1000, replServer.getReplicationPort(), 1000, CLEAN_DB_GENERATION_ID);
 
       // add an entry to play with.
-      entry.removeAttribute(getAttributeTypeOrNull("entryuuid"));
+      entry.removeAttribute(getAttributeType("entryuuid"));
       entry.addAttribute(Attributes.create("entryuuid",
                          stringUID(renamedEntryUuid)),
                          new LinkedList<ByteString>());
@@ -370,7 +370,7 @@ public class DependencyTest extends ReplicationTestCase
       for (sequence = 1; sequence<=addSequenceLength; sequence ++)
       {
         // add the entry a first time
-        entry.removeAttribute(getAttributeTypeOrNull("entryuuid"));
+        entry.removeAttribute(getAttributeType("entryuuid"));
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<ByteString>());
         DN addDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
@@ -378,7 +378,7 @@ public class DependencyTest extends ReplicationTestCase
         broker.publish(delMsg(addDN, sequence + 1, gen));
 
         // add again the entry with a new entryuuid.
-        entry.removeAttribute(getAttributeTypeOrNull("entryuuid"));
+        entry.removeAttribute(getAttributeType("entryuuid"));
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1025)),
                            new LinkedList<ByteString>());
         broker.publish(addMsg(addDN, entry, sequence + 1025, 1, gen));
@@ -476,7 +476,7 @@ public class DependencyTest extends ReplicationTestCase
       for (sequence = 1; sequence<=addSequenceLength; sequence ++)
       {
         // add the entry
-        entry.removeAttribute(getAttributeTypeOrNull("entryuuid"));
+        entry.removeAttribute(getAttributeType("entryuuid"));
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
                            new LinkedList<ByteString>());
         addDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);

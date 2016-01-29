@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -308,7 +308,7 @@ public final class LDAPClientTest extends AdminTestCase {
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
     child.setMandatoryBooleanProperty(true);
-    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
     child.commit();
 
     c.assertEntryIsCreated();
@@ -339,7 +339,7 @@ public final class LDAPClientTest extends AdminTestCase {
     try {
       TestParentCfgClient parent = createTestParent(ctx, "test parent new");
       parent.setMandatoryBooleanProperty(true);
-      parent.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+      parent.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
       parent.commit();
     } catch (Exception e) {
       Assert.assertEquals(e.getClass(), expected);
@@ -369,7 +369,7 @@ public final class LDAPClientTest extends AdminTestCase {
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = createTestParent(ctx, "test parent new");
     parent.setMandatoryBooleanProperty(true);
-    parent.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+    parent.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
     parent.commit();
     c.assertEntryIsCreated();
   }
@@ -394,7 +394,7 @@ public final class LDAPClientTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=default value c3v1,dc=com", "dc=default value c3v2,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -420,7 +420,7 @@ public final class LDAPClientTest extends AdminTestCase {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(),
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
     assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(),
@@ -480,7 +480,7 @@ public final class LDAPClientTest extends AdminTestCase {
     Assert.assertEquals(parent.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
     assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(),
         "dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com");
   }
@@ -504,7 +504,7 @@ public final class LDAPClientTest extends AdminTestCase {
     Assert.assertEquals(parent.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-        DirectoryServer.getAttributeTypeOrNull("description"));
+        DirectoryServer.getAttributeType("description"));
     assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(),
         "dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
   }
@@ -546,7 +546,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
     // Check that the default values are not committed.
     child.setMandatoryBooleanProperty(true);
-    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
     child.commit();
 
     c.assertEntryIsCreated();
@@ -589,7 +589,7 @@ public final class LDAPClientTest extends AdminTestCase {
 
     // Check that the default values are not committed.
     child.setMandatoryBooleanProperty(true);
-    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
     child.commit();
 
     c.assertEntryIsCreated();
@@ -807,7 +807,7 @@ public final class LDAPClientTest extends AdminTestCase {
       TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
       TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
       child.setMandatoryBooleanProperty(true);
-      child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+      child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
       child.commit();
 
       c.assertEntryIsCreated();
@@ -846,7 +846,7 @@ public final class LDAPClientTest extends AdminTestCase {
       TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
       TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
       child.setMandatoryBooleanProperty(true);
-      child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+      child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
       child.commit();
       Assert.fail("The add constraint failed to prevent creation of the managed object");
     } finally {

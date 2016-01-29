@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS.
+ *      Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -439,7 +439,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         byte[] data = { 0x00, 0x01, 0x02, (byte) 0xff };
 
         ByteString attrValue = ByteString.wrap(data);
-        Attribute attribute = Attributes.create(DirectoryServer.getAttributeTypeOrNull("cn"), attrValue);
+        Attribute attribute = Attributes.create(DirectoryServer.getAttributeType("cn"), attrValue);
         assertThat(from(attribute).firstValue().toByteArray()).isEqualTo(data);
     }
 

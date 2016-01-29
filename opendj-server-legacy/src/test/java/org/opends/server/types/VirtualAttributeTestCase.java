@@ -26,7 +26,7 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import static org.testng.Assert.*;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -34,14 +34,13 @@ import java.util.LinkedHashSet;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * This class provides a set of test cases for virtual attributes.
@@ -71,7 +70,7 @@ public class VirtualAttributeTestCase
   {
     TestCaseUtils.startServer();
 
-    entryDNType = DirectoryServer.getAttributeTypeOrNull("entrydn");
+    entryDNType = DirectoryServer.getAttributeType("entrydn");
     assertNotNull(entryDNType);
 
     EntryDNVirtualAttributeProvider provider =

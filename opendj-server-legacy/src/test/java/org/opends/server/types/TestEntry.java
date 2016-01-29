@@ -129,8 +129,8 @@ public final class TestEntry extends TypesTestCase {
    */
   @Test
   public void testParseAttributeNotFound() throws Exception {
-    AttributeType type1 = DirectoryServer.getAttributeTypeOrNull("description");
-    AttributeType type2 = DirectoryServer.getAttributeTypeOrNull("inheritable");
+    AttributeType type1 = DirectoryServer.getAttributeType("description");
+    AttributeType type2 = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type1, "hello world");
 
@@ -142,7 +142,7 @@ public final class TestEntry extends TypesTestCase {
    */
   @Test
   public void testParseAttributeBooleanTrue() throws Exception {
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("inheritable");
+    AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "true");
 
@@ -155,7 +155,7 @@ public final class TestEntry extends TypesTestCase {
   @Test
   public void testParseAttributeBooleanFalse() throws Exception
   {
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("inheritable");
+    AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "false");
 
@@ -168,7 +168,7 @@ public final class TestEntry extends TypesTestCase {
   @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testParseAttributeBooleanBad() throws Exception
   {
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("inheritable");
+    AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "bad-value");
     entry.parseAttribute(type.getNameOrOID()).asBoolean();
@@ -185,7 +185,7 @@ public final class TestEntry extends TypesTestCase {
   @Test
   public void testParseAttributesInteger() throws Exception
   {
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("supportedldapversion");
+    AttributeType type = DirectoryServer.getAttributeType("supportedldapversion");
     String[] values = new String[] { "-4", "-2", "0", "1", "3" };
 
     HashSet<Integer> expected = new HashSet<>();
@@ -208,7 +208,7 @@ public final class TestEntry extends TypesTestCase {
   @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testParseAttributeIntegerBad() throws Exception
   {
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("supportedldapversion");
+    AttributeType type = DirectoryServer.getAttributeType("supportedldapversion");
     String[] values = new String[] { "-4", "-2", "xxx", "1", "3" };
 
     Entry entry = createTestEntry(type, values);
@@ -288,11 +288,11 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.conformsToSchema(null, false, false, false,
                                   new LocalizableMessageBuilder()));
 
-    AttributeType ocType   = DirectoryServer.getAttributeTypeOrNull("objectclass");
-    AttributeType cnType   = DirectoryServer.getAttributeTypeOrNull("cn");
-    AttributeType nameType = DirectoryServer.getAttributeTypeOrNull("name");
-    AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
-    AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
 
     assertTrue(e.hasAttribute(ocType));
     assertTrue(e.hasAttribute(cnType));
@@ -376,11 +376,11 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.conformsToSchema(null, false, false, false,
                                   new LocalizableMessageBuilder()));
 
-    AttributeType ocType   = DirectoryServer.getAttributeTypeOrNull("objectclass");
-    AttributeType cnType   = DirectoryServer.getAttributeTypeOrNull("cn");
-    AttributeType nameType = DirectoryServer.getAttributeTypeOrNull("name");
-    AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
-    AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
 
     assertFalse(e.hasUserAttribute(ocType));
     assertTrue(e.hasUserAttribute(cnType));
@@ -422,11 +422,11 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.conformsToSchema(null, false, false, false,
                                   new LocalizableMessageBuilder()));
 
-    AttributeType ocType   = DirectoryServer.getAttributeTypeOrNull("objectclass");
-    AttributeType cnType   = DirectoryServer.getAttributeTypeOrNull("cn");
-    AttributeType nameType = DirectoryServer.getAttributeTypeOrNull("name");
-    AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
-    AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
 
     assertFalse(e.hasOperationalAttribute(ocType));
     assertFalse(e.hasOperationalAttribute(cnType));
@@ -468,11 +468,11 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.conformsToSchema(null, false, false, false,
                                   new LocalizableMessageBuilder()));
 
-    AttributeType ocType   = DirectoryServer.getAttributeTypeOrNull("objectclass");
-    AttributeType cnType   = DirectoryServer.getAttributeTypeOrNull("cn");
-    AttributeType nameType = DirectoryServer.getAttributeTypeOrNull("name");
-    AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
-    AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
 
     assertThat(e.getAttribute(ocType)).hasSize(1);
     assertThat(e.getAttribute(cnType)).hasSize(2);
@@ -559,11 +559,11 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.conformsToSchema(null, false, false, false,
                                   new LocalizableMessageBuilder()));
 
-    AttributeType ocType   = DirectoryServer.getAttributeTypeOrNull("objectclass");
-    AttributeType cnType   = DirectoryServer.getAttributeTypeOrNull("cn");
-    AttributeType nameType = DirectoryServer.getAttributeTypeOrNull("name");
-    AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
-    AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
 
     assertThat(e.getUserAttribute(ocType)).isEmpty();
     assertThat(e.getUserAttribute(cnType)).hasSize(2);
@@ -605,11 +605,11 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.conformsToSchema(null, false, false, false,
                                   new LocalizableMessageBuilder()));
 
-    AttributeType ocType   = DirectoryServer.getAttributeTypeOrNull("objectclass");
-    AttributeType cnType   = DirectoryServer.getAttributeTypeOrNull("cn");
-    AttributeType nameType = DirectoryServer.getAttributeTypeOrNull("name");
-    AttributeType uidType  = DirectoryServer.getAttributeTypeOrNull("uid");
-    AttributeType mnType   = DirectoryServer.getAttributeTypeOrNull("modifiersname");
+    AttributeType ocType   = DirectoryServer.getAttributeType("objectclass");
+    AttributeType cnType   = DirectoryServer.getAttributeType("cn");
+    AttributeType nameType = DirectoryServer.getAttributeType("name");
+    AttributeType uidType  = DirectoryServer.getAttributeType("uid");
+    AttributeType mnType   = DirectoryServer.getAttributeType("modifiersname");
 
     assertThat(e.getOperationalAttribute(ocType)).isEmpty();
     assertThat(e.getOperationalAttribute(cnType)).isEmpty();

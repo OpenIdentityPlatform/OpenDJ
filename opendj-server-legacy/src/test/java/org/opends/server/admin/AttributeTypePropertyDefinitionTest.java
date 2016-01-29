@@ -28,11 +28,11 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -64,7 +64,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
   public void testValidateValue() {
     AttributeTypePropertyDefinition.setCheckSchema(true);
     AttributeTypePropertyDefinition d = createPropertyDefinition();
-    d.validateValue(DirectoryServer.getAttributeTypeOrNull("cn"));
+    d.validateValue(DirectoryServer.getAttributeType("cn"));
   }
 
 
@@ -89,7 +89,7 @@ public class AttributeTypePropertyDefinitionTest extends DirectoryServerTestCase
   public void testDecodeValue(String value) {
     AttributeTypePropertyDefinition.setCheckSchema(true);
     AttributeTypePropertyDefinition d = createPropertyDefinition();
-    AttributeType expected = DirectoryServer.getAttributeTypeOrNull(value);
+    AttributeType expected = DirectoryServer.getAttributeType(value);
     assertEquals(d.decodeValue(value), expected);
   }
 

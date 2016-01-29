@@ -35,6 +35,7 @@ import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
@@ -42,8 +43,14 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.Test;
 
@@ -1077,7 +1084,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
-    AttributeType entryuuidAttrType = getAttributeTypeOrNull(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidList = Attributes.createAsList(entryuuidAttrType, uuid.toString());
 
     // Add the uuid in the entry
@@ -1165,7 +1172,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    */
   private void assertEntryHistoricalEncodingDecoding(Entry entry, EntryHistorical hist)
   {
-    entry.removeAttribute(getAttributeTypeOrNull(HISTORICAL_ATTRIBUTE_NAME));
+    entry.removeAttribute(getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
@@ -1197,7 +1204,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getExactAttribute(getAttributeTypeOrNull(attrName), Collections.<String> emptySet());
+    Attribute attr = entry.getExactAttribute(getAttributeType(attrName), Collections.<String> emptySet());
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {
@@ -1218,7 +1225,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private String getEntryUUID(Entry entry)
   {
-    AttributeType entryuuidAttrType = getAttributeTypeOrNull(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
     List<Attribute> uuidAttrs = entry.getOperationalAttributes().get(entryuuidAttrType);
     return uuidAttrs.get(0).iterator().next().toString();
   }

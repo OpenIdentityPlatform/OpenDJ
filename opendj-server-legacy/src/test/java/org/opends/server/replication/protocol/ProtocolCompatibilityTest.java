@@ -445,7 +445,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     CSN csn1 = new CSN(1, 0, 1);
     CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
 
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("description");
+    AttributeType type = DirectoryServer.getAttributeType("description");
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
@@ -621,7 +621,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
 
-    AttributeType type = DirectoryServer.getAttributeTypeOrNull("description");
+    AttributeType type = DirectoryServer.getAttributeType("description");
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);

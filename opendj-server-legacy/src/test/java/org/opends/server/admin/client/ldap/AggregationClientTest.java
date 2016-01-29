@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2015 ForgeRock AS.
+ *      Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -317,7 +317,7 @@ public class AggregationClientTest extends AdminTestCase {
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
     child.setMandatoryBooleanProperty(true);
-    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeTypeOrNull("description"));
+    child.setMandatoryReadOnlyAttributeTypeProperty(DirectoryServer.getAttributeType("description"));
     child.setAggregationProperty(Collections.singleton("LDAP Connection Handler"));
     child.commit();
 

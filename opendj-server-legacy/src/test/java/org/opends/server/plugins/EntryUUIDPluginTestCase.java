@@ -156,7 +156,7 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType entryUUIDType = DirectoryServer.getAttributeTypeOrNull("entryuuid");
+    AttributeType entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
     DirectoryServer.deregisterAttributeType(entryUUIDType);
 
     HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);

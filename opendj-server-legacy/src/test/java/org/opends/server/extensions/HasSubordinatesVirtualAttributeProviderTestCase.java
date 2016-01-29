@@ -71,7 +71,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     TestCaseUtils.startServer();
 
-    hasSubordinatesType = DirectoryServer.getAttributeTypeOrNull("hassubordinates");
+    hasSubordinatesType = DirectoryServer.getAttributeType("hassubordinates");
     assertNotNull(hasSubordinatesType);
 
     entries = TestCaseUtils.makeEntries(

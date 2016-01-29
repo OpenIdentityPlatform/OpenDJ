@@ -431,7 +431,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
   private void assertAttrValue(Entry newEntry, String attrName, String expectedAttrValue)
   {
-    AttributeType at = DirectoryServer.getAttributeTypeOrNull(attrName);
+    AttributeType at = DirectoryServer.getAttributeType(attrName);
     List<Attribute> attrList = newEntry.getAttribute(at);
     assertThat(attrList).hasSize(1);
 

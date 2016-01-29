@@ -2194,7 +2194,7 @@ public class PasswordPolicyTestCase
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     AttributeType  t = p.getPasswordAttribute();
-    assertEquals(t, DirectoryServer.getAttributeTypeOrNull("userpassword"));
+    assertEquals(t, DirectoryServer.getAttributeType("userpassword"));
   }
 
 
@@ -2213,7 +2213,7 @@ public class PasswordPolicyTestCase
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     AttributeType  t = p.getPasswordAttribute();
-    assertEquals(t, DirectoryServer.getAttributeTypeOrNull("authpassword"));
+    assertEquals(t, DirectoryServer.getAttributeType("authpassword"));
   }
 
 
@@ -4313,7 +4313,7 @@ public class PasswordPolicyTestCase
   {
     Entry entry = DirectoryServer.getEntry(DN.valueOf(dn));
     assertNotNull(entry);
-    AttributeType pwdHistory = DirectoryServer.getAttributeTypeOrNull("pwdhistory");
+    AttributeType pwdHistory = DirectoryServer.getAttributeType("pwdhistory");
     assertNotNull(pwdHistory);
     Attribute historyAttr = entry.getExactAttribute(pwdHistory, null);
     assertNotNull(historyAttr);

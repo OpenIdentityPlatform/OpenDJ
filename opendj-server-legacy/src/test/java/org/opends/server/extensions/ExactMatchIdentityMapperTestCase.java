@@ -144,7 +144,7 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid");
 
-    AttributeType t = DirectoryServer.getAttributeTypeOrNull("ds-cfg-match-base-dn");
+    AttributeType t = DirectoryServer.getAttributeType("ds-cfg-match-base-dn");
     e.addAttribute(Attributes.empty(t), new ArrayList<ByteString>());
     entries.add(e);
 

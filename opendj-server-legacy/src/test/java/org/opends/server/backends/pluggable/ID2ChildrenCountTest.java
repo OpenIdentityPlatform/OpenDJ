@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -248,7 +248,7 @@ public class ID2ChildrenCountTest extends DirectoryServerTestCase
 
     BackendIndexCfg indexCfg = legacyMockCfg(BackendIndexCfg.class);
     when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
-    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeTypeOrNull("sn"));
+    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType("sn"));
     when(backendCfg.getBackendIndex("sn")).thenReturn(indexCfg);
 
     return backendCfg;

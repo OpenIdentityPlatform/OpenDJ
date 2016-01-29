@@ -27,6 +27,7 @@
 package org.opends.server.backends;
 
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -122,17 +123,10 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    AttributeType t = DirectoryServer.getAttributeTypeOrNull("attributetypes");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("objectclasses");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
-    assertTrue(schemaEntry.hasAttribute(t));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("attributetypes")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("objectclasses")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("ldapsyntaxes")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("matchingrules")));
   }
 
   /**
@@ -169,34 +163,20 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    AttributeType t = DirectoryServer.getAttributeTypeOrNull("attributetypes");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("objectclasses");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
-    assertTrue(schemaEntry.hasAttribute(t));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("attributetypes")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("objectclasses")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("ldapsyntaxes")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("matchingrules")));
 
     schemaDN    = DN.valueOf("cn=subschema");
     schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    t = DirectoryServer.getAttributeTypeOrNull("attributetypes");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("objectclasses");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
-    assertTrue(schemaEntry.hasAttribute(t));
-
-    t = DirectoryServer.getAttributeTypeOrNull("matchingrules");
-    assertTrue(schemaEntry.hasAttribute(t));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("attributetypes")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("objectclasses")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("ldapsyntaxes")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeType("matchingrules")));
   }
 
   /**
@@ -376,10 +356,10 @@ public class SchemaBackendTestCase extends BackendTestCase
          throws Exception
   {
     DN schemaDN = DN.valueOf("cn=schema");
-    AttributeType a = DirectoryServer.getAttributeTypeOrNull("attributetypes");
-    AttributeType o = DirectoryServer.getAttributeTypeOrNull("objectclasses");
-    AttributeType m = DirectoryServer.getAttributeTypeOrNull("matchingrules");
-    AttributeType s = DirectoryServer.getAttributeTypeOrNull("ldapsyntaxes");
+    AttributeType a = DirectoryServer.getAttributeType("attributetypes");
+    AttributeType o = DirectoryServer.getAttributeType("objectclasses");
+    AttributeType m = DirectoryServer.getAttributeType("matchingrules");
+    AttributeType s = DirectoryServer.getAttributeType("ldapsyntaxes");
 
     assertFalse(schemaBackend.showAllAttributes());
     Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
