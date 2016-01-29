@@ -392,8 +392,8 @@ public class SMTPAccountStatusNotificationHandler
               else if (lowerTokenStr.startsWith("notification-user-attr:"))
               {
                 String attrName = lowerTokenStr.substring(23);
-                AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
-                if (attrType == null)
+                AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+                if (attrType.isPlaceHolder())
                 {
                   throw new ConfigException(
                                  ERR_SMTP_ASNH_TEMPLATE_UNDEFINED_ATTR_TYPE.get(

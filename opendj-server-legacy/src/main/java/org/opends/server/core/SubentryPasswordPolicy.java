@@ -30,7 +30,12 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -46,7 +51,14 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.SubEntry;
 
 /**
  * This class represents subentry password policy based on Password Policy for
@@ -174,8 +186,8 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     String value = getAttrValue(entry, PWD_ATTR_ATTRIBUTE);
     if (value != null && value.length() > 0)
     {
-      this.pPasswordAttribute = DirectoryServer.getAttributeTypeOrNull(value);
-      if (this.pPasswordAttribute == null)
+      this.pPasswordAttribute = DirectoryServer.getAttributeType(value);
+      if (this.pPasswordAttribute.isPlaceHolder())
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             ERR_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE.get(this.passwordPolicySubentryDN, value));

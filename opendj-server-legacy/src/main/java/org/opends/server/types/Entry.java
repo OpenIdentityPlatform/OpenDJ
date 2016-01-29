@@ -2501,8 +2501,8 @@ public class Entry
     }
 
 
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrTypeName);
-    if (attrType == null)
+    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeName);
+    if (attrType.isPlaceHolder())
     {
       // This should not happen
       // The server doesn't have this attribute type defined.
@@ -2547,8 +2547,8 @@ public class Entry
    */
   public Set<String> getReferralURLs()
   {
-    AttributeType referralType = DirectoryServer.getAttributeTypeOrNull(ATTR_REFERRAL_URL);
-    if (referralType == null)
+    AttributeType referralType = DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+    if (referralType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have a ref attribute type defined.
       logger.trace("No %s attribute type is defined in the server schema.", ATTR_REFERRAL_URL);
@@ -2608,8 +2608,8 @@ public class Entry
    */
   public DN getAliasedDN() throws DirectoryException
   {
-    AttributeType aliasType = DirectoryServer.getAttributeTypeOrNull(ATTR_REFERRAL_URL);
-    if (aliasType == null)
+    AttributeType aliasType = DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+    if (aliasType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have an aliasedObjectName attribute type defined.
       logger.trace("No %s attribute type is defined in the server schema.", ATTR_ALIAS_DN);
@@ -4525,8 +4525,8 @@ public class Entry
           options = null;
         }
 
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(name);
-        if (attrType == null)
+        AttributeType attrType = DirectoryServer.getAttributeType(name);
+        if (attrType.isPlaceHolder())
         {
           // Unrecognized attribute type - do best effort search.
           for (Map.Entry<AttributeType, List<Attribute>> e :

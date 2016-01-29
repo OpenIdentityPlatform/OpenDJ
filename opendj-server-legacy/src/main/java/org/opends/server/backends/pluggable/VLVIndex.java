@@ -330,8 +330,8 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
         throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], getName()));
       }
 
-      final AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i]);
-      if (attrType == null)
+      final AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i]);
+      if (attrType.isPlaceHolder())
       {
         throw new ConfigException(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], getName()));
       }

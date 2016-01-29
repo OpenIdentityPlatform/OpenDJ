@@ -109,8 +109,8 @@ public class ServerSideSortRequestControl
         {
           reader.readStartSequence();
           String attrName = reader.readOctetStringAsString();
-          AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
-          if (attrType == null)
+          AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+          if (attrType.isPlaceHolder())
           {
             //This attribute is not defined in the schema. There is no point
             //iterating over the next attribute and return a partially sorted result.
@@ -441,8 +441,8 @@ public class ServerSideSortRequestControl
     ArrayList<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(decodedKey[0]);
-      if (attrType == null)
+      AttributeType attrType = DirectoryServer.getAttributeType(decodedKey[0]);
+      if (attrType.isPlaceHolder())
       {
         //This attribute is not defined in the schema. There is no point
         //iterating over the next attribute and return a partially sorted result.

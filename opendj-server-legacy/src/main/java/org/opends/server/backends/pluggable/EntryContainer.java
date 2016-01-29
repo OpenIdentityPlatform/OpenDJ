@@ -308,8 +308,8 @@ public class EntryContainer
           return false;
         }
 
-        AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(sortAttrs[i]);
-        if(attrType == null)
+        AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i]);
+        if (attrType.isPlaceHolder())
         {
           unacceptableReasons.add(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], cfg.getName()));
           return false;

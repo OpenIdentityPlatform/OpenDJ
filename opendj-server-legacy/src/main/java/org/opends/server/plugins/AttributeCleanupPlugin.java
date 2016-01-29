@@ -29,7 +29,13 @@ package org.opends.server.plugins;
 import static org.opends.messages.PluginMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -46,7 +52,9 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 
@@ -306,7 +314,7 @@ public class AttributeCleanupPlugin extends
           ? toAttr
           : toAttr.substring(semicolonPos + 1);
 
-      if (DirectoryServer.getAttributeTypeOrNull(toAttrType) == null)
+      if (DirectoryServer.getAttributeType(toAttrType).isPlaceHolder())
       {
         messages.add(ERR_PLUGIN_ATTR_CLEANUP_ATTRIBUTE_MISSING.get(toAttr));
         isValid = false;

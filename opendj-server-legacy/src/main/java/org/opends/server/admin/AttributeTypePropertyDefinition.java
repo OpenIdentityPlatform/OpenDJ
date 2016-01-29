@@ -161,10 +161,8 @@ public final class AttributeTypePropertyDefinition extends
     ifNull(value);
 
     String name = value.trim();
-    AttributeType type = isCheckSchema
-        ? DirectoryServer.getAttributeTypeOrNull(name)
-        : DirectoryServer.getAttributeType(name);
-    if (type == null) {
+    AttributeType type = DirectoryServer.getAttributeType(name);
+    if (isCheckSchema && type.isPlaceHolder()) {
       throw PropertyException.illegalPropertyValueException(this, value);
     }
     try {

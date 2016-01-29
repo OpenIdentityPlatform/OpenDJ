@@ -50,6 +50,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server.SubjectAttributeToUserAttributeCertificateMapperCfg;
@@ -59,7 +60,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -399,8 +399,8 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         return null;
       }
 
-      AttributeType userAttrType = DirectoryServer.getAttributeTypeOrNull(userAttrName);
-      if (userAttrType == null)
+      AttributeType userAttrType = DirectoryServer.getAttributeType(userAttrName);
+      if (userAttrType.isPlaceHolder())
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
         ccr.addMessage(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, cfgEntryDN, userAttrName));
@@ -429,7 +429,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
    */
   private static String normalizeAttributeName(String attrName)
   {
-    AttributeType attrType = DirectoryServer.getAttributeTypeOrNull(attrName);
-    return attrType != null ? attrType.getNormalizedNameOrOID() : attrName;
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+    return attrType.isPlaceHolder() ? attrName : attrType.getNormalizedNameOrOID();
   }
 }

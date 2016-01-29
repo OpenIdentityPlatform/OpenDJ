@@ -27,7 +27,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -48,6 +47,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 
@@ -2056,8 +2056,8 @@ public final class SearchFilter
 
   private static AttributeType getAttributeType(String attrType, StringBuilder lowerType)
   {
-    AttributeType attributeType = DirectoryServer.getAttributeTypeOrNull(lowerType.toString());
-    if (attributeType == null)
+    AttributeType attributeType = DirectoryServer.getAttributeType(lowerType.toString());
+    if (attributeType.isPlaceHolder())
     {
       String typeStr = attrType.substring(0, lowerType.length());
       attributeType = DirectoryServer.getAttributeType(typeStr);

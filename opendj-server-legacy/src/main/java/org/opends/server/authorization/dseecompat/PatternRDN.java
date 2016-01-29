@@ -176,8 +176,8 @@ public class PatternRDN
       AttributeType thatType = rdn.getAttributeType(0);
       if (!typePatterns[0].equals("*"))
       {
-        AttributeType thisType = DirectoryServer.getAttributeTypeOrNull(typePatterns[0]);
-        if (thisType == null || !thisType.equals(thatType))
+        AttributeType thisType = DirectoryServer.getAttributeType(typePatterns[0]);
+        if (thisType.isPlaceHolder() || !thisType.equals(thatType))
         {
           return false;
         }
@@ -208,8 +208,8 @@ public class PatternRDN
 
     for (int i = 0; i < numValues; i++)
     {
-      AttributeType type = DirectoryServer.getAttributeTypeOrNull(typePatterns[i]);
-      if (type == null)
+      AttributeType type = DirectoryServer.getAttributeType(typePatterns[i]);
+      if (type.isPlaceHolder())
       {
         return false;
       }
