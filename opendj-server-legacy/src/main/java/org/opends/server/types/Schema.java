@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -120,11 +121,6 @@ public final class Schema
    * lowercase names and OID for the definition and the objectclass itself.
    */
   private ConcurrentHashMap<String,ObjectClass> objectClasses;
-
-  /**
-   * The default attribute syntax to use for attributes with no defined syntax.
-   */
-  private String defaultSyntaxOID;
 
   /**
    * The set of matching rule uses for this schema, mapped between the matching
@@ -828,23 +824,8 @@ public final class Schema
    */
   public Syntax getDefaultSyntax()
   {
-    return schemaNG.getSyntax(defaultSyntaxOID);
+    return schemaNG.getSyntax(CoreSchema.getDirectoryStringSyntax().getOID());
   }
-
-
-
-  /**
-   * Registers the defaut syntax for this schema.
-   *
-   * @param defaultSyntax
-   *            The defautl syntax to use.
-   */
-  public void registerDefaultSyntax(Syntax defaultSyntax)
-  {
-    this.defaultSyntaxOID = defaultSyntax.getOID();
-  }
-
-
 
   /**
    * Registers the provided attribute syntax definition with this

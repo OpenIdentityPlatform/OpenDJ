@@ -1458,8 +1458,6 @@ public final class DirectoryServer
    */
   private void bootstrapAttributeSyntaxes()
   {
-    schema.registerDefaultSyntax(getDefaultSyntax());
-
     Syntax[] syntaxes = {
       getDefaultBinarySyntax(),
       getDefaultBooleanSyntax(),
@@ -2618,7 +2616,7 @@ public final class DirectoryServer
    */
   public static Syntax getDefaultAttributeSyntax()
   {
-    return directoryServer.getDefaultSyntax();
+    return DirectoryServer.directoryServer.schema.getDefaultSyntax();
   }
 
   /**
@@ -2686,11 +2684,6 @@ public final class DirectoryServer
    *          string values.
    */
   public static Syntax getDefaultStringSyntax()
-  {
-    return CoreSchema.getDirectoryStringSyntax();
-  }
-
-  private Syntax getDefaultSyntax()
   {
     return CoreSchema.getDirectoryStringSyntax();
   }
