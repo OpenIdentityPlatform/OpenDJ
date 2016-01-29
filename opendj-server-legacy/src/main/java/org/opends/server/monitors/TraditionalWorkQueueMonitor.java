@@ -173,7 +173,7 @@ public class TraditionalWorkQueueMonitor
 
   private void putAttribute(ArrayList<Attribute> monitorAttrs, String attrName, Object value)
   {
-    AttributeType attrType = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
+    AttributeType attrType = getAttributeType(attrName, getDefaultIntegerSyntax());
     monitorAttrs.add(Attributes.create(attrType, String.valueOf(value)));
   }
 }

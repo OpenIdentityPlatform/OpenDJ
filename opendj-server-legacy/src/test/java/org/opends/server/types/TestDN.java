@@ -169,7 +169,7 @@ public class TestDN extends TypesTestCase {
     TestCaseUtils.startServer();
 
     String attrName = "x-test-integer-type";
-    AttributeType dummy = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
+    AttributeType dummy = getAttributeType(attrName, getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
   }
 

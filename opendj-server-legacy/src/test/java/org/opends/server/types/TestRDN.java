@@ -73,7 +73,7 @@ public final class TestRDN extends TypesTestCase {
     AT_CN = DirectoryServer.getAttributeTypeOrNull("cn");
 
     String attrName = "x-test-integer-type";
-    AttributeType dummy = getAttributeTypeOrDefault(attrName, attrName, getDefaultIntegerSyntax());
+    AttributeType dummy = getAttributeType(attrName, getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
 
     AV_DC_ORG = ByteString.valueOfUtf8("org");

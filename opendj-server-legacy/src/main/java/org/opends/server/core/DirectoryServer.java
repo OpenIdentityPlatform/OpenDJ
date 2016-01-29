@@ -2538,7 +2538,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName)
   {
-    return getAttributeTypeOrDefault(lowerName, lowerName, getDefaultAttributeSyntax());
+    return getAttributeType(lowerName, getDefaultAttributeSyntax());
   }
 
   /**
@@ -2555,26 +2555,24 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName)
   {
-    return getAttributeTypeOrDefault(lowerName, upperName, getDefaultAttributeSyntax());
+    return getAttributeType(upperName, getDefaultAttributeSyntax());
   }
 
   /**
-   * Retrieves the attribute type for the provided lowercase name or OID. It will return a generated
-   * "default" version with the uppercase name or OID if the requested attribute type is not defined
-   * in the schema.
+   * Retrieves the attribute type for the provided name or OID. It will return a generated
+   * placeholder version with the name or OID if the requested attribute type is not defined in the
+   * schema.
    *
-   * @param lowerName
-   *          The lowercase name or OID for the attribute type to retrieve.
-   * @param upperName
-   *          The uppercase name or OID for the attribute type to generate.
+   * @param nameOrOid
+   *          The name or OID for the attribute type to look for.
    * @param syntax
    *          The syntax for the attribute type to generate.
-   * @return The requested attribute type, or a generated "default" version if there is no attribute
-   *         with the specified type defined in the server schema
+   * @return The requested attribute type, or a generated placeholder version if there is no
+   *         attribute with the specified type defined in the server schema
    */
-  public static AttributeType getAttributeTypeOrDefault(String lowerName, String upperName, Syntax syntax)
+  public static AttributeType getAttributeType(String nameOrOid, Syntax syntax)
   {
-    return directoryServer.schema.getAttributeType(upperName, syntax);
+    return directoryServer.schema.getAttributeType(nameOrOid, syntax);
   }
 
   /**

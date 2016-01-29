@@ -144,7 +144,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
 
     private Attribute attr(String name, Syntax syntax, Object value)
     {
-      AttributeType attrType = DirectoryServer.getAttributeTypeOrDefault(name, name, syntax);
+      AttributeType attrType = DirectoryServer.getAttributeType(name, syntax);
       return Attributes.create(attrType, String.valueOf(value));
     }
 
