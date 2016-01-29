@@ -2519,7 +2519,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeTypeOrNull(String attrName)
   {
-    AttributeType attrType = directoryServer.schema.getAttributeType(attrName);
+    AttributeType attrType = getAttributeType(attrName);
     return attrType.isPlaceHolder() ? null : attrType;
   }
 
