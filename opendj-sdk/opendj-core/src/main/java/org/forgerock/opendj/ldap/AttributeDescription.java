@@ -28,6 +28,7 @@ package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -599,6 +600,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} or {@code options} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType, final String... options) {
+        Reject.ifNull(options);
         return create(attributeType, Arrays.asList(options));
     }
 
@@ -615,25 +617,25 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      */
     public static AttributeDescription create(final AttributeType attributeType, final Collection<String> options) {
         Reject.ifNull(attributeType);
-        Reject.ifNull(options);
 
-        switch (options.size()) {
+        final Collection<String> opts = options != null ? options : Collections.<String> emptySet();
+        switch (opts.size()) {
         case 0:
             return create(attributeType);
         case 1:
-            return create(attributeType, options.iterator().next());
+            return create(attributeType, opts.iterator().next());
         default:
-            final String[] optionsList = new String[options.size()];
-            final String[] normalizedOptions = new String[options.size()];
+            final String[] optionsList = new String[opts.size()];
+            final String[] normalizedOptions = new String[opts.size()];
 
-            final Iterator<String> it = options.iterator();
+            final Iterator<String> it = opts.iterator();
             final String oid = attributeType.getNameOrOID();
             final StringBuilder builder =
                     new StringBuilder(oid.length() + it.next().length() + it.next().length() + 2);
             builder.append(oid);
 
             int i = 0;
-            for (final String option : options) {
+            for (final String option : opts) {
                 builder.append(';');
                 builder.append(option);
                 optionsList[i] = option;
