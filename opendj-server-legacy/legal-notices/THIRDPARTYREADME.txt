@@ -71,56 +71,56 @@ Copyright: Copyright 2011-2015 ForgeRock AS.
 Version: json-resource-http.jar (4.0.3)
 Copyright: Copyright 2012-2015 ForgeRock AS.
 
-Version: opendj-cli.jar (3.0.0)
-Copyright: Copyright 2014-2015 ForgeRock AS.
+Version: opendj-cli.jar (4.0.0)
+Copyright: Copyright 2014-2016 ForgeRock AS.
            Copyright 2006-2010 Sun Microsystems, Inc.
-           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2011-2016 ForgeRock AS.
            Portions Copyright 2009 Parametric Technology Corporation (PTC)
 
-Version: opendj-config.jar (3.0.0)
-Copyright: Copyright 2013-2015 ForgeRock AS.
+Version: opendj-config.jar (4.0.0)
+Copyright: Copyright 2013-2016 ForgeRock AS.
            Copyright 2006-2010 Sun Microsystems, Inc.
-           Portions Copyright 2012-2015 ForgeRock AS.
+           Portions Copyright 2012-2016 ForgeRock AS.
            Portions Copyright 2012 profiq s.r.o.
 
-Version: opendj-core.jar (3.0.0)
-Copyright: Copyright 2011-2015 ForgeRock AS.
+Version: opendj-core.jar (4.0.0)
+Copyright: Copyright 2011-2016 ForgeRock AS.
            Copyright 2006-2011 Sun Microsystems, Inc.
            Copyright 2013-2014 Manuel Gaupp
-           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2011-2016 ForgeRock AS.
            Portions Copyright 2012-2014 Manuel Gaupp
 
-Version: opendj-grizzly.jar (3.0.0)
-Copyright: Copyright 2013-2015 ForgeRock AS.
+Version: opendj-grizzly.jar (4.0.0)
+Copyright: Copyright 2013-2016 ForgeRock AS.
            Copyright 2009-2010 Sun Microsystems, Inc.
-           Portions Copyright 2011-2015 ForgeRock AS.
+           Portions Copyright 2011-2016 ForgeRock AS.
 
-Version: opendj-rest2ldap.jar (3.0.0)
-Copyright: Copyright 2012-2015 ForgeRock AS.
+Version: opendj-rest2ldap.jar (4.0.0)
+Copyright: Copyright 2012-2016 ForgeRock AS.
 
-Version: opendj-server.jar (3.0.0)
-Copyright: Copyright 2013-2015 ForgeRock AS.
+Version: opendj-server.jar (4.0.0)
+Copyright: Copyright 2013-2016 ForgeRock AS.
            Copyright 2006-2009 Sun Microsystems, Inc.
-           Portions Copyright 2013-2015 ForgeRock AS.
+           Portions Copyright 2013-2016 ForgeRock AS.
 
-Version: opendj-slf4j-adapter.jar (3.0.0)
+Version: opendj-slf4j-adapter.jar (4.0.0)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
-          Copyright 2014-2015 ForgeRock AS.
+           Copyright 2014-2016 ForgeRock AS.
 
-Version: bootstrap.jar (3.0.0)
-Version: bootstrap-client.jar (3.0.0)
-Version: OpenDJ.jar (3.0.0)
-Version: OpenDJ-ca_ES.jar (3.0.0)
-Version: OpenDJ-de.jar (3.0.0)
-Version: OpenDJ-es.jar (3.0.0)
-Version: OpenDJ-fr.jar (3.0.0)
-Version: OpenDJ-ja.jar (3.0.0)
-Version: OpenDJ-ko.jar (3.0.0)
-Version: OpenDJ-pl.jar (3.0.0)
-Version: OpenDJ-zh_CN.jar (3.0.0)
-Version: OpenDJ-zh_TW.jar (3.0.0)
-Version: opendj-je-backend.jar (3.0.0)
-Version: quicksetup.jar (3.0.0)
+Version: bootstrap.jar (4.0.0)
+Version: bootstrap-client.jar (4.0.0)
+Version: OpenDJ.jar (4.0.0)
+Version: OpenDJ-ca_ES.jar (4.0.0)
+Version: OpenDJ-de.jar (4.0.0)
+Version: OpenDJ-es.jar (4.0.0)
+Version: OpenDJ-fr.jar (4.0.0)
+Version: OpenDJ-ja.jar (4.0.0)
+Version: OpenDJ-ko.jar (4.0.0)
+Version: OpenDJ-pl.jar (4.0.0)
+Version: OpenDJ-zh_CN.jar (4.0.0)
+Version: OpenDJ-zh_TW.jar (4.0.0)
+Version: opendj-je-backend.jar (4.0.0)
+Version: quicksetup.jar (4.0.0)
 Copyright: Copyright 2011-2016 ForgeRock AS.
            Copyright 2005-2011 Sun Microsystems, Inc.
            Copyright 2011-2012 profiq s.r.o.
@@ -424,7 +424,7 @@ THE SOFTWARE.
 The ISC License (ISC)
 ***************************************************************************
 
-Version: OpenDJ.jar (3.0.0)
+Version: OpenDJ.jar (4.0.0)
 Copyright: Copyright (c) 2006 Damien Miller <djm@mindrot.org>
 
 ==================

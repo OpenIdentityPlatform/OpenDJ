@@ -575,7 +575,7 @@ public final class Upgrade
         clearReplicationDbDirectory());
 
     /** See OPENDJ-2435 */
-    register("3.0.0",
+    register("4.0.0",
         addConfigEntry(INFO_UPGRADE_TASK_BCRYPT_SCHEME_SUMMARY.get(),
             "dn: cn=Bcrypt,cn=Password Storage Schemes,cn=config",
             "changetype: add",
