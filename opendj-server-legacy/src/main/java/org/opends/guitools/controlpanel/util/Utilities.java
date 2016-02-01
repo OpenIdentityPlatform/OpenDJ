@@ -113,7 +113,6 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
@@ -2825,26 +2824,6 @@ public class Utilities
         throw new RuntimeException(message.toString(), e);
       }
     }
-  }
-
-  /** Initialize the legacy configuration framework. */
-  public static void initializeLegacyConfigurationFramework()
-  {
-    try
-    {
-      final ClassLoaderProvider provider = ClassLoaderProvider.getInstance();
-      if (!provider.isEnabled())
-      {
-        provider.enable();
-      }
-    }
-    catch (Exception e)
-    {
-      final LocalizableMessage message = ERROR_CTRL_PANEL_INITIALIZE_CONFIG_OFFLINE.get(e.getLocalizedMessage());
-      logger.error(message);
-      throw new RuntimeException(message.toString(), e);
-    }
-
   }
 
 }

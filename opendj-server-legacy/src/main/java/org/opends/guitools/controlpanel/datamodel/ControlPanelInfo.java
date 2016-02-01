@@ -533,7 +533,7 @@ public class ControlPanelInfo
       }
       else
       {
-        Utilities.initializeLegacyConfigurationFramework();
+        Utilities.initializeConfigurationFramework();
         reader = createNewConfigFromDirContextReader();
         ((ConfigFromDirContext) reader).readConfiguration(connWrapper);
 

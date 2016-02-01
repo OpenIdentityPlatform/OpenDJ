@@ -41,12 +41,11 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
+import org.forgerock.opendj.server.config.server.FileBasedTrustManagerProviderCfg;
+import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.TrustManagerProviderCfg;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.AdministrationConnectorCfg;
-import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.config.AdministrationConnector;
 import org.opends.server.core.DirectoryServer;
 
@@ -439,7 +438,8 @@ public final class SecureConnectionCliArgs
     if (couldInitializeConfig)
     {
       // Get the Directory Server configuration handler and use it.
-      RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      RootCfg root =
+          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
       administrationConnectorCfg = root.getAdministrationConnector();
 
       String trustManagerStr = administrationConnectorCfg.getTrustManagerProvider();
@@ -496,7 +496,8 @@ public final class SecureConnectionCliArgs
     }
     if (couldInitializeConfiguration)
     {
-      RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      RootCfg root =
+          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
       return root.getAdministrationConnector().getListenPort();
     }
     else
@@ -510,7 +511,8 @@ public final class SecureConnectionCliArgs
     // check if the initialization is required
     try
     {
-      ServerManagementContext.getInstance().getRootConfiguration().getAdministrationConnector();
+      DirectoryServer.getInstance().getServerContext().getServerManagementContext()
+        .getRootConfiguration().getAdministrationConnector();
     }
     catch (java.lang.Throwable th)
     {

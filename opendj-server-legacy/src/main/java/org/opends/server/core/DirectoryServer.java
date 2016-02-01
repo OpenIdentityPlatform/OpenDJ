@@ -61,6 +61,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
+import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -79,7 +80,6 @@ import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.AdministrationDataSync;
-import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
@@ -6273,7 +6273,7 @@ public final class DirectoryServer
 
     // Print extensions' extra information
     String extensionInformation =
-         ClassLoaderProvider.getInstance().printExtensionInformation();
+         ConfigurationFramework.getInstance().printExtensionInformation();
     if ( extensionInformation != null ) {
       outputStream.write(extensionInformation.getBytes());
     }
@@ -7047,7 +7047,7 @@ public final class DirectoryServer
    */
   public static ClassLoader getClassLoader()
   {
-    return ClassLoaderProvider.getInstance().getClassLoader();
+    return ConfigurationFramework.getInstance().getClassLoader();
   }
 
   /**
@@ -7252,7 +7252,7 @@ public final class DirectoryServer
 
     // Print extensions' extra information
     String extensionInformation =
-                  ClassLoaderProvider.getInstance().printExtensionInformation();
+                  ConfigurationFramework.getInstance().printExtensionInformation();
     if ( extensionInformation != null ) {
       System.out.print(extensionInformation);
     }

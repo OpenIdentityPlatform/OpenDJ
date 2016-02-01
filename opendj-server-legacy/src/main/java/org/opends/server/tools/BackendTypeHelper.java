@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -29,7 +29,6 @@ import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.meta.PluggableBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 
 /**
  * Helper class for setup applications. It helps applications to provide a
@@ -106,32 +105,6 @@ public class BackendTypeHelper
       return backend;
     }
 
-    /**
-     * Return the old configuration framework backend object.
-     *
-     * @return The old configuration framework backend object
-     */
-    @SuppressWarnings("unchecked")
-    @RemoveOnceNewConfigFrameworkIsUsed
-    public org.opends.server.admin.ManagedObjectDefinition<
-        ? extends org.opends.server.admin.std.client.BackendCfgClient,
-        ? extends org.opends.server.admin.std.server.BackendCfg> getLegacyConfigurationFrameworkBackend()
-    {
-      Utilities.initializeLegacyConfigurationFramework();
-
-      for (org.opends.server.admin.AbstractManagedObjectDefinition<?, ?> oldConfigBackend :
-        org.opends.server.admin.std.meta.PluggableBackendCfgDefn.getInstance().getAllChildren())
-      {
-        if (oldConfigBackend.getName().equals(getBackend().getName()))
-        {
-          return (org.opends.server.admin.ManagedObjectDefinition<
-              ? extends org.opends.server.admin.std.client.BackendCfgClient,
-              ? extends org.opends.server.admin.std.server.BackendCfg>) oldConfigBackend;
-        }
-      }
-      throw new IllegalArgumentException("Impossible to find the equivalent backend type in old config framework: "
-          + getBackend().getName());
-    }
   }
 
   private final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;

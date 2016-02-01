@@ -17,7 +17,6 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
-
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 
@@ -36,12 +35,12 @@ import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.BooleanPropertyDefinition;
+import org.forgerock.opendj.config.DurationPropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.admin.BooleanPropertyDefinition;
-import org.opends.server.admin.DurationPropertyDefinition;
-import org.opends.server.admin.PropertyDefinition;
 import org.forgerock.opendj.server.config.meta.JEBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
