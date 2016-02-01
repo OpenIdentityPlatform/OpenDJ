@@ -60,8 +60,6 @@
 
     <!-- Other properties -->
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
-    <!-- Could be removed once migration to new config framework will be done-->
-    <old.config.files.path>${project.build.directory}/config/admin/defn/org/opends/server/admin/std</old.config.files.path>
 
     <!-- If we release this project, we need to include the Forgerock binary license -->
     <include.binary.license>${project.build.directory}/legal-notices/</include.binary.license>
@@ -340,7 +338,6 @@
             <fileset>
               <directory>${basedir}/src</directory>
               <includes>
-                <include>admin/generated/**</include>
                 <include>messages/generated/**</include>
               </includes>
               <followSymlinks>false</followSymlinks>
@@ -405,22 +402,6 @@
               <resources>
                 <resource>
                   <directory>src/messages/org/opends/messages</directory>
-                  <filtering>false</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-l10n-config-messages</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.outputDirectory}/admin/messages/org/opends/server/admin/std/meta</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>src/admin/messages</directory>
                   <filtering>false</filtering>
                 </resource>
               </resources>
@@ -501,20 +482,6 @@
             </configuration>
           </execution>
 
-          <!-- Generate configuration classes from XML definitions -->
-          <!-- Leave default lifecycle phase once new config framework migration is done -->
-          <execution>
-            <id>generate-config</id>
-            <!-- <phase>generate-sources</phase> -->
-            <phase>none</phase>
-            <goals>
-              <goal>generate-config</goal>
-            </goals>
-            <configuration>
-              <packageName>org.forgerock.opendj.server.config</packageName>
-            </configuration>
-          </execution>
-
           <!-- Create consolidated schema file for use in upgrade -->
           <execution>
             <id>creates-base-schema-files</id>
@@ -547,7 +514,6 @@
               <sources>
                 <source>src/messages/generated</source>
                 <source>src/messages/src</source>
-                <source>src/admin/generated</source>
                 <source>src/build-tools</source>
                 <source>${project.build.directory}/java-stubs</source>
                 <source>../opendj-legacy/src/main/java</source>
@@ -1041,41 +1007,6 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <!-- Temporary solution for configuration classes until migration to new config framework -->
-            <!-- Change package name and XML namespaces references to match the old config framework -->
-            <id>configure-config-files</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-                <copy todir="${old.config.files.path}">
-                  <fileset dir="../opendj-maven-plugin/src/main/resources/config/xml/org/forgerock/opendj/server/config/" />
-                </copy>
-                <replace dir="${old.config.files.path}" token="org.forgerock.opendj.server.config" value="org.opends.server.admin.std" />
-                <replace dir="${old.config.files.path}" token="http://opendj.forgerock.org/admin" value="http://www.opends.org/admin" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-
-          <execution>
-            <!-- Temporary solution for configuration classes until migration to new config framework -->
-            <id>generate-config</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-                <ant antfile="${basedir}/build.xml">
-                  <target name="generateadmin" />
-                </ant>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-
-          <execution>
             <!-- Copy config.ldif in build dir (needed if snmp config merge is needed) -->
             <id>copy-config-ldif</id>
             <phase>generate-resources</phase>
@@ -1180,7 +1111,7 @@
               <execution>
                 <id>check-src-and-tests-alternative</id>
                 <configuration>
-                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**</excludes>
+                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**</excludes>
                   <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
                   <headerLocation>${checkstyleHeaderLocation}</headerLocation>
                   <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>
@@ -1423,7 +1354,6 @@
                   <finalName>${snmp.jar.name}</finalName>
                   <includes>
                     <include>org/opends/server/snmp/**</include>
-                    <include>admin/extension.manifest</include>
                   </includes>
                   <archive>
                     <index>true</index>
