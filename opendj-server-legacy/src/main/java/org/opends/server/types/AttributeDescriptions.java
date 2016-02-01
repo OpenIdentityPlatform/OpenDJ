@@ -24,10 +24,7 @@
  */
 package org.opends.server.types;
 
-import java.util.Set;
-
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /** Temporary class until we move fully to {@link AttributeDescription}. */
 public class AttributeDescriptions
@@ -49,22 +46,6 @@ public class AttributeDescriptions
    */
   public static AttributeDescription create(Attribute attr)
   {
-    return create(attr.getAttributeType(), attr.getOptions());
-  }
-
-  /**
-   * Creates an attribute description having the provided attribute type and options.
-   *
-   * @param attributeType
-   *          The attribute type.
-   * @param options
-   *          The attribute options.
-   * @return The attribute description.
-   * @throws NullPointerException
-   *           If {@code attributeType} or {@code options} was {@code null}.
-   */
-  public static AttributeDescription create(AttributeType attributeType, Set<String> options)
-  {
-    return AttributeDescription.create(attributeType, options.toArray(new String[options.size()]));
+    return AttributeDescription.create(attr.getAttributeType(), attr.getOptions());
   }
 }

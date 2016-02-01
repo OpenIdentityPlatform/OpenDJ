@@ -555,7 +555,7 @@ public class CompressedSchema
   {
     final AttributeType type = DirectoryServer.getAttributeType(attributeName);
     final Set<String> options = getOptions(attributeOptions);
-    final AttributeDescription ad = AttributeDescriptions.create(type, options);
+    final AttributeDescription ad = AttributeDescription.create(type, options);
     exclusiveLock.lock();
     try
     {

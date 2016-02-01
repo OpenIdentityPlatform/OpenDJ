@@ -41,7 +41,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeDescriptions;
 import org.opends.server.types.Modification;
 
 /**
@@ -138,7 +137,7 @@ class HistoricalAttributeValue
         isModDN = true;
       }
     }
-    this.attrDesc = attrType != null ? AttributeDescriptions.create(attrType, options) : null;
+    this.attrDesc = attrType != null ? AttributeDescription.create(attrType, options) : null;
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
