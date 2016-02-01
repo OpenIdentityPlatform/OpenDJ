@@ -23,7 +23,6 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_ROOT_USER_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.addErrorMessageIfArgumentsConflict;
 import static org.opends.messages.ToolMessages.*;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -40,7 +39,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.config.AdministrationConnector;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.Argument;

@@ -42,12 +42,12 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
+import org.opends.server.config.AdministrationConnector;
 import org.opends.server.core.DirectoryServer;
 
 import com.forgerock.opendj.cli.Argument;

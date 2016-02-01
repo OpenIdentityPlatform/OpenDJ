@@ -45,7 +45,7 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.config.AdministrationConnector;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;

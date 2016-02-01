@@ -47,7 +47,7 @@ import javax.net.ssl.SSLException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.config.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;

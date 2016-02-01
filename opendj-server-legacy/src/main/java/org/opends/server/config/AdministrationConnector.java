@@ -14,7 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-package org.opends.server.admin;
+package org.opends.server.config;
 
 import static org.opends.messages.AdminMessages.*;
 

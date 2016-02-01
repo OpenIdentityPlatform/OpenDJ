@@ -27,7 +27,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.config.AdministrationConnector;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.ArgumentException;
