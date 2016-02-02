@@ -34,15 +34,24 @@
  </properties>
  <body>
   <section name="New Releases">
-   <p>July 04, 2013. OpenDJ 2.6.0 is now available! OpenDJ 2.6.0 is an important
-   release of ForgeRock's directory services product, with many key fixes and
-   new features. See the <a
-   href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0/release-notes">Release
-   Notes</a> for more. You can get the binaries from the ForgeRock <a
-   href="https://download.forgerock.com/#/opendj">OpenDJ download page</a>.</p>
+   <p>
+    January 27, 2016. OpenDJ 3.0.0 is available.
+    OpenDJ is a major release of ForgeRock's directory services software.
+    For details, see the
+    <a href="https://backstage.forgerock.com/#!/docs/opendj/3/release-notes">Release Notes</a>.
+    You can download OpenDJ software from the ForgeRock BackStage
+    <a href="https://backstage.forgerock.com/#!/downloads/OpenDJ/">download page</a>.
+   </p>
   </section>
 
   <section name="Previous Releases">
+   <p>July 04, 2013. OpenDJ 2.6.0 is now available! OpenDJ 2.6.0 is an important
+   release of ForgeRock's directory services product, with many key fixes and
+   new features. See the <a
+     href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0/release-notes">Release Notes</a>
+    for more. You can get the binaries from the ForgeRock <a
+     href="https://download.forgerock.com/#/opendj">OpenDJ download page</a>.</p>
+
    <p>July 26, 2012. OpenDJ 2.4.6 has been released! OpenDJ 2.4.6 is an
    update release of the OpenDJ project. You can get the release from the
    <a href="http://forgerock.org/opendj-archive.html">download page</a>. See the <a

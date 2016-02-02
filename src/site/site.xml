@@ -79,7 +79,7 @@
   </menu>
 
   <menu name="Released Documentation" inherit="top">
-    <!--<item name="OpenDJ 3" href="https://backstage.forgerock.com/#!/docs/opendj/3" />-->
+    <item name="OpenDJ 3" href="https://backstage.forgerock.com/#!/docs/opendj/3" />
     <item name="OpenDJ 2.6.0" href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0" />
     <item name="OpenDJ 2.5.0-Xpress1 (EOSL)" href="https://backstage.forgerock.com/#!/docs/opendj/2.5.0-Xpress1" />
   </menu>
