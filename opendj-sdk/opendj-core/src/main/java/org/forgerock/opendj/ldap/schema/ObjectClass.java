@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2015 ForgeRock AS.
+ *      Portions copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -107,6 +107,18 @@ public final class ObjectClass extends SchemaElement {
          */
         public SchemaBuilder addToSchemaOverwrite() {
             return getSchemaBuilder().addObjectClass(new ObjectClass(this), true);
+        }
+
+        /**
+         * Adds this object class to the schema, overwriting any existing object class
+         * with the same numeric OID if the overwrite parameter is set to {@code true}.
+         *
+         * @param overwrite
+         *            {@code true} if any object class with the same OID should be overwritten.
+         * @return The parent schema builder.
+         */
+        SchemaBuilder addToSchema(final boolean overwrite) {
+            return overwrite ? addToSchemaOverwrite() : addToSchema();
         }
 
         @Override

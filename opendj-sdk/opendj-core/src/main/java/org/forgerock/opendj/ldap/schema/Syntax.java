@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -103,10 +103,7 @@ public final class Syntax extends SchemaElement {
          * @return The parent schema builder.
          */
         SchemaBuilder addToSchema(final boolean overwrite) {
-            if (overwrite) {
-                return addToSchemaOverwrite();
-            }
-            return addToSchema();
+            return overwrite ? addToSchemaOverwrite() : addToSchema();
         }
 
         @Override

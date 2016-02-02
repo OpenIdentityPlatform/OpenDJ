@@ -96,6 +96,18 @@ public final class MatchingRuleUse extends SchemaElement {
         }
 
         /**
+         * Adds this matching rule use to the schema, overwriting any existing matching rule use
+         * with the same numeric OID if the overwrite parameter is set to {@code true}.
+         *
+         * @param overwrite
+         *            {@code true} if any matching rule use with the same OID should be overwritten.
+         * @return The parent schema builder.
+         */
+        SchemaBuilder addToSchema(final boolean overwrite) {
+            return overwrite ? addToSchemaOverwrite() : addToSchema();
+        }
+
+        /**
          * Adds the provided list of attribute types to the list of attribute
          * type the matching rule applies to.
          *

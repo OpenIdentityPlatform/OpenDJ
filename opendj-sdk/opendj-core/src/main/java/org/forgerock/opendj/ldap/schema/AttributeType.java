@@ -122,6 +122,18 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         }
 
         /**
+         * Adds this attribute type to the schema, overwriting any existing attribute type
+         * with the same numeric OID if the overwrite parameter is set to {@code true}.
+         *
+         * @param overwrite
+         *            {@code true} if any attribute type with the same OID should be overwritten.
+         * @return The parent schema builder.
+         */
+        SchemaBuilder addToSchema(final boolean overwrite) {
+            return overwrite ? addToSchemaOverwrite() : addToSchema();
+        }
+
+        /**
          * Sets the matching rule that should be used for approximate matching
          * with this attribute type.
          *

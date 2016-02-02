@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2015 ForgeRock AS
+ *      Portions copyright 2015-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -96,6 +96,18 @@ public final class DITStructureRule extends SchemaElement {
          */
         public SchemaBuilder addToSchemaOverwrite() {
             return getSchemaBuilder().addDITStructureRule(new DITStructureRule(this), true);
+        }
+
+        /**
+         * Adds this DIT structure rule to the schema, overwriting any existing DIT structure rule
+         * with the same numeric OID if the overwrite parameter is set to {@code true}.
+         *
+         * @param overwrite
+         *            {@code true} if any DIT structure rule with the same OID should be overwritten.
+         * @return The parent schema builder.
+         */
+        SchemaBuilder addToSchema(final boolean overwrite) {
+            return overwrite ? addToSchemaOverwrite() : addToSchema();
         }
 
         @Override

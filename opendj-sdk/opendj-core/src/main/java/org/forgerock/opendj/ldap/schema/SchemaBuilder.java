@@ -383,7 +383,7 @@ public final class SchemaBuilder {
             atBuilder.superiorType(superiorType)
                      .syntax(syntax);
 
-            return overwrite ? atBuilder.addToSchemaOverwrite() : atBuilder.addToSchema();
+            return atBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTRTYPE_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
@@ -490,7 +490,7 @@ public final class SchemaBuilder {
                 }
             }
 
-            return overwrite ? contentRuleBuilder.addToSchemaOverwrite() : contentRuleBuilder.addToSchema();
+            return contentRuleBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg = ERR_ATTR_SYNTAX_DCR_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
@@ -597,7 +597,7 @@ public final class SchemaBuilder {
             }
             ruleBuilder.nameForm(nameForm);
 
-            return overwrite ? ruleBuilder.addToSchemaOverwrite() : ruleBuilder.addToSchema();
+            return ruleBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg = ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
@@ -755,11 +755,7 @@ public final class SchemaBuilder {
             if (syntax == null) {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition));
             }
-            if (overwrite) {
-                matchingRuleBuilder.addToSchemaOverwrite();
-            } else {
-                matchingRuleBuilder.addToSchema();
-            }
+            matchingRuleBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg =
                     ERR_ATTR_SYNTAX_MR_INVALID1.get(definition, e.getMessageObject());
@@ -868,7 +864,7 @@ public final class SchemaBuilder {
             }
             useBuilder.attributes(attributes);
 
-            return overwrite ? useBuilder.addToSchemaOverwrite() : useBuilder.addToSchema();
+            return useBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg = ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
@@ -1066,11 +1062,7 @@ public final class SchemaBuilder {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition));
             }
 
-            if (overwrite) {
-                nameFormBuilder.addToSchemaOverwrite();
-            } else {
-                nameFormBuilder.addToSchema();
-            }
+            nameFormBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg =
                     ERR_ATTR_SYNTAX_NAME_FORM_INVALID1.get(definition, e.getMessageObject());
@@ -1401,7 +1393,7 @@ public final class SchemaBuilder {
                 }
                 ocBuilder.superiorObjectClasses(superiorClasses)
                          .type(ocType);
-                return overwrite ? ocBuilder.addToSchemaOverwrite() : ocBuilder.addToSchema();
+                return ocBuilder.addToSchema(overwrite);
             }
         } catch (final DecodeException e) {
             throw new LocalizedIllegalArgumentException(
@@ -2364,19 +2356,11 @@ public final class SchemaBuilder {
         // unlikely, may be different in the new schema.
 
         for (final Syntax syntax : schema.getSyntaxes()) {
-            if (overwrite) {
-                buildSyntax(syntax, false).addToSchemaOverwrite();
-            } else {
-                buildSyntax(syntax, false).addToSchema();
-            }
+            buildSyntax(syntax, false).addToSchema(overwrite);
         }
 
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
-            if (overwrite) {
-                buildMatchingRule(matchingRule, false).addToSchemaOverwrite();
-            } else {
-                buildMatchingRule(matchingRule, false).addToSchema();
-            }
+            buildMatchingRule(matchingRule, false).addToSchema(overwrite);
         }
 
         for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses()) {

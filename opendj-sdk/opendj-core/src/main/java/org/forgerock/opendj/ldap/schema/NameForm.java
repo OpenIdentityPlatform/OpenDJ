@@ -100,6 +100,18 @@ public final class NameForm extends SchemaElement {
             return getSchemaBuilder().addNameForm(new NameForm(this), true);
         }
 
+        /**
+         * Adds this name form to the schema, overwriting any existing name form
+         * with the same numeric OID if the overwrite parameter is set to {@code true}.
+         *
+         * @param overwrite
+         *            {@code true} if any name form with the same OID should be overwritten.
+         * @return The parent schema builder.
+         */
+        SchemaBuilder addToSchema(final boolean overwrite) {
+            return overwrite ? addToSchemaOverwrite() : addToSchema();
+        }
+
         @Override
         public Builder description(final String description) {
             return description0(description);
