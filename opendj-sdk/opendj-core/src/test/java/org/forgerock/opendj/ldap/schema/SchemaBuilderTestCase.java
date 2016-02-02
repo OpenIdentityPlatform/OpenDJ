@@ -51,9 +51,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.testng.annotations.Test;
 
-/**
- * Test SchemaBuilder.
- */
+/** Test SchemaBuilder. */
 @SuppressWarnings("javadoc")
 public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
@@ -62,7 +60,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * attribute types regardless of the order in which they were added.
      */
     @Test
-    public void testAttributeTypeDependenciesChildThenParent() {
+    public void attributeTypeDependenciesChildThenParent() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema())
                         .addAttributeType("( childtype-oid NAME 'childtype' SUP parenttype )",
@@ -80,7 +78,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * attribute types regardless of the order in which they were added.
      */
     @Test
-    public void testAttributeTypeDependenciesParentThenChild() {
+    public void attributeTypeDependenciesParentThenChild() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema())
                         .addAttributeType(
@@ -93,11 +91,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 "1.3.6.1.4.1.1466.115.121.1.15");
     }
 
-    /**
-     * Tests that attribute types must have a syntax or a superior.
-     */
+    /** Tests that attribute types must have a syntax or a superior. */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public void testAttributeTypeNoSuperiorNoSyntax() {
+    public void attributeTypeNoSuperiorNoSyntax() {
         new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
                 "( parenttype-oid NAME 'parenttype' )", false);
     }
@@ -107,7 +103,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * attribute types regardless of the order.
      */
     @Test
-    public void testAttributeTypeSuperiorFailureChildThenParent() {
+    public void attributeTypeSuperiorFailureChildThenParent() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
                         "( childtype-oid NAME 'childtype' SUP parenttype )", false)
@@ -134,7 +130,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * attribute types regardless of the order.
      */
     @Test
-    public void testAttributeTypeSuperiorFailureParentThenChild() {
+    public void attributeTypeSuperiorFailureParentThenChild() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
                         "( parenttype-oid NAME 'parenttype' SUP xxx )", false).addAttributeType(
@@ -155,12 +151,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         }
     }
 
-    /**
-     * Test for OPENDJ-156: Errors when parsing collective attribute
-     * definitions.
-     */
+    /** Test for OPENDJ-156: Errors when parsing collective attribute definitions. */
     @Test
-    public void testCollectiveAttribute() {
+    public void collectiveAttribute() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
                         "( 2.5.4.11.1 NAME 'c-ou' "
@@ -174,18 +167,16 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * another and take advantage of copy on write.
      */
     @Test
-    public void testCopyOnWriteNoChanges() {
+    public void copyOnWriteNoChanges() {
         final Schema baseSchema = Schema.getCoreSchema();
         final Schema schema = new SchemaBuilder(baseSchema).toSchema();
 
         assertThat(schema).isSameAs(baseSchema);
     }
 
-    /**
-     * Tests that it is possible to create a schema which is based on another.
-     */
+    /** Tests that it is possible to create a schema which is based on another. */
     @Test
-    public void testCopyOnWriteWithChanges() {
+    public void copyOnWriteWithChanges() {
         final Schema baseSchema = Schema.getCoreSchema();
         final Schema schema =
                 new SchemaBuilder(baseSchema).addAttributeType(
@@ -200,11 +191,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 .isEqualTo(baseSchema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
     }
 
-    /**
-     * Tests that it is possible to create an empty schema.
-     */
+    /** Tests that it is possible to create an empty schema. */
     @Test
-    public void testCreateEmptySchema() {
+    public void createEmptySchema() {
         final Schema schema = new SchemaBuilder().toSchema();
         assertThat(schema.getAttributeTypes()).isEmpty();
         assertThat(schema.getObjectClasses()).isEmpty();
@@ -216,12 +205,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         // Could go on...
     }
 
-    /**
-     * Tests that multiple consecutive invocations of toSchema return the exact
-     * same schema.
-     */
+    /** Tests that multiple consecutive invocations of toSchema return the exact same schema. */
     @Test
-    public void testMultipleToSchema1() {
+    public void multipleToSchema1() {
         final Schema baseSchema = Schema.getCoreSchema();
         final SchemaBuilder builder = new SchemaBuilder(baseSchema);
         final Schema schema1 = builder.toSchema();
@@ -230,12 +216,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(schema1).isSameAs(schema2);
     }
 
-    /**
-     * Tests that multiple consecutive invocations of toSchema return the exact
-     * same schema.
-     */
+    /** Tests that multiple consecutive invocations of toSchema return the exact same schema. */
     @Test
-    public void testMultipleToSchema2() {
+    public void multipleToSchema2() {
         final SchemaBuilder builder =
                 new SchemaBuilder().addAttributeType(
                         "( testtype-oid NAME 'testtype' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )",
@@ -252,7 +235,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * object classes regardless of the order in which they were added.
      */
     @Test
-    public void testObjectClassDependenciesChildThenParent() {
+    public void objectClassDependenciesChildThenParent() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).addObjectClass(
                         "( childtype-oid NAME 'childtype' SUP parenttype STRUCTURAL MUST sn )",
@@ -272,7 +255,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * object classes regardless of the order in which they were added.
      */
     @Test
-    public void testObjectClassDependenciesParentThenChild() {
+    public void objectClassDependenciesParentThenChild() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema())
                         .addObjectClass(
@@ -294,7 +277,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * object classes regardless of the order.
      */
     @Test
-    public void testObjectClassSuperiorFailureChildThenParent() {
+    public void objectClassSuperiorFailureChildThenParent() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).addObjectClass(
                         "( childtype-oid NAME 'childtype' SUP parenttype STRUCTURAL MUST sn )",
@@ -322,7 +305,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * object classes regardless of the order.
      */
     @Test
-    public void testObjectClassSuperiorFailureParentThenChild() {
+    public void objectClassSuperiorFailureParentThenChild() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema())
                         .addObjectClass(
@@ -347,12 +330,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         }
     }
 
-    /**
-     * Tests that a schema builder can be re-used after toSchema has been
-     * called.
-     */
+    /** Tests that a schema builder can be re-used after toSchema has been called. */
     @Test
-    public void testReuseSchemaBuilder() {
+    public void reuseSchemaBuilder() {
         final SchemaBuilder builder = new SchemaBuilder();
         final Schema schema1 =
                 builder.addAttributeType(
@@ -377,7 +357,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = NullPointerException.class)
-    public final void testSchemaBuilderDoesntAllowNullEntry() throws Exception {
+    public final void schemaBuilderDoesntAllowNullEntry() throws Exception {
         new SchemaBuilder((Entry) null);
     }
 
@@ -387,7 +367,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryWithCoreSchema() throws Exception {
+    public final void schemaBuilderWithEntryWithCoreSchema() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -439,7 +419,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderWithEntryWithoutCoreSchema() throws Exception {
+    public final void schemaBuilderWithEntryWithoutCoreSchema() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -475,7 +455,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAttributeWithoutSpace() throws Exception {
+    public final void schemaBuilderAttributeWithoutSpace() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -513,7 +493,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAttributeExtensionWithoutSpace() throws Exception {
+    public final void schemaBuilderAttributeExtensionWithoutSpace() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -551,7 +531,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddLdapSyntax() throws Exception {
+    public final void schemaBuilderWithEntryAddLdapSyntax() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -592,7 +572,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMalformedLdapSyntax() throws Exception {
+    public final void schemaBuilderWithEntryAddMalformedLdapSyntax() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -631,7 +611,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMatchingRuleUse() throws Exception {
+    public final void schemaBuilderWithEntryAddMatchingRuleUse() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -673,7 +653,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMalformedMatchingRuleUse() throws Exception {
+    public final void schemaBuilderWithEntryAddMalformedMatchingRuleUse() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -712,7 +692,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMatchingRule() throws Exception {
+    public final void schemaBuilderWithEntryAddMatchingRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -755,7 +735,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMalformedMatchingRule() throws Exception {
+    public final void schemaBuilderWithEntryAddMalformedMatchingRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -795,7 +775,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddDITContentRule() throws Exception {
+    public final void schemaBuilderWithEntryAddDITContentRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -838,7 +818,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMalformedDITContentRule() throws Exception {
+    public final void schemaBuilderWithEntryAddMalformedDITContentRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -878,7 +858,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddObjectClass() throws Exception {
+    public final void schemaBuilderWithEntryAddObjectClass() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -919,7 +899,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderWithEntryAddMalformedObjectClass() throws Exception {
+    public final void schemaBuilderWithEntryAddMalformedObjectClass() throws Exception {
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=schema",
@@ -960,7 +940,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAddAttributeWithEntryContainingDescriptionWithCoreSchema()
+    public final void schemaBuilderAddAttributeWithEntryContainingDescriptionWithCoreSchema()
             throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -1015,9 +995,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAddAttributeContainingDescriptionWithCoreSchema()
+    public final void schemaBuilderAddAttributeContainingDescriptionWithCoreSchema()
             throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Adding the new schema containing the customclass
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
@@ -1050,8 +1029,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public final void testSchemaBuilderAddAttributeDoesntAllowWrongUsage() throws Exception {
-
+    public final void schemaBuilderAddAttributeDoesntAllowWrongUsage() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Adding the new schema containing the customclass
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
@@ -1068,7 +1046,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = NullPointerException.class)
-    public final void testSchemaBuilderAddAttributeTypeDoesntAllowNull() throws Exception {
+    public final void schemaBuilderAddAttributeTypeDoesntAllowNull() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Adding the new schema containing the customclass
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
@@ -1082,14 +1060,12 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public final void testSchemaBuilderAddAttributeTypeDoesntAllowEmptyString() throws Exception {
-
+    public final void schemaBuilderAddAttributeTypeDoesntAllowEmptyString() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Adding the new schema containing the customclass
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
         scBuild.addAttributeType(" ", false);
-
     }
 
     /**
@@ -1099,9 +1075,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public final void testSchemaBuilderAddAttributeDoesntAllowLeftParenthesisMising()
+    public final void schemaBuilderAddAttributeDoesntAllowLeftParenthesisMising()
             throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
@@ -1119,9 +1094,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public final void testSchemaBuilderAddAttributeDoesntAllowRightParenthesisMising()
+    public final void schemaBuilderAddAttributeDoesntAllowRightParenthesisMising()
             throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
@@ -1139,8 +1113,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderCompareAddAttributeTypesSucceed() throws Exception {
-
+    public final void schemaBuilderCompareAddAttributeTypesSucceed() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
@@ -1188,9 +1161,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public final void testSchemaBuilderAddObjectClassDoesntAllowMalformedObjectClass()
+    public final void schemaBuilderAddObjectClassDoesntAllowMalformedObjectClass()
             throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Left parenthesis is missing underneath
         scBuild.addObjectClass(" temporary-fake-oc-id NAME 'myCustomObjClass"
@@ -1209,9 +1181,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public final void testSchemaBuilderAddObjectClassDoesntAllowMalformedObjectClassIllegalToken()
+    public final void schemaBuilderAddObjectClassDoesntAllowMalformedObjectClassIllegalToken()
             throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Wrong object class definition (AUXI)
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
@@ -1223,11 +1194,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 false);
     }
 
-    /**
-     * Rewrite an existing object class.
-     */
+    /** Rewrite an existing object class. */
     @Test
-    public final void testSchemaBuilderAddObjectClass() throws Exception {
+    public final void schemaBuilderAddObjectClass() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(getDefaultSchema());
         scBuild.buildObjectClass("2.5.6.14")
                 .names("device")
@@ -1252,9 +1221,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = ConflictingSchemaElementException.class)
-    public final void testSchemaBuilderDoesntAllowConflictingAttributesOverwriteFalse()
+    public final void schemaBuilderDoesntAllowConflictingAttributesOverwriteFalse()
             throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder();
 
         scBuild.addAttributeType(
@@ -1271,7 +1239,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public final void testSchemaBuilderWithAttributeUsageDifferentFromSuperior() {
+    public final void schemaBuilderWithAttributeUsageDifferentFromSuperior() {
         final SchemaBuilder scBuild = new SchemaBuilder();
 
         // directoryOperation can't inherit from userApplications
@@ -1293,7 +1261,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAllowsConflictingAttributesOverwriteTrue() throws Exception {
+    public final void schemaBuilderAllowsConflictingAttributesOverwriteTrue() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
 
         //@formatter:off
@@ -1332,7 +1300,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = ConflictingSchemaElementException.class)
-    public final void testSchemaBuilderDoesntAllowConflictingDITOverwriteFalse() throws Exception {
+    public final void schemaBuilderDoesntAllowConflictingDITOverwriteFalse() throws Exception {
         //@formatter:off
         new SchemaBuilder(Schema.getDefaultSchema())
                 .addObjectClass(
@@ -1372,7 +1340,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAllowsConflictingDITStructureRuleOverwriteTrue()
+    public final void schemaBuilderAllowsConflictingDITStructureRuleOverwriteTrue()
             throws Exception {
         // @formatter:off
         final Schema schema =
@@ -1420,7 +1388,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAddDITContentRuleBuilder() throws Exception {
+    public final void schemaBuilderAddDITContentRuleBuilder() throws Exception {
         // @formatter:off
         final Schema schema =
             new SchemaBuilder(Schema.getCoreSchema())
@@ -1449,7 +1417,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = ConflictingSchemaElementException.class)
-    public final void testSchemaBuilderDoesntAllowConflictingDITContentRuleOverwriteFalse()
+    public final void schemaBuilderDoesntAllowConflictingDITContentRuleOverwriteFalse()
             throws Exception {
         // @formatter:off
         new SchemaBuilder(Schema.getDefaultSchema())
@@ -1480,7 +1448,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAllowsConflictingDITContentRuleOverwriteTrue()
+    public final void schemaBuilderAllowsConflictingDITContentRuleOverwriteTrue()
             throws Exception {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getDefaultSchema())
@@ -1517,7 +1485,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = ConflictingSchemaElementException.class)
-    public final void testSchemaBuilderDoesntAllowConflictingMatchingRuleOverwriteFalse()
+    public final void schemaBuilderDoesntAllowConflictingMatchingRuleOverwriteFalse()
             throws Exception {
         // @formatter:off
         new SchemaBuilder(Schema.getDefaultSchema())
@@ -1537,7 +1505,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAllowsConflictingMatchingRuleOverwriteTrue()
+    public final void schemaBuilderAllowsConflictingMatchingRuleOverwriteTrue()
             throws Exception {
         // @formatter:off
         final Schema schema =
@@ -1564,7 +1532,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = ConflictingSchemaElementException.class)
-    public final void testSchemaBuilderDoesntAllowConflictingMatchingRuleUseOverwriteFalse()
+    public final void schemaBuilderDoesntAllowConflictingMatchingRuleUseOverwriteFalse()
             throws Exception {
         // @formatter:off
         new SchemaBuilder(Schema.getDefaultSchema())
@@ -1583,7 +1551,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAllowsConflictingMatchingRuleUseOverwriteTrue()
+    public final void schemaBuilderAllowsConflictingMatchingRuleUseOverwriteTrue()
             throws Exception {
         // @formatter:off
         final Schema schema =
@@ -1607,7 +1575,6 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                             + " X-ORIGIN 'RFC 4512' )");
         }
         assertThat(schema.getWarnings()).isEmpty();
-
     }
 
     /**
@@ -1617,7 +1584,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = ConflictingSchemaElementException.class)
-    public final void testSchemaBuilderDoesntAllowConflictingNameFormOverwriteFalse()
+    public final void schemaBuilderDoesntAllowConflictingNameFormOverwriteFalse()
             throws Exception {
         // @formatter:off
         new SchemaBuilder(Schema.getDefaultSchema())
@@ -1641,7 +1608,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAllowsConflictingNameFormOverwriteTrue() throws Exception {
+    public final void schemaBuilderAllowsConflictingNameFormOverwriteTrue() throws Exception {
         // @formatter:off
         final Schema schema =
             new SchemaBuilder(Schema.getDefaultSchema())
@@ -1679,8 +1646,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveAttributeType() throws Exception {
-
+    public final void schemaBuilderRemoveAttributeType() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
@@ -1703,7 +1669,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantAttributeType() throws Exception {
+    public final void schemaBuilderRemoveInexistantAttributeType() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeAttributeType("wrongName");
         assertThat(isRemoved).isFalse();
@@ -1715,7 +1681,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantSyntax() throws Exception {
+    public final void schemaBuilderRemoveInexistantSyntax() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeSyntax("1.3.6.1.4.1.14aa");
         assertThat(isRemoved).isFalse();
@@ -1727,8 +1693,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveSyntax() throws Exception {
-
+    public final void schemaBuilderRemoveSyntax() throws Exception {
         assertThat(Schema.getCoreSchema().getSyntax("1.3.6.1.4.1.1466.115.121.1.15")).isNotNull();
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
 
@@ -1744,7 +1709,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveDitContentRule() throws Exception {
+    public final void schemaBuilderRemoveDitContentRule() throws Exception {
         // @formatter:off
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         scBuild.addObjectClass("( 2.16.840.1.113730.3.2.2 NAME 'myCustomObjClass"
@@ -1770,7 +1735,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantDitContentRule() throws Exception {
+    public final void schemaBuilderRemoveInexistantDitContentRule() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeDITContentRule("badDITContentRule");
         assertThat(isRemoved).isFalse();
@@ -1782,8 +1747,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveDitStructureRule() throws Exception {
-
+    public final void schemaBuilderRemoveDitStructureRule() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         scBuild.addObjectClass(
                 "( testditstructureruleconstraintssupoc-oid "
@@ -1819,7 +1783,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantDitStructureRule() throws Exception {
+    public final void schemaBuilderRemoveInexistantDitStructureRule() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeDITStructureRule(999014);
         assertThat(isRemoved).isFalse();
@@ -1831,8 +1795,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveMatchingRule() throws Exception {
-
+    public final void schemaBuilderRemoveMatchingRule() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         scBuild.addMatchingRule(
                 // Matching rules from RFC 2252
@@ -1852,7 +1815,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantMatchingRule() throws Exception {
+    public final void schemaBuilderRemoveInexistantMatchingRule() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeMatchingRule("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1864,8 +1827,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveMatchingRuleUSe() throws Exception {
-
+    public final void schemaBuilderRemoveMatchingRuleUSe() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         scBuild.addMatchingRuleUse(
                 "( 2.5.13.16 NAME 'bitStringMatch' APPLIES ( givenName $ surname ) )", false);
@@ -1883,7 +1845,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantMatchingRuleUse() throws Exception {
+    public final void schemaBuilderRemoveInexistantMatchingRuleUse() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeMatchingRuleUse("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1895,8 +1857,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveNameForm() throws Exception {
-
+    public final void schemaBuilderRemoveNameForm() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         scBuild.addNameForm("( testviolatessinglevaluednameform-oid "
                 + "NAME 'testViolatesSingleValuedNameForm' "
@@ -1915,7 +1876,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantNameForm() throws Exception {
+    public final void schemaBuilderRemoveInexistantNameForm() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeNameForm("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1927,8 +1888,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = UnknownSchemaElementException.class)
-    public final void testSchemaBuilderRemoveObjectClass() throws Exception {
-
+    public final void schemaBuilderRemoveObjectClass() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder();
         scBuild.addObjectClass("( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )"
                 + " MAY ( userPassword $ telephoneNumber $ seeAlso $ description )"
@@ -1946,7 +1906,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderRemoveInexistantObjectClass() throws Exception {
+    public final void schemaBuilderRemoveInexistantObjectClass() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeObjectClass("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1958,8 +1918,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = NullPointerException.class)
-    public final void testSchemaBuilderAddSchemaForEntryDoesntAllowNull() throws Exception {
-
+    public final void schemaBuilderAddSchemaForEntryDoesntAllowNull() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         scBuild.addSchemaForEntry(null, null, false);
     }
@@ -1973,7 +1932,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test(expectedExceptions = EntryNotFoundException.class)
-    public final void testSchemaBuilderAddSchemaForEntryDoesntContainSubschemaMockConnection()
+    public final void schemaBuilderAddSchemaForEntryDoesntContainSubschemaMockConnection()
             throws Exception {
         Connection connection = mock(Connection.class);
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
@@ -1996,7 +1955,6 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
         scBuild.addSchemaForEntry(connection,
                 DN.valueOf("uid=scarter,ou=People,dc=example,dc=com"), false);
-
     }
 
     /**
@@ -2005,7 +1963,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAddSchemaForEntryMockConnection() throws Exception {
+    public final void schemaBuilderAddSchemaForEntryMockConnection() throws Exception {
         Connection connection = mock(Connection.class);
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
 
@@ -2055,7 +2013,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      * @throws Exception
      */
     @Test
-    public final void testSchemaBuilderAddSchemaForEntryAsyncMockConnection() throws Exception {
+    public final void schemaBuilderAddSchemaForEntryAsyncMockConnection() throws Exception {
         Connection connection = mock(Connection.class);
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
 
@@ -2098,7 +2056,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testDefaultSyntax() {
+    public void defaultSyntax() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).toSchema().asNonStrictSchema();
         assertThat(schema.getDefaultSyntax()).isEqualTo(CoreSchema.getOctetStringSyntax());
@@ -2107,7 +2065,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testOverrideDefaultSyntax() {
+    public void overrideDefaultSyntax() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema())
                     .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID())
@@ -2117,7 +2075,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testDefaultMatchingRule() {
+    public void defaultMatchingRule() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).toSchema().asNonStrictSchema();
         assertThat(schema.getDefaultMatchingRule()).isEqualTo(
@@ -2127,7 +2085,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testOverrideMatchingRule() {
+    public void overrideMatchingRule() {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema())
                     .setOption(DEFAULT_MATCHING_RULE_OID, getCaseIgnoreMatchingRule().getOID())
@@ -2139,7 +2097,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testDefaultSyntaxDefinedInSchema() {
+    public void defaultSyntaxDefinedInSchema() {
         // The next line was triggering a NPE with OPENDJ-1252.
         final Schema schema =
                 new SchemaBuilder().addSyntax("( 9.9.9 DESC 'Test Syntax' )", false).addSyntax(
@@ -2151,7 +2109,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testDefaultMatchingRuleDefinedInSchema() throws DecodeException {
+    public void defaultMatchingRuleDefinedInSchema() throws DecodeException {
         final Schema schema =
                 new SchemaBuilder().addSyntax(CoreSchema.getOctetStringSyntax().toString(), false)
                         .addMatchingRule(
@@ -2165,5 +2123,4 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 schema.getMatchingRule("9.9.9").normalizeAttributeValue(ByteString.valueOfUtf8("test")))
                 .isEqualTo(ByteString.valueOfUtf8("test"));
     }
-
 }
