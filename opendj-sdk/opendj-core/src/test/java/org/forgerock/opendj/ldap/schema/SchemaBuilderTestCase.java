@@ -2123,4 +2123,28 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 schema.getMatchingRule("9.9.9").normalizeAttributeValue(ByteString.valueOfUtf8("test")))
                 .isEqualTo(ByteString.valueOfUtf8("test"));
     }
+
+    @Test
+    public void enumSyntaxAddThenRemove() {
+        final Schema coreSchema = Schema.getCoreSchema();
+        final Schema schemaWithEnum = new SchemaBuilder(coreSchema)
+            .addSyntax("( 3.3.3  DESC 'Day Of The Week'  "
+                    + "X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday'  'saturday' 'sunday') )",
+                    false)
+            .toSchema();
+
+        assertThat(schemaWithEnum.getWarnings()).isEmpty();
+        assertThat(schemaWithEnum.getMatchingRules())
+            .as("Expected an enum ordering matching rule to be added for the enum syntax")
+            .hasSize(coreSchema.getMatchingRules().size() + 1);
+
+        final SchemaBuilder builder = new SchemaBuilder(schemaWithEnum);
+        assertThat(builder.removeSyntax("3.3.3")).isTrue();
+        final Schema schemaNoEnum = builder.toSchema();
+
+        assertThat(schemaNoEnum.getWarnings()).isEmpty();
+        assertThat(schemaNoEnum.getMatchingRules())
+            .as("Expected the enum ordering matching rule to be removed at the same time as the enum syntax")
+            .hasSize(coreSchema.getMatchingRules().size());
+    }
 }

@@ -71,11 +71,11 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.DITContentRule.Builder;
-import org.forgerock.util.Options;
-import org.forgerock.util.Reject;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.Option;
+import org.forgerock.util.Options;
+import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -625,20 +625,26 @@ public final class SchemaBuilder {
     public SchemaBuilder addEnumerationSyntax(final String oid, final String description,
             final boolean overwrite, final String... enumerations) {
         Reject.ifNull((Object) enumerations);
-
         lazyInitBuilder();
 
-        final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, Arrays.asList(enumerations));
-
+        final List<String> enumEntries = Arrays.asList(enumerations);
         final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description)
-                .extraProperties(Collections.singletonMap("X-ENUM", Arrays.asList(enumerations)))
-                .implementation(enumImpl);
+            .extraProperties(Collections.singletonMap("X-ENUM", enumEntries));
+        addEnumerationSyntax0(syntaxBuilder, oid, enumEntries, overwrite);
+        return this;
+    }
 
-        syntaxBuilder.addToSchema(overwrite);
+    private void addEnumerationSyntax0(final Syntax.Builder syntaxBuilder,
+            final String oid, final List<String> enumEntries, final boolean overwrite) {
+        final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, enumEntries);
+
+        syntaxBuilder
+                .implementation(enumImpl)
+                .addToSchema(overwrite);
 
         try {
             buildMatchingRule(enumImpl.getOrderingMatchingRule())
-                    .names(OMR_GENERIC_ENUM_NAME + oid)
+                    .names(OMR_GENERIC_ENUM_NAME + "." + oid)
                     .syntaxOID(oid)
                     .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
                     .implementation(new EnumOrderingMatchingRule(enumImpl))
@@ -646,7 +652,6 @@ public final class SchemaBuilder {
         } catch (final ConflictingSchemaElementException e) {
             removeSyntax(oid);
         }
-        return this;
     }
 
     /**
@@ -1849,16 +1854,7 @@ public final class SchemaBuilder {
             // See if it is a enum syntax
             for (final Map.Entry<String, List<String>> property : syntaxBuilder.getExtraProperties().entrySet()) {
                 if ("x-enum".equalsIgnoreCase(property.getKey())) {
-                    final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property.getValue());
-                    syntaxBuilder.implementation(enumImpl);
-                    syntaxBuilder.addToSchema(overwrite);
-
-                    buildMatchingRule(enumImpl.getOrderingMatchingRule())
-                        .names(OMR_GENERIC_ENUM_NAME + "." + oid)
-                        .syntaxOID(oid)
-                        .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
-                        .implementation(new EnumOrderingMatchingRule(enumImpl))
-                        .addToSchemaOverwrite();
+                    addEnumerationSyntax0(syntaxBuilder, oid, property.getValue(), overwrite);
                     return this;
                 }
             }
@@ -2597,6 +2593,12 @@ public final class SchemaBuilder {
     }
 
     private void removeSyntax(final Syntax syntax) {
+        for (Map.Entry<String, List<String>> property : syntax.getExtraProperties().entrySet()) {
+            if ("x-enum".equalsIgnoreCase(property.getKey())) {
+                removeMatchingRule(OMR_GENERIC_ENUM_NAME + "." + syntax.getOID());
+                break;
+            }
+        }
         numericOID2Syntaxes.remove(syntax.getOID());
     }
 
