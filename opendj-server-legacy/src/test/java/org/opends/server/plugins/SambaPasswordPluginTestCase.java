@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011-2012 profiq s.r.o.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -33,7 +33,6 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.LinkedList;
-import java.util.List;
 
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -49,9 +48,19 @@ import org.opends.server.extensions.ExtensionsConstants;
 import org.opends.server.plugins.SambaPasswordPlugin.MD4MessageDigest;
 import org.opends.server.plugins.SambaPasswordPlugin.TimeStampProvider;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
 import org.opends.server.util.ServerConstants;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Unit tests for the Samba password synchronization plugin.
@@ -240,29 +249,22 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
 
-    List<Attribute> sambaAttribute = entry.getAttribute("sambantpassword");
-    boolean foundNTPassword = false;
-    for (Attribute a : sambaAttribute)
-    {
-      for (ByteString val : a)
-      {
-        foundNTPassword = true;
-        assertEquals(val.toString(), ntPassword);
-      }
-    }
-    assertTrue(foundNTPassword, "NT password not found in test entry");
+    assertTrue(contains(entry, "sambantpassword", ntPassword), "NT password not found in test entry");
+    assertTrue(contains(entry, "sambalmpassword", lmPassword), "LanMan password not found in test entry");
+  }
 
-    sambaAttribute = entry.getAttribute("sambalmpassword");
-    boolean foundLMPassword = false;
-    for (Attribute a : sambaAttribute)
+  private boolean contains(Entry entry, String attrName, String password)
+  {
+    boolean foundPwd = false;
+    for (Attribute a : entry.getAttribute(attrName))
     {
       for (ByteString val : a)
       {
-        foundLMPassword = true;
-        assertEquals(val.toString(), lmPassword);
+        foundPwd = true;
+        assertEquals(val.toString(), password);
       }
     }
-    assertTrue(foundLMPassword, "LanMan password not found in test entry");
+    return foundPwd;
   }
 
 
@@ -793,18 +795,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       Attribute sambaPwdLastSetAttr =
         Attributes.create("sambapwdlastset", String.valueOf(1339012789L));
 
-      boolean attrPresent = false;
-
-      for (Attribute attr : entry.getAttribute("sambapwdlastset"))
-      {
-        if (attr.equals(sambaPwdLastSetAttr))
-        {
-          attrPresent = true;
-          break;
-        }
-      }
-
-      assertTrue(attrPresent);
+      assertThat(entry.getAttribute("sambapwdlastset")).contains(sambaPwdLastSetAttr);
       TestCaseUtils.deleteEntry(testEntry);
     }
     finally

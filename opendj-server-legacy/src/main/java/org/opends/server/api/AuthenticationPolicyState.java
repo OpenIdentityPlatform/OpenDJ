@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-import java.util.List;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
@@ -108,8 +106,7 @@ public abstract class AuthenticationPolicyState
   protected static ConditionResult getBoolean(final Entry entry,
       final AttributeType attributeType) throws DirectoryException
   {
-    final List<Attribute> attrList = entry.getAttribute(attributeType);
-    for (final Attribute a : attrList)
+    for (final Attribute a : entry.getAttribute(attributeType))
     {
       if (a.isEmpty())
       {

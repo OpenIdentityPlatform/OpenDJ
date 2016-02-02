@@ -35,6 +35,7 @@ import java.util.Map;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -50,7 +51,6 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -75,14 +75,11 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for add operations.
- */
+/** A set of test cases for add operations. */
 @SuppressWarnings("javadoc")
 public class AddOperationTestCase
        extends OperationTestCase
 {
-
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
@@ -139,10 +136,6 @@ public class AddOperationTestCase
     return objArray;
   }
 
-
-
-
-  /** {@inheritDoc} */
   @Override
   protected Operation[] createTestOperations() throws Exception
   {
@@ -155,8 +148,6 @@ public class AddOperationTestCase
 
     return ops;
   }
-
-
 
   /**
    * Tests the <CODE>getRawEntryDN</CODE> and <CODE>setRawEntryDN</CODE>
@@ -179,8 +170,6 @@ public class AddOperationTestCase
     assertNotNull(addOperation.getRawEntryDN());
     assertEquals(addOperation.getRawEntryDN(), originalDN);
   }
-
-
 
   /**
    * Tests the <CODE>getEntryDN</CODE> method for the case in which we expect
@@ -238,8 +227,6 @@ public class AddOperationTestCase
     assertNotNull(addOperation.getEntryDN());
   }
 
-
-
   /**
    * Tests the <CODE>getEntryDN</CODE> method for the case in which we expect
    * the DN to be initially non-null but then becomes null after the raw DN is
@@ -266,8 +253,6 @@ public class AddOperationTestCase
     addOperation.setRawEntryDN(ByteString.valueOfUtf8("ou=Users,o=test"));
     assertNotNull(addOperation.getEntryDN());
   }
-
-
 
   /**
    * Tests the <CODE>getRawAttributes</CODE>, <CODE>addRawAttribute</CODE>, and
@@ -305,8 +290,6 @@ public class AddOperationTestCase
     return false;
   }
 
-
-
   /**
    * Tests the <CODE>addObjectClass</CODE> method.
    *
@@ -337,8 +320,6 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
   }
-
-
 
   /**
    * Tests the <CODE>removeObjectClass</CODE> method.
@@ -371,8 +352,6 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
   }
-
-
 
   /**
    * Tests the <CODE>setAttribute</CODE> method for an attribute that already
@@ -426,8 +405,6 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.reset();
   }
 
-
-
   /**
    * Tests the <CODE>setAttribute</CODE> method for an attribute that doesn't
    * exist.
@@ -459,8 +436,6 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
   }
-
-
 
   /**
    * Tests the <CODE>removeAttribute</CODE> method.
@@ -494,8 +469,6 @@ public class AddOperationTestCase
     UpdatePreOpPlugin.reset();
   }
 
-
-
   /**
    * Invokes methods to retrieve members of an add operation after it has
    * completed.
@@ -510,8 +483,6 @@ public class AddOperationTestCase
                addOperation.getProcessingStartTime());
     assertTrue(addOperation.getProcessingTime() >= 0);
   }
-
-
 
   /**
    * Tests an internal add operation that should be successful using raw
@@ -555,8 +526,6 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
   }
 
-
-
   /**
    * Tests an internal add operation that fails because it contains a malformed
    * DN.
@@ -575,8 +544,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd("invalid", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests an internal add operation that fails because it contains the DN of
@@ -597,8 +564,6 @@ public class AddOperationTestCase
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
    * Tests an internal add operation that fails because it is a suffix that
    * doesn't exist.
@@ -617,8 +582,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd("o=undefined", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests an internal add operation that fails because it is below a suffix
@@ -639,8 +602,6 @@ public class AddOperationTestCase
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
    * Tests an internal add operation that fails because its parent does not exist.
    *
@@ -658,8 +619,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd("ou=People,o=missing,o=test", attrs);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests an external add operation that fails because it contains an attribute
@@ -745,8 +704,6 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
   }
 
-
-
   /**
    * Tests a successful internal add operation that contains an attribute with
    * multiple values where the values are spread throughout the entry.
@@ -788,8 +745,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests a successful internal add operation that contains raw attributes with
@@ -843,8 +798,6 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
   }
 
-
-
   /**
    * Tests an internal add operation that fails because it attempts to add the
    * root DSE.
@@ -889,8 +842,6 @@ public class AddOperationTestCase
     assertThat(attrList).isNotEmpty();
   }
 
-
-
   /**
    * Tests a failed internal add operation that is missing RDN attributes.
    *
@@ -913,8 +864,6 @@ public class AddOperationTestCase
 
     DirectoryServer.setAddMissingRDNAttributes(true);
   }
-
-
 
   /**
    * Tests a successful internal add operation that is missing an objectclass
@@ -942,23 +891,23 @@ public class AddOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
     List<Attribute> attrList = e.getAttribute(DirectoryServer.getObjectClassAttributeType());
+    assertTrue(findAttributeValueIgnoreCase(attrList, "top"));
+  }
 
-    boolean found = false;
-    for (Attribute a : attrList)
+  private boolean findAttributeValueIgnoreCase(List<Attribute> attrs, String valueToFind)
+  {
+    for (Attribute a : attrs)
     {
       for (ByteString v : a)
       {
-        if ("top".equalsIgnoreCase(v.toString()))
+        if (valueToFind.equalsIgnoreCase(v.toString()))
         {
-          found = true;
-          break;
+          return true;
         }
       }
     }
-    assertTrue(found);
+    return false;
   }
-
-
 
   /**
    * Tests a failed internal add operation that doesn't have any objectclasses.
@@ -977,8 +926,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests a failed internal add operation that only has an abstract
@@ -1000,8 +947,6 @@ public class AddOperationTestCase
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
    * Tests a failed internal add operation that doesn't have any structural
    * objectclass (only abstract and auxiliary).
@@ -1022,8 +967,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests a failed internal add operation that has multiple structural
@@ -1049,8 +992,6 @@ public class AddOperationTestCase
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
    * Tests a failed internal add operation that is missing a required attribute.
    *
@@ -1075,8 +1016,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests a failed internal add operation that is missing a required attribute
@@ -1105,8 +1044,6 @@ public class AddOperationTestCase
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
    * Tests a failed internal add operation that contains an attribute not
    * allowed by any objectclass.
@@ -1134,8 +1071,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests a successful internal add operation that contains an attribute not
@@ -1168,8 +1103,6 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
   }
 
-
-
   /**
    * Tests the behavior of the server when attempting to perform an add \
    * operation with an entry containing an attribute with zero values.
@@ -1194,8 +1127,6 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests a failed internal add operation with the server in complete read-only
@@ -1228,8 +1159,6 @@ public class AddOperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
-
-
   /**
    * Tests a successful internal add operation with the server in read-only mode
    * for external operations but allowed for internal operations.
@@ -1261,8 +1190,6 @@ public class AddOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
-
-
 
   /**
    * Tests a failed external add operation with the server in read-only mode
@@ -1354,8 +1281,6 @@ public class AddOperationTestCase
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
-
-
   /**
    * Tests a successful internal add operation with the backend in read-only
    * mode for external operations but allowed for internal operations.
@@ -1388,8 +1313,6 @@ public class AddOperationTestCase
 
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
-
-
 
   /**
    * Tests a failed external add operation with the backend in read-only mode
@@ -1429,8 +1352,6 @@ public class AddOperationTestCase
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
-
-
   /**
    * Tests to ensure that any registered add notification listeners are invoked
    * for a successful add operation.
@@ -1464,8 +1385,6 @@ public class AddOperationTestCase
     }
   }
 
-
-
   /**
    * Tests to ensure that any registered add notification listeners are not
    * invoked for a failed add operation.
@@ -1497,8 +1416,6 @@ public class AddOperationTestCase
       DirectoryServer.deregisterInternalPlugin(changeListener);
     }
   }
-
-
 
   /**
    * Tests an add operation that gets canceled before startup.
@@ -1561,15 +1478,13 @@ public class AddOperationTestCase
     assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
   }
 
-
-
   /**
    * Tests an add operation in which the server cannot obtain a lock on the
    * target entry because there is already a read lock held on it.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(groups = { "slow" })
+  @Test(groups = "slow")
   public void testCannotLockEntry() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1591,8 +1506,6 @@ public class AddOperationTestCase
       entryLock.unlock();
     }
   }
-
-
 
   /**
    * Tests an add operation that should be disconnected in a pre-parse plugin.
@@ -1643,8 +1556,6 @@ public class AddOperationTestCase
         : null;
     w.writeMessage(new LDAPMessage(2, addRequest, controls));
   }
-
-
 
   /**
    * Tests an add operation that should be disconnected in a pre-operation
@@ -1813,8 +1724,6 @@ responseLoop:
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
-
-
   /**
    * Tests an add operation that attempts to add an entry with an operational
    * attribute marked OBSOLETE in the server schema.
@@ -1871,8 +1780,6 @@ responseLoop:
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
-
-
   /**
    * Tests an add operation that attempts to add an entry with an auxiliary
    * objectclass marked OBSOLETE in the server schema.
@@ -1926,8 +1833,6 @@ responseLoop:
 
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
-
-
 
   /**
    * Tests the behavior of the server when short-circuiting out of an add

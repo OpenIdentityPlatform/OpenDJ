@@ -35,7 +35,14 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -45,6 +52,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.BackupBackendCfg;
 import org.opends.server.api.Backend;
@@ -56,8 +64,24 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.BackupInfo;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 
 /**
  * This class defines a backend used to present information about Directory
@@ -397,23 +421,19 @@ public class BackupBackend
       long count = 0;
       Entry backupDirEntry = getBackupDirectoryEntry(entryDN);
 
-      AttributeType t =
-          DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+      AttributeType t = DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
       List<Attribute> attrList = backupDirEntry.getAttribute(t);
-      if (!attrList.isEmpty())
+      for (ByteString v : attrList.get(0))
       {
-        for (ByteString v : attrList.get(0))
+        try
         {
-          try
-          {
-            File dir = new File(v.toString());
-            BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
-            count += backupDirectory.getBackups().keySet().size();
-          }
-          catch (Exception e)
-          {
-            return -1;
-          }
+          File dir = new File(v.toString());
+          BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
+          count += backupDirectory.getBackups().keySet().size();
+        }
+        catch (Exception e)
+        {
+          return -1;
         }
       }
       return count;

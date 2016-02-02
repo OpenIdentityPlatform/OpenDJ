@@ -36,13 +36,13 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -250,20 +250,19 @@ public final class AdministrationDataSync
     }
 
     // Read the port from the PORT attribute
-    SearchResultEntry adminConnectorEntry = null;
     LinkedList<SearchResultEntry> result = search.getSearchEntries();
     if (!result.isEmpty())
     {
-      adminConnectorEntry = result.getFirst();
+      SearchResultEntry adminConnectorEntry = result.getFirst();
+      AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+      List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
+      if (!attrs.isEmpty())
+      {
+        // Get the attribute value
+        return attrs.get(0).iterator().next().toString();
+      }
     }
 
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-    List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
-    if (!attrs.isEmpty())
-    {
-      // Get the attribute value
-      return attrs.get(0).iterator().next().toString();
-    }
     // Can not happen. Best effort.
     // TODO Log an Error.
     return null;

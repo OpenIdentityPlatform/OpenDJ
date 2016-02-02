@@ -3419,15 +3419,7 @@ responseLoop:
 
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("userpassword"));
-
-    String passwd = null;
-    for (Attribute a : attrList)
-    {
-      for (ByteString v : a)
-      {
-        passwd = v.toString();
-      }
-    }
+    String passwd = firstValue(attrList);
     assertNotNull(passwd);
 
     String path = TestCaseUtils.createTempFile(
@@ -3449,6 +3441,18 @@ responseLoop:
     };
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+  private String firstValue(List<Attribute> attrs)
+  {
+    for (Attribute a : attrs)
+    {
+      for (ByteString v : a)
+      {
+        return v.toString();
+      }
+    }
+    return null;
   }
 
   /**
@@ -3485,9 +3489,9 @@ responseLoop:
 
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertEquals(attrList.size(), 1);
+    assertThat(attrList).hasSize(1);
     assertFalse(attrList.get(0).hasOptions());
-    assertEquals(attrList.get(0).size(), 1);
+    assertThat(attrList.get(0)).hasSize(1);
   }
 
   /**
@@ -3525,9 +3529,9 @@ responseLoop:
 
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertEquals(attrList.size(), 1);
+    assertThat(attrList).hasSize(1);
     assertFalse(attrList.get(0).hasOptions());
-    assertEquals(attrList.get(0).size(), 1);
+    assertThat(attrList.get(0)).hasSize(1);
   }
 
   /**
@@ -3561,9 +3565,9 @@ responseLoop:
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertEquals(attrList.size(), 1);
+    assertThat(attrList).hasSize(1);
     assertFalse(attrList.get(0).hasOptions());
-    assertEquals(attrList.get(0).size(), 1);
+    assertThat(attrList.get(0)).hasSize(1);
   }
 
   /**
@@ -3597,9 +3601,9 @@ responseLoop:
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
-    assertEquals(attrList.size(), 1);
+    assertThat(attrList).hasSize(1);
     assertFalse(attrList.get(0).hasOptions());
-    assertEquals(attrList.get(0).size(), 1);
+    assertThat(attrList.get(0)).hasSize(1);
   }
 
   /**

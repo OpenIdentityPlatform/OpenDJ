@@ -388,20 +388,18 @@ public class UserDN implements KeywordBindRule {
      */
     public static EnumEvalResult evaluate(Entry e, DN clientDN,
                                            AttributeType attrType) {
-        EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs =  e.getAttribute(attrType);
         for(ByteString v : attrs.get(0)) {
             try {
                 DN dn = DN.valueOf(v.toString());
                 if(dn.equals(clientDN)) {
-                    matched=EnumEvalResult.TRUE;
-                    break;
+                    return EnumEvalResult.TRUE;
                 }
             } catch (DirectoryException ex) {
                 break;
             }
         }
-        return matched;
+        return EnumEvalResult.FALSE;
     }
 
     /** {@inheritDoc} */

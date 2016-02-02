@@ -229,36 +229,28 @@ public class UserAttr implements KeywordBindRule {
      */
     private EnumEvalResult evalURL(AciEvalContext evalCtx) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
-        boolean undefined=false;
         AttributeType attrType = DirectoryServer.getAttributeType(attrStr);
         List<Attribute> attrs=evalCtx.getResourceEntry().getAttribute(attrType);
-        if(!attrs.isEmpty()) {
-            for(Attribute a : attrs) {
-                for(ByteString v : a) {
-                    LDAPURL url;
-                    try {
-                       url = LDAPURL.decode(v.toString(), true);
-                    } catch (DirectoryException e) {
-                        break;
-                    }
-                    matched=UserDN.evalURL(evalCtx, url);
-                    if(matched != EnumEvalResult.FALSE)
-                    {
-                        break;
-                    }
-                }
-                if (matched == EnumEvalResult.TRUE)
-                {
+        for(Attribute a : attrs) {
+            for(ByteString v : a) {
+                LDAPURL url;
+                try {
+                   url = LDAPURL.decode(v.toString(), true);
+                } catch (DirectoryException e) {
                     break;
                 }
-                if (matched == EnumEvalResult.ERR)
+                matched=UserDN.evalURL(evalCtx, url);
+                if(matched != EnumEvalResult.FALSE)
                 {
-                    undefined=true;
                     break;
                 }
             }
+            if (matched == EnumEvalResult.TRUE)
+            {
+                break;
+            }
         }
-        return matched.getRet(type, undefined);
+        return matched.getRet(type, matched == EnumEvalResult.ERR);
     }
 
     /**

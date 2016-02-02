@@ -35,6 +35,7 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -45,6 +46,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -60,7 +62,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DN;
@@ -399,24 +400,24 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     ocMap.put(ocInstanceKey, OC_CRYPTO_INSTANCE_KEY);
 
     Map<AttributeType, List<Attribute>> userAttrs = new HashMap<>();
-
-    List<Attribute> attrList;
-    attrList = srcEntry.getAttribute(attrAlias);
-    if (!attrList.isEmpty())
-    {
-      userAttrs.put(attrAlias, attrList);
-    }
-    attrList = srcEntry.getAttribute(attrCert);
-    if (!attrList.isEmpty())
-    {
-      userAttrs.put(attrCert, attrList);
-    }
+    putAttributeTypeIfExist(userAttrs, srcEntry, attrAlias);
+    putAttributeTypeIfExist(userAttrs, srcEntry, attrCert);
 
     Entry addEntry = new Entry(dstDN, ocMap, userAttrs, null);
     AddOperation addOperation = getRootConnection().processAdd(addEntry);
     if (addOperation.getResultCode() != ResultCode.SUCCESS)
     {
       logger.debug(INFO_TRUSTSTORESYNC_ADD_FAILED, dstDN, addOperation.getErrorMessage());
+    }
+  }
+
+  private void putAttributeTypeIfExist(Map<AttributeType, List<Attribute>> userAttrs, Entry srcEntry,
+      AttributeType attrType)
+  {
+    List<Attribute> attrList = srcEntry.getAttribute(attrType);
+    if (!attrList.isEmpty())
+    {
+      userAttrs.put(attrType, new ArrayList<>(attrList));
     }
   }
 

@@ -35,6 +35,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -44,8 +45,12 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -94,9 +99,6 @@ public class ExternalSASLMechanismHandler
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
                    ExternalSASLMechanismHandlerCfg configuration)
@@ -107,18 +109,7 @@ public class ExternalSASLMechanismHandler
 
     // See if we should attempt to validate client certificates against those in
     // the corresponding user's entry.
-    switch (configuration.getCertificateValidationPolicy())
-    {
-      case NEVER:
-        validationPolicy = CertificateValidationPolicy.NEVER;
-        break;
-      case IFPRESENT:
-        validationPolicy = CertificateValidationPolicy.IFPRESENT;
-        break;
-      case ALWAYS:
-        validationPolicy = CertificateValidationPolicy.ALWAYS;
-        break;
-    }
+    validationPolicy = toCertificateValidationPolicy(configuration);
 
 
     // Get the attribute type to use for validating the certificates.  If none
@@ -134,9 +125,19 @@ public class ExternalSASLMechanismHandler
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_EXTERNAL, this);
   }
 
+  private CertificateValidationPolicy toCertificateValidationPolicy(ExternalSASLMechanismHandlerCfg cfg)
+  {
+    switch (cfg.getCertificateValidationPolicy())
+    {
+    case NEVER:
+      return CertificateValidationPolicy.NEVER;
+    case IFPRESENT:
+      return CertificateValidationPolicy.IFPRESENT;
+    default:
+      return CertificateValidationPolicy.ALWAYS;
+    }
+  }
 
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
@@ -144,10 +145,6 @@ public class ExternalSASLMechanismHandler
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_EXTERNAL);
   }
 
-
-
-
-  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -240,7 +237,7 @@ public class ExternalSASLMechanismHandler
           try
           {
             ByteString certBytes = ByteString.wrap(clientCertChain[0].getEncoded());
-            if (!find(certAttrList, certBytes))
+            if (!findAttributeValue(certAttrList, certBytes))
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -269,7 +266,7 @@ public class ExternalSASLMechanismHandler
           try
           {
             ByteString certBytes = ByteString.wrap(clientCertChain[0].getEncoded());
-            if (!find(certAttrList, certBytes))
+            if (!findAttributeValue(certAttrList, certBytes))
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -299,9 +296,7 @@ public class ExternalSASLMechanismHandler
     bindOperation.setResultCode(ResultCode.SUCCESS);
   }
 
-
-
-  private boolean find(List<Attribute> certAttrList, ByteString certBytes)
+  private boolean findAttributeValue(List<Attribute> certAttrList, ByteString certBytes)
   {
     for (Attribute a : certAttrList)
     {
@@ -313,9 +308,6 @@ public class ExternalSASLMechanismHandler
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -323,9 +315,6 @@ public class ExternalSASLMechanismHandler
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -333,9 +322,6 @@ public class ExternalSASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -346,9 +332,7 @@ public class ExternalSASLMechanismHandler
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       ExternalSASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -356,9 +340,7 @@ public class ExternalSASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               ExternalSASLMechanismHandlerCfg configuration)
   {
@@ -367,20 +349,7 @@ public class ExternalSASLMechanismHandler
 
     // See if we should attempt to validate client certificates against those in
     // the corresponding user's entry.
-    CertificateValidationPolicy newValidationPolicy =
-         CertificateValidationPolicy.ALWAYS;
-    switch (configuration.getCertificateValidationPolicy())
-    {
-      case NEVER:
-        newValidationPolicy = CertificateValidationPolicy.NEVER;
-        break;
-      case IFPRESENT:
-        newValidationPolicy = CertificateValidationPolicy.IFPRESENT;
-        break;
-      case ALWAYS:
-        newValidationPolicy = CertificateValidationPolicy.ALWAYS;
-        break;
-    }
+    CertificateValidationPolicy newValidationPolicy = toCertificateValidationPolicy(configuration);
 
 
     // Get the attribute type to use for validating the certificates.  If none
@@ -403,4 +372,3 @@ public class ExternalSASLMechanismHandler
     return ccr;
   }
 }
-

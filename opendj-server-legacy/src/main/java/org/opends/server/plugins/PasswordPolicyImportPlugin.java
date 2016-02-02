@@ -35,6 +35,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -43,6 +44,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
@@ -59,8 +61,13 @@ import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.SubentryPasswordPolicy;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.SubEntry;
 
 /**
  * This class implements a Directory Server plugin that performs various
@@ -74,36 +81,21 @@ public final class PasswordPolicyImportPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** The attribute type used to specify the password policy for an entry. */
   private AttributeType customPolicyAttribute;
-
-  /**
-   * The set of attribute types defined in the schema with the auth password
-   * syntax.
-   */
+  /** The set of attribute types defined in the schema with the auth password syntax. */
   private AttributeType[] authPasswordTypes;
-
-  /**
-   * The set of attribute types defined in the schema with the user password
-   * syntax.
-   */
+  /** The set of attribute types defined in the schema with the user password syntax. */
   private AttributeType[] userPasswordTypes;
-
   /**
    * The set of password storage schemes to use for the various password
    * policies defined in the server.
    */
-  private HashMap<DN,PasswordStorageScheme<?>[]> schemesByPolicy;
-
+  private Map<DN, PasswordStorageScheme<?>[]> schemesByPolicy;
   /** The default password storage schemes for auth password attributes. */
   private PasswordStorageScheme<?>[] defaultAuthPasswordSchemes;
-
   /** The default password storage schemes for user password attributes. */
   private PasswordStorageScheme<?>[] defaultUserPasswordSchemes;
-
-
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must
@@ -125,7 +117,6 @@ public final class PasswordPolicyImportPlugin
 
     customPolicyAttribute = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
 
-
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -139,7 +130,6 @@ public final class PasswordPolicyImportPlugin
           throw new ConfigException(ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(t));
       }
     }
-
 
     // Get the set of default password storage schemes for auth password
     // attributes.
@@ -190,7 +180,6 @@ public final class PasswordPolicyImportPlugin
         i++;
       }
     }
-
 
     // Get the set of default password storage schemes for user password
     // attributes.
@@ -249,16 +238,15 @@ public final class PasswordPolicyImportPlugin
     HashSet<AttributeType> userPWTypes = new HashSet<>();
     for (AttributeType t : DirectoryServer.getAttributeTypes())
     {
-      if (t.getSyntax().getOID().equals(SYNTAX_AUTH_PASSWORD_OID))
+      if (SYNTAX_AUTH_PASSWORD_OID.equals(t.getSyntax().getOID()))
       {
         authPWTypes.add(t);
       }
-      else if (t.getSyntax().getOID().equals(SYNTAX_USER_PASSWORD_OID))
+      else if (SYNTAX_USER_PASSWORD_OID.equals(t.getSyntax().getOID()))
       {
         userPWTypes.add(t);
       }
     }
-
 
     // Get the set of password policies defined in the server and get the
     // attribute types associated with them.
@@ -276,7 +264,6 @@ public final class PasswordPolicyImportPlugin
         schemeMap.put(p.getDN(), schemeArray);
       }
     }
-
 
     AttributeType[] authTypesArray = new AttributeType[authPWTypes.size()];
     AttributeType[] userTypesArray = new AttributeType[userPWTypes.size()];
@@ -398,32 +385,28 @@ policyLoop:
                   builder.add(value);
                 }
               }
+              else if (!UserPasswordSyntax.isEncoded(value))
+              {
+                try
+                {
+                  for (PasswordStorageScheme<?> s : schemes)
+                  {
+                    builder.add(s.encodePasswordWithScheme(value));
+                  }
+                }
+                catch (Exception e)
+                {
+                  logger.traceException(e);
+
+                  logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD, policy.getPasswordAttribute()
+                      .getNameOrOID(), entry.getName(), stackTraceToSingleLineString(e));
+                  gotError = true;
+                  break;
+                }
+              }
               else
               {
-                if (!UserPasswordSyntax.isEncoded(value))
-                {
-                  try
-                  {
-                    for (PasswordStorageScheme<?> s : schemes)
-                    {
-                      builder.add(s.encodePasswordWithScheme(value));
-                    }
-                  }
-                  catch (Exception e)
-                  {
-                    logger.traceException(e);
-
-                    logger.error(ERR_PLUGIN_PWPIMPORT_ERROR_ENCODING_PASSWORD,
-                        policy.getPasswordAttribute().getNameOrOID(), entry.getName(),
-                        stackTraceToSingleLineString(e));
-                    gotError = true;
-                    break;
-                  }
-                }
-                else
-                {
-                  builder.add(value);
-                }
+                builder.add(value);
               }
             }
 
@@ -438,19 +421,12 @@ policyLoop:
       }
     }
 
-
     // Iterate through the list of auth password attributes.  If any of them
     // are present and their values are not encoded, then encode them with all
     // appropriate schemes.
     for (AttributeType t : authPasswordTypes)
     {
-      attrList = entry.getAttribute(t);
-      if (attrList.isEmpty())
-      {
-        continue;
-      }
-
-      for (Attribute a : attrList)
+      for (Attribute a : entry.getAttribute(t))
       {
         AttributeBuilder builder = new AttributeBuilder(a, true);
         boolean gotError = false;
@@ -488,19 +464,12 @@ policyLoop:
       }
     }
 
-
     // Iterate through the list of user password attributes.  If any of them
     // are present and their values are not encoded, then encode them with all
     // appropriate schemes.
     for (AttributeType t : userPasswordTypes)
     {
-      attrList = entry.getAttribute(t);
-      if (attrList.isEmpty())
-      {
-        continue;
-      }
-
-      for (Attribute a : attrList)
+      for (Attribute a : entry.getAttribute(t))
       {
         AttributeBuilder builder = new AttributeBuilder(a, true);
         boolean gotError = false;
@@ -538,7 +507,6 @@ policyLoop:
       }
     }
 
-
     return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
@@ -567,13 +535,11 @@ policyLoop:
           // This is the only acceptable type.
           break;
 
-
         default:
           unacceptableReasons.add(ERR_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE.get(pluginType));
           configAcceptable = false;
       }
     }
-
 
     // Get the set of default password storage schemes for auth password
     // attributes.
@@ -617,7 +583,6 @@ policyLoop:
       }
     }
 
-
     // Get the set of default password storage schemes for user password
     // attributes.
     Set<DN> userSchemeDNs =
@@ -654,7 +619,6 @@ policyLoop:
         i++;
       }
     }
-
 
     return configAcceptable;
   }
@@ -716,7 +680,6 @@ policyLoop:
         i++;
       }
     }
-
 
     // Get the set of default password storage schemes for user password
     // attributes.

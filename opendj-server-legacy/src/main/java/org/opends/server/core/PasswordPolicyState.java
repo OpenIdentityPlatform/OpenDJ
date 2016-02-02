@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicyState;
@@ -72,7 +73,6 @@ import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -2093,14 +2093,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public List<ByteString> getClearPasswords()
   {
-    LinkedList<ByteString> clearPasswords = new LinkedList<>();
-
     final List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
     if (attrList.isEmpty())
     {
-      return clearPasswords;
+      return Collections.emptyList();
     }
 
+    LinkedList<ByteString> clearPasswords = new LinkedList<>();
     for (Attribute a : attrList)
     {
       for (ByteString v : a)

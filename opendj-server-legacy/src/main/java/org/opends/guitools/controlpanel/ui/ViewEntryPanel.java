@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2016 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -46,6 +45,7 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
@@ -57,7 +57,6 @@ import org.opends.guitools.controlpanel.event.LDAPEntryChangedListener;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -70,39 +69,27 @@ import org.opends.server.util.ServerConstants;
 /**
  * Abstract class containing code shared by the different LDAP entry view
  * panels (Simplified View, Attribute View and LDIF View).
- *
  */
 public abstract class ViewEntryPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -1908757626234678L;
-  /**
-   * The read-only attributes as they appear on the schema.
-   */
+  /** The read-only attributes as they appear on the schema. */
   protected SortedSet<String> schemaReadOnlyAttributes = new TreeSet<>();
-  /**
-   * The read-only attributes in lower case.
-   */
+  /** The read-only attributes in lower case. */
   protected SortedSet<String> schemaReadOnlyAttributesLowerCase = new TreeSet<>();
-  /**
-   * The editable operational attributes.
-   */
+  /** The editable operational attributes. */
   protected SortedSet<String> editableOperationalAttrNames = new TreeSet<>();
   private JLabel title= Utilities.createDefaultLabel();
 
   private Set<LDAPEntryChangedListener> listeners = new LinkedHashSet<>();
 
-  /**
-   * Whether the entry change events should be ignored or not.
-   */
+  /** Whether the entry change events should be ignored or not. */
   protected boolean ignoreEntryChangeEvents;
 
-  /**
-   * Static boolean used to know whether only attributes with values should be
-   * displayed or not.
-   */
+  /** Static boolean used to know whether only attributes with values should be displayed or not. */
   protected static boolean displayOnlyWithAttrs = true;
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
@@ -163,7 +150,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     listeners.remove(listener);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresBorder()
   {
     return true;
@@ -281,26 +268,22 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
           {
             structuralObjectClass = objectClass;
           }
-          else
+          else if (objectClass.isDescendantOf(structuralObjectClass))
           {
-            if (objectClass.isDescendantOf(structuralObjectClass))
-            {
-              structuralObjectClass = objectClass;
-            }
+            structuralObjectClass = objectClass;
           }
         }
         else
         {
           String name = objectClass.getNameOrOID();
-          if (!name.equals(SchemaConstants.TOP_OBJECTCLASS_NAME))
+          if (!SchemaConstants.TOP_OBJECTCLASS_NAME.equals(name))
           {
             auxiliaryClasses.add(objectClass.getNameOrOID());
           }
         }
       }
     }
-    String structural = structuralObjectClass != null ?
-        structuralObjectClass.getNameOrOID() : null;
+    String structural = structuralObjectClass != null ? structuralObjectClass.getNameOrOID() : null;
     return new ObjectClassValue(structural, auxiliaryClasses);
   }
 
@@ -310,24 +293,18 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected void addValuesInRDN(Entry entry)
   {
-//  Add the values in the RDN if  they are not there
+    // Add the values in the RDN if they are not there
     RDN rdn = entry.getName().rdn();
     for (int i=0; i<rdn.getNumValues(); i++)
     {
       String attrName = rdn.getAttributeName(i);
       ByteString value = rdn.getAttributeValue(i);
-      List<org.opends.server.types.Attribute> attrs = entry.getAttribute(attrName.toLowerCase());
       boolean done = false;
-      for (org.opends.server.types.Attribute attr : attrs)
+      for (org.opends.server.types.Attribute attr : entry.getAttribute(attrName.toLowerCase()))
       {
         if (attr.getNameWithOptions().equals(attrName))
         {
-          ArrayList<ByteString> newValues = new ArrayList<>();
-          Iterator<ByteString> it = attr.iterator();
-          while (it.hasNext())
-          {
-            newValues.add(it.next());
-          }
+          List<ByteString> newValues = getValues(attr);
           newValues.add(value);
           entry.addAttribute(attr, newValues);
           done = true;
@@ -336,20 +313,29 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       }
       if (!done)
       {
-        org.opends.server.types.Attribute attr =
-          Attributes.create(rdn.getAttributeType(i), value);
-        entry.addAttribute(attr, newArrayList(value));
+        entry.addAttribute(Attributes.create(rdn.getAttributeType(i), value), newArrayList(value));
       }
     }
   }
 
-  /** {@inheritDoc} */
+  private List<ByteString> getValues(org.opends.server.types.Attribute attr)
+  {
+    List<ByteString> newValues = new ArrayList<>();
+    Iterator<ByteString> it = attr.iterator();
+    while (it.hasNext())
+    {
+      newValues.add(it.next());
+    }
+    return newValues;
+  }
+
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_LDAP_ENTRY_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     Schema schema = ev.getNewDescriptor().getSchema();
@@ -494,8 +480,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         Syntax syntax = attr.getSyntax();
         if (syntax != null)
         {
-          isCertificate = syntax.getOID().equals(
-              SchemaConstants.SYNTAX_CERTIFICATE_OID);
+          isCertificate = SchemaConstants.SYNTAX_CERTIFICATE_OID.equals(syntax.getOID());
         }
       }
     }
@@ -546,12 +531,9 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
          throw new RuntimeException("Unexpected error: "+pe, pe);
         }
       }
-      else
+      else if (String.valueOf(value).trim().length() > 0)
       {
-        if (String.valueOf(value).trim().length() > 0)
-        {
-          valuesToSet.add(String.valueOf(value));
-        }
+        valuesToSet.add(String.valueOf(value));
       }
     }
     if (!valuesToSet.isEmpty())
