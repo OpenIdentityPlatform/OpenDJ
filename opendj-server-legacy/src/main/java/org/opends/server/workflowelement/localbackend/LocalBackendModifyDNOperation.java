@@ -37,6 +37,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -50,7 +51,6 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationWrapper;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
@@ -602,7 +602,7 @@ public class LocalBackendModifyDNOperation
       {
         continue;
       }
-      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
             ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));

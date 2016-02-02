@@ -39,6 +39,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
@@ -69,7 +70,6 @@ import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
@@ -356,6 +356,12 @@ public class LocalBackendModifyOperation
     {
       return;
     }
+    if (backend == null)
+    {
+      setResultCode(ResultCode.NO_SUCH_OBJECT);
+      appendErrorMessage(ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(entryDN));
+      return;
+    }
 
     // Process the modifications to convert them from their raw form to the
     // form required for the rest of the modify processing.
@@ -476,13 +482,6 @@ public class LocalBackendModifyOperation
 
       // Actually perform the modify operation. This should also include
       // taking care of any synchronization that might be needed.
-      if (backend == null)
-      {
-        setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(entryDN));
-        return;
-      }
-
       LocalBackendWorkflowElement.checkIfBackendIsWritable(backend, this,
           entryDN, ERR_MODIFY_SERVER_READONLY, ERR_MODIFY_BACKEND_READONLY);
 
@@ -714,7 +713,7 @@ public class LocalBackendModifyOperation
       {
         pwPolicyControlRequested = true;
       }
-      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw newDirectoryException(currentEntry, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
             ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));

@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicy;
@@ -58,7 +59,6 @@ import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
@@ -1048,7 +1048,7 @@ public class LocalBackendAddOperation
         // We don't need to do anything here because it's already handled
         // in LocalBackendAddOperation.handlePasswordPolicy().
       }
-      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw newDirectoryException(entryDN, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
             ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));

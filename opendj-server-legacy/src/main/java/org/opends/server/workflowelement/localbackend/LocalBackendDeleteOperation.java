@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -194,6 +194,14 @@ public class LocalBackendDeleteOperation
       return;
     }
 
+    // Get the backend to use for the delete. If there is none, then fail.
+    if (backend == null)
+    {
+      setResultCode(ResultCode.NO_SUCH_OBJECT);
+      appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
+      return;
+    }
+
     /*
      * Grab a write lock on the entry and its subtree in order to prevent concurrent updates to
      * subordinate entries.
@@ -267,22 +275,13 @@ public class LocalBackendDeleteOperation
         }
       }
 
-      // Get the backend to use for the delete. If there is none, then fail.
-      if (backend == null)
-      {
-        setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
-        return;
-      }
-
       LocalBackendWorkflowElement.checkIfBackendIsWritable(backend, this,
           entryDN, ERR_DELETE_SERVER_READONLY, ERR_DELETE_BACKEND_READONLY);
 
       // The selected backend will have the responsibility of making sure that
       // the entry actually exists and does not have any children (or possibly
       // handling a subtree delete). But we will need to check if there are
-      // any subordinate backends that should stop us from attempting the
-      // delete.
+      // any subordinate backends that should stop us from attempting the delete
       for (Backend<?> b : backend.getSubordinateBackends())
       {
         for (DN dn : b.getBaseDNs())
@@ -312,8 +311,7 @@ public class LocalBackendDeleteOperation
         backend.deleteEntry(entryDN, this);
       }
 
-      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest,
-          entry);
+      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest, entry);
 
       if (!noOp)
       {
@@ -450,7 +448,7 @@ public class LocalBackendDeleteOperation
       {
         continue;
       }
-      else if (c.isCritical() && (backend == null || !backend.supportsControl(oid)))
+      else if (c.isCritical() && !backend.supportsControl(oid))
       {
         throw newDirectoryException(entry, ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
             ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
@@ -486,9 +484,7 @@ public class LocalBackendDeleteOperation
       return true;
   }
 
-  /**
-   * Invoke post operation synchronization providers.
-   */
+  /** Invoke post operation synchronization providers. */
   private void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider : getSynchronizationProviders()) {
           try {
