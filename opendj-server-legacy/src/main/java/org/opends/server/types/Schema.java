@@ -201,10 +201,12 @@ public final class Schema
    *
    * @param schemaNG
    *          The SDK schema
+   * @throws DirectoryException
+   *           if the schema has warnings
    */
-  public Schema(org.forgerock.opendj.ldap.schema.Schema schemaNG)
+  public Schema(org.forgerock.opendj.ldap.schema.Schema schemaNG) throws DirectoryException
   {
-    setSchemaNG(schemaNG);
+    switchSchema(schemaNG);
 
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
     matchingRuleUses = new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
@@ -2022,16 +2024,23 @@ public final class Schema
   }
 
   /**
-   * Creates a new <CODE>Schema</CODE> object that is a duplicate of
-   * this one.  It elements may be added and removed from the
-   * duplicate without impacting this version.
+   * Creates a new {@link Schema} object that is a duplicate of this one. It elements may be added
+   * and removed from the duplicate without impacting this version.
    *
-   * @return  A new <CODE>Schema</CODE> object that is a duplicate of
-   *          this one.
+   * @return A new {@link Schema} object that is a duplicate of this one.
    */
   public Schema duplicate()
   {
-    Schema dupSchema = new Schema(schemaNG);
+    Schema dupSchema;
+    try
+    {
+      dupSchema = new Schema(schemaNG);
+    }
+    catch (DirectoryException unexpected)
+    {
+      // the schema has already been validated
+      throw new RuntimeException(unexpected);
+    }
 
     dupSchema.subordinateTypes.putAll(subordinateTypes);
     dupSchema.objectClasses.putAll(objectClasses);

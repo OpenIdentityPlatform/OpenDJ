@@ -35,14 +35,17 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.config.ConfigConstants;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
@@ -189,25 +192,32 @@ public class SchemaLoader
    */
   protected Schema getBaseSchema() throws DirectoryException
   {
-    // start from default schema
-    Schema schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema());
-    for (MatchingRule mr : matchingRulesToKeep)
+    try
     {
-      schema.registerMatchingRule(mr, true);
+      SchemaBuilder builder = new SchemaBuilder(org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema());
+      for (Syntax syntax : syntaxesToKeep)
+      {
+        builder.buildSyntax(syntax).addToSchemaOverwrite();
+      }
+      for (MatchingRule mr : matchingRulesToKeep)
+      {
+        builder.buildMatchingRule(mr).addToSchemaOverwrite();
+      }
+      for (AttributeType attr : attributesToKeep)
+      {
+        builder.buildAttributeType(attr).addToSchemaOverwrite();
+      }
+      Schema schema = new Schema(builder.toSchema());
+      for (ObjectClass oc : objectclassesToKeep)
+      {
+        schema.registerObjectClass(oc, true);
+      }
+      return schema;
     }
-    for (Syntax syntax : syntaxesToKeep)
+    catch (LocalizedIllegalArgumentException e)
     {
-      schema.registerSyntax(syntax, true);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
     }
-    for (AttributeType attr : attributesToKeep)
-    {
-      schema.registerAttributeType(attr, true);
-    }
-    for (ObjectClass oc : objectclassesToKeep)
-    {
-      schema.registerObjectClass(oc, true);
-    }
-    return schema;
   }
 
   /**

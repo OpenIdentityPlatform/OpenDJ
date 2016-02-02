@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -51,22 +50,17 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
-/**
- * Test the LDAPSyntaxDescriptionSyntax.
- */
+/** Test the LDAPSyntaxDescriptionSyntax. */
 @RemoveOnceSDKSchemaIsUsed
 @SuppressWarnings("javadoc")
 public class LDAPSyntaxTest extends AttributeSyntaxTest
 {
-
-  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax<?> getRule()
   {
     return new LDAPSyntaxDescriptionSyntax();
   }
 
-  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()
@@ -172,7 +166,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         " X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )");
 
       //This is not expected to happen
-      assertFalse(resultCode==0);
+      assertThat(resultCode).isNotEqualTo(0);
 
       //Test if we can substitute a directory string syntax by an undefined.
       resultCode = TestCaseUtils.applyModifications(true,
@@ -184,11 +178,10 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         " X-SUBST '1.1.1' )");
 
       //This is not expected to happen
-      assertFalse(resultCode==0);
+      assertThat(resultCode).isNotEqualTo(0);
 
 
-      //Test if we can substitute a core syntax with a user-defined
-      //syntax
+      //Test if we can substitute a core syntax with a user-defined syntax
       addSubtitutionSyntax();
       //Replace the IA5Stringsyntax with the custom syntax we just created.
       resultCode = TestCaseUtils.applyModifications(true,
@@ -200,7 +193,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         " X-SUBST '9.9.9' )");
 
       //This is not expected to happen
-      assertFalse(resultCode==0);
+      assertThat(resultCode).isNotEqualTo(0);
     }
     finally
     {
@@ -211,11 +204,9 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
   /**
-    * Tests whether both the virtual and the newly added real substitution
-    * sytanx are available when a search is made for ldapsyntaxes attribute.
-    *
-    * @throws java.lang.Exception
-    */
+   * Tests whether both the virtual and the newly added real substitution syntax are available when
+   * a search is made for ldapsyntaxes attribute.
+   */
   @Test
   public void testSubstitutionSyntaxSearch() throws Exception
   {
@@ -229,28 +220,25 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+      assertThat(entries).isNotEmpty();
       SearchResultEntry e = entries.get(0);
-      //An entry must be returned.
       assertNotNull(e);
       Attribute attr = e.getAttribute("ldapsyntaxes").get(0);
-      Iterator<ByteString> iter = attr.iterator();
 
       //There are other ways of doing it but we will extract the OID
       //from the attribute values and then check to see if our
       //OID is found in the result set or not.
       List<String> syntaxList = new ArrayList<>();
-      while(iter.hasNext())
+      for (ByteString attrValue : attr)
       {
         //parse the OIDs.
-        syntaxList.add(getOIDFromLdapSyntax(iter.next().toString()));
+        syntaxList.add(getOIDFromLdapSyntax(attrValue.toString()));
       }
 
       //Check if we find our OID.
       assertThat(syntaxList).contains("9.9.9");
-      //DirectoryString.
-      assertThat(syntaxList).contains("1.3.6.1.4.1.1466.115.121.1.15");
-      //IA5String.
-      assertThat(syntaxList).contains("1.3.6.1.4.1.1466.115.121.1.26");
+      assertThat(syntaxList).contains(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID);
+      assertThat(syntaxList).contains(SchemaConstants.SYNTAX_IA5_STRING_OID);
     }
     finally
     {
@@ -261,11 +249,9 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
    /**
-    * Tests whether it is possible to add values after an umimplemented syntax
-    * has been subsitutited by DirectoryString syntax.
-    *
-    * @throws java.lang.Exception
-    */
+   * Tests whether it is possible to add values after an unimplemented syntax has been substituted
+   * by DirectoryString syntax.
+   */
   @Test
    public void testSubsitutionSyntaxAddValues() throws Exception
    {
@@ -370,9 +356,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      SearchResultEntry e = entries.get(0);
-      //An entry must be returned.
-      assertNotNull(e);
+      assertThat(entries).isNotEmpty();
+      assertNotNull(entries.get(0));
     }
     finally
     {
@@ -446,6 +431,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+      assertThat(entries).isNotEmpty();
       SearchResultEntry e = entries.get(0);
       //An entry must be returned.
       assertNotNull(e);

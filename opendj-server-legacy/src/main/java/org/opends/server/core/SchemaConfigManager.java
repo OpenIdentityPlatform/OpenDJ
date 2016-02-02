@@ -42,8 +42,23 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.schema.*;
-import org.opends.server.types.*;
+import org.opends.server.schema.DITContentRuleSyntax;
+import org.opends.server.schema.DITStructureRuleSyntax;
+import org.opends.server.schema.MatchingRuleUseSyntax;
+import org.opends.server.schema.NameFormSyntax;
+import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
 
@@ -81,9 +96,16 @@ public class SchemaConfigManager
   public SchemaConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    // the manager will build the schema from scratch, but we need to start from
-    // core schema for SDK schema
-    schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
+    try
+    {
+      // the manager will build the schema from scratch, but we need to start from core schema for SDK schema
+      schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
+    }
+    catch (DirectoryException unexpected)
+    {
+      // the core schema should not have any warning
+      throw new RuntimeException(unexpected);
+    }
   }
 
 

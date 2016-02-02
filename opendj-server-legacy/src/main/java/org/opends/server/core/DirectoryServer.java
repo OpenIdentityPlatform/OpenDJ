@@ -890,10 +890,17 @@ public final class DirectoryServer
       // Set default values for variables that may be needed during schema processing.
       directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
 
-      // Create the server schema and initialize and register a minimal set of
-      // matching rules and attribute syntaxes.
-      org.forgerock.opendj.ldap.schema.Schema coreSchema = org.forgerock.opendj.ldap.schema.Schema.getCoreSchema();
-      directoryServer.schema = new Schema(coreSchema);
+      // Create and initialize the server schema,
+      // and register a minimal set of matching rules and attribute syntaxes.
+      try
+      {
+        directoryServer.schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
+      }
+      catch (DirectoryException unexpected)
+      {
+        // the core schema should not have any warning
+        throw new RuntimeException(unexpected);
+      }
       directoryServer.bootstrapAttributeSyntaxes();
 
       // Perform any additional initialization that might be necessary before
@@ -6843,8 +6850,7 @@ public final class DirectoryServer
                             theToolDescription, false);
     argParser.setShortToolDescription(REF_SHORT_DESC_START_DS.get());
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser.
     try
     {
       configClass = new StringArgument("configclass", 'C', "configClass",
