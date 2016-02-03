@@ -23,7 +23,7 @@ import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.TestChildCfg;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * A client-side interface for reading and modifying Test Child

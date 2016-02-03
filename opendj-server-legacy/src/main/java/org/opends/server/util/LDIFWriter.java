@@ -27,14 +27,14 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 

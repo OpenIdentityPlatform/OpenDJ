@@ -28,6 +28,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.BooleanSyntax;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 

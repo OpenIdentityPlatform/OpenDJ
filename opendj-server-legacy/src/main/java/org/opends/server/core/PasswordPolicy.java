@@ -24,7 +24,7 @@ import java.util.SortedSet;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.api.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 

@@ -275,7 +275,7 @@ public final class Adapters {
                     return extendedResult;
 
                 } catch (DecodeException e) {
-                    org.opends.server.types.DN matchedDN = extendedOperation.getMatchedDN();
+                    DN matchedDN = extendedOperation.getMatchedDN();
                     return request.getResultDecoder().newExtendedErrorResult(
                             extendedOperation.getResultCode(),
                             matchedDN != null ? matchedDN.toString() : null,

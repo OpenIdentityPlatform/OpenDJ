@@ -29,7 +29,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 
 /**

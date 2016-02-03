@@ -30,7 +30,7 @@ import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * A client-side interface for reading and modifying Test Parent

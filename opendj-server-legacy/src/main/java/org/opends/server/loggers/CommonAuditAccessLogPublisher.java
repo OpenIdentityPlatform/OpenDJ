@@ -57,7 +57,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;

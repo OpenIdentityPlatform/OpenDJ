@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.types.SubtreeSpecification;

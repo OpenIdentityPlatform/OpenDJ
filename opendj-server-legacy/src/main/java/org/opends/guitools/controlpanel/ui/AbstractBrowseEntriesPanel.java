@@ -96,7 +96,7 @@ import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchFilter;

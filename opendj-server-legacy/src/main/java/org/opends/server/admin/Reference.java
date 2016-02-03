@@ -17,9 +17,9 @@
 package org.opends.server.admin;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.util.StaticUtils;
 
 /**

@@ -619,7 +619,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     {
       try
       {
-        org.opends.server.types.DN.valueOf(baseDN);
+        org.forgerock.opendj.ldap.DN.valueOf(baseDN);
       }
       catch (OpenDsException oe)
       {

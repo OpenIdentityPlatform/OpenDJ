@@ -19,7 +19,7 @@ package org.opends.server.tools.makeldif;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;

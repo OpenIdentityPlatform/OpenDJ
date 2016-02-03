@@ -16,6 +16,7 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 
 import java.io.*;

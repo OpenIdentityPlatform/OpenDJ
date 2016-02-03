@@ -63,7 +63,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 

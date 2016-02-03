@@ -38,7 +38,7 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * An adaptor class which converts {@link ConfigAddListener} callbacks

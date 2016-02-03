@@ -51,7 +51,7 @@ import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 
 

@@ -28,6 +28,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
 

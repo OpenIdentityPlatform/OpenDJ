@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.api.plugin;
 
@@ -31,7 +31,7 @@ import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.plugins.NullPlugin;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.operation.*;
@@ -550,14 +550,14 @@ public class DirectoryServerPluginTestCase
     sigList = new LinkedList<>();
     sigList.add("initializeInternal");
     sigList.add("void");
-    sigList.add("org.opends.server.types.DN");
+    sigList.add("org.forgerock.opendj.ldap.DN");
     sigList.add("java.util.Set");
     sigList.add("boolean");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<>();
     sigList.add("getPluginEntryDN");
-    sigList.add("org.opends.server.types.DN");
+    sigList.add("org.forgerock.opendj.ldap.DN");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<>();

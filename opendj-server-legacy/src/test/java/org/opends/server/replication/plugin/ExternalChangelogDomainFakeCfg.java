@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -21,7 +21,7 @@ import java.util.TreeSet;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This class implement a configuration object for the ExternalChangelog domain

@@ -24,7 +24,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This is the changelog state stored in the changelogStateDB. For each

@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.opends.server.TestCaseUtils;
@@ -31,7 +32,6 @@ import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.RemoteConnection;
-import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

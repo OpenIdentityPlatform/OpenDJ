@@ -28,9 +28,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 
 /**
  * The AciList class performs caching of the ACI attribute values

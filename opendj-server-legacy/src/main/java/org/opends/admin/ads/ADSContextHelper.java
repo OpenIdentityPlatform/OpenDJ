@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
@@ -43,7 +43,7 @@ import org.opends.server.admin.std.meta.LDIFBackendCfgDefn;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.types.CryptoManagerException;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This is the only class in the org.opends.admin.ads package that uses the

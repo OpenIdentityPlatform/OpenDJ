@@ -94,7 +94,7 @@ import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.MakeLDIF;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.SetupUtils;
@@ -1005,8 +1005,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           final org.forgerock.opendj.server.config.client.BackendCfgClient backend =
               context.getRootConfiguration().getBackend(backendName);
-          final SortedSet<org.forgerock.opendj.ldap.DN> baseDNs = backend.getBaseDN();
-          baseDNs.add(org.forgerock.opendj.ldap.DN.valueOf(newBaseDN));
+          final SortedSet<DN> baseDNs = backend.getBaseDN();
+          baseDNs.add(DN.valueOf(newBaseDN));
           backend.setBaseDN(baseDNs);
           backend.commit();
         }

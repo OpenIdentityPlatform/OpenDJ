@@ -61,7 +61,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -70,7 +70,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 

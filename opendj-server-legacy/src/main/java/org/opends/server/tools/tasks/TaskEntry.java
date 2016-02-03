@@ -23,7 +23,7 @@ import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 
 import java.util.ArrayList;

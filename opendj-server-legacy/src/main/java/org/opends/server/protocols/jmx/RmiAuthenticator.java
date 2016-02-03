@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -35,7 +35,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Privilege;

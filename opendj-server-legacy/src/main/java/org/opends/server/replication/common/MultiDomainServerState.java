@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Pair;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 
 /**

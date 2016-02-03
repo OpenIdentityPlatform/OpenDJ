@@ -22,6 +22,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.GoverningStructureRuleVirtualAttributeCfg;
@@ -35,7 +36,6 @@ import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.Entry;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;

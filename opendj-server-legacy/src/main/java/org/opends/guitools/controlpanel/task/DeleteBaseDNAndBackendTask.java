@@ -58,7 +58,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 
 /** The task used to delete a set of base DNs or backends. */

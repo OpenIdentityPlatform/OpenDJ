@@ -26,7 +26,7 @@ import java.util.Map;
 
 import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 
 

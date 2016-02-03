@@ -12,11 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import java.io.Closeable;
+
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This class defines a mechanism that may be used to iterate over the

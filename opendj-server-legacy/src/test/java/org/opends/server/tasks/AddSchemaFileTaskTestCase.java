@@ -29,7 +29,7 @@ import org.opends.server.backends.SchemaTestMatchingRuleImpl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

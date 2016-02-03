@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -58,7 +58,7 @@ import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser;
 import org.opends.server.tools.dsreplication.ReplicationCliException;
 import org.opends.server.tools.dsreplication.ReplicationCliMain;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * The panel where the user can import the contents of an LDIF file to the

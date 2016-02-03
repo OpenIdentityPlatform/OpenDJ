@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.internal;
 
@@ -20,11 +20,11 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 
@@ -225,7 +225,7 @@ public final class SearchRequest extends AbstractRequestImpl {
      *
      * @param dn the dn
      * @return the current request
-     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setName(org.forgerock.opendj.ldap.DN)
+     * @see org.forgerock.opendj.ldap.requests.SearchRequest#setName(DN)
      */
     public SearchRequest setName(final DN dn) {
         Reject.ifNull(dn);

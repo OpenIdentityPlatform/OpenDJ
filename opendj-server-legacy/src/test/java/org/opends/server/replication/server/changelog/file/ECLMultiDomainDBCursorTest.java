@@ -30,7 +30,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.server.changelog.file.ECLMultiDomainDBCursor;
 import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

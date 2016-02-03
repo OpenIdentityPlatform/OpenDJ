@@ -24,12 +24,12 @@ import static org.testng.Assert.*;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.types.DN;
 import org.testng.annotations.Test;
 
 /**

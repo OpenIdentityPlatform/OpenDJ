@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;

@@ -40,7 +40,7 @@ import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;

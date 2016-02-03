@@ -12,6 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2008 Sun Microsystems, Inc.
+  Portions Copyright 2016 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -19,7 +20,7 @@
     Templates for processing DN properties.
   -->
   <xsl:template match="adm:dn" mode="java-value-imports">
-    <import>org.opends.server.types.DN</import>
+    <import>org.forgerock.opendj.ldap.DN</import>
   </xsl:template>
   <xsl:template match="adm:dn" mode="java-value-type">
     <xsl:value-of select="'DN'" />

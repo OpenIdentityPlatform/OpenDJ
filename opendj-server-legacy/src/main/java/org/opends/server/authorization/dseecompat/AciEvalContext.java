@@ -16,7 +16,7 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.Group;

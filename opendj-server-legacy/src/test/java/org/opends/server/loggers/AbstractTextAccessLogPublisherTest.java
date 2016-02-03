@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -33,7 +33,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.AbstractTextAccessLogPublisher.CriteriaFilter;
 import org.opends.server.loggers.AbstractTextAccessLogPublisher.RootFilter;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;

@@ -12,7 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2010 Sun Microsystems, Inc.
-  Portions copyright 2011-2014 ForgeRock AS.
+  Portions copyright 2011-2016 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -1950,7 +1950,7 @@
               <xsl:call-template
                 name="generate-change-listener-import-statements" />
             </xsl:if>
-            <import>org.opends.server.types.DN</import>
+            <import>org.forgerock.opendj.ldap.DN</import>
             <xsl:if test="$this-all-relations">
               <import>
                 org.opends.server.admin.DefinitionDecodingException

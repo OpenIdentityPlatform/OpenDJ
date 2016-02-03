@@ -30,10 +30,12 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
@@ -44,10 +46,8 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -204,7 +204,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       {
         try
         {
-          someMemberDNs.add(org.forgerock.opendj.ldap.DN.valueOf(v.toString()).compact());
+          someMemberDNs.add(DN.valueOf(v.toString()).compact());
         }
         catch (LocalizedIllegalArgumentException e)
         {

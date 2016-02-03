@@ -18,8 +18,8 @@ package org.opends.server.util;
 
 import static org.forgerock.util.Reject.*;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 
 
 

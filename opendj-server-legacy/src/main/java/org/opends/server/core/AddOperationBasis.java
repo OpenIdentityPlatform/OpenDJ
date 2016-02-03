@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
@@ -34,7 +35,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;

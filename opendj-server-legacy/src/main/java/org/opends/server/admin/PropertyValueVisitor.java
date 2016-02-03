@@ -20,7 +20,7 @@ import java.net.InetAddress;
 
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.authorization.dseecompat.Aci;
 
 /**

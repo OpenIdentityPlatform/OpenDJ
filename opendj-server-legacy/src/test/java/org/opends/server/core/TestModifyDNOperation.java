@@ -42,12 +42,12 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Operation;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

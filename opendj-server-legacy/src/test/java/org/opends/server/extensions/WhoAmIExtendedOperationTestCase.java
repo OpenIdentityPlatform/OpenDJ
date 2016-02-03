@@ -34,7 +34,7 @@ import org.opends.server.tools.LDAPAuthenticationHandler;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.testng.annotations.BeforeClass;

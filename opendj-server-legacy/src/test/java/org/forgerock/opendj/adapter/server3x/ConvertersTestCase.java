@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
@@ -104,8 +105,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public final void testToSearchResultEntry() throws Exception {
         org.forgerock.opendj.ldap.responses.SearchResultEntry entry =
-            Responses.newSearchResultEntry(org.forgerock.opendj.ldap.DN
-                .valueOf("uid=scarter,ou=People,dc=example,dc=com"));
+            Responses.newSearchResultEntry(DN.valueOf("uid=scarter,ou=People,dc=example,dc=com"));
         for (Control control : generateSdkControlsList()) {
             entry.addControl(control);
         }
@@ -125,8 +125,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public final void testToEntry() throws Exception {
         org.forgerock.opendj.ldap.Entry entry =
-            new LinkedHashMapEntry(org.forgerock.opendj.ldap.DN
-                .valueOf("uid=scarter,ou=People,dc=example,dc=com"));
+            new LinkedHashMapEntry(DN.valueOf("uid=scarter,ou=People,dc=example,dc=com"));
         entry.addAttribute(new LinkedAttribute("test", "value1"));
         entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOfUtf8("myValue")));
 
@@ -147,7 +146,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         org.forgerock.opendj.ldap.DN sdkDN =
                 org.forgerock.opendj.ldap.DN.valueOf(dnString);
 
-        org.opends.server.types.DN srvDN = to(sdkDN);
+        org.forgerock.opendj.ldap.DN srvDN = to(sdkDN);
         assertThat(srvDN.toString()).isEqualTo(dnString);
     }
 
@@ -157,7 +156,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         org.forgerock.opendj.ldap.RDN sdkRDN =
                 org.forgerock.opendj.ldap.RDN.valueOf(rdnString);
 
-        org.opends.server.types.RDN srvRDN = to(sdkRDN);
+        org.forgerock.opendj.ldap.RDN srvRDN = to(sdkRDN);
         assertThat(srvRDN.toString()).isEqualTo(rdnString);
     }
 
@@ -486,7 +485,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     @Test
     public final void testFromDN() throws DirectoryException {
         final String dnString = "uid=scarter,ou=People,dc=example,dc=com";
-        org.opends.server.types.DN srvDN = org.opends.server.types.DN.valueOf(dnString);
+        org.forgerock.opendj.ldap.DN srvDN = org.forgerock.opendj.ldap.DN.valueOf(dnString);
         org.forgerock.opendj.ldap.DN sdkDN = from(srvDN);
 
         assertThat(sdkDN.toString()).isEqualTo(dnString);

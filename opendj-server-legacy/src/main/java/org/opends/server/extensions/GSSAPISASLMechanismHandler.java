@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -56,7 +56,7 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 /**

@@ -121,15 +121,15 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ LDAP SDK {@link DN} to OpenDJ server
-     * {@link org.opends.server.types.DN}.
+     * {@link org.forgerock.opendj.ldap.DN}.
      *
      * @param dn
      *          value to convert
      * @return the converted value
      */
-    public static org.opends.server.types.DN to(final DN dn) {
+    public static org.forgerock.opendj.ldap.DN to(final DN dn) {
         try {
-            return org.opends.server.types.DN.valueOf(dn.toString());
+            return org.forgerock.opendj.ldap.DN.valueOf(dn.toString());
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -137,17 +137,17 @@ public final class Converters {
 
     /**
      * Converts a set of OpenDJ LDAP SDK {@link DN} to a set of
-     * OpenDJ server {@link org.opends.server.types.DN}.
+     * OpenDJ server {@link org.forgerock.opendj.ldap.DN}.
      *
      * @param dnSet
      *          set to convert
      * @return the converted set
      */
-    public static SortedSet<org.opends.server.types.DN> to(final SortedSet<DN> dnSet) {
+    public static SortedSet<org.forgerock.opendj.ldap.DN> to(final SortedSet<DN> dnSet) {
         try {
-            SortedSet<org.opends.server.types.DN> newSet = new TreeSet<>();
+            SortedSet<org.forgerock.opendj.ldap.DN> newSet = new TreeSet<>();
             for (DN dn : dnSet) {
-                newSet.add(org.opends.server.types.DN.valueOf(dn.toString()));
+                newSet.add(org.forgerock.opendj.ldap.DN.valueOf(dn.toString()));
             }
             return newSet;
         } catch (Exception e) {
@@ -157,17 +157,17 @@ public final class Converters {
 
     /**
      * Converts an array of OpenDJ LDAP SDK {@link DN} to an array of
-     * OpenDJ server {@link org.opends.server.types.DN}.
+     * OpenDJ server {@link org.forgerock.opendj.ldap.DN}.
      *
      * @param dns
      *          array of values to convert
      * @return the converted array
      */
-    public static org.opends.server.types.DN[] to(final DN[] dns) {
+    public static org.forgerock.opendj.ldap.DN[] to(final DN[] dns) {
         try {
-            org.opends.server.types.DN[] newDns = new org.opends.server.types.DN[dns.length];
+            org.forgerock.opendj.ldap.DN[] newDns = new org.forgerock.opendj.ldap.DN[dns.length];
             for (int i = 0; i < dns.length; i++) {
-                newDns[i] = org.opends.server.types.DN.valueOf(dns[i].toString());
+                newDns[i] = org.forgerock.opendj.ldap.DN.valueOf(dns[i].toString());
             }
             return newDns;
         } catch (Exception e) {
@@ -177,15 +177,15 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ LDAP SDK {@link RDN} to OpenDJ server
-     * {@link org.opends.server.types.RDN}.
+     * {@link org.forgerock.opendj.ldap.RDN}.
      *
      * @param rdn
      *          value to convert
      * @return the converted value
      */
-    public static org.opends.server.types.RDN to(final RDN rdn) {
+    public static org.forgerock.opendj.ldap.RDN to(final RDN rdn) {
         try {
-            return org.opends.server.types.RDN.valueOf(rdn.toString());
+            return org.forgerock.opendj.ldap.RDN.valueOf(rdn.toString());
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -607,14 +607,14 @@ public final class Converters {
 
 
     /**
-     * Converts from OpenDJ server {@link org.opends.server.types.DN} to OpenDJ
+     * Converts from OpenDJ server {@link org.forgerock.opendj.ldap.DN} to OpenDJ
      * LDAP SDK {@link DN}.
      *
      * @param dn
      *            value to convert
      * @return the converted value
      */
-    public static DN from(final org.opends.server.types.DN dn) {
+    public static DN from(final org.forgerock.opendj.ldap.DN dn) {
         try {
             return DN.valueOf(dn.toString());
         } catch (Exception e) {
@@ -651,7 +651,7 @@ public final class Converters {
             }
         }
         final LocalizableMessageBuilder errorMsg = operation.getErrorMessage();
-        final org.opends.server.types.DN matchedDN = operation.getMatchedDN();
+        final DN matchedDN = operation.getMatchedDN();
         result.setDiagnosticMessage(errorMsg != null ? errorMsg.toString() : null);
         result.setMatchedDN(matchedDN != null ? matchedDN.toString() : null);
         if (result.isSuccess()) {

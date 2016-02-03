@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
-
-
 
 import java.io.IOException;
 import java.util.List;
@@ -29,19 +27,15 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPException;
-
 
 /**
  * This class provides the functionality for the performing an
  * LDAP DELETE operation based on the specified DSML request.
  *
- *
  * @author   Vivek Nagar
  */
-
-
 public class DSMLDeleteOperation
 {
   private LDAPConnection connection;

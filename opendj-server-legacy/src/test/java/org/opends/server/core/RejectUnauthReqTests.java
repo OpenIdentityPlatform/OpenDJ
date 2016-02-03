@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -31,7 +32,6 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

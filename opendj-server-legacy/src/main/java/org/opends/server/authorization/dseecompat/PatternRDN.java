@@ -37,7 +37,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 
 /**
  * This class is used to match RDN patterns containing wildcards in either

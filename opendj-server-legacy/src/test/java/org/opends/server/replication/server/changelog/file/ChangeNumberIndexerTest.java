@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2016 ForgeRock AS.
- * Portions Copyright 2014 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -40,7 +39,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;

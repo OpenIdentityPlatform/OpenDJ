@@ -27,7 +27,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

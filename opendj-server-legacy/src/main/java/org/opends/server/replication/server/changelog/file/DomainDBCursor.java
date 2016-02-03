@@ -26,7 +26,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /** Cursor iterating over a replication domain's replica DBs. */
 @NotThreadSafe

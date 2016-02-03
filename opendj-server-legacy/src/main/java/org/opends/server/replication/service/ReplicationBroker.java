@@ -40,7 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 
 import static org.opends.messages.ReplicationMessages.*;

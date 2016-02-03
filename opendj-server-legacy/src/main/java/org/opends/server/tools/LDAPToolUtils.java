@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 
 

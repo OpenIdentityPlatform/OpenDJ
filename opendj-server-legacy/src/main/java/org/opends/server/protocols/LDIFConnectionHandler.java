@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols;
 
@@ -37,7 +37,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
@@ -40,6 +40,7 @@ import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.json.resource.http.HttpContextFactory;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
@@ -157,8 +158,7 @@ class LdapHttpApplication implements HttpApplication
     result.setCustomHeaderUsername(val.get("altAuthenticationUsernameHeader").asString());
     result.setCustomHeaderPassword(val.get("altAuthenticationPasswordHeader").asString());
 
-    final String searchBaseDN = asString(val, "searchBaseDN");
-    result.setSearchBaseDN(org.forgerock.opendj.ldap.DN.valueOf(searchBaseDN));
+    result.setSearchBaseDN(DN.valueOf(asString(val, "searchBaseDN")));
     result.setSearchScope(SearchScope.valueOf(asString(val, "searchScope")));
     result.setSearchFilterTemplate(asString(val, "searchFilterTemplate"));
 

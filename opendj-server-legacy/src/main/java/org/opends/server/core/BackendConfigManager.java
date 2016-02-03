@@ -45,7 +45,7 @@ import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.WritabilityMode;

@@ -38,11 +38,11 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 
 /**
  * The class that is in charge of doing the LDAP searches required to update a

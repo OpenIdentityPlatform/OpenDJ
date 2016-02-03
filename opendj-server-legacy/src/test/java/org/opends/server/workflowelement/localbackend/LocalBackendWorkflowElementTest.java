@@ -16,6 +16,7 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -26,7 +27,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

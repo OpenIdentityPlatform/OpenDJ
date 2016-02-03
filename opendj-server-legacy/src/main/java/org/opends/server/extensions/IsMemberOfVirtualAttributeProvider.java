@@ -23,6 +23,7 @@ import java.util.Set;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.IsMemberOfVirtualAttributeCfg;
 import org.opends.server.api.Group;

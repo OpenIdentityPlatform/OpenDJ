@@ -22,6 +22,7 @@ import java.util.Map;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This interface defines an operation that may be used to add a new entry to

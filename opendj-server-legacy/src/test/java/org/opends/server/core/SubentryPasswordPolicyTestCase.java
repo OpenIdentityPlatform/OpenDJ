@@ -20,12 +20,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;

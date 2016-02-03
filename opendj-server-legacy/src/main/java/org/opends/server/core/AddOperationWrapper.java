@@ -22,6 +22,7 @@ import java.util.Map;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This abstract class wraps/decorates a given add operation.

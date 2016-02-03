@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
 
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;

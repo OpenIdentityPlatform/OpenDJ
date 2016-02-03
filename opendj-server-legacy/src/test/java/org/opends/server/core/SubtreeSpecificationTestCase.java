@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.testng.annotations.BeforeClass;

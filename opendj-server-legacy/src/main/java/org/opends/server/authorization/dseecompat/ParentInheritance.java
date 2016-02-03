@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.DirectoryException;
 

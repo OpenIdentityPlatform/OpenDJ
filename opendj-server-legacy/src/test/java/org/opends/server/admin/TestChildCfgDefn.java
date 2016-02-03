@@ -47,7 +47,7 @@ import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.TestChildCfg;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 
 

@@ -71,7 +71,7 @@ import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;

@@ -57,7 +57,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions
 import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 

@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.controls.*;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;

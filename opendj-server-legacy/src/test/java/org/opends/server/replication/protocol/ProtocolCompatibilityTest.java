@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.assertj.core.api.Assertions;
 import org.opends.server.core.AddOperationBasis;

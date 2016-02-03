@@ -40,7 +40,7 @@ import org.opends.server.admin.std.meta.AttributeSyntaxCfgDefn;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

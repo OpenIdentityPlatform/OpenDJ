@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.server.admin;
 
 
 
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 
 

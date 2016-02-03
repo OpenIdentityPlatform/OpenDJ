@@ -18,7 +18,7 @@ package org.opends.server.authorization.dseecompat;
 
 import java.util.regex.Pattern;
 
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
 

@@ -16,13 +16,10 @@
  */
 package org.opends.server.types.operation;
 
-
-
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
-
 
 /**
  * This class defines a set of methods that are available for use by

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -33,7 +33,7 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

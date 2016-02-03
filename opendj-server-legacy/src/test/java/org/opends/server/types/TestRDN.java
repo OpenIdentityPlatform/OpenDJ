@@ -25,6 +25,7 @@ import java.util.Iterator;
 
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -33,8 +34,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * This class defines a set of tests for the
- * {@link org.opends.server.types.RDN} class.
+ * This class defines a set of tests for the {@link RDN} class.
  */
 public final class TestRDN extends TypesTestCase {
 

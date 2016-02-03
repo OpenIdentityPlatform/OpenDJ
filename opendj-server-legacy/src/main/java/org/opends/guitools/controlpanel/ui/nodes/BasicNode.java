@@ -20,9 +20,9 @@ import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPURL;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 
 /** The basic node used to render entries in the 'Manage Entries' tree. */
 public class BasicNode extends DefaultMutableTreeNode {

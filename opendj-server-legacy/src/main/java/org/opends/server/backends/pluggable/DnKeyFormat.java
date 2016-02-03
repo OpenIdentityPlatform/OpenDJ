@@ -19,7 +19,7 @@ package org.opends.server.backends.pluggable;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /** Handles the disk representation of LDAP data. */
 public class DnKeyFormat

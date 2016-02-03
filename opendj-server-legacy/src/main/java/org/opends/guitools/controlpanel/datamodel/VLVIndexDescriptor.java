@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * The class used to describe the VLV index configuration.

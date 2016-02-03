@@ -27,6 +27,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
@@ -40,7 +41,6 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.types.DN;
 
 /**
  * An adaptor class which converts {@link ConfigDeleteListener}

@@ -54,11 +54,11 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.Schema;
 
 /** The task that is called when we must modify an entry. */

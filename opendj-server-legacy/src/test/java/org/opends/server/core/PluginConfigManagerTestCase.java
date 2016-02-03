@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

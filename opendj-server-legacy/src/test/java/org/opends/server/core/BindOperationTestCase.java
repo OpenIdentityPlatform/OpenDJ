@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
@@ -41,7 +42,6 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.testng.annotations.DataProvider;

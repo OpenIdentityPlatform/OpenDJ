@@ -65,7 +65,7 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -618,16 +618,16 @@ public class ConfigureDS
     }
   }
 
-  private LinkedList<org.forgerock.opendj.ldap.DN> parseProvidedBaseDNs() throws ConfigureDSException
+  private LinkedList<DN> parseProvidedBaseDNs() throws ConfigureDSException
   {
-    LinkedList<org.forgerock.opendj.ldap.DN> baseDNs = new LinkedList<>();
+    LinkedList<DN> baseDNs = new LinkedList<>();
     if (baseDNString.isPresent())
     {
       for (final String dnString : baseDNString.getValues())
       {
         try
         {
-          baseDNs.add(org.forgerock.opendj.ldap.DN.valueOf(dnString));
+          baseDNs.add(DN.valueOf(dnString));
         }
         catch (final Exception e)
         {
@@ -744,7 +744,7 @@ public class ConfigureDS
   }
 
   @SuppressWarnings("unchecked")
-  private void updateBaseDNs(final List<org.forgerock.opendj.ldap.DN> baseDNs) throws ConfigureDSException
+  private void updateBaseDNs(final List<DN> baseDNs) throws ConfigureDSException
   {
     if (!baseDNs.isEmpty())
     {

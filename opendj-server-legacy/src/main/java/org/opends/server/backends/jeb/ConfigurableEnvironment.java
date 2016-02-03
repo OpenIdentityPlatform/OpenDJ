@@ -38,6 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
@@ -47,7 +48,6 @@ import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
-import org.opends.server.types.DN;
 import org.opends.server.util.Platform;
 
 import com.sleepycat.je.Durability;

@@ -199,7 +199,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // Delete all added entries but user.3 which is already removed in one test
         for (int i = 0; i < 5; i++) {
             if (i != 3) {
-                TestCaseUtils.deleteEntry(org.opends.server.types.DN.valueOf("uid=user." + i + ", o=test"));
+                TestCaseUtils.deleteEntry(DN.valueOf("uid=user." + i + ", o=test"));
             }
         }
     }
@@ -212,16 +212,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test
     public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
         final LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
-        Connection connection = null;
-        try {
-            connection = factory.getConnection();
+        try (Connection connection = factory.getConnection()) {
             connection.bind("cn=Directory Manager", "password".toCharArray());
             assertThat(connection.isValid()).isTrue();
             assertThat(connection.isClosed()).isFalse();
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 

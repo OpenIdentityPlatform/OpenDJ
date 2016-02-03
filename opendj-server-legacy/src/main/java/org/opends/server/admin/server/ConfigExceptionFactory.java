@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.admin.server;
 
@@ -21,7 +21,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.admin.DefinitionDecodingException;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * A utility class for converting admin exceptions to config exceptions.

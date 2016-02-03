@@ -18,9 +18,8 @@ package org.opends.server.core;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Operation;
-
 
 /**
  * This interface defines an operation that may be used to determine whether a

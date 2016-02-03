@@ -35,10 +35,10 @@ import javax.naming.ldap.LdapName;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.RDN;
+import org.forgerock.opendj.ldap.RDN;
 import org.testng.Assert;
 
 

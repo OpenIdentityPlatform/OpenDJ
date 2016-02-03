@@ -41,7 +41,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrat
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 /**

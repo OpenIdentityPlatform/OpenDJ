@@ -18,7 +18,7 @@ package org.opends.server.core;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DN;
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This abstract class wraps/decorates a given compare operation.

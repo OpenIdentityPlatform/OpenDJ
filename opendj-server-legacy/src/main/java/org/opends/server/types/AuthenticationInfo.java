@@ -17,6 +17,8 @@
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+
 import static org.forgerock.util.Reject.*;
 
 /**
