@@ -95,7 +95,7 @@ public class BaseDnRegistry {
       {
         otherBaseDNs.add(dn);
 
-        if (baseDN.isAncestorOf(dn) || baseDN.isSubordinateOrEqualTo(dn))
+        if (baseDN.isSuperiorOrEqualTo(dn) || baseDN.isSubordinateOrEqualTo(dn))
         {
           LocalizableMessage message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
               get(baseDN, backend.getBackendID(), dn);

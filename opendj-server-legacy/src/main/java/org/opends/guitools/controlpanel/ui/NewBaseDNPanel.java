@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -623,11 +623,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
           {
             return invalidBaseDNValue(dn, ERR_BASE_DN_ALREADY_EXISTS.get(dn), errors);
           }
-          else if (baseDN.getDn().isAncestorOf(theDN) && backendName.equalsIgnoreCase(backend.getBackendID()))
+          else if (baseDN.getDn().isSuperiorOrEqualTo(theDN) && backendName.equalsIgnoreCase(backend.getBackendID()))
           {
             return invalidBaseDNValue(dn, ERR_BASE_DN_ANCESTOR_EXISTS.get(baseDN.getDn()), errors);
           }
-          else if (theDN.isAncestorOf(baseDN.getDn()) && backendName.equalsIgnoreCase(backend.getBackendID()))
+          else if (theDN.isSuperiorOrEqualTo(baseDN.getDn()) && backendName.equalsIgnoreCase(backend.getBackendID()))
           {
             return invalidBaseDNValue(dn, ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()), errors);
           }

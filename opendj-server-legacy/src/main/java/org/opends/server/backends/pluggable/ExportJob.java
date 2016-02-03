@@ -101,7 +101,7 @@ class ExportJob
         for (DN includeBranch : includeBranches)
         {
           if (includeBranch.isSubordinateOrEqualTo(baseDN) ||
-               includeBranch.isAncestorOf(baseDN))
+               includeBranch.isSuperiorOrEqualTo(baseDN))
           {
             exportContainers.add(entryContainer);
             break;

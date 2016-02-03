@@ -742,7 +742,7 @@ public final class LDIFImportConfig extends OperationConfig
     {
       for (DN excludeBranch : excludeBranches)
       {
-        if (excludeBranch.isAncestorOf(dn))
+        if (excludeBranch.isSuperiorOrEqualTo(dn))
         {
           return false;
         }
@@ -753,7 +753,7 @@ public final class LDIFImportConfig extends OperationConfig
     {
       for (DN includeBranch : includeBranches)
       {
-        if (includeBranch.isAncestorOf(dn))
+        if (includeBranch.isSuperiorOrEqualTo(dn))
         {
           return true;
         }

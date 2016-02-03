@@ -836,7 +836,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
             {
               isBaseDN = true;
             }
-            else if (baseDN.getDn().isAncestorOf(theDN))
+            else if (baseDN.getDn().isSuperiorOrEqualTo(theDN))
             {
               isSubordinate = true;
             }
@@ -1681,7 +1681,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
   {
     for (DN suffix : allSuffixes)
     {
-      if (suffix.isAncestorOf(dn) && !suffix.equals(dn))
+      if (suffix.isSuperiorOrEqualTo(dn) && !suffix.equals(dn))
       {
         return false;
       }

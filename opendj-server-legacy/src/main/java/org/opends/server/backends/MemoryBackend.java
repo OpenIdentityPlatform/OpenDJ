@@ -513,7 +513,7 @@ public class MemoryBackend
     boolean matchFound = false;
     for (DN dn : baseDNs)
     {
-      if (dn.isAncestorOf(e.getName()))
+      if (dn.isSuperiorOrEqualTo(e.getName()))
       {
         matchFound = true;
         break;

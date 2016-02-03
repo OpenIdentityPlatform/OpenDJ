@@ -3350,7 +3350,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         found = true;
         break;
       }
-      else if (dn.isAncestorOf(baseDN))
+      else if (dn.isSuperiorOrEqualTo(baseDN))
       {
         matchedDN = dn;
         break;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -1129,7 +1129,7 @@ public class NodeRefresher extends AbstractNodeTask {
     {
       DN dn1 = DN.valueOf(getNode().getDN());
       DN dn2 = url.getBaseDN();
-      if (dn2.isAncestorOf(dn1))
+      if (dn2.isSuperiorOrEqualTo(dn1))
       {
         String host = url.getHost();
         int port = url.getPort();

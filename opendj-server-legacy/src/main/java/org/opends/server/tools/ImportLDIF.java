@@ -1131,7 +1131,7 @@ public class ImportLDIF extends TaskTool {
     {
       for (DN includeDN : includeBranches)
       {
-        if (baseDN.isAncestorOf(includeDN))
+        if (baseDN.isSuperiorOrEqualTo(includeDN))
         {
           return true;
         }

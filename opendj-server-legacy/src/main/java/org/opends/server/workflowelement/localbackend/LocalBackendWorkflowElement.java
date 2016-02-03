@@ -1065,7 +1065,7 @@ public class LocalBackendWorkflowElement
 
       // If the request base DN is not a subordinate of the subordinate
       // workflow base DN then do not search in the subordinate workflow.
-      if (!originalBaseDN.isAncestorOf(subordinateDN))
+      if (!originalBaseDN.isSuperiorOrEqualTo(subordinateDN))
       {
         continue;
       }

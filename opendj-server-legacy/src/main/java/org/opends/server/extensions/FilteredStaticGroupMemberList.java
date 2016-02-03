@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -156,14 +156,14 @@ public class FilteredStaticGroupMemberList extends MemberList
             break;
 
           case SUBORDINATES:
-            if (baseDN.equals(nextDN) || !baseDN.isAncestorOf(nextDN))
+            if (baseDN.equals(nextDN) || !baseDN.isSuperiorOrEqualTo(nextDN))
             {
               continue;
             }
             break;
 
           default:
-            if (!baseDN.isAncestorOf(nextDN))
+            if (!baseDN.isSuperiorOrEqualTo(nextDN))
             {
               continue;
             }

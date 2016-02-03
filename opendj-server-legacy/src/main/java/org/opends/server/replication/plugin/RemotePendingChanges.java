@@ -226,7 +226,7 @@ final class RemotePendingChanges
              * Check if the operation to be run is an addOperation on a
              * parent of the current AddOperation.
              */
-            if (pendingMsg.getDN().isAncestorOf(targetDN))
+            if (pendingMsg.getDN().isSuperiorOrEqualTo(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);

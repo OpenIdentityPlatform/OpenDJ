@@ -586,8 +586,8 @@ public class TestDN extends TypesTestCase {
     assertTrue(p.compareTo(c) < 0);
     assertTrue(c.compareTo(p) > 0);
 
-    assertTrue(p.isAncestorOf(c));
-    assertFalse(c.isAncestorOf(p));
+    assertTrue(p.isSuperiorOrEqualTo(c));
+    assertFalse(c.isSuperiorOrEqualTo(p));
 
     assertTrue(c.isSubordinateOrEqualTo(p));
     assertFalse(p.isSubordinateOrEqualTo(c));
@@ -800,8 +800,8 @@ public class TestDN extends TypesTestCase {
     assertTrue(c.compareTo(p) > 0);
     assertTrue(p.compareTo(c) < 0);
 
-    assertTrue(p.isAncestorOf(c));
-    assertFalse(c.isAncestorOf(p));
+    assertTrue(p.isSuperiorOrEqualTo(c));
+    assertFalse(c.isSuperiorOrEqualTo(p));
 
     assertTrue(c.isSubordinateOrEqualTo(p));
     assertFalse(p.isSubordinateOrEqualTo(c));
@@ -1004,7 +1004,7 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf(s);
     DN other = DN.valueOf(d);
 
-    assertEquals(dn.isAncestorOf(other), e, s + " isAncestoryOf " + d);
+    assertEquals(dn.isSuperiorOrEqualTo(other), e, s + " isAncestoryOf " + d);
   }
 
 
@@ -1019,7 +1019,7 @@ public class TestDN extends TypesTestCase {
       AssertionError.class })
   public void testIsAncestorOfException() throws Exception {
     DN dn = DN.valueOf("dc=com");
-    dn.isAncestorOf(null);
+    dn.isSuperiorOrEqualTo(null);
   }
 
 

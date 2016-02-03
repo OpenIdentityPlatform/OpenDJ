@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -395,7 +395,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     try
     {
       DN newDN = computeNewDN();
-      return newDN.isAncestorOf(targetDn);
+      return newDN.isSuperiorOrEqualTo(targetDn);
     } catch (DirectoryException e)
     {
       // The DN was not a correct DN, and therefore does not a parent of the

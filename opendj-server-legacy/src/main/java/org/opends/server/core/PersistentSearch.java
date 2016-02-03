@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -269,9 +269,9 @@ public final class PersistentSearch
     case SINGLE_LEVEL:
       return baseDN.equals(dn.getParentDNInSuffix());
     case WHOLE_SUBTREE:
-      return baseDN.isAncestorOf(dn);
+      return baseDN.isSuperiorOrEqualTo(dn);
     case SUBORDINATES:
-      return !baseDN.equals(dn) && baseDN.isAncestorOf(dn);
+      return !baseDN.equals(dn) && baseDN.isSuperiorOrEqualTo(dn);
     default:
       return false;
     }
@@ -356,9 +356,9 @@ public final class PersistentSearch
     case SINGLE_LEVEL:
       return baseDN.equals(dn.parent());
     case WHOLE_SUBTREE:
-      return baseDN.isAncestorOf(dn);
+      return baseDN.isSuperiorOrEqualTo(dn);
     case SUBORDINATES:
-      return !baseDN.equals(dn) && baseDN.isAncestorOf(dn);
+      return !baseDN.equals(dn) && baseDN.isSuperiorOrEqualTo(dn);
     default:
       return false;
     }

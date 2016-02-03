@@ -469,7 +469,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  <CODE>true</CODE> if this DN is an ancestor of the
    *          provided DN, or <CODE>false</CODE> if not.
    */
-  public boolean isAncestorOf(DN dn)
+  public boolean isSuperiorOrEqualTo(DN dn)
   {
     int offset = dn.numComponents - numComponents;
     if (offset < 0)

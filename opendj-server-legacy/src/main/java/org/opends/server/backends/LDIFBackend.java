@@ -1130,7 +1130,7 @@ public class LDIFBackend
           boolean isBelowBaseDN = false;
           for (DN baseDN : baseDNs)
           {
-            if (baseDN.isAncestorOf(entryDN))
+            if (baseDN.isSuperiorOrEqualTo(entryDN))
             {
               isBelowBaseDN = true;
               break;
