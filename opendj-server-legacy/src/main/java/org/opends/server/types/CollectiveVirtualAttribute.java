@@ -24,12 +24,10 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014-2016 ForgeRock AS
  */
-
 package org.opends.server.types;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -56,13 +54,11 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
     this.attribute = attribute;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(ByteString assertionValue) {
     return attribute.approximatelyEqualTo(assertionValue);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean contains(ByteString value) {
     return attribute.contains(value);
@@ -86,55 +82,42 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   }
 
   @Override
-  public Set<String> getOptions() {
-    return attribute.getOptions();
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public ConditionResult greaterThanOrEqualTo(ByteString assertionValue) {
     return attribute.greaterThanOrEqualTo(assertionValue);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isVirtual() {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Iterator<ByteString> iterator() {
     return attribute.iterator();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(ByteString assertionValue) {
     return attribute.lessThanOrEqualTo(assertionValue);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(ByteString subInitial,
           List<ByteString> subAny, ByteString subFinal) {
     return attribute.matchesSubstring(subInitial, subAny, subFinal);
   }
 
-  /** {@inheritDoc} */
   @Override
   public int size() {
     return attribute.size();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return attribute.hashCode();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer) {
     attribute.toString(buffer);

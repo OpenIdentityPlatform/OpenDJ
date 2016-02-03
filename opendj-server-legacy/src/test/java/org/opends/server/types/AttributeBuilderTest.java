@@ -1127,8 +1127,7 @@ public class AttributeBuilderTest extends TypesTestCase
     builder.setOptions(Arrays.asList(threeOptions));
     Attribute a = builder.toAttribute();
 
-    Assert.assertTrue(a.getOptions().containsAll(Arrays.asList(threeOptions)));
-    Assert.assertEquals(a.getOptions().size(), threeOptions.length);
+    assertThat(a.getAttributeDescription().getOptions()).containsOnly(threeOptions);
   }
 
 
@@ -1364,7 +1363,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
   /**
-   * Tests {@link Attribute#getOptions()}.
+   * Tests {@link AttributeDescription#getOptions()}.
    *
    * @param testCase
    *          Test case index (useful for debugging).
@@ -1384,22 +1383,7 @@ public class AttributeBuilderTest extends TypesTestCase
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    // Check getOptions().
-    Set<String> s = a.getOptions();
-
-    Assert.assertEquals(s.size(), options.length);
-    Assert.assertTrue(s.containsAll(Arrays.asList(options)));
-
-    try
-    {
-      // The option set must be unmodifiable.
-      s.add("xxxx");
-      Assert.fail("getOptions() returned a modifiable option set");
-    }
-    catch (UnsupportedOperationException e)
-    {
-      // Expected exception.
-    }
+    assertThat(a.getAttributeDescription().getOptions()).containsOnly(options);
   }
 
 

@@ -26,16 +26,13 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -270,9 +267,13 @@ public class SubEntry {
         {
           AttributeBuilder builder = new AttributeBuilder(subAttr.getAttributeType());
           builder.addAll(subAttr);
-          Set<String> options = new LinkedHashSet<>(subAttr.getOptions());
-          options.remove(ATTR_OPTION_COLLECTIVE);
-          builder.setOptions(options);
+          for (String option : subAttr.getAttributeDescription().getOptions())
+          {
+            if (!option.equals(ATTR_OPTION_COLLECTIVE))
+            {
+              builder.setOption(option);
+            }
+          }
           Attribute attr = builder.toAttribute();
           CollectiveVirtualAttribute collectiveAttr = new CollectiveVirtualAttribute(attr);
           this.collectiveAttributes.add(collectiveAttr);

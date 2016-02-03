@@ -26,10 +26,7 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Collection;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -140,7 +137,7 @@ public abstract class AbstractAttribute implements Attribute
 
     StringBuilder buffer = new StringBuilder();
     buffer.append(getName());
-    for (String option : getOptions())
+    for (String option : getAttributeDescription().getOptions())
     {
       buffer.append(';');
       buffer.append(option);
@@ -167,35 +164,10 @@ public abstract class AbstractAttribute implements Attribute
     return hashCode;
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation calls {@link #getOptions()} to
-   * retrieve this attribute's set of options and then compares them
-   * one at a time against the provided option. All comparisons are
-   * case insensitive.
-   */
   @Override
   public boolean hasOption(String option)
   {
-    // FIXME use AttributeDescription instead
-    return containsOption(getOptions(), option);
-  }
-
-  private static boolean containsOption(Set<String> options, String optionToFind)
-  {
-    String normToFind = toLowerCase(optionToFind);
-
-    // Cannot use Set.contains() because the options are not normalized.
-    for (String o : options)
-    {
-      String norm = toLowerCase(o);
-      if (norm.equals(normToFind))
-      {
-        return true;
-      }
-    }
-    return false;
+    return getAttributeDescription().hasOption(option);
   }
 
   /**
@@ -207,7 +179,7 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public boolean hasOptions()
   {
-    return !getOptions().isEmpty();
+    return getAttributeDescription().hasOptions();
   }
 
   /**

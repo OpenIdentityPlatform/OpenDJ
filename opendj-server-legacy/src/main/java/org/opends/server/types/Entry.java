@@ -3684,13 +3684,7 @@ public class Entry
     {
       for (Attribute a : attrList)
       {
-        StringBuilder attrName = new StringBuilder(a.getName());
-        for (String o : a.getOptions())
-        {
-          attrName.append(";");
-          attrName.append(o);
-        }
-
+        String attrName = a.getNameWithOptions();
         for (ByteString v : a)
         {
           StringBuilder attrLine = new StringBuilder(attrName);
@@ -3919,18 +3913,13 @@ public class Entry
       BufferedWriter writer, boolean wrapLines, int wrapColumn)
       throws IOException
   {
-    StringBuilder attrName = new StringBuilder(attribute.getName());
-    for (String o : attribute.getOptions())
-    {
-      attrName.append(";");
-      attrName.append(o);
-    }
-
+    String attrName = attribute.getNameWithOptions();
     if (typesOnly)
     {
-      attrName.append(":");
+      StringBuilder attrLine = new StringBuilder(attrName);
+      attrLine.append(":");
 
-      LDIFWriter.writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
+      LDIFWriter.writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
     }
     else
     {
@@ -4201,16 +4190,7 @@ public class Entry
           buffer.append(",");
         }
 
-        buffer.append(a.getName());
-
-        if (a.hasOptions())
-        {
-          for (String optionString : a.getOptions())
-          {
-            buffer.append(";");
-            buffer.append(optionString);
-          }
-        }
+        buffer.append(a.getNameWithOptions());
 
         buffer.append("={");
         Iterator<ByteString> valueIterator = a.iterator();
@@ -4686,7 +4666,7 @@ public class Entry
 
           // Now add in remaining options from original attribute
           // (this will not overwrite options already present).
-          builder.setOptions(attribute.getOptions());
+          builder.setOptions(attribute.getAttributeDescription().getOptions());
 
           if (!omitValues)
           {

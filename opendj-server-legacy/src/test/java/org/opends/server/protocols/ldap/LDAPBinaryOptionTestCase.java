@@ -22,7 +22,7 @@
  *
  *
  *      Copyright  2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -209,7 +209,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     List<Attribute> attrs = e.getAttribute("usercertificate");
     Attribute a = attrs.get(0);
     assertNotNull(a);
-    assertTrue(a.getOptions().contains("binary"));
+    assertThat(a.getAttributeDescription().getOptions()).contains("binary");
   }
 
   /**

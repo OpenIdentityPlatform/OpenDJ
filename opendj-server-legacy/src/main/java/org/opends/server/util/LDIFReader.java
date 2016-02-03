@@ -47,9 +47,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -58,7 +60,6 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -799,7 +800,9 @@ public class LDIFReader implements Closeable
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
     final Attribute attribute = parseAttrDescription(attrDescr);
-    final String attrName = attribute.getName();
+    final AttributeDescription attrDesc = attribute.getAttributeDescription();
+    final AttributeType attrType = attrDesc.getAttributeType();
+    final String attrName = attrType.getNameOrOID();
 
     // Now parse the attribute value.
     ByteString value = parseSingleValue(lines, line, entryDN, colonPos, attrName);
@@ -838,7 +841,6 @@ public class LDIFReader implements Closeable
     }
     else
     {
-      AttributeType attrType = DirectoryServer.getAttributeType(attrName);
       if (! importConfig.includeAttribute(attrType))
       {
         if (logger.isTraceEnabled())
@@ -903,7 +905,7 @@ public class LDIFReader implements Closeable
       // options.  If so, then try to add a value to that attribute.
       for (AttributeBuilder a : attrList)
       {
-        if (a.optionsEqual(attribute.getOptions()))
+        if (a.optionsEqual(attrDesc))
         {
           if (!a.add(attributeValue) && checkSchema)
           {

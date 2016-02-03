@@ -230,12 +230,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     }
 
     @Override
-    public Set<String> getOptions()
-    {
-      return Collections.unmodifiableSet(toSet(attributeDescription.getOptions()));
-    }
-
-    @Override
     public boolean hasOption(String option)
     {
       return attributeDescription.hasOption(option);
@@ -495,12 +489,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     public String getNameWithOptions()
     {
       return getName();
-    }
-
-    @Override
-    public Set<String> getOptions()
-    {
-      return Collections.emptySet();
     }
   }
 
@@ -971,11 +959,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
   {
     this(attribute.getAttributeType(), attribute.getName());
 
-    for (String option : attribute.getOptions())
-    {
-      setOption(option);
-    }
-
+    setOptions(attribute.getAttributeDescription().getOptions());
     if (!omitValues)
     {
       addAll(attribute);
@@ -1498,54 +1482,18 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return isModified;
   }
 
-
-
   /**
-   * Indicates whether this attribute builder has exactly the
-   * specified set of options.
+   * Indicates whether this attribute builder has exactly the specified set of options.
    *
-   * This implementation returns
-   * {@link java.util.AbstractCollection#isEmpty()}
-   * if the provided set of options is <code>null</code>.
-   * Otherwise it checks that the size of the provided
-   * set of options is equal to the size of this attribute
-   * builder options, returns <code>false</code> if the
-   * sizes differ. If the sizes are the same then each
-   * option in the provided set is checked and if all the
-   * provided options are present <code>true</code> is
-   * returned.
-   *
-   * @param  options
-   *         The set of options for which to make the
-   *         determination (may be <code>null</code>).
-   * @return <code>true</code> if this attribute
-   *         builder has exactly the specified
-   *         set of options.
+   * @param attributeDescription
+   *          The attribute description containing the set of options for which to make the
+   *          determination
+   * @return <code>true</code> if this attribute builder has exactly the specified set of options.
    */
-  public boolean optionsEqual(Set<String> options)
+  public boolean optionsEqual(AttributeDescription attributeDescription)
   {
-    if (options == null)
-    {
-      return this.options.isEmpty();
-    }
-
-    if (this.options.size() != options.size())
-    {
-      return false;
-    }
-
-    for (String option : options)
-    {
-      if (!this.options.contains(option))
-      {
-        return false;
-      }
-    }
-
-    return true;
+    return toAttribute0().getAttributeDescription().equals(attributeDescription);
   }
-
-
 
   /**
    * Returns the number of attribute values in this attribute builder.

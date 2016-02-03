@@ -37,9 +37,16 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.tools.makeldif.TemplateEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.tools.makeldif.TemplateEntry;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -434,13 +441,7 @@ outerLoop:
     {
       for (Attribute a : entry.getUserAttribute(attrType))
       {
-        StringBuilder attrName = new StringBuilder(a.getName());
-        for (String o : a.getOptions())
-        {
-          attrName.append(";");
-          attrName.append(o);
-        }
-
+        StringBuilder attrName = new StringBuilder(a.getNameWithOptions());
         for (ByteString v : a)
         {
           writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
@@ -506,12 +507,7 @@ outerLoop:
         {
           StringBuilder attrName = new StringBuilder();
           attrName.append("# ");
-          attrName.append(a.getName());
-          for (String o : a.getOptions())
-          {
-            attrName.append(";");
-            attrName.append(o);
-          }
+          attrName.append(a.getNameWithOptions());
 
           for (ByteString v : a)
           {
@@ -571,13 +567,7 @@ outerLoop:
       Modification m    = iterator.next();
       Attribute    a    = m.getAttribute();
 
-      StringBuilder nameBuffer = new StringBuilder(a.getName());
-      for (String o : a.getOptions())
-      {
-        nameBuffer.append(";");
-        nameBuffer.append(o);
-      }
-      String  name = nameBuffer.toString();
+      String name = a.getNameWithOptions();
 
       StringBuilder modTypeLine = new StringBuilder();
       modTypeLine.append(m.getModificationType());

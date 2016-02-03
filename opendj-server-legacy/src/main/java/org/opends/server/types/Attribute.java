@@ -29,7 +29,6 @@ package org.opends.server.types;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -145,15 +144,6 @@ public interface Attribute extends Iterable<ByteString>
    *         options that might have been provided.
    */
   String getNameWithOptions();
-
-  /**
-   * Retrieves the unmodifiable set of attribute options for this attribute. The returned set of
-   * options are not normalized.
-   *
-   * @return The unmodifiable set of attribute options for this attribute.
-   * @Deprecated use {@link #getAttributeDescription()}
-   */
-  Set<String> getOptions();
 
   /**
    * Indicates whether this attribute has any value(s) that are

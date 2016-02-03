@@ -27,10 +27,8 @@
 package org.opends.server.types;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -118,14 +116,6 @@ public final class VirtualAttribute
   {
     return attributeDescription;
   }
-
-  @Override
-  public Set<String> getOptions()
-  {
-    return Collections.emptySet();
-  }
-
-
 
   /**
    * Retrieves the virtual attribute rule that governs the behavior of

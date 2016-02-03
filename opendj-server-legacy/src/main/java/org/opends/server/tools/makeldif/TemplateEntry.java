@@ -36,9 +36,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
 import org.opends.server.util.LDIFException;
 
 /**
@@ -387,12 +392,13 @@ public class TemplateEntry
             continue;
           }
 
-          StringBuilder attrName = attrNameWithOptions(a);
+          String attrName = a.getNameWithOptions();
           if (typesOnly)
           {
-            attrName.append(":");
+            StringBuilder attrLine = new StringBuilder(attrName);
+            attrLine.append(":");
 
-            writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
+            writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
           }
           else
           {
@@ -430,12 +436,13 @@ public class TemplateEntry
               continue;
             }
 
-            StringBuilder attrName = attrNameWithOptions(a);
+            String attrName = a.getNameWithOptions();
             if (typesOnly)
             {
-              attrName.append(":");
+              StringBuilder attrLine = new StringBuilder(attrName);
+              attrLine.append(":");
 
-              writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
+              writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
             }
             else
             {
@@ -455,17 +462,6 @@ public class TemplateEntry
     writer.newLine();
 
     return true;
-  }
-
-  private StringBuilder attrNameWithOptions(Attribute a)
-  {
-    StringBuilder attrName = new StringBuilder(a.getName());
-    for (String o : a.getOptions())
-    {
-      attrName.append(";");
-      attrName.append(o);
-    }
-    return attrName;
   }
 
   private boolean contains(List<Attribute> urlAttrList, ByteString v)
