@@ -465,7 +465,7 @@ implements EntryReadListener
       }
       if (!isReadOnly)
       {
-        isReadOnly = dn.equals(DN.NULL_DN);
+        isReadOnly = dn.equals(DN.rootDN());
       }
     }
     catch (Throwable t)
@@ -487,7 +487,7 @@ implements EntryReadListener
     try
     {
       DN dn = DN.valueOf(sDn);
-      return !dn.equals(DN.NULL_DN)
+      return !dn.equals(DN.rootDN())
           && !nonDeletable.contains(dn)
           && isDescendantOfAny(dn, parentReadOnly);
     }

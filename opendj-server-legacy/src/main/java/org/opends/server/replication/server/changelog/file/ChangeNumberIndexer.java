@@ -41,9 +41,9 @@ import org.opends.server.replication.server.changelog.api.AbortedChangelogCursor
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.types.DN;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -69,7 +69,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    * If it contains nothing, then the run method executes normally.
    * Otherwise, the {@link #run()} method must clear its state
    * for the supplied domain baseDNs. If a supplied domain is
-   * {@link DN#NULL_DN}, then all domains will be cleared.
+   * {@link DN#rootDN()}, then all domains will be cleared.
    */
   private final ConcurrentSkipListSet<DN> domainsToClear = new ConcurrentSkipListSet<>();
   private final ChangelogDB changelogDB;
@@ -586,13 +586,13 @@ public class ChangeNumberIndexer extends DirectoryThread
    * <p>
    * Note: This method blocks the current thread until state is cleared.
    *
-   * @param baseDN the baseDN to be cleared from this thread's state.
-   *               {@code null} and {@link DN#NULL_DN} mean "clear all domains".
+   * @param baseDN
+   *          the baseDN to be cleared from this thread's state. {@code null} and
+   *          {@link DN#rootDN()} mean "clear all domains".
    */
   public void clear(DN baseDN)
   {
-    // Use DN.NULL_DN to say "clear all domains"
-    final DN baseDNToClear = baseDN != null ? baseDN : DN.NULL_DN;
+    final DN baseDNToClear = baseDN != null ? baseDN : DN.rootDN();
     domainsToClear.add(baseDNToClear);
     while (domainsToClear.contains(baseDNToClear)
         && !State.TERMINATED.equals(getState()))
@@ -606,5 +606,4 @@ public class ChangeNumberIndexer extends DirectoryThread
       Thread.yield();
     }
   }
-
 }

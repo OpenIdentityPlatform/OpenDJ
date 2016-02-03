@@ -110,7 +110,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
     ifNull(value);
 
     try {
-      return Aci.decode(ByteString.valueOfUtf8(value), DN.NULL_DN);
+      return Aci.decode(ByteString.valueOfUtf8(value), DN.rootDN());
     } catch (AciException e) {
       // TODO: it would be nice to throw the cause.
       throw PropertyException.illegalPropertyValueException(this, value);

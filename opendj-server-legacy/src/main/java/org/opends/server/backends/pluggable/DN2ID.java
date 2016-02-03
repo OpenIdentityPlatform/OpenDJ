@@ -368,7 +368,7 @@ class DN2ID extends AbstractTree
         pushNewParent(dn, entryID);
         return true;
       }
-      popCompleteParents(DN.NULL_DN.toNormalizedByteString());
+      popCompleteParents(DN.rootDN().toNormalizedByteString());
       return false;
     }
 

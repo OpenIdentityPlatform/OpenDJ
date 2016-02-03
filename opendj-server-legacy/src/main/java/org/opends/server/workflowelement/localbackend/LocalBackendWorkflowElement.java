@@ -445,7 +445,7 @@ public class LocalBackendWorkflowElement
     operation.setAuthorizationEntry(authorizationEntry);
 
     operation.setProxiedAuthorizationDN(
-      authorizationEntry != null ? authorizationEntry.getName() : DN.NULL_DN);
+      authorizationEntry != null ? authorizationEntry.getName() : DN.rootDN());
   }
 
   /**

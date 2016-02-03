@@ -144,17 +144,14 @@ public class DirectoryThread extends Thread
       this.threadNamePrefix = threadNamePrefix;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public Thread newThread(Runnable r)
     {
       return new DirectoryThread(r, threadNamePrefix + " "
           + nextID.getAndIncrement());
     }
-
   }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -194,19 +191,16 @@ public class DirectoryThread extends Thread
           ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getComponentEntryDN() {
-      return DN.NULL_DN;
+      return DN.rootDN();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getClassName() {
       return DirectoryThread.class.getName();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Map<String, String> getAlerts() {
       return alerts;

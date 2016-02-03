@@ -149,7 +149,7 @@ public class ConsoleDebugLogPublisher extends
   public DN getDN()
   {
     // There is no configuration DN associated with this publisher.
-    return DN.NULL_DN;
+    return DN.rootDN();
   }
 
 }

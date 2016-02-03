@@ -61,11 +61,8 @@ import org.opends.server.core.DirectoryServer;
 public final class DN implements Comparable<DN>, Serializable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * A singleton instance of the null DN (a DN with no components).
-   */
-  public static final DN NULL_DN = new DN();
+  /** A singleton instance of the root/null DN (a DN with no components). */
+  private static final DN ROOT_DN = new DN();
 
   /** RDN separator for normalized byte string of a DN. */
   public static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
@@ -200,7 +197,7 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public static DN rootDN()
   {
-    return NULL_DN;
+    return ROOT_DN;
   }
 
 
@@ -548,13 +545,13 @@ public final class DN implements Comparable<DN>, Serializable
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
-      return NULL_DN;
+      return rootDN();
     }
 
     int    length  = dnString.length();
     if (length == 0)
     {
-      return NULL_DN;
+      return rootDN();
     }
 
 
@@ -585,7 +582,7 @@ public final class DN implements Comparable<DN>, Serializable
       // This means that the DN was completely comprised of spaces
       // and therefore should be considered the same as a null or
       // empty DN.
-      return NULL_DN;
+      return rootDN();
     }
 
     dnReader.skip(-1);
@@ -838,13 +835,13 @@ public final class DN implements Comparable<DN>, Serializable
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
-      return NULL_DN;
+      return rootDN();
     }
 
     int length = dnString.length();
     if (length == 0)
     {
-      return NULL_DN;
+      return rootDN();
     }
 
 
@@ -860,7 +857,7 @@ public final class DN implements Comparable<DN>, Serializable
         // This means that the DN was completely comprised of spaces
         // and therefore should be considered the same as a null or
         // empty DN.
-        return NULL_DN;
+        return rootDN();
       }
       else
       {

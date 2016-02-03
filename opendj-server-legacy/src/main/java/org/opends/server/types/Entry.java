@@ -3367,7 +3367,7 @@ public class Entry
       DN dn;
       if (config.excludeDN())
       {
-        dn = DN.NULL_DN;
+        dn = DN.rootDN();
       }
       else
       {

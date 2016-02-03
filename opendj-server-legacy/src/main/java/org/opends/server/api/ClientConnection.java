@@ -952,7 +952,7 @@ public abstract class ClientConnection
     {
       if (operation.getAuthorizationDN().equals(
                authenticationInfo.getAuthorizationDN()) ||
-          (operation.getAuthorizationDN().equals(DN.NULL_DN) &&
+          (operation.getAuthorizationDN().equals(DN.rootDN()) &&
            !authenticationInfo.isAuthenticated())) {
         result = privileges.contains(privilege) ||
                  DirectoryServer.isDisabled(privilege);

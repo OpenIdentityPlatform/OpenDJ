@@ -471,7 +471,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     }
     catch (DirectoryException de)
     {
-      return DN.NULL_DN;
+      return DN.rootDN();
     }
   }
 
