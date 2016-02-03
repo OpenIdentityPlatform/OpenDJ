@@ -50,7 +50,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;

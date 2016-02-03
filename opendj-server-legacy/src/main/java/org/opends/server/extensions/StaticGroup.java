@@ -67,7 +67,6 @@ import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
 
-import static org.forgerock.util.Reject.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
