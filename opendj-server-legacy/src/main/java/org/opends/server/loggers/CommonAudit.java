@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -748,7 +748,7 @@ public class CommonAudit
 
     String getName()
     {
-      return config.dn().getRDN(0).getAttributeValue(0).toString();
+      return config.dn().getRDN(0).getFirstAVA().getAttributeValue().toString();
     }
 
     String getCommonAuditTopic() throws ConfigException

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui.nodes;
 
 import javax.swing.Icon;
@@ -35,10 +34,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.RDN;
 
-/**
- * The basic node used to render entries in the 'Manage Entries' tree.
- *
- */
+/** The basic node used to render entries in the 'Manage Entries' tree. */
 public class BasicNode extends DefaultMutableTreeNode {
 
   private static final long serialVersionUID = 5441658731908509872L;
@@ -203,6 +199,7 @@ public class BasicNode extends DefaultMutableTreeNode {
    * @return <CODE>true</CODE> if the node is a leaf and <CODE>false</CODE>
    * otherwise.
    */
+  @Override
   public boolean isLeaf() {
     return isLeaf;
   }
@@ -319,10 +316,11 @@ public class BasicNode extends DefaultMutableTreeNode {
   }
 
 
-  /**
-   * Rendering
-   */
-  /** {@inheritDoc} */
+  //
+  // Rendering
+  //
+
+  @Override
   public String toString() {
     return getDisplayName();
   }
@@ -419,7 +417,7 @@ public class BasicNode extends DefaultMutableTreeNode {
           }
           else
           {
-            result = rdn.getAttributeValue(0).toString();
+            result = rdn.getFirstAVA().getAttributeValue().toString();
           }
         }
         else {

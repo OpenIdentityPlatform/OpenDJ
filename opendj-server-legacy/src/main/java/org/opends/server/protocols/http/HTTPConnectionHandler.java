@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2015 ForgeRock AS
+ *      Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -431,7 +431,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     if (friendlyName == null)
     {
-      friendlyName = config.dn().rdn().getAttributeValue(0).toString();
+      friendlyName = config.dn().rdn().getFirstAVA().getAttributeValue().toString();
     }
 
     int listenPort = config.getListenPort();

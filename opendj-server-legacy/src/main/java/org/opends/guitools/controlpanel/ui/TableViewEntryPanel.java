@@ -63,6 +63,7 @@ import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
@@ -284,13 +285,12 @@ public class TableViewEntryPanel extends ViewEntryPanel
       if (oldDN.size() > 0)
       {
         RDN rdn = oldDN.rdn();
-        List<AttributeType> attributeTypes = new ArrayList<>();
-        List<String> attributeNames = new ArrayList<>();
-        List<ByteString> attributeValues = new ArrayList<>();
-        for (int i=0; i<rdn.getNumValues(); i++)
+        List<AVA> avas = new ArrayList<>();
+        for (AVA ava : rdn)
         {
-          String attrName = rdn.getAttributeName(i);
-          ByteString value = rdn.getAttributeValue(i);
+          AttributeType attrType = ava.getAttributeType();
+          String attrName = ava.getAttributeName();
+          ByteString value = ava.getAttributeValue();
 
           Set<String> values = getDisplayedStringValues(attrName);
           if (!values.contains(value.toString()))
@@ -300,20 +300,16 @@ public class TableViewEntryPanel extends ViewEntryPanel
               String firstNonEmpty = getFirstNonEmpty(values);
               if (firstNonEmpty != null)
               {
-                attributeTypes.add(rdn.getAttributeType(i));
-                attributeNames.add(rdn.getAttributeName(i));
-                attributeValues.add(ByteString.valueOfUtf8(firstNonEmpty));
+                avas.add(new AVA(attrType, attrName, ByteString.valueOfUtf8(firstNonEmpty)));
               }
             }
           }
           else
           {
-            attributeTypes.add(rdn.getAttributeType(i));
-            attributeNames.add(rdn.getAttributeName(i));
-            attributeValues.add(value);
+            avas.add(new AVA(attrType, attrName, value));
           }
         }
-        if (attributeTypes.isEmpty())
+        if (avas.isEmpty())
         {
           // Check the attributes in the order that we display them and use
           // the first one.
@@ -336,9 +332,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
                 String aName = Utilities.getAttributeNameWithoutOptions(attrName);
                 if (schema.hasAttributeType(aName))
                 {
-                  attributeTypes.add(schema.getAttributeType(aName));
-                  attributeNames.add(attrName);
-                  attributeValues.add(ByteString.valueOfUtf8((String) o));
+                  avas.add(new AVA(schema.getAttributeType(aName), attrName, o));
                 }
                 break;
               }
@@ -346,9 +340,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
           }
         }
         DN parent = oldDN.parent();
-        if (!attributeTypes.isEmpty())
+        if (!avas.isEmpty())
         {
-          RDN newRDN = new RDN(attributeTypes, attributeNames, attributeValues);
+          RDN newRDN = new RDN(avas);
 
           DN newDN;
           if (parent == null)

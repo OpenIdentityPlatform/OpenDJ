@@ -48,6 +48,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -65,7 +66,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 
@@ -208,10 +208,9 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     LinkedList<SearchFilter> filterComps = new LinkedList<>();
     for (int i=0; i < peerDN.size(); i++)
     {
-      RDN rdn = peerDN.getRDN(i);
-      for (int j=0; j < rdn.getNumValues(); j++)
+      for (AVA ava : peerDN.getRDN(i))
       {
-        String lowerName = toLowerCase(rdn.getAttributeName(j));
+        String lowerName = toLowerCase(ava.getAttributeName());
 
         // Try to normalize lowerName
         lowerName = normalizeAttributeName(lowerName);
@@ -219,7 +218,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         AttributeType attrType = theAttributeMap.get(lowerName);
         if (attrType != null)
         {
-          filterComps.add(SearchFilter.createEqualityFilter(attrType, rdn.getAttributeValue(j)));
+          filterComps.add(SearchFilter.createEqualityFilter(attrType, ava.getAttributeValue()));
         }
       }
     }

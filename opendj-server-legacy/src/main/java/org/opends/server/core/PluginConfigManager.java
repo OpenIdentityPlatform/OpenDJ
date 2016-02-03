@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -30,7 +30,13 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -56,8 +62,64 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.types.*;
-import org.opends.server.types.operation.*;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DN;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAbandonOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationBindOperation;
+import org.opends.server.types.operation.PostOperationCompareOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationExtendedOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostOperationSearchOperation;
+import org.opends.server.types.operation.PostOperationUnbindOperation;
+import org.opends.server.types.operation.PostResponseAddOperation;
+import org.opends.server.types.operation.PostResponseBindOperation;
+import org.opends.server.types.operation.PostResponseCompareOperation;
+import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseExtendedOperation;
+import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.types.operation.PostResponseModifyOperation;
+import org.opends.server.types.operation.PostResponseSearchOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationBindOperation;
+import org.opends.server.types.operation.PreOperationCompareOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationExtendedOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.PreOperationOperation;
+import org.opends.server.types.operation.PreOperationSearchOperation;
+import org.opends.server.types.operation.PreParseAbandonOperation;
+import org.opends.server.types.operation.PreParseAddOperation;
+import org.opends.server.types.operation.PreParseBindOperation;
+import org.opends.server.types.operation.PreParseCompareOperation;
+import org.opends.server.types.operation.PreParseDeleteOperation;
+import org.opends.server.types.operation.PreParseExtendedOperation;
+import org.opends.server.types.operation.PreParseModifyDNOperation;
+import org.opends.server.types.operation.PreParseModifyOperation;
+import org.opends.server.types.operation.PreParseOperation;
+import org.opends.server.types.operation.PreParseSearchOperation;
+import org.opends.server.types.operation.PreParseUnbindOperation;
+import org.opends.server.types.operation.SearchEntrySearchOperation;
+import org.opends.server.types.operation.SearchReferenceSearchOperation;
+import org.opends.server.types.operation.SubordinateModifyDNOperation;
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -1010,7 +1072,7 @@ public class PluginConfigManager
       for (DirectoryServerPlugin p : pluginArray)
       {
         DN dn = p.getPluginEntryDN();
-        String lowerName = toLowerCase(dn.rdn().getAttributeValue(0).toString());
+        String lowerName = toLowerCase(dn.rdn().getFirstAVA().getAttributeValue().toString());
         if (initialPluginNames.contains(lowerName))
         {
           initialPlugins.put(lowerName, p);
@@ -1029,7 +1091,7 @@ public class PluginConfigManager
       // Get the name of the provided plugin from its RDN value and put it in
       // the correct category.
       DN dn = plugin.getPluginEntryDN();
-      String lowerName = toLowerCase(dn.rdn().getAttributeValue(0).toString());
+      String lowerName = toLowerCase(dn.rdn().getFirstAVA().getAttributeValue().toString());
       if (initialPluginNames.contains(lowerName))
       {
         initialPlugins.put(lowerName, plugin);

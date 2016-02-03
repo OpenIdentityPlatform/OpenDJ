@@ -34,25 +34,56 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
@@ -669,11 +700,10 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final RDN rdn = dn.rdn();
     if (rdn != null)
     {
-      // Add the RDN values
-      for (int i = 0; i < rdn.getNumValues(); i++)
+      for (AVA ava : rdn)
       {
-        final AttributeType attributeType = rdn.getAttributeType(i);
-        final ByteString value = rdn.getAttributeValue(attributeType);
+        final AttributeType attributeType = ava.getAttributeType();
+        final ByteString value = ava.getAttributeValue();
         monitorUserAttrs.put(attributeType, Attributes.createAsList(attributeType, value));
       }
     }
@@ -765,9 +795,9 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final HashMap<AttributeType, List<Attribute>> attrMap = new LinkedHashMap<>(monitorAttrs.size() + 1);
 
     // Make sure to include the RDN attribute.
-    final RDN entryRDN = entryDN.rdn();
-    final AttributeType rdnType = entryRDN.getAttributeType(0);
-    final ByteString rdnValue = entryRDN.getAttributeValue(0);
+    final AVA ava = entryDN.rdn().getFirstAVA();
+    final AttributeType rdnType = ava.getAttributeType();
+    final ByteString rdnValue = ava.getAttributeValue();
 
     attrMap.put(rdnType, Attributes.createAsList(rdnType, rdnValue));
 

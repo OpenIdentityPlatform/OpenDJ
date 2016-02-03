@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -648,7 +648,7 @@ public final class LDAPConnectionHandler extends
   {
     if (friendlyName == null)
     {
-      friendlyName = config.dn().rdn().getAttributeValue(0).toString();
+      friendlyName = config.dn().rdn().getFirstAVA().getAttributeValue().toString();
     }
 
     // Open the selector.

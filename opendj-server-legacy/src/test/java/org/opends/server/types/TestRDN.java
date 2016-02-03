@@ -31,7 +31,9 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
@@ -92,10 +94,11 @@ public final class TestRDN extends TypesTestCase {
   public void testConstructor() throws Exception {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
 
-    assertEquals(rdn.getNumValues(), 1);
-    assertEquals(rdn.getAttributeType(0), AT_DC);
-    assertEquals(rdn.getAttributeName(0), AT_DC.getNameOrOID());
-    assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
+    assertEquals(rdn.size(), 1);
+    AVA ava = rdn.getFirstAVA();
+    assertEquals(ava.getAttributeType(), AT_DC);
+    assertEquals(ava.getAttributeName(), AT_DC.getNameOrOID());
+    assertEquals(ava.getAttributeValue(), AV_DC_ORG);
   }
 
 
@@ -110,10 +113,11 @@ public final class TestRDN extends TypesTestCase {
   public void testConstructorWithName() throws Exception {
     RDN rdn = new RDN(AT_DC, "domainComponent", AV_DC_ORG);
 
-    assertEquals(rdn.getNumValues(), 1);
-    assertEquals(rdn.getAttributeType(0), AT_DC);
-    assertEquals(rdn.getAttributeName(0), "domainComponent");
-    assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
+    assertEquals(rdn.size(), 1);
+    AVA ava = rdn.getFirstAVA();
+    assertEquals(ava.getAttributeType(), AT_DC);
+    assertEquals(ava.getAttributeName(), "domainComponent");
+    assertEquals(ava.getAttributeValue(), AV_DC_ORG);
   }
 
 
@@ -133,15 +137,19 @@ public final class TestRDN extends TypesTestCase {
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
-    assertEquals(rdn.getNumValues(), 2);
+    assertEquals(rdn.size(), 2);
 
-    assertEquals(rdn.getAttributeType(0), AT_DC);
-    assertEquals(rdn.getAttributeName(0), AT_DC.getNameOrOID());
-    assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
+    Iterator<AVA> it = rdn.iterator();
+    AVA ava1 = it.next();
+    AVA ava2 = it.next();
 
-    assertEquals(rdn.getAttributeType(1), AT_CN);
-    assertEquals(rdn.getAttributeName(1), AT_CN.getNameOrOID());
-    assertEquals(rdn.getAttributeValue(1), AV_CN);
+    assertEquals(ava1.getAttributeType(), AT_DC);
+    assertEquals(ava1.getAttributeName(), AT_DC.getNameOrOID());
+    assertEquals(ava1.getAttributeValue(), AV_DC_ORG);
+
+    assertEquals(ava2.getAttributeType(), AT_CN);
+    assertEquals(ava2.getAttributeName(), AT_CN.getNameOrOID());
+    assertEquals(ava2.getAttributeValue(), AV_CN);
   }
 
 
@@ -168,15 +176,19 @@ public final class TestRDN extends TypesTestCase {
 
     RDN rdn = new RDN(typeList, nameList, valueList);
 
-    assertEquals(rdn.getNumValues(), 2);
+    assertEquals(rdn.size(), 2);
 
-    assertEquals(rdn.getAttributeType(0), AT_DC);
-    assertEquals(rdn.getAttributeName(0), AT_DC.getNameOrOID());
-    assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
+    Iterator<AVA> it = rdn.iterator();
+    AVA ava1 = it.next();
+    AVA ava2 = it.next();
 
-    assertEquals(rdn.getAttributeType(1), AT_CN);
-    assertEquals(rdn.getAttributeName(1), AT_CN.getNameOrOID());
-    assertEquals(rdn.getAttributeValue(1), AV_CN);
+    assertEquals(ava1.getAttributeType(), AT_DC);
+    assertEquals(ava1.getAttributeName(), AT_DC.getNameOrOID());
+    assertEquals(ava1.getAttributeValue(), AV_DC_ORG);
+
+    assertEquals(ava2.getAttributeType(), AT_CN);
+    assertEquals(ava2.getAttributeName(), AT_CN.getNameOrOID());
+    assertEquals(ava2.getAttributeValue(), AV_CN);
   }
 
 
@@ -292,8 +304,6 @@ public final class TestRDN extends TypesTestCase {
     fail("Expected exception for value \"" + rawRDN + "\"");
   }
 
-
-
   /**
    * Test getAttributeName.
    *
@@ -309,10 +319,13 @@ public final class TestRDN extends TypesTestCase {
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
-    assertEquals(rdn.getAttributeName(0), AT_DC.getNameOrOID());
-    assertEquals(rdn.getAttributeName(1), AT_CN.getNameOrOID());
-  }
+    Iterator<AVA> it = rdn.iterator();
+    AVA ava1 = it.next();
+    AVA ava2 = it.next();
 
+    assertEquals(ava1.getAttributeName(), AT_DC.getNameOrOID());
+    assertEquals(ava2.getAttributeName(), AT_CN.getNameOrOID());
+ }
 
   @SuppressWarnings("javadoc")
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -334,9 +347,9 @@ public final class TestRDN extends TypesTestCase {
     ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
-
-    assertEquals(rdn.getAttributeType(0), AT_DC);
-    assertEquals(rdn.getAttributeType(1), AT_CN);
+    Iterator<AVA> it = rdn.iterator();
+    assertEquals(it.next().getAttributeType(), AT_DC);
+    assertEquals(it.next().getAttributeType(), AT_CN);
   }
 
   /**
@@ -353,9 +366,9 @@ public final class TestRDN extends TypesTestCase {
     ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
-
-    assertEquals(rdn.getAttributeValue(0), AV_DC_ORG);
-    assertEquals(rdn.getAttributeValue(1), AV_CN);
+    Iterator<AVA> it = rdn.iterator();
+    assertEquals(it.next().getAttributeValue(), AV_DC_ORG);
+    assertEquals(it.next().getAttributeValue(), AV_CN);
   }
 
   /**
@@ -375,18 +388,18 @@ public final class TestRDN extends TypesTestCase {
 
 
   /**
-   * Test getNumValues.
+   * Test {@link RDN#size()}.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testGetNumValues() throws Exception {
+  public void testSize() throws Exception {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
-    assertEquals(rdn.getNumValues(), 1);
+    assertEquals(rdn.size(), 1);
 
     rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
-    assertEquals(rdn.getNumValues(), 2);
+    assertEquals(rdn.size(), 2);
   }
 
 
@@ -419,7 +432,7 @@ public final class TestRDN extends TypesTestCase {
   @Test
   public void testIsMultiValued() throws Exception {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
-    assertEquals(rdn.getNumValues(), 1);
+    assertEquals(rdn.size(), 1);
     assertFalse(rdn.isMultiValued());
 
     rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);

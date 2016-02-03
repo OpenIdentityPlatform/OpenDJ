@@ -71,6 +71,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -1130,9 +1131,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     RDN newRdn = modifyDNOperation.getNewRDN();
 
     // Go through each attribute of the old RDN
-    for (int i=0 ; i<rdn.getNumValues() ; i++)
+    for (AVA ava : rdn)
     {
-      AttributeType attributeType = rdn.getAttributeType(i);
+      AttributeType attributeType = ava.getAttributeType();
       // Is it present in the fractional attributes established list ?
       boolean foundAttribute =
           fractionalConcernedAttributes.contains(attributeType);

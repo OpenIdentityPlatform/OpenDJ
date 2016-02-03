@@ -285,9 +285,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   {
     RDN srcRDN = searchEntry.getName().rdn();
 
-    // Only process the entry if it has the expected form of RDN.
-    if (!srcRDN.isMultiValued() &&
-         srcRDN.getAttributeType(0).equals(attrAlias))
+    if (canProcessEntry(srcRDN))
     {
       DN dstDN = trustStoreRootDN.child(srcRDN);
 
@@ -348,6 +346,12 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
         modifyEntry(searchEntry, dstEntry);
       }
     }
+  }
+
+  /** Only process the entry if it has the expected form of RDN. */
+  private boolean canProcessEntry(RDN rdn)
+  {
+    return !rdn.isMultiValued() && rdn.getFirstAVA().getAttributeType().equals(attrAlias);
   }
 
 
@@ -461,10 +465,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   private void handleInstanceKeyAddOperation(Entry entry)
   {
     RDN srcRDN = entry.getName().rdn();
-
-    // Only process the entry if it has the expected form of RDN.
-    if (!srcRDN.isMultiValued() &&
-         srcRDN.getAttributeType(0).equals(attrAlias))
+    if (canProcessEntry(srcRDN))
     {
       DN dstDN = trustStoreRootDN.child(srcRDN);
 
@@ -486,12 +487,10 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     RDN srcRDN = op.getEntryToDelete().getName().rdn();
 
-    // Only process the entry if it has the expected form of RDN.
     // FIXME: Technically it is possible to perform a subtree in
     // this case however such subtree delete would essentially be
     // removing configuration branches which should not happen.
-    if (!srcRDN.isMultiValued() &&
-         srcRDN.getAttributeType(0).equals(attrAlias))
+    if (canProcessEntry(srcRDN))
     {
       DN destDN = trustStoreRootDN.child(srcRDN);
       deleteEntry(destDN);
@@ -539,9 +538,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   {
     RDN srcRDN = newEntry.getName().rdn();
 
-    // Only process the entry if it has the expected form of RDN.
-    if (!srcRDN.isMultiValued() &&
-         srcRDN.getAttributeType(0).equals(attrAlias))
+    if (canProcessEntry(srcRDN))
     {
       DN dstDN = trustStoreRootDN.child(srcRDN);
 

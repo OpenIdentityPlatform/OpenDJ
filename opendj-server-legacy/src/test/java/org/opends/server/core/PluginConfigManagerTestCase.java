@@ -22,31 +22,25 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
-
-
 import java.util.ArrayList;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.types.DN;
 
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
-
-
-/**
- * A set of test cases for the plugin config manager.
- */
+/** A set of test cases for the plugin config manager. */
 public class PluginConfigManagerTestCase
        extends CoreTestCase
 {
@@ -639,7 +633,7 @@ public class PluginConfigManagerTestCase
       expectedOrder.append(expectedNameOrder[i]);
 
       DN dn = pluginArray[i].getPluginEntryDN();
-      String name = dn.rdn().getAttributeValue(0).toString().toLowerCase();
+      String name = dn.rdn().getFirstAVA().getAttributeValue().toString().toLowerCase();
       actualOrder.append(name);
 
       if (! name.equals(expectedNameOrder[i]))

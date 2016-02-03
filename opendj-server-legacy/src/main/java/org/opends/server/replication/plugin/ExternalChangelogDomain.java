@@ -22,26 +22,23 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.RDN;
 
-/**
- * This class specifies the external changelog feature for a replication
- * domain.
- */
+/** This class specifies the external changelog feature for a replication domain. */
 public class ExternalChangelogDomain
   implements ConfigurationAddListener<ExternalChangelogDomainCfg>,
              ConfigurationDeleteListener<ExternalChangelogDomainCfg>,
@@ -117,7 +114,7 @@ public class ExternalChangelogDomain
       if (domain==null)
       {
         RDN rdn = configuration.dn().parent().rdn();
-        DN rdns = DN.decode(rdn.getAttributeValue(0));
+        DN rdns = DN.decode(rdn.getFirstAVA().getAttributeValue());
         domain = MultimasterReplication.findDomain(rdns, null);
       }
       return null;

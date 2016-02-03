@@ -35,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -916,11 +917,10 @@ public final class AciHandler extends
   private boolean checkRDN(int right, RDN rdn, AciContainer container)
   {
     container.setRights(right);
-    final int numAVAs = rdn.getNumValues();
-    for (int i = 0; i < numAVAs; i++)
+    for (AVA ava : rdn)
     {
-      container.setCurrentAttributeType(rdn.getAttributeType(i));
-      container.setCurrentAttributeValue(rdn.getAttributeValue(i));
+      container.setCurrentAttributeType(ava.getAttributeType());
+      container.setCurrentAttributeValue(ava.getAttributeValue());
       if (!accessAllowed(container))
       {
         return false;

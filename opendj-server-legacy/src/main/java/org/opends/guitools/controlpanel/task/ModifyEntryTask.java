@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -47,7 +47,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -120,9 +123,9 @@ public class ModifyEntryTask extends Task
       }
       mustRename = !newDn.equals(oldDn);
     }
-    catch (OpenDsException ode)
+    catch (OpenDsException e)
     {
-      throw new RuntimeException("Could not parse DN: " + oldEntry.getDN(), ode);
+      throw new RuntimeException("Could not parse DN: " + oldEntry.getDN(), e);
     }
     modifications = getModifications(newEntry, oldEntry, getInfo());
     // Find password modifications
@@ -422,14 +425,14 @@ public class ModifyEntryTask extends Task
 
   private boolean rdnTypeChanged(RDN oldRDN, RDN newRDN)
   {
-    if (newRDN.getNumValues() != oldRDN.getNumValues())
+    if (newRDN.size() != oldRDN.size())
     {
       return true;
     }
 
-    for (int i = 0; i < newRDN.getNumValues(); i++)
+    for (AVA ava : newRDN)
     {
-      if (!find(oldRDN, newRDN.getAttributeName(i)))
+      if (!find(oldRDN, ava.getAttributeType()))
       {
         return true;
       }
@@ -437,11 +440,11 @@ public class ModifyEntryTask extends Task
     return false;
   }
 
-  private boolean find(RDN rdn, String attrName)
+  private boolean find(RDN rdn, AttributeType attrType)
   {
-    for (int j = 0; j < rdn.getNumValues(); j++)
+    for (AVA ava : rdn)
     {
-      if (attrName.equalsIgnoreCase(rdn.getAttributeName(j)))
+      if (attrType.equals(ava.getAttributeType()))
       {
         return true;
       }
@@ -463,9 +466,9 @@ public class ModifyEntryTask extends Task
 
   private boolean entryContainsRdnTypes(CustomSearchResult entry, RDN rdn)
   {
-    for (int i = 0; i < rdn.getNumValues(); i++)
+    for (AVA ava : rdn)
     {
-      List<Object> values = entry.getAttributeValues(rdn.getAttributeName(i));
+      List<Object> values = entry.getAttributeValues(ava.getAttributeName());
       if (values.isEmpty())
       {
         return false;
@@ -490,7 +493,8 @@ public class ModifyEntryTask extends Task
     newAttrs.add(newEntry.getObjectClassAttribute());
     for (org.opends.server.types.Attribute attr : newAttrs)
     {
-      String attrName = attr.getNameWithOptions();
+      AttributeDescription attrDesc = attr.getAttributeDescription();
+      String attrName = attrDesc.toString();
       if (!ViewEntryPanel.isEditable(attrName, schema))
       {
         continue;
@@ -503,18 +507,15 @@ public class ModifyEntryTask extends Task
       }
       List<Object> oldValues = oldEntry.getAttributeValues(attrName);
 
-      boolean isAttributeInNewRdn = false;
       ByteString rdnValue = null;
-      RDN rdn = newEntry.getName().rdn();
-      for (int i=0; i<rdn.getNumValues() && !isAttributeInNewRdn; i++)
+      for (AVA ava : newEntry.getName().rdn())
       {
-        isAttributeInNewRdn =
-          rdn.getAttributeName(i).equalsIgnoreCase(attrName);
-        if (isAttributeInNewRdn)
+        if (ava.getAttributeType().equals(attrDesc.getAttributeType()))
         {
-          rdnValue = rdn.getAttributeValue(i);
+          rdnValue = ava.getAttributeValue();
         }
       }
+      boolean isAttributeInNewRdn = rdnValue != null;
 
       /* Check the attributes of the old DN.  If we are renaming them they
        * will be deleted.  Check that they are on the new entry but not in
@@ -532,16 +533,15 @@ public class ModifyEntryTask extends Task
       {
         oldRDN = DN.valueOf(oldEntry.getDN()).rdn();
       }
-      catch (DirectoryException de)
+      catch (DirectoryException unexpected)
       {
-        throw new RuntimeException("Unexpected error parsing DN: "+
-            oldEntry.getDN(), de);
+        throw new RuntimeException("Unexpected error parsing DN: " + oldEntry.getDN(), unexpected);
       }
-      for (int i=0; i<oldRDN.getNumValues(); i++)
+      for (AVA ava : oldRDN)
       {
-        if (oldRDN.getAttributeName(i).equalsIgnoreCase(attrName))
+        if (ava.getAttributeType().equals(attrDesc.getAttributeType()))
         {
-          ByteString value = oldRDN.getAttributeValue(i);
+          ByteString value = ava.getAttributeValue();
           if (attr.contains(value))
           {
             if (rdnValue == null || !rdnValue.equals(value))

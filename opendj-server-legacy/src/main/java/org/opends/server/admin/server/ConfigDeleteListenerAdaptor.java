@@ -22,38 +22,35 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
-
-
 import static org.opends.messages.AdminMessages.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * An adaptor class which converts {@link ConfigDeleteListener}
@@ -157,9 +154,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
     this.cachedManagedObject = null;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry) {
     if (optionalRelation != null) {
       // Optional managed objects are located directly beneath the
@@ -197,13 +192,11 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
     return result;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
-    ByteString av = dn.rdn().getAttributeValue(0);
+    ByteString av = dn.rdn().getFirstAVA().getAttributeValue();
     String name = av.toString().trim();
 
     try {

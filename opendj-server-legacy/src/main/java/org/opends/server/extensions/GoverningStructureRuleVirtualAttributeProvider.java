@@ -29,15 +29,24 @@ package org.opends.server.extensions;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.GoverningStructureRuleVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.Entry;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -170,10 +179,9 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
       }
 
       // Make sure that all attributes in the RDN are allowed.
-      int numAVAs = rdn.getNumValues();
-      for (int i = 0; i < numAVAs; i++)
+      for (AVA ava : rdn)
       {
-        AttributeType t = rdn.getAttributeType(i);
+        AttributeType t = ava.getAttributeType();
         if (!nameForm.isRequiredOrOptional(t)
             && structuralPolicy == AcceptRejectWarn.REJECT)
         {

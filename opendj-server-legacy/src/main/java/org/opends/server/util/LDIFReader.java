@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -1680,29 +1681,19 @@ public class LDIFReader implements Closeable
           Map<AttributeType,List<Attribute>>userAttributes,
           Map<AttributeType,List<Attribute>> operationalAttributes)
   {
-    RDN rdn = entryDN.rdn();
-    int numAVAs = rdn.getNumValues();
-    for (int i=0; i < numAVAs; i++)
+    for (AVA ava : entryDN.rdn())
     {
-      AttributeType  t = rdn.getAttributeType(i);
-      ByteString v = rdn.getAttributeValue(i);
-      String         n = rdn.getAttributeName(i);
-      if (t.isOperational())
-      {
-        addRDNAttributesIfNecessary(operationalAttributes, t, v, n);
-      }
-      else
-      {
-        addRDNAttributesIfNecessary(userAttributes, t, v, n);
-      }
+      AttributeType t = ava.getAttributeType();
+      addRDNAttributesIfNecessary(t.isOperational() ? operationalAttributes : userAttributes, ava);
     }
   }
 
 
-  private void addRDNAttributesIfNecessary(
-      Map<AttributeType, List<Attribute>> attributes, AttributeType t,
-      ByteString v, String n)
+  private void addRDNAttributesIfNecessary(Map<AttributeType, List<Attribute>> attributes, AVA ava)
   {
+    AttributeType t = ava.getAttributeType();
+    String n = ava.getAttributeName();
+    ByteString v = ava.getAttributeValue();
     final List<Attribute> attrList = attributes.get(t);
     if (attrList == null)
     {

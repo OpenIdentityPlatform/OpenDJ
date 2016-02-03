@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -143,7 +143,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       else
       {
         aParentDN = nodeDN.parent();
-        aRdn = nodeDN.rdn().getAttributeValue(0) + "-1";
+        aRdn = nodeDN.rdn().getFirstAVA().getAttributeValue() + "-1";
       }
     }
     catch (DirectoryException de)
@@ -406,7 +406,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         try
         {
           DN theDN = DN.valueOf(dn);
-          newValue = theDN.rdn().getAttributeValue(0).toString();
+          newValue = theDN.rdn().getFirstAVA().getAttributeValue().toString();
         }
         catch (DirectoryException de)
         {
@@ -424,7 +424,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           try
           {
             DN oldDN = DN.valueOf(entryToDuplicate.getDN());
-            oldValue = oldDN.rdn().getAttributeValue(0).toString();
+            oldValue = oldDN.rdn().getFirstAVA().getAttributeValue().toString();
           }
           catch (DirectoryException de)
           {
@@ -507,7 +507,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           try
           {
             DN dn = DN.valueOf(sr.getDN());
-            rdnAttribute = dn.rdn().getAttributeType(0).getNameOrOID();
+            rdnAttribute = dn.rdn().getFirstAVA().getAttributeType().getNameOrOID();
 
             updateDNValue();
             Boolean hasPassword = !sr.getAttributeValues(

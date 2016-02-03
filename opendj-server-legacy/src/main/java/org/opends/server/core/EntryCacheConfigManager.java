@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -498,7 +498,7 @@ public class EntryCacheConfigManager
     // Install and register the monitor for this cache.
     EntryCacheMonitorProvider monitor =
         new EntryCacheMonitorProvider(configuration.dn().
-        rdn().getAttributeValue(0).toString(), entryCache);
+        rdn().getFirstAVA().getAttributeValue().toString(), entryCache);
     try {
       monitor.initializeMonitorProvider((EntryCacheMonitorProviderCfg)
         rootConfiguration.getMonitorProvider(

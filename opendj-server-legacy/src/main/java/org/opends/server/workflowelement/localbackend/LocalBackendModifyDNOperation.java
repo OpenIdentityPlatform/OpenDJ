@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -630,14 +631,12 @@ public class LocalBackendModifyDNOperation
     // If we should delete the old RDN values from the entry, then do so.
     if (deleteOldRDN())
     {
-      RDN currentRDN = entryDN.rdn();
-      int numValues  = currentRDN.getNumValues();
-      for (int i=0; i < numValues; i++)
+      for (AVA ava : entryDN.rdn())
       {
         Attribute a = Attributes.create(
-            currentRDN.getAttributeType(i),
-            currentRDN.getAttributeName(i),
-            currentRDN.getAttributeValue(i));
+            ava.getAttributeType(),
+            ava.getAttributeName(),
+            ava.getAttributeValue());
 
         // If the associated attribute type is marked NO-USER-MODIFICATION, then
         // refuse the update.
@@ -661,13 +660,12 @@ public class LocalBackendModifyDNOperation
 
 
     // Add the new RDN values to the entry.
-    int newRDNValues = newRDN.getNumValues();
-    for (int i=0; i < newRDNValues; i++)
+    for (AVA ava : newRDN)
     {
       Attribute a = Attributes.create(
-          newRDN.getAttributeType(i),
-          newRDN.getAttributeName(i),
-          newRDN.getAttributeValue(i));
+          ava.getAttributeType(),
+          ava.getAttributeName(),
+          ava.getAttributeValue());
 
       List<ByteString> duplicateValues = new LinkedList<>();
       newEntry.addAttribute(a, duplicateValues);
@@ -704,9 +702,9 @@ public class LocalBackendModifyDNOperation
             ERR_MODDN_VIOLATES_SCHEMA.get(entryDN, invalidReason));
       }
 
-      for (int i=0; i < newRDNValues; i++)
+      for (AVA ava : newRDN)
       {
-        AttributeType at = newRDN.getAttributeType(i);
+        AttributeType at = ava.getAttributeType();
         if (at.isObsolete())
         {
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,

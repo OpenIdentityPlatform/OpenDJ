@@ -32,24 +32,33 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.SevenBitCleanPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.server.SevenBitCleanPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PreParseAddOperation;
-import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
+import org.opends.server.types.operation.PreParseModifyOperation;
 
 /**
  * This class implements a Directory Server plugin that can be used to ensure
@@ -339,20 +348,18 @@ public final class SevenBitCleanPlugin
             ERR_PLUGIN_7BIT_CANNOT_DECODE_NEW_RDN.get(de.getMessageObject()));
       }
 
-      int numValues = newRDN.getNumValues();
-      for (int i=0; i < numValues; i++)
+      for (AVA ava : newRDN)
       {
-        if (! config.getAttributeType().contains(newRDN.getAttributeType(i)))
+        if (!config.getAttributeType().contains(ava.getAttributeType()))
         {
           continue;
         }
 
-        if (!is7BitClean(newRDN.getAttributeValue(i)))
+        if (!is7BitClean(ava.getAttributeValue()))
         {
           return PluginResult.PreParse.stopProcessing(
               ResultCode.CONSTRAINT_VIOLATION,
-              ERR_PLUGIN_7BIT_MODIFYDN_ATTR_NOT_CLEAN.get(
-                  newRDN.getAttributeName(i)));
+              ERR_PLUGIN_7BIT_MODIFYDN_ATTR_NOT_CLEAN.get(ava.getAttributeName()));
         }
       }
     }

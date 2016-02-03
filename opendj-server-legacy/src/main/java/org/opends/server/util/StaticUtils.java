@@ -29,7 +29,15 @@ package org.opends.server.util;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -40,7 +48,18 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.RandomAccess;
+import java.util.TimeZone;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -49,15 +68,22 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IdentifiedException;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -2314,10 +2340,9 @@ public final class StaticUtils
 
     // Get the information about the RDN attributes.
     RDN rdn = dn.rdn();
-    int numAVAs = rdn.getNumValues();
 
     // If there is only one RDN attribute, then see which objectclass we should use.
-    ObjectClass structuralClass = DirectoryServer.getObjectClass(getObjectClassName(rdn, numAVAs));
+    ObjectClass structuralClass = DirectoryServer.getObjectClass(getObjectClassName(rdn));
 
     // Get the top and untypedObject classes to include in the entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(3);
@@ -2332,11 +2357,9 @@ public final class StaticUtils
     LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
 
     boolean extensibleObjectAdded = false;
-    for (int i=0; i < numAVAs; i++)
+    for (AVA ava : rdn)
     {
-      AttributeType attrType = rdn.getAttributeType(i);
-      ByteString attrValue = rdn.getAttributeValue(i);
-      String attrName = rdn.getAttributeName(i);
+      AttributeType attrType = ava.getAttributeType();
 
       // First, see if this type is allowed by the untypedObject class.  If not,
       // then we'll need to include the extensibleObject class.
@@ -2355,14 +2378,7 @@ public final class StaticUtils
 
 
       // Create the attribute and add it to the appropriate map.
-      if (attrType.isOperational())
-      {
-        addAttributeValue(operationalAttributes, attrType, attrName, attrValue);
-      }
-      else
-      {
-        addAttributeValue(userAttributes, attrType, attrName, attrValue);
-      }
+      addAttributeValue(attrType.isOperational() ? operationalAttributes : userAttributes, ava);
     }
 
 
@@ -2370,11 +2386,11 @@ public final class StaticUtils
     return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
   }
 
-  private static String getObjectClassName(RDN rdn, int numAVAs)
+  private static String getObjectClassName(RDN rdn)
   {
-    if (numAVAs == 1)
+    if (rdn.size() == 1)
     {
-      final AttributeType attrType = rdn.getAttributeType(0);
+      final AttributeType attrType = rdn.getFirstAVA().getAttributeType();
       if (attrType.hasName(ATTR_C))
       {
         return OC_COUNTRY;
@@ -2395,9 +2411,10 @@ public final class StaticUtils
     return OC_UNTYPED_OBJECT_LC;
   }
 
-  private static void addAttributeValue(LinkedHashMap<AttributeType, List<Attribute>> attrs,
-      AttributeType attrType, String attrName, ByteString attrValue)
+  private static void addAttributeValue(LinkedHashMap<AttributeType, List<Attribute>> attrs, AVA ava)
   {
+    AttributeType attrType = ava.getAttributeType();
+    ByteString attrValue = ava.getAttributeValue();
     List<Attribute> attrList = attrs.get(attrType);
     if (attrList != null && !attrList.isEmpty())
     {
@@ -2407,7 +2424,7 @@ public final class StaticUtils
     }
     else
     {
-      AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
+      AttributeBuilder builder = new AttributeBuilder(attrType, ava.getAttributeName());
       builder.add(attrValue);
       attrs.put(attrType, builder.toAttributeList());
     }

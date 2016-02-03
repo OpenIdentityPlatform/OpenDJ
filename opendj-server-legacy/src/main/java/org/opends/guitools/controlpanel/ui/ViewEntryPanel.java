@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -61,7 +62,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.RDN;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
@@ -294,11 +294,10 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void addValuesInRDN(Entry entry)
   {
     // Add the values in the RDN if they are not there
-    RDN rdn = entry.getName().rdn();
-    for (int i=0; i<rdn.getNumValues(); i++)
+    for (AVA ava : entry.getName().rdn())
     {
-      String attrName = rdn.getAttributeName(i);
-      ByteString value = rdn.getAttributeValue(i);
+      String attrName = ava.getAttributeName();
+      ByteString value = ava.getAttributeValue();
       boolean done = false;
       for (org.opends.server.types.Attribute attr : entry.getAttribute(attrName.toLowerCase()))
       {
@@ -313,7 +312,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       }
       if (!done)
       {
-        entry.addAttribute(Attributes.create(rdn.getAttributeType(i), value), newArrayList(value));
+        entry.addAttribute(Attributes.create(ava.getAttributeType(), value), newArrayList(value));
       }
     }
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2015 ForgeRock AS.
+ *      Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -58,11 +58,11 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.types.DN;
+import org.opends.server.util.Platform;
 
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
-import org.opends.server.util.Platform;
 
 /** This class maps JE properties to configuration attributes. */
 public class ConfigurableEnvironment
@@ -425,7 +425,7 @@ public class ConfigurableEnvironment
 
     EnvironmentConfig envConfig = defaultConfig();
     setDurability(envConfig, cfg.isDBTxnNoSync(), cfg.isDBTxnWriteNoSync());
-    setJEProperties(cfg, envConfig, cfg.dn().rdn().getAttributeValue(0));
+    setJEProperties(cfg, envConfig, cfg.dn().rdn().getFirstAVA().getAttributeValue());
     setDBLoggingLevel(envConfig, cfg.getDBLoggingLevel(), cfg.dn(), cfg.isDBLoggingFileHandlerOn());
 
     // See if there are any native JE properties specified in the config

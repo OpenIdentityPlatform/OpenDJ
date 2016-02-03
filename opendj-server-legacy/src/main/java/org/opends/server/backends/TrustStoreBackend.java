@@ -63,10 +63,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
@@ -78,8 +80,24 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.Platform.KeyType;
 import org.opends.server.util.SetupUtils;
@@ -299,18 +317,14 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
          DirectoryServer.getObjectClass("ds-cfg-branch", true);
     objectClasses.put(branchOC, "ds-cfg-branch");
 
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
-
-    RDN rdn = baseDN.rdn();
-    int numAVAs = rdn.getNumValues();
-    for (int i=0; i < numAVAs; i++)
+    for (AVA ava : baseDN.rdn())
     {
-      AttributeType attrType = rdn.getAttributeType(i);
-      userAttrs.put(attrType, Attributes.createAsList(attrType, rdn.getAttributeValue(i)));
+      AttributeType attrType = ava.getAttributeType();
+      userAttrs.put(attrType, Attributes.createAsList(attrType, ava.getAttributeValue()));
     }
 
-    baseEntry = new Entry(baseDN, objectClasses, userAttrs, opAttrs);
+    baseEntry = new Entry(baseDN, objectClasses, userAttrs, null);
 
     // Register this as a change listener.
     configuration.addTrustStoreChangeListener(this);

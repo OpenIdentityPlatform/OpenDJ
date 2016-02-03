@@ -32,6 +32,8 @@ import java.util.SortedSet;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -39,9 +41,7 @@ import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.server.RootCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -71,9 +71,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       // No implementation required.
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
       return new ConfigChangeResult();
     }
@@ -90,19 +88,16 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      */
     public TestChildCfg getChild(String expectedName) {
       Assert.assertNotNull(child);
-      Assert.assertEquals(child.dn().rdn().getAttributeValue(0).toString(), expectedName);
+      Assert.assertEquals(child.dn().rdn().getFirstAVA().getAttributeValue().toString(), expectedName);
       return child;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       child = configuration;
       return true;
     }
-
   }
 
 
@@ -125,9 +120,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       // No implementation required.
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
       return new ConfigChangeResult();
     }
@@ -144,19 +137,16 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      */
     public TestChildCfg getChild(String expectedName) {
       Assert.assertNotNull(child);
-      Assert.assertEquals(child.dn().rdn().getAttributeValue(0).toString(), expectedName);
+      Assert.assertEquals(child.dn().rdn().getFirstAVA().getAttributeValue().toString(), expectedName);
       return child;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       child = configuration;
       return true;
     }
-
   }
 
   /** Test child 1 LDIF. */

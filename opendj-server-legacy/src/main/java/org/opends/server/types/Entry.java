@@ -46,6 +46,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
@@ -1890,10 +1891,9 @@ public class Entry
         }
 
           // Make sure that all attributes in the RDN are allowed.
-          int numAVAs = rdn.getNumValues();
-          for (int i = 0; i < numAVAs; i++)
+          for (AVA ava : rdn)
           {
-            AttributeType t = rdn.getAttributeType(i);
+            AttributeType t = ava.getAttributeType();
             if (! nameForm.isRequiredOrOptional(t))
             {
               LocalizableMessage message =

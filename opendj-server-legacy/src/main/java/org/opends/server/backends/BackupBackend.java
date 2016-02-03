@@ -48,6 +48,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -242,12 +243,10 @@ public class BackupBackend
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
 
-    RDN rdn = backupBaseDN.rdn();
-    int numAVAs = rdn.getNumValues();
-    for (int i=0; i < numAVAs; i++)
+    for (AVA ava : backupBaseDN.rdn())
     {
-      AttributeType attrType = rdn.getAttributeType(i);
-      userAttrs.put(attrType, Attributes.createAsList(attrType, rdn.getAttributeValue(i)));
+      AttributeType attrType = ava.getAttributeType();
+      userAttrs.put(attrType, Attributes.createAsList(attrType, ava.getAttributeValue()));
     }
 
     backupBaseEntry = new Entry(backupBaseDN, objectClasses, userAttrs, opAttrs);

@@ -42,6 +42,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -3433,15 +3434,13 @@ public final class SearchFilter
       int count = entryDN.size();
       for (int rdnIndex = 0; rdnIndex < count; rdnIndex++)
       {
-        RDN rdn = entryDN.getRDN(rdnIndex);
-        int numAVAs = rdn.getNumValues();
-        for (int i=0; i < numAVAs; i++)
+        for (AVA ava : entryDN.getRDN(rdnIndex))
         {
           try
           {
-            if (attributeType == null || attributeType.equals(rdn.getAttributeType(i)))
+            if (attributeType == null || attributeType.equals(ava.getAttributeType()))
             {
-              ByteString v = rdn.getAttributeValue(i);
+              ByteString v = ava.getAttributeValue();
               ByteString nv = matchingRule.normalizeAttributeValue(v);
               ConditionResult r = assertion.matches(nv);
               switch (r)

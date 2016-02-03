@@ -346,7 +346,7 @@ public class BackupTask extends Task
           if (! backupDir.getConfigEntryDN().equals(cfg.dn()))
           {
             logger.error(ERR_BACKUPDB_CANNOT_BACKUP_IN_DIRECTORY, b.getBackendID(), backupLocation.getPath(),
-                backupDir.getConfigEntryDN().rdn().getAttributeValue(0));
+                backupDir.getConfigEntryDN().rdn().getFirstAVA().getAttributeValue());
             return false ;
           }
         }

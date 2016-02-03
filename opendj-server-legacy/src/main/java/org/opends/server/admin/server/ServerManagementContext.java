@@ -45,6 +45,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
@@ -75,7 +76,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 
 /**
@@ -626,7 +626,7 @@ public final class ServerManagementContext {
     ArrayList<String> names = new ArrayList<>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
-      ByteString av = child.rdn().getAttributeValue(0);
+      ByteString av = child.rdn().getFirstAVA().getAttributeValue();
       names.add(av.toString().trim());
     }
 
@@ -678,7 +678,7 @@ public final class ServerManagementContext {
     ArrayList<String> names = new ArrayList<>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
-      ByteString av = child.rdn().getAttributeValue(0);
+      ByteString av = child.rdn().getFirstAVA().getAttributeValue();
       names.add(av.toString().trim());
     }
 

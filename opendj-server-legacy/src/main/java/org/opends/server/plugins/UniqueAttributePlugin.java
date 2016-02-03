@@ -39,6 +39,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -65,7 +66,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.operation.PluginOperation;
@@ -253,9 +253,8 @@ public class UniqueAttributePlugin
     {
       Attribute a = m.getAttribute();
       AttributeType t = a.getAttributeDescription().getAttributeType();
-      if (! config.getType().contains(t))
+      if (!isModifyingUniqueAttribute(t, config))
       {
-        // This modification isn't for a unique attribute.
         continue;
       }
 
@@ -368,17 +367,15 @@ public class UniqueAttributePlugin
     }
 
     List<ByteString> recordedValues = new LinkedList<>();
-    RDN newRDN = modifyDNOperation.getNewRDN();
-    for (int i=0; i < newRDN.getNumValues(); i++)
+    for (AVA ava : modifyDNOperation.getNewRDN())
     {
-      AttributeType t = newRDN.getAttributeType(i);
-      if (! config.getType().contains(t))
+      AttributeType t = ava.getAttributeType();
+      if (!isModifyingUniqueAttribute(t, config))
       {
-        // We aren't interested in this attribute type.
         continue;
       }
 
-      ByteString v = newRDN.getAttributeValue(i);
+      ByteString v = ava.getAttributeValue();
       DN entryDN = modifyDNOperation.getEntryDN();
       PreOperation stop =
           checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
@@ -391,9 +388,11 @@ public class UniqueAttributePlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
+  private boolean isModifyingUniqueAttribute(AttributeType t, UniqueAttributePluginCfg config)
+  {
+    return config.getType().contains(t);
+  }
 
-
-  /** {@inheritDoc} */
   @Override
   public final void doPostSynchronization(
                          PostSynchronizationAddOperation addOperation)
@@ -442,9 +441,8 @@ public class UniqueAttributePlugin
     {
       Attribute a = m.getAttribute();
       AttributeType t = a.getAttributeDescription().getAttributeType();
-      if (! config.getType().contains(t))
+      if (!isModifyingUniqueAttribute(t, config))
       {
-        // This modification isn't for a unique attribute.
         continue;
       }
 
@@ -499,19 +497,14 @@ public class UniqueAttributePlugin
 
     DN entryDN = modifyDNOperation.getEntryDN();
     DN updatedEntryDN = modifyDNOperation.getUpdatedEntry().getName();
-    RDN newRDN = modifyDNOperation.getNewRDN();
-    for (int i=0; i < newRDN.getNumValues(); i++)
+    for (AVA ava : modifyDNOperation.getNewRDN())
     {
-      AttributeType t = newRDN.getAttributeType(i);
-      if (! config.getType().contains(t))
+      AttributeType t = ava.getAttributeType();
+      if (isModifyingUniqueAttribute(t, config))
       {
-        // We aren't interested in this attribute type.
-        continue;
+        ByteString v = ava.getAttributeValue();
+        sendAlertForUnresolvedConflict(modifyDNOperation, entryDN, updatedEntryDN, t, v, baseDNs, config);
       }
-
-      ByteString v = newRDN.getAttributeValue(i);
-      sendAlertForUnresolvedConflict(modifyDNOperation, entryDN,
-          updatedEntryDN, t, v, baseDNs, config);
     }
   }
 
@@ -830,9 +823,8 @@ public class UniqueAttributePlugin
     {
       Attribute a = m.getAttribute();
       AttributeType t = a.getAttributeDescription().getAttributeType();
-      if (! config.getType().contains(t))
+      if (!isModifyingUniqueAttribute(t, config))
       {
-        // This modification isn't for a unique attribute.
         continue;
       }
 
@@ -884,16 +876,13 @@ public class UniqueAttributePlugin
       return PostOperation.continueOperationProcessing();
     }
 
-    RDN newRDN = modifyDNOperation.getNewRDN();
-    for (int i=0; i < newRDN.getNumValues(); i++)
+    for (AVA ava : modifyDNOperation.getNewRDN())
     {
-      AttributeType t = newRDN.getAttributeType(i);
-      if (! config.getType().contains(t))
+      AttributeType t = ava.getAttributeType();
+      if (isModifyingUniqueAttribute(t, config))
       {
-        // We aren't interested in this attribute type.
-        continue;
+        uniqueAttrValue2Dn.remove(ava.getAttributeValue());
       }
-      uniqueAttrValue2Dn.remove(newRDN.getAttributeValue(i));
     }
     return PostOperation.continueOperationProcessing();
   }

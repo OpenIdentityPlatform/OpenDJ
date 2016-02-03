@@ -22,19 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin;
-
-
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RDN;
 import org.opends.server.util.StaticUtils;
-
-
 
 /**
  * A reference to another managed object.
@@ -98,7 +94,7 @@ public final class Reference<C extends ConfigurationClient,
           + s + "\"");
     }
 
-    ByteString av = rdn.getAttributeValue(0);
+    ByteString av = rdn.getFirstAVA().getAttributeValue();
     if (av == null) {
       throw new IllegalArgumentException("Unabled to decode the DN string: \""
           + s + "\"");
@@ -217,9 +213,7 @@ public final class Reference<C extends ConfigurationClient,
     return path.toDN();
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public String toString() {
     return name;
   }

@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,6 +80,7 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
@@ -93,14 +95,18 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.*;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.types.RDN;
+import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The panel displaying a simplified view of an entry.
- */
+/** The panel displaying a simplified view of an entry. */
 public class SimplifiedViewEntryPanel extends ViewEntryPanel
 {
   private static final long serialVersionUID = 2775960608128921072L;
@@ -631,7 +637,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       basicAttrName = attrName.substring(0, index);
       subType = attrName.substring(index + 1);
     }
-    if (subType != null && subType.equalsIgnoreCase("binary"))
+    if ("binary".equalsIgnoreCase(subType))
     {
       // TODO: use message
       subType = "binary";
@@ -715,32 +721,11 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (isRootEntry)
     {
-      String[] attrsNotToAdd = {"entryuuid", "hassubordinates",
-          "numsubordinates", "subschemasubentry", "entrydn",
-      "hassubordinates"};
+      List<String> attrsNotToAdd = Arrays.asList("entryuuid", "hassubordinates",
+          "numsubordinates", "subschemasubentry", "entrydn", "hassubordinates");
       for (String attr : sr.getAttributeNames())
       {
-        boolean found = false;
-        for (String addedAttr : attrNames)
-        {
-          found = addedAttr.equalsIgnoreCase(attr);
-          if (found)
-          {
-            break;
-          }
-        }
-        if (!found)
-        {
-          for (String notToAddAttr : attrsNotToAdd)
-          {
-            found = notToAddAttr.equalsIgnoreCase(attr);
-            if (found)
-            {
-              break;
-            }
-          }
-        }
-        if (!found)
+        if (!find(attrNames, attr) && !find(attrsNotToAdd, attr))
         {
           attrNames.add(attr);
         }
@@ -800,27 +785,26 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
       for (String attr : attributes)
       {
-        boolean add = isEditable(attr, schema);
-
-        if (add)
+        boolean canAdd = isEditable(attr, schema);
+        if (canAdd && !find(attrNames, attr))
         {
-          boolean found = false;
-          for (String addedAttr : attrNames)
-          {
-            found = addedAttr.equalsIgnoreCase(attr);
-            if (found)
-            {
-              break;
-            }
-          }
-          if (!found)
-          {
-            attrNames.add(attr);
-          }
+          attrNames.add(attr);
         }
       }
     }
     return attrNames;
+  }
+
+  private boolean find(Collection<String> attrNames, String attrNameToFind)
+  {
+    for (String attrName : attrNames)
+    {
+      if (attrName.equalsIgnoreCase(attrNameToFind))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void updateAttributes(
@@ -1416,11 +1400,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean hasBinaryValue(List<Object> values)
   {
-    if (!values.isEmpty())
-    {
-      return values.iterator().next() instanceof byte[];
-    }
-    return false;
+    return !values.isEmpty() && values.iterator().next() instanceof byte[];
   }
 
   private boolean mustAddBrowseButton(String attrName)
@@ -1486,13 +1466,12 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       if (oldDN.size() > 0)
       {
         RDN rdn = oldDN.rdn();
-        List<AttributeType> attributeTypes = new ArrayList<>();
-        List<String> attributeNames = new ArrayList<>();
-        List<ByteString> attributeValues = new ArrayList<>();
-        for (int i=0; i<rdn.getNumValues(); i++)
+        List<AVA> avas = new ArrayList<>();
+        for (AVA ava : rdn)
         {
-          String attrName = rdn.getAttributeName(i);
-          ByteString value = rdn.getAttributeValue(i);
+          AttributeType attrType = ava.getAttributeType();
+          String attrName = ava.getAttributeName();
+          ByteString value = ava.getAttributeValue();
 
           List<String> values = getDisplayedStringValues(attrName);
           if (!values.contains(value.toString()))
@@ -1502,20 +1481,16 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
               String firstNonEmpty = getFirstNonEmpty(values);
               if (firstNonEmpty != null)
               {
-                attributeTypes.add(rdn.getAttributeType(i));
-                attributeNames.add(rdn.getAttributeName(i));
-                attributeValues.add(ByteString.valueOfUtf8(firstNonEmpty));
+                avas.add(new AVA(attrType, attrName, ByteString.valueOfUtf8(firstNonEmpty)));
               }
             }
           }
           else
           {
-            attributeTypes.add(rdn.getAttributeType(i));
-            attributeNames.add(rdn.getAttributeName(i));
-            attributeValues.add(value);
+            avas.add(new AVA(attrType, attrName, value));
           }
         }
-        if (attributeTypes.isEmpty())
+        if (avas.isEmpty())
         {
           // Check the attributes in the order that we display them and use
           // the first one.
@@ -1538,9 +1513,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                   String aName = Utilities.getAttributeNameWithoutOptions(attrName);
                   if (schema.hasAttributeType(aName))
                   {
-                    attributeTypes.add(schema.getAttributeType(aName));
-                    attributeNames.add(attrName);
-                    attributeValues.add(ByteString.valueOfUtf8((String) o));
+                    avas.add(new AVA(schema.getAttributeType(aName), aName, o));
                   }
                   break;
                 }
@@ -1549,9 +1522,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           }
         }
         DN parent = oldDN.parent();
-        if (!attributeTypes.isEmpty())
+        if (!avas.isEmpty())
         {
-          RDN newRDN = new RDN(attributeTypes, attributeNames, attributeValues);
+          RDN newRDN = new RDN(avas);
 
           DN newDN;
           if (parent == null)

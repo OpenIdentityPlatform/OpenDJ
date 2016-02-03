@@ -37,6 +37,7 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -168,12 +169,13 @@ public class PatternRDN
         return true;
       }
 
-      if (rdn.getNumValues() != 1)
+      if (rdn.size() != 1)
       {
         return false;
       }
 
-      AttributeType thatType = rdn.getAttributeType(0);
+      AVA firstAVA = rdn.getFirstAVA();
+      AttributeType thatType = firstAVA.getAttributeType();
       if (!typePatterns[0].equals("*"))
       {
         AttributeType thisType = DirectoryServer.getAttributeType(typePatterns[0]);
@@ -183,7 +185,7 @@ public class PatternRDN
         }
       }
 
-      return matchValuePattern(valuePatterns.get(0), thatType, rdn.getAttributeValue(0));
+      return matchValuePattern(valuePatterns.get(0), thatType, firstAVA.getAttributeValue());
     }
 
     if (hasTypeWildcard)
@@ -191,7 +193,7 @@ public class PatternRDN
       return false;
     }
 
-    if (numValues != rdn.getNumValues())
+    if (numValues != rdn.size())
     {
       return false;
     }
@@ -200,10 +202,9 @@ public class PatternRDN
     TreeMap<String,ArrayList<ByteString>> patternMap = new TreeMap<>();
     TreeMap<String, ByteString> rdnMap = new TreeMap<>();
 
-    for (int i = 0; i < rdn.getNumValues(); i++)
+    for (AVA ava : rdn)
     {
-      rdnMap.put(rdn.getAttributeType(i).getNameOrOID(),
-                 rdn.getAttributeValue(i));
+      rdnMap.put(ava.getAttributeType().getNameOrOID(), ava.getAttributeValue());
     }
 
     for (int i = 0; i < numValues; i++)

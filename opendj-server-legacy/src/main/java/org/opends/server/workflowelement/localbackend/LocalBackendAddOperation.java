@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -68,7 +69,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
@@ -586,30 +586,21 @@ public class LocalBackendAddOperation
    */
   private void addRDNAttributesIfNecessary() throws DirectoryException
   {
-    RDN rdn = entryDN.rdn();
-    int numAVAs = rdn.getNumValues();
-    for (int i=0; i < numAVAs; i++)
+    for (AVA ava : entryDN.rdn())
     {
-      AttributeType  t = rdn.getAttributeType(i);
-      ByteString     v = rdn.getAttributeValue(i);
-      String         n = rdn.getAttributeName(i);
-      if (t.isOperational())
-      {
-        addRDNAttributesIfNecessary(operationalAttributes, t, v, n);
-      }
-      else
-      {
-        addRDNAttributesIfNecessary(userAttributes, t, v, n);
-      }
+      AttributeType t = ava.getAttributeType();
+      addRDNAttributesIfNecessary(t.isOperational() ? operationalAttributes : userAttributes, ava);
     }
   }
 
 
 
-  private void addRDNAttributesIfNecessary(
-      Map<AttributeType, List<Attribute>> attributes, AttributeType t,
-      ByteString v, String n) throws DirectoryException
+  private void addRDNAttributesIfNecessary(Map<AttributeType, List<Attribute>> attributes, AVA ava)
+      throws DirectoryException
   {
+    AttributeType  t = ava.getAttributeType();
+    String         n = ava.getAttributeName();
+    ByteString     v = ava.getAttributeValue();
     final List<Attribute> attrList = attributes.get(t);
     if (attrList == null)
     {

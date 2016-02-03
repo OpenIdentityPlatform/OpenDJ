@@ -38,6 +38,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -321,12 +322,11 @@ public class TestModifyDNOperation extends OperationTestCase
     final Entry newEntry = DirectoryServer.getEntry(dn(entryDN));
     assertNotNull(newEntry);
 
-    final RDN rdn = newEntry.getName().rdn();
-    for (int i = 0; i < rdn.getNumValues(); i++)
+    for (AVA ava : newEntry.getName().rdn())
     {
-      AttributeType attribute = rdn.getAttributeType(i);
-      assertEquals(newEntry.hasValue(attribute, b("user.0")), user0Exists);
-      assertEquals(newEntry.hasValue(attribute, b("user.test0")), userTest0Exists);
+      AttributeType attrType = ava.getAttributeType();
+      assertEquals(newEntry.hasValue(attrType, b("user.0")), user0Exists);
+      assertEquals(newEntry.hasValue(attrType, b("user.test0")), userTest0Exists);
     }
   }
 

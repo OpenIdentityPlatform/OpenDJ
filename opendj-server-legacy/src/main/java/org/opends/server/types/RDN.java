@@ -26,22 +26,26 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
@@ -60,19 +64,10 @@ import static com.forgerock.opendj.util.StaticUtils.*;
      mayExtend=false,
      mayInvoke=true)
 public final class RDN
-       implements Comparable<RDN>
+       implements Comparable<RDN>, Iterable<AVA>
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** The set of attribute types for the elements in this RDN. */
-  private AttributeType[] attributeTypes;
-
-  /** The set of values for the elements in this RDN. */
-  private ByteString[] attributeValues;
-
-  /** The set of user-provided names for the attributes in this RDN. */
-  private String[] attributeNames;
-
+  /** The collection of AVAs for the elements in this RDN. */
+  private final List<AVA> avas;
   /** Representation of the normalized form of this RDN. */
   private ByteString normalizedRDN;
 
@@ -85,13 +80,11 @@ public final class RDN
    * @param  attributeValue  The value for this RDN.  It must not be
    *                         {@code null}.
    */
-  @SuppressWarnings("unchecked")
   public RDN(AttributeType attributeType, ByteString attributeValue)
   {
     Reject.ifNull(attributeType, attributeValue);
-    attributeTypes  = new AttributeType[] { attributeType };
-    attributeNames  = new String[] { attributeType.getNameOrOID() };
-    attributeValues = new ByteString[] { attributeValue };
+    avas = new ArrayList<>(1);
+    avas.add(new AVA(attributeType, attributeValue));
   }
 
 
@@ -106,13 +99,11 @@ public final class RDN
    * @param  attributeValue  The value for this RDN.  It must not be
    *                         {@code null}.
    */
-  @SuppressWarnings("unchecked")
   public RDN(AttributeType attributeType, String attributeName, ByteString attributeValue)
   {
     Reject.ifNull(attributeType, attributeName, attributeValue);
-    attributeTypes  = new AttributeType[] { attributeType };
-    attributeNames  = new String[] { attributeName };
-    attributeValues = new ByteString[] { attributeValue };
+    avas = new ArrayList<>(1);
+    avas.add(new AVA(attributeType, attributeName, attributeValue));
   }
 
 
@@ -131,7 +122,6 @@ public final class RDN
    *                          have the same number of elements as the
    *                          {@code attributeTypes} argument.
    */
-  @SuppressWarnings("unchecked")
   public RDN(List<AttributeType> attributeTypes,
              List<String> attributeNames,
              List<ByteString> attributeValues)
@@ -143,13 +133,11 @@ public final class RDN
     Reject.ifFalse(attributeValues.size() == attributeTypes.size(),
             "attributeValues must have the same number of elements than attributeTypes");
 
-    this.attributeTypes  = new AttributeType[attributeTypes.size()];
-    this.attributeNames  = new String[attributeNames.size()];
-    this.attributeValues = new ByteString[attributeValues.size()];
-
-    attributeTypes.toArray(this.attributeTypes);
-    attributeNames.toArray(this.attributeNames);
-    attributeValues.toArray(this.attributeValues);
+    avas = new ArrayList<>(attributeTypes.size());
+    for (int i = 0; i < attributeTypes.size(); i++)
+    {
+      avas.add(new AVA(attributeTypes.get(i), attributeNames.get(i), attributeValues.get(i)));
+    }
   }
 
 
@@ -168,7 +156,6 @@ public final class RDN
    *                          have the same number of elements as the
    *                          {@code attributeTypes} argument.
    */
-  @SuppressWarnings("unchecked")
   public RDN(AttributeType[] attributeTypes, String[] attributeNames, ByteString[] attributeValues)
   {
     Reject.ifNull(attributeTypes, attributeNames, attributeValues);
@@ -178,9 +165,24 @@ public final class RDN
     Reject.ifFalse(attributeValues.length == attributeTypes.length,
         "attributeValues must have the same number of elements than attributeTypes");
 
-    this.attributeTypes = attributeTypes;
-    this.attributeNames = attributeNames;
-    this.attributeValues = attributeValues;
+    avas = new ArrayList<>(attributeTypes.length);
+    for (int i = 0; i < attributeTypes.length; i++)
+    {
+      avas.add(new AVA(attributeTypes[i], attributeNames[i], attributeValues[i]));
+    }
+  }
+
+  /**
+   * Creates a new RDN with the provided collection of {@link AVA}.
+   *
+   * @param avas
+   *          The collection of AVA that will define the new RDN
+   */
+  public RDN(Collection<AVA> avas)
+  {
+    Reject.ifNull(avas, "avas must not be null");
+    Reject.ifTrue(avas.isEmpty(), "avas must not be empty");
+    this.avas = new ArrayList<>(avas);
   }
 
 
@@ -200,21 +202,15 @@ public final class RDN
     return new RDN(attributeType, attributeValue);
   }
 
-
-
   /**
-   * Retrieves the number of attribute-value pairs contained in this
-   * RDN.
+   * Retrieves the number of attribute-value pairs contained in this RDN.
    *
-   * @return  The number of attribute-value pairs contained in this
-   *          RDN.
+   * @return The number of attribute-value pairs contained in this RDN.
    */
-  public int getNumValues()
+  public int size()
   {
-    return attributeTypes.length;
+    return avas.size();
   }
-
-
 
   /**
    * Indicates whether this RDN includes the specified attribute type.
@@ -227,14 +223,13 @@ public final class RDN
    */
   public boolean hasAttributeType(AttributeType attributeType)
   {
-    for (AttributeType t : attributeTypes)
+    for (AVA ava : avas)
     {
-      if (t.equals(attributeType))
+      if (ava.getAttributeType().equals(attributeType))
       {
         return true;
       }
     }
-
     return false;
   }
 
@@ -252,59 +247,15 @@ public final class RDN
    */
   public boolean hasAttributeType(String lowerName)
   {
-    for (AttributeType t : attributeTypes)
+    for (AVA ava : avas)
     {
-      if (t.hasNameOrOID(lowerName))
+      if (ava.getAttributeType().hasNameOrOID(lowerName))
       {
         return true;
       }
     }
-
-    for (String s : attributeNames)
-    {
-      if (s.equalsIgnoreCase(lowerName))
-      {
-        return true;
-      }
-    }
-
     return false;
   }
-
-
-
-  /**
-   * Retrieves the attribute type at the specified position in the set
-   * of attribute types for this RDN.
-   *
-   * @param  pos  The position of the attribute type to retrieve.
-   *
-   * @return  The attribute type at the specified position in the set
-   *          of attribute types for this RDN.
-   */
-  public AttributeType getAttributeType(int pos)
-  {
-    return attributeTypes[pos];
-  }
-
-
-
-  /**
-   * Retrieves the name for the attribute type at the specified
-   * position in the set of attribute types for this RDN.
-   *
-   * @param  pos  The position of the attribute type for which to
-   *              retrieve the name.
-   *
-   * @return  The name for the attribute type at the specified
-   *          position in the set of attribute types for this RDN.
-   */
-  public String getAttributeName(int pos)
-  {
-    return attributeNames[pos];
-  }
-
-
 
   /**
    * Retrieves the attribute value that is associated with the
@@ -319,35 +270,15 @@ public final class RDN
    */
   public ByteString getAttributeValue(AttributeType attributeType)
   {
-    for (int i=0; i < attributeTypes.length; i++)
+    for (AVA ava : avas)
     {
-      if (attributeTypes[i].equals(attributeType))
+      if (ava.getAttributeType().equals(attributeType))
       {
-        return attributeValues[i];
+        return ava.getAttributeValue();
       }
     }
-
     return null;
   }
-
-
-
-  /**
-   * Retrieves the value for the attribute type at the specified
-   * position in the set of attribute types for this RDN.
-   *
-   * @param  pos  The position of the attribute type for which to
-   *              retrieve the value.
-   *
-   * @return  The value for the attribute type at the specified
-   *          position in the set of attribute types for this RDN.
-   */
-  public ByteString getAttributeValue(int pos)
-  {
-    return attributeValues[pos];
-  }
-
-
 
   /**
    * Indicates whether this RDN is multivalued.
@@ -357,7 +288,7 @@ public final class RDN
    */
   public boolean isMultiValued()
   {
-    return attributeTypes.length > 1;
+    return avas.size() > 1;
   }
 
 
@@ -375,15 +306,13 @@ public final class RDN
    */
   public boolean hasValue(AttributeType type, ByteString value)
   {
-    for (int i=0; i < attributeTypes.length; i++)
+    for (AVA ava : avas)
     {
-      if (attributeTypes[i].equals(type) &&
-          attributeValues[i].equals(value))
+      if (ava.getAttributeType().equals(type) && ava.getAttributeValue().equals(value))
       {
         return true;
       }
     }
-
     return false;
   }
 
@@ -403,145 +332,16 @@ public final class RDN
    */
   boolean addValue(AttributeType type, String name, ByteString value)
   {
-    int numValues = attributeTypes.length;
-    for (int i=0; i < numValues; i++)
+    for (AVA ava : avas)
     {
-      if (attributeTypes[i].equals(type) &&
-          attributeValues[i].equals(value))
+      if (ava.getAttributeType().equals(type) && ava.getAttributeValue().equals(value))
       {
         return false;
       }
     }
-    numValues++;
-    AttributeType[] newTypes = new AttributeType[numValues];
-    System.arraycopy(attributeTypes, 0, newTypes, 0, attributeTypes.length);
-    newTypes[attributeTypes.length] = type;
-    attributeTypes = newTypes;
-
-    String[] newNames = new String[numValues];
-    System.arraycopy(attributeNames, 0, newNames, 0, attributeNames.length);
-    newNames[attributeNames.length] = name;
-    attributeNames = newNames;
-
-    ByteString[] newValues = new ByteString[numValues];
-    System.arraycopy(attributeValues, 0, newValues, 0, attributeValues.length);
-    newValues[attributeValues.length] = value;
-    attributeValues = newValues;
-
+    avas.add(new AVA(type, name, value));
     return true;
   }
-
-
-
-  /**
-   * Retrieves a version of the provided value in a form that is
-   * properly escaped for use in a DN or RDN.
-   *
-   * @param  valueBS  The value to be represented in a DN-safe form.
-   *
-   * @return  A version of the provided value in a form that is
-   *          properly escaped for use in a DN or RDN.
-   */
-  private static String getDNValue(ByteString valueBS) {
-    final String value = valueBS.toString();
-    if (value == null || value.length() == 0) {
-      return "";
-    }
-
-    // Only copy the string value if required.
-    boolean needsEscaping = false;
-    int length = value.length();
-
-    needsEscaping: {
-      char c = value.charAt(0);
-      if (c == ' ' || c == '#') {
-        needsEscaping = true;
-        break needsEscaping;
-      }
-
-      if (value.charAt(length - 1) == ' ') {
-        needsEscaping = true;
-        break needsEscaping;
-      }
-
-      for (int i = 0; i < length; i++) {
-        c = value.charAt(i);
-        if (c < ' ') {
-          needsEscaping = true;
-          break needsEscaping;
-        } else {
-          switch (c) {
-          case ',':
-          case '+':
-          case '"':
-          case '\\':
-          case '<':
-          case '>':
-          case ';':
-            needsEscaping = true;
-            break needsEscaping;
-          }
-        }
-      }
-    }
-
-    if (!needsEscaping) {
-      return value;
-    }
-
-    // We need to copy and escape the string (allow for at least one
-    // escaped character).
-    StringBuilder buffer = new StringBuilder(length + 3);
-
-    // If the lead character is a space or a # it must be escaped.
-    int start = 0;
-    char c = value.charAt(0);
-    if (c == ' ' || c == '#') {
-      buffer.append('\\');
-      buffer.append(c);
-      if (length == 1) {
-        return buffer.toString();
-      }
-      start = 1;
-    }
-
-    // Escape remaining characters as necessary.
-    for (int i = start; i < length; i++) {
-      c = value.charAt(i);
-      if (c < ' ') {
-        for (byte b : getBytes(String.valueOf(c))) {
-          buffer.append('\\');
-          buffer.append(byteToLowerHex(b));
-        }
-      } else {
-        switch (value.charAt(i)) {
-        case ',':
-        case '+':
-        case '"':
-        case '\\':
-        case '<':
-        case '>':
-        case ';':
-          buffer.append('\\');
-          buffer.append(c);
-          break;
-        default:
-          buffer.append(c);
-          break;
-        }
-      }
-    }
-
-    // If the last character is a space it must be escaped.
-    if (value.charAt(length - 1) == ' ') {
-      length = buffer.length();
-      buffer.insert(length - 1, '\\');
-    }
-
-    return buffer.toString();
-  }
-
-
 
   /**
    * Decodes the provided string as an RDN.
@@ -845,17 +645,7 @@ public final class RDN
    */
   public RDN duplicate()
   {
-    int numValues = attributeTypes.length;
-    AttributeType[] newTypes = new AttributeType[numValues];
-    System.arraycopy(attributeTypes, 0, newTypes, 0, numValues);
-
-    String[] newNames = new String[numValues];
-    System.arraycopy(attributeNames, 0, newNames, 0, numValues);
-
-    ByteString[] newValues = new ByteString[numValues];
-    System.arraycopy(attributeValues, 0, newValues, 0, numValues);
-
-    return new RDN(newTypes, newNames, newValues);
+    return new RDN(avas);
   }
 
 
@@ -900,10 +690,10 @@ public final class RDN
   }
 
   /** Returns normalized value for attribute at provided position. */
-  private ByteString getEqualityNormalizedValue(int position)
+  private ByteString getEqualityNormalizedValue(AVA ava)
   {
-    final MatchingRule matchingRule = attributeTypes[position].getEqualityMatchingRule();
-    ByteString attributeValue = attributeValues[position];
+    final MatchingRule matchingRule = ava.getAttributeType().getEqualityMatchingRule();
+    ByteString attributeValue = ava.getAttributeValue();
     if (matchingRule != null)
     {
       try
@@ -913,7 +703,7 @@ public final class RDN
       catch (final DecodeException de)
       {
         // Unable to normalize, use default
-        attributeValue = attributeValues[position];
+        attributeValue = ava.getAttributeValue();
       }
     }
     return attributeValue;
@@ -929,17 +719,15 @@ public final class RDN
   @Override
   public String toString()
   {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(attributeNames[0]);
-        buffer.append("=");
-        buffer.append(getDNValue(attributeValues[0]));
-        for (int i = 1; i < attributeTypes.length; i++) {
-            buffer.append("+");
-            buffer.append(attributeNames[i]);
-            buffer.append("=");
-            buffer.append(getDNValue(attributeValues[i]));
-        }
-        return buffer.toString();
+    StringBuilder buffer = new StringBuilder();
+    Iterator<AVA> it = avas.iterator();
+    buffer.append(it.next());
+    while (it.hasNext())
+    {
+      buffer.append("+");
+      buffer.append(it.next());
+    }
+    return buffer.toString();
   }
 
   /**
@@ -966,18 +754,18 @@ public final class RDN
   String toNormalizedUrlSafeString()
   {
     final StringBuilder buffer = new StringBuilder();
-    if (attributeNames.length == 1)
+    if (avas.size() == 1)
     {
-      normalizeAVAToUrlSafeString(0, buffer);
+      normalizeAVAToUrlSafeString(getFirstAVA(), buffer);
     }
     else
     {
       // Normalization sorts RDNs alphabetically
       SortedSet<String> avaStrings = new TreeSet<>();
-      for (int i=0; i < attributeNames.length; i++)
+      for (AVA ava : avas)
       {
         StringBuilder builder = new StringBuilder();
-        normalizeAVAToUrlSafeString(i, builder);
+        normalizeAVAToUrlSafeString(ava, builder);
         avaStrings.add(builder.toString());
       }
 
@@ -1025,18 +813,18 @@ public final class RDN
   {
     final int startPos = builder.length();
 
-    if (attributeNames.length == 1)
+    if (avas.size() == 1)
     {
-      normalizeAVAToByteString(0, builder);
+      normalizeAVAToByteString(getFirstAVA(), builder);
     }
     else
     {
       // Normalization sorts RDNs
       SortedSet<ByteString> avaStrings = new TreeSet<>();
-      for (int i = 0; i < attributeNames.length; i++)
+      for (AVA ava : avas)
       {
         ByteStringBuilder b = new ByteStringBuilder();
-        normalizeAVAToByteString(i, b);
+        normalizeAVAToByteString(ava, b);
         avaStrings.add(b.toByteString());
       }
 
@@ -1067,11 +855,11 @@ public final class RDN
    *           Builder to add the representation to.
    * @return the builder
    */
-  private ByteStringBuilder normalizeAVAToByteString(int position, final ByteStringBuilder builder)
+  private ByteStringBuilder normalizeAVAToByteString(AVA ava, final ByteStringBuilder builder)
   {
-    builder.appendUtf8(attributeTypes[position].getNormalizedNameOrOID());
+    builder.appendUtf8(ava.getAttributeType().getNormalizedNameOrOID());
     builder.appendUtf8("=");
-    final ByteString value = getEqualityNormalizedValue(position);
+    final ByteString value = getEqualityNormalizedValue(ava);
     if (value.length() > 0)
     {
       builder.appendBytes(escapeBytes(value));
@@ -1132,18 +920,19 @@ public final class RDN
    * @param  builder  The buffer to which to append the information.
    * @return the builder
    */
-  private StringBuilder normalizeAVAToUrlSafeString(int position, StringBuilder builder)
+  private StringBuilder normalizeAVAToUrlSafeString(AVA ava, StringBuilder builder)
   {
-      builder.append(attributeTypes[position].getNormalizedNameOrOID());
+    AttributeType attrType = ava.getAttributeType();
+    builder.append(attrType.getNormalizedNameOrOID());
       builder.append('=');
 
-      ByteString value = getEqualityNormalizedValue(position);
+    ByteString value = getEqualityNormalizedValue(ava);
       if (value.length() == 0)
       {
         return builder;
       }
-      final boolean hasAttributeName = !attributeTypes[position].getNames().isEmpty();
-      final boolean isHumanReadable = attributeTypes[position].getSyntax().isHumanReadable();
+    final boolean hasAttributeName = !attrType.getNames().isEmpty();
+    final boolean isHumanReadable = attrType.getSyntax().isHumanReadable();
       if (!hasAttributeName || !isHumanReadable)
       {
         builder.append(value.toPercentHexString());
@@ -1195,4 +984,19 @@ public final class RDN
     return toNormalizedByteString().compareTo(rdn.toNormalizedByteString());
   }
 
+  /**
+   * Returns the first AVA of this {@link RDN}.
+   *
+   * @return the first AVA of this {@link RDN}.
+   */
+  public AVA getFirstAVA()
+  {
+    return avas.get(0);
+  }
+
+  @Override
+  public Iterator<AVA> iterator()
+  {
+    return avas.iterator();
+  }
 }

@@ -63,6 +63,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -96,7 +97,34 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.SomeSchemaElement;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDAPSyntaxDescription;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.Schema;
+import org.opends.server.types.SchemaFileElement;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BackupManager;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
@@ -551,11 +579,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     RDN rdn = entryDN.rdn();
     if (rdn != null)
     {
-      int numAVAs = rdn.getNumValues();
-      for (int i = 0; i < numAVAs; i++)
+      for (AVA ava : rdn)
       {
-        AttributeType attrType = rdn.getAttributeType(i);
-        Attribute attribute = Attributes.create(attrType, rdn.getAttributeValue(i));
+        AttributeType attrType = ava.getAttributeType();
+        Attribute attribute = Attributes.create(attrType, ava.getAttributeValue());
         addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
       }
     }
@@ -2715,19 +2742,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Map<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
 
     DN  dn  = DirectoryServer.getSchemaDN();
-    RDN rdn = dn.rdn();
-    for (int i=0; i < rdn.getNumValues(); i++)
+    for (AVA ava : dn.rdn())
     {
-      AttributeType type = rdn.getAttributeType(i);
-      List<Attribute> attrList = newLinkedList(Attributes.create(type, rdn.getAttributeValue(i)));
-      if (type.isOperational())
-      {
-        operationalAttributes.put(type, attrList);
-      }
-      else
-      {
-        userAttributes.put(type, attrList);
-      }
+      AttributeType type = ava.getAttributeType();
+      Map<AttributeType, List<Attribute>> attrs = type.isOperational() ? operationalAttributes : userAttributes;
+      attrs.put(type, newLinkedList(Attributes.create(type, ava.getAttributeValue())));
     }
 
     return new Entry(dn, objectClasses,  userAttributes, operationalAttributes);

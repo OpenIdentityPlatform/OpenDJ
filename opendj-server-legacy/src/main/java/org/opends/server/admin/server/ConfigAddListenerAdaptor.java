@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -152,9 +152,6 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     this.cachedManagedObject = null;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
     if (optionalRelation != null) {
@@ -192,14 +189,11 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     return result;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
-    ByteString av = dn.rdn().getAttributeValue(0);
+    ByteString av = dn.rdn().getFirstAVA().getAttributeValue();
     String name = av.toString().trim();
 
     try {
