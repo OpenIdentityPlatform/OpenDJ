@@ -133,7 +133,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     for (Modification mod : mods)
     {
       Attribute attr = mod.getAttribute();
-      AttributeType type = attr.getAttributeType();
+      AttributeType type = attr.getAttributeDescription().getAttributeType();
       if (type != null
           && AttributeUsage.DSA_OPERATION.equals(type.getUsage()) )
       {

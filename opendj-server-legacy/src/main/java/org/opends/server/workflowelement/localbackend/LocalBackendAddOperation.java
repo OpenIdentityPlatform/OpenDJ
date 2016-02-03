@@ -838,7 +838,7 @@ public class LocalBackendAddOperation
     // Set the password changed time attribute.
     Attribute changedTime = Attributes.create(
         OP_ATTR_PWPOLICY_CHANGED_TIME, TimeThread.getGeneralizedTime());
-    entry.putAttribute(changedTime.getAttributeType(), newArrayList(changedTime));
+    entry.putAttribute(changedTime.getAttributeDescription().getAttributeType(), newArrayList(changedTime));
 
 
     // If we should force change on add, then set the appropriate flag.
@@ -847,7 +847,7 @@ public class LocalBackendAddOperation
       addPWPolicyControl(PasswordPolicyErrorType.CHANGE_AFTER_RESET);
 
       Attribute reset = Attributes.create(OP_ATTR_PWPOLICY_RESET_REQUIRED, "TRUE");
-      entry.putAttribute(reset.getAttributeType(), newArrayList(reset));
+      entry.putAttribute(reset.getAttributeDescription().getAttributeType(), newArrayList(reset));
     }
   }
 
@@ -932,7 +932,7 @@ public class LocalBackendAddOperation
     {
       for (Attribute a : attrList)
       {
-        Syntax syntax = a.getAttributeType().getSyntax();
+        Syntax syntax = a.getAttributeDescription().getAttributeType().getSyntax();
         if (syntax != null)
         {
           for (ByteString v : a)

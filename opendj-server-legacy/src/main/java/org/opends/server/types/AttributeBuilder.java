@@ -31,7 +31,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -152,6 +151,10 @@ public final class AttributeBuilder implements Iterable<ByteString>
       this.values = values;
     }
 
+    private AttributeType getAttributeType()
+    {
+      return getAttributeDescription().getAttributeType();
+    }
 
     @Override
     public final ConditionResult approximatelyEqualTo(ByteString assertionValue)
@@ -233,16 +236,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     public boolean hasOption(String option)
     {
       return attributeDescription.hasOption(option);
-    }
-
-    private Set<String> toSet(Iterable<String> options)
-    {
-      Set<String> results = new HashSet<>();
-      for (String option : options)
-      {
-        results.add(option);
-      }
-      return results;
     }
 
     @Override
@@ -957,7 +950,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(Attribute attribute, boolean omitValues)
   {
-    this(attribute.getAttributeType(), attribute.getName());
+    this(attribute.getAttributeDescription().getAttributeType(), attribute.getName());
 
     setOptions(attribute.getAttributeDescription().getOptions());
     if (!omitValues)

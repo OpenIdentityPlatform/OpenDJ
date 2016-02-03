@@ -241,7 +241,7 @@ public class EntryHistorical
     // to the current modifications of the operation
     mods.add(new Modification(ModificationType.REPLACE, attr));
     // - update the already modified entry
-    modifiedEntry.removeAttribute(attr.getAttributeType());
+    modifiedEntry.removeAttribute(attr.getAttributeDescription().getAttributeType());
     modifiedEntry.addAttribute(attr, null);
   }
 
@@ -319,7 +319,7 @@ public class EntryHistorical
     AttrHistorical attrHist = attributesHistorical.get(attrDesc);
     if (attrHist == null)
     {
-      attrHist = AttrHistorical.createAttributeHistorical(modAttr.getAttributeType());
+      attrHist = AttrHistorical.createAttributeHistorical(modAttr.getAttributeDescription().getAttributeType());
       attributesHistorical.put(attrDesc, attrHist);
     }
     return attrHist;
@@ -714,7 +714,7 @@ public class EntryHistorical
    */
   public static boolean isHistoricalAttribute(Attribute attr)
   {
-    AttributeType attrType = attr.getAttributeType();
+    AttributeType attrType = attr.getAttributeDescription().getAttributeType();
     return HISTORICAL_ATTRIBUTE_NAME.equals(attrType.getNameOrOID());
   }
 

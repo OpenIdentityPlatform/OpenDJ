@@ -202,7 +202,7 @@ public class TaskScheduler
 
       Attribute attr = Attributes.create(ATTR_TASK_STATE, TaskState.RECURRING.toString());
       Entry recurringTaskEntry = recurringTask.getRecurringTaskEntry();
-      recurringTaskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
+      recurringTaskEntry.putAttribute(attr.getAttributeDescription().getAttributeType(), newArrayList(attr));
 
       if (scheduleIteration)
       {

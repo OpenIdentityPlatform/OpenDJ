@@ -109,7 +109,7 @@ public class AttributeValuePasswordValidator
     {
       for (int j = i + minSubstringLength; j <= passwordLength; j++)
       {
-        Attribute substring = Attributes.create(a.getAttributeType(),
+        Attribute substring = Attributes.create(a.getAttributeDescription().getAttributeType(),
             password.substring(i, j));
         for (ByteString val : a)
         {

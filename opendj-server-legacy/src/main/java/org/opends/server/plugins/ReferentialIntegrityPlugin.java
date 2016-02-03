@@ -1179,7 +1179,7 @@ public class ReferentialIntegrityPlugin
         }
 
         // Verify that the value entry conforms to the filter.
-        SearchFilter filter = attrFiltMap.get(attr.getAttributeType());
+        SearchFilter filter = attrFiltMap.get(attr.getAttributeDescription().getAttributeType());
         if (filter != null && !filter.matchesEntry(valueEntry))
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,

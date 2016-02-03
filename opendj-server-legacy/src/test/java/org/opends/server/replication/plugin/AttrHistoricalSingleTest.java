@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2015 ForgeRock AS
+ *      Copyright 2015-2016 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -363,7 +363,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private ByteString getActualValue(Entry entry, Modification mod)
   {
-    return getActualValue(entry.getAttribute(mod.getAttribute().getAttributeType()));
+    return getActualValue(entry.getAttribute(mod.getAttribute().getAttributeDescription()));
   }
 
   private ByteString getActualValue(List<Attribute> attributes)

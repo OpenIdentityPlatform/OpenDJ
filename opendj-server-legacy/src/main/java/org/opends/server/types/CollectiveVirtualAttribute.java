@@ -32,7 +32,6 @@ import java.util.List;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class defines a collective virtual attribute, which is a
@@ -74,11 +73,6 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   public AttributeDescription getAttributeDescription()
   {
     return attribute.getAttributeDescription();
-  }
-
-  @Override
-  public AttributeType getAttributeType() {
-    return attribute.getAttributeType();
   }
 
   @Override

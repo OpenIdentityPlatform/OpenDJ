@@ -1050,7 +1050,7 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertEquals(builder.getAttributeType(), cnType);
 
     Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeType(), cnType);
+    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
     Assert.assertEquals(a.getName(), "cn");
   }
 
@@ -1070,7 +1070,7 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertEquals(builder.getAttributeType(), cnType);
 
     Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeType(), cnType);
+    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
     Assert.assertEquals(a.getName(), "cn");
   }
 
@@ -1090,7 +1090,7 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertEquals(builder.getAttributeType(), cnType);
 
     Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeType(), cnType);
+    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
     Assert.assertEquals(a.getName(), "CN");
   }
 
@@ -1111,7 +1111,7 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertEquals(builder.getAttributeType(), cnType);
 
     Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeType(), cnType);
+    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
     Assert.assertEquals(a.getName(), "CN");
   }
 
@@ -1264,7 +1264,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
   /**
-   * Tests {@link Attribute#getAttributeType()}.
+   * Tests {@link AttributeDescription#getAttributeType()}.
    *
    * @param testCase
    *          Test case index (useful for debugging).
@@ -1285,7 +1285,7 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Check type and provided name.
-    Assert.assertEquals(a.getAttributeType(), type);
+    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), type);
   }
 
 
@@ -1622,7 +1622,7 @@ public class AttributeBuilderTest extends TypesTestCase
         Assert.assertTrue(i.hasNext());
 
         ByteString v = i.next();
-        ByteString nv = a.getAttributeType().getEqualityMatchingRule().normalizeAttributeValue(v);
+        ByteString nv = a.getAttributeDescription().getAttributeType().getEqualityMatchingRule().normalizeAttributeValue(v);
         Assert.assertEquals(nv, ByteString.valueOfUtf8(value));
 
         try

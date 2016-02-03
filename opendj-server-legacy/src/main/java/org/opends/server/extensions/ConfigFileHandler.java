@@ -1131,7 +1131,7 @@ public class ConfigFileHandler
            DirectoryServer.getAttributeType(ATTR_DEFAULT_ROOT_PRIVILEGE_NAME);
       for (Modification m : modifyOperation.getModifications())
       {
-        if (m.getAttribute().getAttributeType().equals(privType))
+        if (m.getAttribute().getAttributeDescription().getAttributeType().equals(privType))
         {
           if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE,
                                               modifyOperation))

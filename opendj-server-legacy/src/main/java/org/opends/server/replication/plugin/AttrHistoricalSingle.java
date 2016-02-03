@@ -163,7 +163,7 @@ public class AttrHistoricalSingle extends AttrHistorical
           {
             deleteTime = csn;
           }
-          AttributeType type = modAttr.getAttributeType();
+          AttributeType type = modAttr.getAttributeDescription().getAttributeType();
           if (!modifiedEntry.hasAttribute(type))
           {
             conflict = true;

@@ -510,8 +510,7 @@ public abstract class Task implements Comparable<Task>
     try
     {
       this.taskState = taskState;
-      Attribute attr = Attributes.create(ATTR_TASK_STATE, taskState.toString());
-      taskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
+      putAttribute(ATTR_TASK_STATE, taskState.toString());
     }
     finally
     {
@@ -520,6 +519,12 @@ public abstract class Task implements Comparable<Task>
         lock.unlock();
       }
     }
+  }
+
+  private void putAttribute(String attrName, String attrValue)
+  {
+    Attribute attr = Attributes.create(attrName, attrValue);
+    taskEntry.putAttribute(attr.getAttributeDescription().getAttributeType(), newArrayList(attr));
   }
 
   /**
@@ -651,9 +656,7 @@ public abstract class Task implements Comparable<Task>
     {
       this.actualStartTime = actualStartTime;
       Date d = new Date(actualStartTime);
-      String startTimeStr = StaticUtils.formatDateTimeString(d);
-      Attribute attr = Attributes.create(ATTR_TASK_ACTUAL_START_TIME, startTimeStr);
-      taskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
+      putAttribute(ATTR_TASK_ACTUAL_START_TIME, StaticUtils.formatDateTimeString(d));
     }
     finally
     {
@@ -701,8 +704,7 @@ public abstract class Task implements Comparable<Task>
       SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date d = new Date(completionTime);
-      Attribute attr = Attributes.create(ATTR_TASK_COMPLETION_TIME, dateFormat.format(d));
-      taskEntry.putAttribute(attr.getAttributeType(), newArrayList(attr));
+      putAttribute(ATTR_TASK_COMPLETION_TIME, dateFormat.format(d));
     }
     finally
     {

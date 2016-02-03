@@ -314,7 +314,7 @@ class DN2URI extends AbstractTree
     for (Modification mod : mods)
     {
       Attribute modAttr = mod.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeType();
+      AttributeType modAttrType = modAttr.getAttributeDescription().getAttributeType();
       if (modAttrType.equals(referralType))
       {
         Attribute a = mod.getAttribute();

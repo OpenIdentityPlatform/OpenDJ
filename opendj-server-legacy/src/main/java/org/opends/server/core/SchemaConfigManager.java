@@ -1053,7 +1053,7 @@ public class SchemaConfigManager
    */
   public static boolean isSchemaAttribute(Attribute attribute)
   {
-    String attributeOid = attribute.getAttributeType().getOID();
+    String attributeOid = attribute.getAttributeDescription().getAttributeType().getOID();
     return attributeOid.equals("2.5.21.1") ||
         attributeOid.equals("2.5.21.2") ||
         attributeOid.equals("2.5.21.4") ||

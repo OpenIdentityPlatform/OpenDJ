@@ -141,7 +141,7 @@ public class UpdatePreOpPlugin
 
     for (Attribute a : setAttributes)
     {
-      addOperation.setAttribute(a.getAttributeType(), newArrayList(a));
+      addOperation.setAttribute(a.getAttributeDescription().getAttributeType(), newArrayList(a));
     }
 
     for (ObjectClass oc : removeObjectClasses)

@@ -330,7 +330,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      */
 
     Attribute modAttr = mod.getAttribute();
-    AttributeType type = modAttr.getAttributeType();
+    AttributeType type = modAttr.getAttributeDescription().getAttributeType();
 
     switch (mod.getModificationType().asEnum())
     {

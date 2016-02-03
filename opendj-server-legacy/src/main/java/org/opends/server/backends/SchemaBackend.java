@@ -440,7 +440,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private boolean isSchemaConfigAttribute(Attribute attribute)
   {
-    AttributeType attrType = attribute.getAttributeType();
+    AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     return attrType.hasName(ATTR_SCHEMA_ENTRY_DN.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase()) ||
         attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase()) ||
@@ -637,7 +637,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Map<AttributeType, List<Attribute>> userAttrs,
       Map<AttributeType, List<Attribute>> operationalAttrs)
   {
-    AttributeType type = attribute.getAttributeType();
+    AttributeType type = attribute.getAttributeDescription().getAttributeType();
     Map<AttributeType, List<Attribute>> attrsMap = type.isOperational() ? operationalAttrs : userAttrs;
     List<Attribute> attrs = attrsMap.get(type);
     if (attrs == null)
@@ -688,14 +688,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     Attribute attribute = builder.toAttribute();
     ArrayList<Attribute> attrList = newArrayList(attribute);
-    if (attribute.getAttributeType().isOperational()
+    if (attribute.getAttributeDescription().getAttributeType().isOperational()
         && (ignoreShowAllOption || !showAllAttributes))
     {
-      operationalAttrs.put(attribute.getAttributeType(), attrList);
+      operationalAttrs.put(attribute.getAttributeDescription().getAttributeType(), attrList);
     }
     else
     {
-      userAttrs.put(attribute.getAttributeType(), attrList);
+      userAttrs.put(attribute.getAttributeDescription().getAttributeType(), attrList);
     }
   }
 
@@ -766,7 +766,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       // to add a schema element that already exists and treat it as a
       // replacement of that existing element.
       Attribute a = m.getAttribute();
-      AttributeType at = a.getAttributeType();
+      AttributeType at = a.getAttributeDescription().getAttributeType();
       switch (m.getModificationType().asEnum())
       {
         case ADD:
@@ -1640,7 +1640,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Attribute    a = m.getAttribute();
 
       if (m.getModificationType() != ModificationType.ADD ||
-          !a.getAttributeType().equals(objectClassesType))
+          !a.getAttributeDescription().getAttributeType().equals(objectClassesType))
       {
         continue;
       }
@@ -1908,7 +1908,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Attribute    a = m.getAttribute();
 
       if (m.getModificationType() != ModificationType.ADD ||
-          !a.getAttributeType().equals(nameFormsType))
+          !a.getAttributeDescription().getAttributeType().equals(nameFormsType))
       {
         continue;
       }
@@ -2377,7 +2377,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Attribute    a = m.getAttribute();
 
       if (m.getModificationType() != ModificationType.ADD ||
-          !a.getAttributeType().equals(ditStructureRulesType))
+          !a.getAttributeDescription().getAttributeType().equals(ditStructureRulesType))
       {
         continue;
       }
@@ -2916,7 +2916,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       for (Attribute attribute : attributes.values())
       {
         ArrayList<Attribute> attrList = newArrayList(attribute);
-        schemaEntry.putAttribute(attribute.getAttributeType(), attrList);
+        schemaEntry.putAttribute(attribute.getAttributeDescription().getAttributeType(), attrList);
       }
     }
 

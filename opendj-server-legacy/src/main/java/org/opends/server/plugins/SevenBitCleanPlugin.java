@@ -201,7 +201,7 @@ public final class SevenBitCleanPlugin
                   rawAttr.getAttributeType(), le.getErrorMessage()));
         }
 
-        if (! config.getAttributeType().contains(a.getAttributeType()))
+        if (!config.getAttributeType().contains(a.getAttributeDescription().getAttributeType()))
         {
           continue;
         }
@@ -277,7 +277,7 @@ public final class SevenBitCleanPlugin
                   rawAttr.getAttributeType(), le.getErrorMessage()));
         }
 
-        if (! config.getAttributeType().contains(a.getAttributeType()))
+        if (!config.getAttributeType().contains(a.getAttributeDescription().getAttributeType()))
         {
           continue;
         }

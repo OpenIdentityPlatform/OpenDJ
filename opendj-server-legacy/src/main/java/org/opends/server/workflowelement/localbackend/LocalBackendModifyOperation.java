@@ -726,7 +726,7 @@ public class LocalBackendModifyOperation
     for (Modification m : modifications)
     {
       Attribute     a = m.getAttribute();
-      AttributeType t = a.getAttributeType();
+      AttributeType t = a.getAttributeDescription().getAttributeType();
 
 
       // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
@@ -808,7 +808,7 @@ public class LocalBackendModifyOperation
 
     for (Modification m : modifications)
     {
-      AttributeType t = m.getAttribute().getAttributeType();
+      AttributeType t = m.getAttribute().getAttributeDescription().getAttributeType();
 
       // If the modification is updating the password attribute, then perform
       // any necessary password policy processing.  This processing should be
@@ -863,7 +863,7 @@ public class LocalBackendModifyOperation
   {
     for (Modification m : modifications)
     {
-      if (isPassword(m.getAttribute().getAttributeType()))
+      if (isPassword(m.getAttribute().getAttributeDescription().getAttributeType()))
       {
         if (!selfChange && !clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
         {
@@ -1058,7 +1058,7 @@ public class LocalBackendModifyOperation
 
         // We still need to check if the pre-encoded password matches
         // an existing value, to decrease the number of passwords.
-        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
+        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeDescription().getAttributeType());
         if (attrList.isEmpty())
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
@@ -1071,7 +1071,7 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
+        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeDescription().getAttributeType());
         if (attrList.isEmpty())
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
@@ -1181,7 +1181,7 @@ public class LocalBackendModifyOperation
 
     // If the attribute to be added is the object class attribute
     // then make sure that all the object classes are known and not obsoleted.
-    if (attr.getAttributeType().isObjectClass())
+    if (attr.getAttributeDescription().getAttributeType().isObjectClass())
     {
       validateObjectClasses(attr);
     }
@@ -1217,7 +1217,7 @@ public class LocalBackendModifyOperation
       Arg3<Object, Object, Object> invalidSyntaxNoValueErrorMsg) throws DirectoryException
   {
     AcceptRejectWarn syntaxPolicy = DirectoryServer.getSyntaxEnforcementPolicy();
-    Syntax syntax = attr.getAttributeType().getSyntax();
+    Syntax syntax = attr.getAttributeDescription().getAttributeType().getSyntax();
 
     LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     for (ByteString v : attr)
@@ -1262,7 +1262,7 @@ public class LocalBackendModifyOperation
    */
   private void validateObjectClasses(Attribute attr) throws DirectoryException
   {
-    final AttributeType attrType = attr.getAttributeType();
+    final AttributeType attrType = attr.getAttributeDescription().getAttributeType();
     Reject.ifFalse(attrType.isObjectClass());
     final MatchingRule eqRule = attrType.getEqualityMatchingRule();
 
@@ -1320,7 +1320,7 @@ public class LocalBackendModifyOperation
     {
       if (missingValues.isEmpty())
       {
-        AttributeType t = attr.getAttributeType();
+        AttributeType t = attr.getAttributeDescription().getAttributeType();
 
         RDN rdn = modifiedEntry.getName().rdn();
         if (rdn != null
@@ -1367,7 +1367,7 @@ public class LocalBackendModifyOperation
 
     // If the attribute to be replaced is the object class attribute
     // then make sure that all the object classes are known and not obsoleted.
-    if (attr.getAttributeType().isObjectClass())
+    if (attr.getAttributeDescription().getAttributeType().isObjectClass())
     {
       validateObjectClasses(attr);
     }
@@ -1376,7 +1376,7 @@ public class LocalBackendModifyOperation
     modifiedEntry.replaceAttribute(attr);
 
     // Make sure that the RDN attribute value(s) has not been removed.
-    AttributeType t = attr.getAttributeType();
+    AttributeType t = attr.getAttributeDescription().getAttributeType();
     RDN rdn = modifiedEntry.getName().rdn();
     if (rdn != null
         && rdn.hasAttributeType(t)
@@ -1398,7 +1398,7 @@ public class LocalBackendModifyOperation
   private void processIncrementModification(Attribute attr) throws DirectoryException
   {
     // The specified attribute type must not be an RDN attribute.
-    AttributeType t = attr.getAttributeType();
+    AttributeType t = attr.getAttributeDescription().getAttributeType();
     RDN rdn = modifiedEntry.getName().rdn();
     if (rdn != null && rdn.hasAttributeType(t))
     {
@@ -1418,7 +1418,7 @@ public class LocalBackendModifyOperation
           ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attr.getName()));
     }
 
-    MatchingRule eqRule = attr.getAttributeType().getEqualityMatchingRule();
+    MatchingRule eqRule = attr.getAttributeDescription().getAttributeType().getEqualityMatchingRule();
     ByteString v = attr.iterator().next();
 
     long incrementValue;

@@ -271,7 +271,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         org.forgerock.opendj.ldap.Attribute attribute = new LinkedAttribute("test", "value1");
 
         org.opends.server.types.Attribute srvAttribute = toAttribute(attribute);
-        assertThat(srvAttribute.getAttributeType().getNameOrOID()).isEqualTo("test");
+        assertThat(srvAttribute.getAttributeDescription().getAttributeType().getNameOrOID()).isEqualTo("test");
         assertThat(srvAttribute.size()).isEqualTo(1);
         assertThat(srvAttribute.iterator().next().toString()).isEqualTo("value1");
 
@@ -279,7 +279,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
                 new LinkedAttribute("Another", ByteString.valueOfUtf8("myValue"));
 
         org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
-        assertThat(srvAttribute2.getAttributeType().getNameOrOID()).isEqualTo("Another");
+        assertThat(srvAttribute2.getAttributeDescription().getAttributeType().getNameOrOID()).isEqualTo("Another");
         assertThat(srvAttribute2.size()).isEqualTo(1);
         assertThat(srvAttribute2.iterator().next().toString()).isEqualTo("myValue");
     }
@@ -319,7 +319,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
                 new LinkedAttribute("testMultiValuedAttribute", "value1", "value2");
 
         org.opends.server.types.Attribute srvAttribute = toAttribute(attribute);
-        assertThat(srvAttribute.getAttributeType().getNameOrOID())
+        assertThat(srvAttribute.getAttributeDescription().getAttributeType().getNameOrOID())
             .isEqualTo("testMultiValuedAttribute");
         assertThat(srvAttribute.size()).isEqualTo(2);
         Iterator<ByteString> iter = srvAttribute.iterator();
@@ -331,7 +331,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
                         "value4");
 
         org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
-        assertThat(srvAttribute2.getAttributeType().getNameOrOID())
+        assertThat(srvAttribute2.getAttributeDescription().getAttributeType().getNameOrOID())
             .isEqualTo("AnotherMultiValuedAttribute");
         assertThat(srvAttribute2.size()).isEqualTo(4);
         iter = srvAttribute2.iterator();
@@ -372,7 +372,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
 
         org.opends.server.types.Modification srvModification = toModification(mod);
         assertThat(srvModification.getModificationType()).isEqualTo(ModificationType.ADD);
-        assertThat(srvModification.getAttribute().getAttributeType().getNameOrOID()).isEqualTo("test");
+        assertThat(srvModification.getAttribute().getAttributeDescription().getAttributeType().getNameOrOID()).isEqualTo("test");
         assertThat(srvModification.getAttribute().size()).isEqualTo(2);
 
         mod = new Modification(ModificationType.INCREMENT, attribute);

@@ -844,7 +844,7 @@ public final class InternalClientConnection
     ArrayList<ByteString> duplicateValues = new ArrayList<>();
     for (Attribute a : addRecord.getAttributes())
     {
-      if (a.getAttributeType().isObjectClass())
+      if (a.getAttributeDescription().getAttributeType().isObjectClass())
       {
         for (ByteString v : a)
         {

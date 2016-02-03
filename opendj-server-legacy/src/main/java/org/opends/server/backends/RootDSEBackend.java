@@ -292,7 +292,7 @@ public class RootDSEBackend
    */
   private boolean isDSEConfigAttribute(Attribute attribute)
   {
-    AttributeType attrType = attribute.getAttributeType();
+    AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     return attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN.toLowerCase())
         || attrType.hasName(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES.toLowerCase())
         || attrType.hasName(ATTR_COMMON_NAME);
@@ -537,7 +537,7 @@ public class RootDSEBackend
   {
     for (Attribute a : attributes)
     {
-      AttributeType type = a.getAttributeType();
+      AttributeType type = a.getAttributeDescription().getAttributeType();
 
       final Map<AttributeType, List<Attribute>> attrsMap = type.isOperational() && !showAllAttributes
           ? operationalAttrs
@@ -559,7 +559,7 @@ public class RootDSEBackend
     if (!attribute.isEmpty())
     {
       List<Attribute> attrs = newArrayList(attribute);
-      final AttributeType attrType = attribute.getAttributeType();
+      final AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
       if (showAllAttributes || !attrType.isOperational())
       {
         userAttrs.put(attrType, attrs);

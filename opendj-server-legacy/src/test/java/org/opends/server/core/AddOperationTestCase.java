@@ -381,7 +381,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAttribute(a.getAttributeType());
+    List<Attribute> attrList = e.getAttribute(a.getAttributeDescription());
     assertFalse(attrList.isEmpty());
 
     boolean foundFoo = false;
@@ -432,7 +432,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    assertThat(e.getAttribute(a.getAttributeType())).isNotEmpty();
+    assertThat(e.getAttribute(a.getAttributeDescription().getAttributeType())).isNotEmpty();
 
     UpdatePreOpPlugin.reset();
   }

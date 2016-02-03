@@ -1350,7 +1350,7 @@ public class Entry
          throws DirectoryException
   {
     Attribute     a = mod.getAttribute();
-    AttributeType t = a.getAttributeType();
+    AttributeType t = a.getAttributeDescription().getAttributeType();
 
     if (t.isObjectClass())
     {
@@ -2937,7 +2937,7 @@ public class Entry
         List<Attribute> collectiveAttrList = subEntry.getCollectiveAttributes();
         for (Attribute collectiveAttr : collectiveAttrList)
         {
-          AttributeType attributeType = collectiveAttr.getAttributeType();
+          AttributeType attributeType = collectiveAttr.getAttributeDescription().getAttributeType();
           if (exclusionsNameSet.contains(attributeType.getNormalizedNameOrOID()))
           {
             continue;
@@ -3549,11 +3549,11 @@ public class Entry
         }
         // Decode the attribute.
         Attribute a = config.getCompressedSchema().decodeAttribute(entryBuffer);
-        List<Attribute> attrList = attributes.get(a.getAttributeType());
+        List<Attribute> attrList = attributes.get(a.getAttributeDescription().getAttributeType());
         if (attrList == null)
         {
           attrList = new ArrayList<>(1);
-          attributes.put(a.getAttributeType(), attrList);
+          attributes.put(a.getAttributeDescription().getAttributeType(), attrList);
         }
         attrList.add(a);
       }

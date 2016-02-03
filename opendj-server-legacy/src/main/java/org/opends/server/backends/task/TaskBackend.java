@@ -744,7 +744,7 @@ public class TaskBackend
       }
 
       Attribute a = m.getAttribute();
-      AttributeType at = a.getAttributeType();
+      AttributeType at = a.getAttributeDescription().getAttributeType();
       if (!at.hasName(ATTR_TASK_STATE)) {
         return false;
       }

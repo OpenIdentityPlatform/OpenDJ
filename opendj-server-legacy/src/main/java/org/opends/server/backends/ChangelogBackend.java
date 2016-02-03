@@ -28,6 +28,7 @@ package org.opends.server.backends;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.replication.plugin.MultimasterReplication.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
@@ -177,7 +178,6 @@ public class ChangelogBackend extends Backend<Configuration>
   private static final long CHANGE_NUMBER_FOR_EMPTY_CURSOR = 0L;
 
   private static final String CHANGE_NUMBER_ATTR = "changeNumber";
-  private static final String CHANGE_NUMBER_ATTR_LC = CHANGE_NUMBER_ATTR.toLowerCase();
   private static final String ENTRY_SENDER_ATTACHMENT = OID_ECL_COOKIE_EXCHANGE_CONTROL + ".entrySender";
 
   /** The set of objectclasses that will be used in root entry. */
@@ -199,11 +199,9 @@ public class ChangelogBackend extends Backend<Configuration>
   }
 
   /** The attribute type for the "creatorsName" attribute. */
-  private static final AttributeType CREATORS_NAME_TYPE =
-      DirectoryServer.getAttributeType(OP_ATTR_CREATORS_NAME_LC);
+  private static final AttributeType CREATORS_NAME_TYPE = getAttributeType(OP_ATTR_CREATORS_NAME);
   /** The attribute type for the "modifiersName" attribute. */
-  private static final AttributeType MODIFIERS_NAME_TYPE =
-      DirectoryServer.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC);
+  private static final AttributeType MODIFIERS_NAME_TYPE = getAttributeType(OP_ATTR_MODIFIERS_NAME);
 
   /** The base DN for the external change log. */
   public static final DN CHANGELOG_BASE_DN;
@@ -1196,7 +1194,7 @@ public class ChangelogBackend extends Backend<Configuration>
       final StringBuilder builder = new StringBuilder(256);
       for (Attribute attr : addMsg.getAttributes())
       {
-        if (attr.getAttributeType().equals(CREATORS_NAME_TYPE) && !attr.isEmpty())
+        if (attr.getAttributeDescription().getAttributeType().equals(CREATORS_NAME_TYPE) && !attr.isEmpty())
         {
           // This attribute is not multi-valued.
           changeInitiatorsName = attr.iterator().next().toString();
@@ -1239,7 +1237,7 @@ public class ChangelogBackend extends Backend<Configuration>
       {
         final Attribute attr = mod.getAttribute();
         if (mod.getModificationType() == ModificationType.REPLACE
-            && attr.getAttributeType().equals(MODIFIERS_NAME_TYPE)
+            && attr.getAttributeDescription().getAttributeType().equals(MODIFIERS_NAME_TYPE)
             && !attr.isEmpty())
         {
           // This attribute is not multi-valued.

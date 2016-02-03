@@ -2370,7 +2370,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
           if (removeAttrs != null)
           {
-            removeAttrs.add(Attributes.create(a.getAttributeType(), v));
+            removeAttrs.add(Attributes.create(a.getAttributeDescription().getAttributeType(), v));
           }
         }
         else
@@ -2392,7 +2392,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
             if (removeAttrs != null)
             {
-              removeAttrs.add(Attributes.create(a.getAttributeType(), v));
+              removeAttrs.add(Attributes.create(a.getAttributeDescription().getAttributeType(), v));
             }
           }
         }

@@ -202,13 +202,13 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     Attribute attr = Attributes.create("o", "com");
     List<Attribute> userAttributes = newArrayList(attr);
     HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<>();
-    userAttList.put(attr.getAttributeType(), userAttributes);
+    userAttList.put(attr.getAttributeDescription().getAttributeType(), userAttributes);
 
 
     attr = Attributes.create("creatorsName", "dc=creator");
     List<Attribute> operationalAttributes = newArrayList(attr);
     HashMap<AttributeType, List<Attribute>> opList = new HashMap<>();
-    opList.put(attr.getAttributeType(), operationalAttributes);
+    opList.put(attr.getAttributeDescription().getAttributeType(), operationalAttributes);
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
 

@@ -217,7 +217,7 @@ public class ModifyOperationBasis
         {
            Modification mod = m.toModification();
            Attribute attr = mod.getAttribute();
-           AttributeType type = attr.getAttributeType();
+           AttributeType type = attr.getAttributeDescription().getAttributeType();
 
            if(type.getSyntax().isBEREncodingRequired())
            {

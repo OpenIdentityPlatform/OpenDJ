@@ -68,24 +68,16 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The set of user-defined attributes that will be included in the base
-   * monitor entry.
-   */
+  /** The set of user-defined attributes that will be included in the base monitor entry.   */
   private ArrayList<Attribute> userDefinedAttributes;
-
   /** The set of objectclasses that will be used in monitor entries. */
   private final HashMap<ObjectClass, String> monitorObjectClasses = new LinkedHashMap<>(2);
-
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
-
   /** The current configuration state. */
   private MonitorBackendCfg currentConfig;
-
   /** The DN for the base monitor entry. */
   private DN baseMonitorDN;
-
   /** The set of base DNs for this backend. */
   private DN[] baseDNs;
 
@@ -627,7 +619,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     // Add all the user-defined attributes.
     for (final Attribute a : userDefinedAttributes)
     {
-      final AttributeType type = a.getAttributeType();
+      final AttributeType type = a.getAttributeDescription().getAttributeType();
 
       final HashMap<AttributeType, List<Attribute>> attrsMap =
           type.isOperational() ? monitorOperationalAttrs : monitorUserAttrs;
@@ -657,7 +649,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   private void put(final HashMap<AttributeType, List<Attribute>> attrsMap, final Attribute attr)
   {
-    attrsMap.put(attr.getAttributeType(), newArrayList(attr));
+    attrsMap.put(attr.getAttributeDescription().getAttributeType(), newArrayList(attr));
   }
 
   /**
@@ -782,7 +774,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     // Take the rest of the information from the monitor data.
     for (final Attribute a : monitorAttrs)
     {
-      final AttributeType type = a.getAttributeType();
+      final AttributeType type = a.getAttributeDescription().getAttributeType();
 
       List<Attribute> attrs = attrMap.get(type);
       if (attrs == null)
@@ -823,7 +815,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private boolean isMonitorConfigAttribute(final Attribute attribute)
   {
-    final AttributeType attrType = attribute.getAttributeType();
+    final AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     return attrType.hasName(ATTR_COMMON_NAME)
         || attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase())
         || attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase())

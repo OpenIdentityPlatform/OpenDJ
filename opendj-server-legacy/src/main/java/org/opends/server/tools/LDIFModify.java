@@ -316,7 +316,7 @@ public class LDIFModify
 
       for (Attribute a : add.getAttributes())
       {
-        AttributeType t = a.getAttributeType();
+        AttributeType t = a.getAttributeDescription().getAttributeType();
         if (t.isObjectClass())
         {
           for (ByteString v : a)

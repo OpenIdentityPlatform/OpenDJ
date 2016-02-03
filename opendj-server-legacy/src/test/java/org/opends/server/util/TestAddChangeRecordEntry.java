@@ -71,7 +71,7 @@ public final class TestAddChangeRecordEntry extends UtilTestCase {
 
     attribute = Attributes.create("cn", "hello world");
     attributes = new HashMap<>();
-    attributes.put(attribute.getAttributeType(), newArrayList(attribute));
+    attributes.put(attribute.getAttributeDescription().getAttributeType(), newArrayList(attribute));
   }
 
   /**

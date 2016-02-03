@@ -710,7 +710,7 @@ public final class AciHandler extends
     for (Modification m : modifications)
     {
       Attribute modAttr = m.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeType();
+      AttributeType modAttrType = modAttr.getAttributeDescription().getAttributeType();
 
       if (modAttrType.equals(aciType)
           /*
@@ -988,8 +988,7 @@ public final class AciHandler extends
     final Attribute attr = e.getObjectClassAttribute();
     if (attr != null)
     {
-      AttributeType ocType = attr.getAttributeType();
-      typeList.add(ocType);
+      typeList.add(attr.getAttributeDescription().getAttributeType());
     }
     typeList.addAll(e.getUserAttributes().keySet());
     typeList.addAll(e.getOperationalAttributes().keySet());

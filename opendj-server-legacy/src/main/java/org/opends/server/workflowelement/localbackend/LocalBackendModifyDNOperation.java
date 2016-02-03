@@ -641,7 +641,7 @@ public class LocalBackendModifyDNOperation
 
         // If the associated attribute type is marked NO-USER-MODIFICATION, then
         // refuse the update.
-        if (a.getAttributeType().isNoUserModification()
+        if (a.getAttributeDescription().getAttributeType().isNoUserModification()
             && !isInternalOperation()
             && !isSynchronizationOperation())
         {
@@ -676,7 +676,7 @@ public class LocalBackendModifyDNOperation
       {
         // If the associated attribute type is marked NO-USER-MODIFICATION, then
         // refuse the update.
-        if (a.getAttributeType().isNoUserModification())
+        if (a.getAttributeDescription().getAttributeType().isNoUserModification())
         {
           if (!isInternalOperation() && !isSynchronizationOperation())
           {

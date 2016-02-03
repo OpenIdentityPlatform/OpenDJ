@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -263,7 +263,7 @@ public final class EntityTagVirtualAttributeProvider extends
     }
 
     // Ignore excluded attributes.
-    if (cfg.getExcludedAttribute().contains(attribute.getAttributeType()))
+    if (cfg.getExcludedAttribute().contains(attribute.getAttributeDescription().getAttributeType()))
     {
       return;
     }

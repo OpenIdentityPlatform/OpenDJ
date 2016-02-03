@@ -110,13 +110,7 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public String getName()
   {
-    return getAttributeType().getNameOrOID();
-  }
-
-  @Override
-  public AttributeType getAttributeType()
-  {
-    return getAttributeDescription().getAttributeType();
+    return getAttributeDescription().getAttributeType().getNameOrOID();
   }
 
   /**
@@ -148,12 +142,13 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public int hashCode()
   {
-    int hashCode = getAttributeType().hashCode();
+    AttributeType attrType = getAttributeDescription().getAttributeType();
+    int hashCode = attrType.hashCode();
     for (ByteString value : this)
     {
       try
       {
-        MatchingRule eqRule = getAttributeType().getEqualityMatchingRule();
+        MatchingRule eqRule = attrType.getEqualityMatchingRule();
         hashCode += eqRule.normalizeAttributeValue(value).hashCode();
       }
       catch (DecodeException e)

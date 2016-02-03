@@ -2505,7 +2505,7 @@ public class EntryContainer
     for (Modification mod : mods)
     {
       Attribute modAttr = mod.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeType();
+      AttributeType modAttrType = modAttr.getAttributeDescription().getAttributeType();
       if (modAttrType.equals(indexAttributeType)
           || subTypes.contains(modAttrType))
       {

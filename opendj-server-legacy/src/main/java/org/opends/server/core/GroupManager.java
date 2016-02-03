@@ -780,7 +780,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   {
     for (Modification mod : modifications)
     {
-      if (mod.getAttribute().getAttributeType().isObjectClass())
+      if (mod.getAttribute().getAttributeDescription().getAttributeType().isObjectClass())
       {
         return true;
       }

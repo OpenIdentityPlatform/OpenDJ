@@ -555,7 +555,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       for (Modification mod : modifications)
       {
         Attribute attribute = mod.getAttribute();
-        if (attribute.getAttributeType().equals(memberAttributeType))
+        if (attribute.getAttributeDescription().getAttributeType().equals(memberAttributeType))
         {
           switch (mod.getModificationType().asEnum())
           {

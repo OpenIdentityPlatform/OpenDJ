@@ -252,7 +252,7 @@ public class UniqueAttributePlugin
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
-      AttributeType t = a.getAttributeType();
+      AttributeType t = a.getAttributeDescription().getAttributeType();
       if (! config.getType().contains(t))
       {
         // This modification isn't for a unique attribute.
@@ -441,7 +441,7 @@ public class UniqueAttributePlugin
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
-      AttributeType t = a.getAttributeType();
+      AttributeType t = a.getAttributeDescription().getAttributeType();
       if (! config.getType().contains(t))
       {
         // This modification isn't for a unique attribute.
@@ -829,7 +829,7 @@ public class UniqueAttributePlugin
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
-      AttributeType t = a.getAttributeType();
+      AttributeType t = a.getAttributeDescription().getAttributeType();
       if (! config.getType().contains(t))
       {
         // This modification isn't for a unique attribute.

@@ -404,7 +404,7 @@ public final class JMXMBean
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
-        if (attrType.equals(a.getAttributeType()))
+        if (attrType.equals(a.getAttributeDescription().getAttributeType()))
         {
           if (a.isEmpty())
           {
@@ -589,7 +589,7 @@ monitorLoop:
       {
         for (org.opends.server.types.Attribute a : monitor.getMonitorData())
         {
-          if (attrType.equals(a.getAttributeType()))
+          if (attrType.equals(a.getAttributeDescription().getAttributeType()))
           {
             if (a.isEmpty())
             {

@@ -256,7 +256,7 @@ public class SubEntry {
       List<Attribute> subAttrList = entry.getAttributes();
       for (Attribute subAttr : subAttrList)
       {
-        AttributeType attrType = subAttr.getAttributeType();
+        AttributeType attrType = subAttr.getAttributeDescription().getAttributeType();
         if (attrType.isCollective())
         {
           CollectiveVirtualAttribute collectiveAttr =
@@ -265,7 +265,7 @@ public class SubEntry {
         }
         else if (subAttr.hasOption(ATTR_OPTION_COLLECTIVE))
         {
-          AttributeBuilder builder = new AttributeBuilder(subAttr.getAttributeType());
+          AttributeBuilder builder = new AttributeBuilder(subAttr.getAttributeDescription().getAttributeType());
           builder.addAll(subAttr);
           for (String option : subAttr.getAttributeDescription().getOptions())
           {

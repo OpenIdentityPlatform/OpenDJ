@@ -447,13 +447,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Attribute attr = Attributes.create("o", "com");
     List<Attribute> userAttributes = newArrayList(attr);
     Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
-    userAttList.put(attr.getAttributeType(), userAttributes);
+    userAttList.put(attr.getAttributeDescription().getAttributeType(), userAttributes);
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
     List<Attribute> operationalAttributes = newArrayList(attr);
     Map<AttributeType, List<Attribute>> opList = new HashMap<>();
-    opList.put(attr.getAttributeType(), operationalAttributes);
+    opList.put(attr.getAttributeDescription().getAttributeType(), operationalAttributes);
 
     CSN csn = new CSN(TimeThread.getTime(), 123,  45);
 
@@ -1176,12 +1176,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr = Attributes.create("o", "com");
     Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
-    userAttList.put(attr.getAttributeType(), newArrayList(attr));
+    userAttList.put(attr.getAttributeDescription().getAttributeType(), newArrayList(attr));
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
     Map<AttributeType, List<Attribute>> opList = new HashMap<>();
-    opList.put(attr.getAttributeType(), newArrayList(attr));
+    opList.put(attr.getAttributeDescription().getAttributeType(), newArrayList(attr));
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     DN dn = DN.valueOf(rawDN);

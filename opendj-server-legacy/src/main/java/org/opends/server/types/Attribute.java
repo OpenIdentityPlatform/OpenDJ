@@ -33,7 +33,6 @@ import java.util.List;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -114,13 +113,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   @Override
   boolean equals(Object o);
-
-  /**
-   * Retrieves the attribute type for this attribute.
-   *
-   * @return The attribute type for this attribute.
-   */
-  AttributeType getAttributeType();
 
   /**
    * Retrieves the attribute description for this attribute.

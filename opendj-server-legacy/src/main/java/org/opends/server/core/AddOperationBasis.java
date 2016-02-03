@@ -298,7 +298,7 @@ public class AddOperationBasis
         try
         {
           Attribute attr = a.toAttribute();
-          AttributeType attrType = attr.getAttributeType();
+          AttributeType attrType = attr.getAttributeDescription().getAttributeType();
 
           // If the attribute type is marked "NO-USER-MODIFICATION" then fail
           // unless this is an internal operation or is related to

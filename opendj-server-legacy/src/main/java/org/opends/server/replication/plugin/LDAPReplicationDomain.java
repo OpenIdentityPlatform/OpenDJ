@@ -1436,7 +1436,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       Modification mod = modsIt.next();
       Attribute attr = mod.getAttribute();
-      AttributeType attrType = attr.getAttributeType();
+      AttributeType attrType = attr.getAttributeDescription().getAttributeType();
       // Fractional replication ignores operational attributes
       if (attrType.isOperational()
           || isMandatoryAttribute(entryClasses, attrType)
@@ -2619,7 +2619,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       List<Modification> mods = op.getModifications();
       for (Modification mod : mods)
       {
-        AttributeType modAttrType = mod.getAttribute().getAttributeType();
+        AttributeType modAttrType = mod.getAttribute().getAttributeDescription().getAttributeType();
         if ((mod.getModificationType() == ModificationType.DELETE
               || mod.getModificationType() == ModificationType.REPLACE)
             && currentRDN.hasAttributeType(modAttrType))

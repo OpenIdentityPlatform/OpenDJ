@@ -192,7 +192,7 @@ public final class VirtualAttribute
   public void toString(StringBuilder buffer)
   {
     buffer.append("VirtualAttribute(");
-    buffer.append(getAttributeType().getNameOrOID());
+    buffer.append(getAttributeDescription().getAttributeType().getNameOrOID());
     buffer.append(", {");
     Utils.joinAsString(buffer, ", ", this);
     buffer.append("})");

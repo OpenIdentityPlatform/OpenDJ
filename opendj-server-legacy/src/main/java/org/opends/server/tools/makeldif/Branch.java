@@ -151,7 +151,7 @@ public class Branch
             String[] valueStrings = new String[] { v.toString() };
             Tag[] tags = new Tag[] { new StaticTextTag() };
             tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
-            lineList.add(new TemplateLine(a.getAttributeType(), 0, tags));
+            lineList.add(new TemplateLine(a.getAttributeDescription().getAttributeType(), 0, tags));
           }
           catch (Exception e)
           {
@@ -173,7 +173,7 @@ public class Branch
             String[] valueStrings = new String[] { v.toString() };
             Tag[] tags = new Tag[] { new StaticTextTag() };
             tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
-            lineList.add(new TemplateLine(a.getAttributeType(), 0, tags));
+            lineList.add(new TemplateLine(a.getAttributeDescription().getAttributeType(), 0, tags));
           }
           catch (Exception e)
           {

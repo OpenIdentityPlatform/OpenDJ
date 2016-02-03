@@ -271,8 +271,7 @@ public class AciListenerManager implements
       boolean hasAci = false, hasGlobalAci = false;
       for (Modification mod : mods)
       {
-        AttributeType attributeType = mod.getAttribute()
-            .getAttributeType();
+        AttributeType attributeType = mod.getAttribute().getAttributeDescription().getAttributeType();
         if (attributeType.equals(AciHandler.aciType))
         {
           hasAci = true;

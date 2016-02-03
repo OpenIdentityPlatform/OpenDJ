@@ -189,8 +189,8 @@ public class AddSchemaFileTask
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();
-            AttributeBuilder builder = new AttributeBuilder(a
-                .getAttributeType(), a.getName());
+            AttributeType attrType = a.getAttributeDescription().getAttributeType();
+            AttributeBuilder builder = new AttributeBuilder(attrType, attrType.getNameOrOID());
             for (ByteString v : a)
             {
               String s = v.toString();
