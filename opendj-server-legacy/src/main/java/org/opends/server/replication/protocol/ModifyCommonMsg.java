@@ -34,27 +34,24 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RawModification;
 
-/**
- * This class holds every common code for the modify messages (mod, moddn).
- */
+/** This class holds every common code for the modify messages (mod, moddn). */
 public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
-
-  /**
-   * The modifications kept encoded in the message.
-   */
+  /** The modifications kept encoded in the message. */
   protected byte[] encodedMods = new byte[0];
 
-  /**
-   * Creates a new ModifyCommonMsg.
-   */
+  /** Creates a new ModifyCommonMsg. */
   public ModifyCommonMsg()
   {
     super();
@@ -134,23 +131,17 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
     {
       Attribute attr = mod.getAttribute();
       AttributeType type = attr.getAttributeDescription().getAttributeType();
-      if (type != null
-          && AttributeUsage.DSA_OPERATION.equals(type.getUsage()) )
-      {
-        // Attributes with a dsaOperation usage should not be synchronized.
-        // skip them.
-        continue;
-      }
-
-      if (!EntryHistorical.isHistoricalAttribute(attr))
+      // Do not synchronize attributes with a dsaOperation usage
+      if (!AttributeUsage.DSA_OPERATION.equals(type.getUsage())
+          && !EntryHistorical.isHistoricalAttribute(attr))
       {
         LDAPModification ldapmod = new LDAPModification(
-          mod.getModificationType(), new LDAPAttribute(mod.getAttribute()));
+            mod.getModificationType(), new LDAPAttribute(mod.getAttribute()));
         try
         {
           ldapmod.write(writer);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
           // DO SOMETHING
         }
