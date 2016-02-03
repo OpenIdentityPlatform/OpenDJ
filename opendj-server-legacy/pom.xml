@@ -1599,7 +1599,6 @@
                     <messageFileName>backend</messageFileName>
                     <messageFileName>config</messageFileName>
                     <messageFileName>core</messageFileName>
-                    <messageFileName>dsconfig</messageFileName>
                     <messageFileName>extension</messageFileName>
                     <messageFileName>logger</messageFileName>
                     <messageFileName>plugin</messageFileName>
