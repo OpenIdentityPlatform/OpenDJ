@@ -221,22 +221,28 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
   {
     final Entry oldEntry = op.getCurrentEntry();
 
-    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null) {
+    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null)
+    {
       return PostResponse.continueOperationProcessing();
     }
 
-    final Entry newEntry = op.getModifiedEntry();
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
-    // and update them with the latest version of the entry.
+    // and update them with the latest version of the entry
+    // including any virtual attributes.
     lock.writeLock().lock();
     try
     {
       CopyOnWriteArraySet<ClientConnection> connectionSet = userMap.get(oldEntry.getName());
       if (connectionSet != null)
       {
+        Entry newEntry = null;
         for (ClientConnection conn : connectionSet)
         {
+          if (newEntry == null)
+          {
+            newEntry = op.getModifiedEntry().duplicate(true);
+          }
           conn.updateAuthenticationInfo(oldEntry, newEntry);
         }
       }
