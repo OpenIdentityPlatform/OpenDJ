@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.server.admin.client.cli;
@@ -30,6 +30,7 @@ package org.opends.server.admin.client.cli;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,7 +48,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -244,18 +244,18 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     secureArgsList = new SecureConnectionCliArgs(alwaysSSL);
     Set<Argument> set = secureArgsList.createGlobalArguments();
 
-    showUsageArg = CommonArguments.getShowUsage();
+    showUsageArg = showUsageArgument();
     setUsageArgument(showUsageArg, outStream);
     set.add(showUsageArg);
 
-    verboseArg = CommonArguments.getVerbose();
+    verboseArg = verboseArgument();
     set.add(verboseArg);
 
-    propertiesFileArg = CommonArguments.getPropertiesFile();
+    propertiesFileArg = propertiesFileArgument();
     setFilePropertiesArgument(propertiesFileArg);
     set.add(propertiesFileArg);
 
-    noPropertiesFileArg = CommonArguments.getNoPropertiesFile();
+    noPropertiesFileArg = noPropertiesFileArgument();
     setNoPropertiesFileArgument(noPropertiesFileArg);
     set.add(noPropertiesFileArg);
 

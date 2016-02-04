@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -431,7 +432,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
                     .buildArgument();
     defaultArgs.add(index++, baseDNsArg);
 
-    adminUidArg = CommonArguments.getAdminUid(
+    adminUidArg = adminUid(
             INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
     defaultArgs.add(index++, adminUidArg);
 
@@ -453,37 +454,37 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     defaultArgs.remove(verboseArg);
 
-    quietArg = CommonArguments.getQuiet();
+    quietArg = quietArgument();
     defaultArgs.add(index++, quietArg);
 
-    noPromptArg = CommonArguments.getNoPrompt();
+    noPromptArg = noPromptArgument();
     defaultArgs.add(index++, noPromptArg);
 
-    displayEquivalentArgument = CommonArguments.getDisplayEquivalentCommand();
+    displayEquivalentArgument = displayEquivalentCommandArgument();
 
     defaultArgs.add(index++, displayEquivalentArgument);
 
     equivalentCommandFileArgument =
         CommonArguments
-            .getEquivalentCommandFile(
+            .equivalentCommandFileArgument(
                 INFO_REPLICATION_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
     defaultArgs.add(index++, equivalentCommandFileArgument);
 
-    advancedArg = CommonArguments.getAdvancedMode();
+    advancedArg = advancedModeArgument();
     defaultArgs.add(index++, advancedArg);
 
     configClassArg =
-        CommonArguments.getConfigClass(ConfigFileHandler.class.getName());
+        configClassArgument(ConfigFileHandler.class.getName());
     defaultArgs.add(index++, configClassArg);
 
-    configFileArg = CommonArguments.getConfigFile();
+    configFileArg = configFileArgument();
     defaultArgs.add(index++, configFileArg);
 
-    this.propertiesFileArgument = CommonArguments.getPropertiesFile();
+    this.propertiesFileArgument = propertiesFileArgument();
     defaultArgs.add(this.propertiesFileArgument);
     setFilePropertiesArgument(this.propertiesFileArgument);
 
-    this.noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+    this.noPropertiesFileArgument = noPropertiesFileArgument();
     defaultArgs.add(this.noPropertiesFileArgument);
     setNoPropertiesFileArgument(this.noPropertiesFileArgument);
 

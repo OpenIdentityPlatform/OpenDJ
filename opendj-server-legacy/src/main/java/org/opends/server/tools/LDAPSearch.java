@@ -35,6 +35,7 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_VERSION;
 import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -66,7 +67,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -788,7 +788,7 @@ public class LDAPSearch
                       .valuePlaceholder(INFO_SASL_OPTION_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      trustAll = CommonArguments.getTrustAll();
+      trustAll = trustAllArgument();
       argParser.addArgument(trustAll);
 
       keyStorePath =
@@ -976,10 +976,10 @@ public class LDAPSearch
                       .description(INFO_DESCRIPTION_NOOP.get())
                       .buildAndAddToParser(argParser);
 
-      verbose = CommonArguments.getVerbose();
+      verbose = verboseArgument();
       argParser.addArgument(verbose);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)

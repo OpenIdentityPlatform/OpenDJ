@@ -31,6 +31,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -60,7 +61,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
@@ -142,12 +142,12 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
     try {
       StringArgument propertiesFileArgument =
-          CommonArguments.getPropertiesFile();
+          propertiesFileArgument();
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
       BooleanArgument noPropertiesFileArgument =
-          CommonArguments.getNoPropertiesFile();
+          noPropertiesFileArgument();
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 

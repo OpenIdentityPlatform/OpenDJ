@@ -32,6 +32,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -74,7 +75,6 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -282,7 +282,7 @@ public class ExportLDIF extends TaskTool {
                       .hidden() // See issue #28
                       .buildAndAddToParser(argParser);
 
-      displayUsage = CommonArguments.getShowUsage();
+      displayUsage = showUsageArgument();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }

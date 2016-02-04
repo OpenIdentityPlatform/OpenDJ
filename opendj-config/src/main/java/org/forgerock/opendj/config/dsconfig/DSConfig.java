@@ -32,6 +32,7 @@ import static com.forgerock.opendj.cli.DocGenerationHelper.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.forgerock.opendj.config.PropertyOption.*;
 import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
@@ -113,7 +114,6 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
@@ -936,12 +936,12 @@ public final class DSConfig extends ConsoleApplication {
      */
     private void initializeGlobalArguments() throws ArgumentException {
         if (!globalArgumentsInitialized) {
-            verboseArgument = CommonArguments.getVerbose();
-            quietArgument = CommonArguments.getQuiet();
-            scriptFriendlyArgument = CommonArguments.getScriptFriendly();
-            noPromptArgument = CommonArguments.getNoPrompt();
-            advancedModeArgument = CommonArguments.getAdvancedMode();
-            showUsageArgument = CommonArguments.getShowUsage();
+            verboseArgument = verboseArgument();
+            quietArgument = quietArgument();
+            scriptFriendlyArgument = scriptFriendlyArgument();
+            noPromptArgument = noPromptArgument();
+            advancedModeArgument = advancedModeArgument();
+            showUsageArgument = showUsageArgument();
 
             batchArgument =
                     BooleanArgument.builder(OPTION_LONG_BATCH)

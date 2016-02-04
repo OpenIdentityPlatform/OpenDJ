@@ -54,12 +54,12 @@ import org.forgerock.opendj.io.ASN1Reader;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 
 
@@ -134,7 +134,7 @@ public class ProfileViewer
                       .description(INFO_PROFILEVIEWER_DESCRIPTION_USE_GUI.get())
                       .buildAndAddToParser(argParser);
 
-      displayUsage = CommonArguments.getShowUsage();
+      displayUsage = showUsageArgument();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }

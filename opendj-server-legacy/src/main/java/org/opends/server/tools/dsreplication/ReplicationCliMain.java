@@ -68,7 +68,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
-import com.forgerock.opendj.cli.CommonArguments;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
@@ -147,6 +146,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static java.util.Collections.*;
 import static org.forgerock.util.Utils.*;
@@ -8839,7 +8839,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (uData.getAdminUid() != null)
       {
-        final StringArgument adminUID = CommonArguments.getAdminUid(
+        final StringArgument adminUID = adminUid(
                 INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
         adminUID.addValue(uData.getAdminUid());
         commandBuilder.addArgument(adminUID);

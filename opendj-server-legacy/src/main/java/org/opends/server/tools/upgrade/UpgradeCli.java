@@ -27,6 +27,7 @@ package org.opends.server.tools.upgrade;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 import static javax.security.auth.callback.TextOutputCallback.*;
 
 import static org.opends.messages.ToolMessages.*;
@@ -55,7 +56,6 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
@@ -224,11 +224,11 @@ public final class UpgradeCli extends ConsoleApplication implements
   {
     if (!globalArgumentsInitialized)
     {
-      configClass = CommonArguments.getConfigClass(ConfigFileHandler.class.getName());
-      configFile = CommonArguments.getConfigFile();
-      noPrompt = CommonArguments.getNoPrompt();
-      verbose = CommonArguments.getVerbose();
-      quietMode = CommonArguments.getQuiet();
+      configClass = configClassArgument(ConfigFileHandler.class.getName());
+      configFile = configFileArgument();
+      noPrompt = noPromptArgument();
+      verbose = verboseArgument();
+      quietMode = quietArgument();
       ignoreErrors =
               BooleanArgument.builder(OPTION_LONG_IGNORE_ERRORS)
                       .description(INFO_UPGRADE_OPTION_IGNORE_ERRORS.get())
@@ -237,8 +237,8 @@ public final class UpgradeCli extends ConsoleApplication implements
               BooleanArgument.builder(OPTION_LONG_FORCE_UPGRADE)
                       .description(INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT))
                       .buildArgument();
-      acceptLicense = CommonArguments.getAcceptLicense();
-      showUsageArgument = CommonArguments.getShowUsage();
+      acceptLicense = acceptLicenseArgument();
+      showUsageArgument = showUsageArgument();
 
 
       // Register the global arguments.

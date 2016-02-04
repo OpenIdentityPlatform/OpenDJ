@@ -33,6 +33,7 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEH
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.extensions.PasswordPolicyStateExtendedOperation.*;
@@ -69,7 +70,6 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -905,7 +905,7 @@ public class ManageAccount
                       .buildArgument();
       argParser.addGlobalArgument(saslOption);
 
-      trustAll = CommonArguments.getTrustAll();
+      trustAll = trustAllArgument();
       argParser.addGlobalArgument(trustAll);
 
       keyStoreFile =
@@ -964,10 +964,10 @@ public class ManageAccount
                       .buildArgument();
       argParser.addGlobalArgument(trustStorePWFile);
 
-      verbose = CommonArguments.getVerbose();
+      verbose = verboseArgument();
       argParser.addGlobalArgument(verbose);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addGlobalArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
 

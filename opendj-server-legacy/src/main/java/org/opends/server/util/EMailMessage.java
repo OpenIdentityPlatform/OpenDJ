@@ -58,13 +58,14 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 
 
@@ -581,7 +582,7 @@ public final class EMailMessage
                       .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

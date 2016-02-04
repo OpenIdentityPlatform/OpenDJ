@@ -43,6 +43,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -75,7 +76,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -293,7 +293,7 @@ public class LDAPPasswordModify
                       .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      trustAll = CommonArguments.getTrustAll();
+      trustAll = trustAllArgument();
       argParser.addArgument(trustAll);
 
       sslKeyStore =
@@ -351,7 +351,7 @@ public class LDAPPasswordModify
                       .valuePlaceholder(INFO_TIMEOUT_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }

@@ -29,6 +29,7 @@ package org.opends.server.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -70,7 +71,6 @@ import org.opends.server.util.BuildVersion;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -231,7 +231,7 @@ public class EncodePassword
                       .description(INFO_ENCPW_DESCRIPTION_USE_COMPARE_RESULT.get())
                       .buildAndAddToParser(argParser);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }

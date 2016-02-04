@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -230,7 +231,7 @@ public class LDIFSearch
                       .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

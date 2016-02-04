@@ -28,6 +28,7 @@ package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -60,7 +61,6 @@ import org.opends.server.util.BuildVersion;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
@@ -179,7 +179,7 @@ public class ListBackends
                       .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      displayUsage = CommonArguments.getShowUsage();
+      displayUsage = showUsageArgument();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage, out);
     }

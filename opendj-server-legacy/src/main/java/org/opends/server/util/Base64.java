@@ -31,6 +31,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -53,7 +55,6 @@ import org.opends.server.types.NullOutputStream;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
@@ -528,7 +529,7 @@ public final class Base64
       subCommandList.add(decodeSubCommand);
       subCommandList.add(encodeSubCommand);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addGlobalArgument(showUsage);
       argParser.setUsageGroupArgument(showUsage, subCommandList);
       argParser.setUsageArgument(showUsage, NullOutputStream.printStream());

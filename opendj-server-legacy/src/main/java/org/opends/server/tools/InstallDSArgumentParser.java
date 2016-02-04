@@ -35,6 +35,7 @@ import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -56,7 +57,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -138,7 +138,7 @@ public class InstallDSArgumentParser extends ArgumentParser
                     .buildArgument();
     addArgument(testOnlyArg);
 
-    cliArg = CommonArguments.getCLI();
+    cliArg = cliArgument();
     addArgument(cliArg);
 
     progNameArg = StringArgument.builder("programName")
@@ -150,13 +150,13 @@ public class InstallDSArgumentParser extends ArgumentParser
             .buildArgument();
     addArgument(progNameArg);
 
-    noPromptArg = CommonArguments.getNoPrompt();
+    noPromptArg = noPromptArgument();
     addArgument(noPromptArg);
 
-    quietArg = CommonArguments.getQuiet();
+    quietArg = quietArgument();
     addArgument(quietArg);
 
-    verboseArg = CommonArguments.getVerbose();
+    verboseArg = verboseArgument();
     addArgument(verboseArg);
 
     propertiesFileArgument =
@@ -405,13 +405,13 @@ public class InstallDSArgumentParser extends ArgumentParser
                     .buildArgument();
     addDefaultArgument(certNicknameArg);
 
-    connectTimeoutArg = CommonArguments.getConnectTimeOutHidden();
+    connectTimeoutArg = connectTimeOutHiddenArgument();
     addArgument(connectTimeoutArg);
 
-    acceptLicense = CommonArguments.getAcceptLicense();
+    acceptLicense = acceptLicenseArgument();
     addArgument(acceptLicense);
 
-    showUsageArg = CommonArguments.getShowUsage();
+    showUsageArg = showUsageArgument();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
 

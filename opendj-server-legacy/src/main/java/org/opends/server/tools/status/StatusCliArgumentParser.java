@@ -26,10 +26,11 @@
  */
 package org.opends.server.tools.status;
 
-import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
+
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -92,18 +93,18 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(verboseArg);
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);
-    noPromptArg = getNoPrompt();
+    noPromptArg = noPromptArgument();
     defaultArgs.add(0, noPromptArg);
 
-    scriptFriendlyArg = getScriptFriendly();
+    scriptFriendlyArg = scriptFriendlyArgument();
     defaultArgs.add(1, scriptFriendlyArg);
 
-    StringArgument propertiesFileArgument = getPropertiesFile();
+    StringArgument propertiesFileArgument = propertiesFileArgument();
 
     defaultArgs.add(propertiesFileArgument);
     setFilePropertiesArgument(propertiesFileArgument);
 
-    BooleanArgument noPropertiesFileArgument = getNoPropertiesFile();
+    BooleanArgument noPropertiesFileArgument = noPropertiesFileArgument();
     defaultArgs.add(noPropertiesFileArgument);
     setNoPropertiesFileArgument(noPropertiesFileArgument);
 

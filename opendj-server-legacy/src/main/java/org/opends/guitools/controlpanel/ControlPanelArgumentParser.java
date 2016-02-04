@@ -28,6 +28,8 @@ package org.opends.guitools.controlpanel;
 
 import static org.opends.messages.ToolMessages.*;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import java.util.LinkedHashSet;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,7 +42,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -109,33 +110,33 @@ public class ControlPanelArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    hostNameArg = CommonArguments.getHostName(UserData.getDefaultHostName());
+    hostNameArg = hostNameArgument(UserData.getDefaultHostName());
     addArgument(hostNameArg);
 
     portArg =
-        CommonArguments.getPort(getDefaultAdministrationPort(),
+        portArgument(getDefaultAdministrationPort(),
             INFO_DESCRIPTION_ADMIN_PORT.get());
     addArgument(portArg);
 
-    bindDnArg = CommonArguments.getBindDN(getDefaultBindDN());
+    bindDnArg = bindDNArgument(getDefaultBindDN());
     addArgument(bindDnArg);
 
-    bindPasswordArg = CommonArguments.getBindPassword();
+    bindPasswordArg = bindPasswordArgument();
     addArgument(bindPasswordArg);
 
-    bindPasswordFileArg = CommonArguments.getBindPasswordFile();
+    bindPasswordFileArg = bindPasswordFileArgument();
     addArgument(bindPasswordFileArg);
 
-    trustAllArg = CommonArguments.getTrustAll();
+    trustAllArg = trustAllArgument();
     addArgument(trustAllArg);
 
-    remoteArg = CommonArguments.getRemote();
+    remoteArg = remoteArgument();
     addArgument(remoteArg);
 
-    connectTimeoutArg = CommonArguments.getConnectTimeOut();
+    connectTimeoutArg = connectTimeOutArgument();
     addArgument(connectTimeoutArg);
 
-    showUsageArg = CommonArguments.getShowUsage();
+    showUsageArg = showUsageArgument();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
   }

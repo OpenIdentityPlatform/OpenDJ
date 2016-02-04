@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_MAKELDIF_DESCRIPTION_SEED;
 import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -56,7 +57,6 @@ import org.opends.server.util.LDIFWriter;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -214,7 +214,7 @@ public class MakeLDIF
                       .valuePlaceholder(INFO_SEED_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

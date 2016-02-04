@@ -32,6 +32,7 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEH
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -82,7 +83,6 @@ import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -286,7 +286,7 @@ public class StopDS
               .hidden()
               .buildAndAddToParser(argParser);
 
-      restart = CommonArguments.getRestart();
+      restart = restartArgument();
       argParser.addArgument(restart);
 
       stopTimeStr =
@@ -296,7 +296,7 @@ public class StopDS
                       .valuePlaceholder(INFO_STOP_TIME_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      trustAll = CommonArguments.getTrustAll();
+      trustAll = trustAllArgument();
       argParser.addArgument(trustAll);
 
       keyStoreFile =
@@ -342,10 +342,10 @@ public class StopDS
                       .valuePlaceholder(INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      quietMode = CommonArguments.getQuiet();
+      quietMode = quietArgument();
       argParser.addArgument(quietMode);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }

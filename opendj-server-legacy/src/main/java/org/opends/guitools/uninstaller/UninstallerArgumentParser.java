@@ -29,6 +29,7 @@ package org.opends.guitools.uninstaller;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -104,8 +104,8 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     LinkedHashSet<Argument> args = new LinkedHashSet<>();
-    adminUidArg = CommonArguments.getAdminUid(INFO_DESCRIPTION_ADMIN_UID.get());
-    cliArg = CommonArguments.getCLI();
+    adminUidArg = adminUid(INFO_DESCRIPTION_ADMIN_UID.get());
+    cliArg = cliArgument();
     args.add(cliArg);
 
     removeAllArg =
@@ -157,7 +157,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
                     .buildArgument();
     args.add(removeLDIFFilesArg);
 
-    noPromptArg = CommonArguments.getNoPrompt();
+    noPromptArg = noPromptArgument();
     args.add(noPromptArg);
 
     forceOnErrorArg =
@@ -167,7 +167,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
                     .buildArgument();
     args.add(forceOnErrorArg);
 
-    quietArg = CommonArguments.getQuiet();
+    quietArg = quietArgument();
     args.add(quietArg);
 
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));

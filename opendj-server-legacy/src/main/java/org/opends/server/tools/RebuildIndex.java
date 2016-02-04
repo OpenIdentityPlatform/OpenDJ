@@ -31,6 +31,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -69,7 +70,6 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
@@ -296,7 +296,7 @@ public class RebuildIndex extends TaskTool
                     .valuePlaceholder(INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get())
                     .buildAndAddToParser(argParser);
 
-    final BooleanArgument displayUsage = CommonArguments.getShowUsage();
+    final BooleanArgument displayUsage = showUsageArgument();
     argParser.addArgument(displayUsage);
     argParser.setUsageArgument(displayUsage);
   }

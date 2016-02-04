@@ -30,6 +30,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -74,7 +75,6 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
@@ -379,7 +379,7 @@ public class BackendStat
                       .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
                       .buildArgument();
 
-      showUsageArgument = CommonArguments.getShowUsage();
+      showUsageArgument = showUsageArgument();
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);

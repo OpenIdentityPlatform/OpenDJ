@@ -29,6 +29,7 @@ package org.opends.server.admin.client.cli;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,7 +63,6 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -212,7 +212,7 @@ public final class SecureConnectionCliArgs
   {
     argList = new LinkedHashSet<>();
 
-    useSSLArg = CommonArguments.getUseSSL();
+    useSSLArg = useSSLArgument();
     if (!alwaysSSL)
     {
       argList.add(useSSLArg);
@@ -223,58 +223,58 @@ public final class SecureConnectionCliArgs
       useSSLArg.setPresent(true);
     }
 
-    useStartTLSArg = CommonArguments.getStartTLS();
+    useStartTLSArg = startTLSArgument();
     if (!alwaysSSL)
     {
       argList.add(useStartTLSArg);
     }
 
-    hostNameArg = CommonArguments.getHostName(getDefaultHostName());
+    hostNameArg = hostNameArgument(getDefaultHostName());
     argList.add(hostNameArg);
 
     portArg = createPortArgument(AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT);
     argList.add(portArg);
 
-    bindDnArg = CommonArguments.getBindDN(CliConstants.DEFAULT_ROOT_USER_DN);
+    bindDnArg = bindDNArgument(CliConstants.DEFAULT_ROOT_USER_DN);
     argList.add(bindDnArg);
 
-    // Classes that required admin UID to be not hidden must use CommonsArguments.getAdminUid().
-    adminUidHiddenArg = CommonArguments.getAdminUidHidden(INFO_DESCRIPTION_ADMIN_UID.get());
+    // Classes that required admin UID to be not hidden must use CommonsArguments.adminUid().
+    adminUidHiddenArg = adminUidHiddenArgument(INFO_DESCRIPTION_ADMIN_UID.get());
 
-    bindPasswordArg = CommonArguments.getBindPassword();
+    bindPasswordArg = bindPasswordArgument();
     argList.add(bindPasswordArg);
 
-    bindPasswordFileArg = CommonArguments.getBindPasswordFile();
+    bindPasswordFileArg = bindPasswordFileArgument();
     argList.add(bindPasswordFileArg);
 
-    saslOptionArg = CommonArguments.getSASL();
+    saslOptionArg = saslArgument();
     argList.add(saslOptionArg);
 
-    trustAllArg = CommonArguments.getTrustAll();
+    trustAllArg = trustAllArgument();
     argList.add(trustAllArg);
 
-    trustStorePathArg = CommonArguments.getTrustStorePath();
+    trustStorePathArg = trustStorePathArgument();
     argList.add(trustStorePathArg);
 
-    trustStorePasswordArg = CommonArguments.getTrustStorePassword();
+    trustStorePasswordArg = trustStorePasswordArgument();
     argList.add(trustStorePasswordArg);
 
-    trustStorePasswordFileArg = CommonArguments.getTrustStorePasswordFile();
+    trustStorePasswordFileArg = trustStorePasswordFileArgument();
     argList.add(trustStorePasswordFileArg);
 
-    keyStorePathArg = CommonArguments.getKeyStorePath();
+    keyStorePathArg = keyStorePathArgument();
     argList.add(keyStorePathArg);
 
-    keyStorePasswordArg = CommonArguments.getKeyStorePassword();
+    keyStorePasswordArg = keyStorePasswordArgument();
     argList.add(keyStorePasswordArg);
 
-    keyStorePasswordFileArg = CommonArguments.getKeyStorePasswordFile();
+    keyStorePasswordFileArg = keyStorePasswordFileArgument();
     argList.add(keyStorePasswordFileArg);
 
-    certNicknameArg = CommonArguments.getCertNickName();
+    certNicknameArg = certNickNameArgument();
     argList.add(certNicknameArg);
 
-    connectTimeoutArg = CommonArguments.getConnectTimeOut();
+    connectTimeoutArg = connectTimeOutArgument();
     argList.add(connectTimeoutArg);
 
     return argList;
@@ -644,7 +644,7 @@ public final class SecureConnectionCliArgs
     try
     {
       portArg = createPortArgument(getPortFromConfig());
-      trustStorePathArg = CommonArguments.getTrustStorePathArgument(getTruststoreFileFromConfig());
+      trustStorePathArg = trustStorePathArgument(getTruststoreFileFromConfig());
       parser.replaceArgument(portArg);
       parser.replaceArgument(trustStorePathArg);
     }
@@ -657,7 +657,7 @@ public final class SecureConnectionCliArgs
 
   private IntegerArgument createPortArgument(final int defaultValue) throws ArgumentException
   {
-    return CommonArguments.getPort(
+    return portArgument(
             defaultValue, alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
   }
 }

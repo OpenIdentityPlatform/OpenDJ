@@ -29,6 +29,7 @@ package org.opends.server.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_BINDPASSWORDFILE;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -64,7 +65,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -404,7 +404,7 @@ public class LDAPDelete
                       .valuePlaceholder(INFO_SASL_OPTION_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 
-      trustAll = CommonArguments.getTrustAll();
+      trustAll = trustAllArgument();
       argParser.addArgument(trustAll);
 
       keyStorePath =
@@ -491,10 +491,10 @@ public class LDAPDelete
                       .description(INFO_DESCRIPTION_NOOP.get())
                       .buildAndAddToParser(argParser);
 
-      verbose = CommonArguments.getVerbose();
+      verbose = verboseArgument();
       argParser.addArgument(verbose);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     } catch (ArgumentException ae)

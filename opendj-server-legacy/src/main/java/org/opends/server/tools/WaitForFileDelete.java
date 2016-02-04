@@ -39,6 +39,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 /**
  * This program provides a simple tool that will wait for a specified file to be
@@ -216,10 +217,10 @@ public class WaitForFileDelete extends ConsoleApplication
               .buildAndAddToParser(argParser);
 
       // Not used in this class, but required by the start-ds script (see issue #3814)
-      quietMode = CommonArguments.getQuiet();
+      quietMode = quietArgument();
       argParser.addArgument(quietMode);
 
-      showUsage = CommonArguments.getShowUsage();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

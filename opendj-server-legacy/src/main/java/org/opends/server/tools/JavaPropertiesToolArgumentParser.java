@@ -28,6 +28,7 @@ package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 
@@ -43,7 +44,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
@@ -81,7 +81,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    quietArg = CommonArguments.getQuiet();
+    quietArg = quietArgument();
     addArgument(quietArg);
 
     propertiesFileArg =
@@ -104,7 +104,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
                     .buildArgument();
     addArgument(destinationFileArg);
 
-    showUsageArg = CommonArguments.getShowUsage();
+    showUsageArg = showUsageArgument();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
   }

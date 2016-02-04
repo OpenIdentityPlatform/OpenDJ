@@ -26,6 +26,8 @@
  */
 package org.opends.server.core;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -186,7 +188,6 @@ import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.VersionHandler;
@@ -6900,7 +6901,7 @@ public final class DirectoryServer
                       .description(INFO_DSCORE_DESCRIPTION_NODETACH.get())
                       .buildAndAddToParser(argParser);
 
-      quietMode = CommonArguments.getQuiet();
+      quietMode = quietArgument();
       argParser.addArgument(quietMode);
 
       // Not used in this class, but required by the start-ds script (see issue #3814)
@@ -6913,7 +6914,7 @@ public final class DirectoryServer
                       .defaultValue(DEFAULT_TIMEOUT)
                       .valuePlaceholder(INFO_SECONDS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
-      displayUsage = CommonArguments.getShowUsage();
+      displayUsage = showUsageArgument();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
       argParser.setVersionHandler(new DirectoryServerVersionHandler());

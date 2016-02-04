@@ -29,6 +29,7 @@ import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 import static com.forgerock.opendj.cli.Utils.checkJavaVersion;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.CliConstants.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -45,7 +46,6 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -221,43 +221,43 @@ public final class SetupCli extends ConsoleApplication {
      */
     private void initializeArguments() throws ArgumentException {
         // Options.
-        acceptLicense = addGlobal(CommonArguments.getAcceptLicense());
-        cli = addGlobal(CommonArguments.getCLI());
-        baseDN = addGlobal(CommonArguments.getBaseDN());
-        addBaseEntry = addGlobal(CommonArguments.getAddBaseEntry());
-        importLDIF = addGlobal(CommonArguments.getLDIFFile(INFO_DESCRIPTION_IMPORTLDIF.get()));
-        rejectedImportFile = addGlobal(CommonArguments.getRejectedImportLdif());
-        skippedImportFile = addGlobal(CommonArguments.getSkippedImportFile());
-        sampleData = addGlobal(CommonArguments.getSampleData());
-        ldapPort = addGlobal(CommonArguments.getLDAPPort(DEFAULT_LDAP_PORT));
-        ldapsPort = addGlobal(CommonArguments.getLDAPSPort(DEFAULT_LDAPS_PORT));
-        adminConnectorPort = addGlobal(CommonArguments.getAdminLDAPPort(DEFAULT_ADMIN_PORT));
-        jmxPort = addGlobal(CommonArguments.getJMXPort(DEFAULT_JMX_PORT));
-        skipPortCheck = addGlobal(CommonArguments.getSkipPortCheck());
-        directoryManagerDN = addGlobal(CommonArguments.getRootDN());
-        directoryManagerPwdString = addGlobal(CommonArguments.getRootDNPwd());
-        directoryManagerPwdFile = addGlobal(CommonArguments.getRootDNPwdFile());
-        enableWindowsService = addGlobal(CommonArguments.getEnableWindowsService());
-        doNotStart = addGlobal(CommonArguments.getDoNotStart());
-        enableStartTLS = addGlobal(CommonArguments.getEnableTLS());
-        generateSelfSignedCertificate = addGlobal(CommonArguments.getGenerateSelfSigned());
-        hostName = addGlobal(CommonArguments.getHostName(Utils.getDefaultHostName()));
-        usePkcs11 = addGlobal(CommonArguments.getUsePKCS11Keystore());
-        useJavaKeyStore = addGlobal(CommonArguments.getUseJavaKeyStore());
-        useJCEKS = addGlobal(CommonArguments.getUseJCEKS());
-        usePkcs12 = addGlobal(CommonArguments.getUsePKCS12KeyStore());
-        keyStorePassword = addGlobal(CommonArguments.getKeyStorePassword());
-        keyStorePasswordFile = addGlobal(CommonArguments.getKeyStorePasswordFile());
-        certNickname = addGlobal(CommonArguments.getCertNickName());
-        connectTimeout = CommonArguments.getConnectTimeOutHidden();
+        acceptLicense = addGlobal(acceptLicenseArgument());
+        cli = addGlobal(cliArgument());
+        baseDN = addGlobal(baseDNArgument());
+        addBaseEntry = addGlobal(addBaseEntryArgument());
+        importLDIF = addGlobal(ldifFileArgument(INFO_DESCRIPTION_IMPORTLDIF.get()));
+        rejectedImportFile = addGlobal(rejectedImportLdifArgument());
+        skippedImportFile = addGlobal(skippedImportFileArgument());
+        sampleData = addGlobal(sampleDataArgument());
+        ldapPort = addGlobal(ldapPortArgument(DEFAULT_LDAP_PORT));
+        ldapsPort = addGlobal(ldapsPortArgument(DEFAULT_LDAPS_PORT));
+        adminConnectorPort = addGlobal(adminLdapPortArgument(DEFAULT_ADMIN_PORT));
+        jmxPort = addGlobal(jmxPortArgument(DEFAULT_JMX_PORT));
+        skipPortCheck = addGlobal(skipPortCheckArgument());
+        directoryManagerDN = addGlobal(rootDNArgument());
+        directoryManagerPwdString = addGlobal(rootDNPwdArgument());
+        directoryManagerPwdFile = addGlobal(rootDNPwdFileArgument());
+        enableWindowsService = addGlobal(enableWindowsServiceArgument());
+        doNotStart = addGlobal(doNotStartArgument());
+        enableStartTLS = addGlobal(enableTLSArgument());
+        generateSelfSignedCertificate = addGlobal(generateSelfSignedArgument());
+        hostName = addGlobal(hostNameArgument(Utils.getDefaultHostName()));
+        usePkcs11 = addGlobal(usePKCS11KeystoreArgument());
+        useJavaKeyStore = addGlobal(useJavaKeyStoreArgument());
+        useJCEKS = addGlobal(useJCEKSArgument());
+        usePkcs12 = addGlobal(usePKCS12KeyStoreArgument());
+        keyStorePassword = addGlobal(keyStorePasswordArgument());
+        keyStorePasswordFile = addGlobal(keyStorePasswordFileArgument());
+        certNickname = addGlobal(certNickNameArgument());
+        connectTimeout = connectTimeOutHiddenArgument();
 
         // Utility Input Output Options.
-        noPrompt = addGlobal(CommonArguments.getNoPrompt());
-        quietMode = addGlobal(CommonArguments.getQuiet());
-        verbose = addGlobal(CommonArguments.getVerbose());
-        propertiesFile = addGlobal(CommonArguments.getPropertiesFile());
-        noPropertiesFile = addGlobal(CommonArguments.getNoPropertiesFile());
-        showUsage = addGlobal(CommonArguments.getShowUsage());
+        noPrompt = addGlobal(noPromptArgument());
+        quietMode = addGlobal(quietArgument());
+        verbose = addGlobal(verboseArgument());
+        propertiesFile = addGlobal(propertiesFileArgument());
+        noPropertiesFile = addGlobal(noPropertiesFileArgument());
+        showUsage = addGlobal(showUsageArgument());
 
         //Sub-commands && their arguments
         final ArrayList<SubCommand> subCommandList = new ArrayList<>(2);

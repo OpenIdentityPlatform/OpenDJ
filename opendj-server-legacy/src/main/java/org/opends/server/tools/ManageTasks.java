@@ -43,7 +43,6 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
@@ -67,6 +66,7 @@ import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 /** Tool for getting information and managing tasks in the Directory Server. */
 public class ManageTasks extends ConsoleApplication {
@@ -232,10 +232,10 @@ public class ManageTasks extends ConsoleApplication {
                       .description(INFO_TASKINFO_SUMMARY_ARG_DESCRIPTION.get())
                       .buildAndAddToParser(argParser);
 
-      noPrompt = CommonArguments.getNoPrompt();
+      noPrompt = noPromptArgument();
       argParser.addArgument(noPrompt);
 
-      BooleanArgument displayUsage = CommonArguments.getShowUsage();
+      BooleanArgument displayUsage = showUsageArgument();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }
