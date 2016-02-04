@@ -19,7 +19,6 @@ package org.opends.server.plugins;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.HashMap;
@@ -59,6 +58,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SubEntry;
+import org.opends.server.util.SchemaUtils;
+import org.opends.server.util.SchemaUtils.PasswordType;
 
 /**
  * This class implements a Directory Server plugin that performs various
@@ -229,11 +230,12 @@ public final class PasswordPolicyImportPlugin
     HashSet<AttributeType> userPWTypes = new HashSet<>();
     for (AttributeType t : DirectoryServer.getAttributeTypes())
     {
-      if (SYNTAX_AUTH_PASSWORD_OID.equals(t.getSyntax().getOID()))
+      final PasswordType passwordType = SchemaUtils.checkPasswordType(t);
+      if (passwordType.equals(PasswordType.AUTH_PASSWORD))
       {
         authPWTypes.add(t);
       }
-      else if (SYNTAX_USER_PASSWORD_OID.equals(t.getSyntax().getOID()))
+      else if (passwordType.equals(PasswordType.USER_PASSWORD))
       {
         userPWTypes.add(t);
       }

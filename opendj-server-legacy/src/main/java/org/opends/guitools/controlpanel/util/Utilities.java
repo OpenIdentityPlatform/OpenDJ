@@ -119,8 +119,10 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
+import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.SchemaUtils.PasswordType;
 
 /**
  * A static class that provides miscellaneous functions.
@@ -134,7 +136,6 @@ public class Utilities
 
   private static final String HTML_SPACE = "&nbsp;";
   private static final String[] attrsToObfuscate = { ServerConstants.ATTR_USER_PASSWORD };
-  private static final String[] passwordSyntaxOIDs = { SchemaConstants.SYNTAX_USER_PASSWORD_OID };
   private static final String[] binarySyntaxOIDs = {
     SchemaConstants.SYNTAX_BINARY_OID,
     SchemaConstants.SYNTAX_JPEG_OID,
@@ -2126,7 +2127,17 @@ public class Utilities
    */
   public static boolean hasPasswordSyntax(String attrName, Schema schema)
   {
-    return hasAnySyntax(attrName, schema, passwordSyntaxOIDs);
+    if (schema != null)
+    {
+      attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+      if (schema.hasAttributeType(attrName))
+      {
+        AttributeType attr = schema.getAttributeType(attrName);
+        PasswordType passwordType = SchemaUtils.checkPasswordType(attr);
+        return passwordType.equals(PasswordType.USER_PASSWORD);
+      }
+    }
+    return false;
   }
 
   private static boolean hasAnySyntax(String attrName, Schema schema, String[] oids)

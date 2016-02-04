@@ -18,7 +18,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,6 +48,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SubEntry;
+import org.opends.server.util.SchemaUtils;
+import org.opends.server.util.SchemaUtils.PasswordType;
 
 /**
  * This class represents subentry password policy based on Password Policy for
@@ -183,13 +184,12 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
             ERR_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE.get(this.passwordPolicySubentryDN, value));
       }
 
-      // Check the syntax.
-      final String syntaxOID = pPasswordAttribute.getSyntax().getOID();
-      if (SYNTAX_AUTH_PASSWORD_OID.equals(syntaxOID))
+      final PasswordType passwordType = SchemaUtils.checkPasswordType(pPasswordAttribute);
+      if (passwordType.equals(PasswordType.AUTH_PASSWORD))
       {
         pAuthPasswordSyntax = true;
       }
-      else if (SYNTAX_USER_PASSWORD_OID.equals(syntaxOID))
+      else if (passwordType.equals(PasswordType.USER_PASSWORD))
       {
         pAuthPasswordSyntax = false;
       }
@@ -198,7 +198,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         String syntax = pPasswordAttribute.getSyntax().getName();
         if (syntax == null || syntax.length() == 0)
         {
-          syntax = syntaxOID;
+          syntax = pPasswordAttribute.getSyntax().getOID();
         }
 
         LocalizableMessage message = ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(

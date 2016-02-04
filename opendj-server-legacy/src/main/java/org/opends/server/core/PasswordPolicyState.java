@@ -2431,11 +2431,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       String syntaxOID = toLowerCase(histStr.substring(hashPos1+1, hashPos2));
       if (SYNTAX_AUTH_PASSWORD_OID.equals(syntaxOID))
       {
-        return logResult("auth", encodedAuthPasswordMatches(password, histStr.substring(hashPos2+1)));
+        boolean passwordMatches = encodedAuthPasswordMatches(password, histStr.substring(hashPos2+1));
+        logResult("auth", passwordMatches);
+        return passwordMatches;
       }
-      else if (SYNTAX_USER_PASSWORD_OID.equals(syntaxOID))
+      else if (SYNTAX_USER_PASSWORD_OID.equals(syntaxOID) || SYNTAX_OCTET_STRING_OID.equals(syntaxOID))
       {
-        return logResult("user", encodedUserPasswordMatches(password, histStr.substring(hashPos2+1)));
+        boolean passwordMatches = encodedUserPasswordMatches(password, histStr.substring(hashPos2+1));
+        logResult("user", passwordMatches);
+        return passwordMatches;
       }
       else
       {
@@ -2474,17 +2478,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return scheme.passwordMatches(password, ByteString.valueOfUtf8(userPWComponents[1]));
   }
 
-  private boolean logResult(String passwordType, boolean passwordMatches)
+  private void logResult(String passwordType, boolean passwordMatches)
   {
     if (passwordMatches)
     {
       logger.trace("Returning true because the %s password history value matched.", passwordType);
-      return true;
     }
     else
     {
       logger.trace("Returning false because the %s password history value did not match.", passwordType);
-      return false;
     }
   }
 

@@ -18,7 +18,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -39,6 +38,8 @@ import org.forgerock.opendj.server.config.server.PasswordPolicyCfg;
 import org.opends.server.api.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
+import org.opends.server.util.SchemaUtils;
+import org.opends.server.util.SchemaUtils.PasswordType;
 
 /**
  * This class is the interface between the password policy configurable
@@ -199,15 +200,13 @@ public final class PasswordPolicyFactory implements
 
       // Get the password attribute. If specified, it must have either the
       // user password or auth password syntax.
-      final AttributeType passwordAttribute = configuration
-          .getPasswordAttribute();
-      final String syntaxOID = passwordAttribute.getSyntax().getOID();
-      final boolean authPasswordSyntax;
-      if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
+      final AttributeType passwordAttribute = configuration.getPasswordAttribute();
+      final PasswordType passwordType = SchemaUtils.checkPasswordType(passwordAttribute);
+      if (passwordType.equals(PasswordType.AUTH_PASSWORD))
       {
         authPasswordSyntax = true;
       }
-      else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
+      else if (passwordType.equals(PasswordType.USER_PASSWORD))
       {
         authPasswordSyntax = false;
       }
@@ -216,7 +215,7 @@ public final class PasswordPolicyFactory implements
         String syntax = passwordAttribute.getSyntax().getName();
         if (syntax == null || syntax.length() == 0)
         {
-          syntax = syntaxOID;
+          syntax = passwordAttribute.getSyntax().getOID();
         }
 
         throw new ConfigException(ERR_PWPOLICY_INVALID_PASSWORD_ATTRIBUTE_SYNTAX.get(

@@ -44,7 +44,7 @@ public final class UserPasswordEqualityMatchingRuleFactory extends MatchingRuleF
    matchingRule = new SchemaBuilder(CoreSchema.getInstance())
        .buildMatchingRule(EMR_USER_PASSWORD_OID)
          .names(EMR_USER_PASSWORD_NAME)
-         .syntaxOID(SYNTAX_USER_PASSWORD_OID).description(EMR_USER_PASSWORD_DESCRIPTION)
+         .syntaxOID(SYNTAX_OCTET_STRING_OID).description(EMR_USER_PASSWORD_DESCRIPTION)
          .implementation(new UserPasswordEqualityMatchingRule())
          .addToSchema()
        .toSchema().getMatchingRule(EMR_USER_PASSWORD_OID);
