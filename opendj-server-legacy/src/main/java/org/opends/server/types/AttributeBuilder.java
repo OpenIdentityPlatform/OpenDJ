@@ -115,30 +115,26 @@ public final class AttributeBuilder implements Iterable<ByteString>
   /**
    * A real attribute - options handled by sub-classes.
    */
-  private static abstract class RealAttribute
-    extends AbstractAttribute
+  private static class RealAttribute extends AbstractAttribute
   {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** The attribute description for this attribute. */
     private final AttributeDescription attributeDescription;
-
     /** The name of this attribute as provided by the end user. */
     private final String name;
-
     /**
      * The unmodifiable set of attribute values, which are lazily normalized.
      * <p>
-     * When required, the attribute values are normalized according to the equality
-     * matching rule.
+     * When required, the attribute values are normalized according to the equality matching rule.
      */
     private final Set<AttributeValue> values;
 
     /**
      * Creates a new real attribute.
      *
-     * @param attributeType
-     *          The attribute type.
+     * @param attributeDescription
+     *          The attribute description.
      * @param name
      *          The user-provided attribute name.
      * @param values
@@ -292,8 +288,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
       return result;
     }
 
-
-
     @Override
     public final boolean isVirtual()
     {
@@ -425,97 +419,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
       buffer.append("})");
     }
   }
-
-
-
-  /**
-   * A real attribute with a many options.
-   */
-  private static final class RealAttributeManyOptions
-    extends RealAttribute
-  {
-    /**
-     * Creates a new real attribute that has multiple options.
-     *
-     * @param attributeType
-     *          The attribute type.
-     * @param name
-     *          The user-provided attribute name.
-     * @param values
-     *          The attribute values.
-     * @param options
-     *          The attribute options.
-     * @param normalizedOptions
-     *          The normalized attribute options.
-     */
-    private RealAttributeManyOptions(
-        AttributeType attributeType, String name, Set<AttributeValue> values, Set<String> options,
-        SortedSet<String> normalizedOptions)
-    {
-      super(AttributeDescription.create(attributeType, options), name, values);
-    }
-  }
-
-
-
-  /**
-   * A real attribute with no options.
-   */
-  private static final class RealAttributeNoOptions extends RealAttribute
-  {
-    /**
-     * Creates a new real attribute that has no options.
-     *
-     * @param attributeType
-     *          The attribute type.
-     * @param name
-     *          The user-provided attribute name.
-     * @param values
-     *          The attribute values.
-     */
-    private RealAttributeNoOptions(AttributeType attributeType, String name, Set<AttributeValue> values)
-    {
-      super(AttributeDescription.create(attributeType), name, values);
-    }
-
-    @Override
-    public String getNameWithOptions()
-    {
-      return getName();
-    }
-  }
-
-
-
-  /**
-   * A real attribute with a single option.
-   */
-  private static final class RealAttributeSingleOption
-    extends RealAttribute
-  {
-    /**
-     * Creates a new real attribute that has a single option.
-     *
-     * @param attributeType
-     *          The attribute type.
-     * @param name
-     *          The user-provided attribute name.
-     * @param values
-     *          The attribute values.
-     * @param option
-     *          The attribute option.
-     */
-    private RealAttributeSingleOption(
-        AttributeType attributeType,
-        String name,
-        Set<AttributeValue> values,
-        String option)
-    {
-      super(AttributeDescription.create(attributeType, option), name, values);
-    }
-  }
-
-
 
   /**
    * A small set of values. This set implementation is optimized to
@@ -1574,15 +1477,19 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
   private Attribute toAttribute0()
   {
+    return new RealAttribute(toAttributeDescription(), name, values);
+  }
+
+  private AttributeDescription toAttributeDescription()
+  {
     switch (options.size())
     {
     case 0:
-      return new RealAttributeNoOptions(attributeType, name, values);
+      return AttributeDescription.create(attributeType);
     case 1:
-      return new RealAttributeSingleOption(attributeType, name, values, options.firstElement);
+      return AttributeDescription.create(attributeType, options.firstElement);
     default:
-      return new RealAttributeManyOptions(attributeType, name, values,
-          Collections.unmodifiableSet(options.elements), Collections.unmodifiableSortedSet(normalizedOptions));
+      return AttributeDescription.create(attributeType, options.elements);
     }
   }
 

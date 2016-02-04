@@ -1678,54 +1678,6 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertNotNull(a);
   }
 
-
-
-  /**
-   * Tests that the generated attribute is optimized correctly for
-   * storage of attribute options. This test is very implementation
-   * dependent, but because Attributes are so performance sensitive it
-   * is worth doing.
-   *
-   * @param testCase
-   *          Test case index (useful for debugging).
-   * @param a
-   *          The attribute.
-   * @param type
-   *          The expected attribute type.
-   * @param name
-   *          The expected user provided attribute name.
-   * @param options
-   *          The expected attribute options.
-   * @param values
-   *          The expected attribute values.
-   */
-  @Test(dataProvider = "createAttributes", dependsOnMethods = "testAttributeGetOptions")
-  public void testAttributeOptionOptimization(int testCase, Attribute a,
-      AttributeType type, String name, String[] options, String[] values)
-      throws Exception
-  {
-    switch (options.length)
-    {
-    case 0:
-      // Attribute must be optimized for zero options.
-      Assert.assertEquals(a.getClass().getName(),
-          "org.opends.server.types.AttributeBuilder$RealAttributeNoOptions");
-      break;
-    case 1:
-      // Attribute must be optimized for single option.
-      Assert.assertEquals(a.getClass().getName(),
-          "org.opends.server.types.AttributeBuilder$RealAttributeSingleOption");
-      break;
-    default:
-      // Attribute must be optimized for many options.
-      Assert.assertEquals(a.getClass().getName(),
-          "org.opends.server.types.AttributeBuilder$RealAttributeManyOptions");
-      break;
-    }
-  }
-
-
-
   /**
    * Tests {@link Attribute#optionsEqual(Set)}.
    *
