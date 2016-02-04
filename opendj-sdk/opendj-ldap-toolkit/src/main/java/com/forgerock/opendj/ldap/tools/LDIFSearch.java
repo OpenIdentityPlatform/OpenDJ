@@ -32,6 +32,8 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
@@ -61,7 +63,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -117,7 +118,7 @@ public final class LDIFSearch extends ConsoleApplication {
                             .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            searchScope = CommonArguments.getSearchScope();
+            searchScope = searchScopeArgument();
             argParser.addArgument(searchScope);
 
             filename =
@@ -146,7 +147,7 @@ public final class LDIFSearch extends ConsoleApplication {
                             .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {

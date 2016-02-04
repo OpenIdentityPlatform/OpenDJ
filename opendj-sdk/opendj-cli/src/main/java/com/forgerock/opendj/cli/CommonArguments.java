@@ -49,7 +49,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getShowUsage() throws ArgumentException {
+    public static BooleanArgument showUsageArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_HELP)
                 .shortIdentifier(OPTION_SHORT_HELP)
                 .description(INFO_DESCRIPTION_SHOWUSAGE.get())
@@ -63,24 +63,11 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getVerbose() throws ArgumentException {
+    public static BooleanArgument verboseArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_VERBOSE)
                 .shortIdentifier(OPTION_SHORT_VERBOSE)
                 .description(INFO_DESCRIPTION_VERBOSE.get())
                 .buildArgument();
-    }
-
-    /**
-     * Returns the "port" integer argument.
-     *
-     * @param defaultPort
-     *            The default port number.
-     * @return The "port" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static IntegerArgument getPort(final int defaultPort) throws ArgumentException {
-        return getPort(defaultPort, null);
     }
 
     /**
@@ -96,7 +83,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getPort(final int defaultPort, final LocalizableMessage description)
+    public static IntegerArgument portArgument(final int defaultPort, final LocalizableMessage description)
             throws ArgumentException {
         return IntegerArgument.builder(OPTION_LONG_PORT)
                 .shortIdentifier(OPTION_SHORT_PORT)
@@ -114,7 +101,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getPropertiesFile() throws ArgumentException {
+    public static StringArgument propertiesFileArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_PROP_FILE_PATH)
                 .description(INFO_DESCRIPTION_PROP_FILE_PATH.get())
                 .valuePlaceholder(INFO_PROP_FILE_PATH_PLACEHOLDER.get())
@@ -128,7 +115,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getProxyAuthId() throws ArgumentException {
+    public static StringArgument proxyAuthIdArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_PROXYAUTHID)
                 .shortIdentifier(OPTION_SHORT_PROXYAUTHID)
                 .description(INFO_DESCRIPTION_PROXYAUTHZID.get())
@@ -143,7 +130,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getNoPropertiesFile() throws ArgumentException {
+    public static BooleanArgument noPropertiesFileArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_NO_PROP_FILE)
                 .description(INFO_DESCRIPTION_NO_PROP_FILE.get())
                 .buildArgument();
@@ -157,7 +144,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getContinueOnError() throws ArgumentException {
+    public static BooleanArgument continueOnErrorArgument() throws ArgumentException {
         return BooleanArgument.builder("continueOnError")
                 .shortIdentifier('c')
                 .description(INFO_DESCRIPTION_CONTINUE_ON_ERROR.get())
@@ -171,7 +158,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getControl() throws ArgumentException {
+    public static StringArgument controlArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_CONTROL)
                 .shortIdentifier(OPTION_SHORT_CONTROL)
                 .description(INFO_DESCRIPTION_CONTROLS.get())
@@ -188,7 +175,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getLdapVersion() throws ArgumentException {
+    public static IntegerArgument ldapVersionArgument() throws ArgumentException {
         return IntegerArgument.builder(OPTION_LONG_PROTOCOL_VERSION)
                 .shortIdentifier(OPTION_SHORT_PROTOCOL_VERSION)
                 .description(INFO_DESCRIPTION_VERSION.get())
@@ -204,7 +191,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getQuiet() throws ArgumentException {
+    public static BooleanArgument quietArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_QUIET)
                 .shortIdentifier(OPTION_SHORT_QUIET)
                 .description(INFO_DESCRIPTION_QUIET.get())
@@ -219,7 +206,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getNoOp() throws ArgumentException {
+    public static BooleanArgument noOpArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_DRYRUN)
                 .shortIdentifier(OPTION_SHORT_DRYRUN)
                 .description(INFO_DESCRIPTION_NOOP.get())
@@ -234,7 +221,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getNoPrompt() throws ArgumentException {
+    public static BooleanArgument noPromptArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_NO_PROMPT)
                 .shortIdentifier(OPTION_SHORT_NO_PROMPT)
                 .description(INFO_DESCRIPTION_NO_PROMPT.get())
@@ -248,28 +235,9 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getAcceptLicense() throws ArgumentException {
+    public static BooleanArgument acceptLicenseArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_ACCEPT_LICENSE)
                 .description(INFO_OPTION_ACCEPT_LICENSE.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "timelimit" boolean argument. <br>
-     * <i> N.B : the 't' short option is also used by targetldif, testonly, trustmanagerproviderdn, stoptime,
-     * start(dateTime).</i>
-     *
-     * @return The "timelimit" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static IntegerArgument getTimeLimit() throws ArgumentException {
-        return IntegerArgument.builder("timeLimit")
-                .shortIdentifier('t')
-                .description(INFO_DESCRIPTION_TIME_LIMIT.get())
-                .lowerBound(0)
-                .defaultValue(0)
-                .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -280,27 +248,10 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getTrustAll() throws ArgumentException {
+    public static BooleanArgument trustAllArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_TRUSTALL)
                 .shortIdentifier(OPTION_SHORT_TRUSTALL)
                 .description(INFO_DESCRIPTION_TRUSTALL.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "trustmanagerproviderdn" string argument.
-     * <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
-     * testonly, stoptime, start(dateTime)</i>
-     *
-     * @return The "trustmanagerproviderdn" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getTrustManagerProviderDN() throws ArgumentException {
-        return StringArgument.builder("trustManagerProviderDN")
-                .shortIdentifier('t')
-                .description(INFO_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN.get())
-                .valuePlaceholder(INFO_TRUST_MANAGER_PROVIDER_DN_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -311,8 +262,8 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getTrustStorePath() throws ArgumentException {
-        return getTrustStorePath(null);
+    public static StringArgument trustStorePathArgument() throws ArgumentException {
+        return trustStorePathArgument(null);
     }
 
     /**
@@ -324,26 +275,12 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getTrustStorePath(final String defaultValue) throws ArgumentException {
+    public static StringArgument trustStorePathArgument(final String defaultValue) throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_TRUSTSTOREPATH)
                 .shortIdentifier(OPTION_SHORT_TRUSTSTOREPATH)
                 .description(INFO_DESCRIPTION_TRUSTSTOREPATH.get())
                 .defaultValue(defaultValue)
                 .valuePlaceholder(INFO_TRUSTSTOREPATH_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "typesOnly" boolean argument.
-     *
-     * @return The "typesOnly" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getTypesOnly() throws ArgumentException {
-        return BooleanArgument.builder("typesOnly")
-                .shortIdentifier('A')
-                .description(INFO_DESCRIPTION_TYPES_ONLY.get())
                 .buildArgument();
     }
 
@@ -354,7 +291,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getTrustStorePassword() throws ArgumentException {
+    public static StringArgument trustStorePasswordArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_TRUSTSTORE_PWD)
                 .shortIdentifier(OPTION_SHORT_TRUSTSTORE_PWD)
                 .description(INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get())
@@ -369,7 +306,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static FileBasedArgument getTrustStorePasswordFile() throws ArgumentException {
+    public static FileBasedArgument trustStorePasswordFileArgument() throws ArgumentException {
         return FileBasedArgument.builder(OPTION_LONG_TRUSTSTORE_PWD_FILE)
                 .shortIdentifier(OPTION_SHORT_TRUSTSTORE_PWD_FILE)
                 .description(INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get())
@@ -384,8 +321,8 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getConnectTimeOutHidden() throws ArgumentException {
-        return getConnectTimeOut(true);
+    public static IntegerArgument connectTimeOutHiddenArgument() throws ArgumentException {
+        return connectTimeOutArgument(true);
     }
 
     /**
@@ -395,11 +332,11 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getConnectTimeOut() throws ArgumentException {
-        return getConnectTimeOut(false);
+    public static IntegerArgument connectTimeOutArgument() throws ArgumentException {
+        return connectTimeOutArgument(false);
     }
 
-    private static IntegerArgument getConnectTimeOut(final boolean hidden) throws ArgumentException {
+    private static IntegerArgument connectTimeOutArgument(final boolean hidden) throws ArgumentException {
         final IntegerArgument.Builder builder = IntegerArgument.builder(OPTION_LONG_CONNECT_TIMEOUT)
                 .description(INFO_DESCRIPTION_CONNECTION_TIMEOUT.get())
                 .lowerBound(0)
@@ -411,24 +348,6 @@ public final class CommonArguments {
         return builder.buildArgument();
     }
 
-
-
-    /**
-     * Returns the "cleanupservice" string argument. <br>
-     * <i> N.B : the 'c' short option is also used by continueOnError, compress.</i>
-     *
-     * @return The "cleanupservice" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getCleanupService() throws ArgumentException {
-        return StringArgument.builder("cleanupService")
-                .shortIdentifier('c')
-                .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP.get())
-                .valuePlaceholder(INFO_SERVICE_NAME_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
     /**
      * Returns the "CLI" boolean argument. <br>
      * <i> N.B : the 'i' short option is also used by encoding.</i>
@@ -437,7 +356,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getCLI() throws ArgumentException {
+    public static BooleanArgument cliArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_CLI)
                 .shortIdentifier(OPTION_SHORT_CLI)
                 .description(INFO_ARGUMENT_DESCRIPTION_CLI.get())
@@ -452,15 +371,14 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getConfigFile() throws ArgumentException {
-        final StringArgument configFile = StringArgument.builder("configFile")
+    public static StringArgument configFileArgument() throws ArgumentException {
+        return StringArgument.builder("configFile")
                 .shortIdentifier('f')
                 .description(INFO_DESCRIPTION_CONFIG_FILE.get())
                 .hidden()
                 .required()
                 .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
                 .buildArgument();
-        return configFile;
     }
 
     /**
@@ -472,7 +390,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getConfigClass(final String configFileHandlerName) throws ArgumentException {
+    public static StringArgument configClassArgument(final String configFileHandlerName) throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
                 .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
                 .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
@@ -484,67 +402,18 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "backendid" string argument. <br>
-     * <i> N.B : the 'n' short option is also used by newGroupName, no-prompt.</i>
-     *
-     * @return The "backendid" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getBackendId() throws ArgumentException {
-        return StringArgument.builder("backendID")
-                .shortIdentifier('n')
-                .description(INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get())
-                .multiValued()
-                .valuePlaceholder(INFO_BACKENDNAME_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "backupdirectory" string argument. <br>
-     * <i> N.B : the 'd' short option is also used by sampledata, disableservice.</i>
-     *
-     * @return The "backupdirectory" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getBackupDirectory() throws ArgumentException {
-        return StringArgument.builder("backupDirectory")
-                .shortIdentifier('d')
-                .description(INFO_DESCRIPTION_BACKUP_DIR.get())
-                .required()
-                .valuePlaceholder(INFO_BACKUPDIR_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
      * Returns the "baseDN" string argument.
      *
      * @return The "baseDN" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getBaseDN() throws ArgumentException {
+    public static StringArgument baseDNArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_BASEDN)
                 .shortIdentifier(OPTION_SHORT_BASEDN)
                 .description(INFO_ARGUMENT_DESCRIPTION_BASEDN.get())
                 .multiValued()
                 .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "batchFilePath" string argument.
-     *
-     * @return The "batchFilePath" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getBatchFilePath() throws ArgumentException {
-        return StringArgument.builder(OPTION_LONG_BATCH_FILE_PATH)
-                .shortIdentifier(OPTION_SHORT_BATCH_FILE_PATH)
-                .description(INFO_DESCRIPTION_BATCH_FILE_PATH.get())
-                .valuePlaceholder(INFO_BATCH_FILE_PATH_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -558,7 +427,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getBindDN(final String defaultBindDN) throws ArgumentException {
+    public static StringArgument bindDNArgument(final String defaultBindDN) throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_BINDDN)
                 .shortIdentifier(OPTION_SHORT_BINDDN)
                 .description(INFO_DESCRIPTION_BINDDN.get())
@@ -574,7 +443,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getBindPassword() throws ArgumentException {
+    public static StringArgument bindPasswordArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_BINDPWD)
                 .shortIdentifier(OPTION_SHORT_BINDPWD)
                 .description(INFO_DESCRIPTION_BINDPASSWORD.get())
@@ -589,7 +458,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static FileBasedArgument getBindPasswordFile() throws ArgumentException {
+    public static FileBasedArgument bindPasswordFileArgument() throws ArgumentException {
         return FileBasedArgument.builder(OPTION_LONG_BINDPWD_FILE)
                 .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
                 .description(INFO_DESCRIPTION_BINDPASSWORDFILE.get())
@@ -605,7 +474,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getAddBaseEntry() throws ArgumentException {
+    public static BooleanArgument addBaseEntryArgument() throws ArgumentException {
         return BooleanArgument.builder("addBaseEntry")
                 .shortIdentifier('a')
                 .description(INFO_ARGUMENT_DESCRIPTION_ADDBASE.get())
@@ -620,7 +489,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getRejectedImportLdif() throws ArgumentException {
+    public static StringArgument rejectedImportLdifArgument() throws ArgumentException {
         return StringArgument.builder("rejectFile")
                 .shortIdentifier('R')
                 .description(INFO_GENERAL_DESCRIPTION_REJECTED_FILE.get())
@@ -636,7 +505,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getRemote() throws ArgumentException {
+    public static BooleanArgument remoteArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_REMOTE)
                 .shortIdentifier(OPTION_SHORT_REMOTE)
                 .description(INFO_DESCRIPTION_REMOTE.get())
@@ -650,7 +519,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getReportAuthzId() throws ArgumentException {
+    public static BooleanArgument reportAuthzIdArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_REPORT_AUTHZ_ID)
                 .shortIdentifier('E')
                 .description(INFO_DESCRIPTION_REPORT_AUTHZID.get())
@@ -665,7 +534,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getRestart() throws ArgumentException {
+    public static BooleanArgument restartArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_RESTART)
                 .shortIdentifier('R')
                 .description(INFO_DESCRIPTION_RESTART.get())
@@ -679,7 +548,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getSkippedImportFile() throws ArgumentException {
+    public static StringArgument skippedImportFileArgument() throws ArgumentException {
         return StringArgument.builder("skipFile")
                 .description(INFO_GENERAL_DESCRIPTION_SKIPPED_FILE.get())
                 .valuePlaceholder(INFO_SKIP_FILE_PLACEHOLDER.get())
@@ -694,7 +563,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getSampleData() throws ArgumentException {
+    public static IntegerArgument sampleDataArgument() throws ArgumentException {
         return IntegerArgument.builder("sampleData")
                 .shortIdentifier('d')
                 .description(INFO_SETUP_DESCRIPTION_SAMPLE_DATA.get())
@@ -712,7 +581,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getSASL() throws ArgumentException {
+    public static StringArgument saslArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_SASLOPTION)
                 .shortIdentifier(OPTION_SHORT_SASLOPTION)
                 .description(INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get())
@@ -729,44 +598,13 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static MultiChoiceArgument<SearchScope> getSearchScope() throws ArgumentException {
+    public static MultiChoiceArgument<SearchScope> searchScopeArgument() throws ArgumentException {
         return MultiChoiceArgument.<SearchScope>builder(OPTION_LONG_SEARCHSCOPE)
                 .shortIdentifier(OPTION_SHORT_SEARCHSCOPE)
                 .description(INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get())
                 .allowedValues(SearchScope.values())
                 .defaultValue(SearchScope.WHOLE_SUBTREE)
                 .valuePlaceholder(INFO_SEARCH_SCOPE_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "serverRoot" string argument. <br>
-     * <i> N.B : the 'R' short option is also used by rejectfile, restart.</i>
-     *
-     * @return The "serverRoot" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getServerRoot() throws ArgumentException {
-        return StringArgument.builder(OPTION_LONG_SERVER_ROOT)
-                .shortIdentifier(OPTION_SHORT_SERVER_ROOT)
-                .hidden()
-                .valuePlaceholder(INFO_SERVER_ROOT_DIR_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "servicestate" boolean argument. <br>
-     * <i> N.B : the 's' short option is also used by searchScope, sourceldif, randomSeed, script-friendly.</i>
-     *
-     * @return The "servicestate" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getServiceState() throws ArgumentException {
-        return BooleanArgument.builder("serviceState")
-                .shortIdentifier('s')
-                .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE.get())
                 .buildArgument();
     }
 
@@ -778,7 +616,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getScriptFriendly() throws ArgumentException {
+    public static BooleanArgument scriptFriendlyArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_SCRIPT_FRIENDLY)
                 .shortIdentifier(OPTION_SHORT_SCRIPT_FRIENDLY)
                 .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
@@ -794,7 +632,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getLDAPPort(final int defaultLdapPort) throws ArgumentException {
+    public static IntegerArgument ldapPortArgument(final int defaultLdapPort) throws ArgumentException {
         return IntegerArgument.builder("ldapPort")
                 .shortIdentifier(OPTION_SHORT_PORT)
                 .description(INFO_ARGUMENT_DESCRIPTION_LDAPPORT.get())
@@ -813,7 +651,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getAdminLDAPPort(final int defaultAdminPort) throws ArgumentException {
+    public static IntegerArgument adminLdapPortArgument(final int defaultAdminPort) throws ArgumentException {
         return IntegerArgument.builder("adminConnectorPort")
                 .description(INFO_ARGUMENT_DESCRIPTION_ADMINCONNECTORPORT.get())
                 .range(1, 65535)
@@ -829,23 +667,9 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getAdvancedMode() throws ArgumentException {
+    public static BooleanArgument advancedModeArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_ADVANCED)
                 .description(INFO_DESCRIPTION_ADVANCED.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "assertionfilter" string argument.
-     *
-     * @return The "assertionfilter" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getAssertionFilter() throws ArgumentException {
-        return StringArgument.builder(OPTION_LONG_ASSERTION_FILE)
-                .description(INFO_DESCRIPTION_ASSERTION_FILTER.get())
-                .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -858,7 +682,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getJMXPort(final int defaultJMXPort) throws ArgumentException {
+    public static IntegerArgument jmxPortArgument(final int defaultJMXPort) throws ArgumentException {
         return IntegerArgument.builder("jmxPort")
                 .shortIdentifier('x')
                 .description(INFO_ARGUMENT_DESCRIPTION_SKIPPORT.get())
@@ -869,13 +693,13 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "skip port check" boolean argument.
+     * Returns the "skipPortCheck" boolean argument.
      *
-     * @return The "getSkipPortCheck" argument.
+     * @return The "skipPortCheck" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getSkipPortCheck() throws ArgumentException {
+    public static BooleanArgument skipPortCheckArgument() throws ArgumentException {
         return BooleanArgument.builder("skipPortCheck")
                 .shortIdentifier('S')
                 .description(INFO_ARGUMENT_DESCRIPTION_SKIPPORT.get())
@@ -889,42 +713,10 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getStartTLS() throws ArgumentException {
+    public static BooleanArgument startTLSArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_START_TLS)
                 .shortIdentifier(OPTION_SHORT_START_TLS)
                 .description(INFO_DESCRIPTION_START_TLS.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "stopreason" string argument. <br>
-     * <i> N.B : the 'r' short option is also used by useSASLExternal, remote.</i>
-     *
-     * @return The "stopreason" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getStopReason() throws ArgumentException {
-        return StringArgument.builder("stopReason")
-                .shortIdentifier('r')
-                .description(INFO_DESCRIPTION_STOP_REASON.get())
-                .valuePlaceholder(INFO_STOP_REASON_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "stopTime" string argument. <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
-     * testonly, trustmanagerproviderdn, start(dateTime)</i>
-     *
-     * @return The "stopTime" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getStopTime() throws ArgumentException {
-        return StringArgument.builder("stopTime")
-                .shortIdentifier('t')
-                .description(INFO_DESCRIPTION_STOP_TIME.get())
-                .valuePlaceholder(INFO_STOP_TIME_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -936,7 +728,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getRootDN() throws ArgumentException {
+    public static StringArgument rootDNArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_ROOT_USER_DN)
                 .shortIdentifier(OPTION_SHORT_ROOT_USER_DN)
                 .description(INFO_ARGUMENT_DESCRIPTION_ROOTDN.get())
@@ -952,7 +744,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getRootDNPwd() throws ArgumentException {
+    public static StringArgument rootDNPwdArgument() throws ArgumentException {
         return StringArgument.builder("rootUserPassword")
                 .shortIdentifier(OPTION_SHORT_BINDPWD)
                 .description(INFO_ROOT_USER_PWD_PLACEHOLDER.get())
@@ -967,7 +759,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static FileBasedArgument getRootDNPwdFile() throws ArgumentException {
+    public static FileBasedArgument rootDNPwdFileArgument() throws ArgumentException {
         return FileBasedArgument.builder("rootUserPasswordFile")
                 .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
                 .description(INFO_ARGUMENT_DESCRIPTION_ROOTPWFILE.get())
@@ -982,7 +774,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getEnableWindowsService() throws ArgumentException {
+    public static BooleanArgument enableWindowsServiceArgument() throws ArgumentException {
         return BooleanArgument.builder("enableWindowsService")
                 .shortIdentifier('e')
                 .description(INFO_ARGUMENT_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get())
@@ -997,7 +789,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getEncoding() throws ArgumentException {
+    public static StringArgument encodingArgument() throws ArgumentException {
         return StringArgument.builder("encoding")
                 .shortIdentifier('i')
                 .description(INFO_DESCRIPTION_ENCODING.get())
@@ -1012,25 +804,10 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getDoNotStart() throws ArgumentException {
+    public static BooleanArgument doNotStartArgument() throws ArgumentException {
         return BooleanArgument.builder("doNotStart")
                 .shortIdentifier('O')
                 .description(INFO_SETUP_DESCRIPTION_DO_NOT_START.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "disableservice" boolean argument. <br>
-     * <i> N.B : the 'd' short option is also used by backupdirectory, sampledata.</i>
-     *
-     * @return The "disableservice" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getDisableService() throws ArgumentException {
-        return BooleanArgument.builder("disableService")
-                .shortIdentifier('d')
-                .description(INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE.get())
                 .buildArgument();
     }
 
@@ -1041,7 +818,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getDisplayEquivalentCommand() throws ArgumentException {
+    public static BooleanArgument displayEquivalentCommandArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_DISPLAY_EQUIVALENT)
                 .description(INFO_DESCRIPTION_DISPLAY_EQUIVALENT.get())
                 .buildArgument();
@@ -1056,7 +833,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getEquivalentCommandFile(final LocalizableMessage description)
+    public static StringArgument equivalentCommandFileArgument(final LocalizableMessage description)
             throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH)
                 .description(description)
@@ -1073,7 +850,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getFilename(final LocalizableMessage description) throws ArgumentException {
+    public static StringArgument filenameArgument(final LocalizableMessage description) throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_FILENAME)
                 .shortIdentifier(OPTION_SHORT_FILENAME)
                 .description(description)
@@ -1088,7 +865,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getEnableTLS() throws ArgumentException {
+    public static BooleanArgument enableTLSArgument() throws ArgumentException {
         return BooleanArgument.builder("enableStartTLS")
                 .shortIdentifier(OPTION_SHORT_START_TLS)
                 .description(INFO_SETUP_DESCRIPTION_ENABLE_STARTTLS.get())
@@ -1105,7 +882,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getLDAPSPort(final int defaultSecurePort) throws ArgumentException {
+    public static IntegerArgument ldapsPortArgument(final int defaultSecurePort) throws ArgumentException {
         return IntegerArgument.builder("ldapsPort")
                 .shortIdentifier(OPTION_SHORT_USE_SSL)
                 .description(INFO_ARGUMENT_DESCRIPTION_LDAPSPORT.get())
@@ -1124,7 +901,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getLDIFFile(final LocalizableMessage description) throws ArgumentException {
+    public static StringArgument ldifFileArgument(final LocalizableMessage description) throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_LDIF_FILE)
                 .shortIdentifier(OPTION_SHORT_LDIF_FILE)
                 .description(description)
@@ -1140,7 +917,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getGenerateSelfSigned() throws ArgumentException {
+    public static BooleanArgument generateSelfSignedArgument() throws ArgumentException {
         return BooleanArgument.builder("generateSelfSignedCertificate")
                 .description(INFO_ARGUMENT_DESCRIPTION_USE_SELF_SIGNED_CERTIFICATE.get())
                 .buildArgument();
@@ -1155,8 +932,8 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getHostName(final String defaultHostName) throws ArgumentException {
-        return getHostName(defaultHostName, null);
+    public static StringArgument hostNameArgument(final String defaultHostName) throws ArgumentException {
+        return hostNameArgument(defaultHostName, null);
     }
 
     /**
@@ -1170,7 +947,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getHostName(final String defaultHostName, final LocalizableMessage description)
+    public static StringArgument hostNameArgument(final String defaultHostName, final LocalizableMessage description)
             throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_HOST)
                 .shortIdentifier(OPTION_SHORT_HOST)
@@ -1187,7 +964,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getUsePKCS11Keystore() throws ArgumentException {
+    public static BooleanArgument usePKCS11KeystoreArgument() throws ArgumentException {
         return BooleanArgument.builder("usePkcs11Keystore")
                 .description(INFO_ARGUMENT_DESCRIPTION_USE_PKCS11.get())
                 .buildArgument();
@@ -1200,7 +977,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getUseJavaKeyStore() throws ArgumentException {
+    public static StringArgument useJavaKeyStoreArgument() throws ArgumentException {
         return StringArgument.builder("useJavaKeystore")
                 .description(INFO_ARGUMENT_DESCRIPTION_USE_JAVAKEYSTORE.get())
                 .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
@@ -1214,7 +991,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getUseJCEKS() throws ArgumentException {
+    public static StringArgument useJCEKSArgument() throws ArgumentException {
         return StringArgument.builder("useJCEKS")
                 .description(INFO_ARGUMENT_DESCRIPTION_USE_JCEKS.get())
                 .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
@@ -1228,7 +1005,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getUsePKCS12KeyStore() throws ArgumentException {
+    public static StringArgument usePKCS12KeyStoreArgument() throws ArgumentException {
         return StringArgument.builder("usePkcs12keyStore")
                 .description(INFO_ARGUMENT_DESCRIPTION_USE_PKCS12.get())
                 .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
@@ -1243,40 +1020,10 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static BooleanArgument getUseSSL() throws ArgumentException {
+    public static BooleanArgument useSSLArgument() throws ArgumentException {
         return BooleanArgument.builder(OPTION_LONG_USE_SSL)
                 .shortIdentifier(OPTION_SHORT_USE_SSL)
                 .description(INFO_DESCRIPTION_USE_SSL.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "keymanagerpath" string argument.
-     *
-     * @return The "keymanagerpath" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getKeyManagerPath() throws ArgumentException {
-        return StringArgument.builder("keyManagerPath")
-                .shortIdentifier('m')
-                .description(INFO_DESCRIPTION_KEYMANAGER_PATH.get())
-                .valuePlaceholder(INFO_KEY_MANAGER_PATH_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "keymanagerproviderdn" string argument.
-     *
-     * @return The "keymanagerproviderdn" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getKeyManagerProviderDN() throws ArgumentException {
-        return StringArgument.builder("keyManagerProviderDN")
-                .shortIdentifier('k')
-                .description(INFO_DESCRIPTION_KEYMANAGER_PROVIDER_DN.get())
-                .valuePlaceholder(INFO_KEY_MANAGER_PROVIDER_DN_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -1287,7 +1034,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getKeyStorePassword() throws ArgumentException {
+    public static StringArgument keyStorePasswordArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_KEYSTORE_PWD)
                 .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD)
                 .description(INFO_ARGUMENT_DESCRIPTION_KEYSTOREPASSWORD.get())
@@ -1302,7 +1049,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static FileBasedArgument getKeyStorePasswordFile() throws ArgumentException {
+    public static FileBasedArgument keyStorePasswordFileArgument() throws ArgumentException {
         return FileBasedArgument.builder(OPTION_LONG_KEYSTORE_PWD_FILE)
                 .shortIdentifier(OPTION_SHORT_KEYSTORE_PWD_FILE)
                 .description(INFO_ARGUMENT_DESCRIPTION_KEYSTOREPASSWORD_FILE.get())
@@ -1317,7 +1064,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getKeyStorePath() throws ArgumentException {
+    public static StringArgument keyStorePathArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_KEYSTOREPATH)
                 .shortIdentifier(OPTION_SHORT_KEYSTOREPATH)
                 .description(INFO_DESCRIPTION_KEYSTOREPATH.get())
@@ -1332,7 +1079,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getCertNickName() throws ArgumentException {
+    public static StringArgument certNickNameArgument() throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_CERT_NICKNAME)
                 .shortIdentifier(OPTION_SHORT_CERT_NICKNAME)
                 .description(INFO_ARGUMENT_DESCRIPTION_CERT_NICKNAME.get())
@@ -1350,8 +1097,8 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getAdminUid(final LocalizableMessage description) throws ArgumentException {
-        return getAdminUid(false, description);
+    public static StringArgument adminUid(final LocalizableMessage description) throws ArgumentException {
+        return adminUidArgument(false, description);
     }
 
     /**
@@ -1363,11 +1110,12 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static StringArgument getAdminUidHidden(final LocalizableMessage description) throws ArgumentException {
-        return getAdminUid(true, description);
+    public static StringArgument adminUidHiddenArgument(final LocalizableMessage description)
+            throws ArgumentException {
+        return adminUidArgument(true, description);
     }
 
-    private static StringArgument getAdminUid(final boolean hidden, final LocalizableMessage description)
+    private static StringArgument adminUidArgument(final boolean hidden, final LocalizableMessage description)
             throws ArgumentException {
         final StringArgument.Builder builder = StringArgument.builder(OPTION_LONG_ADMIN_UID)
                 .shortIdentifier('I')

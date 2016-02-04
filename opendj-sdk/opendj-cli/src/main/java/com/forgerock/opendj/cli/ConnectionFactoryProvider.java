@@ -34,6 +34,7 @@ import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -183,7 +184,7 @@ public final class ConnectionFactoryProvider {
             final boolean alwaysSSL) throws ArgumentException {
         this.app = app;
 
-        useSSLArg = CommonArguments.getUseSSL();
+        useSSLArg = useSSLArgument();
         if (!alwaysSSL) {
             argumentParser.addLdapConnectionArgument(useSSLArg);
         } else {
@@ -191,7 +192,7 @@ public final class ConnectionFactoryProvider {
             useSSLArg.setPresent(true);
         }
 
-        useStartTLSArg = CommonArguments.getStartTLS();
+        useStartTLSArg = startTLSArgument();
         if (!alwaysSSL) {
             argumentParser.addLdapConnectionArgument(useStartTLSArg);
         }
@@ -202,7 +203,7 @@ public final class ConnectionFactoryProvider {
         } catch (final Exception e) {
             defaultHostName = "Unknown (" + e + ")";
         }
-        hostNameArg = CommonArguments.getHostName(defaultHostName);
+        hostNameArg = hostNameArgument(defaultHostName);
         argumentParser.addLdapConnectionArgument(hostNameArg);
 
         LocalizableMessage portDescription = INFO_DESCRIPTION_PORT.get();
@@ -210,49 +211,49 @@ public final class ConnectionFactoryProvider {
             portDescription = INFO_DESCRIPTION_ADMIN_PORT.get();
         }
 
-        portArg = CommonArguments.getPort(defaultPort, portDescription);
+        portArg = portArgument(defaultPort, portDescription);
         argumentParser.addLdapConnectionArgument(portArg);
 
-        bindNameArg = CommonArguments.getBindDN(defaultBindDN);
+        bindNameArg = bindDNArgument(defaultBindDN);
         argumentParser.addLdapConnectionArgument(bindNameArg);
 
-        bindPasswordArg = CommonArguments.getBindPassword();
+        bindPasswordArg = bindPasswordArgument();
         argumentParser.addLdapConnectionArgument(bindPasswordArg);
 
-        bindPasswordFileArg = CommonArguments.getBindPasswordFile();
+        bindPasswordFileArg = bindPasswordFileArgument();
         argumentParser.addLdapConnectionArgument(bindPasswordFileArg);
 
-        saslOptionArg = CommonArguments.getSASL();
+        saslOptionArg = saslArgument();
         argumentParser.addLdapConnectionArgument(saslOptionArg);
 
-        trustAllArg = CommonArguments.getTrustAll();
+        trustAllArg = trustAllArgument();
         argumentParser.addLdapConnectionArgument(trustAllArg);
 
-        trustStorePathArg = CommonArguments.getTrustStorePath();
+        trustStorePathArg = trustStorePathArgument();
         argumentParser.addLdapConnectionArgument(trustStorePathArg);
 
-        trustStorePasswordArg = CommonArguments.getTrustStorePassword();
+        trustStorePasswordArg = trustStorePasswordArgument();
         argumentParser.addLdapConnectionArgument(trustStorePasswordArg);
 
-        trustStorePasswordFileArg = CommonArguments.getTrustStorePasswordFile();
+        trustStorePasswordFileArg = trustStorePasswordFileArgument();
         argumentParser.addLdapConnectionArgument(trustStorePasswordFileArg);
 
-        keyStorePathArg = CommonArguments.getKeyStorePath();
+        keyStorePathArg = keyStorePathArgument();
         argumentParser.addLdapConnectionArgument(keyStorePathArg);
 
-        keyStorePasswordArg = CommonArguments.getKeyStorePassword();
+        keyStorePasswordArg = keyStorePasswordArgument();
         argumentParser.addLdapConnectionArgument(keyStorePasswordArg);
 
-        keyStorePasswordFileArg = CommonArguments.getKeyStorePasswordFile();
+        keyStorePasswordFileArg = keyStorePasswordFileArgument();
         argumentParser.addLdapConnectionArgument(keyStorePasswordFileArg);
 
-        certNicknameArg = CommonArguments.getCertNickName();
+        certNicknameArg = certNickNameArgument();
         argumentParser.addLdapConnectionArgument(certNicknameArg);
 
-        reportAuthzIDArg = CommonArguments.getReportAuthzId();
+        reportAuthzIDArg = reportAuthzIdArgument();
         argumentParser.addArgument(reportAuthzIDArg);
 
-        connectTimeOut = CommonArguments.getConnectTimeOutHidden();
+        connectTimeOut = connectTimeOutHiddenArgument();
         argumentParser.addArgument(connectTimeOut);
 
         usePasswordPolicyControlArg =

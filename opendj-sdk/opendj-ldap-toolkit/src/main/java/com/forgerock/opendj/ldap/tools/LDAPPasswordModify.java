@@ -31,6 +31,7 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_CU
 import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -47,7 +48,6 @@ import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
@@ -121,11 +121,11 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFile();
+            propertiesFileArgument = propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+            noPropertiesFileArgument = noPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -167,13 +167,13 @@ public final class LDAPPasswordModify extends ConsoleApplication {
                             .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            version = CommonArguments.getLdapVersion();
+            version = ldapVersionArgument();
             argParser.addArgument(version);
 
-            verbose = CommonArguments.getVerbose();
+            verbose = verboseArgument();
             argParser.addArgument(verbose);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {

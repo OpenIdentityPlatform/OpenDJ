@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,7 +57,6 @@ import org.forgerock.util.promise.Promise;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -228,15 +228,15 @@ public final class SearchRate extends ConsoleApplication {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new SearchPerformanceRunner(new PerformanceRunnerOptions(argParser, this));
 
-            propertiesFileArgument = CommonArguments.getPropertiesFile();
+            propertiesFileArgument = propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+            noPropertiesFileArgument = noPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
 
@@ -248,7 +248,7 @@ public final class SearchRate extends ConsoleApplication {
                             .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            searchScope = CommonArguments.getSearchScope();
+            searchScope = searchScopeArgument();
             argParser.addArgument(searchScope);
 
             dereferencePolicy =
@@ -260,7 +260,7 @@ public final class SearchRate extends ConsoleApplication {
                             .valuePlaceholder(INFO_DEREFERENCE_POLICE_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            verbose = CommonArguments.getVerbose();
+            verbose = verboseArgument();
             argParser.addArgument(verbose);
 
             scriptFriendly =

@@ -28,6 +28,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
 import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static java.util.concurrent.TimeUnit.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
@@ -66,7 +67,6 @@ import org.forgerock.util.promise.Promise;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -528,19 +528,19 @@ public class AddRate extends ConsoleApplication {
     }
 
     private void addCommonArguments(final ArgumentParser argParser) throws ArgumentException {
-        final StringArgument propertiesFileArgument = CommonArguments.getPropertiesFile();
+        final StringArgument propertiesFileArgument = propertiesFileArgument();
         argParser.addArgument(propertiesFileArgument);
         argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-        final BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+        final BooleanArgument noPropertiesFileArgument = noPropertiesFileArgument();
         argParser.addArgument(noPropertiesFileArgument);
         argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-        final BooleanArgument showUsage = CommonArguments.getShowUsage();
+        final BooleanArgument showUsage = showUsageArgument();
         argParser.addArgument(showUsage);
         argParser.setUsageArgument(showUsage, getOutputStream());
 
-        verbose = CommonArguments.getVerbose();
+        verbose = verboseArgument();
         argParser.addArgument(verbose);
 
         scriptFriendly =

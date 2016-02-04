@@ -32,6 +32,8 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
@@ -62,7 +64,6 @@ import org.forgerock.opendj.ldap.responses.Result;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -162,18 +163,18 @@ public final class LDAPCompare extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFile();
+            propertiesFileArgument = propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+            noPropertiesFileArgument = noPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            filename = CommonArguments.getFilename(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
+            filename = filenameArgument(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
             argParser.addArgument(filename);
 
-            proxyAuthzID = CommonArguments.getProxyAuthId();
+            proxyAuthzID = proxyAuthIdArgument();
             argParser.addArgument(proxyAuthzID);
 
             assertionFilter =
@@ -182,25 +183,25 @@ public final class LDAPCompare extends ConsoleApplication {
                             .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            controlStr = CommonArguments.getControl();
+            controlStr = controlArgument();
             argParser.addArgument(controlStr);
 
-            version = CommonArguments.getLdapVersion();
+            version = ldapVersionArgument();
             argParser.addArgument(version);
 
-            encodingStr = CommonArguments.getEncoding();
+            encodingStr = encodingArgument();
             argParser.addArgument(encodingStr);
 
-            continueOnError = CommonArguments.getContinueOnError();
+            continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
-            noop = CommonArguments.getNoOp();
+            noop = noOpArgument();
             argParser.addArgument(noop);
 
-            verbose = CommonArguments.getVerbose();
+            verbose = verboseArgument();
             argParser.addArgument(verbose);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {

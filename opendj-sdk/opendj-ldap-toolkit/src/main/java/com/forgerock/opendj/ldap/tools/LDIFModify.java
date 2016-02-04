@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDI
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static org.forgerock.util.Utils.closeSilently;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,7 +58,6 @@ import org.forgerock.opendj.ldif.RejectedChangeRecordListener;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -102,10 +102,10 @@ public final class LDIFModify extends ConsoleApplication {
                             .valuePlaceholder(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            continueOnError = CommonArguments.getContinueOnError();
+            continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {

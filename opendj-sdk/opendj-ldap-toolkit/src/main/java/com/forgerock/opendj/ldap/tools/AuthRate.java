@@ -31,6 +31,7 @@ import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -65,7 +66,6 @@ import org.forgerock.util.promise.Promise;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -411,15 +411,15 @@ public final class AuthRate extends ConsoleApplication {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new BindPerformanceRunner(options);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFile();
+            propertiesFileArgument = propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+            noPropertiesFileArgument = noPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
 
@@ -430,7 +430,7 @@ public final class AuthRate extends ConsoleApplication {
                             .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            searchScope = CommonArguments.getSearchScope();
+            searchScope = searchScopeArgument();
             argParser.addArgument(searchScope);
 
             dereferencePolicy =
@@ -452,7 +452,7 @@ public final class AuthRate extends ConsoleApplication {
                             .valuePlaceholder(LocalizableMessage.raw("{invalidPassword}"))
                             .buildAndAddToParser(argParser);
 
-            verbose = CommonArguments.getVerbose();
+            verbose = verboseArgument();
             argParser.addArgument(verbose);
 
             scriptFriendly =

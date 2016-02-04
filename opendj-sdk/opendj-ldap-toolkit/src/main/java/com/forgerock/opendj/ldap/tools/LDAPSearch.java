@@ -75,7 +75,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -97,6 +96,7 @@ import static org.forgerock.util.Utils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 
 /** A tool that can be used to issue Search requests to the Directory Server. */
 public final class LDAPSearch extends ConsoleApplication {
@@ -268,11 +268,11 @@ public final class LDAPSearch extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             final StringArgument propertiesFileArgument =
-                CommonArguments.getPropertiesFile();
+                propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            final BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+            final BooleanArgument noPropertiesFileArgument = noPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -284,7 +284,7 @@ public final class LDAPSearch extends ConsoleApplication {
                             .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            searchScope = CommonArguments.getSearchScope();
+            searchScope = searchScopeArgument();
             argParser.addArgument(searchScope);
 
             filename =
@@ -358,7 +358,7 @@ public final class LDAPSearch extends ConsoleApplication {
                             .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            version = CommonArguments.getLdapVersion();
+            version = ldapVersionArgument();
             argParser.addArgument(version);
 
             StringArgument.builder("encoding")
@@ -404,16 +404,16 @@ public final class LDAPSearch extends ConsoleApplication {
                             .description(INFO_DESCRIPTION_COUNT_ENTRIES.get())
                             .buildAndAddToParser(argParser);
 
-            final BooleanArgument continueOnError = CommonArguments.getContinueOnError();
+            final BooleanArgument continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
-            noop = CommonArguments.getNoOp();
+            noop = noOpArgument();
             argParser.addArgument(noop);
 
-            verbose = CommonArguments.getVerbose();
+            verbose = verboseArgument();
             argParser.addArgument(verbose);
 
-            final BooleanArgument showUsage = CommonArguments.getShowUsage();
+            final BooleanArgument showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {

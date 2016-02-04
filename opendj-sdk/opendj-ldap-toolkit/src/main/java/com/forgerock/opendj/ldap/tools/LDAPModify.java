@@ -31,6 +31,8 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.FileInputStream;
@@ -72,7 +74,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -274,11 +275,11 @@ public final class LDAPModify extends ConsoleApplication {
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
-            propertiesFileArgument = CommonArguments.getPropertiesFile();
+            propertiesFileArgument = propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-            noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+            noPropertiesFileArgument = noPropertiesFileArgument();
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
@@ -328,19 +329,19 @@ public final class LDAPModify extends ConsoleApplication {
                             .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            version = CommonArguments.getLdapVersion();
+            version = ldapVersionArgument();
             argParser.addArgument(version);
 
-            continueOnError = CommonArguments.getContinueOnError();
+            continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
-            noop = CommonArguments.getNoOp();
+            noop = noOpArgument();
             argParser.addArgument(noop);
 
-            verbose = CommonArguments.getVerbose();
+            verbose = verboseArgument();
             argParser.addArgument(verbose);
 
-            showUsage = CommonArguments.getShowUsage();
+            showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
