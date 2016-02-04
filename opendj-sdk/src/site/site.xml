@@ -41,8 +41,8 @@
  <body>
 
   <breadcrumbs>
-   <item name="Developer Community" href="http://www.forgerock.org" />
-   <item name="OpenDJ" href="http://opendj.forgerock.org" />
+   <item name="" href="http://opendj.forgerock.org" />
+   <item name="" href="http://opendj.forgerock.org" />
   </breadcrumbs>
 
   <menu name="OpenDJ" inherit="top">
