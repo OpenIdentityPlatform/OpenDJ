@@ -60,6 +60,14 @@
         <tag>HEAD</tag>
     </scm>
 
+    <distributionManagement>
+        <site>
+            <id>forgerock.org</id>
+            <name>OpenDJ Community</name>
+            <url>${site.distribution.url}</url>
+        </site>
+    </distributionManagement>
+
     <ciManagement>
         <system>jenkins</system>
         <url>https://ci.forgerock.org/view/OpenDJ/job/OpenDJ%20-%20postcommit</url>
