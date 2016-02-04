@@ -28,7 +28,6 @@
 package org.opends.server.core;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -37,18 +36,16 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.RawModification;
+import org.opends.server.types.Modification;
 import org.opends.server.types.SubEntry;
 import org.opends.server.types.SubtreeSpecification;
 import org.opends.server.util.StaticUtils;
@@ -401,27 +398,21 @@ public class SubentryManagerTestCase extends CoreTestCase
 
   private void deleteAttribute(Entry e, String attrType)
   {
-    InternalClientConnection conn = getRootConnection();
-    List<RawModification> mods = newRawModifications(DELETE, attrType);
-    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOfUtf8(e.getName().toString()), mods);
+    List<Modification> mods = newModifications(DELETE, attrType);
+    ModifyOperation modifyOperation = getRootConnection().processModify(e.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   private void replaceAttribute(Entry e, String attrType, String newValue)
   {
-    InternalClientConnection conn = getRootConnection();
-    List<RawModification> mods = newRawModifications(REPLACE, attrType, newValue);
-    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOfUtf8(e.getName().toString()), mods);
+    List<Modification> mods = newModifications(REPLACE, attrType, newValue);
+    ModifyOperation modifyOperation = getRootConnection().processModify(e.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
-  private List<RawModification> newRawModifications(ModificationType modType,
-      String attrType, String... values)
+  private List<Modification> newModifications(ModificationType modType, String attrType, String... values)
   {
-    LDAPAttribute attr = new LDAPAttribute(attrType, Arrays.asList(values));
-    return newArrayList((RawModification) new LDAPModification(modType, attr));
+    return newArrayList(new Modification(modType, Attributes.create(attrType, values)));
   }
 
   @Test
