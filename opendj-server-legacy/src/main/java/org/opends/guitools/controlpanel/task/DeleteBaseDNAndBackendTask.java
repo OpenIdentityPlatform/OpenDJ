@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -413,17 +413,6 @@ public class DeleteBaseDNAndBackendTask extends Task
   }
 
   /**
-   * Returns the DN in the configuration for a given backend.
-   * @param backend the backend.
-   * @return the backend configuration entry DN.
-   */
-  private String getDN(BackendDescriptor backend)
-  {
-    return Utilities.getRDNString("ds-cfg-backend-id",
-        backend.getBackendID())+",cn=Backends,cn=config";
-  }
-
-  /**
    * Deletes a set of base DNs.  The code assumes that the server is not running
    * and that the configuration file can be edited.
    * @param baseDNs the list of base DNs.
@@ -448,10 +437,8 @@ public class DeleteBaseDNAndBackendTask extends Task
     newBaseDNs.removeAll(dnsToRemove);
 
     String backendName = backend.getBackendID();
-    String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
-    ",cn=Backends,cn=config";
-    ConfigEntry configEntry =
-      DirectoryServer.getConfigHandler().getConfigEntry(DN.valueOf(dn));
+    DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backendName + ",cn=Backends,cn=config");
+    ConfigEntry configEntry = DirectoryServer.getConfigHandler().getConfigEntry(dn);
 
     DNConfigAttribute baseDNAttr =
       new DNConfigAttribute(
@@ -498,9 +485,8 @@ public class DeleteBaseDNAndBackendTask extends Task
    */
   private void deleteBackend(BackendDescriptor backend) throws OpenDsException, ConfigException
   {
-    String dn = getDN(backend);
-    Utilities.deleteConfigSubtree(
-        DirectoryServer.getConfigHandler(), DN.valueOf(dn));
+    DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backend.getBackendID() + ",cn=Backends,cn=config");
+    Utilities.deleteConfigSubtree(DirectoryServer.getConfigHandler(), dn);
   }
 
   /**

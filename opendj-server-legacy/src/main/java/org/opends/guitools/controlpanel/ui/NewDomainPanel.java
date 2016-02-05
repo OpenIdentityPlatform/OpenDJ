@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -33,13 +33,9 @@ import java.util.ArrayList;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The panel to create a domain.
- *
- */
+/** The panel to create a domain. */
 public class NewDomainPanel extends NewOrganizationPanel
 {
   private static final long serialVersionUID = -595396547491445219L;
@@ -76,14 +72,13 @@ public class NewDomainPanel extends NewOrganizationPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void updateDNValue()
   {
     String value = name.getText().trim();
     if (value.length() > 0)
     {
-       String rdn = Utilities.getRDNString("dc", value);
-          dn.setText(rdn+","+parentNode.getDN());
+      dn.setText("dc" + "=" + value + "," + parentNode.getDN());
     }
     else
     {
@@ -91,7 +86,7 @@ public class NewDomainPanel extends NewOrganizationPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();

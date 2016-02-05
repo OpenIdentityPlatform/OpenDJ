@@ -352,10 +352,8 @@ public class InstallerHelper {
     try
     {
       // Read the configuration file.
-      String dn = Utilities.getRDNString("ds-cfg-backend-id",
-          backendName)+",cn=Backends,cn=config";
-      Utilities.deleteConfigSubtree(
-          DirectoryServer.getConfigHandler(), DN.valueOf(dn));
+      DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backendName + ",cn=Backends,cn=config");
+      Utilities.deleteConfigSubtree(DirectoryServer.getConfigHandler(), dn);
     }
     catch (OpenDsException | ConfigException ode)
     {

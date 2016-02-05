@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -50,10 +50,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
-/**
- * The panel used to create a new user.
- *
- */
+/** The panel used to create a new user. */
 public class NewUserPanel extends AbstractNewEntryPanel
 {
   private static final long serialVersionUID = -2450090053404111892L;
@@ -332,14 +329,13 @@ public class NewUserPanel extends AbstractNewEntryPanel
       if (attr.equalsIgnoreCase(NAMING_ATTRIBUTES[i]))
       {
         String value = NAMING_ATTRIBUTE_TEXTFIELDS[i].getText().trim();
-        String rdn = Utilities.getRDNString(attr, value);
-        dn.setText(rdn+","+parentNode.getDN());
+        dn.setText(attr + "=" + value + "," + parentNode.getDN());
         break;
       }
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -613,8 +613,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     String value = name.getText().trim();
     if (value.length() > 0)
     {
-       String rdn = Utilities.getRDNString("cn", value);
-          dn.setText(rdn+","+parentNode.getDN());
+      dn.setText("cn" + "=" + value + "," + parentNode.getDN());
     }
     else
     {

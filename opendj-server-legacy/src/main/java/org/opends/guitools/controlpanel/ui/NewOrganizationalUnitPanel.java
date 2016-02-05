@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -43,10 +43,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
-/**
- * The panel used to create a new organizational unit.
- *
- */
+/** The panel used to create a new organizational unit. */
 public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
 {
   private static final long serialVersionUID = -7145648120019856161L;
@@ -245,8 +242,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     String value = name.getText().trim();
     if (value.length() > 0)
     {
-       String rdn = Utilities.getRDNString("ou", value);
-          dn.setText(rdn+","+parentNode.getDN());
+      dn.setText("ou" + "=" + value + "," + parentNode.getDN());
     }
     else
     {
@@ -254,7 +250,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
