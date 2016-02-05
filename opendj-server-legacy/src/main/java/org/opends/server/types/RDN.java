@@ -71,7 +71,7 @@ public final class RDN
    * @param  attributeValue  The value for this RDN.  It must not be
    *                         {@code null}.
    */
-  public RDN(AttributeType attributeType, ByteString attributeValue)
+  public RDN(AttributeType attributeType, Object attributeValue)
   {
     Reject.ifNull(attributeType, attributeValue);
     avas = new ArrayList<>(1);

@@ -341,9 +341,8 @@ public class RecurringTask
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
       nextTaskEntry.replaceAttribute(Attributes.create(nextTaskIDName, nextTaskID));
 
-      RDN nextTaskRDN = RDN.decode(nextTaskIDName + "=" + nextTaskID);
-      DN nextTaskDN = new DN(nextTaskRDN,
-        taskScheduler.getTaskBackend().getScheduledTasksParentDN());
+      RDN nextTaskRDN = new RDN(DirectoryServer.getAttributeType(nextTaskIDName), nextTaskID);
+      DN nextTaskDN = taskScheduler.getTaskBackend().getScheduledTasksParentDN().child(nextTaskRDN);
       nextTaskEntry.setDN(nextTaskDN);
 
       String nextTaskStartTimeName = NAME_PREFIX_TASK + "scheduled-start-time";
