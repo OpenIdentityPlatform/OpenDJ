@@ -474,7 +474,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  <CODE>true</CODE> if this entry is within the given
    *          base and scope, or <CODE>false</CODE> if it is not.
    */
-  public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
+  public boolean isInScopeOf(DN baseDN, SearchScope scope)
   {
     switch (scope.asEnum())
     {

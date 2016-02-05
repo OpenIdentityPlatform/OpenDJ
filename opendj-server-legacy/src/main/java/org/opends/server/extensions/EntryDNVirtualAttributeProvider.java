@@ -247,7 +247,7 @@ public class EntryDNVirtualAttributeProvider
     SearchScope scope  = searchOperation.getScope();
     for (DN dn : dnSet)
     {
-      if (! dn.matchesBaseAndScope(baseDN, scope))
+      if (! dn.isInScopeOf(baseDN, scope))
       {
         continue;
       }

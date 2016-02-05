@@ -1439,7 +1439,7 @@ public class ChangelogBackend extends Backend<Configuration>
     final SearchFilter filter = searchOp.getFilter();
     final SearchScope scope = searchOp.getScope();
 
-    if (ChangelogBackend.CHANGELOG_BASE_DN.matchesBaseAndScope(baseDN, scope))
+    if (ChangelogBackend.CHANGELOG_BASE_DN.isInScopeOf(baseDN, scope))
     {
       final Entry entry = buildBaseChangelogEntry();
       if (filter.matchesEntry(entry) && !searchOp.returnEntry(entry, null))

@@ -588,7 +588,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     for (final Map.Entry<DN, MonitorProvider<?>> e : dit.tailMap(baseDN).entrySet())
     {
       final DN dn = e.getKey();
-      if (dn.matchesBaseAndScope(baseDN, scope))
+      if (dn.isInScopeOf(baseDN, scope))
       {
         final Entry entry = getEntry(dn, dit);
         if (filter.matchesEntry(entry))

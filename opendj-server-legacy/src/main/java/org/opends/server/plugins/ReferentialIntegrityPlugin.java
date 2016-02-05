@@ -1164,7 +1164,7 @@ public class ReferentialIntegrityPlugin
 
         final Entry valueEntry;
         if (currentConfiguration.getCheckReferencesScopeCriteria() == CheckReferencesScopeCriteria.NAMING_CONTEXT
-            && valueEntryDN.matchesBaseAndScope(entryBaseDN, SearchScope.SUBORDINATES))
+            && valueEntryDN.isInScopeOf(entryBaseDN, SearchScope.SUBORDINATES))
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
               ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attr.getName(), entryDN));
@@ -1218,7 +1218,7 @@ public class ReferentialIntegrityPlugin
 
     for (DN baseDN : baseDNs)
     {
-      if (dn.matchesBaseAndScope(baseDN, SearchScope.SUBORDINATES))
+      if (dn.isInScopeOf(baseDN, SearchScope.SUBORDINATES))
       {
         namingContext = baseDN;
         break;

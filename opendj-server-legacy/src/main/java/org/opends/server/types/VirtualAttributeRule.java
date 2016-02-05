@@ -251,7 +251,7 @@ public final class VirtualAttributeRule
   {
     for (DN dn : baseDNs)
     {
-      if (entryDN.matchesBaseAndScope(dn, scope))
+      if (entryDN.isInScopeOf(dn, scope))
       {
         return true;
       }

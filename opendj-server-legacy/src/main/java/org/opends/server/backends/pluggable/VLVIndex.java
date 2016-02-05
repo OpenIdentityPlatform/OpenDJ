@@ -388,7 +388,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   private boolean shouldInclude(final Entry entry) throws DirectoryException
   {
-    return entry.getName().matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry);
+    return entry.getName().isInScopeOf(baseDN, scope) && filter.matchesEntry(entry);
   }
 
   void modifyEntry(final IndexBuffer buffer, final EntryID entryID, final Entry oldEntry, final Entry newEntry,

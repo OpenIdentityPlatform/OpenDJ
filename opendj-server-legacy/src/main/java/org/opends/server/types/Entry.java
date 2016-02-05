@@ -2803,7 +2803,7 @@ public class Entry
    */
   public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
   {
-    return dn.matchesBaseAndScope(baseDN, scope);
+    return dn.isInScopeOf(baseDN, scope);
   }
 
 
