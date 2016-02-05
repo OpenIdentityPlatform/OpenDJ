@@ -4667,6 +4667,26 @@ public final class DirectoryServer
   }
 
   /**
+   * Retrieves the DN that is the immediate parent for this DN. This method does take the server's
+   * naming context configuration into account, so if the current DN is a naming context for the
+   * server, then it will not be considered to have a parent.
+   *
+   * @param dn
+   *          the
+   * @return The DN that is the immediate parent for this DN, or {@code null} if this DN does not
+   *         have a parent (either because there is only a single RDN component or because this DN
+   *         is a suffix defined in the server).
+   */
+  public static DN getParentDNInSuffix(DN dn)
+  {
+    if (dn.size() <= 1 || DirectoryServer.isNamingContext(dn))
+    {
+      return null;
+    }
+    return dn.parent();
+  }
+
+  /**
    * Retrieves the root DSE entry for the Directory Server.
    *
    * @return  The root DSE entry for the Directory Server.

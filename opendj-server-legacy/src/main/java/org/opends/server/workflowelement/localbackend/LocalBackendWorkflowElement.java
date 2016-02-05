@@ -47,8 +47,27 @@ import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.WritabilityMode;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH_AUTHZ_NOT_PERMITTED;
@@ -1137,7 +1156,28 @@ public class LocalBackendWorkflowElement
     }
   }
 
-  /** {@inheritDoc} */
+  static DN findMatchedDN(DN entryDN)
+  {
+    try
+    {
+      DN matchedDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      while (matchedDN != null)
+      {
+        if (DirectoryServer.entryExists(matchedDN))
+        {
+          return matchedDN;
+        }
+
+        matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+    }
+    return null;
+  }
+
   @Override
   public String toString()
   {

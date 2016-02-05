@@ -538,7 +538,7 @@ public class LDIFBackend
       }
       else
       {
-        DN parentDN = entryDN.getParentDNInSuffix();
+        DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
         if (parentDN != null && entryMap.containsKey(parentDN))
         {
           entryMap.put(entryDN, entry.duplicate(false));
@@ -560,7 +560,7 @@ public class LDIFBackend
           {
             while (true)
             {
-              parentDN = parentDN.getParentDNInSuffix();
+              parentDN = DirectoryServer.getParentDNInSuffix(parentDN);
               if (parentDN == null)
               {
                 break;
@@ -597,7 +597,7 @@ public class LDIFBackend
       // Get the DN of the target entry's parent, if it exists.  We'll need to
       // also remove the reference to the target entry from the parent's set of
       // children.
-      DN parentDN = entryDN.getParentDNInSuffix();
+      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
 
       // Make sure that the target entry exists.  If not, then fail.
       if (! entryMap.containsKey(entryDN))
@@ -611,7 +611,7 @@ public class LDIFBackend
             break;
           }
 
-          parentDN = parentDN.getParentDNInSuffix();
+          parentDN = DirectoryServer.getParentDNInSuffix(parentDN);
         }
 
         LocalizableMessage m = ERR_LDIF_BACKEND_DELETE_NO_SUCH_ENTRY.get(entryDN);
@@ -720,7 +720,7 @@ public class LDIFBackend
       if (! entryMap.containsKey(entryDN))
       {
         DN matchedDN = null;
-        DN parentDN = entryDN.getParentDNInSuffix();
+        DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
         while (parentDN != null)
         {
           if (entryMap.containsKey(parentDN))
@@ -729,7 +729,7 @@ public class LDIFBackend
             break;
           }
 
-          parentDN = parentDN.getParentDNInSuffix();
+          parentDN = DirectoryServer.getParentDNInSuffix(parentDN);
         }
 
         LocalizableMessage m = ERR_LDIF_BACKEND_MODIFY_NO_SUCH_ENTRY.get(entryDN);
@@ -762,7 +762,7 @@ public class LDIFBackend
       if (! entryMap.containsKey(currentDN))
       {
         DN matchedDN = null;
-        DN parentDN = currentDN.getParentDNInSuffix();
+        DN parentDN = DirectoryServer.getParentDNInSuffix(currentDN);
         while (parentDN != null)
         {
           if (entryMap.containsKey(parentDN))
@@ -771,7 +771,7 @@ public class LDIFBackend
             break;
           }
 
-          parentDN = parentDN.getParentDNInSuffix();
+          parentDN = DirectoryServer.getParentDNInSuffix(parentDN);
         }
 
         LocalizableMessage m = ERR_LDIF_BACKEND_MODDN_NO_SUCH_SOURCE_ENTRY.get(currentDN);
@@ -784,7 +784,7 @@ public class LDIFBackend
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, m);
       }
 
-      DN newParentDN = newDN.getParentDNInSuffix();
+      DN newParentDN = DirectoryServer.getParentDNInSuffix(newDN);
       if (! entryMap.containsKey(newParentDN))
       {
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -793,7 +793,7 @@ public class LDIFBackend
 
       // Remove the entry from the list of children for the old parent and
       // add the new entry DN to the set of children for the new parent.
-      DN oldParentDN = currentDN.getParentDNInSuffix();
+      DN oldParentDN = DirectoryServer.getParentDNInSuffix(currentDN);
       Set<DN> parentChildDNs = childDNs.get(oldParentDN);
       if (parentChildDNs != null)
       {
@@ -902,7 +902,7 @@ public class LDIFBackend
       Entry baseEntry = entryMap.get(baseDN);
       if (baseEntry == null && handlesEntry(baseDN))
       {
-        DN matchedDN = baseDN.getParentDNInSuffix();
+        DN matchedDN = DirectoryServer.getParentDNInSuffix(baseDN);
         while (matchedDN != null)
         {
           if (entryMap.containsKey(matchedDN))
@@ -910,7 +910,7 @@ public class LDIFBackend
             break;
           }
 
-          matchedDN = matchedDN.getParentDNInSuffix();
+          matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
         }
 
         LocalizableMessage m = ERR_LDIF_BACKEND_SEARCH_NO_SUCH_BASE.get(baseDN);
@@ -1146,7 +1146,7 @@ public class LDIFBackend
             continue;
           }
 
-          DN parentDN = entryDN.getParentDNInSuffix();
+          DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
           if (parentDN == null || !entryMap.containsKey(parentDN))
           {
             LocalizableMessage m = ERR_LDIF_BACKEND_MISSING_PARENT.get(

@@ -978,7 +978,7 @@ class VerifyJob
     {
       return null;
     }
-    return dn.getParentDNInSuffix();
+    return DirectoryServer.getParentDNInSuffix(dn);
   }
 
   /** This class maintain the number of children for a given dn. */

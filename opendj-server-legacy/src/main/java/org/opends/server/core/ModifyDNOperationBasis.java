@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,17 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.*;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RDN;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
@@ -565,7 +574,7 @@ public class ModifyDNOperationBasis
       {
         if (getEntryDN() != null)
         {
-          parentDN = entryDN.getParentDNInSuffix();
+          parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
         }
       }
       else

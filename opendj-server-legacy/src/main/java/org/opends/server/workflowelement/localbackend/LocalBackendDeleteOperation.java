@@ -60,6 +60,7 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation used to delete an entry in a local backend
@@ -354,28 +355,6 @@ public class LocalBackendDeleteOperation
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
         entry, entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
         ERR_DELETE_NO_SUCH_ENTRY.get(entryDN));
-  }
-
-  private DN findMatchedDN(DN entryDN)
-  {
-    try
-    {
-      DN matchedDN = entryDN.getParentDNInSuffix();
-      while (matchedDN != null)
-      {
-        if (DirectoryServer.entryExists(matchedDN))
-        {
-          return matchedDN;
-        }
-
-        matchedDN = matchedDN.getParentDNInSuffix();
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-    return null;
   }
 
   /**

@@ -911,7 +911,7 @@ public class PasswordModifyExtendedOperation
   {
     try
     {
-      DN matchedDN = entryDN.getParentDNInSuffix();
+      DN matchedDN = DirectoryServer.getParentDNInSuffix(entryDN);
       while (matchedDN != null)
       {
         if (DirectoryServer.entryExists(matchedDN))
@@ -919,7 +919,7 @@ public class PasswordModifyExtendedOperation
           return matchedDN;
         }
 
-        matchedDN = matchedDN.getParentDNInSuffix();
+        matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
       }
     }
     catch (Exception e)

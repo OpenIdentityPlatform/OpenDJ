@@ -325,33 +325,6 @@ public final class DN implements Comparable<DN>, Serializable
 
 
   /**
-   * Retrieves the DN of the entry that is the immediate parent for
-   * this entry.  This method does take the server's naming context
-   * configuration into account, so if the current DN is a naming
-   * context for the server, then it will not be considered to have a
-   * parent.
-   *
-   * @return  The DN of the entry that is the immediate parent for
-   *          this entry, or <CODE>null</CODE> if the entry with this
-   *          DN does not have a parent (either because there is only
-   *          a single RDN component or because this DN is a suffix
-   *          defined in the server).
-   */
-  public DN getParentDNInSuffix()
-  {
-    if (numComponents <= 1 || DirectoryServer.isNamingContext(this))
-    {
-      return null;
-    }
-
-    RDN[] parentComponents = new RDN[numComponents-1];
-    System.arraycopy(rdnComponents, 1, parentComponents, 0, numComponents-1);
-    return new DN(parentComponents);
-  }
-
-
-
-  /**
    * Creates a new DN that is a child of this DN, using the specified
    * RDN.
    *

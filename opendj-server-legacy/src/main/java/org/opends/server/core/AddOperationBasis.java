@@ -601,7 +601,7 @@ public class AddOperationBasis
   public void updateOperationErrMsgAndResCode()
   {
     DN entryDN = getEntryDN();
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       // Either this entry is a suffix or doesn't belong in the directory.

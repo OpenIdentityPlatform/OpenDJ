@@ -44,6 +44,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.MemoryBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.SubtreeDeleteControl;
@@ -54,7 +55,6 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.Control;
@@ -355,7 +355,7 @@ public class MemoryBackend
 
 
     // Get the parent DN and ensure that it exists in the backend.
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -434,7 +434,7 @@ public class MemoryBackend
     childDNs.remove(entryDN);
     entryMap.remove(entryDN);
 
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN != null)
     {
       HashSet<DN> parentsChildren = childDNs.get(parentDN);
@@ -528,7 +528,7 @@ public class MemoryBackend
 
 
     // Make sure that the parent of the new entry exists.
-    DN parentDN = e.getName().getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(e.getName());
     if (parentDN == null || !entryMap.containsKey(parentDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -556,7 +556,7 @@ public class MemoryBackend
     Entry baseEntry = entryMap.get(baseDN);
     if (baseEntry == null && handlesEntry(baseDN))
     {
-      DN matchedDN = baseDN.getParentDNInSuffix();
+      DN matchedDN = DirectoryServer.getParentDNInSuffix(baseDN);
       while (matchedDN != null)
       {
         if (entryMap.containsKey(matchedDN))
@@ -564,7 +564,7 @@ public class MemoryBackend
           break;
         }
 
-        matchedDN = matchedDN.getParentDNInSuffix();
+        matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
       }
 
       LocalizableMessage message =

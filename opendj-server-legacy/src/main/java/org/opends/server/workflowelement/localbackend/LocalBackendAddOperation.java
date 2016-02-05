@@ -78,11 +78,12 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation used to add an entry in a local backend
@@ -242,7 +243,7 @@ public class LocalBackendAddOperation
         return;
       }
 
-      DN parentDN = entryDN.getParentDNInSuffix();
+      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
       if (parentDN == null && !DirectoryServer.isNamingContext(entryDN))
       {
         if (entryDN.isRootDN())
@@ -516,28 +517,6 @@ public class LocalBackendAddOperation
         break;
       }
     }
-  }
-
-  private DN findMatchedDN(DN entryDN)
-  {
-    try
-    {
-      DN matchedDN = entryDN.getParentDNInSuffix();
-      while (matchedDN != null)
-      {
-        if (DirectoryServer.entryExists(matchedDN))
-        {
-          return matchedDN;
-        }
-
-        matchedDN = matchedDN.getParentDNInSuffix();
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-    return null;
   }
 
   private boolean checkHasReadOnlyAttributes(

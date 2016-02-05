@@ -1677,7 +1677,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
 
         DN entryDN = addOperation.getEntryDN();
-        DN parentDnFromEntryDn = entryDN.getParentDNInSuffix();
+        DN parentDnFromEntryDn = DirectoryServer.getParentDNInSuffix(entryDN);
         if (parentDnFromEntryDn != null
             && !parentDnFromCtx.equals(parentDnFromEntryDn))
         {
@@ -1968,7 +1968,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final CSN csn = generateCSN(addOperation);
     final String entryUUID = getEntryUUID(addOperation);
     final AddContext ctx = new AddContext(csn, entryUUID,
-        findEntryUUID(addOperation.getEntryDN().getParentDNInSuffix()));
+        findEntryUUID(DirectoryServer.getParentDNInSuffix(addOperation.getEntryDN())));
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
 

@@ -180,7 +180,7 @@ public class MultimasterReplication
     while (domain == null && temp != null)
     {
       domain = domains.get(temp);
-      temp = temp.getParentDNInSuffix();
+      temp = DirectoryServer.getParentDNInSuffix(temp);
     }
 
     return domain;

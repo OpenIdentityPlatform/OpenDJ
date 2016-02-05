@@ -38,10 +38,11 @@ import java.util.concurrent.CountDownLatch;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -314,7 +315,7 @@ final class ImportLDIFReader extends LDIFReader
       {
         return entryContainer;
       }
-      nodeDN = nodeDN.getParentDNInSuffix();
+      nodeDN = DirectoryServer.getParentDNInSuffix(nodeDN);
     }
     return null;
   }

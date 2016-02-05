@@ -51,16 +51,36 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.LockManager.DNLock;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BackupManager;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -393,7 +413,7 @@ public class TaskBackend
       return taskScheduler.getRecurringTaskCount();
     }
 
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       return -1;
@@ -443,7 +463,7 @@ public class TaskBackend
         return taskScheduler.getRecurringTaskParentEntry();
       }
 
-      DN parentDN = entryDN.getParentDNInSuffix();
+      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
       if (parentDN == null)
       {
         return null;
@@ -481,7 +501,7 @@ public class TaskBackend
 
     // Get the DN for the entry and then get its parent.
     DN entryDN = e.getName();
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
 
     if (parentDN == null)
     {
@@ -523,7 +543,7 @@ public class TaskBackend
   {
     // Get the parent for the provided entry DN.  It must be either the
     // scheduled or recurring task parent DN.
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       LocalizableMessage message = ERR_TASKBE_DELETE_INVALID_ENTRY.get(entryDN);
@@ -612,7 +632,7 @@ public class TaskBackend
     {
       // Get the parent for the provided entry DN.  It must be either the
       // scheduled or recurring task parent DN.
-      DN parentDN = entryDN.getParentDNInSuffix();
+      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
       if (parentDN == null)
       {
         LocalizableMessage message = ERR_TASKBE_MODIFY_INVALID_ENTRY.get(entryDN);
@@ -865,7 +885,7 @@ public class TaskBackend
     }
     else
     {
-      DN parentDN = baseDN.getParentDNInSuffix();
+      DN parentDN = DirectoryServer.getParentDNInSuffix(baseDN);
       if (parentDN == null)
       {
         LocalizableMessage message = ERR_TASKBE_SEARCH_INVALID_BASE.get(baseDN);

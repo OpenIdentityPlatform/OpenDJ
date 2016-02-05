@@ -45,8 +45,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
@@ -2046,7 +2046,7 @@ public class Entry
       else
       {
         // Get the DN of the parent entry if possible.
-        DN parentDN = dn.getParentDNInSuffix();
+        DN parentDN = DirectoryServer.getParentDNInSuffix(dn);
         if (parentDN != null)
         {
           try
@@ -2117,7 +2117,7 @@ public class Entry
       }
       else if (! parentProvided)
       {
-        DN parentDN = getName().getParentDNInSuffix();
+        DN parentDN = DirectoryServer.getParentDNInSuffix(getName());
         if (parentDN != null)
         {
           try

@@ -416,7 +416,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
     // See if the requested entry was one level below the backend base entry.
     // If so, then it must point to a trust store entry.
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN != null && parentDN.equals(baseDN))
     {
       try
@@ -517,7 +517,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
     }
 
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(entryDN);
@@ -546,7 +546,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    DN parentDN = entryDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
     if (parentDN == null || !parentDN.equals(baseDN))
     {
       LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(entryDN);
@@ -638,7 +638,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         }
       }
     }
-    else if (this.baseDN.equals(baseDN.getParentDNInSuffix()))
+    else if (this.baseDN.equals(DirectoryServer.getParentDNInSuffix(baseDN)))
     {
       Entry certEntry = getCertEntry(baseDN);
 

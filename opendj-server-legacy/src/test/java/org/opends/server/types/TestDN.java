@@ -558,11 +558,11 @@ public class TestDN extends TypesTestCase {
    */
   @Test(dataProvider = "namingContexts")
   public void testGetParentDNInSuffix(DN namingContext) throws Exception {
-    assertNull(namingContext.getParentDNInSuffix());
+    assertNull(DirectoryServer.getParentDNInSuffix(namingContext));
 
     DN childDN = namingContext.child(RDN.decode("ou=People"));
-    assertNotNull(childDN.getParentDNInSuffix());
-    assertEquals(childDN.getParentDNInSuffix(), namingContext);
+    assertNotNull(DirectoryServer.getParentDNInSuffix(childDN));
+    assertEquals(DirectoryServer.getParentDNInSuffix(childDN), namingContext);
   }
 
 

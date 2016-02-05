@@ -2478,14 +2478,14 @@ public class EntryContainer
    */
   private DN getMatchedDN(ReadableTransaction txn, DN targetDN) throws DirectoryException
   {
-    DN parentDN  = targetDN.getParentDNInSuffix();
+    DN parentDN = DirectoryServer.getParentDNInSuffix(targetDN);
     while (parentDN != null && parentDN.isSubordinateOrEqualTo(baseDN))
     {
       if (entryExists(txn, parentDN))
       {
         return parentDN;
       }
-      parentDN = parentDN.getParentDNInSuffix();
+      parentDN = DirectoryServer.getParentDNInSuffix(parentDN);
     }
     return null;
   }
