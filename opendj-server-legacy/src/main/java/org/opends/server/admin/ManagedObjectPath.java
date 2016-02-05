@@ -143,7 +143,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeType(type);
       ByteString avalue = ByteString.valueOfUtf8(name);
-      dn = dn.child(RDN.create(atype, avalue));
+      dn = dn.child(new RDN(atype, avalue));
     }
 
 
@@ -160,7 +160,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeType(type);
       ByteString avalue = ByteString.valueOfUtf8(d.getName());
-      dn = dn.child(RDN.create(atype, avalue));
+      dn = dn.child(new RDN(atype, avalue));
     }
 
 

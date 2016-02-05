@@ -65,7 +65,7 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
     //Setup the DN to use in the response tests.
     AttributeType attribute = DirectoryServer.getAttributeType("testAttribute");
     ByteString attributeValue = ByteString.valueOfUtf8("testValue");
-    dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
+    dn = new DN(new RDN[] { new RDN(attribute, attributeValue) });
   }
 
   /**

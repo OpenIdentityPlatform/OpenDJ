@@ -1019,7 +1019,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
                                String rdnStringValue)
   {
     ByteString attrValue = ByteString.valueOfUtf8(rdnStringValue);
-    return parentDN.child(RDN.create(rdnAttrType, attrValue));
+    return parentDN.child(new RDN(rdnAttrType, attrValue));
   }
 
 

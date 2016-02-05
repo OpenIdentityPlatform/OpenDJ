@@ -2904,8 +2904,7 @@ public class Entry
                   for (ByteString value : attr)
                   {
                     inheritFromDN = inheritFromDN.child(
-                        RDN.create(subEntry.getInheritFromRDNType(),
-                        value));
+                        new RDN(subEntry.getInheritFromRDNType(), value));
                     break;
                   }
                 }

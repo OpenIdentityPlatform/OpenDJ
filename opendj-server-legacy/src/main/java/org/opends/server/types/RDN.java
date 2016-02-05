@@ -122,21 +122,6 @@ public final class RDN
   }
 
   /**
-   * Creates a new RDN with the provided information.
-   *
-   * @param  attributeType   The attribute type for this RDN.  It must
-   *                         not be {@code null}.
-   * @param  attributeValue  The value for this RDN.  It must not be
-   *                         {@code null}.
-   *
-   * @return  The RDN created with the provided information.
-   */
-  public static RDN create(AttributeType attributeType, ByteString attributeValue)
-  {
-    return new RDN(attributeType, attributeValue);
-  }
-
-  /**
    * Retrieves the number of attribute-value pairs contained in this RDN.
    *
    * @return The number of attribute-value pairs contained in this RDN.

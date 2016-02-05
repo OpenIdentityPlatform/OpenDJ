@@ -451,7 +451,7 @@ public class CryptoManagerImpl
           throws CryptoManagerException {
     // Construct the key entry DN.
     final ByteString distinguishedValue = ByteString.valueOfUtf8(ADS_CERTIFICATE_ALIAS);
-    final DN entryDN = localTruststoreDN.child(RDN.create(attrKeyID, distinguishedValue));
+    final DN entryDN = localTruststoreDN.child(new RDN(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
     // Construct the attribute list.
@@ -571,7 +571,7 @@ public class CryptoManagerImpl
     // Construct the key entry DN.
     final ByteString distinguishedValue = ByteString.valueOfUtf8(instanceKeyID);
     final DN entryDN = instanceKeysDN.child(
-         RDN.create(attrKeyID, distinguishedValue));
+         new RDN(attrKeyID, distinguishedValue));
 
     // Check for the entry. If it does not exist, create it.
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
@@ -1526,7 +1526,7 @@ public class CryptoManagerImpl
       ByteString distinguishedValue =
            ByteString.valueOfUtf8(keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.child(
-           RDN.create(attrKeyID, distinguishedValue));
+           new RDN(attrKeyID, distinguishedValue));
 
       // Set the entry object classes.
       LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
@@ -1996,7 +1996,7 @@ public class CryptoManagerImpl
       ByteString distinguishedValue =
            ByteString.valueOfUtf8(keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.child(
-           RDN.create(attrKeyID, distinguishedValue));
+           new RDN(attrKeyID, distinguishedValue));
 
       // Set the entry object classes.
       LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
