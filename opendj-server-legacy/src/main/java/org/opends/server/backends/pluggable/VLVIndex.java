@@ -20,9 +20,11 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.backends.pluggable.IndexFilter.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -34,12 +36,15 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
@@ -62,13 +67,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SortKey;
-import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -96,7 +98,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   private DN baseDN;
   private SearchScope scope;
   private SearchFilter filter;
-  private SortOrder sortOrder;
+  private List<SortKey> sortKeys;
 
   /** The storage associated with this index. */
   private final Storage storage;
@@ -120,7 +122,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
     final ConfigChangeResult ccr = new ConfigChangeResult();
     this.filter = parseSearchFilter(config, getName().toString(), ccr);
-    this.sortOrder = new SortOrder(parseSortKeys(config.getSortOrder(), ccr));
+    this.sortKeys = parseSortKeys(config.getSortOrder(), ccr);
     if (!ccr.getMessages().isEmpty())
     {
       throw new ConfigException(ccr.getMessages().get(0));
@@ -263,7 +265,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     // Update the sort order only if changed
     if (!config.getSortOrder().equals(cfg.getSortOrder()))
     {
-      this.sortOrder = new SortOrder(parseSortKeys(cfg.getSortOrder(), ccr));
+      this.sortKeys = parseSortKeys(cfg.getSortOrder(), ccr);
       ccr.setAdminActionRequired(true);
     }
 
@@ -285,22 +287,21 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     this.config = cfg;
   }
 
-  private SortKey[] parseSortKeys(final String sortOrder, ConfigChangeResult ccr)
+  private List<SortKey> parseSortKeys(final String sortOrder, ConfigChangeResult ccr)
   {
     return parseSortKeys(sortOrder, ccr, getName().toString());
   }
 
-  private static SortKey[] parseSortKeys(final String sortOrder, ConfigChangeResult ccr, String indexName)
+  private static List<SortKey> parseSortKeys(final String sortOrder, ConfigChangeResult ccr, String indexName)
   {
     final String[] sortAttrs = sortOrder.split(" ");
-    final SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    for (int i = 0; i < sortAttrs.length; i++)
+    final List<SortKey> sortKeys = new ArrayList<>(sortAttrs.length);
+    for (String sortAttr : sortAttrs)
     {
-      String sortAttr = sortAttrs[i];
-      final boolean ascending;
+      final boolean isReverseOrder;
       try
       {
-        ascending = !sortAttr.startsWith("-");
+        isReverseOrder = sortAttr.startsWith("-");
 
         if (sortAttr.startsWith("-") || sortAttr.startsWith("+"))
         {
@@ -311,23 +312,24 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       {
         ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         ccr.addMessage(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttr, indexName));
-        return null;
+        return Collections.emptyList();
       }
 
-      final AttributeType attrType = DirectoryServer.getAttributeType(sortAttr);
+      final AttributeDescription attrDesc = AttributeDescription.valueOf(sortAttr);
+      final AttributeType attrType = attrDesc.getAttributeType();
       if (attrType.isPlaceHolder())
       {
         ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         ccr.addMessage(ERR_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttr, indexName));
-        return null;
+        return Collections.emptyList();
       }
       if (attrType.getOrderingMatchingRule() == null)
       {
         ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
         ccr.addMessage(INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(attrType.getNameOrOID()));
-        return null;
+        return Collections.emptyList();
       }
-      sortKeys[i] = new SortKey(attrType, ascending);
+      sortKeys.add(new SortKey(sortAttr, isReverseOrder));
     }
     return sortKeys;
   }
@@ -411,9 +413,10 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   private boolean isSortAttributeModified(final List<Modification> mods)
   {
-    for (final SortKey sortKey : sortOrder.getSortKeys())
+    for (final SortKey sortKey : sortKeys)
     {
-      final AttributeType attributeType = sortKey.getAttributeType();
+      final AttributeDescription attrDesc = AttributeDescription.valueOf(sortKey.getAttributeDescription());
+      final AttributeType attributeType = attrDesc.getAttributeType();
       final List<AttributeType> subTypes = DirectoryServer.getSchema().getSubTypes(attributeType);
       for (final Modification mod : mods)
       {
@@ -486,7 +489,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
         !searchOperation.getBaseDN().equals(baseDN) ||
         !searchOperation.getScope().equals(scope) ||
         !searchOperation.getFilter().equals(filter) ||
-        !sortControl.getSortOrder().equals(sortOrder))
+        !sortControl.getSortKeys().equals(sortKeys))
     {
       return null;
     }
@@ -547,7 +550,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     final int afterCount = vlvRequest.getAfterCount();
     final ByteString assertion = vlvRequest.getGreaterThanOrEqualAssertion();
     final ByteSequence encodedTargetAssertion =
-        encodeTargetAssertion(sortOrder, assertion, searchOperation, currentCount);
+        encodeTargetAssertion(sortKeys, assertion, searchOperation, currentCount);
     try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
       final LinkedList<Long> selectedIDs = new LinkedList<>();
@@ -616,10 +619,10 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
   }
 
   /** Normalize the assertion using the primary key's ordering matching rule. */
-  static ByteSequence encodeTargetAssertion(final SortOrder sortOrder, final ByteString assertion,
+  static ByteSequence encodeTargetAssertion(final List<SortKey> sortKeys, final ByteString assertion,
       final SearchOperation searchOperation, final int resultSetSize) throws DirectoryException
   {
-    final SortKey primarySortKey = sortOrder.getSortKeys()[0];
+    final SortKey primarySortKey = sortKeys.get(0);
     try
     {
       /*
@@ -628,16 +631,16 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
        * include some escaped bytes as well. 10 extra bytes should accommodate most inputs.
        */
       final ByteStringBuilder encodedPrimaryKey = new ByteStringBuilder(assertion.length() + 10);
-      final MatchingRule matchingRule = primarySortKey.getEffectiveOrderingRule();
+      final MatchingRule matchingRule = getEffectiveOrderingRule(primarySortKey);
       final ByteString normalizedAttributeValue = matchingRule.normalizeAttributeValue(assertion);
-      encodeVLVKeyValue(normalizedAttributeValue, encodedPrimaryKey, primarySortKey.ascending());
+      encodeVLVKeyValue(normalizedAttributeValue, encodedPrimaryKey, primarySortKey.isReverseOrder());
       return encodedPrimaryKey;
     }
     catch (final DecodeException e)
     {
       addVLVResponseControl(searchOperation, 0, resultSetSize, LDAPResultCode.OFFSET_RANGE_ERROR);
-      final String attributeName = primarySortKey.getAttributeType().getNameOrOID();
-      throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR, ERR_VLV_BAD_ASSERTION.get(attributeName));
+      final String attrDesc = primarySortKey.getAttributeDescription();
+      throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR, ERR_VLV_BAD_ASSERTION.get(attrDesc));
     }
   }
 
@@ -779,23 +782,23 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
 
   private ByteString encodeVLVKey(final Entry entry, final long entryID)
   {
-    return encodeVLVKey(sortOrder, entry, entryID);
+    return encodeVLVKey(sortKeys, entry, entryID);
   }
 
-  static ByteString encodeVLVKey(final SortOrder sortOrder, final Entry entry, final long entryID)
+  static ByteString encodeVLVKey(final List<SortKey> sortKeys, final Entry entry, final long entryID)
   {
     final ByteStringBuilder builder = new ByteStringBuilder();
-    encodeVLVKey0(sortOrder, entry, builder);
+    encodeVLVKey0(sortKeys, entry, builder);
     builder.appendLong(entryID);
     return builder.toByteString();
   }
 
-  private static void encodeVLVKey0(final SortOrder sortOrder, final Entry entry, final ByteStringBuilder builder)
+  private static void encodeVLVKey0(final List<SortKey> sortKeys, final Entry entry, final ByteStringBuilder builder)
   {
-    for (final SortKey sortKey : sortOrder.getSortKeys())
+    for (final SortKey sortKey : sortKeys)
     {
       ByteString sortValue = getLowestAttributeValue(entry, sortKey);
-      encodeVLVKeyValue(sortValue, builder, sortKey.ascending());
+      encodeVLVKeyValue(sortValue, builder, sortKey.isReverseOrder());
     }
   }
 
@@ -805,10 +808,10 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
    */
   private static ByteString getLowestAttributeValue(final Entry entry, final SortKey sortKey)
   {
-    final AttributeType attributeType = sortKey.getAttributeType();
-    final MatchingRule matchingRule = sortKey.getEffectiveOrderingRule();
+    final AttributeDescription attrDesc = AttributeDescription.valueOf(sortKey.getAttributeDescription());
+    final MatchingRule matchingRule = getEffectiveOrderingRule(sortKey);
     ByteString sortValue = null;
-    for (Attribute a : entry.getAttribute(attributeType))
+    for (Attribute a : entry.getAttribute(attrDesc.getAttributeType()))
     {
       for (ByteString v : a)
       {
@@ -833,6 +836,21 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     return sortValue;
   }
 
+  private static MatchingRule getEffectiveOrderingRule(SortKey sortKey)
+  {
+    String mrOid = sortKey.getOrderingMatchingRule();
+    if (mrOid != null)
+    {
+      MatchingRule orderingRule = getMatchingRule(mrOid);
+      if (orderingRule != null)
+      {
+        return orderingRule;
+      }
+    }
+    AttributeDescription attrDesc = AttributeDescription.valueOf(sortKey.getAttributeDescription());
+    return attrDesc.getAttributeType().getOrderingMatchingRule();
+  }
+
   /**
    * Package private for testing.
    * <p>
@@ -853,12 +871,12 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
    * </ul>
    */
   static void encodeVLVKeyValue(final ByteString keyBytes, final ByteStringBuilder builder,
-      final boolean ascending)
+      final boolean isReverseOrder)
   {
-    final byte separator = ascending ? (byte) 0x00 : (byte) 0xff;
+    final byte separator = !isReverseOrder ? (byte) 0x00 : (byte) 0xff;
     if (keyBytes != null)
     {
-      final byte escape = ascending ? (byte) 0x01 : (byte) 0xfe;
+      final byte escape = !isReverseOrder ? (byte) 0x01 : (byte) 0xfe;
       final byte sortOrderMask = separator;
       final int length = keyBytes.length();
       for (int i = 0; i < length; i++)
@@ -884,7 +902,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     else
     {
       // Ensure that null keys sort after (ascending) or before (descending) all other keys.
-      builder.appendByte(ascending ? 0xFF : 0x00);
+      builder.appendByte(!isReverseOrder ? 0xFF : 0x00);
     }
     builder.appendByte(separator);
   }

@@ -16,25 +16,30 @@
  */
 package org.opends.server.controls;
 
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.*;
-
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPException;
 
 /**
  * This class implements the server-side sort request control as defined in RFC
@@ -104,12 +109,11 @@ public class ServerSideSortRequestControl
           {
             //This attribute is not defined in the schema. There is no point
             //iterating over the next attribute and return a partially sorted result.
-            return new ServerSideSortRequestControl(isCritical,
-            new SortOrder(sortKeys.toArray(new SortKey[0])));
+            return new ServerSideSortRequestControl(isCritical, sortKeys);
           }
 
           MatchingRule orderingRule = null;
-          boolean ascending = true;
+          boolean isReverseOrder = false;
           if(reader.hasNextElement() &&
               reader.peekType() == TYPE_ORDERING_RULE_ID)
           {
@@ -129,7 +133,7 @@ public class ServerSideSortRequestControl
           if(reader.hasNextElement() &&
               reader.peekType() == TYPE_REVERSE_ORDER)
           {
-            ascending = ! reader.readBoolean();
+            isReverseOrder = reader.readBoolean();
           }
           reader.readEndSequence();
 
@@ -140,12 +144,11 @@ public class ServerSideSortRequestControl
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
 
-          sortKeys.add(new SortKey(attrType, ascending, orderingRule));
+          sortKeys.add(new SortKey(AttributeDescription.create(attrType), isReverseOrder, orderingRule));
         }
         reader.readEndSequence();
 
-        return new ServerSideSortRequestControl(isCritical,
-            new SortOrder(sortKeys.toArray(new SortKey[0])));
+        return new ServerSideSortRequestControl(isCritical, sortKeys);
       }
       catch (DirectoryException de)
       {
@@ -175,10 +178,9 @@ public class ServerSideSortRequestControl
       new Decoder();
 
   /** The sort order associated with this control represented by strings. */
-  private ArrayList<String[]> decodedKeyList;
-
+  private List<String[]> decodedKeyList;
   /** The sort order associated with this control. */
-  private SortOrder sortOrder;
+  private List<SortKey> sortKeys;
 
   /**
    * Creates a new server-side sort request control based on the definition in
@@ -289,11 +291,11 @@ public class ServerSideSortRequestControl
    * Creates a new server-side sort request control based on the provided sort
    * order.
    *
-   * @param  sortOrder  The sort order to use for this control.
+   * @param  sortKeys  The sort order to use for this control.
    */
-  public ServerSideSortRequestControl(SortOrder sortOrder)
+  public ServerSideSortRequestControl(List<SortKey> sortKeys)
   {
-    this(false, sortOrder);
+    this(false, sortKeys);
   }
 
   /**
@@ -302,14 +304,14 @@ public class ServerSideSortRequestControl
    *
    * @param  isCritical    Indicates whether support for this control should be
    *                       considered a critical part of the server processing.
-   * @param  sortOrder     sort order associated with this server-side sort
+   * @param  sortKeys     sort order associated with this server-side sort
    *                       control.
    */
-  public ServerSideSortRequestControl(boolean isCritical, SortOrder sortOrder)
+  public ServerSideSortRequestControl(boolean isCritical, List<SortKey> sortKeys)
   {
     super(OID_SERVER_SIDE_SORT_REQUEST_CONTROL, isCritical);
 
-    this.sortOrder = sortOrder;
+    this.sortKeys = sortKeys;
   }
 
 
@@ -317,17 +319,15 @@ public class ServerSideSortRequestControl
    * Retrieves the sort order for this server-side sort request control.
    *
    * @return  The sort order for this server-side sort request control.
-   * @throws  DirectoryException if an error occurs while retriving the
-   *          sort order.
+   * @throws  DirectoryException if an error occurs while retrieving the sort order.
    */
-  public SortOrder getSortOrder() throws DirectoryException
+  public List<SortKey> getSortKeys() throws DirectoryException
   {
-    if(sortOrder == null)
+    if (sortKeys == null)
     {
-      sortOrder = decodeSortOrderFromString();
+      sortKeys = decodeSortKeysFromString();
     }
-
-    return sortOrder;
+    return sortKeys;
   }
 
   /**
@@ -344,7 +344,7 @@ public class ServerSideSortRequestControl
    */
   public boolean  containsSortKeys() throws DirectoryException
   {
-    return getSortOrder().getSortKeys().length!=0;
+    return !getSortKeys().isEmpty();
   }
 
   /**
@@ -381,7 +381,7 @@ public class ServerSideSortRequestControl
   public void toString(StringBuilder buffer)
   {
     buffer.append("ServerSideSortRequestControl(");
-    if(sortOrder == null)
+    if (sortKeys == null)
     {
       buffer.append("SortOrder(");
 
@@ -399,7 +399,7 @@ public class ServerSideSortRequestControl
     }
     else
     {
-      buffer.append(sortOrder);
+      buffer.append(sortKeys);
     }
     buffer.append(")");
   }
@@ -426,9 +426,9 @@ public class ServerSideSortRequestControl
     buffer.append(")");
   }
 
-  private SortOrder decodeSortOrderFromString() throws DirectoryException
+  private List<SortKey> decodeSortKeysFromString() throws DirectoryException
   {
-    ArrayList<SortKey> sortKeys = new ArrayList<>();
+    List<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
       AttributeType attrType = DirectoryServer.getAttributeType(decodedKey[0]);
@@ -436,7 +436,7 @@ public class ServerSideSortRequestControl
       {
         //This attribute is not defined in the schema. There is no point
         //iterating over the next attribute and return a partially sorted result.
-        return new SortOrder(sortKeys.toArray(new SortKey[0]));
+        return sortKeys;
       }
 
       MatchingRule orderingRule = null;
@@ -451,7 +451,7 @@ public class ServerSideSortRequestControl
       }
 
       String decodedKey2 = decodedKey[2];
-      boolean ascending = decodedKey2 == null || !decodedKey2.equals("r");
+      boolean isReverseOrder = decodedKey2 != null && decodedKey2.equals("r");
       if (orderingRule == null
           && attrType.getOrderingMatchingRule() == null)
       {
@@ -459,10 +459,10 @@ public class ServerSideSortRequestControl
             INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(decodedKey[0]));
       }
 
-      sortKeys.add(new SortKey(attrType, ascending, orderingRule));
+      sortKeys.add(new SortKey(AttributeDescription.create(attrType), isReverseOrder, orderingRule));
     }
 
-    return new SortOrder(sortKeys.toArray(new SortKey[0]));
+    return sortKeys;
   }
 
   private void writeValueFromString(ASN1Writer writer) throws IOException
@@ -497,18 +497,17 @@ public class ServerSideSortRequestControl
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
-    for (SortKey sortKey : sortOrder.getSortKeys())
+    for (SortKey sortKey : sortKeys)
     {
       writer.writeStartSequence();
-      writer.writeOctetString(sortKey.getAttributeType().getNameOrOID());
+      writer.writeOctetString(sortKey.getAttributeDescription());
 
-      if (sortKey.getOrderingRule() != null)
+      if (sortKey.getOrderingMatchingRule() != null)
       {
-        writer.writeOctetString(TYPE_ORDERING_RULE_ID,
-            sortKey.getOrderingRule().getNameOrOID());
+        writer.writeOctetString(TYPE_ORDERING_RULE_ID, sortKey.getOrderingMatchingRule());
       }
 
-      if (! sortKey.ascending())
+      if (sortKey.isReverseOrder())
       {
         writer.writeBoolean(TYPE_REVERSE_ORDER, true);
       }

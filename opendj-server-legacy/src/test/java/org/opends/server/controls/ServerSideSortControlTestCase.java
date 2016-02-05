@@ -21,21 +21,18 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.SortKey;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SortKey;
-import org.opends.server.types.SortOrder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -51,11 +48,6 @@ import static org.testng.Assert.*;
 public class ServerSideSortControlTestCase
     extends ControlsTestCase
 {
-  /** The givenName attribute type. */
-  private AttributeType givenNameType;
-  /** The sn attribute type. */
-  private AttributeType snType;
-
   /** The DN for "Aaccf Johnson". */
   DN aaccfJohnsonDN;
   /** The DN for "Aaron Zimmerman". */
@@ -86,12 +78,6 @@ public class ServerSideSortControlTestCase
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
-
-    givenNameType = DirectoryServer.getAttributeType("givenname");
-    assertNotNull(givenNameType);
-
-    snType = DirectoryServer.getAttributeType("sn");
-    assertNotNull(snType);
 
     aaccfJohnsonDN    = DN.valueOf("uid=aaccf.johnson,dc=example,dc=com");
     aaronZimmermanDN  = DN.valueOf("uid=aaron.zimmerman,dc=example,dc=com");
@@ -221,23 +207,18 @@ public class ServerSideSortControlTestCase
   @Test
   public void testRequestConstructor1() throws Exception
   {
-    SortKey sortKey = new SortKey(givenNameType, true);
-    SortOrder sortOrder = new SortOrder(sortKey);
-    new ServerSideSortRequestControl(sortOrder).toString();
-    sortKey.toString();
-    sortOrder.toString();
+    SortKey sortKey = new SortKey("givenName", false);
+    List<SortKey> sortKeys = Arrays.asList(sortKey);
+    new ServerSideSortRequestControl(sortKeys).toString();
 
-    sortKey = new SortKey(givenNameType, false);
-    sortOrder = new SortOrder(sortKey);
-    new ServerSideSortRequestControl(sortOrder).toString();
-    sortKey.toString();
-    sortOrder.toString();
+    sortKey = new SortKey("givenName", true);
+    sortKeys = Arrays.asList(sortKey);
+    new ServerSideSortRequestControl(sortKeys).toString();
 
-    sortOrder = new SortOrder(
-      new SortKey(snType, true),
-      new SortKey(givenNameType, true));
-    new ServerSideSortRequestControl(sortOrder).toString();
-    sortOrder.toString();
+    sortKeys = Arrays.asList(
+      new SortKey("sn", false),
+      new SortKey("givenName", false));
+    new ServerSideSortRequestControl(sortKeys).toString();
   }
 
 

@@ -51,6 +51,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Pair;
 import org.opends.messages.CoreMessages;
@@ -97,7 +98,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SortOrder;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -771,8 +771,8 @@ public class EntryContainer
               // this sort key was not found in the user entry.
               try
               {
-                SortOrder sortOrder = sortRequest.getSortOrder();
-                reorderedCandidateEntryIDs = sort(txn, candidateEntryIDs, searchOperation, sortOrder, vlvRequest);
+                List<SortKey> sortKeys = sortRequest.getSortKeys();
+                reorderedCandidateEntryIDs = sort(txn, candidateEntryIDs, searchOperation, sortKeys, vlvRequest);
               }
               catch (DirectoryException de)
               {
@@ -2499,7 +2499,7 @@ public class EntryContainer
   }
 
   private long[] sort(ReadableTransaction txn, EntryIDSet entryIDSet, SearchOperation searchOperation,
-      SortOrder sortOrder, VLVRequestControl vlvRequest) throws DirectoryException
+      List<SortKey> sortKeys, VLVRequestControl vlvRequest) throws DirectoryException
   {
     if (!entryIDSet.isDefined())
     {
@@ -2518,7 +2518,7 @@ public class EntryContainer
         Entry e = getEntry(txn, id);
         if (e.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(e))
         {
-          sortMap.put(encodeVLVKey(sortOrder, e, id.longValue()), id);
+          sortMap.put(encodeVLVKey(sortKeys, e, id.longValue()), id);
         }
       }
       catch (Exception e)
@@ -2539,7 +2539,7 @@ public class EntryContainer
     {
       return sortByOffset(searchOperation, vlvRequest, sortMap);
     }
-    return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortOrder, sortMap);
+    return sortByGreaterThanOrEqualAssertion(searchOperation, vlvRequest, sortKeys, sortMap);
   }
 
   private static final long[] toArray(Collection<EntryID> entryIDs)
@@ -2554,12 +2554,12 @@ public class EntryContainer
   }
 
   private static final long[] sortByGreaterThanOrEqualAssertion(SearchOperation searchOperation,
-      VLVRequestControl vlvRequest, SortOrder sortOrder, final TreeMap<ByteString, EntryID> sortMap)
+      VLVRequestControl vlvRequest, List<SortKey> sortKeys, final TreeMap<ByteString, EntryID> sortMap)
       throws DirectoryException
   {
     ByteString assertionValue = vlvRequest.getGreaterThanOrEqualAssertion();
     ByteSequence encodedTargetAssertion =
-        encodeTargetAssertion(sortOrder, assertionValue, searchOperation, sortMap.size());
+        encodeTargetAssertion(sortKeys, assertionValue, searchOperation, sortMap.size());
 
     boolean targetFound = false;
     int index = 0;

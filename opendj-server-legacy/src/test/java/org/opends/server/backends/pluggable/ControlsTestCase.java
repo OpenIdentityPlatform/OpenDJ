@@ -33,6 +33,7 @@ import java.util.List;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
@@ -52,7 +53,6 @@ import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -207,31 +207,28 @@ public class ControlsTestCase extends DirectoryServerTestCase
   @Test(dataProvider = "encodedKeyDataProvider")
   public void vlvKeyEncodingGenerateCorrectAscendingSortOrder(String key1, String key2, int expectedCompareResult)
   {
-    ByteString bytes1 = key1 != null ? ByteString.valueOfHex(key1) : null;
-    ByteStringBuilder encodedBytes1 = new ByteStringBuilder();
-    VLVIndex.encodeVLVKeyValue(bytes1, encodedBytes1, true);
-
-    ByteString bytes2 = key2 != null ? ByteString.valueOfHex(key2) : null;
-    ByteStringBuilder encodedBytes2 = new ByteStringBuilder();
-    VLVIndex.encodeVLVKeyValue(bytes2, encodedBytes2, true);
-
-    int actualResult = Math.min(Math.max(encodedBytes1.compareTo(encodedBytes2), -1), 1);
-    assertThat(actualResult).isEqualTo(expectedCompareResult);
+    vlvKeyEncodingGenerateCorrectSortOrder(key1, key2, expectedCompareResult, false);
   }
 
   @Test(dataProvider = "encodedKeyDataProvider")
   public void vlvKeyEncodingGenerateCorrectDescendingSortOrder(String key1, String key2, int expectedCompareResult)
   {
+    vlvKeyEncodingGenerateCorrectSortOrder(key1, key2, expectedCompareResult, true);
+  }
+
+  private void vlvKeyEncodingGenerateCorrectSortOrder(String key1, String key2, int expectedCompareResult,
+      boolean isReverseOrder)
+  {
     ByteString bytes1 = key1 != null ? ByteString.valueOfHex(key1) : null;
     ByteStringBuilder encodedBytes1 = new ByteStringBuilder();
-    VLVIndex.encodeVLVKeyValue(bytes1, encodedBytes1, false);
+    VLVIndex.encodeVLVKeyValue(bytes1, encodedBytes1, isReverseOrder);
 
     ByteString bytes2 = key2 != null ? ByteString.valueOfHex(key2) : null;
     ByteStringBuilder encodedBytes2 = new ByteStringBuilder();
-    VLVIndex.encodeVLVKeyValue(bytes2, encodedBytes2, false);
+    VLVIndex.encodeVLVKeyValue(bytes2, encodedBytes2, isReverseOrder);
 
     int actualResult = Math.min(Math.max(encodedBytes1.compareTo(encodedBytes2), -1), 1);
-    assertThat(actualResult).isEqualTo(-expectedCompareResult);
+    assertThat(actualResult).isEqualTo(isReverseOrder ? -expectedCompareResult : expectedCompareResult);
   }
 
   @DataProvider
