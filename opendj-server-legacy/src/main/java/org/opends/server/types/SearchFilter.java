@@ -3420,11 +3420,9 @@ public final class SearchFilter
     // attributes, then do so.
     if (dnAttributes)
     {
-      DN entryDN = entry.getName();
-      int count = entryDN.size();
-      for (int rdnIndex = 0; rdnIndex < count; rdnIndex++)
+      for (RDN rdn : entry.getName())
       {
-        for (AVA ava : entryDN.getRDN(rdnIndex))
+        for (AVA ava : rdn)
         {
           try
           {

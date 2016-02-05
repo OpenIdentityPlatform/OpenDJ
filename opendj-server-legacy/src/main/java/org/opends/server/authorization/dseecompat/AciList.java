@@ -417,10 +417,10 @@ public class AciList {
           int keepRDNCount=keyRDNCount - oldRDNCount;
           RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];
           for (int i=0; i < keepRDNCount; i++) {
-            newRDNs[i] = hashEntry.getKey().getRDN(i);
+            newRDNs[i] = hashEntry.getKey().rdn(i);
           }
           for (int i=keepRDNCount, j=0; j < newRDNCount; i++,j++) {
-            newRDNs[i] = newDN.getRDN(j);
+            newRDNs[i] = newDN.rdn(j);
           }
           DN relocateDN=new DN(newRDNs);
           List<Aci> acis = new LinkedList<>();

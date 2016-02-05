@@ -470,7 +470,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       assertThat(entries).as("expected one entry to be returned").isNotEmpty();
-      assertThat(entries.get(0).getName()).isEqualTo(DN.valueOf("cn=test1,o=test"));
+      assertThat((Object) entries.get(0).getName()).isEqualTo(DN.valueOf("cn=test1,o=test"));
     }
     finally
     {

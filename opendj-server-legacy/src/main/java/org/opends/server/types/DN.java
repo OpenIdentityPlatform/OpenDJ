@@ -23,6 +23,8 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,7 +50,7 @@ import org.opends.server.core.DirectoryServer;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class DN implements Comparable<DN>, Serializable
+public final class DN implements Comparable<DN>, Iterable<RDN>, Serializable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   /** A singleton instance of the root/null DN (a DN with no components). */
@@ -282,7 +284,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  The RDN component at the specified position in the set
    *          of components for this DN.
    */
-  public RDN getRDN(int pos)
+  public RDN rdn(int pos)
   {
     return rdnComponents[pos];
   }
@@ -2539,5 +2541,9 @@ public final class DN implements Comparable<DN>, Serializable
     return toNormalizedByteString().compareTo(other.toNormalizedByteString());
   }
 
+  @Override
+  public Iterator<RDN> iterator()
+  {
+    return Arrays.asList(rdnComponents).iterator();
+  }
 }
-

@@ -16,8 +16,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
@@ -27,6 +25,7 @@ import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
@@ -590,9 +589,9 @@ public class TestDN extends TypesTestCase {
 
     assertEquals(p.rdn(), RDN.valueOf("dc=bar"));
 
-    assertEquals(p.getRDN(0), RDN.valueOf("dc=bar"));
-    assertEquals(p.getRDN(1), RDN.valueOf("dc=opends"));
-    assertEquals(p.getRDN(2), RDN.valueOf("dc=org"));
+    assertEquals(p.rdn(0), RDN.valueOf("dc=bar"));
+    assertEquals(p.rdn(1), RDN.valueOf("dc=opends"));
+    assertEquals(p.rdn(2), RDN.valueOf("dc=org"));
 
     assertEquals(p.parent(), DN.valueOf("dc=opends,dc=org"));
     assertEquals(p.parent(), e.parent());
@@ -665,7 +664,7 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf(s);
     RDN rdn = RDN.valueOf(r);
 
-    assertEquals(dn.getRDN(i), rdn, "For DN " + s);
+    assertEquals(dn.rdn(i), rdn, "For DN " + s);
   }
 
 
@@ -702,7 +701,7 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf(s);
 
     // Shoudld throw.
-    dn.getRDN(i);
+    dn.rdn(i);
 
     Assert.fail("Excepted exception for RDN index " + i + " in DN " + s);
   }
@@ -804,10 +803,10 @@ public class TestDN extends TypesTestCase {
 
     assertEquals(c.rdn(), RDN.valueOf("dc=foo"));
 
-    assertEquals(c.getRDN(0), RDN.valueOf("dc=foo"));
-    assertEquals(c.getRDN(1), RDN.valueOf("dc=bar"));
-    assertEquals(c.getRDN(2), RDN.valueOf("dc=opends"));
-    assertEquals(c.getRDN(3), RDN.valueOf("dc=org"));
+    assertEquals(c.rdn(0), RDN.valueOf("dc=foo"));
+    assertEquals(c.rdn(1), RDN.valueOf("dc=bar"));
+    assertEquals(c.rdn(2), RDN.valueOf("dc=opends"));
+    assertEquals(c.rdn(3), RDN.valueOf("dc=org"));
 
     assertEquals(c.parent(), DN.valueOf("dc=bar,dc=opends,dc=org"));
     assertEquals(c.parent(), e.parent());
@@ -1209,8 +1208,7 @@ public class TestDN extends TypesTestCase {
   {
     DN dn = DN.valueOf(dnString);
     DN renamed = dn.rename(DN.valueOf(fromDN), DN.valueOf(toDN));
-
-    assertThat(renamed).isEqualTo(DN.valueOf(expectedDN));
+    assertThat((Object) renamed).isEqualTo(DN.valueOf(expectedDN));
   }
 }
 

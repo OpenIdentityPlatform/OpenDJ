@@ -115,11 +115,11 @@ public class DNTag
     {
       int count = Math.min(numComponents, dn.size());
 
-      templateValue.getValue().append(dn.getRDN(0));
+      templateValue.getValue().append(dn.rdn(0));
       for (int i = 1; i < count; i++)
       {
         templateValue.append(",");
-        templateValue.getValue().append(dn.getRDN(i));
+        templateValue.getValue().append(dn.rdn(i));
       }
     }
     else
@@ -127,11 +127,11 @@ public class DNTag
       int sz = dn.size();
       int count = Math.min(Math.abs(numComponents), sz);
 
-      templateValue.getValue().append(dn.getRDN(sz - count));
+      templateValue.getValue().append(dn.rdn(sz - count));
       for (int i = 1; i < count; i++)
       {
         templateValue.append(",");
-        templateValue.getValue().append(dn.getRDN(sz - count + i));
+        templateValue.getValue().append(dn.rdn(sz - count + i));
       }
     }
 

@@ -109,22 +109,22 @@ public class UnderscoreDNTag
 
     if (numComponents == 0)
     {
-      templateValue.getValue().append(dn.getRDN(0));
+      templateValue.getValue().append(dn.rdn(0));
       for (int i=1; i < dn.size(); i++)
       {
         templateValue.append("_");
-        templateValue.getValue().append(dn.getRDN(i));
+        templateValue.getValue().append(dn.rdn(i));
       }
     }
     else if (numComponents > 0)
     {
       int count = Math.min(numComponents, dn.size());
 
-      templateValue.getValue().append(dn.getRDN(0));
+      templateValue.getValue().append(dn.rdn(0));
       for (int i = 1; i < count; i++)
       {
         templateValue.append("_");
-        templateValue.getValue().append(dn.getRDN(i));
+        templateValue.getValue().append(dn.rdn(i));
       }
     }
     else
@@ -132,10 +132,10 @@ public class UnderscoreDNTag
       int sz = dn.size();
       int count = Math.min(Math.abs(numComponents), sz);
 
-      templateValue.getValue().append(dn.getRDN(sz - count));
+      templateValue.getValue().append(dn.rdn(sz - count));
       for (int i = 1; i < count; i++) {
         templateValue.append("_");
-        templateValue.getValue().append(dn.getRDN(sz - count + i));
+        templateValue.getValue().append(dn.rdn(sz - count + i));
       }
     }
 

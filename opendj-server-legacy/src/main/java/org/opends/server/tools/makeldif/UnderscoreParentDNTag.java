@@ -73,11 +73,11 @@ public class UnderscoreParentDNTag
       return TagResult.SUCCESS_RESULT;
     }
 
-    templateValue.getValue().append(parentDN.getRDN(0));
+    templateValue.getValue().append(parentDN.rdn(0));
     for (int i=1; i < parentDN.size(); i++)
     {
       templateValue.append("_");
-      templateValue.getValue().append(parentDN.getRDN(i));
+      templateValue.getValue().append(parentDN.rdn(i));
     }
 
     return TagResult.SUCCESS_RESULT;

@@ -799,7 +799,7 @@ public class NodeRefresher extends AbstractNodeTask {
               int diff = dn.size() - rdns.length;
               for (int i=0; i < rdns.length; i++)
               {
-                rdns[i] = dn.getRDN(i + diff);
+                rdns[i] = dn.rdn(i + diff);
               }
               final DN parentToAddDN = new DN(rdns);
               boolean mustAddParent = true;

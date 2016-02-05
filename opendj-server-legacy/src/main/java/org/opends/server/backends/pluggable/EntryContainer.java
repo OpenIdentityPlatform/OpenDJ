@@ -2162,12 +2162,12 @@ public class EntryContainer
     RDN[] newDNComponents = new RDN[oldDNKeepComponents+newSuffixDNComponents];
     for (int i=0; i < oldDNKeepComponents; i++)
     {
-      newDNComponents[i] = oldDN.getRDN(i);
+      newDNComponents[i] = oldDN.rdn(i);
     }
 
     for (int i=oldDNKeepComponents, j=0; j < newSuffixDNComponents; i++,j++)
     {
-      newDNComponents[i] = newSuffixDN.getRDN(j);
+      newDNComponents[i] = newSuffixDN.rdn(j);
     }
 
     return new DN(newDNComponents);

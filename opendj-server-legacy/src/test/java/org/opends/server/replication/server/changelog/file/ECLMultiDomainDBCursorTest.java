@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -171,24 +171,24 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   private void assertMessagesInOrder(DN baseDN, UpdateMsg msg1, UpdateMsg msg2) throws Exception
   {
     assertThat(eclCursor.getRecord()).isNull();
-    assertThat(eclCursor.getData()).isNull();
+    assertThat((Object) eclCursor.getData()).isNull();
 
     if (msg1 != null)
     {
       assertThat(eclCursor.next()).isTrue();
       assertThat(eclCursor.getRecord()).isEqualTo(msg1);
-      assertThat(eclCursor.getData()).isEqualTo(baseDN);
+      assertThat((Object) eclCursor.getData()).isEqualTo(baseDN);
     }
     if (msg2 != null)
     {
       assertThat(eclCursor.next()).isTrue();
       assertThat(eclCursor.getRecord()).isEqualTo(msg2);
-      assertThat(eclCursor.getData()).isEqualTo(baseDN);
+      assertThat((Object) eclCursor.getData()).isEqualTo(baseDN);
     }
 
     assertThat(eclCursor.next()).isFalse();
     assertThat(eclCursor.getRecord()).isNull();
-    assertThat(eclCursor.getData()).isNull();
+    assertThat((Object) eclCursor.getData()).isNull();
   }
 
   private void addDomainCursorToCursor(DN baseDN, SequentialDBCursor cursor) throws ChangelogException

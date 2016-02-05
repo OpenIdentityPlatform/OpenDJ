@@ -60,7 +60,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
 
     assertThat(record).isNotNull();
     assertThat(record.getKey()).isEqualTo(msg.getChangeNumber());
-    assertThat(record.getValue().getBaseDN()).isEqualTo(msg.getBaseDN());
+    assertThat((Object) record.getValue().getBaseDN()).isEqualTo(msg.getBaseDN());
     assertThat(record.getValue().getCSN()).isEqualTo(msg.getCSN());
   }
 

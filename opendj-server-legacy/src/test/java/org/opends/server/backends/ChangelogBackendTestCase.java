@@ -1430,14 +1430,14 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   {
     DN actualDN = resultEntry.getName();
     DN expectedDN = DN.valueOf("changenumber=" + changeNumber + ",cn=changelog");
-    assertThat(actualDN).isEqualTo(expectedDN);
+    assertThat((Object) actualDN).isEqualTo(expectedDN);
   }
 
   private void assertDNWithCSN(SearchResultEntry resultEntry, CSN csn) throws Exception
   {
     DN actualDN = resultEntry.getName();
     DN expectedDN = DN.valueOf("replicationcsn=" + csn + "," + DN_OTEST + ",cn=changelog");
-    assertThat(actualDN).isEqualTo(expectedDN);
+    assertThat((Object) actualDN).isEqualTo(expectedDN);
   }
 
   /**

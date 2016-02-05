@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  * Portions Copyright 2014 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
@@ -700,7 +700,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       final ChangeNumberIndexRecord record = allValues.get(i);
       // check content in order
       String desc2 = "actual was:<" + record + ">, but expected was:<" + expectedMsg + ">";
-      assertThat(record.getBaseDN()).as(desc2).isEqualTo(expectedMsg.getBaseDN());
+      assertThat((Object) record.getBaseDN()).as(desc2).isEqualTo(expectedMsg.getBaseDN());
       assertThat(record.getCSN()).as(desc2).isEqualTo(expectedMsg.getCSN());
     }
   }

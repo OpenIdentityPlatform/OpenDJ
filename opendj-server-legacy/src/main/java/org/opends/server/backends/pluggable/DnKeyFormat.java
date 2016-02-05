@@ -71,7 +71,7 @@ public class DnKeyFormat
     for (int i = startSize; i >= 0; i--)
     {
         builder.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
-        dn.getRDN(i).toNormalizedByteString(builder);
+        dn.rdn(i).toNormalizedByteString(builder);
     }
     return builder.toByteString();
   }

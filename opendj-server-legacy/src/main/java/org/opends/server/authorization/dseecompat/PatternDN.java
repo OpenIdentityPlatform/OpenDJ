@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -132,7 +132,7 @@ public class PatternDN
 
       for (int i = 0; i < dn.size(); i++)
       {
-        if (!equality[i].matchesRDN(dn.getRDN(i)))
+        if (!equality[i].matchesRDN(dn.rdn(i)))
         {
           return false;
         }
@@ -156,7 +156,7 @@ public class PatternDN
 
         for (; pos < initialLength; pos++)
         {
-          if (!subInitial[pos].matchesRDN(dn.getRDN(pos)))
+          if (!subInitial[pos].matchesRDN(dn.rdn(pos)))
           {
             return false;
           }
@@ -182,7 +182,7 @@ public class PatternDN
           boolean match = false;
           for (; pos < end; pos++)
           {
-            if (element[0].matchesRDN(dn.getRDN(pos)))
+            if (element[0].matchesRDN(dn.rdn(pos)))
             {
               if (subMatch(dn, pos, element, anyLength))
               {
@@ -216,7 +216,7 @@ public class PatternDN
         pos = valueLength - finalLength;
         for (int i=0; i < finalLength; i++,pos++)
         {
-          if (!subFinal[i].matchesRDN(dn.getRDN(pos)))
+          if (!subFinal[i].matchesRDN(dn.rdn(pos)))
           {
             return false;
           }
@@ -231,7 +231,7 @@ public class PatternDN
   {
     for (int i = 1; i < length; i++)
     {
-      if (!element[i].matchesRDN(dn.getRDN(pos + i)))
+      if (!element[i].matchesRDN(dn.rdn(pos + i)))
       {
         return false;
       }

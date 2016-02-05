@@ -684,7 +684,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.search(createSearchOperation(
         newEntry.getName().parent(), SearchScope.WHOLE_SUBTREE, "(&(sn=Smith)(jpegphoto=foo))", returnedEntries));
     assertThat(returnedEntries).hasSize(1);
-    assertThat(returnedEntries.get(0).getName()).isEqualTo(newEntry.getName());
+    assertThat((Object) returnedEntries.get(0).getName()).isEqualTo(newEntry.getName());
   }
 
   private SearchOperation createSearchOperation(DN baseDN, SearchScope scope, String searchFilter,

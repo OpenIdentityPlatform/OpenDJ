@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -279,7 +279,7 @@ public class MockLDAPConnection extends LDAPConnection {
 
     // Create required glue entries.
     for (int i = 0; i < entryDN.size() - 1; i++) {
-      RDN rdn = entryDN.getRDN(entryDN.size() - i - 1);
+      RDN rdn = entryDN.rdn(entryDN.size() - i - 1);
       DN dn = parent.getDN().child(rdn);
 
       if (!entries.containsKey(dn)) {
