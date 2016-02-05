@@ -32,7 +32,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.adapter.server3x.Converters;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -52,7 +52,6 @@ import org.opends.server.admin.std.client.BackendVLVIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -266,7 +265,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
         else
         {
           createVLVIndexOffline(
-              backendID, indexName, Converters.from(DN.valueOf(baseDN)), filterValue, searchScope, sortOrder);
+              backendID, indexName, DN.valueOf(baseDN), filterValue, searchScope, sortOrder);
         }
         SwingUtilities.invokeLater(new Runnable()
         {

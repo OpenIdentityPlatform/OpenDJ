@@ -39,7 +39,6 @@ import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -221,7 +220,7 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ModifyRequest modifyRequest = newModifyRequest(from(configEntryDN))
+    ModifyRequest modifyRequest = newModifyRequest(configEntryDN)
         .addModification(REPLACE, ATTR_BACKEND_ENABLED, TRUE_VALUE);
     ModifyOperation internalModify = getRootConnection().processModify(modifyRequest);
 
@@ -257,7 +256,7 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    ModifyRequest modifyRequest = newModifyRequest(from(configEntryDN))
+    ModifyRequest modifyRequest = newModifyRequest(configEntryDN)
         .addModification(REPLACE, ATTR_BACKEND_ENABLED, FALSE_VALUE);
     ModifyOperation internalModify = getRootConnection().processModify(modifyRequest);
 

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
@@ -347,7 +347,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new ModifyOperationBasis(clientConnection, messageID, messageID,
-        to(request.getControls()), to(request.getName()),
+        to(request.getControls()), request.getName(),
         toModifications(request.getModifications())));
   }
 
@@ -357,9 +357,8 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new ModifyDNOperationBasis(clientConnection, messageID, messageID,
-        to(request.getControls()), to(request.getName()), to(request
-            .getNewRDN()), request.isDeleteOldRDN(), to(request
-            .getNewSuperior())));
+        to(request.getControls()), request.getName(), request.getNewRDN(),
+        request.isDeleteOldRDN(), request.getNewSuperior()));
   }
 
   @Override
@@ -374,7 +373,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new SearchOperationBasis(clientConnection, messageID, messageID,
-        to(request.getControls()), to(request.getName()),
+        to(request.getControls()), request.getName(),
         request.getScope(), request.getDereferenceAliasesPolicy(),
         request.getSizeLimit(), request.getTimeLimit(),
         request.isTypesOnly(), toSearchFilter(request.getFilter()),

@@ -45,7 +45,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -238,7 +237,7 @@ public class GroupManagerTestCase
 
     //Switch things around, change groups and members to odd numbered nested
     //groups and odd numbered members via ldap modify.
-    final ModifyRequest modifyRequest = newModifyRequest(from(group1Instance.getGroupDN()));
+    final ModifyRequest modifyRequest = newModifyRequest(group1Instance.getGroupDN());
     modifyRequest.addModification(DELETE, "member", "cn=group 2,ou=Groups,o=test");
     modifyRequest.addModification(DELETE, "member", "cn=group 4,ou=Groups,o=test");
     modifyRequest.addModification(DELETE, "member", "uid=user.2,ou=People,o=test");
@@ -433,7 +432,7 @@ public class GroupManagerTestCase
               "it didn't");
     } catch (DirectoryException ex) {}
     //Modify list via ldap modify.
-    final ModifyRequest modifyRequest = newModifyRequest(from(group1Instance.getGroupDN()))
+    final ModifyRequest modifyRequest = newModifyRequest(group1Instance.getGroupDN())
         .addModification(DELETE, "member", "cn=group 2,ou=Groups,o=test")
         .addModification(ADD, "member", "cn=group 1,ou=Groups,o=test");
     ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
@@ -684,7 +683,7 @@ public class GroupManagerTestCase
 
 
     // Modify the group and make sure the group manager gets updated accordingly
-    final ModifyRequest modifyRequest = newModifyRequest(from(groupDN))
+    final ModifyRequest modifyRequest = newModifyRequest(groupDN)
         .addModification(DELETE, "member", "uid=user.2,ou=People,o=test")
         .addModification(ADD, "member", "uid=user.3,ou=People,o=test");
     ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
@@ -868,7 +867,7 @@ public class GroupManagerTestCase
 
 
     // Modify the group and make sure the group manager gets updated accordingly
-    final ModifyRequest modifyRequest = newModifyRequest(from(groupDN))
+    final ModifyRequest modifyRequest = newModifyRequest(groupDN)
         .addModification(DELETE, "uniquemember", "uid=user.2,ou=People,o=test")
         .addModification(ADD, "uniquemember", "uid=user.3,ou=People,o=test");
     ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
@@ -1052,7 +1051,7 @@ public class GroupManagerTestCase
 
 
     // Modify the group and make sure the group manager gets updated accordingly
-    final ModifyRequest modifyRequest = newModifyRequest(from(groupDN))
+    final ModifyRequest modifyRequest = newModifyRequest(groupDN)
         .addModification(DELETE, "member", "uid=user.2,ou=People,o=test")
         .addModification(ADD, "member", "uid=user.3,ou=People,o=test");
     ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);

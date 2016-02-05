@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.io.ASN1;
@@ -40,7 +38,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
-import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -85,7 +82,7 @@ public final class Converters {
             final org.forgerock.opendj.ldap.Entry sdkEntry) {
         if (sdkEntry != null) {
             org.opends.server.types.Entry entry =
-                new org.opends.server.types.Entry(to(sdkEntry.getName()), null, null, null);
+                new org.opends.server.types.Entry(sdkEntry.getName(), null, null, null);
             List<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
                 entry.addAttribute(attribute, duplicateValues);
@@ -107,7 +104,7 @@ public final class Converters {
             final org.forgerock.opendj.ldap.responses.SearchResultEntry value) {
         if (value != null) {
             org.opends.server.types.Entry entry =
-                new org.opends.server.types.Entry(to(value.getName()), null, null, null);
+                new org.opends.server.types.Entry(value.getName(), null, null, null);
             org.opends.server.types.SearchResultEntry searchResultEntry =
                 new org.opends.server.types.SearchResultEntry(entry, to(value.getControls()));
             List<ByteString> duplicateValues = new ArrayList<>();
@@ -117,78 +114,6 @@ public final class Converters {
             return searchResultEntry;
         }
         return null;
-    }
-
-    /**
-     * Converts from OpenDJ LDAP SDK {@link DN} to OpenDJ server
-     * {@link org.forgerock.opendj.ldap.DN}.
-     *
-     * @param dn
-     *          value to convert
-     * @return the converted value
-     */
-    public static org.forgerock.opendj.ldap.DN to(final DN dn) {
-        try {
-            return org.forgerock.opendj.ldap.DN.valueOf(dn.toString());
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Converts a set of OpenDJ LDAP SDK {@link DN} to a set of
-     * OpenDJ server {@link org.forgerock.opendj.ldap.DN}.
-     *
-     * @param dnSet
-     *          set to convert
-     * @return the converted set
-     */
-    public static SortedSet<org.forgerock.opendj.ldap.DN> to(final SortedSet<DN> dnSet) {
-        try {
-            SortedSet<org.forgerock.opendj.ldap.DN> newSet = new TreeSet<>();
-            for (DN dn : dnSet) {
-                newSet.add(org.forgerock.opendj.ldap.DN.valueOf(dn.toString()));
-            }
-            return newSet;
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Converts an array of OpenDJ LDAP SDK {@link DN} to an array of
-     * OpenDJ server {@link org.forgerock.opendj.ldap.DN}.
-     *
-     * @param dns
-     *          array of values to convert
-     * @return the converted array
-     */
-    public static org.forgerock.opendj.ldap.DN[] to(final DN[] dns) {
-        try {
-            org.forgerock.opendj.ldap.DN[] newDns = new org.forgerock.opendj.ldap.DN[dns.length];
-            for (int i = 0; i < dns.length; i++) {
-                newDns[i] = org.forgerock.opendj.ldap.DN.valueOf(dns[i].toString());
-            }
-            return newDns;
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Converts from OpenDJ LDAP SDK {@link RDN} to OpenDJ server
-     * {@link org.forgerock.opendj.ldap.RDN}.
-     *
-     * @param rdn
-     *          value to convert
-     * @return the converted value
-     */
-    public static org.forgerock.opendj.ldap.RDN to(final RDN rdn) {
-        try {
-            return org.forgerock.opendj.ldap.RDN.valueOf(rdn.toString());
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
     }
 
     /**
@@ -603,23 +528,6 @@ public final class Converters {
             }
         }
         return null;
-    }
-
-
-    /**
-     * Converts from OpenDJ server {@link org.forgerock.opendj.ldap.DN} to OpenDJ
-     * LDAP SDK {@link DN}.
-     *
-     * @param dn
-     *            value to convert
-     * @return the converted value
-     */
-    public static DN from(final org.forgerock.opendj.ldap.DN dn) {
-        try {
-            return DN.valueOf(dn.toString());
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
     }
 
     /**

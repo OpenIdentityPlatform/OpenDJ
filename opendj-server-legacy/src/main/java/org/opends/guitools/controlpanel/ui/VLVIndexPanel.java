@@ -49,8 +49,8 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -71,7 +71,6 @@ import org.opends.server.admin.std.client.BackendVLVIndexCfgClient;
 import org.opends.server.admin.std.client.PluggableBackendCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -652,7 +651,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         }
         else
         {
-          modifyVLVIndexOffline(backendID, indexName, indexToModify, Converters.from(DN.valueOf(baseDN)), filterValue,
+          modifyVLVIndexOffline(backendID, indexName, indexToModify, DN.valueOf(baseDN), filterValue,
               searchScope, sortOrder);
         }
         SwingUtilities.invokeLater(new Runnable()

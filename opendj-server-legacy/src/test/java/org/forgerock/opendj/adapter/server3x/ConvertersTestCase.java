@@ -135,32 +135,6 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
     }
 
     /**
-     * Converts a SDK Distinguished Name to a LDAP server Distinguish Name. Needs
-     * a running server to work.
-     *
-     * @throws DirectoryException
-     */
-    @Test(groups = { "needRunningServer" })
-    public final void testToDN() throws DirectoryException {
-        final String dnString = "uid=scarter,ou=People,dc=example,dc=com";
-        org.forgerock.opendj.ldap.DN sdkDN =
-                org.forgerock.opendj.ldap.DN.valueOf(dnString);
-
-        org.forgerock.opendj.ldap.DN srvDN = to(sdkDN);
-        assertThat(srvDN.toString()).isEqualTo(dnString);
-    }
-
-    @Test
-    public final void testToRDN() throws DirectoryException {
-        final String rdnString = "uid=scarter";
-        org.forgerock.opendj.ldap.RDN sdkRDN =
-                org.forgerock.opendj.ldap.RDN.valueOf(rdnString);
-
-        org.forgerock.opendj.ldap.RDN srvRDN = to(sdkRDN);
-        assertThat(srvRDN.toString()).isEqualTo(rdnString);
-    }
-
-    /**
      * Converts a SDK control to a LDAP server control.
      *
      * @throws DirectoryException
@@ -475,20 +449,6 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         assertThat(sdkControl.getOID()).isEqualTo(expectedSdkControl.getOID());
         assertThat(sdkControl.isCritical()).isEqualTo(expectedSdkControl.isCritical());
         assertThat(sdkControl.getValue()).isEqualTo(expectedSdkControl.getValue());
-    }
-
-    /**
-     * Converts a a LDAP server Distinguish Name to a SDK Distinguished Name.
-     *
-     * @throws DirectoryException
-     */
-    @Test
-    public final void testFromDN() throws DirectoryException {
-        final String dnString = "uid=scarter,ou=People,dc=example,dc=com";
-        org.forgerock.opendj.ldap.DN srvDN = org.forgerock.opendj.ldap.DN.valueOf(dnString);
-        org.forgerock.opendj.ldap.DN sdkDN = from(srvDN);
-
-        assertThat(sdkDN.toString()).isEqualTo(dnString);
     }
 
     /**

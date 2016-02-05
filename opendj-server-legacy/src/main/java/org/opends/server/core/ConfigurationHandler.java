@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -32,7 +32,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.spi.ConfigAddListener;
@@ -43,12 +42,12 @@ import org.forgerock.opendj.ldap.CancelRequestListener;
 import org.forgerock.opendj.ldap.CancelledResultException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -446,7 +445,7 @@ public class ConfigurationHandler implements ConfigurationRepository
     if (!backend.contains(dn))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_CONFIG_FILE_DELETE_NO_SUCH_ENTRY.get(dn), Converters.to(getMatchedDN(dn)), null);
+          ERR_CONFIG_FILE_DELETE_NO_SUCH_ENTRY.get(dn), getMatchedDN(dn), null);
     }
 
     // Entry must not have children.
@@ -538,7 +537,7 @@ public class ConfigurationHandler implements ConfigurationRepository
     if (!backend.contains(entryDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(oldEntry), Converters.to(getMatchedDN(entryDN)), null);
+          ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(oldEntry), getMatchedDN(entryDN), null);
     }
 
     //TODO : add objectclass and attribute to the config schema in order to get this code run
@@ -798,7 +797,7 @@ public class ConfigurationHandler implements ConfigurationRepository
     if (!backend.contains(parentDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_CONFIG_FILE_ADD_NO_PARENT.get(entryDN, parentDN), Converters.to(getMatchedDN(parentDN)), null);
+          ERR_CONFIG_FILE_ADD_NO_PARENT.get(entryDN, parentDN), getMatchedDN(parentDN), null);
     }
     return parentDN;
   }

@@ -54,7 +54,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -1024,7 +1023,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private ModifyOperation
   addAttrEntry(DN dn, String attrName, Object... attrValStrings) {
-    ModifyRequest modifyRequest = Requests.newModifyRequest(from(dn))
+    ModifyRequest modifyRequest = Requests.newModifyRequest(dn)
         .addModification(ADD, attrName, attrValStrings);
     return getRootConnection().processModify(modifyRequest);
   }
@@ -1037,7 +1036,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @param attrValStrings The values to replace in the the entry.
    */
   private ModifyOperation  replaceAttrEntry(DN dn, String attrName, Object... attrValStrings) {
-    ModifyRequest modifyRequest = Requests.newModifyRequest(from(dn))
+    ModifyRequest modifyRequest = Requests.newModifyRequest(dn)
         .addModification(REPLACE, attrName, attrValStrings);
     return getRootConnection().processModify(modifyRequest);
   }
@@ -1052,7 +1051,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private void
   deleteAttrsEntry(DN dn, String... attrTypeStrings) throws Exception {
-    ModifyRequest modifyRequest = Requests.newModifyRequest(from(dn));
+    ModifyRequest modifyRequest = Requests.newModifyRequest(dn);
     for(String attrTypeString : attrTypeStrings) {
       modifyRequest.addModification(DELETE, attrTypeString);
     }

@@ -33,7 +33,6 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
@@ -464,7 +463,7 @@ public class BackendConfigManagerTestCase
 
   private void enableBackend(Entry entry, boolean enabled)
   {
-    ModifyRequest modifyRequest = newModifyRequest(from(entry.getName()))
+    ModifyRequest modifyRequest = newModifyRequest(entry.getName())
         .addModification(REPLACE, "ds-cfg-enabled", Boolean.toString(enabled));
     ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

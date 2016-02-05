@@ -46,7 +46,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -1844,7 +1843,7 @@ public class PasswordModifyExtendedOperationTestCase
   }
 
   private void setPasswordChangedTime(Entry userEntry) {
-    ModifyRequest modifyRequest = Requests.newModifyRequest(from(userEntry.getName()))
+    ModifyRequest modifyRequest = Requests.newModifyRequest(userEntry.getName())
         .addModification(REPLACE, "pwdchangedtime", "20050101000000.000Z");
     ModifyOperation op = getRootConnection().processModify(modifyRequest);
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);

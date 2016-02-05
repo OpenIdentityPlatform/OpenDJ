@@ -18,7 +18,6 @@ package org.opends.server.backends;
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -691,13 +690,13 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
       // mod 'sn' of fiona with 'sn' configured as ecl-incl-att
       final ModifyOperation modOp1 = connection.processModify(
-          newModifyRequest(from(uentry1.getName()))
+          newModifyRequest(uentry1.getName())
           .addModification(REPLACE, "sn", "newsn"));
       waitForSearchOpResult(modOp1, ResultCode.SUCCESS);
 
       // mod 'telephonenumber' of robert
       final ModifyOperation modOp2 = connection.processModify(
-          newModifyRequest(from(uentry2.getName()))
+          newModifyRequest(uentry2.getName())
           .addModification(REPLACE, "telephonenumber", "555555"));
       waitForSearchOpResult(modOp2, ResultCode.SUCCESS);
 

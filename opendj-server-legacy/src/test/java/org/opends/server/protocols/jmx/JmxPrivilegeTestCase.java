@@ -58,7 +58,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -832,7 +831,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   private void processModify(DN dn, ModificationType modType, String attrName, String attrValue)
   {
     ModifyOperation modifyOp = getRootConnection().processModify(
-        Requests.newModifyRequest(from(dn)).addModification(modType, attrName, attrValue));
+        Requests.newModifyRequest(dn).addModification(modType, attrName, attrValue));
     assertEquals(modifyOp.getResultCode(), ResultCode.SUCCESS);
   }
 

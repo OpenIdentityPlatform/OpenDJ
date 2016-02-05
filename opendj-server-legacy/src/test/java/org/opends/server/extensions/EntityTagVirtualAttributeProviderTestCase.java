@@ -60,7 +60,6 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.mockito.Mockito.*;
@@ -501,7 +500,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     AssertionRequestControl ctrl = AssertionRequestControl.newControl(true, Filter.equality(ETAG, etag1));
 
     // Apply a change using the assertion control for optimistic concurrency.
-    ModifyRequest modifyRequest = newModifyRequest(from(userDN))
+    ModifyRequest modifyRequest = newModifyRequest(userDN)
         .addModification(REPLACE, DESCRIPTION, "first modify")
         .addControl(ctrl);
     ModifyOperation modifyOperation = conn.processModify(modifyRequest);
@@ -518,7 +517,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     String description2 = assertDescriptionValue(e2, "first modify");
 
     // Simulate a concurrent update: perform another update using the old etag.
-    modifyRequest = newModifyRequest(from(userDN))
+    modifyRequest = newModifyRequest(userDN)
         .addModification(REPLACE, DESCRIPTION, "second modify")
         .addControl(ctrl);
     modifyOperation = conn.processModify(modifyRequest);
@@ -576,7 +575,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag1);
 
     // Apply a change using the pre and post read controls.
-    ModifyRequest modifyRequest = newModifyRequest(from(userDN))
+    ModifyRequest modifyRequest = newModifyRequest(userDN)
         .addModification(REPLACE, DESCRIPTION, "modified value")
         .addControl(PreReadRequestControl.newControl(true, ETAG));
     ModifyOperation modifyOperation = conn.processModify(modifyRequest);
@@ -648,7 +647,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag1);
 
     // Apply a change using the pre and post read controls.
-    ModifyRequest modifyRequest = newModifyRequest(from(userDN))
+    ModifyRequest modifyRequest = newModifyRequest(userDN)
         .addModification(REPLACE, DESCRIPTION, "modified value")
         .addControl(PostReadRequestControl.newControl(true, ETAG));
     ModifyOperation modifyOperation = conn.processModify(modifyRequest);

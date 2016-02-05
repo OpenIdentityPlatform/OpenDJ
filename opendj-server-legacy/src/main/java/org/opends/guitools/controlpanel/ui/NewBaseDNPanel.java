@@ -57,8 +57,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -94,7 +94,6 @@ import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.MakeLDIF;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.SetupUtils;
@@ -950,7 +949,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       try
       {
-        Set<org.forgerock.opendj.ldap.DN> baseDN = Collections.singleton(Converters.from(DN.valueOf(newBaseDN)));
+        Set<DN> baseDN = Collections.singleton(DN.valueOf(newBaseDN));
         BackendCreationHelper.createBackendOffline(backendName, baseDN, getSelectedBackendType().getBackend());
       }
       catch (Exception e)

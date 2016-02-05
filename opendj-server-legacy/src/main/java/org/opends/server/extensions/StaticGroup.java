@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -703,7 +702,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
    */
   private CompactDn toCompactDn(DN dn)
   {
-    return Converters.from(dn).compact();
+    return dn.compact();
   }
 
   /**
@@ -715,7 +714,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
    */
   static DN fromCompactDn(CompactDn compactDn)
   {
-    return Converters.to(compactDn.toDn());
+    return compactDn.toDn();
   }
 }
 

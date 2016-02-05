@@ -17,7 +17,6 @@
 package org.opends.server.plugins;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -222,7 +221,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     TestCaseUtils.addEntry(testEntry);
 
     // Perform the modify operation
-    ModifyRequest modifyRequest = Requests.newModifyRequest(from(testEntry.getName()))
+    ModifyRequest modifyRequest = Requests.newModifyRequest(testEntry.getName())
         .addModification(REPLACE, "userPassword", "password");
     ModifyOperation modOp = getRootConnection().processModify(modifyRequest);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);

@@ -115,7 +115,7 @@ public final class Adapters {
     public static ConnectionFactory newConnectionFactoryForUser(final DN userDN) {
         InternalClientConnection icc = null;
         try {
-            icc = new InternalClientConnection(to(userDN));
+            icc = new InternalClientConnection(userDN);
         } catch (DirectoryException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -179,7 +179,7 @@ public final class Adapters {
      */
     public static Connection newConnectionForUser(final DN dn) throws LdapException {
         try {
-            return newConnection(new InternalClientConnection(to(dn)));
+            return newConnection(new InternalClientConnection(dn));
         } catch (DirectoryException e) {
             throw newLdapException(Responses.newResult(ResultCode.NO_SUCH_OBJECT));
         }
@@ -209,7 +209,7 @@ public final class Adapters {
 
                 final SearchFilter filter = toSearchFilter(request.getFilter());
                 final org.opends.server.protocols.internal.SearchRequest sr =
-                    Requests.newSearchRequest(to(request.getName()), request.getScope(), filter)
+                    Requests.newSearchRequest(request.getName(), request.getScope(), filter)
                         .setDereferenceAliasesPolicy(request.getDereferenceAliasesPolicy())
                         .setSizeLimit(request.getSizeLimit())
                         .setTimeLimit(request.getTimeLimit())

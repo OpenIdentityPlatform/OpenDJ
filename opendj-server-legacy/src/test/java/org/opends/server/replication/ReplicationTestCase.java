@@ -70,7 +70,6 @@ import org.testng.annotations.Test;
 
 import static java.util.concurrent.TimeUnit.*;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
@@ -606,7 +605,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected static ModifyRequest modifyRequest(DN entryDN, ModificationType modType, String attrName, String attrValue)
   {
-    return Requests.newModifyRequest(from(entryDN)).addModification(modType, attrName, attrValue);
+    return Requests.newModifyRequest(entryDN).addModification(modType, attrName, attrValue);
   }
 
   /** Utility method to create, run a task and check its result. */

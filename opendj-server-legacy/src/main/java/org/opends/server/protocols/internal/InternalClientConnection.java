@@ -1858,11 +1858,10 @@ public final class InternalClientConnection
    */
   public ModifyDNOperation processModifyDN(ModifyDNRequest modifyDNRequest)
   {
-    org.forgerock.opendj.ldap.DN newSuperior = modifyDNRequest.getNewSuperior();
-    return processModifyDN(to(modifyDNRequest.getName()),
-                           to(modifyDNRequest.getNewRDN()),
+    return processModifyDN(modifyDNRequest.getName(),
+                           modifyDNRequest.getNewRDN(),
                            modifyDNRequest.isDeleteOldRDN(),
-                           newSuperior != null ? to(newSuperior) : null);
+                           modifyDNRequest.getNewSuperior());
   }
 
   /**
