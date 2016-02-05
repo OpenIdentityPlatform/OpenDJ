@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
@@ -795,7 +795,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
     DN authDN = getAuthenticationInfo().getAuthenticationDN();
     if (authDN != null)
     {
-      authDN.toString(buffer);
+      buffer.append(authDN);
     }
     return buffer.toString();
   }

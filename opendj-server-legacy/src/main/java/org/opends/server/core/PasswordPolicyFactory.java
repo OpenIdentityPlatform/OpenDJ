@@ -606,13 +606,13 @@ public final class PasswordPolicyFactory implements
       else
       {
         Iterator<DN> iterator = passwordValidators.keySet().iterator();
-        iterator.next().toString(buffer);
+        buffer.append(iterator.next());
         buffer.append(EOL);
 
         while (iterator.hasNext())
         {
           buffer.append("                                       ");
-          iterator.next().toString(buffer);
+          buffer.append(iterator.next());
           buffer.append(EOL);
         }
       }
@@ -628,7 +628,7 @@ public final class PasswordPolicyFactory implements
       }
       else
       {
-        configuration.getPasswordGeneratorDN().toString(buffer);
+        buffer.append(configuration.getPasswordGeneratorDN());
       }
       buffer.append(EOL);
 
@@ -641,13 +641,13 @@ public final class PasswordPolicyFactory implements
       else
       {
         Iterator<DN> iterator = notificationHandlers.keySet().iterator();
-        iterator.next().toString(buffer);
+        buffer.append(iterator.next());
         buffer.append(EOL);
 
         while (iterator.hasNext())
         {
           buffer.append("                                       ");
-          iterator.next().toString(buffer);
+          buffer.append(iterator.next());
           buffer.append(EOL);
         }
       }

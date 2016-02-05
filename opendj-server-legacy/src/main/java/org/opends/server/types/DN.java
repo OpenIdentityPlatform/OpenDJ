@@ -2450,12 +2450,12 @@ public final class DN implements Comparable<DN>, Serializable
       else
       {
         StringBuilder buffer = new StringBuilder();
-        rdnComponents[0].toString(buffer);
+        buffer.append(rdnComponents[0]);
 
         for (int i=1; i < numComponents; i++)
         {
           buffer.append(",");
-          rdnComponents[i].toString(buffer);
+          buffer.append(rdnComponents[i]);
         }
 
         dnString = buffer.toString();
@@ -2463,20 +2463,6 @@ public final class DN implements Comparable<DN>, Serializable
     }
 
     return dnString;
-  }
-
-
-
-  /**
-   * Appends a string representation of this DN to the provided
-   * buffer.
-   *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
-   */
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append(this);
   }
 
   /**

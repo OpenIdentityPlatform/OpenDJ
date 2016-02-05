@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -116,11 +116,11 @@ public class UnderscoreParentDNTag
       return TagResult.SUCCESS_RESULT;
     }
 
-    parentDN.getRDN(0).toString(templateValue.getValue());
+    templateValue.getValue().append(parentDN.getRDN(0));
     for (int i=1; i < parentDN.size(); i++)
     {
       templateValue.append("_");
-      parentDN.getRDN(i).toString(templateValue.getValue());
+      templateValue.getValue().append(parentDN.getRDN(i));
     }
 
     return TagResult.SUCCESS_RESULT;

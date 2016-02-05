@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -216,7 +216,7 @@ public class MultiDomainServerState implements Iterable<DN>
     {
       for (Entry<DN, ServerState> entry : list.entrySet())
       {
-        entry.getKey().toString(buffer);
+        buffer.append(entry.getKey());
         buffer.append(":");
         entry.getValue().toString(buffer);
         buffer.append(";");

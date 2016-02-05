@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -457,7 +457,7 @@ public final class AuthenticationInfo
 
     if (authenticationEntry != null)
     {
-      authenticationEntry.getName().toString(buffer);
+      buffer.append(authenticationEntry.getName());
     }
 
     if (authorizationEntry == null)
@@ -467,7 +467,7 @@ public final class AuthenticationInfo
     else
     {
       buffer.append("\",authorizationDN=\"");
-      authorizationEntry.getName().toString(buffer);
+      buffer.append(authorizationEntry.getName());
       buffer.append("\"");
     }
 

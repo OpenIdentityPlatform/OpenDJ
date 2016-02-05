@@ -487,7 +487,7 @@ public final class PersistentSearch
     buffer.append(",opID=");
     buffer.append(searchOperation.getOperationID());
     buffer.append(",baseDN=\"");
-    searchOperation.getBaseDN().toString(buffer);
+    buffer.append(searchOperation.getBaseDN());
     buffer.append("\",scope=");
     buffer.append(searchOperation.getScope());
     buffer.append(",filter=\"");

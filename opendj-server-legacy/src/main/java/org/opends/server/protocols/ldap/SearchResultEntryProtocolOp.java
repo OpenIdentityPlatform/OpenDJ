@@ -340,7 +340,7 @@ public class SearchResultEntryProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("SearchResultEntry(dn=");
-    dn.toString(buffer);
+    buffer.append(dn);
     buffer.append(", attrs={");
 
     LinkedList<LDAPAttribute> tmp = getAttributes();
@@ -384,7 +384,7 @@ public class SearchResultEntryProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  DN:  ");
-    dn.toString(buffer);
+    buffer.append(dn);
     buffer.append(EOL);
 
     buffer.append("  Attributes:");

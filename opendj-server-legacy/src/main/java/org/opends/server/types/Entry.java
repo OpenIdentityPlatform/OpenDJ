@@ -4132,7 +4132,7 @@ public class Entry
   public void toSingleLineString(StringBuilder buffer)
   {
     buffer.append("Entry(dn=\"");
-    dn.toString(buffer);
+    buffer.append(dn);
     buffer.append("\",objectClasses={");
 
     Iterator<String> iterator = objectClasses.values().iterator();

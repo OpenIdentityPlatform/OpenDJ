@@ -583,18 +583,6 @@ public final class RDN
   }
 
   /**
-   * Appends a string representation of this RDN to the provided
-   * buffer.
-   *
-   * @param  buffer  The buffer to which the string representation
-   *                 should be appended.
-   */
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append(this);
-  }
-
- /**
   * Retrieves a normalized string representation of this RDN.
   * <p>
   *

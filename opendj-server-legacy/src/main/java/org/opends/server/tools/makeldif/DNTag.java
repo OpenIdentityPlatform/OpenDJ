@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -188,17 +188,17 @@ public class DNTag
 
     if (numComponents == 0)
     {
-      dn.toString(templateValue.getValue());
+      templateValue.getValue().append(dn);
     }
     else if (numComponents > 0)
     {
       int count = Math.min(numComponents, dn.size());
 
-      dn.getRDN(0).toString(templateValue.getValue());
+      templateValue.getValue().append(dn.getRDN(0));
       for (int i = 1; i < count; i++)
       {
         templateValue.append(",");
-        dn.getRDN(i).toString(templateValue.getValue());
+        templateValue.getValue().append(dn.getRDN(i));
       }
     }
     else
@@ -206,11 +206,11 @@ public class DNTag
       int sz = dn.size();
       int count = Math.min(Math.abs(numComponents), sz);
 
-      dn.getRDN(sz - count).toString(templateValue.getValue());
+      templateValue.getValue().append(dn.getRDN(sz - count));
       for (int i = 1; i < count; i++)
       {
         templateValue.append(",");
-        dn.getRDN(sz - count + i).toString(templateValue.getValue());
+        templateValue.getValue().append(dn.getRDN(sz - count + i));
       }
     }
 

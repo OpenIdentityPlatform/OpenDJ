@@ -362,7 +362,7 @@ outerLoop:
            (ModifyDNChangeRecordEntry) changeRecord;
 
       StringBuilder newRDNLine = new StringBuilder("newrdn: ");
-      modifyDNRecord.getNewRDN().toString(newRDNLine);
+      newRDNLine.append(modifyDNRecord.getNewRDN());
       writeLDIFLine(newRDNLine, writer, wrapLines, wrapColumn);
 
       StringBuilder deleteOldRDNLine = new StringBuilder("deleteoldrdn: ");
@@ -373,7 +373,7 @@ outerLoop:
       if (newSuperiorDN != null)
       {
         StringBuilder newSuperiorLine = new StringBuilder("newsuperior: ");
-        newSuperiorDN.toString(newSuperiorLine);
+        newSuperiorLine.append(newSuperiorDN);
         writeLDIFLine(newSuperiorLine, writer, wrapLines, wrapColumn);
       }
     }

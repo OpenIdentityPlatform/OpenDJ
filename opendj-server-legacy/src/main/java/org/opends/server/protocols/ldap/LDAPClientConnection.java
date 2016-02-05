@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2010-2015 ForgeRock AS.
+ * Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -2356,7 +2356,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     DN authDN = getAuthenticationInfo().getAuthenticationDN();
     if (authDN != null)
     {
-      authDN.toString(buffer);
+      buffer.append(authDN);
     }
 
     buffer.append("\" security=\"");
