@@ -112,9 +112,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A real attribute - options handled by sub-classes.
-   */
+  /** A real attribute */
   private static class RealAttribute extends AbstractAttribute
   {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -1060,8 +1058,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return values.contains(createAttributeValue(attributeType, value));
   }
 
-
-
   /**
    * Indicates whether this attribute builder contains all the values
    * in the collection.
@@ -1073,11 +1069,11 @@ public final class AttributeBuilder implements Iterable<ByteString>
    *         <CODE>false</CODE> if it does not contain at least one
    *         of them.
    */
-  public boolean containsAll(Collection<ByteString> values)
+  public boolean containsAll(Collection<?> values)
   {
-    for (ByteString v : values)
+    for (Object v : values)
     {
-      if (!contains(v))
+      if (!contains(ByteString.valueOfObject(v)))
       {
         return false;
       }

@@ -88,7 +88,7 @@ public interface Attribute extends Iterable<ByteString>
    *         values in the provided collection, or {@code false}
    *         if it does not contain at least one of them.
    */
-  boolean containsAll(Collection<ByteString> values);
+  boolean containsAll(Collection<?> values);
 
   /**
    * Indicates whether this attribute matches the specified assertion value.

@@ -94,7 +94,7 @@ public final class VirtualAttribute
   }
 
   @Override
-  public boolean containsAll(Collection<ByteString> values)
+  public boolean containsAll(Collection<?> values)
   {
     return provider.hasAllValues(entry, rule, values);
   }

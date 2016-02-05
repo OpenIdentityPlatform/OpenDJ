@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2016 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -227,8 +227,7 @@ public abstract class VirtualAttributeProvider
    *          {@code false} if it will not generate at least one of
    *          them.
    */
-  public boolean hasAllValues(Entry entry, VirtualAttributeRule rule,
-                              Collection<ByteString> values)
+  public boolean hasAllValues(Entry entry, VirtualAttributeRule rule, Collection<?> values)
   {
     return getValues(entry, rule).containsAll(values);
   }

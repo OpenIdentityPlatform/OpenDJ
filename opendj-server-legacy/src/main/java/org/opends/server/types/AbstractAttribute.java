@@ -47,19 +47,12 @@ public abstract class AbstractAttribute implements Attribute
     // No implementation required.
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation iterates through each attribute value in the
-   * provided collection, checking to see if this attribute contains
-   * the value using {@link #contains(ByteString)}.
-   */
   @Override
-  public boolean containsAll(Collection<ByteString> values)
+  public boolean containsAll(Collection<?> values)
   {
-    for (ByteString value : values)
+    for (Object value : values)
     {
-      if (!contains(value))
+      if (!contains(ByteString.valueOfObject(value)))
       {
         return false;
       }
