@@ -15,18 +15,14 @@
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;
-
-
 
 /**
  * This class defines a tag that is used to include the DN of the current entry
@@ -38,108 +34,43 @@ public class DNTag
   /** The number of DN components to include. */
   private int numComponents;
 
-
-
-  /**
-   * Creates a new instance of this DN tag.
-   */
+  /** Creates a new instance of this DN tag. */
   public DNTag()
   {
     numComponents = 0;
   }
 
-
-
-  /**
-   * Retrieves the name for this tag.
-   *
-   * @return  The name for this tag.
-   */
+  @Override
   public String getName()
   {
     return "DN";
   }
 
-
-
-  /**
-   * Indicates whether this tag is allowed for use in the extra lines for
-   * branches.
-   *
-   * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
-   *          or <CODE>false</CODE> if not.
-   */
+  @Override
   public boolean allowedInBranch()
   {
     return true;
   }
 
-
-
-  /**
-   * Performs any initialization for this tag that may be needed while parsing
-   * a branch definition.
-   *
-   * @param  templateFile  The template file in which this tag is used.
-   * @param  branch        The branch in which this tag is used.
-   * @param  arguments     The set of arguments provided for this tag.
-   * @param  lineNumber    The line number on which this tag appears in the
-   *                       template file.
-   * @param  warnings      A list into which any appropriate warning messages
-   *                       may be placed.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   this tag.
-   */
+  @Override
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
                                   List<LocalizableMessage> warnings)
          throws InitializationException
   {
-    initializeInternal(templateFile, arguments, lineNumber);
+    initializeInternal(arguments, lineNumber);
   }
 
-
-
-  /**
-   * Performs any initialization for this tag that may be needed while parsing
-   * a template definition.
-   *
-   * @param  templateFile  The template file in which this tag is used.
-   * @param  template      The template in which this tag is used.
-   * @param  arguments     The set of arguments provided for this tag.
-   * @param  lineNumber    The line number on which this tag appears in the
-   *                       template file.
-   * @param  warnings      A list into which any appropriate warning messages
-   *                       may be placed.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   this tag.
-   */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
          throws InitializationException
   {
-    initializeInternal(templateFile, arguments, lineNumber);
+    initializeInternal(arguments, lineNumber);
   }
 
-
-
-  /**
-   * Performs any initialization for this tag that may be needed for this tag.
-   *
-   * @param  templateFile  The template file in which this tag is used.
-   * @param  arguments     The set of arguments provided for this tag.
-   * @param  lineNumber    The line number on which this tag appears in the
-   *                       template file.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   this tag.
-   */
-  private void initializeInternal(TemplateFile templateFile, String[] arguments,
-                                  int lineNumber)
-          throws InitializationException
+  private void initializeInternal(String[] arguments, int lineNumber) throws InitializationException
   {
     if (arguments.length == 0)
     {
@@ -166,17 +97,7 @@ public class DNTag
     }
   }
 
-
-
-  /**
-   * Generates the content for this tag by appending it to the provided tag.
-   *
-   * @param  templateEntry  The entry for which this tag is being generated.
-   * @param  templateValue  The template value to which the generated content
-   *                        should be appended.
-   *
-   * @return  The result of generating content for this tag.
-   */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {
@@ -217,4 +138,3 @@ public class DNTag
     return TagResult.SUCCESS_RESULT;
   }
 }
-
