@@ -28,13 +28,10 @@ import javax.swing.JTextField;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.OpenDsException;
 
-/**
- * A simple dialog where the user can provide a base DN.
- *
- */
+/** A simple dialog where the user can provide a base DN. */
 public class BaseDNPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2742173517231794830L;
@@ -119,9 +116,9 @@ public class BaseDNPanel extends StatusGenericPanel
       {
         DN.valueOf(dn.getText());
       }
-      catch (OpenDsException ode)
+      catch (LocalizedIllegalArgumentException e)
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_PROVIDED.get(ode.getMessageObject()));
+        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_PROVIDED.get(e.getMessageObject()));
       }
     }
 

@@ -21,21 +21,30 @@ import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
-import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.api.AuthenticationPolicyState;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.IdentityMapper;
+import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -279,14 +288,13 @@ public class CRAMMD5SASLMechanismHandler
       {
         userDN = DN.valueOf(userName.substring(3));
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        logger.traceException(de);
+        logger.traceException(e);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN.get(
-                userName, de.getMessageObject());
+        LocalizableMessage message = ERR_SASLCRAMMD5_CANNOT_DECODE_USERNAME_AS_DN.get(userName, e.getMessageObject());
         bindOperation.setAuthFailureReason(message);
         return;
       }

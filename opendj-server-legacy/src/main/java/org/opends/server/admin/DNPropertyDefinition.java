@@ -17,16 +17,12 @@
 
 package org.opends.server.admin;
 
-
-
 import static org.forgerock.util.Reject.ifNull;
 
 import java.util.EnumSet;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
-
-
 
 /**
  * DN property definition.
@@ -76,15 +72,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      */
     public void setBaseDN(String baseDN)
         throws IllegalArgumentException {
-      if (baseDN == null) {
-        setBaseDN((DN) null);
-      } else {
-        try {
-          setBaseDN(DN.valueOf(baseDN));
-        } catch (DirectoryException e) {
-          throw new IllegalArgumentException(e);
-        }
-      }
+      setBaseDN(baseDN != null ? DN.valueOf(baseDN) : null);
     }
 
 
@@ -177,9 +165,6 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public DN decodeValue(String value)
       throws PropertyException {
@@ -189,14 +174,11 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
       DN dn = DN.valueOf(value);
       validateValue(dn);
       return dn;
-    } catch (DirectoryException | PropertyException e) {
+    } catch (LocalizedIllegalArgumentException | PropertyException e) {
       throw PropertyException.illegalPropertyValueException(this, value);
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitDN(this, p);

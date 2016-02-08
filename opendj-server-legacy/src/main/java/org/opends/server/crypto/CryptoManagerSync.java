@@ -34,6 +34,8 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -54,12 +56,10 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Control;
 import org.opends.server.types.CryptoManagerException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.operation.PostResponseAddOperation;
@@ -122,7 +122,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
    */
   public CryptoManagerSync() throws InitializationException
   {
-    super(toDN(CONFIG_DN), EnumSet.of(
+    super(DN.valueOf(CONFIG_DN), EnumSet.of(
         // No implementation required for modify_dn operations
         // FIXME: Technically it is possible to perform a subtree modDN
         // in this case however such subtree modDN would essentially be
@@ -169,19 +169,6 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     DirectoryServer.registerInternalPlugin(this);
   }
-
-  private static DN toDN(final String dn) throws InitializationException
-  {
-    try
-    {
-      return DN.valueOf(dn);
-    }
-    catch (DirectoryException e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
-
 
   private void searchAdminSuffix()
   {

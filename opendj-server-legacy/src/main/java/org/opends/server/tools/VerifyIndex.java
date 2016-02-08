@@ -31,6 +31,7 @@ import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
@@ -41,8 +42,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
@@ -297,11 +296,6 @@ public class VerifyIndex
     try
     {
       verifyBaseDN = DN.valueOf(baseDNString.getValue());
-    }
-    catch (DirectoryException de)
-    {
-      printWrappedText(err, ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(), de.getMessageObject()));
-      return 1;
     }
     catch (Exception e)
     {

@@ -49,6 +49,7 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -519,7 +520,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       return !index.getBaseDN().equals(DN.valueOf(getBaseDN())) || !index.getScope().equals(getScope())
           || !index.getFilter().equals(filter.getText().trim()) || !index.getSortOrder().equals(getSortOrder());
     }
-    catch (final OpenDsException odse)
+    catch (final LocalizedIllegalArgumentException unused)
     {
       // The base DN is not valid.  This means that the index has been modified.
       return true;
@@ -776,18 +777,10 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       args.add("--index-name");
       args.add(indexName);
 
-      try
+      if (!indexToModify.getBaseDN().equals(DN.valueOf(baseDN)))
       {
-        final DN b = DN.valueOf(baseDN);
-        if (!indexToModify.getBaseDN().equals(b))
-        {
-          args.add("--set");
-          args.add("base-dn:" + baseDN);
-        }
-      }
-      catch (final OpenDsException odse)
-      {
-        throw new RuntimeException("Unexpected error parsing DN " + getBaseDN() + ": " + odse, odse);
+        args.add("--set");
+        args.add("base-dn:" + baseDN);
       }
 
       if (indexToModify.getScope() != searchScope)

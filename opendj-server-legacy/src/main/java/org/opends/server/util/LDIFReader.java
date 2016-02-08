@@ -41,7 +41,9 @@ import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
@@ -52,12 +54,9 @@ import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.RawModification;
 
 /**
@@ -664,28 +663,10 @@ public class LDIFReader implements Closeable
     {
       return DN.valueOf(dnString);
     }
-    catch (DirectoryException de)
-    {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("DN decode failed for: ", dnString);
-      }
-
-      LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
-          lastEntryLineNumber, line, de.getMessageObject());
-
-      logToRejectWriter(lines, message);
-      throw new LDIFException(message, lastEntryLineNumber, true, de);
-    }
     catch (Exception e)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("DN decode failed for: ", dnString);
-      }
-      LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
-          lastEntryLineNumber, line, e);
-
+      logger.trace("DN decode failed for: ", dnString, e);
+      LocalizableMessage message = ERR_LDIF_INVALID_DN.get(lastEntryLineNumber, line, getExceptionMessage(e));
       logToRejectWriter(lines, message);
       throw new LDIFException(message, lastEntryLineNumber, true, e);
     }
@@ -1209,17 +1190,11 @@ public class LDIFReader implements Closeable
     try
     {
       newRDN = RDN.valueOf(rdnStr);
-    } catch (DirectoryException de)
-    {
-      logger.traceException(de);
-      LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
-          lineNumber, line, de.getMessageObject());
-      throw new LDIFException(message, lineNumber, true);
-    } catch (Exception e)
+    }
+    catch (Exception e)
     {
       logger.traceException(e);
-      LocalizableMessage message =
-          ERR_LDIF_INVALID_DN.get(lineNumber, line, e.getMessage());
+      LocalizableMessage message = ERR_LDIF_INVALID_DN.get(lineNumber, line, getExceptionMessage(e));
       throw new LDIFException(message, lineNumber, true);
     }
 
@@ -1261,17 +1236,11 @@ public class LDIFReader implements Closeable
       try
       {
         newSuperiorDN = DN.valueOf(dnStr);
-      } catch (DirectoryException de)
-      {
-        logger.traceException(de);
-        LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
-            lineNumber, line, de.getMessageObject());
-        throw new LDIFException(message, lineNumber, true);
-      } catch (Exception e)
+      }
+      catch (Exception e)
       {
         logger.traceException(e);
-        LocalizableMessage message = ERR_LDIF_INVALID_DN.get(
-            lineNumber, line, e.getMessage());
+        LocalizableMessage message = ERR_LDIF_INVALID_DN.get(lineNumber, line, getExceptionMessage(e));
         throw new LDIFException(message, lineNumber, true);
       }
     }

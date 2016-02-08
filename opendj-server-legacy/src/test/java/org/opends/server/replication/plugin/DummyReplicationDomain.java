@@ -20,30 +20,18 @@ import java.io.OutputStream;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 
 @SuppressWarnings("javadoc")
 public class DummyReplicationDomain extends ReplicationDomain
 {
-
-  private static DN baseDN;
-  static
-  {
-    try
-    {
-      baseDN = DN.valueOf("cn=DummyReplicationDomain");
-    }
-    catch (DirectoryException e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
+  private static DN baseDN = DN.valueOf("cn=DummyReplicationDomain");
 
   public DummyReplicationDomain(long generationId)
   {

@@ -40,6 +40,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -54,11 +56,7 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.OpenDsException;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.Schema;
 
 /** The task that is called when we must modify an entry. */
@@ -96,28 +94,22 @@ public class ModifyEntryTask extends Task
     this.newEntry = newEntry;
     this.controller = controller;
     this.treePath = path;
+
     DN newDn = newEntry.getName();
-    try
+    oldDn = DN.valueOf(oldEntry.getDN());
+    for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
-      oldDn = DN.valueOf(oldEntry.getDN());
-      for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
+      for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
-        for (BaseDNDescriptor baseDN : backend.getBaseDns())
+        if (newDn.isSubordinateOrEqualTo(baseDN.getDn()) || oldDn.isSubordinateOrEqualTo(baseDN.getDn()))
         {
-          if (newDn.isSubordinateOrEqualTo(baseDN.getDn()) ||
-              oldDn.isSubordinateOrEqualTo(baseDN.getDn()))
-          {
-            backendSet.add(backend.getBackendID());
-          }
+          backendSet.add(backend.getBackendID());
         }
       }
-      mustRename = !newDn.equals(oldDn);
     }
-    catch (OpenDsException e)
-    {
-      throw new RuntimeException("Could not parse DN: " + oldEntry.getDN(), e);
-    }
+    mustRename = !newDn.equals(oldDn);
     modifications = getModifications(newEntry, oldEntry, getInfo());
+
     // Find password modifications
     for (ModificationItem mod : modifications)
     {
@@ -518,15 +510,7 @@ public class ModifyEntryTask extends Task
        * modifications.
        */
       ByteString oldRdnValueDeleted = null;
-      RDN oldRDN = null;
-      try
-      {
-        oldRDN = DN.valueOf(oldEntry.getDN()).rdn();
-      }
-      catch (DirectoryException unexpected)
-      {
-        throw new RuntimeException("Unexpected error parsing DN: " + oldEntry.getDN(), unexpected);
-      }
+      RDN oldRDN = DN.valueOf(oldEntry.getDN()).rdn();
       for (AVA ava : oldRDN)
       {
         if (ava.getAttributeType().equals(attrDesc.getAttributeType()))

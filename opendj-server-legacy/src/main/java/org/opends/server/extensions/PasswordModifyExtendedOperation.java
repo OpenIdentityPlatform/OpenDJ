@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -260,7 +261,7 @@ public class PasswordModifyExtendedOperation
           {
             userDN = DN.valueOf(authzIDStr.substring(3));
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException de)
           {
             logger.traceException(de);
 
@@ -317,7 +318,7 @@ public class PasswordModifyExtendedOperation
           {
             userDN = DN.valueOf(authzIDStr);
           }
-          catch (DirectoryException ignored)
+          catch (LocalizedIllegalArgumentException ignored)
           {
             logger.traceException(ignored);
           }

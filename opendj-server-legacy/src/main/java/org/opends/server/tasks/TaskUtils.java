@@ -107,11 +107,6 @@ public class TaskUtils
     {
       backendBaseDN = DN.valueOf(DN_BACKEND_BASE);
     }
-    catch (DirectoryException de)
-    {
-      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, de.getMessageObject());
-      return configEntries;
-    }
     catch (Exception e)
     {
       logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, getExceptionMessage(e));

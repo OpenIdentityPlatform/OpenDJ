@@ -22,6 +22,7 @@ import static org.opends.server.util.CollectionUtils.*;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.AddressMask;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -33,8 +34,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.AbstractTextAccessLogPublisher.CriteriaFilter;
 import org.opends.server.loggers.AbstractTextAccessLogPublisher.RootFilter;
 import org.opends.server.types.AuthenticationInfo;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterClass;
@@ -314,14 +313,7 @@ public class AbstractTextAccessLogPublisherTest extends DirectoryServerTestCase
 
   private DN dn(final String dn)
   {
-    try
-    {
-      return DN.valueOf(dn);
-    }
-    catch (final DirectoryException e)
-    {
-      throw new RuntimeException(e);
-    }
+    return DN.valueOf(dn);
   }
 
 

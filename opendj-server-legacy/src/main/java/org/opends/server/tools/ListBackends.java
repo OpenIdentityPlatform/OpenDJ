@@ -35,6 +35,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
@@ -42,8 +43,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
@@ -319,11 +318,6 @@ public class ListBackends
         {
           dn = DN.valueOf(dnStr);
         }
-        catch (DirectoryException de)
-        {
-          printWrappedText(err, ERR_LISTBACKENDS_INVALID_DN.get(dnStr, de.getMessage()));
-          return 1;
-        }
         catch (Exception e)
         {
           printWrappedText(err, ERR_LISTBACKENDS_INVALID_DN.get(dnStr, getExceptionMessage(e)));
@@ -465,12 +459,6 @@ public class ListBackends
     try
     {
       backendBaseDN = DN.valueOf(DN_BACKEND_BASE);
-    }
-    catch (DirectoryException de)
-    {
-      LocalizableMessage message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
-          DN_BACKEND_BASE, de.getMessageObject());
-      throw new ConfigException(message, de);
     }
     catch (Exception e)
     {

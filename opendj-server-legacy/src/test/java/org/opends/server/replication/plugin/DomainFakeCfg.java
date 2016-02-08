@@ -21,13 +21,12 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
  * This class implement a configuration object for the MultimasterDomain
@@ -191,22 +190,13 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN dn()
   {
-    try
-    {
-      return DN.valueOf("cn=domain, cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
-    } catch (DirectoryException e)
-    {
-      return null;
-    }
+    return DN.valueOf("cn=domain, cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
   }
 
-  /**
-   * Set the heartbeat interval.
-   */
+  /** Set the heartbeat interval. */
   public void setHeartbeatInterval(long interval)
   {
     heartbeatInterval = interval;

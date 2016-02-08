@@ -21,7 +21,6 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPURL;
-import org.opends.server.types.OpenDsException;
 
 /** Class used to handle the case where numsubordinates does not work between databases. */
 public class NumSubordinateHacker {
@@ -54,14 +53,7 @@ public class NumSubordinateHacker {
     if (!isUnreliableEntryListEmpty) {
       boolean isInServer = serverHost.equalsIgnoreCase(url.getHost()) && serverPort == url.getPort();
       if (isInServer) {
-        try
-        {
-          return unreliableEntryList.contains(DN.valueOf(url.getRawBaseDN()));
-        }
-        catch (OpenDsException oe)
-        {
-          throw new RuntimeException("Error decoding DN of url: " + url);
-        }
+        return unreliableEntryList.contains(DN.valueOf(url.getRawBaseDN()));
       }
     }
     return false;

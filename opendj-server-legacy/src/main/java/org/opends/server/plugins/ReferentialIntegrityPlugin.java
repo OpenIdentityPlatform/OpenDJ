@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -893,10 +894,10 @@ public class ReferentialIntegrityPlugin
               DN movedDN=DN.valueOf(a[1]);
               processModifyDN(origDn, movedDN);
             }
-          } catch (DirectoryException ex) {
+          } catch (LocalizedIllegalArgumentException e) {
             //This exception should rarely happen since the plugin wrote the DN
             //strings originally.
-            logger.error(ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN, ex.getMessage());
+            logger.error(ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN, e.getMessage());
           }
         }
         reader.close();

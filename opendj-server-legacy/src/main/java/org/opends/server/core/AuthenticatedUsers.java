@@ -24,13 +24,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult.PostResponse;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
@@ -71,7 +70,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
    */
   public AuthenticatedUsers()
   {
-    super(toDN(CONFIG_DN), EnumSet.of(
+    super(DN.valueOf(CONFIG_DN), EnumSet.of(
         // No implementation is required for add operations, since a connection
         // can not be authenticated as a user that does not exist yet.
         POST_RESPONSE_MODIFY, POST_RESPONSE_MODIFY_DN, POST_RESPONSE_DELETE),
@@ -80,18 +79,6 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     lock = new ReentrantReadWriteLock();
 
     DirectoryServer.registerInternalPlugin(this);
-  }
-
-  private static DN toDN(String dn)
-  {
-    try
-    {
-      return DN.valueOf(dn);
-    }
-    catch (DirectoryException e)
-    {
-      throw new RuntimeException(e);
-    }
   }
 
   /**

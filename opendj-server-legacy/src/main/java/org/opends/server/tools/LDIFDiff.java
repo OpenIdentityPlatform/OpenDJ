@@ -31,6 +31,7 @@ import java.util.ListIterator;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -41,7 +42,6 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
@@ -363,7 +363,7 @@ public class LDIFDiff
             DN dn = DN.valueOf(line);
             ignoreEntries.add(dn);
           }
-          catch (DirectoryException e)
+          catch (LocalizedIllegalArgumentException e)
           {
             LocalizableMessage message = INFO_LDIFDIFF_CANNOT_PARSE_STRING_AS_DN.get(
                     line, ignoreEntriesFile.getValue());

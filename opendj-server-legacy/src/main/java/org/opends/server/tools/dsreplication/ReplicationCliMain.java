@@ -60,6 +60,7 @@ import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
@@ -100,7 +101,6 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.tools.tasks.TaskScheduleInteraction;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
@@ -1453,9 +1453,9 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        errPrintln(ERROR_RESET_CHANGE_NUMBER_EXCEPTION.get(de.getLocalizedMessage()));
+        errPrintln(ERROR_RESET_CHANGE_NUMBER_EXCEPTION.get(e.getLocalizedMessage()));
         return ERROR_RESET_CHANGE_NUMBER_PROBLEM;
       }
       if (targetBaseDN.isRootDN())

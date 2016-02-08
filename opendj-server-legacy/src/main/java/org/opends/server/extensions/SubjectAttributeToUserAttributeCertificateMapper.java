@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -189,7 +190,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       peerDN = DN.valueOf(peerName);
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException de)
     {
       LocalizableMessage message = ERR_SATUACM_CANNOT_DECODE_SUBJECT_AS_DN.get(
           peerName, de.getMessageObject());

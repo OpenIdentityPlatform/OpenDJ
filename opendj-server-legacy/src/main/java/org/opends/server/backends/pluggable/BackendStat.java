@@ -35,6 +35,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.SizeUnit;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -952,10 +953,10 @@ public class BackendStat
     {
       return DN.valueOf(baseDNArg.getValue());
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      printWrappedText(err, ERR_BACKEND_DEBUG_DECODE_BASE_DN.get(baseDNArg.getValue(), getExceptionMessage(de)));
-      throw de;
+      printWrappedText(err, ERR_BACKEND_DEBUG_DECODE_BASE_DN.get(baseDNArg.getValue(), getExceptionMessage(e)));
+      throw e;
     }
   }
 

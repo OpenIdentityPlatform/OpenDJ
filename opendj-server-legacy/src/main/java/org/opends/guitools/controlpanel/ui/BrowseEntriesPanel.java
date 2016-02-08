@@ -80,7 +80,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 
@@ -1076,16 +1075,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       for (TreePath path : paths)
       {
         BasicNode node = (BasicNode)path.getLastPathComponent();
-        try
-        {
-          dns.add(DN.valueOf(node.getDN()));
-        }
-        catch (OpenDsException ode)
-        {
-          throw new RuntimeException(
-              "Unexpected error decoding dn. Details: "+ode.getMessageObject(),
-              ode);
-        }
+        dns.add(DN.valueOf(node.getDN()));
       }
       if (addToGroupDlg == null)
       {

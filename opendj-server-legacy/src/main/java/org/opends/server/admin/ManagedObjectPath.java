@@ -30,7 +30,6 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
 
 /**
  * A path which can be used to determine the location of a managed
@@ -192,12 +191,8 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
     /** Appends the RDN sequence representing the provided relation. */
     private void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
       // Add the RDN sequence representing the relation.
-      try {
-        DN localName = DN.valueOf(profile.getRelationRDNSequence(r));
-        dn = dn.child(localName);
-      } catch (DirectoryException e) {
-        throw new RuntimeException(e);
-      }
+      DN localName = DN.valueOf(profile.getRelationRDNSequence(r));
+      dn = dn.child(localName);
     }
 
 

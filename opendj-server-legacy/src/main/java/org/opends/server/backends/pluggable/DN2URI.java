@@ -27,12 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -45,7 +47,6 @@ import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPURL;
@@ -156,7 +157,7 @@ class DN2URI extends AbstractTree
       {
         return DN.valueOf(r.readStringUtf8(dnLength));
       }
-      catch (DirectoryException e)
+      catch (LocalizedIllegalArgumentException e)
       {
         throw new StorageRuntimeException("Unable to decode DN from binary value", e);
       }
@@ -428,7 +429,7 @@ class DN2URI extends AbstractTree
     {
       return toKey(DN.valueOf(key));
     }
-    catch (DirectoryException e)
+    catch (LocalizedIllegalArgumentException e)
     {
       return ByteString.empty();
     }

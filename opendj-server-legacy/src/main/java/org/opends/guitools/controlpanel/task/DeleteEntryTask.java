@@ -91,16 +91,7 @@ public class DeleteEntryTask extends Task
     for (TreePath path : paths)
     {
       BasicNode node = (BasicNode)path.getLastPathComponent();
-      try
-      {
-        DN dn = DN.valueOf(node.getDN());
-        entries.add(dn);
-      }
-      catch (DirectoryException de)
-      {
-        throw new RuntimeException("Unexpected error parsing dn: "+
-            node.getDN(), de);
-      }
+      entries.add(DN.valueOf(node.getDN()));
     }
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {

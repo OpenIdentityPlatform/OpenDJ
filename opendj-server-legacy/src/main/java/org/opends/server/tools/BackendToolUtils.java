@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -28,15 +29,13 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/** This class provides utility functions for all JE related client tools. */
+/** This class provides utility functions for all backend client tools. */
 public class BackendToolUtils
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -210,16 +209,10 @@ public class BackendToolUtils
     {
       return DN.valueOf(DN_BACKEND_BASE);
     }
-    catch (final DirectoryException de)
-    {
-      logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, de.getMessageObject());
-      throw de;
-    }
     catch (final Exception e)
     {
       logger.error(ERR_CANNOT_DECODE_BACKEND_BASE_DN, DN_BACKEND_BASE, getExceptionMessage(e));
       throw e;
     }
   }
-
 }

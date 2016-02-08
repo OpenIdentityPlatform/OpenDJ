@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -34,8 +35,6 @@ import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
@@ -118,8 +117,6 @@ public final class AdministrationDataSync
    */
   private DN searchServerEntry()
   {
-    DN returnDN = null;
-
     // Get the LDAP and LDAPS port
     String ldapPort = getAttr("cn=LDAP Connection Handler,cn=Connection Handlers,cn=config", LDAP_PORT);
     String ldapsPort = getAttr("cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config", LDAP_PORT);
@@ -148,25 +145,17 @@ public final class AdministrationDataSync
     }
 
     // Look for a local server with the Ldap Port.
-    try
+    SearchRequest request = newSearchRequest(DN.valueOf("cn=Servers,cn=admin data"), SearchScope.SINGLE_LEVEL);
+    InternalSearchOperation op = internalConnection.processSearch(request);
+    if (op.getResultCode() == ResultCode.SUCCESS)
     {
-      SearchRequest request = newSearchRequest(DN.valueOf("cn=Servers,cn=admin data"), SearchScope.SINGLE_LEVEL);
-      InternalSearchOperation op = internalConnection.processSearch(request);
-      if (op.getResultCode() == ResultCode.SUCCESS)
+      Entry entry = findSameHostAndPort(op.getSearchEntries(), hostName, ldapPort, ldapsPortEnable, ldapsPort);
+      if (entry != null)
       {
-        Entry entry = findSameHostAndPort(op.getSearchEntries(), hostName, ldapPort, ldapsPortEnable, ldapsPort);
-        if (entry != null)
-        {
-          returnDN = entry.getName();
-        }
+        return entry.getName();
       }
     }
-    catch (DirectoryException e)
-    {
-      // never happens because the filter is always valid.
-      return null;
-    }
-    return returnDN;
+    return null;
   }
 
   private Entry findSameHostAndPort(LinkedList<SearchResultEntry> searchResultEntries,
@@ -217,25 +206,14 @@ public final class AdministrationDataSync
    */
   private String getAttr(String baseDN, String attrName)
   {
-    InternalSearchOperation search;
-    try
-    {
-      SearchRequest request = Requests.newSearchRequest(DN.valueOf(baseDN), SearchScope.BASE_OBJECT)
-          .addAttribute(attrName);
-      search = internalConnection.processSearch(request);
-      if (search.getResultCode() != ResultCode.SUCCESS)
-      {
-        // can not happen
-        // best effort.
-        // TODO Log an Error.
-        return null;
-      }
-    }
-    catch (DirectoryException e)
+    SearchRequest request = Requests.newSearchRequest(DN.valueOf(baseDN), SearchScope.BASE_OBJECT)
+        .addAttribute(attrName);
+    InternalSearchOperation search = internalConnection.processSearch(request);
+    if (search.getResultCode() != ResultCode.SUCCESS)
     {
       // can not happen
       // best effort.
-      logger.traceException(e);
+      // TODO Log an Error.
       return null;
     }
 

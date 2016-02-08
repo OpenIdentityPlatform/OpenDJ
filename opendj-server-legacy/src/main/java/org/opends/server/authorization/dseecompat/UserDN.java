@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -386,7 +387,7 @@ public class UserDN implements KeywordBindRule {
                 if(dn.equals(clientDN)) {
                     return EnumEvalResult.TRUE;
                 }
-            } catch (DirectoryException ex) {
+            } catch (LocalizedIllegalArgumentException ignored) {
                 break;
             }
         }

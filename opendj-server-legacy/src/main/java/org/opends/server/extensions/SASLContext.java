@@ -24,13 +24,27 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.List;
-import javax.security.auth.Subject;
-import javax.security.auth.callback.*;
-import javax.security.auth.login.LoginContext;
-import javax.security.sasl.*;
 
-import org.ietf.jgss.GSSException;
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.auth.login.LoginContext;
+import javax.security.sasl.AuthorizeCallback;
+import javax.security.sasl.RealmCallback;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslException;
+import javax.security.sasl.SaslServer;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.ietf.jgss.GSSException;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
@@ -38,13 +52,12 @@ import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Privilege;
 
 /**
  * This class defines the SASL context needed to process GSSAPI and DIGEST-MD5
@@ -686,7 +699,7 @@ public class SASLContext implements CallbackHandler,
     {
       authzDN = DN.valueOf(responseAuthzID.substring(3));
     }
-    catch (final DirectoryException e)
+    catch (final LocalizedIllegalArgumentException e)
     {
       logger.traceException(e);
       setCallbackMsg(ERR_SASL_AUTHZID_INVALID_DN.get(responseAuthzID,
@@ -1024,7 +1037,7 @@ public class SASLContext implements CallbackHandler,
       {
         userDN = DN.valueOf(userName.substring(3));
       }
-      catch (final DirectoryException e)
+      catch (final LocalizedIllegalArgumentException e)
       {
         logger.traceException(e);
         setCallbackMsg(ERR_SASL_CANNOT_DECODE_USERNAME_AS_DN.get(mechanism,

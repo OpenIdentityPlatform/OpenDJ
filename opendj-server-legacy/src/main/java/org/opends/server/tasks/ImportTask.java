@@ -33,7 +33,9 @@ import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 import org.opends.server.api.Backend;
@@ -45,8 +47,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
@@ -232,12 +232,6 @@ public class ImportTask extends Task
       {
         includeBranch = DN.valueOf(s);
       }
-      catch (DirectoryException de)
-      {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
-            s, de.getMessageObject());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE.get(
@@ -253,12 +247,6 @@ public class ImportTask extends Task
       try
       {
         excludeBranch = DN.valueOf(s);
-      }
-      catch (DirectoryException de)
-      {
-        LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE.get(
-            s, de.getMessageObject());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       catch (Exception e)
       {
@@ -448,11 +436,6 @@ public class ImportTask extends Task
       {
         includeBranch = DN.valueOf(s);
       }
-      catch (DirectoryException de)
-      {
-        logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE, s, de.getMessageObject());
-        return TaskState.STOPPED_BY_ERROR;
-      }
       catch (Exception e)
       {
         logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE, s, getExceptionMessage(e));
@@ -527,11 +510,6 @@ public class ImportTask extends Task
       try
       {
         excludeBranch = DN.valueOf(s);
-      }
-      catch (DirectoryException de)
-      {
-        logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE, s, de.getMessageObject());
-        return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
       {

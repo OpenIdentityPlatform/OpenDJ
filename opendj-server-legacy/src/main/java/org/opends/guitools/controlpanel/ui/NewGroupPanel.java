@@ -54,6 +54,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
@@ -212,10 +213,10 @@ public class NewGroupPanel extends AbstractNewEntryPanel
               oneMemberDefined = true;
             }
           }
-          catch (OpenDsException ode)
+          catch (LocalizedIllegalArgumentException e)
           {
             errorFound = true;
-            errors.add(ERR_CTRL_PANEL_MEMBER_VALUE_NOT_VALID.get(member, ode.getMessageObject()));
+            errors.add(ERR_CTRL_PANEL_MEMBER_VALUE_NOT_VALID.get(member, e.getMessageObject()));
           }
         }
       }
@@ -280,10 +281,10 @@ public class NewGroupPanel extends AbstractNewEntryPanel
           errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_DYNAMIC.get());
         }
       }
-      catch (OpenDsException ode)
+      catch (LocalizedIllegalArgumentException e)
       {
         errorFound = true;
-        errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_VALID.get(ode.getMessageObject()));
+        errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_VALID.get(e.getMessageObject()));
       }
       if (errorFound)
       {
@@ -697,15 +698,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
         member = member.trim();
         if (member.length() > 0)
         {
-          try
-          {
-            dns.add(DN.valueOf(member));
-          }
-          catch (OpenDsException ode)
-          {
-            throw new RuntimeException("Unexpected error decoding DN: "+
-                member, ode);
-          }
+          dns.add(DN.valueOf(member));
         }
       }
 

@@ -18,7 +18,6 @@ package org.opends.server.admin;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.util.StaticUtils;
 
@@ -70,14 +69,7 @@ public final class Reference<C extends ConfigurationClient,
           + "\" is not associated with the definition \"" + d.getName() + "\"");
     }
 
-    DN dn;
-    try {
-      dn = DN.valueOf(s);
-    } catch (DirectoryException e) {
-      throw new IllegalArgumentException("Unabled to decode the DN string: \""
-          + s + "\"");
-    }
-
+    DN dn = DN.valueOf(s);
     RDN rdn = dn.rdn();
     if (rdn == null) {
       throw new IllegalArgumentException("Unabled to decode the DN string: \""

@@ -46,7 +46,9 @@ import java.util.Set;
 import javax.crypto.Cipher;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.quicksetup.installer.Installer;
@@ -65,7 +67,6 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -648,11 +649,11 @@ public class ConfigureDS
       {
         rootDN = DN.valueOf(rootDNString.getValue());
       }
-      catch (final DirectoryException de)
+      catch (final LocalizedIllegalArgumentException e)
       {
         final LocalizableMessage msg = ERR_CONFIGDS_CANNOT_PARSE_ROOT_DN.get(
-            rootDNString.getValue(), de.getMessageObject());
-        throw new ConfigureDSException(de, msg);
+            rootDNString.getValue(), e.getMessageObject());
+        throw new ConfigureDSException(e, msg);
       }
     }
     return rootDN;
@@ -691,14 +692,14 @@ public class ConfigureDS
         dn = DN.valueOf(trustManagerProviderDN.getValue());
         JCEKSManagerDN = DN.valueOf(jckesDN);
       }
-      catch (final DirectoryException de)
+      catch (final LocalizedIllegalArgumentException e)
       {
         final String value = trustManagerProviderDN.getValue();
-        final LocalizableMessage errorMessage = de.getMessageObject();
+        final LocalizableMessage errorMessage = e.getMessageObject();
         final LocalizableMessage message =
             isKeyManager ? ERR_CONFIGDS_CANNOT_PARSE_KEYMANAGER_PROVIDER_DN.get(value, errorMessage)
                          : ERR_CONFIGDS_CANNOT_PARSE_TRUSTMANAGER_PROVIDER_DN.get(value, errorMessage);
-        throw new ConfigureDSException(de, message);
+        throw new ConfigureDSException(e, message);
       }
 
       if (dn.equals(JCEKSManagerDN))

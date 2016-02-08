@@ -20,8 +20,14 @@ import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -41,7 +47,10 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.VirtualAttributeRule;
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -498,15 +507,7 @@ public class VirtualAttributeConfigManager
 
   private DN getDummyDN(VirtualAttributeRule rule)
   {
-    try
-    {
-      String name = rule.getAttributeType().getNameOrOID();
-      return DN.valueOf("cn=" + name + ",cn=Virtual Attributes,cn=config");
-    }
-    catch (DirectoryException e)
-    {
-      // should never happen
-      throw new RuntimeException(e);
-    }
+    String name = rule.getAttributeType().getNameOrOID();
+    return DN.valueOf("cn=" + name + ",cn=Virtual Attributes,cn=config");
   }
 }

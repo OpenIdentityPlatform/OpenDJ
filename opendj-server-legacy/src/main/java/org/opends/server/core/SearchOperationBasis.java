@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -308,10 +309,11 @@ public class SearchOperationBasis
         baseDN = DN.valueOf(rawBaseDN);
       }
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.traceException(de);
-      setResponseData(de);
+      logger.traceException(e);
+      setResultCode(ResultCode.INVALID_DN_SYNTAX);
+      appendErrorMessage(e.getMessageObject());
     }
     return baseDN;
   }

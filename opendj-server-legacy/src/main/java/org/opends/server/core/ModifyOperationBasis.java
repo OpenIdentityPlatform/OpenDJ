@@ -19,6 +19,7 @@ package org.opends.server.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -153,7 +154,6 @@ public class ModifyOperationBasis
     entryDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -161,17 +161,16 @@ public class ModifyOperationBasis
       try {
         entryDN = DN.valueOf(rawEntryDN);
       }
-      catch (DirectoryException de) {
-        logger.traceException(de);
+      catch (LocalizedIllegalArgumentException e) {
+        logger.traceException(e);
 
-        setResultCode(de.getResultCode());
-        appendErrorMessage(de.getMessageObject());
+        setResultCode(ResultCode.INVALID_DN_SYNTAX);
+        appendErrorMessage(e.getMessageObject());
       }
     }
     return entryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<RawModification> getRawModifications()
   {

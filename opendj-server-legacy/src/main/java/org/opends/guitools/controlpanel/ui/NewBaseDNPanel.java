@@ -57,6 +57,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -623,9 +624,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
         }
       }
     }
-    catch (OpenDsException oe)
+    catch (LocalizedIllegalArgumentException e)
     {
-      errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(dn, oe.getMessageObject()));
+      errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(dn, e.getMessageObject()));
       setPrimaryInvalid(lDirectoryBaseDN);
     }
 

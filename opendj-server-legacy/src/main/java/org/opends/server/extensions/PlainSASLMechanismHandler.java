@@ -22,23 +22,29 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PlainSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Privilege;
 
 /**
  * This class provides an implementation of a SASL mechanism that uses
@@ -191,24 +197,20 @@ public class PlainSASLMechanismHandler
       {
         userDN = DN.valueOf(authcID.substring(3));
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        logger.traceException(de);
+        logger.traceException(e);
 
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        LocalizableMessage message = ERR_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN.get(
-                authcID, de.getMessageObject());
-        bindOperation.setAuthFailureReason(message);
+        bindOperation.setAuthFailureReason(
+            ERR_SASLPLAIN_CANNOT_DECODE_AUTHCID_AS_DN.get(authcID, e.getMessageObject()));
         return;
       }
 
       if (userDN.isRootDN())
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-        LocalizableMessage message = ERR_SASLPLAIN_AUTHCID_IS_NULL_DN.get();
-        bindOperation.setAuthFailureReason(message);
+        bindOperation.setAuthFailureReason(ERR_SASLPLAIN_AUTHCID_IS_NULL_DN.get());
         return;
       }
 
@@ -286,15 +288,12 @@ public class PlainSASLMechanismHandler
         {
           authzDN = DN.valueOf(authzID.substring(3));
         }
-        catch (DirectoryException de)
+        catch (LocalizedIllegalArgumentException e)
         {
-          logger.traceException(de);
+          logger.traceException(e);
 
           bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          LocalizableMessage message = ERR_SASLPLAIN_AUTHZID_INVALID_DN.get(
-                  authzID, de.getMessageObject());
-          bindOperation.setAuthFailureReason(message);
+          bindOperation.setAuthFailureReason(ERR_SASLPLAIN_AUTHZID_INVALID_DN.get(authzID, e.getMessageObject()));
           return;
         }
 

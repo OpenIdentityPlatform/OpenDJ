@@ -36,23 +36,20 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The panel used to duplicate an entry.
- *
- */
+/** The panel used to duplicate an entry. */
 public class DuplicateEntryPanel extends AbstractNewEntryPanel
 {
   private static final long serialVersionUID = -9879879123123123L;
@@ -122,25 +119,18 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
 
     DN aParentDN;
     String aRdn;
-    try
+    DN nodeDN = DN.valueOf(node.getDN());
+    if (nodeDN.isRootDN())
     {
-      DN nodeDN = DN.valueOf(node.getDN());
-      if (nodeDN.isRootDN())
-      {
-        aParentDN = nodeDN;
-        aRdn = "(1)";
-      }
-      else
-      {
-        aParentDN = nodeDN.parent();
-        aRdn = nodeDN.rdn().getFirstAVA().getAttributeValue() + "-1";
-      }
+      aParentDN = nodeDN;
+      aRdn = "(1)";
     }
-    catch (DirectoryException de)
+    else
     {
-      throw new IllegalStateException("Unexpected error decoding dn: '"+
-          node.getDN()+"' error: "+de, de);
+      aParentDN = nodeDN.parent();
+      aRdn = nodeDN.rdn().getFirstAVA().getAttributeValue() + "-1";
     }
+
     parentDN.setText(aParentDN != null ? aParentDN.toString() : "");
     name.setText(aRdn);
     password.setText("");
@@ -149,7 +139,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     readEntry(node);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
@@ -392,17 +382,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
       else
       {
-        String newValue;
-        try
-        {
-          DN theDN = DN.valueOf(dn);
-          newValue = theDN.rdn().getFirstAVA().getAttributeValue().toString();
-        }
-        catch (DirectoryException de)
-        {
-          throw new IllegalStateException("Unexpected error with dn: '"+dn+
-              "' "+de, de);
-        }
+        String newValue = getFirstValue(dn);
         if (values.size() == 1)
         {
           sb.append("\n");
@@ -410,17 +390,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         }
         else
         {
-          String oldValue;
-          try
-          {
-            DN oldDN = DN.valueOf(entryToDuplicate.getDN());
-            oldValue = oldDN.rdn().getFirstAVA().getAttributeValue().toString();
-          }
-          catch (DirectoryException de)
-          {
-            throw new IllegalStateException("Unexpected error with dn: '"+
-                entryToDuplicate.getDN()+"' "+de, de);
-          }
+          String oldValue = getFirstValue(entryToDuplicate.getDN());
           for (Object value : values)
           {
             sb.append("\n");
@@ -437,6 +407,11 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
     }
     return sb.toString();
+  }
+
+  private String getFirstValue(String dn)
+  {
+    return DN.valueOf(dn).rdn().getFirstAVA().getAttributeValue().toString();
   }
 
   private void browseClicked()
@@ -510,10 +485,9 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
             displayMainPanel();
             setEnabledOK(true);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
-            displayErrorMessage(INFO_CTRL_PANEL_ERROR_DIALOG_TITLE.get(),
-                de.getMessageObject());
+            displayErrorMessage(INFO_CTRL_PANEL_ERROR_DIALOG_TITLE.get(), e.getMessageObject());
           }
         }
       }

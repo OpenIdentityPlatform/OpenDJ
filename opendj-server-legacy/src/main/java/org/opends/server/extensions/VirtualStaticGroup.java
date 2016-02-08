@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -134,13 +135,13 @@ public class VirtualStaticGroup
         {
           targetDN = DN.valueOf(v);
         }
-        catch (DirectoryException de)
+        catch (LocalizedIllegalArgumentException e)
         {
-          logger.traceException(de);
+          logger.traceException(e);
 
           LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
-              get(v, groupEntry.getName(), de.getMessageObject());
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
+              get(v, groupEntry.getName(), e.getMessageObject());
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
         }
       }
     }

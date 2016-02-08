@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -182,11 +183,10 @@ public final class InternalClientConnection
       super.setIdleTimeLimit(0);
       super.setLookthroughLimit(0);
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.traceException(de);
-
-      logger.error(ERR_INTERNAL_CANNOT_DECODE_DN, fullDNString, getExceptionMessage(de));
+      logger.traceException(e);
+      logger.error(ERR_INTERNAL_CANNOT_DECODE_DN, fullDNString, getExceptionMessage(e));
     }
 
     connectionID  = nextConnectionID.getAndDecrement();

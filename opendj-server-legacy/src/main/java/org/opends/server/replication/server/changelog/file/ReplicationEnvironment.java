@@ -43,7 +43,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import net.jcip.annotations.GuardedBy;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -53,8 +55,6 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecor
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ChangelogStateProvider;
 import org.opends.server.replication.server.changelog.file.Log.LogRotationParameters;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -593,7 +593,7 @@ class ReplicationEnvironment implements ChangelogStateProvider
           domains.put(domainDN, domainId);
         }
       }
-      catch(DirectoryException e)
+      catch (LocalizedIllegalArgumentException e)
       {
         throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_DECODE_DN_FROM_DOMAIN_STATE_FILE.get(
             domainsStateFile.getPath(), line), e);

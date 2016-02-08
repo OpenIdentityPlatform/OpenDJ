@@ -628,11 +628,6 @@ public class ExportLDIF extends TaskTool {
         {
           excludeBranch = DN.valueOf(s);
         }
-        catch (DirectoryException de)
-        {
-          logger.error(ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE, s, de.getMessageObject());
-          return 1;
-        }
         catch (Exception e)
         {
           logger.error(ERR_LDIFEXPORT_CANNOT_DECODE_EXCLUDE_BASE, s, getExceptionMessage(e));
@@ -657,11 +652,6 @@ public class ExportLDIF extends TaskTool {
         try
         {
           includeBranch = DN.valueOf(s);
-        }
-        catch (DirectoryException de)
-        {
-          logger.error(ERR_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE, s, de.getMessageObject());
-          return 1;
         }
         catch (Exception e)
         {

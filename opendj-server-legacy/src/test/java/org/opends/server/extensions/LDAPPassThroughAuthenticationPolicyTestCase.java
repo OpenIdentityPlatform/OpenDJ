@@ -19,8 +19,21 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
@@ -31,6 +44,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -43,13 +57,24 @@ import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.C
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionFactory;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionPool;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.LDAPConnectionFactory;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.ProtocolOp;
+import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
@@ -58,7 +83,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -567,14 +591,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     MockPolicyCfg withBaseDN(final String baseDN)
     {
-      try
-      {
-        baseDNs.add(DN.valueOf(baseDN));
-      }
-      catch (final DirectoryException e)
-      {
-        throw new RuntimeException(e);
-      }
+      baseDNs.add(DN.valueOf(baseDN));
       return this;
     }
 
@@ -711,20 +728,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return "Salted SHA-1";
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public DN getCachedPasswordStorageSchemeDN()
     {
-      try
-      {
-        return DN.valueOf("cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
-      }
-      catch (DirectoryException e)
-      {
-        throw new RuntimeException(e);
-      }
+      return DN.valueOf("cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
     }
 
 

@@ -15,7 +15,7 @@
  */
 package org.opends.server.types;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.LinkedList;
 import java.util.Random;
@@ -282,21 +282,14 @@ public class LockManagerTest extends TypesTestCase
           final Random rng = new Random();
           for (int j = 0; j < 1000000; j++)
           {
-            try
-            {
-              /*
-               * Lock a DN whose parent is different each time in order to prevent the thread local
-               * cache being used for retrieving the parent DN lock.
-               */
-              final int uid = rng.nextInt();
-              final int deviceId = rng.nextInt();
-              final DN dn = DN.valueOf("uid=" + deviceId + ",uid=" + uid + ",dc=example,dc=com");
-              lockManager.tryWriteLockEntry(dn).unlock();
-            }
-            catch (DirectoryException e)
-            {
-              throw new RuntimeException(e);
-            }
+            /*
+             * Lock a DN whose parent is different each time in order to prevent the thread local
+             * cache being used for retrieving the parent DN lock.
+             */
+            final int uid = rng.nextInt();
+            final int deviceId = rng.nextInt();
+            final DN dn = DN.valueOf("uid=" + deviceId + ",uid=" + uid + ",dc=example,dc=com");
+            lockManager.tryWriteLockEntry(dn).unlock();
           }
         }
       });

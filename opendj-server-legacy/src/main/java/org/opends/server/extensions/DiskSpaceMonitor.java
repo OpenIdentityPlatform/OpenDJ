@@ -36,8 +36,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
@@ -46,10 +49,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -451,7 +451,6 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
@@ -459,13 +458,12 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     {
       return DN.valueOf(INSTANCENAME);
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException ignored)
     {
       return DN.rootDN();
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {

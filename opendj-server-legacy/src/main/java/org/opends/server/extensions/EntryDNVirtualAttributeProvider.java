@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -34,7 +35,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
@@ -295,7 +295,7 @@ public class EntryDNVirtualAttributeProvider
           {
             dnSet.add(DN.valueOf(filter.getAssertionValue()));
           }
-          catch (DirectoryException e)
+          catch (LocalizedIllegalArgumentException e)
           {
             logger.traceException(e);
           }

@@ -71,12 +71,7 @@ public final class TestEntry extends TypesTestCase {
    */
   private Entry createTestEntry(AttributeType type, String[] values) {
     // Construct entry DN.
-    DN entryDN;
-    try {
-      entryDN = DN.valueOf("dc=example, dc=com");
-    } catch (DirectoryException e) {
-      throw new RuntimeException(e);
-    }
+    DN entryDN = DN.valueOf("dc=example, dc=com");
 
     // Get default object classes.
     ObjectClass top = DirectoryServer.getObjectClass("top");

@@ -29,10 +29,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -53,7 +55,6 @@ import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -322,9 +323,9 @@ policyLoop:
 
             break policyLoop;
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
-            logger.warn(WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN, entry.getName(), de.getMessageObject());
+            logger.warn(WARN_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN, entry.getName(), e.getMessageObject());
             break policyLoop;
           }
         }

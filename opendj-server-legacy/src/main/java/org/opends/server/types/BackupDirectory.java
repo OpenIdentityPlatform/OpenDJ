@@ -17,6 +17,7 @@
 package org.opends.server.types;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -403,11 +404,11 @@ public final class BackupDirectory
       {
         configEntryDN = DN.valueOf(dnString);
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
         LocalizableMessage message = ERR_BACKUPDIRECTORY_CANNOT_DECODE_DN.get(
-            dnString, descriptorFilePath, de.getMessageObject());
-        throw new ConfigException(message, de);
+            dnString, descriptorFilePath, e.getMessageObject());
+        throw new ConfigException(message, e);
       }
       catch (Exception e)
       {

@@ -58,6 +58,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -1642,53 +1643,39 @@ public final class DirectoryServer
     // Re-register all of the change listeners with the configuration.
     for (String dnStr : addListeners.keySet())
     {
-      try
+      for (ConfigAddListener listener : addListeners.get(dnStr))
       {
-        DN dn = DN.valueOf(dnStr);
-        for (ConfigAddListener listener : addListeners.get(dnStr))
-        {
-          configHandler.getConfigEntry(dn).registerAddListener(listener);
-        }
-      }
-      catch (DirectoryException de)
-      {
-        // This should never happen, so we'll just re-throw it.
-        throw new InitializationException(de.getMessageObject());
+        configHandler.getConfigEntry(toDn(dnStr)).registerAddListener(listener);
       }
     }
 
     for (String dnStr : deleteListeners.keySet())
     {
-      try
+      for (ConfigDeleteListener listener : deleteListeners.get(dnStr))
       {
-        DN dn = DN.valueOf(dnStr);
-        for (ConfigDeleteListener listener : deleteListeners.get(dnStr))
-        {
-          configHandler.getConfigEntry(dn).registerDeleteListener(listener);
-        }
-      }
-      catch (DirectoryException de)
-      {
-        // This should never happen, so we'll just re-throw it.
-        throw new InitializationException(de.getMessageObject());
+        configHandler.getConfigEntry(toDn(dnStr)).registerDeleteListener(listener);
       }
     }
 
     for (String dnStr : changeListeners.keySet())
     {
-      try
+      for (ConfigChangeListener listener : changeListeners.get(dnStr))
       {
-        DN dn = DN.valueOf(dnStr);
-        for (ConfigChangeListener listener : changeListeners.get(dnStr))
-        {
-          configHandler.getConfigEntry(dn).registerChangeListener(listener);
-        }
+        configHandler.getConfigEntry(toDn(dnStr)).registerChangeListener(listener);
       }
-      catch (DirectoryException de)
-      {
-        // This should never happen, so we'll just re-throw it.
-        throw new InitializationException(de.getMessageObject());
-      }
+    }
+  }
+
+  private DN toDn(String dn) throws InitializationException
+  {
+    try
+    {
+      return DN.valueOf(dn);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      // This should never happen, so we'll just re-throw it.
+      throw new InitializationException(e.getMessageObject(), e);
     }
   }
 
@@ -7243,17 +7230,8 @@ public final class DirectoryServer
    */
   public static DN getMonitorProviderDN(MonitorProvider provider)
   {
-    String monitorName = provider.getMonitorInstanceName();
-    try
-    {
-      // Get a complete DN which could be a tree naming schema
-      return DN.valueOf("cn="+monitorName+","+DN_MONITOR_ROOT);
-    }
-    catch (DirectoryException e)
-    {
-      // Cannot reach this point.
-      throw new RuntimeException();
-    }
+    // Get a complete DN which could be a tree naming schema
+    return DN.valueOf("cn=" + provider.getMonitorInstanceName() + "," + DN_MONITOR_ROOT);
   }
 
   /**

@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -31,7 +32,6 @@ import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
@@ -172,12 +172,12 @@ public class CompareOperationBasis
       {
         entryDN = DN.valueOf(rawEntryDN);
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        logger.traceException(de);
+        logger.traceException(e);
 
-        setResultCode(de.getResultCode());
-        appendErrorMessage(de.getMessageObject());
+        setResultCode(ResultCode.INVALID_DN_SYNTAX);
+        appendErrorMessage(e.getMessageObject());
       }
     }
     return entryDN;
@@ -339,12 +339,12 @@ public class CompareOperationBasis
           entryDN = DN.valueOf(rawEntryDN);
         }
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        logger.traceException(de);
+        logger.traceException(e);
 
-        setResultCode(de.getResultCode());
-        appendErrorMessage(de.getMessageObject());
+        setResultCode(ResultCode.INVALID_DN_SYNTAX);
+        appendErrorMessage(e.getMessageObject());
 
         return;
       }

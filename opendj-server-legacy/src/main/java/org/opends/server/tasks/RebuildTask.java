@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
@@ -133,7 +134,6 @@ public class RebuildTask extends Task
     return RebuildMode.USER_DEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {
@@ -143,9 +143,9 @@ public class RebuildTask extends Task
     {
       rebuildConfig.setBaseDN(DN.valueOf(baseDN));
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDN, de.getMessageObject());
+      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDN, e.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
     }
 

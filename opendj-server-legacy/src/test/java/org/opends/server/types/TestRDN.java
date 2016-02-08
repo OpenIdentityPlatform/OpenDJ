@@ -23,6 +23,7 @@ import static org.testng.Assert.*;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.RDN;
@@ -270,7 +271,7 @@ public final class TestRDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(dataProvider = "illegalRDNs", expectedExceptions = DirectoryException.class)
+  @Test(dataProvider = "illegalRDNs", expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testDecodeString(String rawRDN) throws Exception {
     RDN.valueOf(rawRDN);
 

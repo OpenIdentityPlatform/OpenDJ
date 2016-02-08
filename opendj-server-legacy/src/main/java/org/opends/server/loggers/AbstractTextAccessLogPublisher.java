@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -43,8 +44,21 @@ import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.authorization.dseecompat.PatternDN;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.GroupManager;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 
 /**
  * This class provides the base implementation of the access loggers used by the
@@ -394,7 +408,7 @@ abstract class AbstractTextAccessLogPublisher
         {
           targetDN = DN.valueOf(rawTargetDN);
         }
-        catch (final DirectoryException e)
+        catch (final LocalizedIllegalArgumentException e)
         {
           // The DN raw target DN was invalid:
           // Invalid DN will never match equal-to patterns,

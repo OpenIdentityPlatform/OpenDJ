@@ -15,9 +15,11 @@
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -28,8 +30,6 @@ import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
@@ -202,27 +202,31 @@ public class ModifyDNOperationBasis
     entryDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
-    try
+    if (entryDN == null)
     {
-      if (entryDN == null)
-      {
-        entryDN = DN.valueOf(rawEntryDN);
-      }
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-      setResultCode(de.getResultCode());
-      appendErrorMessage(de.getMessageObject());
+      entryDN = valueOfRawDN(rawEntryDN);
     }
     return entryDN;
   }
 
-  /** {@inheritDoc} */
+  private DN valueOfRawDN(ByteString dn)
+  {
+    try
+    {
+      return dn != null ? DN.valueOf(dn) : null;
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      logger.traceException(e);
+      setResultCode(ResultCode.INVALID_DN_SYNTAX);
+      appendErrorMessage(e.getMessageObject());
+      return null;
+    }
+  }
+
   @Override
   public final ByteString getRawNewRDN()
   {
@@ -250,12 +254,12 @@ public class ModifyDNOperationBasis
         newRDN = RDN.valueOf(rawNewRDN.toString());
       }
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.traceException(de);
+      logger.traceException(e);
 
-      setResultCode(de.getResultCode());
-      appendErrorMessage(de.getMessageObject());
+      setResultCode(ResultCode.INVALID_DN_SYNTAX);
+      appendErrorMessage(e.getMessageObject());
     }
     return newRDN;
   }
@@ -291,35 +295,16 @@ public class ModifyDNOperationBasis
     newDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getNewSuperior()
   {
-    if (rawNewSuperior == null)
+    if (newSuperior == null)
     {
-      newSuperior = null;
-    }
-    else
-    {
-      try
-      {
-        if (newSuperior == null)
-        {
-          newSuperior = DN.valueOf(rawNewSuperior);
-        }
-      }
-      catch (DirectoryException de)
-      {
-        logger.traceException(de);
-
-        setResultCode(de.getResultCode());
-        appendErrorMessage(de.getMessageObject());
-      }
+      newSuperior = valueOfRawDN(rawNewSuperior);
     }
     return newSuperior;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Modification> getModifications()
   {

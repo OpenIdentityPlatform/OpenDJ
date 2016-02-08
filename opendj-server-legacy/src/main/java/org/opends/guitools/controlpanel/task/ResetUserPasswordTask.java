@@ -43,12 +43,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.OpenDsException;
 
-/**
- * The task called when we want to reset the password of the user.
- *
- */
+/** The task called when we want to reset the password of the user. */
 public class ResetUserPasswordTask extends Task
 {
   private Set<String> backendSet;
@@ -74,24 +70,19 @@ public class ResetUserPasswordTask extends Task
     backendSet = new HashSet<>();
     this.node = node;
     this.newPassword = pwd;
-    try
+    dn = DN.valueOf(node.getDN());
+
+    for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
-      dn = DN.valueOf(node.getDN());
-      for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
+      for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
-        for (BaseDNDescriptor baseDN : backend.getBaseDns())
+        if (dn.isSubordinateOrEqualTo(baseDN.getDn()))
         {
-          if (dn.isSubordinateOrEqualTo(baseDN.getDn()))
-          {
-            backendSet.add(backend.getBackendID());
-          }
+          backendSet.add(backend.getBackendID());
         }
       }
     }
-    catch (OpenDsException ode)
-    {
-      throw new RuntimeException("Could not parse DN: "+node.getDN(), ode);
-    }
+
     try
     {
       InitialLdapContext ctx =

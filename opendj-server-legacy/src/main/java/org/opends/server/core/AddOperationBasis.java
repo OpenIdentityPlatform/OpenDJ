@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -35,7 +36,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ObjectClass;
@@ -196,10 +196,11 @@ public class AddOperationBasis
         entryDN = DN.valueOf(rawEntryDN);
       }
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.traceException(de);
-      setResponseData(de);
+      logger.traceException(e);
+      setResultCode(ResultCode.INVALID_DN_SYNTAX);
+      appendErrorMessage(e.getMessageObject());
     }
     return entryDN;
   }

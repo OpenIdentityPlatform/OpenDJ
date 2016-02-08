@@ -22,14 +22,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AVA;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -40,7 +41,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFImportConfig;
@@ -177,10 +177,10 @@ public final class SevenBitCleanPlugin
     {
       entryDN = DN.valueOf(addOperation.getRawEntryDN());
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      return PluginResult.PreParse.stopProcessing(de.getResultCode(),
-          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
+      return PluginResult.PreParse.stopProcessing(ResultCode.INVALID_DN_SYNTAX,
+          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(e.getMessageObject()));
     }
 
     if (isInScope(config, entryDN))
@@ -241,10 +241,10 @@ public final class SevenBitCleanPlugin
     {
       entryDN = DN.valueOf(modifyOperation.getRawEntryDN());
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      return PluginResult.PreParse.stopProcessing(de.getResultCode(),
-          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
+      return PluginResult.PreParse.stopProcessing(ResultCode.INVALID_DN_SYNTAX,
+          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(e.getMessageObject()));
     }
 
     if (isInScope(config, entryDN))
@@ -317,10 +317,10 @@ public final class SevenBitCleanPlugin
     {
       entryDN = DN.valueOf(modifyDNOperation.getRawEntryDN());
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      return PluginResult.PreParse.stopProcessing(de.getResultCode(),
-          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
+      return PluginResult.PreParse.stopProcessing(ResultCode.INVALID_DN_SYNTAX,
+          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(e.getMessageObject()));
     }
 
     if (isInScope(config, entryDN))
@@ -332,10 +332,10 @@ public final class SevenBitCleanPlugin
       {
         newRDN = RDN.valueOf(rawNewRDN.toString());
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        return PluginResult.PreParse.stopProcessing(de.getResultCode(),
-            ERR_PLUGIN_7BIT_CANNOT_DECODE_NEW_RDN.get(de.getMessageObject()));
+        return PluginResult.PreParse.stopProcessing(ResultCode.INVALID_DN_SYNTAX,
+            ERR_PLUGIN_7BIT_CANNOT_DECODE_NEW_RDN.get(e.getMessageObject()));
       }
 
       for (AVA ava : newRDN)

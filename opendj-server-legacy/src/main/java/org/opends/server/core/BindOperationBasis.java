@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -288,7 +289,6 @@ public class BindOperationBasis
     bindDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getBindDN()
   {
@@ -299,17 +299,16 @@ public class BindOperationBasis
         bindDN = DN.valueOf(rawBindDN);
       }
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.traceException(de);
+      logger.traceException(e);
 
       setResultCode(ResultCode.INVALID_CREDENTIALS);
-      setAuthFailureReason(de.getMessageObject());
+      setAuthFailureReason(e.getMessageObject());
     }
     return bindDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getSimplePassword()
   {

@@ -22,10 +22,11 @@ import java.util.List;
 import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -143,7 +144,7 @@ public final class AciHandler extends
     {
       debugSearchIndexDN = DN.valueOf("cn=debugsearch");
     }
-    catch (DirectoryException ex)
+    catch (LocalizedIllegalArgumentException unexpected)
     {
       // Should never happen.
     }
@@ -551,7 +552,7 @@ public final class AciHandler extends
           container.setRights(container.getRights() | ACI_SELF);
         }
       }
-      catch (DirectoryException ex)
+      catch (LocalizedIllegalArgumentException ex)
       {
         // Log a message and keep going.
         logger.warn(WARN_ACI_NOT_VALID_DN, dnString);

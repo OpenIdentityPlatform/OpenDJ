@@ -16,8 +16,6 @@
  */
 package org.opends.server.admin.client.ldap;
 
-
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -34,13 +32,11 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.RDN;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.types.Entry;
 import org.testng.Assert;
-
 
 
 /**
@@ -324,14 +320,7 @@ public class MockLDAPConnection extends LDAPConnection {
    *         not exist.
    */
   private MockEntry getEntry(LdapName dn) {
-    DN name;
-    try {
-      name = DN.valueOf(dn.toString());
-    } catch (DirectoryException e) {
-      throw new RuntimeException(e);
-    }
-
-    return entries.get(name);
+    return entries.get(DN.valueOf(dn.toString()));
   }
 
 

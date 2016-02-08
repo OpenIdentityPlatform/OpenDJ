@@ -23,6 +23,7 @@ import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
@@ -315,7 +316,7 @@ public class TestDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
+  @Test(dataProvider = "illegalDNs", expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testIllegalStringDNs(String dn) throws Exception {
     DN.valueOf(dn);
   }
@@ -331,7 +332,7 @@ public class TestDN extends TypesTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
+  @Test(dataProvider = "illegalDNs", expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testIllegalOctetStringDNs(String dn) throws Exception {
     ByteString octetString = ByteString.valueOfUtf8(dn);
     DN.valueOf(octetString);

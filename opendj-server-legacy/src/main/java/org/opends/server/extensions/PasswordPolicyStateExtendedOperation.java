@@ -341,11 +341,12 @@ public class PasswordPolicyStateExtendedOperation
     {
       targetDN = DN.valueOf(dnString);
     }
-    catch (DirectoryException de)
+    catch (LocalizedIllegalArgumentException e)
     {
-      logger.traceException(de);
+      logger.traceException(e);
 
-      operation.setResponseData(de);
+      operation.setResultCode(ResultCode.INVALID_DN_SYNTAX);
+      operation.appendErrorMessage(e.getMessageObject());
       return;
     }
 

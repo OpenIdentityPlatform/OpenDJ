@@ -48,6 +48,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -292,7 +293,7 @@ public class InstallerHelper {
     try (LDIFWriter writer = new LDIFWriter(exportConfig)) {
       DN dn = DN.valueOf(baseDn);
       writer.writeEntry(StaticUtils.createEntry(dn));
-    } catch (DirectoryException | LDIFException | IOException de) {
+    } catch (LocalizedIllegalArgumentException | LDIFException | IOException de) {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), de), de);

@@ -19,11 +19,10 @@ package org.opends.server.admin.server;
 
 
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.RelationDefinition;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 
 
 
@@ -61,14 +60,9 @@ final class DNBuilder {
   public static DN create(ManagedObjectPath<?, ?> path,
       RelationDefinition<?, ?> relation) {
     DN dn = path.toDN();
-
-    try {
-      LDAPProfile profile = LDAPProfile.getInstance();
-      DN localName = DN.valueOf(profile.getRelationRDNSequence(relation));
-      return dn.child(localName);
-    } catch (DirectoryException e) {
-      throw new RuntimeException(e);
-    }
+    LDAPProfile profile = LDAPProfile.getInstance();
+    DN localName = DN.valueOf(profile.getRelationRDNSequence(relation));
+    return dn.child(localName);
   }
 
 

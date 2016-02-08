@@ -45,9 +45,12 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
@@ -84,13 +87,11 @@ import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredi
 import org.opends.server.replication.server.changelog.file.ECLMultiDomainDBCursor;
 import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilterType;
@@ -102,7 +103,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
@@ -194,19 +194,7 @@ public class ChangelogBackend extends Backend<Configuration>
   private static final AttributeType MODIFIERS_NAME_TYPE = getAttributeType(OP_ATTR_MODIFIERS_NAME);
 
   /** The base DN for the external change log. */
-  public static final DN CHANGELOG_BASE_DN;
-
-  static
-  {
-    try
-    {
-      CHANGELOG_BASE_DN = DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT);
-    }
-    catch (DirectoryException e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
+  public static final DN CHANGELOG_BASE_DN = DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT);
 
   /** The set of base DNs for this backend. */
   private DN[] baseDNs;

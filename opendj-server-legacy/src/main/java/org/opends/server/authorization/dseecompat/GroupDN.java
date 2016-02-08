@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.Group;
@@ -147,7 +148,7 @@ public class GroupDN implements KeywordBindRule {
                     matched=EnumEvalResult.TRUE;
                     break;
                 }
-            } catch (DirectoryException ex) {
+            } catch (LocalizedIllegalArgumentException ignored) {
                 break;
             }
         }

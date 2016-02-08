@@ -20,14 +20,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.RDN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -434,7 +437,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
     {
       DN newSuperiorDN = DN.valueOf(newSuperior);
       return newSuperiorDN.equals(targetDN);
-    } catch (DirectoryException e)
+    }
+    catch (LocalizedIllegalArgumentException e)
     {
       // The newsuperior was not a correct DN, and therefore does not match the
       // DN given as a parameter.
@@ -442,7 +446,6 @@ public class ModifyDNMsg extends ModifyCommonMsg
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public int size()
   {

@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.DataFormatException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -3080,7 +3081,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       return RDN.valueOf(newRDN);
-    } catch (DirectoryException e)
+    }
+    catch (LocalizedIllegalArgumentException e)
     {
       // cannot happen
       return null;

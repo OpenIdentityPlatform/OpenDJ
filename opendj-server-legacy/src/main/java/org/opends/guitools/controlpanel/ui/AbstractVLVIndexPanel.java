@@ -52,6 +52,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.PropertyException;
@@ -619,11 +620,11 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     {
       try
       {
-        org.forgerock.opendj.ldap.DN.valueOf(baseDN);
+        DN.valueOf(baseDN);
       }
-      catch (OpenDsException oe)
+      catch (LocalizedIllegalArgumentException e)
       {
-        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_FOR_VLV_PROVIDED.get(oe.getMessageObject()));
+        errors.add(ERR_CTRL_PANEL_INVALID_BASE_DN_FOR_VLV_PROVIDED.get(e.getMessageObject()));
         setPrimaryInvalid(lBaseDN);
       }
     }

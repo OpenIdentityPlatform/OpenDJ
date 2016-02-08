@@ -51,15 +51,11 @@ import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The dialog that is displayed when we want to add entries to a set of groups.
- * @author jvergara
- *
- */
+/** The dialog that is displayed when we want to add entries to a set of groups. */
 public class AddToGroupPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 1837745944604435848L;
@@ -360,10 +356,9 @@ public class AddToGroupPanel extends StatusGenericPanel
             oneGroupDefined = true;
           }
         }
-        catch (OpenDsException ode)
+        catch (LocalizedIllegalArgumentException e)
         {
-          errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(groupDn,
-              ode.getMessageObject()));
+          errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(groupDn, e.getMessageObject()));
         }
       }
     }
@@ -394,24 +389,15 @@ public class AddToGroupPanel extends StatusGenericPanel
           Utilities.getParentDialog(this),
           INFO_CTRL_PANEL_ADD_TO_GROUP_TITLE.get(), getInfo());
       LinkedHashSet<DN> groupDns = new LinkedHashSet<>();
-      String[] grs = groups.getText().split("\n");
-      try
+      for (String groupDn : groups.getText().split("\n"))
       {
-        for (String groupDn : grs)
+        groupDn = groupDn.trim();
+        if (groupDn.length() > 0)
         {
-          groupDn = groupDn.trim();
-          if (groupDn.length() > 0)
-          {
-            groupDns.add(DN.valueOf(groupDn));
-          }
+          groupDns.add(DN.valueOf(groupDn));
         }
       }
-      catch (OpenDsException ode)
-      {
-        throw new RuntimeException(
-            "Unexpected error decoding dn. Details: "+ode.getMessageObject(),
-            ode);
-      }
+
       try
       {
         AddToGroupTask newTask =

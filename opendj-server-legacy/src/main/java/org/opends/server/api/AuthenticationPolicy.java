@@ -21,6 +21,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -82,7 +83,7 @@ public abstract class AuthenticationPolicy
       {
         subentryDN = DN.valueOf(v);
       }
-      catch (DirectoryException e)
+      catch (LocalizedIllegalArgumentException e)
       {
         logger.traceException(e);
 

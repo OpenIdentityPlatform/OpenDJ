@@ -18,14 +18,14 @@ package org.opends.server.replication.protocol;
 import java.util.Collection;
 import java.util.zip.DataFormatException;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
  * Byte array scanner class helps decode data from byte arrays received via
@@ -287,7 +287,7 @@ public class ByteArrayScanner
     {
       return DN.valueOf(nextString());
     }
-    catch (DirectoryException e)
+    catch (LocalizedIllegalArgumentException e)
     {
       throw new DataFormatException(e.getLocalizedMessage());
     }

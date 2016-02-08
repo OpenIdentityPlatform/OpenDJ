@@ -22,18 +22,36 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.KeyManager;
@@ -72,7 +90,19 @@ import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.CryptoManagerException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IdentifiedException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
@@ -240,17 +270,11 @@ public class CryptoManagerImpl
       ocCipherKey = DirectoryServer.getObjectClass(OC_CRYPTO_CIPHER_KEY);
       ocMacKey = DirectoryServer.getObjectClass(OC_CRYPTO_MAC_KEY);
 
-      try {
-        localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
-        DN adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
-        instanceKeysDN = adminSuffixDN.child(DN.valueOf("cn=instance keys"));
-        secretKeysDN = adminSuffixDN.child(DN.valueOf("cn=secret keys"));
-        serversDN = adminSuffixDN.child(DN.valueOf("cn=Servers"));
-      }
-      catch (DirectoryException ex) {
-        logger.traceException(ex);
-        throw new InitializationException(ex.getMessageObject());
-      }
+      localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
+      DN adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
+      instanceKeysDN = adminSuffixDN.child(DN.valueOf("cn=instance keys"));
+      secretKeysDN = adminSuffixDN.child(DN.valueOf("cn=secret keys"));
+      serversDN = adminSuffixDN.child(DN.valueOf("cn=Servers"));
 
       schemaInitDone = true;
     }
