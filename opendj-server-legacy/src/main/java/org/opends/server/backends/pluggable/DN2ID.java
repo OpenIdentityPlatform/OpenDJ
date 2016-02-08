@@ -27,6 +27,7 @@ import java.util.NoSuchElementException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.util.Function;
 import org.forgerock.util.Pair;
@@ -39,7 +40,6 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.types.CanceledOperationException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Operation;
 
 /**
@@ -211,7 +211,7 @@ class DN2ID extends AbstractTree
     int nbSeparator = 0;
     for (int i = parent.length() ; i < child.length(); i++)
     {
-      if (child.byteAt(i) == DN.NORMALIZED_RDN_SEPARATOR)
+      if (child.byteAt(i) == DnKeyFormat.NORMALIZED_RDN_SEPARATOR)
       {
         nbSeparator++;
         if (nbSeparator > 1)

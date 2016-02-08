@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.pluggable.DnKeyFormat;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -350,7 +351,7 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf("dc=example,dc=com");
 
     assertEquals(dn.toNormalizedByteString(),
-        new ByteStringBuilder().appendUtf8("dc=com").appendByte(DN.NORMALIZED_RDN_SEPARATOR)
+        new ByteStringBuilder().appendUtf8("dc=com").appendByte(DnKeyFormat.NORMALIZED_RDN_SEPARATOR)
                                .appendUtf8("dc=example").toByteString());
     assertEquals(dn.toNormalizedUrlSafeString(), "dc=com,dc=example");
   }

@@ -27,6 +27,13 @@ public class DnKeyFormat
   /** The format version used by this class to encode and decode a ByteString. */
   static final byte FORMAT_VERSION = 0x01;
 
+  /** RDN separator for normalized byte string of a DN. */
+  public static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
+  /** AVA separator for normalized byte string of a DN. */
+  static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
+  /** Escape byte for normalized byte string of a DN. */
+  static final byte NORMALIZED_ESC_BYTE = 0x02;
+
   /**
    * Find the length of bytes that represents the superior DN of the given DN
    * key. The superior DN is represented by the initial bytes of the DN key.
@@ -70,7 +77,7 @@ public class DnKeyFormat
     final int startSize = dn.size() - prefixRDNs - 1;
     for (int i = startSize; i >= 0; i--)
     {
-        builder.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
+        builder.appendByte(NORMALIZED_RDN_SEPARATOR);
         dn.rdn(i).toNormalizedByteString(builder);
     }
     return builder.toByteString();
@@ -89,14 +96,14 @@ public class DnKeyFormat
   private static boolean positionIsRDNSeparator(ByteSequence key, int index)
   {
     return index > 0
-        && key.byteAt(index) == DN.NORMALIZED_RDN_SEPARATOR && key.byteAt(index - 1) != DN.NORMALIZED_ESC_BYTE;
+        && key.byteAt(index) == NORMALIZED_RDN_SEPARATOR && key.byteAt(index - 1) != NORMALIZED_ESC_BYTE;
   }
 
   static ByteStringBuilder beforeFirstChildOf(final ByteSequence key)
   {
     final ByteStringBuilder beforeKey = new ByteStringBuilder(key.length() + 1);
     beforeKey.appendBytes(key);
-    beforeKey.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
+    beforeKey.appendByte(NORMALIZED_RDN_SEPARATOR);
     return beforeKey;
   }
 
@@ -104,7 +111,7 @@ public class DnKeyFormat
   {
     final ByteStringBuilder afterKey = new ByteStringBuilder(key.length() + 1);
     afterKey.appendBytes(key);
-    afterKey.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
+    afterKey.appendByte(NORMALIZED_AVA_SEPARATOR);
     return afterKey;
   }
 }
