@@ -24,14 +24,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.RDN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -62,9 +58,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     TestCaseUtils.startServer();
 
     //Setup the DN to use in the response tests.
-    AttributeType attribute = DirectoryServer.getAttributeType("testAttribute");
-    ByteString attributeValue = ByteString.valueOfUtf8("testValue");
-    dn = new DN(new RDN[] { new RDN(attribute, attributeValue) });
+    dn = DN.valueOf("testAttribute=testValue");
   }
 
   /**
