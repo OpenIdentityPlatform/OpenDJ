@@ -73,14 +73,7 @@ public class DnKeyFormat
    */
   static ByteString dnToDNKey(DN dn, int prefixRDNs)
   {
-    final ByteStringBuilder builder = new ByteStringBuilder(128);
-    final int startSize = dn.size() - prefixRDNs - 1;
-    for (int i = startSize; i >= 0; i--)
-    {
-        builder.appendByte(NORMALIZED_RDN_SEPARATOR);
-        dn.rdn(i).toNormalizedByteString(builder);
-    }
-    return builder.toByteString();
+    return dn.localName(dn.size() - prefixRDNs).toNormalizedByteString();
   }
 
   /**

@@ -19,18 +19,23 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.RDN;
 
 /**
  * The AciList class performs caching of the ACI attribute values
@@ -401,9 +406,6 @@ public class AciList {
    */
   public void renameAci(DN oldDN, DN newDN ) {
 
-    int oldRDNCount=oldDN.size();
-    int newRDNCount=newDN.size();
-
     lock.writeLock().lock();
     try
     {
@@ -412,17 +414,9 @@ public class AciList {
               aciList.entrySet().iterator();
       while (iterator.hasNext()) {
         Map.Entry<DN,List<Aci>> hashEntry = iterator.next();
-        if(hashEntry.getKey().isSubordinateOrEqualTo(oldDN)) {
-          int keyRDNCount=hashEntry.getKey().size();
-          int keepRDNCount=keyRDNCount - oldRDNCount;
-          RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];
-          for (int i=0; i < keepRDNCount; i++) {
-            newRDNs[i] = hashEntry.getKey().rdn(i);
-          }
-          for (int i=keepRDNCount, j=0; j < newRDNCount; i++,j++) {
-            newRDNs[i] = newDN.rdn(j);
-          }
-          DN relocateDN=new DN(newRDNs);
+        DN keyDn = hashEntry.getKey();
+        if (keyDn.isSubordinateOrEqualTo(oldDN)) {
+          DN relocateDN = keyDn.rename(oldDN, newDN);
           List<Aci> acis = new LinkedList<>();
           for(Aci aci : hashEntry.getValue()) {
             try {

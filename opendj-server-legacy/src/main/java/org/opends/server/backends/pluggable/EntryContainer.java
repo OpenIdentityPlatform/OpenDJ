@@ -48,6 +48,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -90,13 +91,11 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SortOrder;
 import org.opends.server.types.VirtualAttributeRule;
@@ -2059,7 +2058,7 @@ public class EntryContainer
           }
           else
           {
-            final DN newDN = modDN(oldEntry.getName(), oldTargetDN.size(), newTargetDN);
+            final DN newDN = oldEntry.getName().rename(oldTargetDN, newTargetDN);
             newEntry = oldEntry.duplicate(false);
             newEntry.setDN(newDN);
             modifications = invokeSubordinateModifyDNPlugins(oldEntry, newEntry);
@@ -2143,34 +2142,6 @@ public class EntryContainer
       writeTrustState(indexBuffer);
       throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
-  }
-
-  /**
-   * Make a new DN for a subordinate entry of a renamed or moved entry.
-   *
-   * @param oldDN The current DN of the subordinate entry.
-   * @param oldSuffixLen The current DN length of the renamed or moved entry.
-   * @param newSuffixDN The new DN of the renamed or moved entry.
-   * @return The new DN of the subordinate entry.
-   */
-  static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
-  {
-    int oldDNNumComponents    = oldDN.size();
-    int oldDNKeepComponents   = oldDNNumComponents - oldSuffixLen;
-    int newSuffixDNComponents = newSuffixDN.size();
-
-    RDN[] newDNComponents = new RDN[oldDNKeepComponents+newSuffixDNComponents];
-    for (int i=0; i < oldDNKeepComponents; i++)
-    {
-      newDNComponents[i] = oldDN.rdn(i);
-    }
-
-    for (int i=oldDNKeepComponents, j=0; j < newSuffixDNComponents; i++,j++)
-    {
-      newDNComponents[i] = newSuffixDN.rdn(j);
-    }
-
-    return new DN(newDNComponents);
   }
 
   /**

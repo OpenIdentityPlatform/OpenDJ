@@ -16,13 +16,14 @@
  */
 package org.opends.server.tools.makeldif;
 
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.makeldif.DNTagUtils.*;
+
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ToolMessages.*;
 
 /**
  * This class defines a tag that is used to include the DN of the current entry
@@ -98,43 +99,13 @@ public class DNTag
   }
 
   @Override
-  public TagResult generateValue(TemplateEntry templateEntry,
-                                 TemplateValue templateValue)
+  public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue)
   {
     DN dn = templateEntry.getDN();
-    if (dn == null || dn.isRootDN())
+    if (dn != null && !dn.isRootDN())
     {
-      return TagResult.SUCCESS_RESULT;
+      templateValue.getValue().append(generateDNKeepingRDNs(dn, numComponents));
     }
-
-    if (numComponents == 0)
-    {
-      templateValue.getValue().append(dn);
-    }
-    else if (numComponents > 0)
-    {
-      int count = Math.min(numComponents, dn.size());
-
-      templateValue.getValue().append(dn.rdn(0));
-      for (int i = 1; i < count; i++)
-      {
-        templateValue.append(",");
-        templateValue.getValue().append(dn.rdn(i));
-      }
-    }
-    else
-    {
-      int sz = dn.size();
-      int count = Math.min(Math.abs(numComponents), sz);
-
-      templateValue.getValue().append(dn.rdn(sz - count));
-      for (int i = 1; i < count; i++)
-      {
-        templateValue.append(",");
-        templateValue.getValue().append(dn.rdn(sz - count + i));
-      }
-    }
-
     return TagResult.SUCCESS_RESULT;
   }
 }

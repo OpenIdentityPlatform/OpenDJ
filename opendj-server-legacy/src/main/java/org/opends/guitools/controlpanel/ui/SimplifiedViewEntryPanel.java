@@ -1519,7 +1519,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           DN newDN;
           if (parent == null)
           {
-            newDN = new DN(new RDN[]{newRDN});
+            newDN = DN.rootDN().child(newRDN);
           }
           else
           {

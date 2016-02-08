@@ -40,6 +40,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;

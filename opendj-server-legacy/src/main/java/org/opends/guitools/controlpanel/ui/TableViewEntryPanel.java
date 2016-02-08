@@ -44,6 +44,12 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
@@ -52,13 +58,11 @@ import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.AVA;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.RDN;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 
@@ -339,7 +343,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
           DN newDN;
           if (parent == null)
           {
-            newDN = new DN(new RDN[]{newRDN});
+            newDN = DN.rootDN().child(newRDN);
           }
           else
           {

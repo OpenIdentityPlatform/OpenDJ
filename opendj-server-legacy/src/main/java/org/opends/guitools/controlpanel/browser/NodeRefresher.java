@@ -33,16 +33,16 @@ import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
 import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
-import org.forgerock.opendj.ldap.RDN;
 
 /**
  * The class that is in charge of doing the LDAP searches required to update a
@@ -796,30 +796,8 @@ public class NodeRefresher extends AbstractNodeTask {
               // if it is the case, do not add the parent.  If is not the case,
               // search for the parent and add it.
               RDN[] rdns = new RDN[parentComponents + 1];
-              int diff = dn.size() - rdns.length;
-              for (int i=0; i < rdns.length; i++)
-              {
-                rdns[i] = dn.rdn(i + diff);
-              }
-              final DN parentToAddDN = new DN(rdns);
-              boolean mustAddParent = true;
-              for (SearchResult addedEntry : childEntries)
-              {
-                try
-                {
-                  DN addedDN = DN.valueOf(addedEntry.getName());
-                  if (addedDN.equals(parentToAddDN))
-                  {
-                    mustAddParent = false;
-                    break;
-                  }
-                }
-                catch (Throwable t)
-                {
-                  throw new RuntimeException("Error decoding dn: "+
-                      addedEntry.getName()+" . "+t, t);
-                }
-              }
+              final DN parentToAddDN = dn.parent(dn.size() - rdns.length);
+              boolean mustAddParent = mustAddParent(parentToAddDN);
               if (mustAddParent)
               {
                 final boolean resultValue[] = {true};
@@ -901,6 +879,26 @@ public class NodeRefresher extends AbstractNodeTask {
         controller.releaseLDAPConnection(ctx);
       }
     }
+  }
+
+  private boolean mustAddParent(final DN parentToAddDN)
+  {
+    for (SearchResult addedEntry : childEntries)
+    {
+      try
+      {
+        DN addedDN = DN.valueOf(addedEntry.getName());
+        if (addedDN.equals(parentToAddDN))
+        {
+          return false;
+        }
+      }
+      catch (Throwable t)
+      {
+        throw new RuntimeException("Error decoding dn: " + addedEntry.getName() + " . " + t, t);
+      }
+    }
+    return true;
   }
 
   /**

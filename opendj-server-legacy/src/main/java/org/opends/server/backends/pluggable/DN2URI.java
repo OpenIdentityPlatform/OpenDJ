@@ -490,7 +490,7 @@ class DN2URI extends AbstractTree
           DN urlBaseDN = targetDN;
           if (!referralDN.equals(ldapurl.getBaseDN()))
           {
-            urlBaseDN = EntryContainer.modDN(targetDN, referralDN.size(), ldapurl.getBaseDN());
+            urlBaseDN = targetDN.rename(referralDN, ldapurl.getBaseDN());
           }
           ldapurl.setBaseDN(urlBaseDN);
           if (searchScope == null)

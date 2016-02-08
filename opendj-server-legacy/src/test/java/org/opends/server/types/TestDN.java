@@ -166,68 +166,6 @@ public class TestDN extends TypesTestCase {
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
   }
 
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testCreateNullDN1() throws Exception {
-    DN dn = new DN(new RDN[0]);
-
-    assertEquals(dn, DN.rootDN());
-  }
-
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testCreateNullDN2() throws Exception {
-    DN dn = new DN();
-
-    assertEquals(dn, DN.rootDN());
-  }
-
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testCreateNullDN3() throws Exception {
-    DN dn = new DN((RDN[]) null);
-
-    assertEquals(dn, DN.rootDN());
-  }
-
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testCreateNullDN4() throws Exception {
-    DN dn = new DN((ArrayList<RDN>) null);
-
-    assertEquals(dn, DN.rootDN());
-  }
-
-
-
   /**
    * Tests the create method.
    *
@@ -236,8 +174,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithSingleRDN1() throws Exception {
-    DN dn = new DN(new RDN[] { RDN.valueOf("dc=com") });
-
+    DN dn = DN.rootDN().child(RDN.valueOf("dc=com"));
     assertEquals(dn, DN.valueOf("dc=com"));
   }
 
@@ -251,9 +188,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithMultipleRDNs1() throws Exception {
-    DN dn = new DN(new RDN[] { RDN.valueOf("dc=foo"),
-        RDN.valueOf("dc=opends"), RDN.valueOf("dc=org") });
-
+    DN dn = DN.rootDN().child(RDN.valueOf("dc=org")).child(RDN.valueOf("dc=opends")).child(RDN.valueOf("dc=foo"));
     assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
   }
 

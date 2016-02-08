@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.util.Utils;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ToolMessages.*;
@@ -68,18 +69,10 @@ public class UnderscoreParentDNTag
                                  TemplateValue templateValue)
   {
     DN parentDN = templateEntry.getParentDN();
-    if (parentDN == null || parentDN.isRootDN())
+    if (parentDN != null && !parentDN.isRootDN())
     {
-      return TagResult.SUCCESS_RESULT;
+      Utils.joinAsString(templateValue.getValue(), "_", parentDN);
     }
-
-    templateValue.getValue().append(parentDN.rdn(0));
-    for (int i=1; i < parentDN.size(); i++)
-    {
-      templateValue.append("_");
-      templateValue.getValue().append(parentDN.rdn(i));
-    }
-
     return TagResult.SUCCESS_RESULT;
   }
 }
