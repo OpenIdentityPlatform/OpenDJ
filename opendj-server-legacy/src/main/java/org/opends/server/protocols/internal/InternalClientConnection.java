@@ -27,19 +27,60 @@
 package org.opends.server.protocols.internal;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.core.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.BindOperation;
+import org.opends.server.core.BindOperationBasis;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.CompareOperationBasis;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ExtendedOperationBasis;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -1142,59 +1183,6 @@ public final class InternalClientConnection
         ByteString.valueOfUtf8(assertionValue), null);
   }
 
-
-
-  /**
-   * Processes an internal compare operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN      The entry DN for the compare operation.
-   * @param  attributeType   The attribute type for the compare
-   *                         operation.
-   * @param  assertionValue  The assertion value for the compare
-   *                         operation.
-   * @param  controls        The set of controls to include in the
-   *                         request.
-   *
-   * @return  A reference to the compare operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public CompareOperation processCompare(String rawEntryDN,
-                                         String attributeType,
-                                         String assertionValue,
-                                         List<Control> controls)
-  {
-    return processCompare(ByteString.valueOfUtf8(rawEntryDN), attributeType,
-        ByteString.valueOfUtf8(assertionValue), controls);
-  }
-
-
-
-  /**
-   * Processes an internal compare operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN      The entry DN for the compare operation.
-   * @param  attributeType   The attribute type for the compare
-   *                         operation.
-   * @param  assertionValue  The assertion value for the compare
-   *                         operation.
-   *
-   * @return  A reference to the compare operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public CompareOperation processCompare(ByteString rawEntryDN,
-                                         String attributeType,
-                                         ByteString assertionValue)
-  {
-    return processCompare(rawEntryDN, attributeType, assertionValue,
-                          null);
-  }
-
-
-
   /**
    * Processes an internal compare operation with the provided
    * information.
@@ -1226,57 +1214,29 @@ public final class InternalClientConnection
     return compareOperation;
   }
 
-
-
   /**
-   * Processes an internal compare operation with the provided
-   * information.
+   * Processes an internal compare operation with the provided information.
    *
-   * @param  entryDN         The entry DN for the compare operation.
-   * @param  attributeType   The attribute type for the compare
-   *                         operation.
-   * @param  assertionValue  The assertion value for the compare
-   *                         operation.
-   *
-   * @return  A reference to the compare operation that was processed
-   *          and contains information about the result of the
-   *          processing.
+   * @param entryDN
+   *          The entry DN for the compare operation.
+   * @param attributeDescription
+   *          The attribute description for the compare operation.
+   * @param assertionValue
+   *          The assertion value for the compare operation.
+   * @param controls
+   *          The set of controls to include in the request.
+   * @return A reference to the compare operation that was processed and contains information about
+   *         the result of the processing.
    */
   public CompareOperation processCompare(DN entryDN,
-                                         AttributeType attributeType,
-                                         ByteString assertionValue)
-  {
-    return processCompare(entryDN, attributeType, assertionValue,
-                          null);
-  }
-
-
-
-  /**
-   * Processes an internal compare operation with the provided
-   * information.
-   *
-   * @param  entryDN         The entry DN for the compare operation.
-   * @param  attributeType   The attribute type for the compare
-   *                         operation.
-   * @param  assertionValue  The assertion value for the compare
-   *                         operation.
-   * @param  controls        The set of controls to include in the
-   *                         request.
-   *
-   * @return  A reference to the compare operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public CompareOperation processCompare(DN entryDN,
-                                         AttributeType attributeType,
+                                         AttributeDescription attributeDescription,
                                          ByteString assertionValue,
                                          List<Control> controls)
   {
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(this, nextOperationID(),
                               nextMessageID(), controls, entryDN,
-                              attributeType, assertionValue);
+                              attributeDescription, assertionValue);
     compareOperation.setInternalOperation(true);
 
     compareOperation.run();

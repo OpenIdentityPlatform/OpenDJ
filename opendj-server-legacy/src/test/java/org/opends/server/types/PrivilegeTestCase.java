@@ -39,11 +39,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.opends.server.admin.std.meta.RootDNCfgDefn;
@@ -446,9 +446,7 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
 
-    AttributeType cnAttrType = DirectoryServer.getAttributeType("cn");
-    CompareOperation compareOperation = conn.processCompare(
-        DN.valueOf("cn=config"), cnAttrType, ByteString.valueOfUtf8("config"));
+    CompareOperation compareOperation = conn.processCompare("cn=config", "cn", "config");
     if (hasPrivilege)
     {
       assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);
@@ -1286,8 +1284,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperation compareOperation = new CompareOperationBasis(conn,
                               nextOperationID(), nextMessageID(),
-                              controls, targetDN,
-                              DirectoryServer.getAttributeType("cn"),
+                              controls, targetDN, AttributeDescription.valueOf("cn"),
                               ByteString.valueOfUtf8("PWReset Target"));
     compareOperation.run();
     if (hasProxyPrivilege)
@@ -1433,8 +1430,8 @@ public class PrivilegeTestCase extends TypesTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperation compareOperation = new CompareOperationBasis(conn, nextOperationID(),
                               nextMessageID(), controls, targetDN,
-                              DirectoryServer.getAttributeType("cn"),
-             ByteString.valueOfUtf8("PWReset Target"));
+                              AttributeDescription.valueOf("cn"),
+                              ByteString.valueOfUtf8("PWReset Target"));
     compareOperation.run();
     if (hasProxyPrivilege)
     {

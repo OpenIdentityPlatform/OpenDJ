@@ -35,7 +35,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelResult;
@@ -138,37 +137,35 @@ public class CompareOperationBasis
    *                           operation is associated.
    * @param  requestControls   The set of controls included in the request.
    * @param  entryDN           The entry DN for this compare operation.
-   * @param  attributeType     The attribute type for this compare operation.
+   * @param  attributeDescription The attribute description for this compare operation.
    * @param  assertionValue    The assertion value for the compare operation.
    */
   public CompareOperationBasis(
                           ClientConnection clientConnection, long operationID,
                           int messageID, List<Control> requestControls,
-                          DN entryDN, AttributeType attributeType,
+                          DN entryDN, AttributeDescription attributeDescription,
                           ByteString assertionValue)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
 
     this.entryDN        = entryDN;
-    this.attributeDescription = AttributeDescription.create(attributeType);
+    this.attributeDescription = attributeDescription;
     this.assertionValue = assertionValue;
 
     responseControls       = new ArrayList<>();
     rawEntryDN             = ByteString.valueOfUtf8(entryDN.toString());
-    rawAttributeType       = attributeType.getNameOrOID();
+    rawAttributeType       = attributeDescription.toString();
     cancelRequest          = null;
     proxiedAuthorizationDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -177,7 +174,6 @@ public class CompareOperationBasis
     entryDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -197,7 +193,6 @@ public class CompareOperationBasis
     return entryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final String getRawAttributeType()
   {
@@ -256,14 +251,12 @@ public class CompareOperationBasis
     return assertionValue;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setAssertionValue(ByteString assertionValue)
   {
     this.assertionValue = assertionValue;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -288,35 +281,29 @@ public class CompareOperationBasis
     return proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
-
-
 
   /**
    * Performs the work of actually processing this operation.  This
@@ -459,7 +446,6 @@ public class CompareOperationBasis
     appendErrorMessage(ERR_COMPARE_NO_SUCH_ENTRY.get(getEntryDN()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {

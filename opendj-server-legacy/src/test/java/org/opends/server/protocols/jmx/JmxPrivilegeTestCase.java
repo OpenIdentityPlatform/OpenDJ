@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -586,7 +587,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOp = new CompareOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        targetDN, DirectoryServer.getAttributeType("cn"),
+        targetDN, AttributeDescription.valueOf("cn"),
         ByteString.valueOfUtf8("PWReset Target"));
     assertSuccess(hasProxyPrivilege, compareOp);
 
@@ -699,7 +700,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Test a compare operation against the PWReset Target user.
     CompareOperationBasis compareOp = new CompareOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        targetDN, DirectoryServer.getAttributeType("cn"),
+        targetDN, AttributeDescription.valueOf("cn"),
         ByteString.valueOfUtf8("PWReset Target"));
     assertSuccess(hasProxyPrivilege, compareOp);
 

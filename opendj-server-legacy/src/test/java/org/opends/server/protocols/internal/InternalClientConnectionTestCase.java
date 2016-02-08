@@ -420,59 +420,23 @@ public class InternalClientConnectionTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
-   * Tests the first <CODE>processCompare</CODE> method, which takes raw
-   * arguments.
+   * Tests the first <CODE>processCompare</CODE> method, which takes raw arguments.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test
-  public void testProcessCompare1()
-         throws Exception
+  public void testProcessCompare() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-
-    InternalClientConnection conn = getRootConnection();
-    CompareOperation compareOperation =
-         conn.processCompare(ByteString.valueOfUtf8("cn=test,o=test"), "cn",
-                             ByteString.valueOfUtf8("test"));
+    CompareOperation compareOperation = getRootConnection().processCompare("cn=test,o=test", "cn", "test");
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
   }
-
-
-
-  /**
-   * Tests the second <CODE>processCompare</CODE> method, which takes processed
-   * arguments.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test
-  public void testProcessCompare2()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.addEntry("dn: cn=test,o=test",
-                                      "objectClass: top",
-                                      "objectClass: device",
-                                      "cn: test");
-
-    InternalClientConnection conn = getRootConnection();
-    CompareOperation compareOperation =
-         conn.processCompare(DN.valueOf("cn=test,o=test"),
-                             DirectoryServer.getAttributeType("cn"),
-                             ByteString.valueOfUtf8("test"));
-    assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
-  }
-
-
 
   /**
    * Tests the first <CODE>processDelete</CODE> method, which takes raw
