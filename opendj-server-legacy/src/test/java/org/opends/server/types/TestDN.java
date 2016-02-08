@@ -856,53 +856,6 @@ public class TestDN extends TypesTestCase {
     assertEquals(dn.child(rdn), expected);
   }
 
-
-
-  /**
-   * Test the concat(RDN...) method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(expectedExceptions = { NullPointerException.class,
-      AssertionError.class })
-  public void testConcatRDNException() throws Exception {
-    DN dn = DN.valueOf("dc=org");
-    dn.concat((RDN[]) null);
-  }
-
-
-
-  /**
-   * Test the concat(RDN[]...) method.
-   *
-   * @param s
-   *          The test DN string.
-   * @param l
-   *          The local name to be appended.
-   * @param e
-   *          The expected DN.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "createConcatDNTestData")
-  public void testConcatRDNSequence1(String s, String l, String e)
-      throws Exception {
-    DN dn = DN.valueOf(s);
-    DN localName = DN.valueOf(l);
-    DN expected = DN.valueOf(e);
-
-    // Construct sequence.
-    RDN[] rdns = new RDN[localName.size()];
-    for (int i = 0; i < localName.size(); i++) {
-      rdns[i] = localName.getRDN(i);
-    }
-
-    assertEquals(dn.concat(rdns), expected);
-  }
-
-
-
   /**
    * Get local name test data provider.
    *

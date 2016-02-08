@@ -345,7 +345,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  A new DN that is a descendant of this DN, using the
    *          specified RDN components.
    */
-  public DN concat(RDN[] rdnComponents)
+  private DN concat(RDN[] rdnComponents)
   {
     RDN[] newComponents =
          new RDN[rdnComponents.length+this.rdnComponents.length];
