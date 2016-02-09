@@ -63,6 +63,7 @@ import java.util.SortedSet;
 import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -214,6 +215,7 @@ final class OnDiskMergeImporter
         if (OperatingSystem.isWindows())
         {
           // Try to force the JVM to close mmap()ed file so that they can be deleted.
+          // (see http://bugs.java.com/view_bug.do?bug_id=4715154)
           System.gc();
         }
         recursiveDelete(tempDir);
@@ -1432,8 +1434,8 @@ final class OnDiskMergeImporter
       this.name = name;
       this.bufferPool = bufferPool;
       this.deduplicator = collector;
-      this.file = new File(tempDir, name.replaceAll("\\W+", "_"));
-      this.channel = open(this.file.toPath(), READ, WRITE, CREATE_NEW, SPARSE, DELETE_ON_CLOSE);
+      this.file = new File(tempDir, name.replaceAll("\\W+", "_") + "_" + UUID.randomUUID().toString());
+      this.channel = open(this.file.toPath(), CREATE, TRUNCATE_EXISTING, READ, WRITE, DELETE_ON_CLOSE);
       this.sorter = new ExecutorCompletionService<>(sortExecutor);
     }
 
@@ -1470,6 +1472,19 @@ final class OnDiskMergeImporter
               public void close()
               {
                 super.close();
+                if (OperatingSystem.isWindows())
+                {
+                  // Windows might not be able to delete the file (see http://bugs.java.com/view_bug.do?bug_id=4715154)
+                  // To prevent these not deleted files to waste space, we empty it.
+                  try
+                  {
+                    channel.truncate(0);
+                  }
+                  catch (IOException e)
+                  {
+                    // This is best effort, it's safe to ignore the exception here.
+                  }
+                }
                 closeSilently(channel);
               }
             }, (Collector<?, ByteString>) deduplicator);
@@ -1510,8 +1525,7 @@ final class OnDiskMergeImporter
         {
           /*
            * NOTE: The resulting size of the FileRegionChunk might be less than chunk.size() because of key
-           * de-duplication performed by the CollectorCursor. Thanks to SPARSE_FILE option, the delta between size
-           * allocated and the size actually used is not wasted.
+           * de-duplication performed by the CollectorCursor.
            */
           final Chunk persistentChunk = new FileRegionChunk(name, channel, startOffset, chunk.size());
           try (final SequentialCursor<ByteString, ByteString> source =
@@ -1785,10 +1799,7 @@ final class OnDiskMergeImporter
         this.startOffset = startOffset;
         if (size > 0)
         {
-          /*
-           * Make sure that the file is big-enough to encapsulate this memory-mapped region. Thanks to SPARSE_FILE this
-           * operation should be fast even for big region.
-           */
+          // Make sure that the file is big-enough to encapsulate this memory-mapped region.
           channel.write(ByteBuffer.wrap(new byte[] { 0 }), (startOffset + size) - 1);
         }
         this.mmapBuffer = channel.map(MapMode.READ_WRITE, startOffset, size);
