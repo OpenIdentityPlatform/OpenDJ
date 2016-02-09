@@ -76,9 +76,10 @@ public class TestDN extends TypesTestCase {
         { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
             "dc=com,dc=example,ou=people,cn=doe+givenname=john",
             "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
+        // FIXME parsing next RDN should fail in the first place
         { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
             "dc=com,dc=example,ou=people,givenname=john%2Bcn%3Ddoe",
-            "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
+            "givenName=John\\+cn\\=Doe,ou=People,dc=example,dc=com" },
         { "cn=Doe\\, John,ou=People,dc=example,dc=com",
             "dc=com,dc=example,ou=people,cn=doe%2C%20john",
             "cn=Doe\\, John,ou=People,dc=example,dc=com" },
