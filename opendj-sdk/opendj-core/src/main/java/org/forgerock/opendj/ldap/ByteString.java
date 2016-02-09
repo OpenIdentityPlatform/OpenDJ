@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -802,10 +802,9 @@ public final class ByteString implements ByteSequence {
         if (isEmpty()) {
             return "";
         }
-        StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
+        StringBuilder builder = new StringBuilder(length * 2);
         builder.append(StaticUtils.byteToHex(buffer[offset]));
         for (int i = 1; i < length; i++) {
-            builder.append(' ');
             builder.append(StaticUtils.byteToHex(buffer[offset + i]));
         }
         return builder.toString();

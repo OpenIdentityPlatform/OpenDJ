@@ -161,9 +161,9 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         ByteString bfinal = matchingRule.normalizeAttributeValue(ByteString.valueOfUtf8("c"));
         assertEquals(indexQuery,
             "intersect["
-            + "rangeMatch(fr.shared, '" + binit.toHexString() + "' <= value < '00 54'), "
-            + "rangeMatch(fr.substring, '" + bfinal.toHexString() + "' <= value < '00 56'), "
-            + "rangeMatch(fr.substring, '" + binit.toHexString() + "' <= value < '00 54')]"
+            + "rangeMatch(fr.shared, '" + binit.toHexString() + "' <= value < '0054'), "
+            + "rangeMatch(fr.substring, '" + bfinal.toHexString() + "' <= value < '0056'), "
+            + "rangeMatch(fr.substring, '" + binit.toHexString() + "' <= value < '0054')]"
         );
     }
 }

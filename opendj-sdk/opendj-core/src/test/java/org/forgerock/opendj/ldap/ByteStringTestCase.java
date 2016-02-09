@@ -266,7 +266,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test
     public void testToHex() throws Exception {
         ByteString byteString = new ByteStringBuilder().appendUtf8("org=example").toByteString();
-        assertThat(byteString.toHexString()).isEqualTo("6F 72 67 3D 65 78 61 6D 70 6C 65");
+        assertThat(byteString.toHexString()).isEqualTo("6F72673D6578616D706C65");
 
         assertThat(ByteString.empty().toHexString()).isEqualTo("");
     }
@@ -340,6 +340,13 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     public void testValueOfHex() {
         ByteString byteString = ByteString.valueOfHex("636E3D7465737476616C7565");
         assertThat(byteString.toString()).isEqualTo("cn=testvalue");
+    }
+
+    @Test
+    public void testToHexValueOfHex() {
+        ByteString bs = ByteString.valueOfUtf8("cn=testvalue");
+        ByteString roundtrippedBS = ByteString.valueOfHex(bs.toHexString());
+        assertThat(roundtrippedBS).isEqualTo(bs);
     }
 
     @Test

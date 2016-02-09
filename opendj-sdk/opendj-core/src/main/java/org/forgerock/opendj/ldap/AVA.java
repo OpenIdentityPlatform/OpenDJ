@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS.
+ *      Portions copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.*;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
+import static org.forgerock.util.Reject.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -42,9 +43,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
-import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
@@ -61,6 +60,10 @@ import com.forgerock.opendj.util.SubstringReader;
  * ou=Engineering
  * cn=Kurt Zeilenga
  * </pre>
+ *
+ * Note: The name <em>AVA</em> is historical, coming from X500/LDAPv2.
+ * However, in LDAP context, this class actually represents an
+ * <code>AttributeTypeAndValue</code>.
  *
  * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.3">RFC 4512 -
  *      Lightweight Directory Access Protocol (LDAP): Directory Information
@@ -121,7 +124,8 @@ public final class AVA implements Comparable<AVA> {
             throw new LocalizedIllegalArgumentException(message);
         }
 
-        final AttributeType attribute = readAttributeName(reader, schema);
+        final String nameOrOid = readAttributeName(reader);
+        final AttributeType attribute = schema.getAttributeType(nameOrOid);
 
         // Skip over any spaces if we have.
         reader.skipWhitespaces();
@@ -151,7 +155,7 @@ public final class AVA implements Comparable<AVA> {
         // Parse the value for this RDN component.
         final ByteString value = readAttributeValue(reader);
 
-        return new AVA(attribute, value);
+        return new AVA(attribute, nameOrOid, value);
     }
 
     static void escapeAttributeValue(final String str, final StringBuilder builder) {
@@ -396,7 +400,7 @@ public final class AVA implements Comparable<AVA> {
         return ByteString.valueOfUtf8(valueBuffer);
     }
 
-    private static AttributeType readAttributeName(final SubstringReader reader, final Schema schema) {
+    private static String readAttributeName(final SubstringReader reader) {
         int length = 1;
         reader.mark();
 
@@ -413,19 +417,11 @@ public final class AVA implements Comparable<AVA> {
                     break;
                 } else if (c == '.') {
                     if (lastWasPeriod) {
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(), c,
-                                        reader.pos() - 1);
-                        throw new LocalizedIllegalArgumentException(message);
-                    } else {
-                        lastWasPeriod = true;
+                        throw illegalCharacter(reader, c);
                     }
+                    lastWasPeriod = true;
                 } else if (!isDigit(c)) {
-                    // This must have been an illegal character.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(), c, reader
-                                    .pos() - 1);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw illegalCharacter(reader, c);
                 } else {
                     lastWasPeriod = false;
                 }
@@ -442,28 +438,25 @@ public final class AVA implements Comparable<AVA> {
                     // This signals the end of the OID.
                     break;
                 } else if (!isAlpha(c) && !isDigit(c) && c != '-') {
-                    // This is an illegal character.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(), c, reader
-                                    .pos() - 1);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw illegalCharacter(reader, c);
                 }
 
                 length++;
             }
         } else {
-            final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(), c,
-                            reader.pos() - 1);
-            throw new LocalizedIllegalArgumentException(message);
+            throw illegalCharacter(reader, c);
         }
 
         reader.reset();
 
-        // Return the position of the first non-space character after the
-        // token.
+        // Return the position of the first non-space character after the token
+        return reader.read(length);
+    }
 
-        return schema.getAttributeType(reader.read(length));
+    private static LocalizedIllegalArgumentException illegalCharacter(
+            final SubstringReader reader, final char c) {
+        return new LocalizedIllegalArgumentException(
+                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(reader.getString(), c, reader.pos() - 1));
     }
 
     private static ByteString readAttributeValue(final SubstringReader reader) {
@@ -591,12 +584,11 @@ public final class AVA implements Comparable<AVA> {
     }
 
     private final AttributeType attributeType;
-
+    private final String attributeName;
     private final ByteString attributeValue;
 
     /** Cached normalized value using equality matching rule. */
     private ByteString equalityNormalizedAttributeValue;
-
     /** Cached normalized value using ordering matching rule. */
     private ByteString orderingNormalizedAttributeValue;
 
@@ -616,10 +608,29 @@ public final class AVA implements Comparable<AVA> {
      *             {@code null}.
      */
     public AVA(final AttributeType attributeType, final Object attributeValue) {
-        Reject.ifNull(attributeType, attributeValue);
+        this(attributeType, null, attributeValue);
+    }
 
-        this.attributeType = attributeType;
-        this.attributeValue = ByteString.valueOfObject(attributeValue);
+    /**
+     * Creates a new attribute value assertion (AVA) using the provided
+     * attribute type, name and value.
+     * <p>
+     * If {@code attributeValue} is not an instance of {@code ByteString} then
+     * it will be converted using the {@link ByteString#valueOfObject(Object)} method.
+     *
+     * @param attributeType
+     *            The attribute type.
+     * @param attributeName
+     *            The user provided attribute name.
+     * @param attributeValue
+     *            The attribute value.
+     * @throws NullPointerException
+     *             If {@code attributeType}, {@code attributeName} or {@code attributeValue} was {@code null}.
+     */
+    public AVA(final AttributeType attributeType, final String attributeName, final Object attributeValue) {
+        this.attributeType = checkNotNull(attributeType);
+        this.attributeName = computeAttributeName(attributeName, attributeType);
+        this.attributeValue = ByteString.valueOfObject(checkNotNull(attributeValue));
     }
 
     /**
@@ -640,13 +651,15 @@ public final class AVA implements Comparable<AVA> {
      *             {@code null}.
      */
     public AVA(final String attributeType, final Object attributeValue) {
-        Reject.ifNull(attributeType, attributeValue);
-
+        this.attributeName = checkNotNull(attributeType);
         this.attributeType = Schema.getDefaultSchema().getAttributeType(attributeType);
-        this.attributeValue = ByteString.valueOfObject(attributeValue);
+        this.attributeValue = ByteString.valueOfObject(checkNotNull(attributeValue));
     }
 
-    /** {@inheritDoc} */
+    private String computeAttributeName(final String attributeName, final AttributeType attributeType) {
+        return attributeName != null ? attributeName : attributeType.getNameOrOID();
+    }
+
     @Override
     public int compareTo(final AVA ava) {
         final int result = attributeType.compareTo(ava.attributeType);
@@ -659,7 +672,6 @@ public final class AVA implements Comparable<AVA> {
         return normalizedValue.compareTo(otherNormalizedValue);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -689,6 +701,15 @@ public final class AVA implements Comparable<AVA> {
     }
 
     /**
+     * Returns the attribute name associated with this AVA.
+     *
+     * @return The attribute name associated with this AVA.
+     */
+    public String getAttributeName() {
+        return attributeName;
+    }
+
+    /**
      * Returns the attribute value associated with this AVA.
      *
      * @return The attribute value associated with this AVA.
@@ -697,7 +718,6 @@ public final class AVA implements Comparable<AVA> {
         return attributeValue;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return attributeType.hashCode() * 31 + getEqualityNormalizedValue().hashCode();
@@ -715,7 +735,6 @@ public final class AVA implements Comparable<AVA> {
         return new LinkedAttribute(ad, attributeValue);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -723,17 +742,15 @@ public final class AVA implements Comparable<AVA> {
     }
 
     StringBuilder toString(final StringBuilder builder) {
-        if (!attributeType.getNames().iterator().hasNext()) {
+        if (attributeName.equals(attributeType.getOID())) {
             builder.append(attributeType.getOID());
             builder.append("=#");
             builder.append(attributeValue.toHexString());
         } else {
-            final String name = attributeType.getNameOrOID();
-            builder.append(name);
+            builder.append(attributeName);
             builder.append("=");
 
-            final Syntax syntax = attributeType.getSyntax();
-            if (!syntax.isHumanReadable()) {
+            if (!attributeType.getSyntax().isHumanReadable()) {
                 builder.append("#");
                 builder.append(attributeValue.toHexString());
             } else {
@@ -879,15 +896,12 @@ public final class AVA implements Comparable<AVA> {
     }
 
     private boolean needEscaping(final ByteString value) {
-        boolean needEscaping = false;
         for (int i = 0; i < value.length(); i++) {
-            final byte b = value.byteAt(i);
-            if (isByteToEscape(b)) {
-                needEscaping = true;
-                break;
+            if (isByteToEscape(value.byteAt(i))) {
+                return true;
             }
         }
-        return needEscaping;
+        return false;
     }
 
     private boolean isByteToEscape(final byte b) {
