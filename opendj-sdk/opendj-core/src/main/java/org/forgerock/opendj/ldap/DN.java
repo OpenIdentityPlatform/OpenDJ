@@ -736,12 +736,16 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * dn.localName(dn.size()).equals(dn);
      * </pre>
      *
+     * Said otherwise, a new DN is built using {@code index} RDNs,
+     * retained in the same order, starting from the left.
+     *
      * @param index
      *            The number of RDNs to be included in the local name.
      * @return The DN whose content is the specified number of RDNs from this
      *         DN.
      * @throws IllegalArgumentException
      *             If {@code index} is less than zero.
+     * @see #parent(int) for the reverse operation (starting from the right)
      */
     public DN localName(final int index) {
         Reject.ifFalse(index >= 0, "index less than zero");
@@ -786,6 +790,9 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * RDNs removed. Note that if {@code index} is zero then this DN will be
      * returned (identity).
      *
+     * Said otherwise, a new DN is built using {@code index} RDNs,
+     * retained in the same order, starting from the right.
+     *
      * @param index
      *            The number of RDNs to be removed.
      * @return The DN which is equal to this DN with the specified number of
@@ -793,6 +800,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *         reached.
      * @throws IllegalArgumentException
      *             If {@code index} is less than zero.
+     * @see #localName(int) for the reverse operation (starting from the left)
      */
     public DN parent(final int index) {
         // We allow size + 1 so that we can return null as the parent of the
