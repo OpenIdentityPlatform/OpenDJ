@@ -361,12 +361,6 @@ public final class LDAPSearch extends ConsoleApplication {
             version = ldapVersionArgument();
             argParser.addArgument(version);
 
-            StringArgument.builder("encoding")
-                    .shortIdentifier('i')
-                    .description(INFO_DESCRIPTION_ENCODING.get())
-                    .valuePlaceholder(INFO_ENCODING_PLACEHOLDER.get())
-                    .buildAndAddToParser(argParser);
-
             dereferencePolicy =
                     MultiChoiceArgument.<DereferenceAliasesPolicy>builder("dereferencePolicy")
                             .shortIdentifier('a')

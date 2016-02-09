@@ -283,17 +283,6 @@ public final class LDAPModify extends ConsoleApplication {
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            // TODO: Remove this due to new LDIF reader api?
-            BooleanArgument.builder("defaultAdd")
-                    .shortIdentifier('a')
-                    .description(INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get())
-                    .buildAndAddToParser(argParser);
-
-            StringArgument.builder("encoding")
-                    .shortIdentifier('i')
-                    .description(INFO_DESCRIPTION_ENCODING.get())
-                    .valuePlaceholder(INFO_ENCODING_PLACEHOLDER.get())
-                    .buildAndAddToParser(argParser);
             filename =
                     StringArgument.builder(OPTION_LONG_FILENAME)
                             .shortIdentifier(OPTION_SHORT_FILENAME)
