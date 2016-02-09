@@ -374,8 +374,7 @@ public class Entry
 
     if(objectClassAttribute == null)
     {
-      AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
-      AttributeBuilder builder = new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
+      AttributeBuilder builder = new AttributeBuilder(DirectoryServer.getObjectClassAttributeType());
       builder.addAllStrings(objectClasses.values());
       objectClassAttribute = builder.toAttribute();
     }

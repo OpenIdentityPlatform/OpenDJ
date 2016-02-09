@@ -1321,7 +1321,7 @@ public class LDIFReader implements Closeable
 
     // Reconstruct the object class attribute.
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
-    AttributeBuilder builder = new AttributeBuilder(ocType, "objectClass");
+    AttributeBuilder builder = new AttributeBuilder(ocType);
     builder.addAllStrings(objectClasses.values());
     Map<AttributeType, List<Attribute>> attributes = toAttributesMap(attrBuilders);
     if (attributes.get(ocType) == null)

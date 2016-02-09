@@ -255,7 +255,7 @@ public class TemplateEntry
       }
       else if (t.isOperational())
       {
-        AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
+        AttributeBuilder builder = new AttributeBuilder(t);
         for (TemplateValue v : valueList)
         {
           builder.add(v.getValue().toString());
@@ -265,7 +265,7 @@ public class TemplateEntry
       }
       else
       {
-        AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
+        AttributeBuilder builder = new AttributeBuilder(t);
         AttributeBuilder urlBuilder = null;
         AttributeBuilder base64Builder = null;
         for (TemplateValue v : valueList)
@@ -276,7 +276,7 @@ public class TemplateEntry
           {
             if (urlBuilder == null)
             {
-              urlBuilder = new AttributeBuilder(t, t.getNameOrOID());
+              urlBuilder = new AttributeBuilder(t);
             }
             urlBuilder.add(value);
           }
@@ -284,7 +284,7 @@ public class TemplateEntry
           {
             if (base64Builder == null)
             {
-              base64Builder = new AttributeBuilder(t, t.getNameOrOID());
+              base64Builder = new AttributeBuilder(t);
             }
             base64Builder.add(value);
           }

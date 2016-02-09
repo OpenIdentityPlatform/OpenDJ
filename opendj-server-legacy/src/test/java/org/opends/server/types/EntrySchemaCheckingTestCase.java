@@ -446,8 +446,7 @@ public class EntrySchemaCheckingTestCase
     AttributeType creatorsNameType = DirectoryServer.getAttributeType("creatorsname");
     assertTrue(creatorsNameType.isOperational());
 
-    AttributeBuilder builder = new AttributeBuilder(creatorsNameType,
-        "creatorsName");
+    AttributeBuilder builder = new AttributeBuilder(creatorsNameType);
     builder.add("cn=Directory Manager");
     builder.add("cn=Another User");
     e.addAttribute(builder.toAttribute(), new LinkedList<ByteString>());

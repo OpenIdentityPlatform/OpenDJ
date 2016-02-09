@@ -829,18 +829,17 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
 
   /**
-   * Creates a new attribute builder with the specified attribute name
-   * and no options and no values.
+   * Creates a new attribute builder with the specified attribute description and no values.
    * <p>
-   * If the attribute name cannot be found in the schema, a new
-   * attribute type is created using the default attribute syntax.
+   * If the attribute name cannot be found in the schema, a new attribute type is created using the
+   * default attribute syntax.
    *
-   * @param attributeName
-   *          The attribute name for this attribute builder.
+   * @param attributeDescription
+   *          The attribute description for this attribute builder.
    */
-  public AttributeBuilder(String attributeName)
+  public AttributeBuilder(String attributeDescription)
   {
-    this(AttributeDescription.valueOf(attributeName));
+    this(AttributeDescription.valueOf(attributeDescription));
   }
 
 

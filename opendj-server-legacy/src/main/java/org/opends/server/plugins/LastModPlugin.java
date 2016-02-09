@@ -35,7 +35,12 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
@@ -129,8 +134,7 @@ public final class LastModPlugin
                doPreOperation(PreOperationAddOperation addOperation)
   {
     // Create the attribute list for the creatorsName attribute, if appropriate.
-    AttributeBuilder builder = new AttributeBuilder(creatorsNameType,
-        OP_ATTR_CREATORS_NAME);
+    AttributeBuilder builder = new AttributeBuilder(creatorsNameType);
     DN creatorDN = addOperation.getAuthorizationDN();
     if (creatorDN == null)
     {
@@ -161,8 +165,7 @@ public final class LastModPlugin
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     // Create the modifiersName attribute.
-    AttributeBuilder builder = new AttributeBuilder(modifiersNameType,
-        OP_ATTR_MODIFIERS_NAME);
+    AttributeBuilder builder = new AttributeBuilder(modifiersNameType);
     DN modifierDN = modifyOperation.getAuthorizationDN();
     if (modifierDN == null)
     {
@@ -219,8 +222,7 @@ public final class LastModPlugin
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     // Create the modifiersName attribute.
-    AttributeBuilder builder = new AttributeBuilder(modifiersNameType,
-        OP_ATTR_MODIFIERS_NAME);
+    AttributeBuilder builder = new AttributeBuilder(modifiersNameType);
     DN modifierDN = modifyDNOperation.getAuthorizationDN();
     if (modifierDN == null)
     {

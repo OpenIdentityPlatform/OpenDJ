@@ -34,8 +34,16 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager.DNLock;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.Schema;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -180,7 +188,7 @@ public class AddSchemaFileTask
           {
             Attribute a = m.getAttribute();
             AttributeType attrType = a.getAttributeDescription().getAttributeType();
-            AttributeBuilder builder = new AttributeBuilder(attrType, attrType.getNameOrOID());
+            AttributeBuilder builder = new AttributeBuilder(attrType);
             for (ByteString v : a)
             {
               String s = v.toString();
@@ -201,8 +209,7 @@ public class AddSchemaFileTask
               builder.add(s);
             }
 
-            mods.add(new Modification(m.getModificationType(), builder
-                .toAttribute()));
+            mods.add(new Modification(m.getModificationType(), builder.toAttribute()));
           }
         }
         catch (ConfigException | InitializationException e)

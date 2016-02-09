@@ -420,7 +420,7 @@ public final class AciHandler extends
     }
 
     // Load the values, a bind rule might want to evaluate them.
-    final AttributeBuilder builder = new AttributeBuilder(refAttrType, ATTR_REFERRAL_URL);
+    final AttributeBuilder builder = new AttributeBuilder(refAttrType);
     builder.addAllStrings(reference.getReferralURLs());
 
     final Entry e = new Entry(dn, null, null, null);

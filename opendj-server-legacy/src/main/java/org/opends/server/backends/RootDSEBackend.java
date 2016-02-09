@@ -570,9 +570,7 @@ public class RootDSEBackend
    */
   private Attribute createAttribute(String name, Collection<? extends Object> values)
   {
-    AttributeType type = DirectoryServer.getAttributeType(name);
-
-    AttributeBuilder builder = new AttributeBuilder(type, name);
+    AttributeBuilder builder = new AttributeBuilder(name);
     builder.addAllStrings(values);
     return builder.toAttribute();
   }

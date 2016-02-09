@@ -436,7 +436,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(add.getDN(), dn);
 
       List<Attribute> attrs = new ArrayList<>();
-      AttributeBuilder builder = new AttributeBuilder(AT_OC, "objectclass");
+      AttributeBuilder builder = new AttributeBuilder(AT_OC);
       builder.add("top");
       builder.add("person");
       builder.add("organizationalPerson");
@@ -514,7 +514,7 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.REPLACE);
-      builder = new AttributeBuilder(AT_TELN, "telephonenumber");
+      builder = new AttributeBuilder(AT_TELN);
       builder.add("+1 408 555 1234");
       builder.add("+1 408 555 5678");
       Assert.assertEquals(mod.getAttribute(), builder.toAttribute());
