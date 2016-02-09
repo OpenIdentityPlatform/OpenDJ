@@ -90,6 +90,7 @@
    <item name="Installation Guide" href="./doc/bootstrap/install-guide/index.html" />
    <item name="Administration Guide" href="./doc/bootstrap/admin-guide/index.html" />
    <item name="Server Dev Guide" href="./doc/bootstrap/server-dev-guide/index.html" />
+   <item name="Securing OpenDJ" href="./doc/bootstrap/security-guide/index.html" />
    <item name="Reference" href="./doc/bootstrap/reference/index.html" />
    <item name="Config Reference" href="./opendj-server-legacy/configref/index.html" />
    <item name="Plugin Javadoc" href="./opendj-server-legacy/apidocs/index.html" />

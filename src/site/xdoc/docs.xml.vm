@@ -70,6 +70,12 @@
      <a href="./doc/OpenDJ-${project.version}-Server-Dev-Guide.pdf">PDF</a>
     </dd>
 
+    <dt>Securing OpenDJ Directory Services</dt>
+    <dd>
+     <a href="./doc/bootstrap/security-guide/index.html">HTML</a>,
+     <a href="./doc/OpenDJ-${project.version}-Security-Guide.pdf">PDF</a>
+    </dd>
+
     <dt>Reference</dt>
     <dd>
      <a href="./doc/bootstrap/reference/index.html">HTML</a>,
