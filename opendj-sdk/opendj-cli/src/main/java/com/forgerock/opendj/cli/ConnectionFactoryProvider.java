@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2015 ForgeRock AS
+ *      Portions copyright 2011-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -129,9 +129,6 @@ public final class ConnectionFactoryProvider {
 
     /** Whether to use the password policy control in the bind request. */
     private final BooleanArgument usePasswordPolicyControlArg;
-
-    /** The port number to used to connect. */
-    private int port = DEFAULT_LDAP_PORT;
 
     /** The SSL context linked to this connection. */
     private SSLContext sslContext;
@@ -297,8 +294,7 @@ public final class ConnectionFactoryProvider {
             value = hostNameArg.getValue();
         } else if (app.isInteractive()) {
             try {
-                value = app.readInput(INFO_DESCRIPTION_HOST.get(),
-                        hostNameArg.getDefaultValue() == null ? value : hostNameArg.getDefaultValue());
+                value = app.readInput(INFO_DESCRIPTION_HOST.get(), getHostNameDefaultValue(value));
                 app.println();
                 hostNameArg.addValue(value);
                 hostNameArg.setPresent(true);
@@ -306,10 +302,14 @@ public final class ConnectionFactoryProvider {
                 throw new ArgumentException(ERR_ERROR_CANNOT_READ_HOST_NAME.get(), e);
             }
         } else {
-            return hostNameArg.getDefaultValue() == null ? value : hostNameArg.getDefaultValue();
+            return getHostNameDefaultValue(value);
         }
 
         return getHostNameForLdapUrl(value);
+    }
+
+    private String getHostNameDefaultValue(String fallbackValue) {
+        return hostNameArg.getDefaultValue() != null ? hostNameArg.getDefaultValue() : fallbackValue;
     }
 
     /**
@@ -324,6 +324,14 @@ public final class ConnectionFactoryProvider {
             } catch (ArgumentException e) {
                 return Integer.valueOf(portArg.getDefaultValue());
             }
+        } else if (app.isInteractive()) {
+            final LocalizableMessage portMsg =
+                    isAdminConnection ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get();
+            int value = app.askPort(portMsg, Integer.valueOf(portArg.getDefaultValue()), logger);
+            app.println();
+            portArg.addValue(Integer.toString(value));
+            portArg.setPresent(true);
+            return value;
         }
         return Integer.valueOf(portArg.getDefaultValue());
     }
@@ -376,32 +384,24 @@ public final class ConnectionFactoryProvider {
 
     private ConnectionFactory getConnectionFactory(boolean usePreAuthentication) throws ArgumentException {
         if (connFactory == null) {
-            port = portArg.isPresent() ? portArg.getIntValue() : 0;
-
             checkForConflictingArguments();
 
             if (app.isInteractive()) {
-                if (!hostNameArg.isPresent() || port == 0 || !bindNameArg.isPresent()
-                        || (!bindPasswordArg.isPresent() && !bindPasswordFileArg.isPresent())) {
+                boolean portIsMissing = !portArg.isPresent() || portArg.getIntValue() == 0;
+                boolean bindPwdIsMissing = !bindPasswordArg.isPresent() && !bindPasswordFileArg.isPresent();
+                if (!hostNameArg.isPresent() || portIsMissing || !bindNameArg.isPresent() || bindPwdIsMissing) {
                     app.printHeader(INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get());
                 }
                 if (!hostNameArg.isPresent()) {
                     getHostname();
                 }
-                if (port == 0) {
-                    LocalizableMessage portMsg;
-                    if (isAdminConnection) {
-                        portMsg = INFO_DESCRIPTION_ADMIN_PORT.get();
-                    } else {
-                        portMsg = INFO_DESCRIPTION_PORT.get();
-                    }
-                    port = app.askPort(portMsg, Integer.valueOf(portArg.getDefaultValue()), logger);
-                    app.println();
+                if (portIsMissing) {
+                    getPort();
                 }
                 if (!bindNameArg.isPresent()) {
                     getBindName();
                 }
-                if (!bindPasswordArg.isPresent() && !bindPasswordFileArg.isPresent()) {
+                if (bindPwdIsMissing) {
                     getPassword();
                 }
             }
@@ -444,7 +444,7 @@ public final class ConnectionFactoryProvider {
             if (usePreAuthentication) {
                 options.set(AUTHN_BIND_REQUEST, getBindRequest());
             }
-            connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
+            connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), portArg.getIntValue(), options);
         }
         return connFactory;
     }
