@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -316,7 +316,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
               logger.traceException(e);
             }
           }
-          if (newAuthNDN != null && authNDN != null && authNDN.isDescendantOf(oldEntry.getName()))
+          if (newAuthNDN != null && authNDN != null && authNDN.isSubordinateOrEqualTo(oldEntry.getName()))
           {
             if (newAuthNSet == null)
             {
@@ -325,7 +325,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
             conn.getAuthenticationInfo().setAuthenticationDN(newAuthNDN);
             newAuthNSet.add(conn);
           }
-          if (newAuthZDN != null && authZDN != null && authZDN.isDescendantOf(oldEntry.getName()))
+          if (newAuthZDN != null && authZDN != null && authZDN.isSubordinateOrEqualTo(oldEntry.getName()))
           {
             if (newAuthZSet == null)
             {

@@ -286,7 +286,7 @@ public class LocalBackendDeleteOperation
       {
         for (DN dn : b.getBaseDNs())
         {
-          if (dn.isDescendantOf(entryDN))
+          if (dn.isSubordinateOrEqualTo(entryDN))
           {
             setResultCodeAndMessageNoInfoDisclosure(entry,
                 ResultCode.NOT_ALLOWED_ON_NONLEAF,

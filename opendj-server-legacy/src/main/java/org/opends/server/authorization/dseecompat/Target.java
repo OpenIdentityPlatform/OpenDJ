@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -91,7 +91,7 @@ public class Target
               patternDN = PatternDN.decodeSuffix(targetURL.getRawBaseDN());
           } else {
               urlDN=targetURL.getBaseDN();
-              if(!urlDN.isDescendantOf(aciDN)) {
+              if(!urlDN.isSubordinateOrEqualTo(aciDN)) {
                   throw new AciException(WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.get(urlDN, aciDN));
               }
           }

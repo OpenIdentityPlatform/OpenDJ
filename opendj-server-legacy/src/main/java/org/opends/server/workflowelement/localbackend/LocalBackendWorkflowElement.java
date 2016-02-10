@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -1103,7 +1103,7 @@ public class LocalBackendWorkflowElement
     {
       for (DN subordinateDN : subordinate.getBaseDNs())
       {
-        if (subordinateDN.isDescendantOf(baseDN))
+        if (subordinateDN.isSubordinateOrEqualTo(baseDN))
         {
           results.add(registeredLocalBackends.get(subordinateDN));
         }

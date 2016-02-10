@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -150,13 +150,13 @@ public class DynamicGroupMemberList
       DN urlBaseDN = memberURL.getBaseDN();
       if (baseDN != null)
       {
-        if (baseDN.isDescendantOf(urlBaseDN))
+        if (baseDN.isSubordinateOrEqualTo(urlBaseDN))
         {
           // The base DN requested by the user is below the base DN for this
           // URL, so we'll use the base DN requested by the user.
           urlBaseDN = baseDN;
         }
-        else if (! urlBaseDN.isDescendantOf(baseDN))
+        else if (! urlBaseDN.isSubordinateOrEqualTo(baseDN))
         {
           // The base DN from the URL is outside the base requested by the user,
           // so we can skip this URL altogether.
@@ -187,7 +187,7 @@ public class DynamicGroupMemberList
           while (iterator.hasNext())
           {
             DN existingBaseDN = iterator.next();
-            if (urlBaseDN.isDescendantOf(existingBaseDN))
+            if (urlBaseDN.isSubordinateOrEqualTo(existingBaseDN))
             {
               // The base DN for the current URL is below an existing base DN,
               // so we can just add this URL to the existing list and be done.
@@ -196,7 +196,7 @@ public class DynamicGroupMemberList
               found = true;
               break;
             }
-            else if (existingBaseDN.isDescendantOf(urlBaseDN))
+            else if (existingBaseDN.isSubordinateOrEqualTo(urlBaseDN))
             {
               // The base DN for the current URL is above the existing base DN,
               // so we should use the base DN for the current URL instead of the

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -90,7 +90,7 @@ public class AddToGroupTask extends Task
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
-          if (groupDn.isDescendantOf(baseDN.getDn()))
+          if (groupDn.isSubordinateOrEqualTo(baseDN.getDn()))
           {
             backendSet.add(backend.getBackendID());
           }

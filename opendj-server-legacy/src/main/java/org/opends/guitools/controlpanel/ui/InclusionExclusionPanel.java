@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -477,7 +477,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
               try
               {
                 DN dn = DN.valueOf(dnArray[i]);
-                if (dn.isDescendantOf(baseDN.getDn()))
+                if (dn.isSubordinateOrEqualTo(baseDN.getDn()))
                 {
                   found = true;
                   break;

@@ -396,7 +396,7 @@ public final class SevenBitCleanPlugin
     {
       for (DN baseDN: baseDNs)
       {
-        if (dn.isDescendantOf(baseDN))
+        if (dn.isSubordinateOrEqualTo(baseDN))
         {
           return true;
         }

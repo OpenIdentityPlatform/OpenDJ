@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -93,7 +93,7 @@ public class NewEntryTask extends Task
     {
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
-        if (dn.isDescendantOf(baseDN.getDn()))
+        if (dn.isSubordinateOrEqualTo(baseDN.getDn()))
         {
           backendSet.add(backend.getBackendID());
         }
@@ -319,7 +319,7 @@ public class NewEntryTask extends Task
       try
       {
         DN nodeDN = DN.valueOf(node.getDN());
-        if (dn.isDescendantOf(nodeDN))
+        if (dn.isSubordinateOrEqualTo(nodeDN))
         {
           if (dn.size() == nodeDN.size() + 1)
           {

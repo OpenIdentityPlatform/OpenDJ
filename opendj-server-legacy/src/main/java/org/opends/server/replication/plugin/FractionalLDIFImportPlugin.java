@@ -206,7 +206,7 @@ public final class FractionalLDIFImportPlugin
       // Is the entry a sub entry of the replicated domain main entry ?
       DN replicatedDn = replicationDomainCfg.getBaseDN();
       DN entryDn = entry.getName();
-      if (entryDn.isDescendantOf(replicatedDn))
+      if (entryDn.isSubordinateOrEqualTo(replicatedDn))
       {
         // Found the matching replicated domain configuration object
         matchingReplicatedDomainCfg = replicationDomainCfg;

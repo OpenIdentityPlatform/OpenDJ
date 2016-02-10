@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -1458,7 +1458,7 @@ public final class SubtreeSpecification
   public boolean isDNWithinScope(final DN dn)
   {
 
-    if (!dn.isDescendantOf(baseDN))
+    if (!dn.isSubordinateOrEqualTo(baseDN))
     {
       return false;
     }
@@ -1489,7 +1489,7 @@ public final class SubtreeSpecification
     // Check exclusions.
     for (final DN chopBeforeDN : chopBefore.keySet())
     {
-      if (dn.isDescendantOf(chopBeforeDN))
+      if (dn.isSubordinateOrEqualTo(chopBeforeDN))
       {
         return false;
       }
@@ -1497,7 +1497,7 @@ public final class SubtreeSpecification
 
     for (final DN chopAfterDN : chopAfter.keySet())
     {
-      if (!dn.equals(chopAfterDN) && dn.isDescendantOf(chopAfterDN))
+      if (!dn.equals(chopAfterDN) && dn.isSubordinateOrEqualTo(chopAfterDN))
       {
         return false;
       }

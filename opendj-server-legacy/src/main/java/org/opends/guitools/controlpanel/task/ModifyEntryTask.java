@@ -114,8 +114,8 @@ public class ModifyEntryTask extends Task
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
-          if (newDn.isDescendantOf(baseDN.getDn()) ||
-              oldDn.isDescendantOf(baseDN.getDn()))
+          if (newDn.isSubordinateOrEqualTo(baseDN.getDn()) ||
+              oldDn.isSubordinateOrEqualTo(baseDN.getDn()))
           {
             backendSet.add(backend.getBackendID());
           }

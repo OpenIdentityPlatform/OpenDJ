@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -95,7 +95,7 @@ public class BaseDnRegistry {
       {
         otherBaseDNs.add(dn);
 
-        if (baseDN.isAncestorOf(dn) || baseDN.isDescendantOf(dn))
+        if (baseDN.isAncestorOf(dn) || baseDN.isSubordinateOrEqualTo(dn))
         {
           LocalizableMessage message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
               get(baseDN, backend.getBackendID(), dn);
@@ -224,7 +224,7 @@ public class BaseDnRegistry {
 
         for (DN dn : otherBaseDNs)
         {
-          if (!dn.isDescendantOf(parentDN))
+          if (!dn.isSubordinateOrEqualTo(parentDN))
           {
             LocalizableMessage msg = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.get(baseDN, backendID, dn);
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
@@ -274,7 +274,7 @@ public class BaseDnRegistry {
       {
         for (DN dn : b.getBaseDNs())
         {
-          if (dn.isDescendantOf(baseDN))
+          if (dn.isSubordinateOrEqualTo(baseDN))
           {
             subordinateBackends.add(b);
             break;

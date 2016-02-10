@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -422,7 +422,7 @@ public class AciList {
               aciList.entrySet().iterator();
       while (iterator.hasNext()) {
         Map.Entry<DN,List<Aci>> hashEntry = iterator.next();
-        if(hashEntry.getKey().isDescendantOf(oldDN)) {
+        if(hashEntry.getKey().isSubordinateOrEqualTo(oldDN)) {
           int keyRDNCount=hashEntry.getKey().size();
           int keepRDNCount=keyRDNCount - oldRDNCount;
           RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];

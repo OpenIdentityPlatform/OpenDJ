@@ -251,7 +251,7 @@ public class LocalBackendModifyDNOperation
     }
     else
     {
-      if (newSuperior.isDescendantOf(entryDN))
+      if (newSuperior.isSubordinateOrEqualTo(entryDN))
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE.get(entryDN, newSuperior));

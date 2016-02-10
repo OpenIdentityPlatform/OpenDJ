@@ -571,7 +571,7 @@ public class UniqueAttributePlugin
 
     for (DN baseDN : baseDNs)
     {
-      if (entryDN.isDescendantOf(baseDN))
+      if (entryDN.isSubordinateOrEqualTo(baseDN))
       {
         return baseDNs;
       }

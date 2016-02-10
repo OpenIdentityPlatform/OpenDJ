@@ -951,7 +951,7 @@ public abstract class Backend<C extends Configuration>
   {
     for (DN dn : getBaseDNs())
     {
-      if (entryDN.isDescendantOf(dn))
+      if (entryDN.isSubordinateOrEqualTo(dn))
       {
         for (Backend<?> b : subordinateBackends)
         {
@@ -983,7 +983,7 @@ public abstract class Backend<C extends Configuration>
   {
     for (DN baseDN : baseDNs)
     {
-      if (entryDN.isDescendantOf(baseDN) && !isExcluded(excludeDNs, entryDN))
+      if (entryDN.isSubordinateOrEqualTo(baseDN) && !isExcluded(excludeDNs, entryDN))
       {
         return true;
       }
@@ -999,7 +999,7 @@ public abstract class Backend<C extends Configuration>
     }
     for (DN excludeDN : excludeDNs)
     {
-      if (entryDN.isDescendantOf(excludeDN))
+      if (entryDN.isSubordinateOrEqualTo(excludeDN))
       {
         return true;
       }

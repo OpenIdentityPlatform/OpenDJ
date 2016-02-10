@@ -336,7 +336,7 @@ public class UserDN implements KeywordBindRule {
         }
         SearchScope scope=url.getScope();
         if(scope == SearchScope.WHOLE_SUBTREE) {
-            if(!evalCtx.getClientDN().isDescendantOf(urlDN))
+            if(!evalCtx.getClientDN().isSubordinateOrEqualTo(urlDN))
             {
               return EnumEvalResult.FALSE;
             }
@@ -349,7 +349,7 @@ public class UserDN implements KeywordBindRule {
         } else if(scope == SearchScope.SUBORDINATES) {
             DN userDN = evalCtx.getClientDN();
             if (userDN.size() <= urlDN.size() ||
-                 !userDN.isDescendantOf(urlDN)) {
+                 !userDN.isSubordinateOrEqualTo(urlDN)) {
               return EnumEvalResult.FALSE;
             }
         } else {

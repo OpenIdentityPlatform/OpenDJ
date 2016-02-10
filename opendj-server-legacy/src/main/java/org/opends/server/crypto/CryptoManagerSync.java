@@ -435,11 +435,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     final Entry entry = op.getEntryToAdd();
     final DN entryDN = op.getEntryDN();
-    if (entryDN.isDescendantOf(instanceKeysDN))
+    if (entryDN.isSubordinateOrEqualTo(instanceKeysDN))
     {
       handleInstanceKeyAddOperation(entry);
     }
-    else if (entryDN.isDescendantOf(secretKeysDN))
+    else if (entryDN.isSubordinateOrEqualTo(secretKeysDN))
     {
       try
       {
@@ -480,7 +480,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
     if (op.getResultCode() != ResultCode.SUCCESS
-        || !op.getEntryDN().isDescendantOf(instanceKeysDN))
+        || !op.getEntryDN().isSubordinateOrEqualTo(instanceKeysDN))
     {
       return PostResponse.continueOperationProcessing();
     }
@@ -508,11 +508,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     final Entry newEntry = op.getModifiedEntry();
     final DN entryDN = op.getEntryDN();
-    if (entryDN.isDescendantOf(instanceKeysDN))
+    if (entryDN.isSubordinateOrEqualTo(instanceKeysDN))
     {
       handleInstanceKeyModifyOperation(newEntry);
     }
-    else if (entryDN.isDescendantOf(secretKeysDN))
+    else if (entryDN.isSubordinateOrEqualTo(secretKeysDN))
     {
       try
       {

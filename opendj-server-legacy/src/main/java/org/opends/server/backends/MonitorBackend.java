@@ -424,7 +424,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     if (dit.containsKey(entryDN))
     {
       final DN nextDN = dit.higherKey(entryDN);
-      return ConditionResult.valueOf(nextDN != null && nextDN.isDescendantOf(entryDN));
+      return ConditionResult.valueOf(nextDN != null && nextDN.isSubordinateOrEqualTo(entryDN));
     }
     return ConditionResult.UNDEFINED;
   }
@@ -505,7 +505,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final int childDNSize = entryDN.size() + 1;
     for (final DN dn : dit.tailMap(entryDN, false).navigableKeySet())
     {
-      if (!dn.isDescendantOf(entryDN))
+      if (!dn.isSubordinateOrEqualTo(entryDN))
       {
         break;
       }
@@ -596,7 +596,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
           searchOperation.returnEntry(entry, null);
         }
       }
-      else if (scope == SearchScope.BASE_OBJECT || !dn.isDescendantOf(baseDN))
+      else if (scope == SearchScope.BASE_OBJECT || !dn.isSubordinateOrEqualTo(baseDN))
       {
         // No more entries will be in scope.
         break;

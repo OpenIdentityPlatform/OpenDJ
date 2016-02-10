@@ -521,7 +521,7 @@ public class ImportTask extends Task
         {
           for (DN importBase : defaultIncludeBranches)
           {
-            if (!baseDN.equals(importBase) && baseDN.isDescendantOf(importBase))
+            if (!baseDN.equals(importBase) && baseDN.isSubordinateOrEqualTo(importBase))
             {
               excludeBranches.add(baseDN);
               break;

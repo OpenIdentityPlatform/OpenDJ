@@ -1357,7 +1357,7 @@ public class ConfigFileHandler
 
   private DN getMatchedDNForDescendantOfConfig(DN dn)
   {
-    if (dn.isDescendantOf(configRootEntry.getDN()))
+    if (dn.isSubordinateOrEqualTo(configRootEntry.getDN()))
     {
       return getMatchedDN(dn);
     }

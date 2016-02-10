@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -457,7 +457,7 @@ implements EntryReadListener
       DN dn = DN.valueOf(sDn);
       for (DN parentDN : parentReadOnly)
       {
-        if (dn.isDescendantOf(parentDN))
+        if (dn.isSubordinateOrEqualTo(parentDN))
         {
           isReadOnly = true;
           break;
@@ -501,7 +501,7 @@ implements EntryReadListener
   {
     for (DN parentDN : parentDNs)
     {
-      if (dn.isDescendantOf(parentDN))
+      if (dn.isSubordinateOrEqualTo(parentDN))
       {
         return false;
       }

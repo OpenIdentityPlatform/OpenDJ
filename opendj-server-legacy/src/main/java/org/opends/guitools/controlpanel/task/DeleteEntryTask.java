@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -118,7 +118,7 @@ public class DeleteEntryTask extends Task
       {
         for (DN dn : entries)
         {
-          if (dn.isDescendantOf(baseDN.getDn()))
+          if (dn.isSubordinateOrEqualTo(baseDN.getDn()))
           {
             backendSet.add(backend.getBackendID());
             break;
@@ -208,7 +208,7 @@ public class DeleteEntryTask extends Task
           boolean isDnDeleted = false;
           for (DN deletedDn : alreadyDeleted)
           {
-            if (dn.isDescendantOf(deletedDn))
+            if (dn.isSubordinateOrEqualTo(deletedDn))
             {
               isDnDeleted = true;
               break;

@@ -1388,21 +1388,21 @@ public class EntryContainer
     {
       // Check if this entry is an immediate child.
       if (entryDN.size() == aBaseDN.size() + 1
-          && entryDN.isDescendantOf(aBaseDN))
+          && entryDN.isSubordinateOrEqualTo(aBaseDN))
       {
         return true;
       }
     }
     else if (searchScope == SearchScope.WHOLE_SUBTREE)
     {
-      if (entryDN.isDescendantOf(aBaseDN))
+      if (entryDN.isSubordinateOrEqualTo(aBaseDN))
       {
         return true;
       }
     }
     else if (searchScope == SearchScope.SUBORDINATES
         && entryDN.size() > aBaseDN.size()
-        && entryDN.isDescendantOf(aBaseDN))
+        && entryDN.isSubordinateOrEqualTo(aBaseDN))
     {
       return true;
     }
@@ -2479,7 +2479,7 @@ public class EntryContainer
   private DN getMatchedDN(ReadableTransaction txn, DN targetDN) throws DirectoryException
   {
     DN parentDN  = targetDN.getParentDNInSuffix();
-    while (parentDN != null && parentDN.isDescendantOf(baseDN))
+    while (parentDN != null && parentDN.isSubordinateOrEqualTo(baseDN))
     {
       if (entryExists(txn, parentDN))
       {

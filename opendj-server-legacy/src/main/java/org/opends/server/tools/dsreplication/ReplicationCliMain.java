@@ -1460,7 +1460,7 @@ public class ReplicationCliMain extends ConsoleApplication
         for (String adn : getCommonSuffixes(ctxSource, ctxDest, SuffixRelationType.REPLICATED))
         {
           DN dn = DN.valueOf(adn);
-          if (DN.valueOf(targetDN).isDescendantOf(dn) && dn.isDescendantOf(targetBaseDN))
+          if (DN.valueOf(targetDN).isSubordinateOrEqualTo(dn) && dn.isSubordinateOrEqualTo(targetBaseDN))
           {
             targetBaseDN = dn;
           }

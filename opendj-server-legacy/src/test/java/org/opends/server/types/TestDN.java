@@ -589,8 +589,8 @@ public class TestDN extends TypesTestCase {
     assertTrue(p.isAncestorOf(c));
     assertFalse(c.isAncestorOf(p));
 
-    assertTrue(c.isDescendantOf(p));
-    assertFalse(p.isDescendantOf(c));
+    assertTrue(c.isSubordinateOrEqualTo(p));
+    assertFalse(p.isSubordinateOrEqualTo(c));
 
     assertEquals(p, e);
     assertEquals(p.hashCode(), e.hashCode());
@@ -803,8 +803,8 @@ public class TestDN extends TypesTestCase {
     assertTrue(p.isAncestorOf(c));
     assertFalse(c.isAncestorOf(p));
 
-    assertTrue(c.isDescendantOf(p));
-    assertFalse(p.isDescendantOf(c));
+    assertTrue(c.isSubordinateOrEqualTo(p));
+    assertFalse(p.isSubordinateOrEqualTo(c));
 
     assertEquals(c, e);
     assertEquals(c.hashCode(), e.hashCode());
@@ -1073,7 +1073,7 @@ public class TestDN extends TypesTestCase {
     DN dn = DN.valueOf(s);
     DN other = DN.valueOf(d);
 
-    assertEquals(dn.isDescendantOf(other), e, s + " isDescendantOf "
+    assertEquals(dn.isSubordinateOrEqualTo(other), e, s + " isDescendantOf "
         + d);
   }
 
@@ -1089,7 +1089,7 @@ public class TestDN extends TypesTestCase {
       AssertionError.class })
   public void testIsDescendantOfException() throws Exception {
     DN dn = DN.valueOf("dc=com");
-    dn.isDescendantOf(null);
+    dn.isSubordinateOrEqualTo(null);
   }
 
 

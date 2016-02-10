@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS.
+ *      Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -100,7 +100,7 @@ class ExportJob
       {
         for (DN includeBranch : includeBranches)
         {
-          if (includeBranch.isDescendantOf(baseDN) ||
+          if (includeBranch.isSubordinateOrEqualTo(baseDN) ||
                includeBranch.isAncestorOf(baseDN))
           {
             exportContainers.add(entryContainer);

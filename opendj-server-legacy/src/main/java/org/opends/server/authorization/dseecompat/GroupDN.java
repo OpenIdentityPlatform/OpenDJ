@@ -147,7 +147,7 @@ public class GroupDN implements KeywordBindRule {
         for(ByteString v : attrs.get(0)) {
             try {
                 DN groupDN = DN.valueOf(v.toString());
-                if(suffixDN != null && !groupDN.isDescendantOf(suffixDN))
+                if(suffixDN != null && !groupDN.isSubordinateOrEqualTo(suffixDN))
                 {
                   continue;
                 }

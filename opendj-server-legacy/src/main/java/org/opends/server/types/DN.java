@@ -264,7 +264,7 @@ public final class DN implements Comparable<DN>, Serializable
   {
     Reject.ifNull(fromDN, toDN);
 
-    if (!isDescendantOf(fromDN))
+    if (!isSubordinateOrEqualTo(fromDN))
     {
       return this;
     }
@@ -438,7 +438,7 @@ public final class DN implements Comparable<DN>, Serializable
    * @return  <CODE>true</CODE> if this DN is a descendant of the
    *          provided DN, or <CODE>false</CODE> if not.
    */
-  public boolean isDescendantOf(DN dn)
+  public boolean isSubordinateOrEqualTo(DN dn)
   {
     int offset = numComponents - dn.numComponents;
     if (offset < 0)
@@ -515,12 +515,12 @@ public final class DN implements Comparable<DN>, Serializable
 
       case WHOLE_SUBTREE:
         // This DN must be a descendant of the provided base DN.
-        return isDescendantOf(baseDN);
+      return isSubordinateOrEqualTo(baseDN);
 
       case SUBORDINATES:
         // This DN must be a descendant of the provided base DN, but
         // not equal to it.
-        return !equals(baseDN) && isDescendantOf(baseDN);
+      return !equals(baseDN) && isSubordinateOrEqualTo(baseDN);
 
       default:
         // This is a scope that we don't recognize.

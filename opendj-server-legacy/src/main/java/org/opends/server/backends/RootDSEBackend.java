@@ -605,7 +605,7 @@ public class RootDSEBackend
     for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN baseDN = entry.getKey();
-      if (entryDN.isDescendantOf(baseDN))
+      if (entryDN.isSubordinateOrEqualTo(baseDN))
       {
         Backend<?> b = entry.getValue();
         if (b.entryExists(entryDN))

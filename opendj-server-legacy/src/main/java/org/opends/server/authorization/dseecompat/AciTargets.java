@@ -621,14 +621,14 @@ public class AciTargets {
             }
             break;
         case WHOLE_SUBTREE:
-            if(!entryDN.isDescendantOf(targetDN))
+            if(!entryDN.isSubordinateOrEqualTo(targetDN))
             {
               return false;
             }
             break;
         case SUBORDINATES:
             if (entryDN.size() <= targetDN.size() ||
-                 !entryDN.isDescendantOf(targetDN)) {
+                 !entryDN.isSubordinateOrEqualTo(targetDN)) {
               return false;
             }
             break;
@@ -645,7 +645,7 @@ public class AciTargets {
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op == EnumTargetOperator.NOT_EQUALITY) {
                 DN tmpDN=targets.getTarget().getDN();
-                if(entryDN.isDescendantOf(tmpDN))
+                if(entryDN.isSubordinateOrEqualTo(tmpDN))
                 {
                   return false;
                 }

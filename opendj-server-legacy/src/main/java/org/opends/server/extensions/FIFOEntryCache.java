@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -698,7 +698,7 @@ public class FIFOEntryCache
     {
       CacheEntry e = iterator.next();
       DN entryDN = e.getEntry().getName();
-      if (entryDN.isDescendantOf(baseDN))
+      if (entryDN.isSubordinateOrEqualTo(baseDN))
       {
         iterator.remove();
         dnMap.remove(entryDN);
@@ -721,7 +721,7 @@ public class FIFOEntryCache
       boolean isAppropriate = false;
       for (DN subBase : subBackend.getBaseDNs())
       {
-        if (subBase.isDescendantOf(baseDN))
+        if (subBase.isSubordinateOrEqualTo(baseDN))
         {
           isAppropriate = true;
           break;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS.
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -448,7 +448,7 @@ final class RemotePendingChanges
              * Check if the operation to be run is a deleteOperation on a
              * children of the current DeleteOperation.
              */
-            if (pendingMsg.getDN().isDescendantOf(targetDN))
+            if (pendingMsg.getDN().isSubordinateOrEqualTo(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -473,7 +473,7 @@ final class RemotePendingChanges
              * Check if the operation to be run is an ModifyDNOperation
              * on a children of the current DeleteOperation
              */
-            if (pendingMsg.getDN().isDescendantOf(targetDN)
+            if (pendingMsg.getDN().isSubordinateOrEqualTo(targetDN)
                 || pendingModDn.newDNIsParent(targetDN))
             {
               hasDependencies = true;
