@@ -278,16 +278,13 @@ abstract class LoadBalancer implements ConnectionFactory {
     /**
      * Return the first available connection factory starting from {@code initialIndex}.
      *
-     * @param initialIndex The index of the connection factory to be returned if operational. The index may be
-     *                     greater than the number of factories in which case this method will perform a modulus
-     *                     operation to bring it into range. NOTE: for performance reasons callers should attempt to
-     *                     use valid indexes because the modulus operation is relatively expensive.
+     * @param initialIndex The index of the connection factory to be returned if operational.
      * @return The first available connection factory starting from the initial index.
      * @throws LdapException If no connection factories are available.
      */
     final ConnectionFactory getMonitoredConnectionFactory(final int initialIndex) throws LdapException {
         final int maxIndex = monitoredFactories.size();
-        int index = initialIndex < maxIndex ? initialIndex : initialIndex % maxIndex;
+        int index = initialIndex;
         do {
             final MonitoredConnectionFactory factory = monitoredFactories.get(index);
             if (factory.isOperational.get()) {

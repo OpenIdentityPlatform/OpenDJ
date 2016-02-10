@@ -34,12 +34,28 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.DigestMD5SASLBindRequest;
+import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
+import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
+import org.forgerock.opendj.ldap.requests.Request;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
+import org.forgerock.util.Function;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
 
@@ -413,6 +429,7 @@ public final class Connections {
      * @param options
      *         This configuration options for the load-balancer.
      * @return The new round-robin load balancer.
+     * @see #newShardedRequestLoadBalancer(Collection, Options)
      * @see #newFailoverLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
@@ -480,6 +497,7 @@ public final class Connections {
      *         This configuration options for the load-balancer.
      * @return The new fail-over load balancer.
      * @see #newRoundRobinLoadBalancer(Collection, Options)
+     * @see #newShardedRequestLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
      * @see #LOAD_BALANCER_SCHEDULER
@@ -491,6 +509,122 @@ public final class Connections {
             int getInitialConnectionFactoryIndex() {
                 // Always start with the first connection factory.
                 return 0;
+            }
+        };
+    }
+
+    /**
+     * Creates a new "sharded" load-balancer which will load-balance individual requests across the provided set of
+     * connection factories, each typically representing a single replica, using an algorithm that ensures that requests
+     * targeting a given DN will always be routed to the same replica. In other words, this load-balancer increases
+     * consistency whilst maintaining read-scalability by simulating a "single master" replication topology, where each
+     * replica is responsible for a subset of the entries. When a replica is unavailable the load-balancer "fails over"
+     * by performing a linear probe in order to find the next available replica thus ensuring high-availability when a
+     * network partition occurs while sacrificing consistency, since the unavailable replica may still be visible to
+     * other clients.
+     * <p/>
+     * This load-balancer distributes requests based on the hash of their target DN and handles all core operations, as
+     * well as any password modify extended requests and SASL bind requests which use authentication IDs having the
+     * "dn:" form. Note that subtree operations (searches, subtree deletes, and modify DN) are likely to include entries
+     * which are "mastered" on different replicas, so client applications should be more tolerant of inconsistencies.
+     * Requests that are either unrecognized or that do not have a parameter that may be considered to be a target DN
+     * will be routed randomly.
+     * <p/>
+     * <b>NOTE:</b> this connection factory returns fake connections, since real connections are obtained for each
+     * request. Therefore, the returned fake connections have certain limitations: abandon requests will be ignored
+     * since they cannot be routed; connection event listeners can be registered, but will only be notified when the
+     * fake connection is closed or when all of the connection factories are unavailable.
+     * <p/>
+     * <b>NOTE:</b> in deployments where there are multiple client applications, care should be taken to ensure that
+     * the factories are configured using the same ordering, otherwise requests will not be routed consistently
+     * across the client applications.
+     * <p/>
+     * The implementation periodically attempts to connect to failed connection factories in order to determine if they
+     * have become available again.
+     *
+     * @param factories
+     *         The connection factories.
+     * @param options
+     *         This configuration options for the load-balancer.
+     * @return The new affinity load balancer.
+     * @see #newRoundRobinLoadBalancer(Collection, Options)
+     * @see #newFailoverLoadBalancer(Collection, Options)
+     * @see #LOAD_BALANCER_EVENT_LISTENER
+     * @see #LOAD_BALANCER_MONITORING_INTERVAL
+     * @see #LOAD_BALANCER_SCHEDULER
+     */
+    public static ConnectionFactory newShardedRequestLoadBalancer(
+            final Collection<? extends ConnectionFactory> factories, final Options options) {
+        return new RequestLoadBalancer("ShardedRequestLoadBalancer",
+                                       factories,
+                                       options,
+                                       newShardedRequestLoadBalancerFunction(factories));
+    }
+
+    // Package private for testing.
+    static Function<Request, Integer, NeverThrowsException> newShardedRequestLoadBalancerFunction(
+            final Collection<? extends ConnectionFactory> factories) {
+        return new Function<Request, Integer, NeverThrowsException>() {
+            private final int maxIndex = factories.size();
+
+            @Override
+            public Integer apply(final Request request) {
+                // Normalize the hash to a valid factory index, taking care of negative hash values and especially
+                // Integer.MIN_VALUE (see doc for Math.abs()).
+                final int index = computeIndexBasedOnDnHashCode(request);
+                return index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % maxIndex);
+            }
+
+            private int computeIndexBasedOnDnHashCode(final Request request) {
+                // The following conditions are ordered such that the most common operations appear first in order to
+                // reduce the average number of branches. A better solution would be to use a visitor, but a visitor
+                // would only apply to the core operations, not extended operations or SASL binds.
+                if (request instanceof SearchRequest) {
+                    return ((SearchRequest) request).getName().hashCode();
+                } else if (request instanceof ModifyRequest) {
+                    return ((ModifyRequest) request).getName().hashCode();
+                } else if (request instanceof SimpleBindRequest) {
+                    return hashCodeOfDnString(((SimpleBindRequest) request).getName());
+                } else if (request instanceof AddRequest) {
+                    return ((AddRequest) request).getName().hashCode();
+                } else if (request instanceof DeleteRequest) {
+                    return ((DeleteRequest) request).getName().hashCode();
+                } else if (request instanceof CompareRequest) {
+                    return ((CompareRequest) request).getName().hashCode();
+                } else if (request instanceof ModifyDNRequest) {
+                    return ((ModifyDNRequest) request).getName().hashCode();
+                } else if (request instanceof PasswordModifyExtendedRequest) {
+                    return hashCodeOfAuthzid(((PasswordModifyExtendedRequest) request).getUserIdentityAsString());
+                } else if (request instanceof PlainSASLBindRequest) {
+                    return hashCodeOfAuthzid(((PlainSASLBindRequest) request).getAuthenticationID());
+                } else if (request instanceof DigestMD5SASLBindRequest) {
+                    return hashCodeOfAuthzid(((DigestMD5SASLBindRequest) request).getAuthenticationID());
+                } else if (request instanceof GSSAPISASLBindRequest) {
+                    return hashCodeOfAuthzid(((GSSAPISASLBindRequest) request).getAuthenticationID());
+                } else if (request instanceof CRAMMD5SASLBindRequest) {
+                    return hashCodeOfAuthzid(((CRAMMD5SASLBindRequest) request).getAuthenticationID());
+                } else {
+                    return distributeRequestAtRandom();
+                }
+            }
+
+            private int hashCodeOfAuthzid(final String authzid) {
+                if (authzid != null && authzid.startsWith("dn:")) {
+                    return hashCodeOfDnString(authzid.substring(3));
+                }
+                return distributeRequestAtRandom();
+            }
+
+            private int hashCodeOfDnString(final String dnString) {
+                try {
+                    return DN.valueOf(dnString).hashCode();
+                } catch (final IllegalArgumentException ignored) {
+                    return distributeRequestAtRandom();
+                }
+            }
+
+            private int distributeRequestAtRandom() {
+                return ThreadLocalRandom.current().nextInt(0, maxIndex);
             }
         };
     }

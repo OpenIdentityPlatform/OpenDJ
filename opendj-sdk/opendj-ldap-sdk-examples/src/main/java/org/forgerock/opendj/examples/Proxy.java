@@ -22,26 +22,27 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
 
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_ENABLED;
-import static org.forgerock.opendj.ldap.LDAPListener.*;
+import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
@@ -61,33 +62,44 @@ import org.forgerock.util.Options;
  * This example takes the following command line parameters:
  *
  * <pre>
- *     {@code <listenAddress> <listenPort> <proxyDN> <proxyPassword> <remoteAddress1> <remotePort1>
- *      [<remoteAddress2> <remotePort2> ...]}
+ *     {@code [--load-balancer <mode>] <listenAddress> <listenPort> <proxyDN> <proxyPassword>
+ *         <remoteAddress1> <remotePort1> [<remoteAddress2> <remotePort2> ...]}
  * </pre>
+ *
+ * Where {@code <mode>} is one of "round-robin", "fail-over", or "sharded". The default is round-robin.
  */
 public final class Proxy {
     /**
      * Main method.
      *
      * @param args
-     *            The command line arguments: listen address, listen port,
+     *            The command line arguments: [--load-balancer <mode>] listen address, listen port,
      *            remote address1, remote port1, remote address2, remote port2,
      *            ...
      */
     public static void main(final String[] args) {
         if (args.length < 6 || args.length % 2 != 0) {
-            System.err.println("Usage: listenAddress listenPort "
-                    + "proxyDN proxyPassword remoteAddress1 remotePort1 "
-                    + "remoteAddress2 remotePort2 ...");
+            System.err.println("Usage: [--load-balancer <mode>] listenAddress listenPort "
+                    + "proxyDN proxyPassword remoteAddress1 remotePort1 remoteAddress2 remotePort2 ...");
             System.exit(1);
         }
 
         // Parse command line arguments.
-        final String localAddress = args[0];
-        final int localPort = Integer.parseInt(args[1]);
+        int i = 0;
 
-        final String proxyDN = args[2];
-        final String proxyPassword = args[3];
+        final LoadBalancingAlgorithm algorithm;
+        if ("--load-balancer".equals(args[i])) {
+            algorithm = getLoadBalancingAlgorithm(args[i + 1]);
+            i += 2;
+        } else {
+            algorithm = LoadBalancingAlgorithm.ROUND_ROBIN;
+        }
+
+        final String localAddress = args[i++];
+        final int localPort = Integer.parseInt(args[i++]);
+
+        final String proxyDN = args[i++];
+        final String proxyPassword = args[i++];
 
         // Create load balancer.
         // --- JCite pools ---
@@ -100,7 +112,7 @@ public final class Proxy {
         final List<ConnectionFactory> bindFactories = new LinkedList<>();
         final Options bindFactoryOptions = Options.defaultOptions().set(HEARTBEAT_ENABLED, true);
 
-        for (int i = 4; i < args.length; i += 2) {
+        for (; i < args.length; i += 2) {
             final String remoteAddress = args[i];
             final int remotePort = Integer.parseInt(args[i + 1]);
 
@@ -114,10 +126,8 @@ public final class Proxy {
         }
         // --- JCite pools ---
 
-        // --- JCite load balancer ---
-        final ConnectionFactory factory = Connections.newRoundRobinLoadBalancer(factories, factoryOptions);
-        final ConnectionFactory bindFactory = Connections.newRoundRobinLoadBalancer(bindFactories, bindFactoryOptions);
-        // --- JCite load balancer ---
+        final ConnectionFactory factory = algorithm.newLoadBalancer(factories, factoryOptions);
+        final ConnectionFactory bindFactory = algorithm.newLoadBalancer(bindFactories, bindFactoryOptions);
 
         // --- JCite backend ---
         /*
@@ -154,6 +164,47 @@ public final class Proxy {
             }
         }
         // --- JCite listener ---
+    }
+
+    private static LoadBalancingAlgorithm getLoadBalancingAlgorithm(final String algorithmName) {
+        switch (algorithmName) {
+        case "round-robin":
+            return LoadBalancingAlgorithm.ROUND_ROBIN;
+        case "fail-over":
+            return LoadBalancingAlgorithm.FAIL_OVER;
+        case "sharded":
+            return LoadBalancingAlgorithm.SHARDED;
+        default:
+            System.err.println("Unrecognized load-balancing algorithm '" + algorithmName + "'. Should be one of "
+                                       + "'round-robin', 'fail-over', or 'sharded'.");
+            System.exit(1);
+        }
+        return LoadBalancingAlgorithm.ROUND_ROBIN; // keep compiler happy.
+    }
+
+    private enum LoadBalancingAlgorithm {
+        ROUND_ROBIN {
+            @Override
+            ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
+                // --- JCite load balancer ---
+                return Connections.newRoundRobinLoadBalancer(factories, options);
+                // --- JCite load balancer ---
+            }
+        },
+        FAIL_OVER {
+            @Override
+            ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
+                return Connections.newFailoverLoadBalancer(factories, options);
+            }
+        },
+        SHARDED {
+            @Override
+            ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
+                return Connections.newShardedRequestLoadBalancer(factories, options);
+            }
+        };
+
+        abstract ConnectionFactory newLoadBalancer(Collection<ConnectionFactory> factories, Options options);
     }
 
     private Proxy() {
