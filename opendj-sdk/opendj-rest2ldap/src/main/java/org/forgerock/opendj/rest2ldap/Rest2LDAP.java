@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -21,7 +21,7 @@ import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
 import static org.forgerock.opendj.ldap.Connections.newFailoverLoadBalancer;
 import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_MONITORING_INTERVAL;
+import static org.forgerock.opendj.ldap.Connections.LOAD_BALANCER_MONITORING_INTERVAL;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;

@@ -22,28 +22,53 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.RequestHandlerFactoryAdapter.adaptRequestHandler;
+import static org.forgerock.util.time.Duration.duration;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.time.Duration;
 
 /**
  * This class contains methods for creating and manipulating connection
  * factories and connections.
  */
 public final class Connections {
+    /**
+     * Specifies the interval between successive attempts to reconnect to offline load-balanced connection factories.
+     * The default configuration is to attempt to reconnect every second.
+     */
+    public static final Option<Duration> LOAD_BALANCER_MONITORING_INTERVAL = Option.withDefault(duration("1 seconds"));
+
+    /**
+     * Specifies the event listener which should be notified whenever a load-balanced connection factory changes state
+     * from online to offline or vice-versa. By default events will be logged to the {@code LoadBalancingAlgorithm}
+     * logger using the {@link LoadBalancerEventListener#LOG_EVENTS} listener.
+     */
+    public static final Option<LoadBalancerEventListener> LOAD_BALANCER_EVENT_LISTENER =
+            Option.of(LoadBalancerEventListener.class, LoadBalancerEventListener.LOG_EVENTS);
+
+    /**
+     * Specifies the scheduler which will be used for periodically reconnecting to offline connection factories. A
+     * system-wide scheduler will be used by default.
+     */
+    public static final Option<ScheduledExecutorService> LOAD_BALANCER_SCHEDULER =
+            Option.of(ScheduledExecutorService.class, null);
+
     /**
      * Creates a new connection pool which creates new connections as needed
      * using the provided connection factory, but will reuse previously
@@ -365,14 +390,15 @@ public final class Connections {
     }
 
     /**
-     * Creates a new "round-robin" load-balance which will load-balance connections across the provided set of
+     * Creates a new "round-robin" load-balancer which will load-balance connections across the provided set of
      * connection factories. A round robin load balancing algorithm distributes connection requests across a list of
      * connection factories one at a time. When the end of the list is reached, the algorithm starts again from the
      * beginning.
      * <p/>
      * This algorithm is typically used for load-balancing <i>within</i> data centers, where load must be distributed
-     * equally across multiple data sources. This algorithm contrasts with the {@link FailoverLoadBalancingAlgorithm}
-     * which is used for load-balancing <i>between</i> data centers.
+     * equally across multiple data sources. This algorithm contrasts with the
+     * {@link #newFailoverLoadBalancer(Collection, Options)} which is used for load-balancing <i>between</i> data
+     * centers.
      * <p/>
      * If a problem occurs that temporarily prevents connections from being obtained for one of the connection
      * factories, then this algorithm automatically "fails over" to the next operational connection factory in the list.
@@ -385,24 +411,55 @@ public final class Connections {
      * @param factories
      *         The connection factories.
      * @param options
-     *         This configuration options for the load-balancer. See {@link LoadBalancingAlgorithm} for common options.
+     *         This configuration options for the load-balancer.
      * @return The new round-robin load balancer.
      * @see #newFailoverLoadBalancer(Collection, Options)
-     * @see LoadBalancingAlgorithm
+     * @see #LOAD_BALANCER_EVENT_LISTENER
+     * @see #LOAD_BALANCER_MONITORING_INTERVAL
+     * @see #LOAD_BALANCER_SCHEDULER
      */
     public static ConnectionFactory newRoundRobinLoadBalancer(
             final Collection<? extends ConnectionFactory> factories, final Options options) {
-        return new LoadBalancer(new RoundRobinLoadBalancingAlgorithm(factories, options));
+        return new ConnectionLoadBalancer("RoundRobinLoadBalancer", factories, options) {
+            private final int maxIndex = factories.size();
+            private final AtomicInteger nextIndex = new AtomicInteger(-1);
+
+            @Override
+            int getInitialConnectionFactoryIndex() {
+                // A round robin pool of one connection factories is unlikely in
+                // practice and requires special treatment.
+                if (maxIndex == 1) {
+                    return 0;
+                }
+
+                // Determine the next factory to use: avoid blocking algorithm.
+                int oldNextIndex;
+                int newNextIndex;
+                do {
+                    oldNextIndex = nextIndex.get();
+                    newNextIndex = oldNextIndex + 1;
+                    if (newNextIndex == maxIndex) {
+                        newNextIndex = 0;
+                    }
+                } while (!nextIndex.compareAndSet(oldNextIndex, newNextIndex));
+
+                // There's a potential, but benign, race condition here: other threads
+                // could jump in and rotate through the list before we return the
+                // connection factory.
+                return newNextIndex;
+            }
+        };
     }
 
     /**
-     * Creates a new "fail-over" load-balance which will load-balance connections across the provided set of connection
+     * Creates a new "fail-over" load-balancer which will load-balance connections across the provided set of connection
      * factories. A fail-over load balancing algorithm provides fault tolerance across multiple underlying connection
      * factories.
      * <p/>
      * This algorithm is typically used for load-balancing <i>between</i> data centers, where there is preference to
      * always forward connection requests to the <i>closest available</i> data center. This algorithm contrasts with the
-     * {@link RoundRobinLoadBalancingAlgorithm} which is used for load-balancing <i>within</i> a data center.
+     * {@link #newRoundRobinLoadBalancer(Collection, Options)} which is used for load-balancing <i>within</i> a data
+     * center.
      * <p/>
      * This algorithm selects connection factories based on the order in which they were provided during construction.
      * More specifically, an attempt to obtain a connection factory will always return the <i>first operational</i>
@@ -420,27 +477,22 @@ public final class Connections {
      * @param factories
      *         The connection factories.
      * @param options
-     *         This configuration options for the load-balancer. See {@link LoadBalancingAlgorithm} for common options.
+     *         This configuration options for the load-balancer.
      * @return The new fail-over load balancer.
      * @see #newRoundRobinLoadBalancer(Collection, Options)
-     * @see LoadBalancingAlgorithm
+     * @see #LOAD_BALANCER_EVENT_LISTENER
+     * @see #LOAD_BALANCER_MONITORING_INTERVAL
+     * @see #LOAD_BALANCER_SCHEDULER
      */
     public static ConnectionFactory newFailoverLoadBalancer(
             final Collection<? extends ConnectionFactory> factories, final Options options) {
-        return new LoadBalancer(new FailoverLoadBalancingAlgorithm(factories, options));
-    }
-
-    /**
-     * Creates a new load balancer which will obtain connections using the provided load balancing algorithm.
-     *
-     * @param algorithm
-     *         The load balancing algorithm which will be used to obtain the next
-     * @return The new load balancer.
-     * @throws NullPointerException
-     *         If {@code algorithm} was {@code null}.
-     */
-    public static ConnectionFactory newLoadBalancer(final LoadBalancingAlgorithm algorithm) {
-        return new LoadBalancer(algorithm);
+        return new ConnectionLoadBalancer("FailoverLoadBalancer", factories, options) {
+            @Override
+            int getInitialConnectionFactoryIndex() {
+                // Always start with the first connection factory.
+                return 0;
+            }
+        };
     }
 
     /**

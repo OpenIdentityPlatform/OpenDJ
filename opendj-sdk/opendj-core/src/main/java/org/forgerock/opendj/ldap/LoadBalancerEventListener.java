@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013-2015 ForgeRock AS.
+ *      Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -40,16 +40,16 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  * sent at a time. Event listener implementations should not need to be thread
  * safe.
  *
- * @see LoadBalancingAlgorithm#LOAD_BALANCER_EVENT_LISTENER
+ * @see Connections#LOAD_BALANCER_EVENT_LISTENER
  */
 public interface LoadBalancerEventListener extends EventListener {
     /**
      * An event listener implementation which logs events to the LoadBalancingAlgorithm logger. This event listener is
-     * the default implementation configured using the {@link LoadBalancingAlgorithm#LOAD_BALANCER_EVENT_LISTENER}
+     * the default implementation configured using the {@link Connections#LOAD_BALANCER_EVENT_LISTENER}
      * option.
      */
     LoadBalancerEventListener LOG_EVENTS = new LoadBalancerEventListener() {
-        private final LocalizedLogger logger = LocalizedLogger.getLocalizedLogger(LoadBalancingAlgorithm.class);
+        private final LocalizedLogger logger = LocalizedLogger.getLocalizedLogger(LoadBalancer.class);
 
         @Override
         public void handleConnectionFactoryOnline(final ConnectionFactory factory) {

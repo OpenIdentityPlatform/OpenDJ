@@ -21,18 +21,16 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
 import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
-import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_EVENT_LISTENER;
-import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_MONITORING_INTERVAL;
-import static org.forgerock.opendj.ldap.LoadBalancingAlgorithm.LOAD_BALANCER_SCHEDULER;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.forgerock.util.promise.Promises.newExceptionPromise;
 import static org.forgerock.util.promise.Promises.newResultPromise;
@@ -51,7 +49,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
+public class LoadBalancerTestCase extends SdkTestCase {
     private static ConnectionFactory mockAsync(final ConnectionFactory mock) {
         return new ConnectionFactory() {
             @Override
