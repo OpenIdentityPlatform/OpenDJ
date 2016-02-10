@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -106,70 +107,15 @@ public final class RDN
     avas.add(new AVA(attributeType, attributeName, attributeValue));
   }
 
-
-
   /**
-   * Creates a new RDN with the provided information.  The number of
-   * type, name, and value elements must be nonzero and equal.
+   * Creates a new RDN with the provided {@link AVA}s.
    *
-   * @param  attributeTypes   The set of attribute types for this RDN.
-   *                          It must not be empty or {@code null}.
-   * @param  attributeNames   The set of user-provided names for this
-   *                          RDN.  It must have the same number of
-   *                          elements as the {@code attributeTypes}
-   *                          argument.
-   * @param  attributeValues  The set of values for this RDN.  It must
-   *                          have the same number of elements as the
-   *                          {@code attributeTypes} argument.
+   * @param avas
+   *          The AVAs that will define the new RDN
    */
-  public RDN(List<AttributeType> attributeTypes,
-             List<String> attributeNames,
-             List<ByteString> attributeValues)
+  public RDN(AVA... avas)
   {
-    Reject.ifNull(attributeTypes, attributeNames, attributeValues);
-    Reject.ifTrue(attributeTypes.isEmpty(), "attributeTypes must not be empty");
-    Reject.ifFalse(attributeNames.size() == attributeTypes.size(),
-            "attributeNames must have the same number of elements than attributeTypes");
-    Reject.ifFalse(attributeValues.size() == attributeTypes.size(),
-            "attributeValues must have the same number of elements than attributeTypes");
-
-    avas = new ArrayList<>(attributeTypes.size());
-    for (int i = 0; i < attributeTypes.size(); i++)
-    {
-      avas.add(new AVA(attributeTypes.get(i), attributeNames.get(i), attributeValues.get(i)));
-    }
-  }
-
-
-
-  /**
-   * Creates a new RDN with the provided information.  The number of
-   * type, name, and value elements must be nonzero and equal.
-   *
-   * @param  attributeTypes   The set of attribute types for this RDN.
-   *                          It must not be empty or {@code null}.
-   * @param  attributeNames   The set of user-provided names for this
-   *                          RDN.  It must have the same number of
-   *                          elements as the {@code attributeTypes}
-   *                          argument.
-   * @param  attributeValues  The set of values for this RDN.  It must
-   *                          have the same number of elements as the
-   *                          {@code attributeTypes} argument.
-   */
-  public RDN(AttributeType[] attributeTypes, String[] attributeNames, ByteString[] attributeValues)
-  {
-    Reject.ifNull(attributeTypes, attributeNames, attributeValues);
-    Reject.ifFalse(attributeTypes.length > 0, "attributeTypes must not be empty");
-    Reject.ifFalse(attributeNames.length == attributeTypes.length,
-        "attributeNames must have the same number of elements than attributeTypes");
-    Reject.ifFalse(attributeValues.length == attributeTypes.length,
-        "attributeValues must have the same number of elements than attributeTypes");
-
-    avas = new ArrayList<>(attributeTypes.length);
-    for (int i = 0; i < attributeTypes.length; i++)
-    {
-      avas.add(new AVA(attributeTypes[i], attributeNames[i], attributeValues[i]));
-    }
+    this(Arrays.asList(Reject.checkNotNull(avas, "avas must not be null")));
   }
 
   /**
@@ -184,8 +130,6 @@ public final class RDN
     Reject.ifTrue(avas.isEmpty(), "avas must not be empty");
     this.avas = new ArrayList<>(avas);
   }
-
-
 
   /**
    * Creates a new RDN with the provided information.
@@ -233,30 +177,6 @@ public final class RDN
     return false;
   }
 
-
-
-  /**
-   * Indicates whether this RDN includes the specified attribute type.
-   *
-   * @param  lowerName  The name or OID for the attribute type for
-   *                    which to make the determination, formatted in
-   *                    all lowercase characters.
-   *
-   * @return  <CODE>true</CODE> if the RDN includes the specified
-   *          attribute type, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAttributeType(String lowerName)
-  {
-    for (AVA ava : avas)
-    {
-      if (ava.getAttributeType().hasNameOrOID(lowerName))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * Retrieves the attribute value that is associated with the
    * specified attribute type.
@@ -290,33 +210,6 @@ public final class RDN
   {
     return avas.size() > 1;
   }
-
-
-
-  /**
-   * Indicates whether this RDN contains the specified type-value
-   * pair.
-   *
-   * @param  type   The attribute type for which to make the
-   *                determination.
-   * @param  value  The value for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if this RDN contains the specified
-   *          attribute value, or <CODE>false</CODE> if not.
-   */
-  public boolean hasValue(AttributeType type, ByteString value)
-  {
-    for (AVA ava : avas)
-    {
-      if (ava.getAttributeType().equals(type) && ava.getAttributeValue().equals(value))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
 
   /**
    * Adds the provided type-value pair from this RDN.  Note that this
@@ -633,22 +526,6 @@ public final class RDN
       }
     }
   }
-
-
-
-  /**
-   * Creates a duplicate of this RDN that can be modified without
-   * impacting this RDN.
-   *
-   * @return  A duplicate of this RDN that can be modified without
-   *          impacting this RDN.
-   */
-  public RDN duplicate()
-  {
-    return new RDN(avas);
-  }
-
-
 
   /**
    * Indicates whether the provided object is equal to this RDN.  It

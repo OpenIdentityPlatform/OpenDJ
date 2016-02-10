@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
@@ -148,40 +149,20 @@ public class TemplateEntry
   {
     if (dn == null)
     {
-      RDN rdn;
       AttributeType[] rdnAttrs = template.getRDNAttributes();
-      if (rdnAttrs.length == 1)
+      AVA[] avas = new AVA[rdnAttrs.length];
+      for (int i = 0; i < rdnAttrs.length; i++)
       {
-        AttributeType t = rdnAttrs[0];
+        AttributeType t = rdnAttrs[i];
         TemplateValue v = getValue(t);
         if (v == null)
         {
           return null;
         }
-
-        rdn = new RDN(t, ByteString.valueOfUtf8(v.getValue().toString()));
-      }
-      else
-      {
-        String[]         names  = new String[rdnAttrs.length];
-        ByteString[] values = new ByteString[rdnAttrs.length];
-        for (int i=0; i < rdnAttrs.length; i++)
-        {
-          AttributeType t = rdnAttrs[i];
-          TemplateValue v = getValue(t);
-          if (v == null)
-          {
-            return null;
-          }
-
-          names[i]  = t.getNameOrOID();
-          values[i] = ByteString.valueOfUtf8(v.getValue().toString());
-        }
-
-        rdn = new RDN(rdnAttrs, names, values);
+        avas[i] = new AVA(t, v.getValue());
       }
 
-      dn = parentDN.child(rdn);
+      dn = parentDN.child(new RDN(avas));
     }
 
     return dn;

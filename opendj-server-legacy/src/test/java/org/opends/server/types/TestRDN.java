@@ -30,7 +30,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.testng.Assert.*;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.forgerock.opendj.ldap.AVA;
@@ -130,13 +130,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testConstructorMultiAVA() throws Exception {
-    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
-    String[]         attrNames  = { AT_DC.getNameOrOID(),
-                                    AT_CN.getNameOrOID() };
-    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
-
-    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
-
+    RDN rdn = new RDN(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN));
     assertEquals(rdn.size(), 2);
 
     Iterator<AVA> it = rdn.iterator();
@@ -162,19 +156,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testConstructorMultiAVAList() throws Exception {
-    ArrayList<AttributeType>  typeList  = new ArrayList<>();
-    ArrayList<String>         nameList  = new ArrayList<>();
-    ArrayList<ByteString>     valueList = new ArrayList<>();
-
-    typeList.add(AT_DC);
-    nameList.add(AT_DC.getNameOrOID());
-    valueList.add(AV_DC_ORG);
-
-    typeList.add(AT_CN);
-    nameList.add(AT_CN.getNameOrOID());
-    valueList.add(AV_CN);
-
-    RDN rdn = new RDN(typeList, nameList, valueList);
+    RDN rdn = new RDN(Arrays.asList(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN)));
 
     assertEquals(rdn.size(), 2);
 
@@ -313,13 +295,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeName() throws Exception {
-    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
-    String[]         attrNames  = { AT_DC.getNameOrOID(),
-                                    AT_CN.getNameOrOID() };
-    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
-
-    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
-
+    RDN rdn = new RDN(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN));
     Iterator<AVA> it = rdn.iterator();
     AVA ava1 = it.next();
     AVA ava2 = it.next();
@@ -331,7 +307,7 @@ public final class TestRDN extends TypesTestCase {
   @SuppressWarnings("javadoc")
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void ensureRDNIsCreatedWithNonEmptyArguments() throws Exception {
-      new RDN(new AttributeType[0], new String[0], new ByteString[0]);
+      new RDN(new AVA[0]);
   }
 
   /**
@@ -342,12 +318,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeType() throws Exception {
-    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
-    String[]         attrNames  = { AT_DC.getNameOrOID(),
-                                    AT_CN.getNameOrOID() };
-    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
-
-    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
+    RDN rdn = new RDN(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN));
     Iterator<AVA> it = rdn.iterator();
     assertEquals(it.next().getAttributeType(), AT_DC);
     assertEquals(it.next().getAttributeType(), AT_CN);
@@ -361,12 +332,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testGetAttributeValue() throws Exception {
-    AttributeType[]  attrTypes  = { AT_DC, AT_CN };
-    String[]         attrNames  = { AT_DC.getNameOrOID(),
-                                    AT_CN.getNameOrOID() };
-    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
-
-    RDN rdn = new RDN(attrTypes, attrNames, attrValues);
+    RDN rdn = new RDN(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN));
     Iterator<AVA> it = rdn.iterator();
     assertEquals(it.next().getAttributeValue(), AV_DC_ORG);
     assertEquals(it.next().getAttributeValue(), AV_CN);
@@ -403,27 +369,6 @@ public final class TestRDN extends TypesTestCase {
     assertEquals(rdn.size(), 2);
   }
 
-
-
-  /**
-   * Test hasAttributeType.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testHasAttributeType1() throws Exception {
-    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
-
-    assertTrue(rdn.hasAttributeType(AT_DC));
-    assertTrue(rdn.hasAttributeType("dc"));
-    assertTrue(rdn.hasAttributeType(AT_DC.getOID()));
-    assertFalse(rdn.hasAttributeType(AT_CN));
-    assertFalse(rdn.hasAttributeType("cn"));
-  }
-
-
-
   /**
    * Test isMultiValued.
    *
@@ -439,27 +384,6 @@ public final class TestRDN extends TypesTestCase {
     rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
     assertTrue(rdn.isMultiValued());
   }
-
-
-
-  /**
-   * Tests hasValue.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testHasValue() throws Exception {
-    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
-    assertTrue(rdn.hasValue(AT_DC, AV_DC_ORG));
-    assertFalse(rdn.hasValue(AT_CN, AV_CN));
-
-    rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
-    assertTrue(rdn.hasValue(AT_DC, AV_DC_ORG));
-    assertTrue(rdn.hasValue(AT_CN, AV_CN));
-  }
-
-
 
   /**
    * Tests addValue with a duplicate value.
@@ -493,46 +417,6 @@ public final class TestRDN extends TypesTestCase {
     RDN rdn = RDN.decode(rawRDN);
     assertEquals(rdn.toString(), stringRDN);
   }
-
-
-
-  /**
-   * Tests the duplicate method with a single-valued RDN.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testDuplicateSingle() {
-    RDN rdn1 = new RDN(AT_DC, AV_DC_ORG);
-    RDN rdn2 = rdn1.duplicate();
-
-    assertNotSame(rdn1, rdn2);
-    assertEquals(rdn1, rdn2);
-  }
-
-
-
-  /**
-   * Tests the duplicate method with a multivalued RDN.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testDuplicateMultiValued() {
-    AttributeType[]  types  = new AttributeType[] { AT_DC, AT_CN };
-    String[]         names  = new String[] { "dc", "cn" };
-    ByteString[]     values = new ByteString[] { AV_DC_ORG, AV_CN };
-
-    RDN rdn1 = new RDN(types, names, values);
-    RDN rdn2 = rdn1.duplicate();
-
-    assertNotSame(rdn1, rdn2);
-    assertEquals(rdn1, rdn2);
-  }
-
-
 
   /**
    * RDN equality test data provider.
