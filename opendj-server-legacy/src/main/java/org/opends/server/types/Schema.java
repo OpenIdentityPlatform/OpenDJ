@@ -548,6 +548,10 @@ public final class Schema
   private void setSchemaNG(org.forgerock.opendj.ldap.schema.Schema newSchemaNG)
   {
     schemaNG = newSchemaNG.asNonStrictSchema();
+    if (DirectoryServer.getSchema() == this)
+    {
+      org.forgerock.opendj.ldap.schema.Schema.setDefaultSchema(schemaNG);
+    }
   }
 
   private void updateSubordinateTypes(AttributeType attributeType)

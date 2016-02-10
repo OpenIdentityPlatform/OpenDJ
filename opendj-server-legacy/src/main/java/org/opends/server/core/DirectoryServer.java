@@ -605,7 +605,7 @@ public final class DirectoryServer
   private SASLConfigManager saslConfigManager;
 
   /** The schema for the Directory Server. */
-  private Schema schema;
+  private volatile Schema schema;
 
   /** The schema configuration manager for the Directory Server. */
   private SchemaConfigManager schemaConfigManager;
@@ -895,7 +895,7 @@ public final class DirectoryServer
       // and register a minimal set of matching rules and attribute syntaxes.
       try
       {
-        directoryServer.schema = new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
+        directoryServer.setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema()));
       }
       catch (DirectoryException unexpected)
       {
@@ -1593,7 +1593,7 @@ public final class DirectoryServer
     // Create the schema configuration manager, and initialize the schema from
     // the configuration.
     schemaConfigManager = new SchemaConfigManager(serverContext);
-    schema = schemaConfigManager.getSchema();
+    setSchema(schemaConfigManager.getSchema());
 
     schemaConfigManager.initializeMatchingRules();
     schemaConfigManager.initializeAttributeSyntaxes();
@@ -2245,6 +2245,9 @@ public final class DirectoryServer
   public static void setSchema(Schema schema)
   {
     directoryServer.schema = schema;
+    org.forgerock.opendj.ldap.schema.Schema.setDefaultSchema(schema != null
+        ? schema.getSchemaNG()
+        : org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
   }
 
   /**
@@ -6224,7 +6227,7 @@ public final class DirectoryServer
     if (schema != null)
     {
       schema.destroy();
-      schema = null;
+      setSchema(null);
     }
   }
 
