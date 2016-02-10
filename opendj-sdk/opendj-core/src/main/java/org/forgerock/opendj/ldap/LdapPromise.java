@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -66,6 +66,9 @@ public interface LdapPromise<S> extends Promise<S, LdapException> {
 
     @Override
     LdapPromise<S> thenAlways(Runnable onResultOrException);
+
+    @Override
+    LdapPromise<S> thenFinally(Runnable onResultOrException);
 
     @Override
     // @Checkstyle:ignore
