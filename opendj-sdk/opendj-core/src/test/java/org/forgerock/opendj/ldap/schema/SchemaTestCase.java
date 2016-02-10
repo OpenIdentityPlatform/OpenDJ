@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -38,9 +38,7 @@ import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Tests the Schema class.
- */
+/** Tests the Schema class. */
 @SuppressWarnings("javadoc")
 public class SchemaTestCase extends AbstractSchemaTestCase {
     @Test(description = "Unit test for OPENDJ-1477")
@@ -107,4 +105,20 @@ public class SchemaTestCase extends AbstractSchemaTestCase {
         connection.close();
     }
 
+    @Test
+    public void getAttributeTypeWithDifferentNamesReturnSame() throws Exception {
+        Schema schema = CoreSchema.getInstance();
+        AttributeType cnAttrType = schema.getAttributeType("cn");
+        assertThat(cnAttrType).isSameAs(schema.getAttributeType("commonname"));
+        assertThat(cnAttrType).isSameAs(schema.getAttributeType("commonName"));
+        assertThat(cnAttrType).isSameAs(schema.getAttributeType("CN"));
+    }
+
+    @Test
+    public void getAttributeTypeWithDifferentPlaceholderNames() throws Exception {
+        Schema schema = CoreSchema.getInstance().asNonStrictSchema();
+        AttributeType placeHolderAttrType = schema.getAttributeType("placeholder");
+        assertThat(placeHolderAttrType).isEqualTo(schema.getAttributeType("PLACEHOLDER"));
+        assertThat(placeHolderAttrType).isNotEqualTo(schema.getAttributeType("another_placeholder"));
+    }
 }
