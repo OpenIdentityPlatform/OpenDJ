@@ -236,7 +236,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(dataProvider = "testRDNs")
   public void testNormalizationToSafeUrlString(String rawRDN, String normRDN, String stringRDN) throws Exception {
-    RDN rdn = RDN.decode(rawRDN);
+    RDN rdn = RDN.valueOf(rawRDN);
     assertEquals(rdn.toNormalizedUrlSafeString(), normRDN);
   }
 
@@ -272,7 +272,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(dataProvider = "illegalRDNs", expectedExceptions = DirectoryException.class)
   public void testDecodeString(String rawRDN) throws Exception {
-    RDN.decode(rawRDN);
+    RDN.valueOf(rawRDN);
 
     fail("Expected exception for value \"" + rawRDN + "\"");
   }
@@ -404,7 +404,7 @@ public final class TestRDN extends TypesTestCase {
   @Test(dataProvider = "testRDNs")
   public void testToString(String rawRDN, String normRDN,
       String stringRDN) throws Exception {
-    RDN rdn = RDN.decode(rawRDN);
+    RDN rdn = RDN.valueOf(rawRDN);
     assertEquals(rdn.toString(), stringRDN);
   }
 
@@ -458,8 +458,8 @@ public final class TestRDN extends TypesTestCase {
   @Test(dataProvider = "createRDNEqualityData")
   public void testEquality(String first, String second, int result)
       throws Exception {
-    RDN rdn1 = RDN.decode(first);
-    RDN rdn2 = RDN.decode(second);
+    RDN rdn1 = RDN.valueOf(first);
+    RDN rdn2 = RDN.valueOf(second);
 
     if (result == 0) {
       assertEquals(rdn1, rdn2,
@@ -487,8 +487,8 @@ public final class TestRDN extends TypesTestCase {
   @Test(dataProvider = "createRDNEqualityData")
   public void testHashCode(String first, String second, int result)
       throws Exception {
-    RDN rdn1 = RDN.decode(first);
-    RDN rdn2 = RDN.decode(second);
+    RDN rdn1 = RDN.valueOf(first);
+    RDN rdn2 = RDN.valueOf(second);
 
     int h1 = rdn1.hashCode();
     int h2 = rdn2.hashCode();
@@ -519,8 +519,8 @@ public final class TestRDN extends TypesTestCase {
   @Test(dataProvider = "createRDNEqualityData")
   public void testCompareTo(String first, String second, int result)
       throws Exception {
-    RDN rdn1 = RDN.decode(first);
-    RDN rdn2 = RDN.decode(second);
+    RDN rdn1 = RDN.valueOf(first);
+    RDN rdn2 = RDN.valueOf(second);
 
     int rc = rdn1.compareTo(rdn2);
 

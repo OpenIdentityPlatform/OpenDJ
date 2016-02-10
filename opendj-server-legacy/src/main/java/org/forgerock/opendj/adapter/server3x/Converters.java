@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -185,7 +185,7 @@ public final class Converters {
      */
     public static org.opends.server.types.RDN to(final RDN rdn) {
         try {
-            return org.opends.server.types.RDN.decode(rdn.toString());
+            return org.opends.server.types.RDN.valueOf(rdn.toString());
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

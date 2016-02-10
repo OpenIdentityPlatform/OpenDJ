@@ -31,6 +31,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
@@ -1826,8 +1827,6 @@ public final class InternalClientConnection
     return modifyDNOperation;
   }
 
-
-
   /**
    * Processes an internal modify DN operation with the provided
    * information.
@@ -1847,6 +1846,23 @@ public final class InternalClientConnection
                            modifyDNRecord.getNewRDN(),
                            modifyDNRecord.deleteOldRDN(),
                            modifyDNRecord.getNewSuperiorDN());
+  }
+
+  /**
+   * Processes an internal modify DN operation with the provided information.
+   *
+   * @param modifyDNRequest
+   *          The modify DN request with information about the processing to perform.
+   * @return A reference to the modify DN operation that was processed and contains information about
+   *         the result of the processing.
+   */
+  public ModifyDNOperation processModifyDN(ModifyDNRequest modifyDNRequest)
+  {
+    org.forgerock.opendj.ldap.DN newSuperior = modifyDNRequest.getNewSuperior();
+    return processModifyDN(to(modifyDNRequest.getName()),
+                           to(modifyDNRequest.getNewRDN()),
+                           modifyDNRequest.isDeleteOldRDN(),
+                           newSuperior != null ? to(newSuperior) : null);
   }
 
   /**

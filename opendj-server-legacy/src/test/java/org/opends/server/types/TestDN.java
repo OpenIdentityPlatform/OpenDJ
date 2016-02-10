@@ -234,7 +234,7 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithSingleRDN1() throws Exception {
-    DN dn = new DN(new RDN[] { RDN.decode("dc=com") });
+    DN dn = new DN(new RDN[] { RDN.valueOf("dc=com") });
 
     assertEquals(dn, DN.valueOf("dc=com"));
   }
@@ -249,8 +249,8 @@ public class TestDN extends TypesTestCase {
    */
   @Test
   public void testCreateWithMultipleRDNs1() throws Exception {
-    DN dn = new DN(new RDN[] { RDN.decode("dc=foo"),
-        RDN.decode("dc=opends"), RDN.decode("dc=org") });
+    DN dn = new DN(new RDN[] { RDN.valueOf("dc=foo"),
+        RDN.valueOf("dc=opends"), RDN.valueOf("dc=org") });
 
     assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
   }
@@ -266,9 +266,9 @@ public class TestDN extends TypesTestCase {
   @Test
   public void testCreateWithMultipleRDNs2() throws Exception {
     ArrayList<RDN> rdnList = new ArrayList<>();
-    rdnList.add(RDN.decode("dc=foo"));
-    rdnList.add(RDN.decode("dc=opends"));
-    rdnList.add(RDN.decode("dc=org"));
+    rdnList.add(RDN.valueOf("dc=foo"));
+    rdnList.add(RDN.valueOf("dc=opends"));
+    rdnList.add(RDN.valueOf("dc=org"));
     DN dn = new DN(rdnList);
 
     assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
@@ -550,7 +550,7 @@ public class TestDN extends TypesTestCase {
   public void testGetParentDNInSuffix(DN namingContext) throws Exception {
     assertNull(DirectoryServer.getParentDNInSuffix(namingContext));
 
-    DN childDN = namingContext.child(RDN.decode("ou=People"));
+    DN childDN = namingContext.child(RDN.valueOf("ou=People"));
     assertNotNull(DirectoryServer.getParentDNInSuffix(childDN));
     assertEquals(DirectoryServer.getParentDNInSuffix(childDN), namingContext);
   }
@@ -588,18 +588,18 @@ public class TestDN extends TypesTestCase {
     assertEquals(p.toNormalizedUrlSafeString(), e.toNormalizedUrlSafeString());
     assertEquals(p.toString(), e.toString());
 
-    assertEquals(p.rdn(), RDN.decode("dc=bar"));
+    assertEquals(p.rdn(), RDN.valueOf("dc=bar"));
 
-    assertEquals(p.getRDN(0), RDN.decode("dc=bar"));
-    assertEquals(p.getRDN(1), RDN.decode("dc=opends"));
-    assertEquals(p.getRDN(2), RDN.decode("dc=org"));
+    assertEquals(p.getRDN(0), RDN.valueOf("dc=bar"));
+    assertEquals(p.getRDN(1), RDN.valueOf("dc=opends"));
+    assertEquals(p.getRDN(2), RDN.valueOf("dc=org"));
 
     assertEquals(p.parent(), DN.valueOf("dc=opends,dc=org"));
     assertEquals(p.parent(), e.parent());
 
-    assertEquals(p.child(RDN.decode("dc=foo")), DN
+    assertEquals(p.child(RDN.valueOf("dc=foo")), DN
         .valueOf("dc=foo,dc=bar,dc=opends,dc=org"));
-    assertEquals(p.child(RDN.decode("dc=foo")), c);
+    assertEquals(p.child(RDN.valueOf("dc=foo")), c);
     assertEquals(p.child(DN.valueOf("dc=xxx,dc=foo")), DN
         .valueOf("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
   }
@@ -622,7 +622,7 @@ public class TestDN extends TypesTestCase {
   public void testGetRDN(String s, String p, String r)
       throws Exception {
     DN dn = DN.valueOf(s);
-    RDN rdn = r != null ? RDN.decode(r) : null;
+    RDN rdn = r != null ? RDN.valueOf(r) : null;
 
     assertEquals(dn.rdn(), rdn, "For DN " + s);
   }
@@ -663,7 +663,7 @@ public class TestDN extends TypesTestCase {
   public void testGetRDNIndexed(String s, int i, String r)
       throws Exception {
     DN dn = DN.valueOf(s);
-    RDN rdn = RDN.decode(r);
+    RDN rdn = RDN.valueOf(r);
 
     assertEquals(dn.getRDN(i), rdn, "For DN " + s);
   }
@@ -802,17 +802,17 @@ public class TestDN extends TypesTestCase {
     assertEquals(c.toNormalizedUrlSafeString(), e.toNormalizedUrlSafeString());
     assertEquals(c.toString(), e.toString());
 
-    assertEquals(c.rdn(), RDN.decode("dc=foo"));
+    assertEquals(c.rdn(), RDN.valueOf("dc=foo"));
 
-    assertEquals(c.getRDN(0), RDN.decode("dc=foo"));
-    assertEquals(c.getRDN(1), RDN.decode("dc=bar"));
-    assertEquals(c.getRDN(2), RDN.decode("dc=opends"));
-    assertEquals(c.getRDN(3), RDN.decode("dc=org"));
+    assertEquals(c.getRDN(0), RDN.valueOf("dc=foo"));
+    assertEquals(c.getRDN(1), RDN.valueOf("dc=bar"));
+    assertEquals(c.getRDN(2), RDN.valueOf("dc=opends"));
+    assertEquals(c.getRDN(3), RDN.valueOf("dc=org"));
 
     assertEquals(c.parent(), DN.valueOf("dc=bar,dc=opends,dc=org"));
     assertEquals(c.parent(), e.parent());
 
-    assertEquals(c.child(RDN.decode("dc=xxx")), DN
+    assertEquals(c.child(RDN.valueOf("dc=xxx")), DN
         .valueOf("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
     assertEquals(c.child(DN.valueOf("dc=xxx,dc=yyy")), DN
         .valueOf("dc=xxx,dc=yyy,dc=foo,dc=bar,dc=opends,dc=org"));
@@ -850,7 +850,7 @@ public class TestDN extends TypesTestCase {
   public void testConcatSingleRDN(String s, String r, String e)
       throws Exception {
     DN dn = DN.valueOf(s);
-    RDN rdn = RDN.decode(r);
+    RDN rdn = RDN.valueOf(r);
     DN expected = DN.valueOf(e);
 
     assertEquals(dn.child(rdn), expected);

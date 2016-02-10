@@ -24,6 +24,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -46,7 +47,6 @@ import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.RDN;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -1157,24 +1157,18 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * Perform modify DN operation.
    *
    * @param dn  The DN to rename or move.
-   * @param rdn RDN value.
+   * @param newRDN RDN value.
    * @param newSuperior New superior to move to.
    * @throws Exception If the operation can't be performed.
    */
-  private void doModDN(String dn, String rdn, String newSuperior) throws Exception
+  private void doModDN(String dn, String newRDN, String newSuperior) throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    ModifyDNOperation modDNop;
-    if(newSuperior != null)
+    ModifyDNRequest modifyDNRequest = Requests.newModifyDNRequest(dn, newRDN);
+    if (newSuperior != null)
     {
-        modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn), true,
-                                       DN.valueOf(newSuperior));
+      modifyDNRequest.setDeleteOldRDN(true).setNewSuperior(newSuperior);
     }
-    else
-    {
-        modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn),
-                                       false, null);
-    }
+    ModifyDNOperation modDNop = getRootConnection().processModifyDN(modifyDNRequest);
     assertEquals(modDNop.getResultCode(), ResultCode.SUCCESS);
   }
 

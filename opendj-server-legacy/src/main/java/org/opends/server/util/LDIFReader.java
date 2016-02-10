@@ -1208,7 +1208,7 @@ public class LDIFReader implements Closeable
 
     try
     {
-      newRDN = RDN.decode(rdnStr);
+      newRDN = RDN.valueOf(rdnStr);
     } catch (DirectoryException de)
     {
       logger.traceException(de);

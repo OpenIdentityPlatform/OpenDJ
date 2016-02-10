@@ -293,7 +293,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
   private RDN rdn(String s) throws DirectoryException
   {
-    return s != null ? RDN.decode(s) : null;
+    return s != null ? RDN.valueOf(s) : null;
   }
 
   private void assertSuccessAndEntryExists(ModifyDNOperation modifyDNOperation,

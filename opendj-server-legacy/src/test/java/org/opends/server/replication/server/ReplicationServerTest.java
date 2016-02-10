@@ -776,7 +776,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   private ModifyDNMsg modDNMsg(CSNGenerator csnGen) throws DirectoryException
   {
     ModifyDNOperationBasis op = new ModifyDNOperationBasis(
-        connection, 1, 1, null, EXAMPLE_DN, RDN.decode("o=example2"), true, null);
+        connection, 1, 1, null, EXAMPLE_DN, RDN.valueOf("o=example2"), true, null);
     op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(csnGen.newCSN(), "uniqueid", "newparentId"));
     LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
     return new ModifyDNMsg(localOp);

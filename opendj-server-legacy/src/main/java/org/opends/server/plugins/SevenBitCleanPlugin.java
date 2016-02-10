@@ -330,7 +330,7 @@ public final class SevenBitCleanPlugin
       RDN newRDN;
       try
       {
-        newRDN = RDN.decode(rawNewRDN.toString());
+        newRDN = RDN.valueOf(rawNewRDN.toString());
       }
       catch (DirectoryException de)
       {

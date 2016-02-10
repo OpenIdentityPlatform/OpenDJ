@@ -246,7 +246,7 @@ public class ModifyDNOperationBasis
     {
       if (newRDN == null)
       {
-        newRDN = RDN.decode(rawNewRDN.toString());
+        newRDN = RDN.valueOf(rawNewRDN.toString());
       }
     }
     catch (DirectoryException de)

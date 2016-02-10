@@ -3081,7 +3081,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     String newRDN =  "entryuuid=" + entryUUID + "+" + dn.rdn();
     try
     {
-      return RDN.decode(newRDN);
+      return RDN.valueOf(newRDN);
     } catch (DirectoryException e)
     {
       // cannot happen

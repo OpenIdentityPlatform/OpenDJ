@@ -327,7 +327,7 @@ public class LastModPluginTestCase
                                       "cn: test");
 
     ModifyDNOperation modifyDNOperation =
-        getRootConnection().processModifyDN(e.getName(), RDN.decode("cn=test2"), false);
+        getRootConnection().processModifyDN(e.getName(), RDN.valueOf("cn=test2"), false);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
     e = DirectoryConfig.getEntry(DN.valueOf("cn=test2,o=test"));

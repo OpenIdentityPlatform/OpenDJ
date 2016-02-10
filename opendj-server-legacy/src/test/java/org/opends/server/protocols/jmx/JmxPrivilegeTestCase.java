@@ -545,7 +545,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Try to rename the entry.
     ModifyDNOperationBasis modifyDNOp = new ModifyDNOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        e.getName(), RDN.decode("cn=Proxy V1 Test"), true, null);
+        e.getName(), RDN.valueOf("cn=Proxy V1 Test"), true, null);
     assertSuccess(hasProxyPrivilege, modifyDNOp);
     DN newEntryDN = hasProxyPrivilege ? modifyDNOp.getNewDN() : e.getName();
 
@@ -657,7 +657,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Try to rename the entry.
     ModifyDNOperationBasis modifyDNOp = new ModifyDNOperationBasis(
         conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        e.getName(), RDN.decode("cn=Proxy V2 Test"), true, null);
+        e.getName(), RDN.valueOf("cn=Proxy V2 Test"), true, null);
     assertSuccess(hasProxyPrivilege, authDN, modifyDNOp);
 
     DN newEntryDN = hasProxyPrivilege ? modifyDNOp.getNewDN() : e.getName();

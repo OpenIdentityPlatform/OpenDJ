@@ -1187,9 +1187,8 @@ public class GroupManagerTestCase
     assertTrue(groupInstance.isMember(user1DN));
 
 
-    // Rename the group and make sure the old one no longer exists but the new
-    // one does.
-    RDN newRDN = RDN.decode("cn=Renamed Group");
+    // Rename the group and make sure the old one no longer exists but the new one does
+    RDN newRDN = RDN.valueOf("cn=Renamed Group");
     DN  newDN  = DN.valueOf("cn=Renamed Group,ou=Groups,o=test");
 
     ModifyDNOperation modifyDNOperation =

@@ -181,7 +181,7 @@ public class NamingConflictTest extends ReplicationTestCase
 
     // Now delete the first entry that was added at the beginning
     ModifyDNOperation modDNOperation =
-        getRootConnection().processModifyDN(entry.getName(), RDN.decode("cn=foo"), false);
+        getRootConnection().processModifyDN(entry.getName(), RDN.valueOf("cn=foo"), false);
     assertEquals(modDNOperation.getResultCode(), ResultCode.SUCCESS);
 
     // Expect the conflict resolution : the second entry should now

@@ -465,7 +465,7 @@ public final class TestLDIFReader extends UtilTestCase {
           .valueOf("cn=Paul Jensen, ou=Product Development, dc=airius, dc=com");
       Assert.assertEquals(modifyDN.getDN(), dn);
 
-      rdn = RDN.decode("cn=paula jensen");
+      rdn = RDN.valueOf("cn=paula jensen");
       Assert.assertEquals(modifyDN.getNewRDN(), rdn);
       Assert.assertNull(modifyDN.getNewSuperiorDN());
       Assert.assertTrue(modifyDN.deleteOldRDN());
@@ -479,7 +479,7 @@ public final class TestLDIFReader extends UtilTestCase {
           .valueOf("ou=PD Accountants, ou=Product Development, dc=airius, dc=com");
       Assert.assertEquals(modifyDN.getDN(), dn);
 
-      rdn = RDN.decode("ou=Product Development Accountants");
+      rdn = RDN.valueOf("ou=Product Development Accountants");
       Assert.assertEquals(modifyDN.getNewRDN(), rdn);
       dn = DN.valueOf("ou=Accounting, dc=airius, dc=com");
       Assert.assertEquals(modifyDN.getNewSuperiorDN(), dn);

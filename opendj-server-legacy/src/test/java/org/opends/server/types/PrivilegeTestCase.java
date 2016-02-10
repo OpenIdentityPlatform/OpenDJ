@@ -74,6 +74,7 @@ import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.Privilege.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -408,7 +409,12 @@ public class PrivilegeTestCase extends TypesTestCase
 
   private void assertPrivilege(ResultCode actual, boolean hasPrivilege)
   {
-    assertEquals(actual, hasPrivilege ? SUCCESS : INSUFFICIENT_ACCESS_RIGHTS);
+    assertEquals(actual, hasPrivilegeRC(hasPrivilege));
+  }
+
+  private ResultCode hasPrivilegeRC(boolean hasPrivilege)
+  {
+    return hasPrivilege ? SUCCESS : INSUFFICIENT_ACCESS_RIGHTS;
   }
 
   private void assertProxyPrivilege(ResultCode actual, boolean hasProxyPrivilege)
@@ -549,20 +555,11 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
 
-    ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(DN.valueOf("cn=Work Queue,cn=config"),
-                              RDN.decode("cn=New RDN for Work Queue"), true,
-                              null);
-    if (hasPrivilege)
-    {
-      // We don't support modify DN operations in the server configuration, but
-      // at least we need to make sure we're getting past the privilege check.
-      assertEquals(modifyDNOperation.getResultCode(), UNWILLING_TO_PERFORM);
-    }
-    else
-    {
-      assertEquals(modifyDNOperation.getResultCode(), INSUFFICIENT_ACCESS_RIGHTS);
-    }
+    processModifyDN(
+        conn, "cn=Work Queue,cn=config", "cn=New RDN for Work Queue",
+        // We don't support modify DN operations in the server configuration, but
+        // at least we need to make sure we're getting past the privilege check.
+        (hasPrivilege ? UNWILLING_TO_PERFORM : INSUFFICIENT_ACCESS_RIGHTS));
   }
 
 
@@ -664,25 +661,14 @@ public class PrivilegeTestCase extends TypesTestCase
                                       boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.SUBENTRY_WRITE, null),
-            hasPrivilege);
+    assertEquals(conn.hasPrivilege(SUBENTRY_WRITE, null), hasPrivilege);
 
-    ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(DN.valueOf("cn=Subentry Target,o=test"),
-                              RDN.decode("cn=New Subentry Target"),
-                              true, null);
-    assertPrivilege(modifyDNOperation.getResultCode(), hasPrivilege);
+    processModifyDN(conn, "cn=Subentry Target,o=test", "cn=New Subentry Target", hasPrivilegeRC(hasPrivilege));
     if (hasPrivilege)
     {
-      modifyDNOperation =
-         conn.processModifyDN(DN.valueOf("cn=New Subentry Target,o=test"),
-                              RDN.decode("cn=Subentry Target"),
-                              true, null);
-      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
+      processModifyDN(conn, "cn=New Subentry Target,o=test", "cn=Subentry Target", SUCCESS);
     }
   }
-
-
 
   /**
    * Tests to ensure that modify operations which attempt to reset a user's
@@ -722,8 +708,7 @@ public class PrivilegeTestCase extends TypesTestCase
       userPassword = "password";
     }
 
-    assertEquals(conn.hasPrivilege(Privilege.PASSWORD_RESET, null),
-                 hasPrivilege);
+    assertEquals(conn.hasPrivilege(PASSWORD_RESET, null), hasPrivilege);
 
     String path = TestCaseUtils.createTempFile(
       "dn: cn=PWReset Target,o=test",
@@ -855,8 +840,7 @@ public class PrivilegeTestCase extends TypesTestCase
                                boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.UPDATE_SCHEMA, null),
-                 hasPrivilege);
+    assertEquals(conn.hasPrivilege(UPDATE_SCHEMA, null), hasPrivilege);
 
     String attrDefinition =
          "( testupdateschemaat-oid NAME 'testUpdateSchemaAT' " +
@@ -896,11 +880,7 @@ public class PrivilegeTestCase extends TypesTestCase
                                             boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.UPDATE_SCHEMA, null),
-                 hasPrivilege);
-
-
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    assertEquals(conn.hasPrivilege(UPDATE_SCHEMA, null), hasPrivilege);
 
     String identifier;
     Entry authNEntry = conn.getAuthenticationInfo().getAuthenticationEntry();
@@ -927,6 +907,7 @@ public class PrivilegeTestCase extends TypesTestCase
           + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )"
     };
 
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
     File validFile = new File(schemaDirectory, "05-" + identifier + ".ldif");
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(validFile)))
     {
@@ -1193,7 +1174,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // Try to rename the entry.
     ModifyDNOperation modifyDNOperation = new ModifyDNOperationBasis(conn, nextOperationID(),
                                nextMessageID(), controls, e.getName(),
-                               RDN.decode("cn=Proxy V1 Test"), true, null);
+                               RDN.valueOf("cn=Proxy V1 Test"), true, null);
     modifyDNOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
@@ -1335,7 +1316,7 @@ public class PrivilegeTestCase extends TypesTestCase
     // Try to rename the entry.
     ModifyDNOperation modifyDNOperation = new ModifyDNOperationBasis(conn, nextOperationID(),
                                nextMessageID(), controls, e.getName(),
-                               RDN.decode("cn=Proxy V2 Test"), true, null);
+                               RDN.valueOf("cn=Proxy V2 Test"), true, null);
     modifyDNOperation.run();
     assertProxyPrivilege(modifyDNOperation.getResultCode(), hasProxyPrivilege);
 
@@ -2428,5 +2409,11 @@ public class PrivilegeTestCase extends TypesTestCase
         "Task " + taskEntryDN + " did not complete in a timely manner.");
 
     return task;
+  }
+
+  private void processModifyDN(InternalClientConnection conn, String dn, String newRdn, ResultCode expectedRC)
+  {
+    ModifyDNOperation op = conn.processModifyDN(newModifyDNRequest(dn, newRdn).setDeleteOldRDN(true));
+    assertEquals(op.getResultCode(), expectedRC);
   }
 }

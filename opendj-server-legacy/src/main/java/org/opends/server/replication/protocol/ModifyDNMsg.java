@@ -369,7 +369,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
       return DN.valueOf(newRDN + "," + newSuperior);
     }
     final DN parentDn = getDN().parent();
-    return parentDn.child(RDN.decode(newRDN));
+    return parentDn.child(RDN.valueOf(newRDN));
   }
 
   /**

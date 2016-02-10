@@ -704,7 +704,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       // moddn robert to robert2
       ModifyDNOperation modDNOp = connection.processModifyDN(
           DN.valueOf("cn=Robert Hue," + baseDN5),
-          RDN.decode("cn=Robert Hue2"), true,
+          RDN.valueOf("cn=Robert Hue2"), true,
           baseDN5);
       waitForSearchOpResult(modDNOp, ResultCode.SUCCESS);
 
@@ -1219,7 +1219,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     final DN newSuperior = DN_OTEST2;
     ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
         DN.valueOf("uid=" + testName + "4," + replicaId.getBaseDN()), // entryDN
-        RDN.decode("uid=" + testName + "new4"), // new rdn
+        RDN.valueOf("uid=" + testName + "new4"), // new rdn
         true,  // deleteoldrdn
         newSuperior);
     op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(csn, testName + "uuid4", "newparentId"));

@@ -221,7 +221,7 @@ public final class RDN
    *           If a problem occurs while trying to decode the provided
    *           string as a RDN.
    */
-  public static RDN decode(String rdnString) throws DirectoryException
+  public static RDN valueOf(String rdnString) throws DirectoryException
   {
     // A null or empty RDN is not acceptable.
     if (rdnString == null)

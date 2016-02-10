@@ -16,19 +16,44 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.zip.DataFormatException;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
@@ -38,7 +63,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -137,11 +164,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
                                List<Attribute> entryAttrList)
          throws Exception
   {
-    DN dn = DN.valueOf(rawdn);
-    InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
-    ModifyMsg msg = new ModifyMsg(csn, dn, mods, "fakeuniqueid");
-
+    ModifyMsg msg = new ModifyMsg(csn, DN.valueOf(rawdn), mods, "fakeuniqueid");
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
@@ -165,8 +188,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Get ECL entry attributes
     assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
-    ModifyOperation mod1 = (ModifyOperation) msg.createOperation(connection);
-    ModifyOperation mod2 = (ModifyOperation) generatedMsg.createOperation(connection);
+    InternalClientConnection conn = getRootConnection();
+    ModifyOperation mod1 = (ModifyOperation) msg.createOperation(conn);
+    ModifyOperation mod2 = (ModifyOperation) generatedMsg.createOperation(conn);
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
     assertEquals(mod1.getAttachment(SYNCHROCONTEXT),
@@ -272,8 +296,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       boolean subtree)
   throws Exception
   {
-    InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
     DeleteOperation deleteOp =
       new DeleteOperationBasis(connection, 1, 1,null, DN.valueOf(rawDN));
     if (subtree)
@@ -302,7 +324,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Get ECL entry attributes
     assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
-    DeleteOperation mod2 = (DeleteOperation) generatedMsg.createOperation(connection);
+    DeleteOperation mod2 = (DeleteOperation) generatedMsg.createOperation(getRootConnection());
     assertEquals(mod2.getRequestControl(SubtreeDeleteControl.DECODER) != null, subtree);
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
 
@@ -359,11 +381,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
                                byte safeDataLevel, List<Attribute> entryAttrList)
          throws Exception
   {
-    InternalClientConnection connection =
-      InternalClientConnection.getRootConnection();
-    ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
-                  DN.valueOf(rawDN), RDN.decode(newRdn), deleteOldRdn,
-                  (newSuperior.length() != 0 ? DN.valueOf(newSuperior) : null));
+    ModifyDNRequest modifyDNRequest = newModifyDNRequest(rawDN, newRdn)
+        .setDeleteOldRDN(deleteOldRdn);
+    if (newSuperior.length() != 0)
+    {
+      modifyDNRequest.setNewSuperior(newSuperior);
+    }
+    ModifyDNOperation op = getRootConnection().processModifyDN(modifyDNRequest);
 
     CSN csn = new CSN(TimeThread.getTime(), 123,  45);
     op.setAttachment(SYNCHROCONTEXT,
@@ -397,8 +421,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Get ECL entry attributes
     assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
-    ModifyDNOperation moddn1 = (ModifyDNOperation) msg.createOperation(connection);
-    ModifyDNOperation moddn2 = (ModifyDNOperation) generatedMsg.createOperation(connection);
+    ModifyDNOperation moddn1 = (ModifyDNOperation) msg.createOperation(getRootConnection());
+    ModifyDNOperation moddn2 = (ModifyDNOperation) generatedMsg.createOperation(getRootConnection());
 
     assertEquals(msg.getCSN(), generatedMsg.getCSN());
     assertEquals(moddn1.getRawEntryDN(), moddn2.getRawEntryDN());
@@ -475,10 +499,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
     // Create an new Add Operation from the current addMsg
-    InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
-    AddOperation addOp = msg.createOperation(connection, dn);
-    AddOperation genAddOp = generatedMsg.createOperation(connection, dn);
+    InternalClientConnection conn = getRootConnection();
+    AddOperation addOp = msg.createOperation(conn, dn);
+    AddOperation genAddOp = generatedMsg.createOperation(conn, dn);
 
     assertEquals(addOp.getRawEntryDN(), genAddOp.getRawEntryDN());
     assertEquals(addOp.getAttachment(SYNCHROCONTEXT), genAddOp.getAttachment(SYNCHROCONTEXT));
@@ -490,7 +513,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.toString(), generatedMsg.toString());
 
     //Create an Add operation and generate and Add msg from it
-    AddOperation addOpB = new AddOperationBasis(connection,
+    AddOperation addOpB = new AddOperationBasis(conn,
         1, 1, null, dn, objectClassList, userAttList, opList);
     LocalBackendAddOperation localAddOp = new LocalBackendAddOperation(addOpB);
     OperationContext opCtx = new AddContext(csn, "thisIsaUniqueID",
@@ -1322,9 +1345,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void deleteMsgPerfs(String rawDN, List<Attribute> entryAttrList)
   throws Exception
   {
-    InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
-
     long createop = 0;
     long createmsgfromop = 0;
     long encodemsg = 0;
@@ -1339,7 +1359,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
       // create op
       DeleteOperation deleteOp =
-        new DeleteOperationBasis(connection, 1, 1,null, DN.valueOf(rawDN));
+        new DeleteOperationBasis(getRootConnection(), 1, 1,null, DN.valueOf(rawDN));
       LocalBackendDeleteOperation op =
           new LocalBackendDeleteOperation(deleteOp);
       CSN csn = new CSN(TimeThread.getTime(), 123, 45);

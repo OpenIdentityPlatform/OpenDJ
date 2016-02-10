@@ -26,6 +26,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
@@ -53,7 +54,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
 import org.opends.server.util.TestTimer;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
@@ -63,6 +63,7 @@ import org.testng.annotations.Test;
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -871,10 +872,10 @@ public class UpdateOperationTest extends ReplicationTestCase
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
 
     // - MODDN parent entry 1 to baseDn2 in the LDAP server
-    connection.processModifyDN(
-        baseDN1,
-        RDN.decode("ou=baseDn2"), true,
-        baseDN);
+    ModifyDNRequest modifyDNRequest = newModifyDNRequest(baseDN1.toString(), "ou=baseDn2")
+        .setDeleteOldRDN(true)
+        .setNewSuperior(baseDN.toString());
+    connection.processModifyDN(modifyDNRequest);
       assertNotNull(getEntry(baseDN2, 10000, true),
           "Entry not moved from " + baseDN1 + " to " + baseDN2);
 
@@ -1135,9 +1136,11 @@ public class UpdateOperationTest extends ReplicationTestCase
       assertClientReceivesExpectedMsg(broker, ModifyMsg.class, personEntry.getName());
 
       // Modify the entry DN
+      ModifyDNRequest modifyDNRequest = newModifyDNRequest(personEntry.getName().toString(), "uid=new person")
+          .setDeleteOldRDN(true)
+          .setNewSuperior(baseDN.toString());
+      connection.processModifyDN(modifyDNRequest);
       DN newDN = DN.valueOf("uid= new person," + baseDN);
-      connection.processModifyDN(personEntry.getName(),
-          RDN.decode("uid=new person"), true, baseDN);
       assertTrue(DirectoryServer.entryExists(newDN),
       "The MOD_DN operation didn't create the new person entry");
       assertFalse(DirectoryServer.entryExists(personEntry.getName()),

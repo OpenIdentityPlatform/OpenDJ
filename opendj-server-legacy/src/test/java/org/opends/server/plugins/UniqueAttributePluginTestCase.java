@@ -17,12 +17,12 @@
 package org.opends.server.plugins;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.UniqueAttributePluginCfgDefn;
@@ -31,33 +31,34 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.testng.annotations.*;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * Unit test to test the unique attribute plugin.
- */
+/** Unit test to test the unique attribute plugin. */
+@SuppressWarnings("javadoc")
 public class UniqueAttributePluginTestCase extends PluginTestCase {
 
-  private DN uidConfigDN;
-  private DN testConfigDN;
+  private String uidConfigDN;
+  private String testConfigDN;
   private String dsConfigAttrType="ds-cfg-type";
   private String dsConfigBaseDN="ds-cfg-base-dn";
 
-  /**
-   * Ensures that the Directory Server is running.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
   @BeforeClass
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.restartServer();
     TestCaseUtils.initializeTestBackend(true);
@@ -66,32 +67,19 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     addTestEntries("o=test", 't');
     TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
     addTestEntries("dc=example,dc=com", 'x');
-    uidConfigDN=DN.valueOf("cn=UID Unique Attribute ,cn=Plugins,cn=config");
-    testConfigDN=DN.valueOf("cn=Test Unique Attribute,cn=Plugins,cn=config");
+    uidConfigDN = "cn=UID Unique Attribute ,cn=Plugins,cn=config";
+    testConfigDN = "cn=Test Unique Attribute,cn=Plugins,cn=config";
   }
 
-
-  /**
-   * Clears configuration information before each method run.
-   *
-   * @throws Exception If an unexpected problem occurs.
-   */
   @BeforeMethod
   public void clearConfigEntries() throws Exception {
     deleteAttrsFromEntry(uidConfigDN, dsConfigBaseDN);
     deleteAttrsFromEntry(testConfigDN, dsConfigBaseDN);
-    //Put an attribute type there that won't impact the rest of the unit
-    //tests.
+    // Put an attribute type there that won't impact the rest of the unit tests.
     replaceAttrInEntry(uidConfigDN, dsConfigAttrType,"oncRpcNumber");
     replaceAttrInEntry(testConfigDN, dsConfigAttrType,"bootParameter");
   }
 
-
-  /**
-   * Clears things up after the unit test is completed.
-   *
-   * @throws Exception If an unexpected problem occurs.
-   */
   @AfterClass
   public void tearDown() throws Exception {
     clearConfigEntries();
@@ -327,7 +315,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   }
 
   /**
-   * Test modify DN operation with various scenerios. See method comments.
+   * Test modify DN operation with various scenarios. See method comments.
    *
    * @throws Exception If an unexpected result occurs.
    */
@@ -337,19 +325,15 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     //that will be tested for.
      Entry e = makeEntry("cn=test user, ou=new people,o=test");
      addAttribute(e, "uid", "3user.3");
-     addEntry(e, ResultCode.SUCCESS);
+     addEntry(e, SUCCESS);
     //Setup uid attribute to be unique. Test using public naming contexts
     //for base DNs.
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"uid");
-    //Rename with new rdn, should fail, there is an entry already with that
-    //uid value.
-    doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"), RDN.decode("uid=4"),
-                      false, null, ResultCode.CONSTRAINT_VIOLATION);
+    // Rename with new rdn, should fail, there is an entry already with that uid value
+    doModDN("uid=3user.3, ou=people, o=test", "uid=4", null, CONSTRAINT_VIOLATION);
     //Rename with multi-valued RDN, should fail there is an entry already with
     //that uid value.
-    doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"),
-                      RDN.decode("sn=xx+uid=4"),
-                      false, null, ResultCode.CONSTRAINT_VIOLATION);
+    doModDN("uid=3user.3, ou=people, o=test", "sn=xx+uid=4", null, CONSTRAINT_VIOLATION);
     //Now add a base dn to be unique under, so new superior move can be tested.
     replaceAttrInEntry(uidConfigDN,dsConfigBaseDN,"ou=new people,o=test");
 
@@ -357,16 +341,10 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     //Try to move the entry to a new superior.
     //Should fail, there is an entry under the new superior already with
     //that uid value.
-    doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"),
-                      RDN.decode("uid=3user.3"), false,
-                       DN.valueOf("ou=new people, o=test"),
-                       ResultCode.CONSTRAINT_VIOLATION);
+    doModDN("uid=3user.3, ou=people, o=test", "uid=3user.3", "ou=new people, o=test", CONSTRAINT_VIOLATION);
    //Test again with different superior, should succeed, new superior DN is
    //not in base DN scope.
-   doModDN(DN.valueOf("uid=3user.3, ou=people, o=test"),
-                      RDN.decode("uid=3user.3"), false,
-                       DN.valueOf("ou=new people1, o=test"),
-                       ResultCode.SUCCESS);
+    doModDN("uid=3user.3, ou=people, o=test", "uid=3user.3", "ou=new people1, o=test", SUCCESS);
   }
 
   /**
@@ -378,33 +356,28 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   @Test
   public void testModOperationNameContexts() throws Exception {
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
-    LinkedList<Modification> mods = new LinkedList<>();
-    addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test", "user1t@test");
     //Fail because user1t@test already exists under "o=people,o=test".
-    doMods(mods, DN.valueOf("uid=5user.5,ou=People,o=test"),
-           ResultCode.CONSTRAINT_VIOLATION);
-    mods.clear();
-    addMods(mods,"pager",ModificationType.ADD,"2-999-1234","1-999-5678");
-    addMods(mods,"mail",ModificationType.ADD,"userx@test","userxx@test",
-           "user1t@test");
+    ModifyRequest modifyRequest = newModifyRequest("uid=5user.5,ou=People,o=test")
+        .addModification(REPLACE, "mail", "userx@test", "userxx@test", "user1t@test");
+    doMods(modifyRequest, CONSTRAINT_VIOLATION);
     //Fail because user1t@test already exists under "o=people,o=test".
-    doMods(mods, DN.valueOf("uid=5user.5,ou=People,o=test"),
-           ResultCode.CONSTRAINT_VIOLATION);
-    mods.clear();
-    addMods(mods,"pager",ModificationType.ADD,"2-999-1234","1-999-5678");
-    addMods(mods,"mail",ModificationType.REPLACE,"userx@test","userxx@test", "user1t@test");
+    modifyRequest = newModifyRequest("uid=5user.5,ou=People,o=test")
+        .addModification(ADD, "pager", "2-999-1234", "1-999-5678")
+        .addModification(ADD, "mail", "userx@test", "userxx@test", "user1t@test");
+    doMods(modifyRequest, CONSTRAINT_VIOLATION);
     //Ok because adding mail value user1t@test to entry that already
     //contains mail value user1t@test.
-    doMods(mods, DN.valueOf("uid=1user.1,ou=People,o=test"),
-           ResultCode.SUCCESS);
-    mods.clear();
+    modifyRequest = newModifyRequest("uid=1user.1,ou=People,o=test")
+        .addModification(ADD, "pager", "2-999-1234", "1-999-5678")
+        .addModification(REPLACE, "mail", "userx@test", "userxx@test", "user1t@test");
+    doMods(modifyRequest, SUCCESS);
     //Replace employeenumber as the unique attribute.
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"employeenumber");
-    addMods(mods,"employeenumber",ModificationType.INCREMENT,"1");
     //Test modify increment extension.
     //Fail because incremented value of employeenumber (2) already exists.
-    doMods(mods, DN.valueOf("uid=1user.1,ou=People,o=test"),
-           ResultCode.CONSTRAINT_VIOLATION);
+    modifyRequest = newModifyRequest("uid=1user.1,ou=People,o=test")
+        .addModification(INCREMENT, "employeenumber", "1");
+    doMods(modifyRequest, CONSTRAINT_VIOLATION);
   }
 
 
@@ -427,21 +400,21 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     //base DNs.
     Entry e1 = makeEntry("cn=test user1, ou=People,o=test");
     addAttribute(e1, "mail", "mailtest@test");
-    addEntry(e1, ResultCode.SUCCESS);
+    addEntry(e1, SUCCESS);
     Entry e2 = makeEntry("cn=test user2, ou=People1,o=test");
     addAttribute(e2, "mail", "mailtest@test");
-    addEntry(e2, ResultCode.SUCCESS);
+    addEntry(e2, SUCCESS);
     //Now try to add two more entries with the same mail attribute value.
     Entry e3 = makeEntry("cn=test user3, ou=People,o=test");
     addAttribute(e3, "mail", "mailtest@test");
-    addEntry(e3, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e3, CONSTRAINT_VIOLATION);
     Entry e4 = makeEntry("cn=test user4, ou=People1,o=test");
     addAttribute(e4, "mail", "mailtest@test");
-    addEntry(e4, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e4, CONSTRAINT_VIOLATION);
   }
 
   /**
-   * Test various add operation scenerios using defined base DNs.
+   * Test various add operation scenarios using defined base DNs.
    * See comments in method.
    *
    * @throws Exception If an unexpected result occurs.
@@ -454,22 +427,22 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     Entry e = makeEntry("cn=test user, ou=People,o=test");
     addAttribute(e, "mail", "user1t@test");
     //Fail because mail attribute already exists under "ou=people,o=test".
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     delAttribute(e, "mail");
     //Replace mobile, pager, telephonenumber to config.
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mobile",
                        "pager","telephonenumber");
     addAttribute(e, "mobile", "1-999-1234","1-999-5678","1-444-9012");
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     e.setDN(DN.valueOf("cn=test user, ou=People,o=test"));
     //Fail because "2-333-9012" already exists in "ou=people,o=test" in
     //telephonenumber attribute.
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     delAttribute(e, "mobile");
     addAttribute(e, "pager", "2-111-1234","1-999-5678","1-999-9012");
     //Fail because "2-111-9012" already exists in "ou=people1,o=test" in
     //mobile attribute.
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     //Test two plugin configuration. Add mail attribute to second plugin
     //instance, leave the first instance as it is.
     replaceAttrInEntry(testConfigDN,dsConfigAttrType,"mail");
@@ -481,7 +454,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     //Add a value that will fail the second plugin.
     addAttribute(e, "mail", "user1t@test");
     //Should pass frirail through second plugin configuration.
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
   }
 
 
@@ -498,21 +471,21 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     addAttribute(e, "mail", "user77x@test");
     //Fail because mail value "user77x@test" is a value under the
     //"dc=example,dc=com" naming context.
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     delAttribute(e, "mail");
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mobile",
                   "pager","telephonenumber");
     addAttribute(e, "mobile", "1-999-1234","1-999-5678","2-777-9012");
     //Fail because "2-777-9012"  is a telephone value under the
     //"dc=example,dc=com" naming context.
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     e.setDN(DN.valueOf("cn=test user, ou=People,o=test"));
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
     delAttribute(e, "mobile");
     addAttribute(e, "pager", "2-777-1234","1-999-5678","1-999-9012");
     //Fail because "2-777-9012"  is a telephone value under the
     //"dc=example,dc=com" naming context.
-    addEntry(e, ResultCode.CONSTRAINT_VIOLATION);
+    addEntry(e, CONSTRAINT_VIOLATION);
   }
 
 
@@ -705,8 +678,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
 
   private void clearAcis(String suffix) throws Exception
   {
-    deleteAttrsFromEntry(DN.valueOf("ou=People," + suffix), "aci");
-    deleteAttrsFromEntry(DN.valueOf("ou=People1," + suffix), "aci");
+    deleteAttrsFromEntry("ou=People," + suffix, "aci");
+    deleteAttrsFromEntry("ou=People1," + suffix, "aci");
   }
 
   /**
@@ -718,21 +691,18 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *                        entry.
    * @throws Exception  If an error occurs.
    */
-  private void
-  deleteAttrsFromEntry(DN dn, String... attrTypeStrings) throws Exception {
-    LinkedList<Modification> mods = new LinkedList<>();
+  private void deleteAttrsFromEntry(String dn, String... attrTypeStrings) throws Exception {
+    ModifyRequest modifyRequest = newModifyRequest(dn);
     for(String attrTypeString : attrTypeStrings) {
-     AttributeType attrType = getAttributeType(attrTypeString);
-     mods.add(new Modification(ModificationType.DELETE,
-         Attributes.empty(attrType)));
+      modifyRequest.addModification(DELETE, attrTypeString);
     }
-    getRootConnection().processModify(dn, mods);
+    getRootConnection().processModify(modifyRequest);
   }
 
-  private void replaceAttrInEntry(DN dn, String attrName, String... attrValStrings) {
-    LinkedList<Modification> mods = newLinkedList(
-        new Modification(ModificationType.REPLACE, Attributes.create(attrName, attrValStrings)));
-    getRootConnection().processModify(dn, mods);
+  private void replaceAttrInEntry(String dn, String attrName, Object... attrValStrings) {
+    ModifyRequest modifyRequest = newModifyRequest(dn)
+        .addModification(REPLACE, attrName, attrValStrings);
+    getRootConnection().processModify(modifyRequest);
   }
 
 
@@ -770,67 +740,27 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     );
   }
 
-  /**
-   * Remove an attribute from the specified entry.
-   *
-   * @param entry  The entry to remove the attribute from.
-   * @param attrTypeString The attribute type string to remove.
-   */
   private void delAttribute(Entry entry, String attrTypeString) {
     entry.removeAttribute(getAttributeType(attrTypeString));
   }
 
-  /**
-   * Add an attribute to an entry with specified values.
-   *
-   * @param entry  The entry to add the attribute to.
-   * @param attrName The attribute type string name.
-   * @param attrValues The values use in building the attribute.
-   */
   private void addAttribute(Entry entry, String attrName, String... attrValues) {
     entry.addAttribute(Attributes.create(attrName, attrValues), null);
   }
 
-  /**
-   * Add a new modification for attribute type string and values of modification
-   * type to a list of modifications.
-   *
-   * @param mods The modification list to add to.
-   * @param attrName The attribute type string name.
-   * @param modificationType The modification type.
-   * @param attrValues The values to build the modification from.
-   */
-  private void
-  addMods(LinkedList<Modification> mods, String attrName,
-          ModificationType modificationType, String... attrValues) {
-    mods.add(new Modification(modificationType,
-        Attributes.create(attrName, attrValues)));
-  }
-
-  /**
-   * Perform modify operation with list of modifications. Expect return code
-   * of value rc.
-   *
-   * @param mods  The modification list to use.
-   * @param dn The DN of the entry to modify.
-   * @param rc The expected return code.
-   */
-  private void doMods(LinkedList<Modification> mods, DN dn, ResultCode rc) {
-    ModifyOperation modifyOperation = getRootConnection().processModify(dn, mods);
+  private void doMods(ModifyRequest modifyRequest, ResultCode rc) throws DirectoryException {
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(),  rc);
   }
 
-  /**
-   *  Perform modify DN operation. Expect return value of rc.
-   *
-   * @param dn  The DN to rename or move.
-   * @param rdn RDN value.
-   * @param delOld Delete old flag.
-   * @param newSuperior New superior to move to.
-   * @param rc Expected return code from operation.
-   */
-  private void doModDN(DN dn, RDN rdn, boolean delOld, DN newSuperior, ResultCode rc) {
-    ModifyDNOperation modifyDNOperation = getRootConnection().processModifyDN(dn, rdn, delOld, newSuperior);
+  private void doModDN(String dn, String newRdn, String newSuperior, ResultCode rc)
+      throws DirectoryException {
+    ModifyDNRequest modifyDNRequest = newModifyDNRequest(dn, newRdn);
+    if (newSuperior != null)
+    {
+      modifyDNRequest.setNewSuperior(newSuperior);
+    }
+    ModifyDNOperation modifyDNOperation = getRootConnection().processModifyDN(modifyDNRequest);
     assertEquals(modifyDNOperation.getResultCode(), rc);
   }
 }
