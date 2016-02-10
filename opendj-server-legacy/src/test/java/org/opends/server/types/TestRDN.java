@@ -102,7 +102,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test
   public void testConstructorWithName() throws Exception {
-    RDN rdn = new RDN(AT_DC, "domainComponent", AV_DC_ORG);
+    RDN rdn = new RDN(new AVA(AT_DC, "domainComponent", AV_DC_ORG));
 
     assertEquals(rdn.size(), 1);
     AVA ava = rdn.getFirstAVA();
@@ -221,28 +221,6 @@ public final class TestRDN extends TypesTestCase {
         { "O=\"Sue, Grabbit and Runn\"", "o=sue%2C%20grabbit%20and%20runn", "O=Sue\\, Grabbit and Runn" }, };
   }
 
-
-
-  /**
-   * Test RDN string decoder.
-   *
-   * @param rawRDN
-   *          Raw RDN string representation.
-   * @param normRDN
-   *          Normalized RDN string representation.
-   * @param stringRDN
-   *          String representation.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "testRDNs")
-  public void testNormalizationToSafeUrlString(String rawRDN, String normRDN, String stringRDN) throws Exception {
-    RDN rdn = RDN.valueOf(rawRDN);
-    assertEquals(rdn.toNormalizedUrlSafeString(), normRDN);
-  }
-
-
-
   /**
    * Illegal RDN test data provider.
    *
@@ -251,8 +229,8 @@ public final class TestRDN extends TypesTestCase {
   @DataProvider(name = "illegalRDNs")
   public Object[][] createIllegalData() {
     return new Object[][] { { null }, { "" }, { " " }, { "=" }, { "manager" },
-        { "manager " }, { "cn+"}, { "cn+Jim" }, { "cn=Jim+" }, { "cn=Jim +" },
-        { "cn=Jim+ " }, /* FIXME activate { "cn=Jim+cn=John" }, */ { "cn=Jim+sn" }, { "cn=Jim+sn " },
+        { "manager " }, { "cn+"}, { "cn+Jim" }, { "cn="}, { "cn=Jim+" }, { "cn=Jim +" },
+        { "cn=Jim+ " }, { "cn=Jim+cn=John" }, { "cn=Jim+sn" }, { "cn=Jim+sn " },
         { "cn=Jim+sn equals" }, { "cn=Jim," }, { "cn=Jim;" }, { "cn=Jim,  " },
         { "cn=Jim+sn=a," }, { "cn=Jim, sn=Jam " }, { "cn+uid=Jim" },
         { "-cn=Jim" }, { "/tmp=a" }, { "\\tmp=a" }, { "cn;lang-en=Jim" },
@@ -356,8 +334,8 @@ public final class TestRDN extends TypesTestCase {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
     assertEquals(rdn.size(), 1);
 
-    rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
-    assertEquals(rdn.size(), 2);
+    RDN rdn2 = new RDN(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN));
+    assertEquals(rdn2.size(), 2);
   }
 
   /**
@@ -369,26 +347,11 @@ public final class TestRDN extends TypesTestCase {
   @Test
   public void testIsMultiValued() throws Exception {
     RDN rdn = new RDN(AT_DC, AV_DC_ORG);
-    assertEquals(rdn.size(), 1);
     assertFalse(rdn.isMultiValued());
 
-    rdn.addValue(AT_CN, AT_CN.getNameOrOID(), AV_CN);
-    assertTrue(rdn.isMultiValued());
+    RDN rdn2 = new RDN(new AVA(AT_DC, AV_DC_ORG), new AVA(AT_CN, AV_CN));
+    assertTrue(rdn2.isMultiValued());
   }
-
-  /**
-   * Tests addValue with a duplicate value.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testAddDuplicateValue() throws Exception {
-    RDN rdn = new RDN(AT_DC, AV_DC_ORG);
-    assertFalse(rdn.addValue(AT_DC, AT_DC.getNameOrOID(), AV_DC_ORG));
-  }
-
-
 
   /**
    * Test RDN string decoder.

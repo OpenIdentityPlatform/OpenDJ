@@ -25,12 +25,10 @@ import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.pluggable.DnKeyFormat;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -188,31 +186,10 @@ public class TestDN extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testCreateWithMultipleRDNs1() throws Exception {
+  public void testCreateWithMultipleRDNs() throws Exception {
     DN dn = DN.rootDN().child(RDN.valueOf("dc=org")).child(RDN.valueOf("dc=opends")).child(RDN.valueOf("dc=foo"));
     assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
   }
-
-
-
-  /**
-   * Tests the create method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testCreateWithMultipleRDNs2() throws Exception {
-    ArrayList<RDN> rdnList = new ArrayList<>();
-    rdnList.add(RDN.valueOf("dc=foo"));
-    rdnList.add(RDN.valueOf("dc=opends"));
-    rdnList.add(RDN.valueOf("dc=org"));
-    DN dn = new DN(rdnList);
-
-    assertEquals(dn, DN.valueOf("dc=foo,dc=opends,dc=org"));
-  }
-
-
 
   /**
    * Tests the <CODE>valueOf</CODE> method which takes a String
@@ -283,12 +260,8 @@ public class TestDN extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testToNormalizedString() throws Exception {
+  public void testToNormalizedUrlSafeString() throws Exception {
     DN dn = DN.valueOf("dc=example,dc=com");
-
-    assertEquals(dn.toNormalizedByteString(),
-        new ByteStringBuilder().appendUtf8("dc=com").appendByte(DnKeyFormat.NORMALIZED_RDN_SEPARATOR)
-                               .appendUtf8("dc=example").toByteString());
     assertEquals(dn.toNormalizedUrlSafeString(), "dc=com,dc=example");
   }
 
@@ -900,7 +873,7 @@ public class TestDN extends TypesTestCase {
       AssertionError.class })
   public void testIsAncestorOfException() throws Exception {
     DN dn = DN.valueOf("dc=com");
-    dn.isSuperiorOrEqualTo(null);
+    dn.isSuperiorOrEqualTo((DN) null);
   }
 
 
@@ -970,7 +943,7 @@ public class TestDN extends TypesTestCase {
       AssertionError.class })
   public void testIsDescendantOfException() throws Exception {
     DN dn = DN.valueOf("dc=com");
-    dn.isSubordinateOrEqualTo(null);
+    dn.isSubordinateOrEqualTo((DN) null);
   }
 
 
