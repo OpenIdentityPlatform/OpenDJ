@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -227,30 +227,10 @@ public final class ArgumentConstants {
     /** The value for the long option version. */
     public static final String OPTION_LONG_PRODUCT_VERSION = "version";
 
-    /** The value for the short option groupName attributes. */
-    public static final char OPTION_SHORT_GROUPNAME = 'g';
-    /** The value for the long option groupName attribute. */
-    public static final String OPTION_LONG_GROUPNAME = "groupName";
-
-    /** The value for the short option newGroupName attribute. */
-    public static final char OPTION_SHORT_NEWGROUPNAME = 'n';
-    /** The value for the long option groupName attribute. */
-    public static final String OPTION_LONG_NEWGROUPNAME = "newGroupName";
-
-    /** The value for the short option serverID attributes. */
-    public static final String OPTION_SHORT_SERVERID = null;
-    /** The value for the long option serverID attribute. */
-    public static final String OPTION_LONG_SERVERID = "serverID";
-
-    /** The value for the short option userID attributes. */
-    public static final String OPTION_SHORT_USERID = null;
-    /** The value for the long option userID attribute. */
-    public static final String OPTION_LONG_USERID = "userID";
-
-    /** The value for the short option set. */
-    public static final Character OPTION_SHORT_SET = null;
-    /** The value for the long option set. */
-    public static final String OPTION_LONG_SET = "set";
+    /** The value for the long "checkStoppability" {@link Argument}. */
+    public static final String OPTION_LONG_CHECK_STOPPABILITY = "checkStoppability";
+    /** The value for the long "windowsNetStop" {@link Argument}. */
+    public static final String OPTION_LONG_WINDOWS_NET_STOP = "windowsNetStop";
 
     /** Value for the quiet option short form. */
     public static final Character OPTION_SHORT_QUIET = 'Q';

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2015 ForgeRock AS.
+ *      Portions copyright 2012-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -120,13 +120,11 @@ public class ArgumentParser implements ToolRefDocContainer {
     };
 
     /** The set of arguments defined for this parser, referenced by short ID. */
-    private final HashMap<Character, Argument> shortIDMap = new HashMap<>();
+    private final Map<Character, Argument> shortIDMap = new HashMap<>();
     /** The set of arguments defined for this parser, referenced by long ID. */
-    private final HashMap<String, Argument> longIDMap = new HashMap<>();
-    /** The set of arguments defined for this parser, referenced by argument name. */
-    private final HashMap<String, Argument> argumentMap = new HashMap<>();
+    private final Map<String, Argument> longIDMap = new HashMap<>();
     /** The total set of arguments defined for this parser. */
-    private final LinkedList<Argument> argumentList = new LinkedList<>();
+    private final List<Argument> argumentList = new LinkedList<>();
 
     /** The maximum number of unnamed trailing arguments that may be provided. */
     private final int maxTrailingArguments;
@@ -152,9 +150,6 @@ public class ArgumentParser implements ToolRefDocContainer {
 
     /** The display name that will be used for the trailing arguments in the usage information. */
     private final String trailingArgsDisplayName;
-
-    /** The raw set of command-line arguments that were provided. */
-    private String[] rawArguments;
 
     /** Set of argument groups. */
     protected final Set<ArgumentGroup> argumentGroups = new TreeSet<>();
@@ -406,9 +401,8 @@ public class ArgumentParser implements ToolRefDocContainer {
             return null;
         }
 
-        // check if the properties file argument has been set. If not
-        // look for default location.
-        String propertiesFilePath = null;
+        // check if the properties file argument has been set. If not look for default location.
+        String propertiesFilePath;
         if (filePropertiesPathArgument.isPresent()) {
             propertiesFilePath = filePropertiesPathArgument.getValue();
         } else {
@@ -457,18 +451,6 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     /**
-     * Retrieves the argument with the specified name.
-     *
-     * @param name
-     *            The name of the argument to retrieve.
-     * @return The argument with the specified name, or <CODE>null</CODE> if
-     *         there is no such argument.
-     */
-    Argument getArgument(final String name) {
-        return argumentMap.get(name);
-    }
-
-    /**
      * Retrieves the argument with the specified long identifier.
      *
      * @param longID
@@ -481,50 +463,14 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     /**
-     * Retrieves the argument with the specified short identifier.
-     *
-     * @param shortID
-     *            The short ID for the argument to retrieve.
-     * @return The argument with the specified short identifier, or
-     *         <CODE>null</CODE> if there is no such argument.
-     */
-    Argument getArgumentForShortID(final Character shortID) {
-        return shortIDMap.get(shortID);
-    }
-
-    /**
      * Retrieves the list of all arguments that have been defined for this
      * argument parser.
      *
      * @return The list of all arguments that have been defined for this
      *         argument parser.
      */
-    public LinkedList<Argument> getArgumentList() {
+    public List<Argument> getArgumentList() {
         return argumentList;
-    }
-
-    /**
-     * Retrieves the set of arguments mapped by the long identifier that may be
-     * used to reference them. Note that arguments that do not have a long
-     * identifier will not be present in this list.
-     *
-     * @return The set of arguments mapped by the long identifier that may be
-     *         used to reference them.
-     */
-    HashMap<String, Argument> getArgumentsByLongID() {
-        return longIDMap;
-    }
-
-    /**
-     * Retrieves the set of arguments mapped by the short identifier that may be
-     * used to reference them. Note that arguments that do not have a short
-     * identifier will not be present in this list.
-     *
-     * @return The set of arguments mapped by the short identifier that may be
-     *         used to reference them.
-     */
-    HashMap<Character, Argument> getArgumentsByShortID() {
-        return shortIDMap;
     }
 
     /**
@@ -538,40 +484,6 @@ public class ArgumentParser implements ToolRefDocContainer {
      */
     String getMainClassName() {
         return mainClassName;
-    }
-
-    /**
-     * Retrieves the maximum number of unnamed trailing arguments that may be
-     * provided.
-     *
-     * @return The maximum number of unnamed trailing arguments that may be
-     *         provided, or a value less than or equal to zero if no maximum
-     *         will be enforced.
-     */
-    int getMaxTrailingArguments() {
-        return maxTrailingArguments;
-    }
-
-    /**
-     * Retrieves the minimum number of unnamed trailing arguments that must be
-     * provided.
-     *
-     * @return The minimum number of unnamed trailing arguments that must be
-     *         provided, or a value less than or equal to zero if no minimum
-     *         will be enforced.
-     */
-    int getMinTrailingArguments() {
-        return minTrailingArguments;
-    }
-
-    /**
-     * Retrieves the raw set of arguments that were provided.
-     *
-     * @return The raw set of arguments that were provided, or <CODE>null</CODE>
-     *         if the argument list has not yet been parsed.
-     */
-    String[] getRawArguments() {
-        return rawArguments;
     }
 
     /**
@@ -1039,18 +951,6 @@ public class ArgumentParser implements ToolRefDocContainer {
         return usageArgument != null && usageArgument.getName().equals(a.getName());
     }
 
-    /**
-     * Retrieves a message containing usage information based on the defined
-     * arguments.
-     *
-     * @return A string containing usage information based on the defined
-     *         arguments.
-     */
-    public LocalizableMessage getUsageMessage() {
-        // TODO: rework getUsage(OutputStream) to work with messages framework
-        return LocalizableMessage.raw(getUsage());
-    }
-
     /** Prints the version. */
     void printVersion() {
         versionPresent = true;
@@ -1118,10 +1018,7 @@ public class ArgumentParser implements ToolRefDocContainer {
      *             If a problem was encountered while parsing the provided
      *             arguments.
      */
-    public void parseArguments(final String[] rawArguments, Properties argumentProperties)
-            throws ArgumentException {
-        this.rawArguments = rawArguments;
-
+    public void parseArguments(final String[] rawArguments, Properties argumentProperties) throws ArgumentException {
         boolean inTrailingArgs = false;
 
         final int numArguments = rawArguments.length;
@@ -1154,12 +1051,11 @@ public class ArgumentParser implements ToolRefDocContainer {
                 String argName = arg.substring(2);
                 String argValue = null;
                 final int equalPos = argName.indexOf('=');
-                if (equalPos < 0) {
-                    // This is fine. The value is not part of the argument name token.
-                } else if (equalPos == 0) {
+                // If equalsPos < 0, this is fine. The value is not part of the argument name token.
+                if (equalPos == 0) {
                     // The argument starts with "--=", which is not acceptable.
                     throw new ArgumentException(ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg));
-                } else {
+                } else if (equalPos > 0) {
                     // The argument is in the form --name=value, so parse them both out.
                     argValue = argName.substring(equalPos + 1);
                     argName = argName.substring(0, equalPos);
@@ -1379,8 +1275,6 @@ public class ArgumentParser implements ToolRefDocContainer {
      */
     public void parseArguments(final String[] rawArguments, final String propertiesFile,
             final boolean requirePropertiesFile) throws ArgumentException {
-        this.rawArguments = rawArguments;
-
         Properties argumentProperties = null;
 
         try (final FileInputStream fis = new FileInputStream(propertiesFile)) {
@@ -1416,16 +1310,6 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     /**
-     * Sets the usage group description for the default argument group.
-     *
-     * @param description
-     *            for the default group
-     */
-    void setDefaultArgumentGroupDescription(final LocalizableMessage description) {
-        this.defaultArgGroup.setDescription(description);
-    }
-
-    /**
      * Sets the provided argument which will be used to identify the file
      * properties.
      *
@@ -1438,36 +1322,6 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     /**
-     * Sets the usage group description for the general argument group.
-     *
-     * @param description
-     *            for the general group
-     */
-    void setGeneralArgumentGroupDescription(final LocalizableMessage description) {
-        this.generalArgGroup.setDescription(description);
-    }
-
-    /**
-     * Sets the usage group description for the input/output argument group.
-     *
-     * @param description
-     *            for the input/output group
-     */
-    void setInputOutputArgumentGroupDescription(final LocalizableMessage description) {
-        this.ioArgGroup.setDescription(description);
-    }
-
-    /**
-     * Sets the usage group description for the LDAP argument group.
-     *
-     * @param description
-     *            for the LDAP group
-     */
-    void setLdapArgumentGroupDescription(final LocalizableMessage description) {
-        this.ldapArgGroup.setDescription(description);
-    }
-
-    /**
      * Sets the provided argument which will be used to identify the file
      * properties.
      *
@@ -1477,15 +1331,6 @@ public class ArgumentParser implements ToolRefDocContainer {
      */
     public void setNoPropertiesFileArgument(final BooleanArgument argument) {
         noPropertiesFileArgument = argument;
-    }
-
-    /**
-     * Sets the raw set of arguments.
-     *
-     * @param rawArguments the raw set of arguments to set
-     */
-    void setRawArguments(String[] rawArguments) {
-        this.rawArguments = rawArguments;
     }
 
     /**
@@ -1740,8 +1585,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                 final String value = argumentProperties.getProperty(a.getPropertyName().toLowerCase());
                 final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
                 if (value != null) {
-                    boolean addValue = (a instanceof BooleanArgument) ? true
-                            : a.valueIsAcceptable(value, invalidReason);
+                    boolean addValue = (a instanceof BooleanArgument) || a.valueIsAcceptable(value, invalidReason);
                     if (addValue) {
                         a.addValue(value);
                         if (a.needsValue()) {

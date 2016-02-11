@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS.
+ *      Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -99,31 +99,6 @@ public final class CommonArguments {
         return new IntegerArgument(OPTION_LONG_PORT.toLowerCase(), OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false,
                 true, INFO_PORT_PLACEHOLDER.get(), defaultPort, OPTION_LONG_PORT, true, 1, true, 65535,
                 description != null ? description : INFO_DESCRIPTION_ADMIN_PORT.get());
-    }
-
-    /**
-     * Returns the "postreadattrs" string argument.
-     *
-     * @return The "postreadattrs" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getPostReadAttributes() throws ArgumentException {
-        return new StringArgument("postreadattrs", null, "postReadAttributes", false, false, true,
-                INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, "postReadAttributes",
-                INFO_DESCRIPTION_POSTREAD_ATTRS.get());
-    }
-
-    /**
-     * Returns the "prereadattrs" string argument.
-     *
-     * @return The "prereadattrs" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getPreReadAttributes() throws ArgumentException {
-        return new StringArgument("prereadattrs", null, "preReadAttributes", false, false, true,
-                INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, "preReadAttributes", INFO_DESCRIPTION_PREREAD_ATTRS.get());
     }
 
     /**
@@ -208,20 +183,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "windowsnetstop" boolean argument.
-     *
-     * @return The "windowsnetstop" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getWindowsNetStop() throws ArgumentException {
-        final BooleanArgument netStop = new BooleanArgument("windowsnetstop", null, "windowsNetStop",
-                INFO_DESCRIPTION_WINDOWS_NET_STOP.get());
-        netStop.setHidden(true);
-        return netStop;
-    }
-
-    /**
      * Returns the "quiet" boolean argument.
      *
      * @return The "quiet" argument.
@@ -271,22 +232,6 @@ public final class CommonArguments {
     public static BooleanArgument getAcceptLicense() throws ArgumentException {
         return new BooleanArgument(OPTION_LONG_ACCEPT_LICENSE, null, OPTION_LONG_ACCEPT_LICENSE,
                 INFO_OPTION_ACCEPT_LICENSE.get());
-    }
-
-    /**
-     * Returns the "targetldif" string argument.
-     * <br><i> N.B : the 't' short option is also used by timelimit,
-     * testonly, trustmanagerproviderdn, stoptime, start(dateTime).</i>
-     *
-     * @param description
-     *            The description of this argument.
-     * @return The "targetldif" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getTargetLDIF(final LocalizableMessage description) throws ArgumentException {
-        return new StringArgument("targetldif", 't', "targetLDIF", true, false, true, INFO_LDIFFILE_PLACEHOLDER.get(),
-                null, null, description);
     }
 
     /**
@@ -432,20 +377,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "checkstoppability" boolean argument.
-     *
-     * @return The "checkstoppability" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getCheckStoppability() throws ArgumentException {
-        final BooleanArgument cs = new BooleanArgument("checkstoppability", null, "checkStoppability",
-                INFO_CHECK_STOPPABILITY.get());
-        cs.setHidden(true);
-        return cs;
-    }
-
-    /**
      * Returns the "configfile" string argument. <br>
      * <i> N.B : the 'f' short option is also used by filename</i>
      *
@@ -501,30 +432,6 @@ public final class CommonArguments {
     public static StringArgument getBackupDirectory() throws ArgumentException {
         return new StringArgument("backupdirectory", 'd', "backupDirectory", true, false, true,
                 INFO_BACKUPDIR_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKUP_DIR.get());
-    }
-
-    /**
-     * Returns the "backupID" string argument.
-     *
-     * @return The "backupID" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getBackupId() throws ArgumentException {
-        return new StringArgument("backupid", 'I', "backupID", false, false, true,
-                INFO_BACKUPID_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKUP_ID.get());
-    }
-
-    /**
-     * Returns the "backupall" boolean argument. <br><i> N.B : the 'a' short option is also used by addbaseentry,
-     * defaultAdd.</i>
-     *
-     * @return The "backupall" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getBackupAll() throws ArgumentException {
-        return new BooleanArgument("backupall", 'a', "backUpAll", INFO_DESCRIPTION_BACKUP_ALL.get());
     }
 
     /**
@@ -713,7 +620,7 @@ public final class CommonArguments {
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static  MultiChoiceArgument<SearchScope> getSearchScope() throws ArgumentException {
+    public static MultiChoiceArgument<SearchScope> getSearchScope() throws ArgumentException {
         final MultiChoiceArgument<SearchScope> searchScope = new MultiChoiceArgument<>(
                 OPTION_LONG_SEARCHSCOPE, OPTION_SHORT_SEARCHSCOPE, OPTION_LONG_SEARCHSCOPE, false, true,
                 INFO_SEARCH_SCOPE_PLACEHOLDER.get(), SearchScope.values(), false,
@@ -853,21 +760,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "sourceldif" string argument. <br>
-     * <i> N.B : the 's' short option is also used by searchScope, servicestate, randomSeed, script-friendly.</i>
-     *
-     * @param description
-     *            The description of this argument.
-     * @return The "sourceldif" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getSourceLDIF(final LocalizableMessage description) throws ArgumentException {
-        return new StringArgument("sourceldif", 's', "sourceLDIF", true, false, true, INFO_LDIFFILE_PLACEHOLDER.get(),
-                null, null, description);
-    }
-
-    /**
      * Returns the "startTLS" boolean argument.
      *
      * @return The "startTLS" argument.
@@ -986,18 +878,6 @@ public final class CommonArguments {
                 INFO_SETUP_DESCRIPTION_DO_NOT_START.get());
         doNotStartArg.setPropertyName("doNotStart");
         return doNotStartArg;
-    }
-
-    /**
-     * Returns the "defaultAdd" boolean argument.
-     * <br><i> N.B : the 'a' short option is also used by addbaseentry, defaultAdd.</i>
-     *
-     * @return The "defaultAdd" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getDefaultAdd() throws ArgumentException {
-        return new BooleanArgument("defaultAdd", 'a', "defaultAdd", INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
     }
 
     /**
@@ -1197,21 +1077,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "useSASLExternal" boolean argument. <br>
-     * <i> N.B : the 'r' short option is also used by stopreason, remote.</i>
-     *
-     * @return The "useSASLExternal" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static BooleanArgument getUseSASLExternal() throws ArgumentException {
-        final BooleanArgument useSASLExternal = new BooleanArgument("useSASLExternal", 'r', "useSASLExternal",
-                INFO_DESCRIPTION_USE_SASL_EXTERNAL.get());
-        useSASLExternal.setPropertyName("useSASLExternal");
-        return useSASLExternal;
-    }
-
-    /**
      * Returns the "useSSL" boolean argument. <br>
      * <i> N.B : the 'Z' short option is also used by ldapsport.</i>
      *
@@ -1304,5 +1169,4 @@ public final class CommonArguments {
                 OPTION_LONG_CERT_NICKNAME, false, true, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
                 OPTION_LONG_CERT_NICKNAME, INFO_ARGUMENT_DESCRIPTION_CERT_NICKNAME.get());
     }
-
 }

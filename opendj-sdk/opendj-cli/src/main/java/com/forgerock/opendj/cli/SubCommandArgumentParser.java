@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -100,15 +100,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Retrieves the list of all global arguments that have been defined for this argument parser.
-     *
-     * @return The list of all global arguments that have been defined for this argument parser.
-     */
-    public List<Argument> getGlobalArgumentList() {
-        return globalArgumentList;
-    }
-
-    /**
      * Indicates whether this argument parser contains a global argument with the specified name.
      *
      * @param argumentName
@@ -117,38 +108,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     public boolean hasGlobalArgument(String argumentName) {
         return globalArgumentMap.containsKey(argumentName);
-    }
-
-    /**
-     * Retrieves the global argument with the specified name.
-     *
-     * @param name
-     *            The name of the global argument to retrieve.
-     * @return The global argument with the specified name, or <CODE>null</CODE> if there is no such argument.
-     */
-    public Argument getGlobalArgument(String name) {
-        return globalArgumentMap.get(name);
-    }
-
-    /**
-     * Retrieves the set of global arguments mapped by the short identifier that may be used to reference them. Note
-     * that arguments that do not have a short identifier will not be present in this list.
-     *
-     * @return The set of global arguments mapped by the short identifier that may be used to reference them.
-     */
-    public Map<Character, Argument> getGlobalArgumentsByShortID() {
-        return globalShortIDMap;
-    }
-
-    /**
-     * Indicates whether this argument parser has a global argument with the specified short ID.
-     *
-     * @param shortID
-     *            The short ID character for which to make the determination.
-     * @return <CODE>true</CODE> if a global argument exists with the specified short ID, or <CODE>false</CODE> if not.
-     */
-    public boolean hasGlobalArgumentWithShortID(Character shortID) {
-        return globalShortIDMap.containsKey(shortID);
     }
 
     /**
@@ -164,27 +123,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Retrieves the set of global arguments mapped by the long identifier that may be used to reference them. Note that
-     * arguments that do not have a long identifier will not be present in this list.
-     *
-     * @return The set of global arguments mapped by the long identifier that may be used to reference them.
-     */
-    public Map<String, Argument> getGlobalArgumentsByLongID() {
-        return globalLongIDMap;
-    }
-
-    /**
-     * Indicates whether this argument parser has a global argument with the specified long ID.
-     *
-     * @param longID
-     *            The long ID string for which to make the determination.
-     * @return <CODE>true</CODE> if a global argument exists with the specified long ID, or <CODE>false</CODE> if not.
-     */
-    public boolean hasGlobalArgumentWithLongID(String longID) {
-        return globalLongIDMap.containsKey(longID);
-    }
-
-    /**
      * Retrieves the global argument with the specified long identifier.
      *
      * @param longID
@@ -194,15 +132,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     public Argument getGlobalArgumentForLongID(String longID) {
         return globalLongIDMap.get(longID);
-    }
-
-    /**
-     * Retrieves the set of subcommands defined for this argument parser, referenced by subcommand name.
-     *
-     * @return The set of subcommands defined for this argument parser, referenced by subcommand name.
-     */
-    public SortedMap<String, SubCommand> getSubCommands() {
-        return subCommands;
     }
 
     /**
@@ -351,33 +280,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Removes the provided argument from the set of global arguments handled by this parser.
-     *
-     * @param argument
-     *            The argument to be removed.
-     */
-    protected void removeGlobalArgument(Argument argument) {
-        String argumentName = argument.getName();
-        globalArgumentMap.remove(argumentName);
-
-        Character shortID = argument.getShortIdentifier();
-        if (shortID != null) {
-            globalShortIDMap.remove(shortID);
-        }
-
-        String longID = argument.getLongIdentifier();
-        if (longID != null) {
-            if (!longArgumentsCaseSensitive()) {
-                longID = toLowerCase(longID);
-            }
-
-            globalLongIDMap.remove(longID);
-        }
-
-        globalArgumentList.remove(argument);
-    }
-
-    /**
      * Sets the provided argument as one which will automatically trigger the output of full usage information if it is
      * provided on the command line and no further argument validation will be performed.
      * <p>
@@ -445,7 +347,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     @Override
     public void parseArguments(String[] rawArguments, Properties argumentProperties) throws ArgumentException {
-        setRawArguments(rawArguments);
         this.subCommand = null;
         final ArrayList<String> trailingArguments = getTrailingArguments();
         trailingArguments.clear();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -74,27 +74,13 @@ public final class BooleanArgument extends Argument {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void setPresent(final boolean isPresent) {
         addValue(String.valueOf(isPresent));
     }
 
-    /**
-     * Indicates whether the provided value is acceptable for use in this
-     * argument.
-     *
-     * @param valueString
-     *            The value for which to make the determination.
-     * @param invalidReason
-     *            A buffer into which the invalid reason may be written if the
-     *            value is not acceptable.
-     * @return <CODE>true</CODE> if the value is acceptable, or
-     *         <CODE>false</CODE> if it is not.
-     */
     @Override
-    public boolean valueIsAcceptable(final String valueString,
-            final LocalizableMessageBuilder invalidReason) {
+    public boolean valueIsAcceptable(final String valueString, final LocalizableMessageBuilder invalidReason) {
         // This argument type should never have a value, so any value
         // provided will be unacceptable.
         invalidReason.append(ERR_BOOLEANARG_NO_VALUE_ALLOWED.get(getName()));

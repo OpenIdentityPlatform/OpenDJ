@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2015 ForgeRock AS.
+ *      Copyright 2015-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -38,7 +38,7 @@ public interface DocDescriptionSupplement {
      * @return The supplement to the description for use in generated reference documentation,
      *         or LocalizableMessage.EMPTY if there is no supplement.
      */
-    public LocalizableMessage getDocDescriptionSupplement();
+    LocalizableMessage getDocDescriptionSupplement();
 
     /**
      * Sets a supplement to the description intended for use in generated reference documentation.
@@ -46,5 +46,5 @@ public interface DocDescriptionSupplement {
      * @param docDescriptionSupplement  The supplement to the description
      *                                  for use in generated reference documentation.
      */
-    public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement);
+    void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement);
 }

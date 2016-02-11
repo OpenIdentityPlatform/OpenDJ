@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -35,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -45,7 +46,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * command line, it will be treated as the path to the file containing the
  * actual value rather than the value itself. <BR>
  * <BR>
- * Note that if if no filename is provided on the command line but a default
+ * Note that if no filename is provided on the command line but a default
  * value is specified programmatically or if the default value is read from a
  * specified property, then that default value will be taken as the actual value
  * rather than a filename. <BR>
@@ -56,7 +57,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  */
 public final class FileBasedArgument extends Argument {
     /** The mapping between filenames specified and the first lines read from those files. */
-    private final LinkedHashMap<String, String> namesToValues = new LinkedHashMap<>();
+    private final Map<String, String> namesToValues = new LinkedHashMap<>();
 
     /**
      * Creates a new file-based argument with the provided information.
@@ -163,7 +164,7 @@ public final class FileBasedArgument extends Argument {
      * @return A map between the filenames specified on the command line and the
      *         first lines read from those files.
      */
-    public LinkedHashMap<String, String> getNameToValueMap() {
+    public Map<String, String> getNameToValueMap() {
         return namesToValues;
     }
 

@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS.
+ *      Portions copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -76,7 +76,7 @@ public abstract class Argument implements DocDescriptionSupplement {
 
     /**
      * Indicates whether this argument was provided in the set of
-     * properties found is a properties file.
+     * properties found in a properties file.
      */
     private boolean isValueSetByProperty;
 
@@ -171,35 +171,6 @@ public abstract class Argument implements DocDescriptionSupplement {
     }
 
     /**
-     * Retrieves the value of this argument as a <CODE>Boolean</CODE>.
-     *
-     * @return The value of this argument as a <CODE>Boolean</CODE>.
-     * @throws ArgumentException
-     *             If this argument cannot be interpreted as a Boolean value.
-     */
-    public boolean getBooleanValue() throws ArgumentException {
-        if (values.isEmpty()) {
-            throw new ArgumentException(ERR_ARG_NO_BOOLEAN_VALUE.get(name));
-        }
-
-        final Iterator<String> iterator = values.iterator();
-        final String valueString = toLowerCase(iterator.next());
-        if (iterator.hasNext()) {
-            throw new ArgumentException(ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name));
-        }
-
-        if ("true".equals(valueString) || "yes".equals(valueString)
-                || "on".equals(valueString) || "1".equals(valueString)) {
-            return true;
-        } else if ("false".equals(valueString) || "no".equals(valueString)
-                || "off".equals(valueString) || "0".equals(valueString)) {
-            return false;
-        } else {
-            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name));
-        }
-    }
-
-    /**
      * Retrieves the default value that will be used for this argument if it is
      * not specified on the command line and it is not set from a properties
      * file.
@@ -222,67 +193,17 @@ public abstract class Argument implements DocDescriptionSupplement {
         return description != null ? description : LocalizableMessage.EMPTY;
     }
 
-    /**
-     * A supplement to the description intended for use in generated reference documentation.
-     */
+    /** A supplement to the description intended for use in generated reference documentation. */
     private LocalizableMessage docDescriptionSupplement;
 
-    /** {@inheritDoc} */
     @Override
     public LocalizableMessage getDocDescriptionSupplement() {
         return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
         this.docDescriptionSupplement = docDescriptionSupplement;
-    }
-
-    /**
-     * Retrieves the value of this argument as an integer.
-     *
-     * @return The value of this argument as an integer.
-     * @throws ArgumentException
-     *             If there are multiple values, or the value cannot be parsed
-     *             as an integer.
-     */
-    public double getDoubleValue() throws ArgumentException {
-        if (values.isEmpty()) {
-            throw new ArgumentException(ERR_ARG_NO_INT_VALUE.get(name));
-        }
-
-        final Iterator<String> iterator = values.iterator();
-        final String valueString = iterator.next();
-        if (iterator.hasNext()) {
-            throw new ArgumentException(ERR_ARG_INT_MULTIPLE_VALUES.get(name));
-        }
-
-        try {
-            return Double.parseDouble(valueString);
-        } catch (final Exception e) {
-            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
-        }
-    }
-
-    /**
-     * Retrieves the set of values for this argument as a list of integers.
-     *
-     * @return A list of the integer representations of the values for this
-     *         argument.
-     * @throws ArgumentException
-     *             If any of the values cannot be parsed as an integer.
-     */
-    public LinkedList<Double> getDoubleValues() throws ArgumentException {
-        final LinkedList<Double> results = new LinkedList<>();
-        for (String valueString : values) {
-            try {
-                results.add(Double.valueOf(valueString));
-            } catch (final Exception e) {
-                throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_DOUBLE.get(valueString, name), e);
-            }
-        }
-        return results;
     }
 
     /**
@@ -309,26 +230,6 @@ public abstract class Argument implements DocDescriptionSupplement {
         } catch (final Exception e) {
             throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
         }
-    }
-
-    /**
-     * Retrieves the set of values for this argument as a list of integers.
-     *
-     * @return A list of the integer representations of the values for this
-     *         argument.
-     * @throws ArgumentException
-     *             If any of the values cannot be parsed as an integer.
-     */
-    public LinkedList<Integer> getIntValues() throws ArgumentException {
-        final LinkedList<Integer> results = new LinkedList<>();
-        for (String valueString : values) {
-            try {
-                results.add(Integer.valueOf(valueString));
-            } catch (final Exception e) {
-                throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
-            }
-        }
-        return results;
     }
 
     /**
@@ -404,7 +305,7 @@ public abstract class Argument implements DocDescriptionSupplement {
      *
      * @return The set of string values for this argument.
      */
-    public LinkedList<String> getValues() {
+    public List<String> getValues() {
         return values;
     }
 
@@ -525,19 +426,6 @@ public abstract class Argument implements DocDescriptionSupplement {
     }
 
     /**
-     * Specifies whether a value must be provided with this argument if it is
-     * present. If this is changed from <CODE>false</CODE> to <CODE>true</CODE>,
-     * then a value placeholder must also be provided.
-     *
-     * @param needsValue
-     *            Indicates whether a value must be provided with this argument
-     *            if it is present.
-     */
-    public void setNeedsValue(final boolean needsValue) {
-        this.needsValue = needsValue;
-    }
-
-    /**
      * Specifies whether this argument is present in the parsed set of
      * command-line arguments.
      *
@@ -609,10 +497,8 @@ public abstract class Argument implements DocDescriptionSupplement {
      * @return <CODE>true</CODE> if the value is acceptable, or
      *         <CODE>false</CODE> if it is not.
      */
-    public abstract boolean valueIsAcceptable(String valueString,
-            LocalizableMessageBuilder invalidReason);
+    public abstract boolean valueIsAcceptable(String valueString, LocalizableMessageBuilder invalidReason);
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();

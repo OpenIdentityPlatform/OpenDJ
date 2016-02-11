@@ -673,7 +673,7 @@ public final class LDAPSearch extends ConsoleApplication {
         }
 
         if (matchedValuesFilter.isPresent()) {
-            final LinkedList<String> mvFilterStrings = matchedValuesFilter.getValues();
+            final List<String> mvFilterStrings = matchedValuesFilter.getValues();
             final List<Filter> mvFilters = new ArrayList<>();
             for (final String s : mvFilterStrings) {
                 try {

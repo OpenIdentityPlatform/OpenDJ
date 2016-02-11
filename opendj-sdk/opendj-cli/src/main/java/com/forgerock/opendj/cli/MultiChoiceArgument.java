@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -155,17 +155,7 @@ public final class MultiChoiceArgument<T> extends Argument {
     }
 
     /**
-     * Retrieves the set of allowed values for this argument. The contents of
-     * this set must not be altered by the caller.
-     *
-     * @return The set of allowed values for this argument.
-     */
-    public Collection<T> getAllowedValues() {
-        return allowedValues;
-    }
-
-    /**
-     * Retrieves the string vale for this argument. If it has multiple values,
+     * Retrieves the string value for this argument. If it has multiple values,
      * then the first will be returned. If it does not have any values, then the
      * default value will be returned.
      *
@@ -186,17 +176,6 @@ public final class MultiChoiceArgument<T> extends Argument {
         }
         // TODO: Some message
         throw new ArgumentException(null);
-    }
-
-    /**
-     * Indicates whether the set of allowed values for this argument should be
-     * treated in a case-sensitive manner.
-     *
-     * @return <CODE>true</CODE> if the values are to be treated in a
-     *         case-sensitive manner, or <CODE>false</CODE> if not.
-     */
-    public boolean isCaseSensitive() {
-        return caseSensitive;
     }
 
     /**

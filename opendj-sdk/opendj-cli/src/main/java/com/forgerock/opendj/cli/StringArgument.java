@@ -22,16 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-/**
- * This class defines an argument type that will accept any string value.
- */
+/** This class defines an argument type that will accept any string value. */
 public final class StringArgument extends Argument {
     /**
      * Creates a new string argument with the provided information.
@@ -115,21 +113,9 @@ public final class StringArgument extends Argument {
                 valuePlaceholder, null, null, description);
     }
 
-    /**
-     * Indicates whether the provided value is acceptable for use in this
-     * argument.
-     *
-     * @param valueString
-     *            The value for which to make the determination.
-     * @param invalidReason
-     *            A buffer into which the invalid reason may be written if the
-     *            value is not acceptable.
-     * @return <CODE>true</CODE> if the value is acceptable, or
-     *         <CODE>false</CODE> if it is not.
-     */
+
     @Override
-    public boolean valueIsAcceptable(final String valueString,
-            final LocalizableMessageBuilder invalidReason) {
+    public boolean valueIsAcceptable(final String valueString, final LocalizableMessageBuilder invalidReason) {
         // All values will be acceptable for this argument.
         return true;
     }

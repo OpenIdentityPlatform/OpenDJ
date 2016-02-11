@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -274,48 +274,6 @@ public final class IntegerArgument extends Argument {
     }
 
     /**
-     * Retrieves the lower bound that may be enforced for values of this
-     * argument.
-     *
-     * @return The lower bound that may be enforced for values of this argument.
-     */
-    public int getLowerBound() {
-        return lowerBound;
-    }
-
-    /**
-     * Retrieves the upper bound that may be enforced for values of this
-     * argument.
-     *
-     * @return The upper bound that may be enforced for values of this argument.
-     */
-    public int getUpperBound() {
-        return upperBound;
-    }
-
-    /**
-     * Indicates whether a lower bound should be enforced for values of this
-     * argument.
-     *
-     * @return <CODE>true</CODE> if a lower bound should be enforced for values
-     *         of this argument, or <CODE>false</CODE> if not.
-     */
-    public boolean hasLowerBound() {
-        return hasLowerBound;
-    }
-
-    /**
-     * Indicates whether a upper bound should be enforced for values of this
-     * argument.
-     *
-     * @return <CODE>true</CODE> if a upper bound should be enforced for values
-     *         of this argument, or <CODE>false</CODE> if not.
-     */
-    public boolean hasUpperBound() {
-        return hasUpperBound;
-    }
-
-    /**
      * Indicates whether the provided value is acceptable for use in this
      * argument.
      *
@@ -328,35 +286,23 @@ public final class IntegerArgument extends Argument {
      *         <CODE>false</CODE> if it is not.
      */
     @Override
-    public boolean valueIsAcceptable(final String valueString,
-            final LocalizableMessageBuilder invalidReason) {
-        // First, the value must be decodable as an integer.
-        int intValue;
+    public boolean valueIsAcceptable(final String valueString, final LocalizableMessageBuilder invalidReason) {
         try {
-            intValue = Integer.parseInt(valueString);
-        } catch (final Exception e) {
+            final int intValue = Integer.parseInt(valueString);
+            if (hasLowerBound && intValue < lowerBound) {
+                invalidReason.append(ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get(getPropertyName(), intValue, lowerBound));
+                return false;
+            }
+
+            if (hasUpperBound && intValue > upperBound) {
+                invalidReason.append(ERR_INTARG_VALUE_ABOVE_UPPER_BOUND.get(getPropertyName(), intValue, upperBound));
+                return false;
+            }
+
+            return true;
+        } catch (final NumberFormatException e) {
             invalidReason.append(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, getPropertyName()));
             return false;
         }
-
-        // If there is a lower bound, then the value must be greater than or
-        // equal to it.
-        if (hasLowerBound && (intValue < lowerBound)) {
-            invalidReason.append(ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get(getPropertyName(), intValue,
-                    lowerBound));
-            return false;
-        }
-
-        // If there is an upper bound, then the value must be less than or
-        // equal to it.
-        if (hasUpperBound && (intValue > upperBound)) {
-
-            invalidReason.append(ERR_INTARG_VALUE_ABOVE_UPPER_BOUND.get(getPropertyName(), intValue,
-                    upperBound));
-            return false;
-        }
-
-        // At this point, the value should be acceptable.
-        return true;
     }
 }
