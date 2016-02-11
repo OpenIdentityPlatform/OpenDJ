@@ -15,9 +15,10 @@
  */
 package org.opends.server.core;
 
-import static org.mockito.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ServerContextBuilder.*;
+import static org.opends.server.ServerContextBuilder.aServerContext;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -36,7 +37,8 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
@@ -46,33 +48,53 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   private static final DN DN_SCHEMA_PROVIDERS = DN.valueOf("cn=Schema Providers,cn=config");
   private static final DN DN_CORE_SCHEMA = DN.valueOf("cn=Core Schema,cn=Schema Providers,cn=config");
 
+  private ConfigurationHandler configHandler;
+
+  @BeforeMethod
+  public void initializeTest() throws Exception
+  {
+    // Use a copy of configuration for tests to avoid updating the original configuration file.
+    File originalConfigFile = TestCaseUtils.getTestResource("configForTests/config-small.ldif");
+    File copyConfigFile = new File(TestCaseUtils.getUnitTestRootPath(), "config-small-copy.ldif");
+    copyConfigFile.deleteOnExit();
+    if (copyConfigFile.exists())
+    {
+      copyConfigFile.delete();
+    }
+    TestCaseUtils.copyFile(originalConfigFile, copyConfigFile);
+    configHandler = getConfigurationHandler(copyConfigFile);
+  }
+
+  @AfterClass
+  public void cleanup()
+  {
+    File copyConfigFile = new File(TestCaseUtils.getUnitTestRootPath(), "config-small-copy.ldif");
+    if (copyConfigFile.exists())
+    {
+      copyConfigFile.delete();
+    }
+  }
+
   /** Returns the configuration handler fully initialized from configuration file. */
-  private ConfigurationHandler getConfigurationHandler()
-      throws InitializationException
+  private ConfigurationHandler getConfigurationHandler(File configFile) throws Exception
   {
     final ServerContext context = aServerContext().
         schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema")).
-        configFile(TestCaseUtils.getTestResource("config-small.ldif")).
+        configFile(configFile).
         build();
 
-    final ConfigurationHandler configHandler = new ConfigurationHandler(context);
-    configHandler.initializeWithPartialSchema();
-    return configHandler;
+    return ConfigurationHandler.bootstrapConfiguration(context, ConfigurationHandler.class);
   }
 
   @Test
-    public void testInitializeWithPartialSchemaConfiguration() throws Exception
+    public void testConfigurationBootstrap() throws Exception
     {
-      ConfigurationHandler configHandler = getConfigurationHandler();
-
       assertTrue(configHandler.hasEntry(DN_CONFIG));
     }
 
   @Test
   public void testGetEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     Entry entry = configHandler.getEntry(DN_SCHEMA_PROVIDERS);
     assertTrue(entry.containsAttribute("objectclass", "top", "ds-cfg-branch"));
   }
@@ -80,8 +102,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testGetChildren() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     Set<DN> dns = configHandler.getChildren(DN_SCHEMA_PROVIDERS);
     assertTrue(dns.contains(DN_CORE_SCHEMA));
   }
@@ -89,8 +109,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testNumSubordinates() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     long numSubordinates = configHandler.numSubordinates(DN_SCHEMA_PROVIDERS, false);
     assertEquals(numSubordinates, 1);
 
@@ -101,7 +119,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testRegisterChangeListener() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigChangeListener listener1 = mock(ConfigChangeListener.class);
     ConfigChangeListener listener2 = mock(ConfigChangeListener.class);
 
@@ -114,7 +131,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testRegisterDeregisterChangeListener() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigChangeListener listener1 = mock(ConfigChangeListener.class);
     ConfigChangeListener listener2 = mock(ConfigChangeListener.class);
 
@@ -128,7 +144,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testRegisterAddListener() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigAddListener listener1 = mock(ConfigAddListener.class);
     ConfigAddListener listener2 = mock(ConfigAddListener.class);
 
@@ -141,7 +156,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testRegisterDeleteListener() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigDeleteListener listener1 = mock(ConfigDeleteListener.class);
     ConfigDeleteListener listener2 = mock(ConfigDeleteListener.class);
 
@@ -154,8 +168,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testAddEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-    String dn = "cn=New schema provider,cn=Schema Providers,cn=config";
+    String dn = "cn=Another schema provider,cn=Schema Providers,cn=config";
 
     configHandler.addEntry(new LinkedHashMapEntry(dn));
 
@@ -165,7 +178,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testAddEntryExistingEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     configHandler.addEntry(new LinkedHashMapEntry(DN_CORE_SCHEMA));
   }
 
@@ -173,30 +185,24 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(enabled=false, expectedExceptions=DirectoryException.class)
   public void testAddEntryParentUnknown() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     configHandler.addEntry(new LinkedHashMapEntry("cn=Core Schema,cn=Schema Providers,cn=Providers,cn=config"));
   }
 
   @Test(expectedExceptions=DirectoryException.class)
   public void testAddEntryNoParent() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     configHandler.addEntry(new LinkedHashMapEntry(DN.rootDN()));
   }
 
   @Test
   public void testAddListenerWithAddEntry() throws Exception
   {
-    String dn = "cn=New schema provider,cn=Schema Providers,cn=config";
-    ConfigurationHandler configHandler = getConfigurationHandler();
+    String dn = "cn=Yet another schema provider,cn=Schema Providers,cn=config";
 
     ConfigAddListener listener = mock(ConfigAddListener.class);
     configHandler.registerAddListener(DN_SCHEMA_PROVIDERS, listener);
-    when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(true);
-    when(listener.applyConfigurationAdd(any(Entry.class))).
-      thenReturn(new ConfigChangeResult());
+    when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationAdd(any(Entry.class))).thenReturn(new ConfigChangeResult());
 
     configHandler.addEntry(new LinkedHashMapEntry(dn));
 
@@ -207,11 +213,9 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testAddListenerWithAddEntryWhenConfigNotAcceptable() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigAddListener listener = mock(ConfigAddListener.class);
     configHandler.registerAddListener(DN_SCHEMA_PROVIDERS, listener);
-    when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-    thenReturn(false);
+    when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(false);
 
     configHandler.addEntry(new LinkedHashMapEntry("cn=New schema provider,cn=Schema Providers,cn=config"));
   }
@@ -221,13 +225,10 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     ccr.setResultCode(ResultCode.OTHER);
-    ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigAddListener listener = mock(ConfigAddListener.class);
     configHandler.registerAddListener(DN_SCHEMA_PROVIDERS, listener);
-    when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(true);
-    when(listener.applyConfigurationAdd(any(Entry.class))).
-      thenReturn(ccr);
+    when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationAdd(any(Entry.class))).thenReturn(ccr);
 
     configHandler.addEntry(new LinkedHashMapEntry("cn=New schema provider,cn=Schema Providers,cn=config"));
   }
@@ -235,48 +236,37 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testDeleteEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     configHandler.deleteEntry(DN_CORE_SCHEMA);
 
     assertFalse(configHandler.hasEntry(DN_CORE_SCHEMA));
   }
 
-  /** TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN. */
-  @Test(enabled=false, expectedExceptions=DirectoryException.class)
+  @Test(expectedExceptions=DirectoryException.class)
   public void testDeleteEntryUnexistingEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     configHandler.deleteEntry(DN.valueOf("cn=Unexisting provider,cn=Schema Providers,cn=config"));
   }
 
-  @Test(enabled=false, expectedExceptions=DirectoryException.class)
+  @Test(expectedExceptions=DirectoryException.class)
   public void testDeleteEntryWithChildren() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     configHandler.deleteEntry(DN_SCHEMA_PROVIDERS);
   }
 
-  /** TODO : disabled because fail when converting to server DN. Re-enable once migrated to SDK DN. */
-  @Test(enabled=false, expectedExceptions=DirectoryException.class)
+  @Test(expectedExceptions=DirectoryException.class)
   public void testDeleteEntryUnknownParent() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     configHandler.deleteEntry(DN.valueOf("cn=Core Schema,cn=Schema Providers,cn=Providers,cn=config"));
   }
 
   @Test
   public void testDeleteListenerWithDeleteEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     ConfigDeleteListener listener = mock(ConfigDeleteListener.class);
     configHandler.registerDeleteListener(DN_SCHEMA_PROVIDERS, listener);
     Entry entryToDelete = configHandler.getEntry(DN_CORE_SCHEMA);
-    when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(true);
-    when(listener.applyConfigurationDelete(any(Entry.class))).
-      thenReturn(new ConfigChangeResult());
+    when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationDelete(any(Entry.class))).thenReturn(new ConfigChangeResult());
 
     configHandler.deleteEntry(DN_CORE_SCHEMA);
 
@@ -287,12 +277,9 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testDeleteListenerWithDeleteEntryWhenConfigNotAcceptable() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     ConfigDeleteListener listener = mock(ConfigDeleteListener.class);
     configHandler.registerDeleteListener(DN_SCHEMA_PROVIDERS, listener);
-    when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(false);
+    when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(false);
 
     configHandler.deleteEntry(DN_CORE_SCHEMA);
   }
@@ -300,17 +287,13 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testDeleteListenerWithDeleteEntryWhenFailureApplyingConfig() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     final ConfigChangeResult ccr = new ConfigChangeResult();
     ccr.setResultCode(ResultCode.OTHER);
 
     ConfigDeleteListener listener = mock(ConfigDeleteListener.class);
     configHandler.registerDeleteListener(DN_SCHEMA_PROVIDERS, listener);
-    when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(true);
-    when(listener.applyConfigurationDelete(any(Entry.class))).
-      thenReturn(ccr);
+    when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationDelete(any(Entry.class))).thenReturn(ccr);
 
     configHandler.deleteEntry(DN_CORE_SCHEMA);
   }
@@ -318,7 +301,6 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test
   public void testReplaceEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
     String dn = DN_CORE_SCHEMA.toString();
 
     configHandler.replaceEntry(
@@ -330,22 +312,25 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   }
 
   @Test
-  public void testChangeListenerIsDeletedWhenConfigEntryIsDeleted()
+  public void testChangeListenerIsDeletedWhenConfigEntryIsDeleted() throws Exception
   {
-    // TODO
+    ConfigChangeListener listener = mock(ConfigChangeListener.class);
+    configHandler.registerChangeListener(DN_CORE_SCHEMA, listener);
+    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationChange(any(Entry.class))).thenReturn(new ConfigChangeResult());
+
+    configHandler.deleteEntry(DN_CORE_SCHEMA);
+
+    assertThat(configHandler.getChangeListeners(DN_CORE_SCHEMA)).isEmpty();
   }
 
   @Test
   public void testChangeListenerWithReplaceEntry() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     ConfigChangeListener listener = mock(ConfigChangeListener.class);
     configHandler.registerChangeListener(DN_CORE_SCHEMA, listener);
-    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(true);
-    when(listener.applyConfigurationChange(any(Entry.class))).
-      thenReturn(new ConfigChangeResult());
+    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationChange(any(Entry.class))).thenReturn(new ConfigChangeResult());
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
@@ -360,12 +345,9 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testChangeListenerWithReplaceEntryWhenConfigNotAcceptable() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     ConfigChangeListener listener = mock(ConfigChangeListener.class);
     configHandler.registerChangeListener(DN_CORE_SCHEMA, listener);
-    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(false);
+    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(false);
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
@@ -377,17 +359,13 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testChangeListenerWithReplaceEntryWhenFailureApplyingConfig() throws Exception
   {
-    ConfigurationHandler configHandler = getConfigurationHandler();
-
     final ConfigChangeResult ccr = new ConfigChangeResult();
     ccr.setResultCode(ResultCode.OTHER);
 
     ConfigChangeListener listener = mock(ConfigChangeListener.class);
     configHandler.registerChangeListener(DN_CORE_SCHEMA, listener);
-    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
-      thenReturn(true);
-    when(listener.applyConfigurationChange(any(Entry.class))).
-      thenReturn(ccr);
+    when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).thenReturn(true);
+    when(listener.applyConfigurationChange(any(Entry.class))).thenReturn(ccr);
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,

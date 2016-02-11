@@ -55,7 +55,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
   {
     return aServerContext()
         .schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema"))
-        .configFile(TestCaseUtils.getTestResource("config-small.ldif"))
+        .configFile(TestCaseUtils.getTestResource("configForTests/config-small.ldif"))
         .withConfigurationBootstrapped()
         .schema(schema)
         .build();

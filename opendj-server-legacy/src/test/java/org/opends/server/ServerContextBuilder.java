@@ -34,16 +34,17 @@ public class ServerContextBuilder
   private final ServerContext serverContext;
   private final DirectoryEnvironmentConfig env;
 
-  public static ServerContextBuilder aServerContext()
+  public static ServerContextBuilder aServerContext() throws InitializationException
   {
     return new ServerContextBuilder();
   }
 
-  public ServerContextBuilder()
+  public ServerContextBuilder() throws InitializationException
   {
     serverContext = mock(ServerContext.class);
 
     env = new DirectoryEnvironmentConfig(false);
+    env.setMaintainConfigArchive(false);
     when(serverContext.getEnvironment()).thenReturn(env);
   }
 

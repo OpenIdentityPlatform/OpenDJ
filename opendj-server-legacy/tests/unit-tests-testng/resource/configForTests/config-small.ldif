@@ -11,14 +11,11 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2006-2010 Sun Microsystems, Inc.
-# Portions Copyright 2010-2015 ForgeRock AS.
+# Portions Copyright 2010-2016 ForgeRock AS.
 # Portions Copyright 2012-2014 Manuel Gaupp
 
-#
-# This file contains the primary Directory Server configuration.  It must not
-# be directly edited while the server is online.  The server configuration
-# should only be managed using the administration utilities provided with the
-# Directory Server.
+# This file contains a minimal configuration to be used in unit tests, mainly to test classes responsible for,
+#  or closely related to, configuration management.
 
 dn: cn=config
 objectClass: top
@@ -69,9 +66,6 @@ dn: cn=Core Schema,cn=Schema Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-schema-provider
 objectClass: ds-cfg-core-schema
+cn: Core Schema
 ds-cfg-java-class: org.opends.server.schema.CoreSchemaProvider
 ds-cfg-enabled: true
-ds-cfg-disabled-matching-rule: NONE
-ds-cfg-disabled-syntax: NONE
-ds-cfg-strip-syntax-min-upper-bound-attribute-type-description: false
-ds-cfg-strict-format-country-string: false

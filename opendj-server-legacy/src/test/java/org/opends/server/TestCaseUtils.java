@@ -420,10 +420,12 @@ public final class TestCaseUtils {
       config.setConfigClass(ConfigurationHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-      // Initialize the configuration framework for DSConfig.
-      ConfigurationFramework.getInstance()
-          .initialize(testInstallRoot.getAbsolutePath(),
-              testInstanceRoot.getAbsolutePath());
+      ConfigurationFramework configurationFramework = ConfigurationFramework.getInstance();
+      if (!configurationFramework.isInitialized())
+      {
+        configurationFramework.initialize(testInstallRoot.getAbsolutePath(), testInstanceRoot.getAbsolutePath());
+      }
+      configurationFramework.setIsClient(false);
 
       AccessLogger.getInstance().addLogPublisher(
           (AccessLogPublisher) getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));

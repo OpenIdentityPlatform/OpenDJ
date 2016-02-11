@@ -24,6 +24,7 @@ import static org.opends.server.util.CollectionUtils.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -304,10 +305,11 @@ public final class Converters {
      */
     public static List<org.opends.server.types.Attribute> toAttributes(
             final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
-        List<org.opends.server.types.Attribute> toListOfAttributes =
-                new ArrayList<>(((Collection<?>) listOfAttributes).size());
-        for (org.forgerock.opendj.ldap.Attribute a : listOfAttributes) {
-            toListOfAttributes.add(toAttribute(a));
+        List<org.opends.server.types.Attribute> toListOfAttributes = new ArrayList<>();
+        Iterator<Attribute> it = listOfAttributes.iterator();
+        while (it.hasNext())
+        {
+          toListOfAttributes.add(toAttribute(it.next()));
         }
         return toListOfAttributes;
     }
@@ -508,6 +510,7 @@ public final class Converters {
         final org.opends.server.types.Entry srvResultEntry) {
 
         final org.forgerock.opendj.ldap.Entry entry = new LinkedHashMapEntry(srvResultEntry.getName().toString());
+        entry.addAttribute(from(srvResultEntry.getObjectClassAttribute()));
         for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
             entry.addAttribute(from(a));
         }

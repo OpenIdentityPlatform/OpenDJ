@@ -22,14 +22,12 @@ import java.io.File;
 
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.schema.SchemaConstants;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SchemaHandlerTestCase extends CoreTestCase
 {
-
-  private static final String DIRECTORY_STRING_SYNTAX_OID = "1.3.6.1.4.1.1466.115.121.1.15";
-
   @Test
   public void testSchemaInitialization() throws Exception
   {
@@ -37,7 +35,7 @@ public class SchemaHandlerTestCase extends CoreTestCase
     initializeSchemaHandler(schema);
 
     assertThat(schema.getMatchingRules()).isNotEmpty(); // some matching rules defined
-    schema.getSyntax(DIRECTORY_STRING_SYNTAX_OID);
+    schema.getSyntax(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID);
     schema.getAttributeType("javaClassName"); // from file 03-rfc2713
     schema.getAttributeType("nisNetIdUser"); // from file 5-solaris.ldif
     schema.getObjectClass("changeLogEntry"); // from file 03-changelog.ldif
@@ -47,7 +45,7 @@ public class SchemaHandlerTestCase extends CoreTestCase
   {
     final ServerContext serverContext = aServerContext()
         .schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema"))
-        .configFile(TestCaseUtils.getTestResource("config-small.ldif"))
+        .configFile(TestCaseUtils.getTestResource("configForTests/config-small.ldif"))
         .withConfigurationBootstrapped()
         .schema(schema)
         .build();
