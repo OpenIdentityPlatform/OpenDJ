@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
-import org.opends.server.core.ConfigurationBootstrapper;
 import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -82,7 +81,7 @@ public class ServerContextBuilder
       throws InitializationException
   {
     final ConfigurationHandler configHandler =
-        ConfigurationBootstrapper.bootstrap(serverContext, ConfigurationHandler.class);
+        ConfigurationHandler.bootstrapConfiguration(serverContext, ConfigurationHandler.class);
     final ServerManagementContext serverManagementContext = new ServerManagementContext(configHandler);
     when(serverContext.getServerManagementContext()).thenReturn(serverManagementContext);
     return this;

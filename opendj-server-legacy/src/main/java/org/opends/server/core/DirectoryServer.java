@@ -880,8 +880,8 @@ public final class DirectoryServer
       // Set default values for variables that may be needed during schema processing.
       directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
 
-      // Create and initialize the server schema,
-      // and register a minimal set of matching rules and attribute syntaxes.
+      // Create the server schema and initialize and register a minimal set of
+      // matching rules and attribute syntaxes.
       try
       {
         directoryServer.setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema()));
@@ -1099,8 +1099,9 @@ public final class DirectoryServer
    */
   public void initializeConfiguration() throws InitializationException
   {
+    configFile = environmentConfig.getConfigFile();
     configClass = environmentConfig.getConfigClass();
-    configurationHandler = ConfigurationBootstrapper.bootstrap(serverContext, configClass);
+    configurationHandler = ConfigurationHandler.bootstrapConfiguration(serverContext, configClass);
     serverManagementContext = new ServerManagementContext(configurationHandler);
 
     final ConfigurationBackend configBackend = new ConfigurationBackend(serverContext, configurationHandler);
@@ -1210,6 +1211,13 @@ public final class DirectoryServer
 
       initializeSchema();
 
+      // At this point, it is necessary to reload the configuration because it was
+      // loaded with an incomplete schema (meaning some attributes types and objectclasses
+      // were defined by default, using a non-strict schema).
+      // Configuration add/delete/change listeners are preserved by calling this method,
+      // so schema elements listeners already registered are not lost.
+      configurationHandler.reinitializeWithFullSchema(schema.getSchemaNG());
+
       commonAudit = new CommonAudit(serverContext);
 
       // Allow internal plugins to be registered.
@@ -1277,7 +1285,6 @@ public final class DirectoryServer
       groupManager.performBackendPreInitializationProcessing(configBackend);
 
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
-      initializeAuthenticationPolicyComponents();
 
       // Initialize all the backends and their associated suffixes
       // and initialize the workflows when workflow configuration mode is auto.
@@ -1302,6 +1309,7 @@ public final class DirectoryServer
       monitorConfigManager = new MonitorConfigManager(serverContext);
       monitorConfigManager.initializeMonitorProviders();
 
+      initializeAuthenticationPolicyComponents();
 
       pluginConfigManager.initializeUserPlugins(null);
 
@@ -1993,7 +2001,8 @@ public final class DirectoryServer
   @Deprecated
   public static Entry getConfigEntry(DN entryDN) throws ConfigException
   {
-    return Converters.to(directoryServer.configurationHandler.getEntry(entryDN));
+    org.forgerock.opendj.ldap.Entry entry = directoryServer.configurationHandler.getEntry(entryDN);
+    return entry != null ? Converters.to(entry) : null;
   }
 
   /**
