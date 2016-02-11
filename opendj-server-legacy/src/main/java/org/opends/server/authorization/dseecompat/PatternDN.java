@@ -22,14 +22,16 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -59,20 +61,18 @@ public class PatternDN
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   * If the pattern did not include any Multiple-Whole-RDN wildcards, then
-   * this is the sequence of RDN patterns in the DN pattern.  Otherwise it
-   * is null.
+   * If the pattern did not include any Multiple-Whole-RDN wildcards, then this
+   * is the sequence of RDN patterns in the DN pattern.  Otherwise it is null.
    */
-  PatternRDN[] equality;
-
+  private PatternRDN[] equality;
 
   /**
    * If the pattern included any Multiple-Whole-RDN wildcards, then these
    * are the RDN pattern sequences that appear between those wildcards.
    */
-  PatternRDN[] subInitial;
-  List<PatternRDN[]> subAnyElements;
-  PatternRDN[] subFinal;
+  private PatternRDN[] subInitial;
+  private List<PatternRDN[]> subAnyElements;
+  private PatternRDN[] subFinal;
 
 
   /**
@@ -82,14 +82,14 @@ public class PatternDN
    * suffix pattern but the pattern started with a Multiple-Whole-RDN wildcard
    * (one or more RDN components allowed before matching elements).
    */
-  boolean isSuffix;
+  private boolean isSuffix;
 
 
   /**
    * Create a DN pattern that does not include any Multiple-Whole-RDN wildcards.
    * @param equality The sequence of RDN patterns making up the DN pattern.
    */
-  private PatternDN(PatternRDN[] equality)
+  private PatternDN(PatternRDN... equality)
   {
     this.equality = equality;
   }
@@ -122,109 +122,109 @@ public class PatternDN
    */
   public boolean matchesDN(DN dn)
   {
-    if (equality != null)
+    return equality != null ? equalityMatchDN(dn) : substringMatchDN(dn);
+  }
+
+  private boolean equalityMatchDN(DN dn)
+  {
+    // There are no Multiple-Whole-RDN wildcards in the pattern.
+    if (equality.length != dn.size())
     {
-      // There are no Multiple-Whole-RDN wildcards in the pattern.
-      if (equality.length != dn.size())
+      return false;
+    }
+
+    for (int i = 0; i < dn.size(); i++)
+    {
+      if (!equality[i].matchesRDN(dn.rdn(i)))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean substringMatchDN(DN dn)
+  {
+    // There are Multiple-Whole-RDN wildcards in the pattern.
+    int valueLength = dn.size();
+
+    int pos = 0;
+    if (subInitial != null)
+    {
+      int initialLength = subInitial.length;
+      if (initialLength > valueLength)
       {
         return false;
       }
 
-      for (int i = 0; i < dn.size(); i++)
+      for (; pos < initialLength; pos++)
       {
-        if (!equality[i].matchesRDN(dn.rdn(i)))
+        if (!subInitial[pos].matchesRDN(dn.rdn(pos)))
         {
           return false;
         }
       }
-
-      return true;
+      pos++;
     }
     else
     {
-      // There are Multiple-Whole-RDN wildcards in the pattern.
-      int valueLength = dn.size();
-
-      int pos = 0;
-      if (subInitial != null)
+      if (!isSuffix)
       {
-        int initialLength = subInitial.length;
-        if (initialLength > valueLength)
-        {
-          return false;
-        }
-
-        for (; pos < initialLength; pos++)
-        {
-          if (!subInitial[pos].matchesRDN(dn.rdn(pos)))
-          {
-            return false;
-          }
-        }
         pos++;
       }
-      else
+    }
+
+
+    if (subAnyElements != null && ! subAnyElements.isEmpty())
+    {
+      for (PatternRDN[] element : subAnyElements)
       {
-        if (!isSuffix)
+        int anyLength = element.length;
+
+        int end = valueLength - anyLength;
+        boolean match = false;
+        for (; pos < end; pos++)
         {
-          pos++;
-        }
-      }
-
-
-      if (subAnyElements != null && ! subAnyElements.isEmpty())
-      {
-        for (PatternRDN[] element : subAnyElements)
-        {
-          int anyLength = element.length;
-
-          int end = valueLength - anyLength;
-          boolean match = false;
-          for (; pos < end; pos++)
+          if (element[0].matchesRDN(dn.rdn(pos)))
           {
-            if (element[0].matchesRDN(dn.rdn(pos)))
+            if (subMatch(dn, pos, element, anyLength))
             {
-              if (subMatch(dn, pos, element, anyLength))
-              {
-                match = true;
-                break;
-              }
+              match = true;
+              break;
             }
           }
-
-          if (match)
-          {
-            pos += anyLength + 1;
-          }
-          else
-          {
-            return false;
-          }
         }
-      }
 
-
-      if (subFinal != null)
-      {
-        int finalLength = subFinal.length;
-
-        if (valueLength - finalLength < pos)
+        if (!match)
         {
           return false;
         }
+        pos += anyLength + 1;
+      }
+    }
 
-        pos = valueLength - finalLength;
-        for (int i=0; i < finalLength; i++,pos++)
-        {
-          if (!subFinal[i].matchesRDN(dn.rdn(pos)))
-          {
-            return false;
-          }
-        }
+
+    if (subFinal != null)
+    {
+      int finalLength = subFinal.length;
+
+      if (valueLength - finalLength < pos)
+      {
+        return false;
       }
 
-      return pos <= valueLength;
+      pos = valueLength - finalLength;
+      for (int i=0; i < finalLength; i++,pos++)
+      {
+        if (!subFinal[i].matchesRDN(dn.rdn(pos)))
+        {
+          return false;
+        }
+      }
     }
+
+    return pos <= valueLength;
   }
 
   private boolean subMatch(DN dn, int pos, PatternRDN[] element, int length)
@@ -246,8 +246,7 @@ public class PatternDN
    * is not valid.
    * @return A new DN pattern matcher.
    */
-  public static PatternDN decodeSuffix(String pattern)
-       throws DirectoryException
+  public static PatternDN decodeSuffix(String pattern) throws DirectoryException
   {
     // Parse the user supplied pattern.
     PatternDN patternDN = decode(pattern);
@@ -281,22 +280,21 @@ public class PatternDN
    * is not valid.
    * @return A new DN pattern matcher.
    */
-  public static PatternDN decode(String dnString)
-         throws DirectoryException
+  public static PatternDN decode(String dnString) throws DirectoryException
   {
-    ArrayList<PatternRDN> rdnComponents = new ArrayList<>();
-    ArrayList<Integer> doubleWildPos = new ArrayList<>();
+    List<PatternRDN> rdnComponents = new ArrayList<>();
+    List<Integer> doubleWildPos = new ArrayList<>();
 
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
-      return new PatternDN(new PatternRDN[0]);
+      return new PatternDN();
     }
 
     int length = dnString.length();
     if (length == 0)
     {
-      return new PatternDN(new PatternRDN[0]);
+      return new PatternDN();
     }
 
 
@@ -311,12 +309,9 @@ public class PatternDN
       {
         // This means that the DN was completely comprised of spaces
         // and therefore should be considered the same as a null or empty DN.
-        return new PatternDN(new PatternRDN[0]);
+        return new PatternDN();
       }
-      else
-      {
-        c = dnString.charAt(pos);
-      }
+      c = dnString.charAt(pos);
     }
 
     // We know that it's not an empty DN, so we can do the real
@@ -430,14 +425,14 @@ public class PatternDN
       // RDN component and return the DN.
       if (pos >= length)
       {
-        ArrayList<ByteString> arrayList = newArrayList(ByteString.empty());
-        rdnComponents.add(new PatternRDN(name, arrayList, dnString));
+        List<ByteString> valuePattern = newArrayList(ByteString.empty());
+        rdnComponents.add(new PatternRDN(name, valuePattern, dnString));
         break;
       }
 
 
       // Parse the value for this RDN component.
-      ArrayList<ByteString> parsedValue = new ArrayList<>();
+      List<ByteString> parsedValue = new ArrayList<>();
       pos = parseValuePattern(dnString, pos, parsedValue);
 
 
@@ -518,15 +513,10 @@ public class PatternDN
             // This means that we hit the end of the value before
             // finding a '='.  This is illegal because there is no
             // attribute-value separator.
-            LocalizableMessage message =
-                ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, name);
             throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message);
+                ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, name));
           }
-          else
-          {
-            c = dnString.charAt(pos);
-          }
+          c = dnString.charAt(pos);
         }
 
 
@@ -539,8 +529,7 @@ public class PatternDN
         else
         {
           LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(dnString, name, c);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
 
 
@@ -558,8 +547,8 @@ public class PatternDN
         // the RDN component and return the DN.
         if (pos >= length)
         {
-          ArrayList<ByteString> arrayList = newArrayList(ByteString.empty());
-          rdn.addValue(name, arrayList, dnString);
+          List<ByteString> valuePattern = newArrayList(ByteString.empty());
+          rdn.addValue(name, valuePattern, dnString);
           rdnComponents.add(rdn);
           break;
         }
@@ -611,51 +600,46 @@ public class PatternDN
 
     if (doubleWildPos.isEmpty())
     {
-      PatternRDN[] patterns = new PatternRDN[rdnComponents.size()];
-      patterns = rdnComponents.toArray(patterns);
-      return new PatternDN(patterns);
+      return new PatternDN(rdnComponents.toArray(new PatternRDN[rdnComponents.size()]));
     }
-    else
+
+    PatternRDN[] subInitial = null;
+    PatternRDN[] subFinal = null;
+    List<PatternRDN[]> subAnyElements = new ArrayList<>();
+
+    int i = 0;
+    int numComponents = rdnComponents.size();
+
+    int to = doubleWildPos.get(i);
+    if (to != 0)
     {
-      PatternRDN[] subInitial = null;
-      PatternRDN[] subFinal = null;
-      List<PatternRDN[]> subAnyElements = new ArrayList<>();
-
-      int i = 0;
-      int numComponents = rdnComponents.size();
-
-      int to = doubleWildPos.get(i);
-      if (to != 0)
-      {
-        // Initial piece.
-        subInitial = new PatternRDN[to];
-        subInitial = rdnComponents.subList(0, to).toArray(subInitial);
-      }
-
-      int from;
-      for (; i < doubleWildPos.size() - 1; i++)
-      {
-        from = doubleWildPos.get(i);
-        to = doubleWildPos.get(i+1);
-        PatternRDN[] subAny = new PatternRDN[to-from];
-        subAny = rdnComponents.subList(from, to).toArray(subAny);
-        subAnyElements.add(subAny);
-      }
-
-      if (i < doubleWildPos.size())
-      {
-        from = doubleWildPos.get(i);
-        if (from != numComponents)
-        {
-          // Final piece.
-          subFinal = new PatternRDN[numComponents-from];
-          subFinal = rdnComponents.subList(from, numComponents).
-               toArray(subFinal);
-        }
-      }
-
-      return new PatternDN(subInitial, subAnyElements, subFinal);
+      // Initial piece.
+      subInitial = new PatternRDN[to];
+      subInitial = rdnComponents.subList(0, to).toArray(subInitial);
     }
+
+    int from;
+    for (; i < doubleWildPos.size() - 1; i++)
+    {
+      from = doubleWildPos.get(i);
+      to = doubleWildPos.get(i + 1);
+      PatternRDN[] subAny = new PatternRDN[to - from];
+      subAny = rdnComponents.subList(from, to).toArray(subAny);
+      subAnyElements.add(subAny);
+    }
+
+    if (i < doubleWildPos.size())
+    {
+      from = doubleWildPos.get(i);
+      if (from != numComponents)
+      {
+        // Final piece.
+        subFinal = new PatternRDN[numComponents - from];
+        subFinal = rdnComponents.subList(from, numComponents).toArray(subFinal);
+      }
+    }
+
+    return new PatternDN(subInitial, subAnyElements, subFinal);
   }
 
 
@@ -697,8 +681,7 @@ public class PatternDN
           // therefore the last non-space character of the DN must
           // have been a comma. This is not acceptable.
           LocalizableMessage message = ERR_ATTR_SYNTAX_DN_END_WITH_COMMA.get(dnString);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
       }
     }
@@ -731,10 +714,7 @@ public class PatternDN
         case ')':
           // None of these are allowed in an attribute name or any
           // character immediately following it.
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case '*':
@@ -743,12 +723,7 @@ public class PatternDN
           break;
 
         case '+':
-          // None of these are allowed in an attribute name or any
-          // character immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case ',':
@@ -759,17 +734,12 @@ public class PatternDN
         case '-':
           // This will be allowed as long as it isn't the first
           // character in the attribute name.
-          if (attributeName.length() > 0)
+          if (attributeName.length() == 0)
           {
-            attributeName.append(c);
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.get(dnString);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
           }
-          else
-          {
-            message =
-                ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_INITIAL_DASH.get(dnString);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message);
-          }
+          attributeName.append(c);
           break;
 
 
@@ -783,12 +753,7 @@ public class PatternDN
 
 
         case '/':
-          // This is not allowed in an attribute name or any character
-          // immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case '0':
@@ -811,12 +776,7 @@ public class PatternDN
 
 
         case ':':
-          // Not allowed in an attribute name or any
-          // character immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case ';': // NOTE:  attribute options are not allowed in a DN.
@@ -825,12 +785,7 @@ public class PatternDN
           break;
 
         case '<':
-          // None of these are allowed in an attribute name or any
-          // character immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case '=':
@@ -842,12 +797,7 @@ public class PatternDN
         case '>':
         case '?':
         case '@':
-          // None of these are allowed in an attribute name or any
-          // character immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case 'A':
@@ -885,12 +835,7 @@ public class PatternDN
         case '\\':
         case ']':
         case '^':
-          // None of these are allowed in an attribute name or any
-          // character immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case '_':
@@ -899,12 +844,7 @@ public class PatternDN
 
 
         case '`':
-          // This is not allowed in an attribute name or any character
-          // immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
 
 
         case 'a':
@@ -941,10 +881,7 @@ public class PatternDN
         default:
           // This is not allowed in an attribute name or any character
           // immediately following it.
-          message =
-              ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw illegalCharacter(dnString, pos, c);
       }
 
 
@@ -964,8 +901,7 @@ public class PatternDN
     if (attributeName.length() == 0)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(dnString);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
     else if (checkForOID)
     {
@@ -1045,6 +981,12 @@ public class PatternDN
     return pos;
   }
 
+  private static DirectoryException illegalCharacter(String dnString, int pos, char c)
+  {
+    return new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+        ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos));
+  }
+
 
   /**
    * Parses the attribute value pattern from the provided DN pattern
@@ -1067,7 +1009,7 @@ public class PatternDN
    *                              provided DN string.
    */
   private static int parseValuePattern(String dnString, int pos,
-                                       ArrayList<ByteString> attributeValues)
+                                       List<ByteString> attributeValues)
           throws DirectoryException
   {
     // All leading spaces have already been stripped so we can start
@@ -1089,8 +1031,7 @@ public class PatternDN
       if (pos+2 > length)
       {
         LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
       for (int i=0; i < 2; i++)
@@ -1102,10 +1043,8 @@ public class PatternDN
         }
         else
         {
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
       }
 
@@ -1129,18 +1068,14 @@ public class PatternDN
             }
             else
             {
-              LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
-              throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message);
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
+              throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
             }
           }
           else
           {
-            LocalizableMessage message =
-                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message);
+            LocalizableMessage message = ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(dnString);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
           }
         }
         else if (c == ' ' || c == ',' || c == ';')
@@ -1151,10 +1086,8 @@ public class PatternDN
         }
         else
         {
-          LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          LocalizableMessage message = ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(dnString, c);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
       }
 
@@ -1181,8 +1114,7 @@ public class PatternDN
     // should continue until the corresponding closing quotation mark.
     else if (c == '"')
     {
-      // Keep reading until we find an unescaped closing quotation
-      // mark.
+      // Keep reading until we find an unescaped closing quotation mark.
       boolean escaped = false;
       StringBuilder valueString = new StringBuilder();
       while (true)
@@ -1192,8 +1124,7 @@ public class PatternDN
           // We hit the end of the DN before the closing quote.
           // That's an error.
           LocalizableMessage message = ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(dnString);
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
 
         c = dnString.charAt(pos++);
@@ -1251,15 +1182,13 @@ public class PatternDN
       }
 
 
-      // Keep reading until we find an unescaped comma or plus sign or
-      // the end of the DN.
+      // Keep reading until we find an unescaped comma or plus sign or the end of the DN.
       while (true)
       {
         if (pos >= length)
         {
-          // This is the end of the DN and therefore the end of the
-          // value.  If there are any hex characters, then we need to
-          // deal with them accordingly.
+          // This is the end of the DN and therefore the end of the value.
+          // If there are any hex characters, then we need to deal with them accordingly.
           appendHexChars(dnString, valueString, hexChars);
           break;
         }
@@ -1267,44 +1196,31 @@ public class PatternDN
         c = dnString.charAt(pos++);
         if (escaped)
         {
-          // The previous character was an escape, so we'll take this
-          // one.  However, this could be a hex digit, and if that's
+          // The previous character was an escape, so we'll take this one.
+          // However, this could be a hex digit, and if that's
           // the case then the escape would actually be in front of
-          // two hex digits that should be treated as a special
-          // character.
+          // two hex digits that should be treated as a special character.
           if (isHexDigit(c))
           {
-            // It is a hexadecimal digit, so the next digit must be
-            // one too.  However, this could be just one in a series
-            // of escaped hex pairs that is used in a string
-            // containing one or more multi-byte UTF-8 characters so
-            // we can't just treat this byte in isolation.  Collect
-            // all the bytes together and make sure to take care of
-            // these hex bytes before appending anything else to the
-            // value.
+            // It is a hexadecimal digit, so the next digit must be one too.
+            // However, this could be just one in a series of escaped hex pairs
+            // that is used in a string containing one or more multi-byte UTF-8
+            // characters so we can't just treat this byte in isolation.
+            // Collect all the bytes together and make sure to take care of
+            // these hex bytes before appending anything else to the value.
             if (pos >= length)
             {
-              LocalizableMessage message =
-                  ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
-              throw new DirectoryException(
-                             ResultCode.INVALID_DN_SYNTAX, message);
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
+              throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
             }
-            else
+            char c2 = dnString.charAt(pos++);
+            if (!isHexDigit(c2))
             {
-              char c2 = dnString.charAt(pos++);
-              if (isHexDigit(c2))
-              {
-                hexChars.append(c);
-                hexChars.append(c2);
-              }
-              else
-              {
-                LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
-                throw new DirectoryException(
-                               ResultCode.INVALID_DN_SYNTAX, message);
-              }
+              LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(dnString);
+              throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
             }
+            hexChars.append(c);
+            hexChars.append(c2);
           }
           else
           {
@@ -1337,8 +1253,7 @@ public class PatternDN
           {
             LocalizableMessage message =
                 WARN_PATTERN_DN_CONSECUTIVE_WILDCARDS_IN_VALUE.get(dnString);
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                         message);
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
           }
           attributeValues.add(ByteString.valueOfUtf8(valueString));
           valueString = new StringBuilder();
@@ -1360,15 +1275,12 @@ public class PatternDN
         int lastPos = valueString.length() - 1;
         while (lastPos > 0)
         {
-          if (valueString.charAt(lastPos) == ' ')
-          {
-            valueString.delete(lastPos, lastPos+1);
-            lastPos--;
-          }
-          else
+          if (valueString.charAt(lastPos) != ' ')
           {
             break;
           }
+          valueString.delete(lastPos, lastPos + 1);
+          lastPos--;
         }
       }
 
@@ -1412,5 +1324,31 @@ public class PatternDN
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
           ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnString, e));
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    if (this.equality != null)
+    {
+      return getClass().getSimpleName() + "(equality=" + Arrays.toString(equality) + ")";
+    }
+    StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("(substring:");
+    if (subInitial!=null) {
+      sb.append(" subInitial=").append(Arrays.toString(subInitial));
+    }
+    sb.append(", subAnyElements=[");
+    final Iterator<PatternRDN[]> iterator = subAnyElements.iterator();
+    if (iterator.hasNext()) {
+        sb.append(Arrays.toString(iterator.next()));
+
+        while (iterator.hasNext()) {
+            sb.append(", ");
+            sb.append(Arrays.toString(iterator.next()));
+        }
+    }
+    sb.append("]");
+    sb.append(", subFinal=").append(Arrays.toString(subFinal)).append(")");
+    return sb.toString();
   }
 }

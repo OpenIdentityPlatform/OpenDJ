@@ -18,14 +18,15 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import static org.opends.server.authorization.dseecompat.EnumTargetOperator.*;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class represents target part of an ACI's syntax. This is the part
@@ -36,66 +37,31 @@ import org.forgerock.opendj.ldap.SearchScope;
  * targetscope, targetfilter, targattrfilters, targetcontrol and extop.
  */
 public class AciTargets {
-
-    /**
-     * ACI syntax has a target keyword.
-     */
+    /** ACI syntax has a target keyword. */
     private Target target;
-
-    /**
-     * ACI syntax has a targetscope keyword.
-     */
+    /** ACI syntax has a targetscope keyword. */
     private SearchScope targetScope = SearchScope.WHOLE_SUBTREE;
-
-    /**
-     * ACI syntax has a targetattr keyword.
-     */
+    /** ACI syntax has a targetattr keyword. */
     private TargetAttr targetAttr;
-
-    /**
-     * ACI syntax has a targetfilter keyword.
-     */
+    /** ACI syntax has a targetfilter keyword. */
     private TargetFilter targetFilter;
-
-    /**
-     * ACI syntax has a targattrtfilters keyword.
-     */
+    /** ACI syntax has a targattrtfilters keyword. */
     private TargAttrFilters targAttrFilters;
-
-   /**
-    * The ACI syntax has a targetcontrol keyword.
-    */
+    /** The ACI syntax has a targetcontrol keyword. */
     private TargetControl targetControl;
-
-   /**
-    * The ACI syntax has a extop keyword.
-    */
+    /** The ACI syntax has a extop keyword. */
     private ExtOp extOp;
 
-    /**
-     * The number of regular expression group positions in a valid ACI target
-     * expression.
-     */
+    /** The number of regular expression group positions in a valid ACI target expression. */
     private static final int targetElementCount = 3;
-
-    /**
-     *  Regular expression group position of a target keyword.
-     */
+    /** Regular expression group position of a target keyword. */
     private static final int targetKeywordPos       = 1;
-
-    /**
-     *  Regular expression group position of a target operator enumeration.
-     */
+    /** Regular expression group position of a target operator enumeration. */
     private static final int targetOperatorPos      = 2;
-
-    /**
-     *  Regular expression group position of a target expression statement.
-     */
+    /** Regular expression group position of a target expression statement. */
     private static final int targetExpressionPos    = 3;
 
-    /**
-     * Regular expression used to match a single target rule.
-     */
+    /** Regular expression used to match a single target rule. */
     private static final String targetRegex =
            OPEN_PAREN +  ZERO_OR_MORE_WHITESPACE  +  WORD_GROUP +
            ZERO_OR_MORE_WHITESPACE + "(!?=)" + ZERO_OR_MORE_WHITESPACE +
@@ -463,7 +429,6 @@ public class AciTargets {
      */
     public static boolean isTargAttrFiltersApplicable(Aci aci,
                                                AciTargetMatchContext matchCtx) {
-        boolean ret=true;
         TargAttrFilters targAttrFilters=aci.getTargets().getTargAttrFilters();
         if(targAttrFilters != null) {
             if((matchCtx.hasRights(ACI_ADD) &&
@@ -471,17 +436,17 @@ public class AciTargets {
               (matchCtx.hasRights(ACI_DELETE) &&
                targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
             {
-              ret=targAttrFilters.isApplicableAddDel(matchCtx);
+              return targAttrFilters.isApplicableAddDel(matchCtx);
             }
             else if((matchCtx.hasRights(ACI_WRITE_ADD) &&
                      targAttrFilters.hasMask(TARGATTRFILTERS_ADD)) ||
                     (matchCtx.hasRights(ACI_WRITE_DELETE) &&
                     targAttrFilters.hasMask(TARGATTRFILTERS_DELETE)))
             {
-              ret=targAttrFilters.isApplicableMod(matchCtx, aci);
+              return targAttrFilters.isApplicableMod(matchCtx, aci);
             }
         }
-        return ret;
+        return true;
     }
 
     /*
@@ -574,8 +539,7 @@ public class AciTargets {
      * @param entryDN The DN to use in this evaluation.
      * @return True if the ACI matched the target and DN.
      */
-    public static boolean isTargetApplicable(Aci aci,
-            AciTargets targets, DN entryDN) {
+    public static boolean isTargetApplicable(Aci aci, AciTargets targets, DN entryDN) {
         DN targetDN=aci.getDN();
         /*
          * Scoping of the ACI uses either the DN of the entry
@@ -583,82 +547,63 @@ public class AciTargets {
          * contains a simple target DN and a equality operator, that
          * simple target DN is used as the target DN.
          */
-        if(targets.getTarget() != null && !targets.getTarget().isPattern()) {
-            EnumTargetOperator op=targets.getTarget().getOperator();
-            if(op != EnumTargetOperator.NOT_EQUALITY)
-            {
-              targetDN=targets.getTarget().getDN();
-            }
+        Target target = targets.getTarget();
+        if(target != null && !target.isPattern() && target.getOperator() != NOT_EQUALITY)
+        {
+          targetDN=target.getDN();
         }
-        //Check if the scope is correct.
-        switch(targets.getTargetScope().asEnum()) {
-        case BASE_OBJECT:
-            if(!targetDN.equals(entryDN))
-            {
-              return false;
-            }
-            break;
-        case SINGLE_LEVEL:
-            /*
-             * We use the standard definition of single level to mean the
-             * immediate children only -- not the target entry itself.
-             * Sun CR 6535035 has been raised on DSEE:
-             * Non-standard interpretation of onelevel in ACI targetScope.
-             */
-            if(!targetDN.equals(entryDN.parent()))
-            {
-              return false;
-            }
-            break;
-        case WHOLE_SUBTREE:
-            if(!entryDN.isSubordinateOrEqualTo(targetDN))
-            {
-              return false;
-            }
-            break;
-        case SUBORDINATES:
-            if (entryDN.size() <= targetDN.size() ||
-                 !entryDN.isSubordinateOrEqualTo(targetDN)) {
-              return false;
-            }
-            break;
-        default:
+        if (!isInScopeOf(entryDN, targetDN, targets.getTargetScope()))
+        {
+          return false;
+        }
+
+        if (target != null)
+        {
+          /*
+           * For inequality checks, scope was tested against the entry containing the ACI.
+           * If operator is inequality, check that it doesn't match the target DN.
+           */
+          if (!target.isPattern()
+              && target.getOperator() == NOT_EQUALITY
+              && entryDN.isSubordinateOrEqualTo(target.getDN()))
+          {
             return false;
-        }
-        /*
-         * The entry is in scope. For inequality checks, scope was tested
-         * against the entry containing the ACI. If operator is inequality,
-         * check that it doesn't match the target DN.
-         */
-        if(targets.getTarget() != null &&
-                !targets.getTarget().isPattern()) {
-            EnumTargetOperator op=targets.getTarget().getOperator();
-            if(op == EnumTargetOperator.NOT_EQUALITY) {
-                DN tmpDN=targets.getTarget().getDN();
-                if(entryDN.isSubordinateOrEqualTo(tmpDN))
-                {
-                  return false;
-                }
-            }
-        }
-        /*
-         * There is a pattern, need to match the substring filter
-         * created when the ACI was decoded. If inequality flip the
-         * result.
-         */
-        if(targets.getTarget() != null &&
-                targets.getTarget().isPattern())  {
-            final boolean ret = targets.getTarget().matchesPattern(entryDN);
-            EnumTargetOperator op=targets.getTarget().getOperator();
-            if(op == EnumTargetOperator.NOT_EQUALITY)
-            {
+          }
+          /*
+           * There is a pattern, need to match the substring filter
+           * created when the ACI was decoded. If inequality flip the result.
+           */
+          if(target.isPattern())  {
+            final boolean ret = target.matchesPattern(entryDN);
+            if (target.getOperator() == NOT_EQUALITY) {
               return !ret;
             }
             return ret;
+          }
         }
         return true;
     }
 
+    private static boolean isInScopeOf(DN entryDN, DN targetDN, SearchScope scope) {
+      switch(scope.asEnum()) {
+      case BASE_OBJECT:
+          return targetDN.equals(entryDN);
+      case SINGLE_LEVEL:
+          /*
+           * We use the standard definition of single level to mean the
+           * immediate children only -- not the target entry itself.
+           * Sun CR 6535035 has been raised on DSEE:
+           * Non-standard interpretation of onelevel in ACI targetScope.
+           */
+          return targetDN.equals(entryDN.parent());
+      case WHOLE_SUBTREE:
+          return entryDN.isSubordinateOrEqualTo(targetDN);
+      case SUBORDINATES:
+          return entryDN.size() > targetDN.size() && entryDN.isSubordinateOrEqualTo(targetDN);
+      default:
+          return false;
+      }
+    }
 
     /**
      * The method is used to try and determine if a targetAttr expression that

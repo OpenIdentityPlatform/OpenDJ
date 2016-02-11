@@ -19,10 +19,9 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -30,6 +29,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -37,7 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.RDN;
 
 /**
  * This class is used to match RDN patterns containing wildcards in either
@@ -61,10 +60,7 @@ public class PatternRDN
    * a list of one element A.  The value "*A*" is represented as a list
    * of three elements "", A and "".
    */
-  private ArrayList<ArrayList<ByteString>> valuePatterns;
-  /** The number of attribute-value pairs in this RDN pattern. */
-  private int numValues;
-
+  private List<List<ByteString>> valuePatterns;
 
   /**
    * Create a new RDN pattern composed of a single attribute-value pair.
@@ -73,7 +69,7 @@ public class PatternRDN
    * @param dnString The DN pattern containing the attribute-value pair.
    * @throws DirectoryException If the attribute-value pair is not valid.
    */
-  public PatternRDN(String type, ArrayList<ByteString> valuePattern, String dnString)
+  public PatternRDN(String type, List<ByteString> valuePattern, String dnString)
        throws DirectoryException
   {
     // Only Whole-Type wildcards permitted.
@@ -89,7 +85,6 @@ public class PatternRDN
       hasTypeWildcard = true;
     }
 
-    numValues = 1;
     typePatterns = new String[] { type };
     valuePatterns = newArrayList(valuePattern);
   }
@@ -105,9 +100,7 @@ public class PatternRDN
    *          this RDN, or <CODE>false</CODE> if it was not (e.g., it
    *          was already present).
    */
-  public boolean addValue(String type, ArrayList<ByteString> valuePattern,
-                          String dnString)
-       throws DirectoryException
+  public boolean addValue(String type, List<ByteString> valuePattern, String dnString) throws DirectoryException
   {
     // No type wildcards permitted in multi-valued patterns.
     if (hasTypeWildcard || type.contains("*"))
@@ -117,13 +110,9 @@ public class PatternRDN
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
-    numValues++;
-
-    String[] newTypes = new String[numValues];
-    System.arraycopy(typePatterns, 0, newTypes, 0,
-                     typePatterns.length);
-    newTypes[typePatterns.length] = type;
-    typePatterns = newTypes;
+    int oldLength = typePatterns.length;
+    typePatterns = Arrays.copyOf(typePatterns, oldLength + 1);
+    typePatterns[oldLength] = type;
 
     valuePatterns.add(valuePattern);
 
@@ -140,7 +129,7 @@ public class PatternRDN
    */
   public int getNumValues()
   {
-    return numValues;
+    return typePatterns.length;
   }
 
 
@@ -164,40 +153,27 @@ public class PatternRDN
         return false;
       }
 
-      AVA firstAVA = rdn.getFirstAVA();
-      AttributeType thatType = firstAVA.getAttributeType();
+      AVA ava = rdn.getFirstAVA();
       if (!typePatterns[0].equals("*"))
       {
         AttributeType thisType = DirectoryServer.getAttributeType(typePatterns[0]);
-        if (thisType.isPlaceHolder() || !thisType.equals(thatType))
+        if (thisType.isPlaceHolder() || !thisType.equals(ava.getAttributeType()))
         {
           return false;
         }
       }
 
-      return matchValuePattern(valuePatterns.get(0), thatType, firstAVA.getAttributeValue());
+      return matchValuePattern(valuePatterns.get(0), ava);
     }
 
-    if (hasTypeWildcard)
-    {
-      return false;
-    }
-
-    if (numValues != rdn.size())
+    if (hasTypeWildcard || typePatterns.length != rdn.size())
     {
       return false;
     }
 
     // Sort the attribute-value pairs by attribute type.
-    TreeMap<String,ArrayList<ByteString>> patternMap = new TreeMap<>();
-    TreeMap<String, ByteString> rdnMap = new TreeMap<>();
-
-    for (AVA ava : rdn)
-    {
-      rdnMap.put(ava.getAttributeType().getNameOrOID(), ava.getAttributeValue());
-    }
-
-    for (int i = 0; i < numValues; i++)
+    TreeMap<String, List<ByteString>> patternMap = new TreeMap<>();
+    for (int i = 0; i < typePatterns.length; i++)
     {
       AttributeType type = DirectoryServer.getAttributeType(typePatterns[i]);
       if (type.isPlaceHolder())
@@ -207,18 +183,12 @@ public class PatternRDN
       patternMap.put(type.getNameOrOID(), valuePatterns.get(i));
     }
 
-    Set<String> patternKeys = patternMap.keySet();
-    Set<String> rdnKeys = rdnMap.keySet();
-    Iterator<String> patternKeyIter = patternKeys.iterator();
-    for (String rdnKey : rdnKeys)
+    Iterator<String> patternKeyIter = patternMap.keySet().iterator();
+    for (AVA ava : rdn)
     {
-      if (!rdnKey.equals(patternKeyIter.next()))
-      {
-        return false;
-      }
-
-      AttributeType rdnAttrType = DirectoryServer.getAttributeType(rdnKey);
-      if (!matchValuePattern(patternMap.get(rdnKey), rdnAttrType, rdnMap.get(rdnKey)))
+      String rdnKey = ava.getAttributeType().getNameOrOID();
+      if (!rdnKey.equals(patternKeyIter.next())
+          || !matchValuePattern(patternMap.get(rdnKey), ava))
       {
         return false;
       }
@@ -226,7 +196,6 @@ public class PatternRDN
 
     return true;
   }
-
 
   /**
    * Determine whether a value pattern matches a given attribute-value pair.
@@ -236,15 +205,15 @@ public class PatternRDN
    * @param value The value of the attribute-value pair.
    * @return true if the value pattern matches the attribute-value pair.
    */
-  private boolean matchValuePattern(List<ByteString> pattern,
-                                    AttributeType type,
-                                    ByteString value)
+  private boolean matchValuePattern(List<ByteString> pattern, AVA ava)
   {
     if (pattern == null)
     {
       return true;
     }
 
+    final AttributeType type = ava.getAttributeType();
+    ByteString value = ava.getAttributeValue();
     try
     {
       if (pattern.size() == 1)
@@ -288,4 +257,24 @@ public class PatternRDN
     }
   }
 
+  @Override
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("(");
+    for (int i = 0; i < typePatterns.length; i++)
+    {
+      sb.append(typePatterns[i]).append("=");
+      List<ByteString> patterns = valuePatterns.get(i);
+      if (patterns.size() == 1)
+      {
+        sb.append(patterns.get(0));
+      }
+      else
+      {
+        sb.append(patterns);
+      }
+    }
+    sb.append(")");
+    return sb.toString();
+  }
 }
