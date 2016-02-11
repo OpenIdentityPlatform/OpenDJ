@@ -905,7 +905,7 @@ public class LocalBackendWorkflowElement
       {
         return workflow;
       }
-      entryDN = entryDN.parent();
+      entryDN = DirectoryServer.getParentDNInSuffix(entryDN);
     }
     return null;
   }

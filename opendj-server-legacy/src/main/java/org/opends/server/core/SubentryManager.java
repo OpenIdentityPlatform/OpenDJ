@@ -405,7 +405,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       List<SubEntry> subentries = new ArrayList<>();
-      for (DN subDN = dn; subDN != null; subDN = subDN.parent())
+      for (DN subDN = dn; subDN != null && !subDN.isRootDN(); subDN = subDN.parent())
       {
         List<SubEntry> subList = subEntryMap.get(subDN);
         if (subList != null)
@@ -452,7 +452,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       List<SubEntry> subentries = new ArrayList<>();
-      for (DN subDN = entry.getName(); subDN != null; subDN = subDN.parent())
+      for (DN subDN = entry.getName(); subDN != null && !subDN.isRootDN(); subDN = subDN.parent())
       {
         List<SubEntry> subList = subEntryMap.get(subDN);
         if (subList != null)

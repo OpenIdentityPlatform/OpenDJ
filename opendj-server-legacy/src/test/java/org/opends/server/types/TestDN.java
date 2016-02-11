@@ -395,11 +395,11 @@ public class TestDN extends TypesTestCase {
    *
    * @return The array of test DN strings.
    */
-  @DataProvider(name = "createParentAndRDNTestData")
+  @DataProvider
   public Object[][] createParentAndRDNTestData() {
     return new Object[][] {
         { "", null, null },
-        { "dc=com", null, "dc=com" },
+        { "dc=com", "", "dc=com" },
         { "dc=opends,dc=com", "dc=com", "dc=opends" },
         { "dc=world,dc=opends,dc=com", "dc=opends,dc=com", "dc=world" },
         { "dc=hello,dc=world,dc=opends,dc=com",
