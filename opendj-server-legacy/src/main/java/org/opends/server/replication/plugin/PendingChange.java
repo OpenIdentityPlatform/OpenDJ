@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.operation.PluginOperation;
@@ -42,7 +41,6 @@ class PendingChange implements Comparable<PendingChange>
   private boolean committed;
   private UpdateMsg msg;
   private final PluginOperation op;
-  private ServerState dependencyState;
 
   /**
    * Construct a new PendingChange.
@@ -128,35 +126,6 @@ class PendingChange implements Comparable<PendingChange>
     return this.op;
   }
 
-  /**
-   * Add the given CSN to the list of dependencies of this PendingChange.
-   *
-   * @param csn
-   *          The CSN to add to the list of dependencies of this PendingChange.
-   */
-  public void addDependency(CSN csn)
-  {
-    if (dependencyState == null)
-    {
-      dependencyState = new ServerState();
-    }
-    dependencyState.update(csn);
-  }
-
-  /**
-   * Check if the given ServerState covers the dependencies of this
-   * PendingChange.
-   *
-   * @param state The ServerState for which dependencies must be checked,
-   *
-   * @return A boolean indicating if the given ServerState covers the
-   *         dependencies of this PendingChange.
-   */
-  public boolean dependenciesIsCovered(ServerState state)
-  {
-    return state.cover(dependencyState);
-  }
-
   /** {@inheritDoc} */
   @Override
   public int compareTo(PendingChange o)
@@ -173,8 +142,6 @@ class PendingChange implements Comparable<PendingChange>
         + ", csn=" + csn.toStringUI()
         + ", msg=[" + msg
         + "], isOperationSynchronized="
-        + (op != null ? op.isSynchronizationOperation() : "false")
-        + ", dependencyState="
-        + (dependencyState != null ? dependencyState : "");
+        + (op != null ? op.isSynchronizationOperation() : "false");
   }
 }

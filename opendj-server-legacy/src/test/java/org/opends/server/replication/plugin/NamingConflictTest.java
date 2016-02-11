@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -40,6 +40,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
@@ -374,6 +375,8 @@ public class NamingConflictTest extends ReplicationTestCase
   private void replayMsg(UpdateMsg updateMsg) throws InterruptedException
   {
     domain.processUpdate(updateMsg);
-    domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
+    LDAPUpdateMsg ldapUpdate = queue.take().getUpdateMessage();
+    domain.markInProgress(ldapUpdate);
+    domain.replay(ldapUpdate, SHUTDOWN);
   }
 }

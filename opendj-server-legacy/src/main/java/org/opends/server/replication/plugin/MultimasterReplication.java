@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2016 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -41,6 +41,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -316,9 +317,10 @@ public class MultimasterReplication
   {
     replayThreads.clear();
 
+    ReentrantLock switchQueueLock = new ReentrantLock();
     for (int i = 0; i < replayThreadNumber; i++)
     {
-      ReplayThread replayThread = new ReplayThread(updateToReplayQueue);
+      ReplayThread replayThread = new ReplayThread(updateToReplayQueue, switchQueueLock);
       replayThread.start();
       replayThreads.add(replayThread);
     }
