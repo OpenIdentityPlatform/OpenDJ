@@ -22,11 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.tools;
 
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -34,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -50,8 +55,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.ClientException;
-
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the LDAP authentication handler.
@@ -154,21 +157,14 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithValidDNAndPWNoControls()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
-                             ByteString.valueOfUtf8("password"), requestControls,
-                             responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"), ByteString.valueOfUtf8("password"),
+          requestControls, responseControls);
+    }
   }
 
 
@@ -183,19 +179,13 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithNullDNAndPWNoControls()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, null, null, requestControls, responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, null, null, requestControls, responseControls);
+    }
   }
 
 
@@ -210,20 +200,13 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithEmptyDNAndPWNoControls()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(),
-                             requestControls, responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(), requestControls, responseControls);
+    }
   }
 
 
@@ -238,26 +221,15 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithDNButNoPassword()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
                                ByteString.empty(), requestControls,
                                responseControls);
-    }
-    finally
-    {
-      s.close();
     }
   }
 
@@ -273,26 +245,15 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithDNButInvalidPassword()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
                                ByteString.valueOfUtf8("wrongPassword"),
                                requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
     }
   }
 
@@ -308,23 +269,15 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithPasswordPolicyControl()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
     requestControls.add(new PasswordPolicyRequestControl());
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
-                             ByteString.valueOfUtf8("password"),
-                             requestControls, responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"), ByteString.valueOfUtf8("password"),
+          requestControls, responseControls);
+    }
   }
 
 
@@ -338,24 +291,14 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindNullMechanism()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    try
+    try (Socket s = newSocket())
     {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       authHandler.doSASLBind(null, null, null, saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
     }
   }
 
@@ -370,24 +313,14 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindEmptyMechanism()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    try
+    try (Socket s = newSocket())
     {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       authHandler.doSASLBind(null, null, "", saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
     }
   }
 
@@ -402,26 +335,15 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindInvalidMechanism()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       authHandler.doSASLBind(null, null, "invalid", saslProperties,
                              requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
     }
   }
 
@@ -437,30 +359,13 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindAnonymousDisabled()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("testDoSASLBindAnonymousDisabled");
-    saslProperties.put("trace", propList);
+    saslProperties.put("trace", newArrayList("testDoSASLBindAnonymousDisabled"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "ANONYMOUS", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      anonymous(authHandler, saslProperties);
     }
   }
 
@@ -479,29 +384,17 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("testDoSASLBindAnonymous");
-    saslProperties.put("trace", propList);
+    saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      anonymous(authHandler, saslProperties);
+    }
 
-    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                           "ANONYMOUS", saslProperties, requestControls,
-                           responseControls);
-    s.close();
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which ANONYMOUS
@@ -516,22 +409,12 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                           "ANONYMOUS", saslProperties, requestControls,
-                           responseControls);
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      anonymous(authHandler, saslProperties);
+    }
     handler.finalizeSASLMechanismHandler();
   }
 
@@ -551,31 +434,17 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("testDoSASLBindAnonymousMultivaluedTrace");
-    propList.add("aSecondTraceStringWhichIsInvalid");
-    saslProperties.put("trace", propList);
+    saslProperties.put("trace",
+        newArrayList("testDoSASLBindAnonymousMultivaluedTrace", "aSecondTraceStringWhichIsInvalid"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "ANONYMOUS", saslProperties, requestControls,
-                             responseControls);
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      anonymous(authHandler, saslProperties);
     }
     finally
     {
-      s.close();
       handler.finalizeSASLMechanismHandler();
     }
   }
@@ -596,30 +465,16 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("testDoSASLBindAnonymousInvalidProperty");
-    saslProperties.put("invalid", propList);
+    saslProperties.put("invalid", newArrayList("testDoSASLBindAnonymousInvalidProperty"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "ANONYMOUS", saslProperties, requestControls,
-                             responseControls);
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      anonymous(authHandler, saslProperties);
     }
     finally
     {
-      s.close();
       handler.finalizeSASLMechanismHandler();
     }
   }
@@ -640,27 +495,17 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
     requestControls.add(new PasswordPolicyRequestControl());
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("testDoSASLBindAnonymous");
-    saslProperties.put("trace", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                           "ANONYMOUS", saslProperties, requestControls,
-                           responseControls);
-    s.close();
+    saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(), "ANONYMOUS", saslProperties, requestControls,
+          responseControls);
+    }
     handler.finalizeSASLMechanismHandler();
   }
 
@@ -696,31 +541,15 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("CRAM-MD5");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try
     {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
+      cramMd5SaslBind(saslProperties);
     }
     finally
     {
-      s.close();
       DirectoryServer.registerSASLMechanismHandler("CRAM-MD5", cramMD5Handler);
     }
   }
@@ -753,26 +582,9 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "CRAM-MD5", saslProperties, requestControls,
-                           responseControls);
-    s.close();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    cramMd5SaslBind(saslProperties);
   }
 
 
@@ -789,32 +601,10 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
 
 
@@ -831,32 +621,10 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList(""));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
 
 
@@ -887,31 +655,13 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("invalidPassword"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("CRAM-MD5", "invalidPassword", authHandler, saslProperties);
     }
   }
 
@@ -941,32 +691,10 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
 
 
@@ -981,32 +709,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindCRAMMD5NullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-
     LinkedHashMap<String,List<String>> saslProperties = null;
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
-
 
 
   /**
@@ -1019,29 +725,9 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindCRAMMD5EmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
 
 
@@ -1058,36 +744,11 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    propList.add("u:test.user");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -1101,36 +762,11 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("invalid", newArrayList("foo"));
 
-    propList = new ArrayList<>();
-    propList.add("foo");
-    saslProperties.put("invalid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "CRAM-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    cramMd5SaslBind(saslProperties);
   }
 
 
@@ -1162,28 +798,18 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
     requestControls.add(new PasswordPolicyRequestControl());
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "CRAM-MD5", saslProperties, requestControls,
-                           responseControls);
-    s.close();
+      authHandler.doSASLBind(ByteString.empty(), ByteString.valueOfUtf8("password"), "CRAM-MD5", saslProperties,
+          requestControls, responseControls);
+    }
   }
 
 
@@ -1219,37 +845,18 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("DIGEST-MD5");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
 
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      digestMD5(authHandler, saslProperties);
     }
     finally
     {
-      s.close();
-      DirectoryServer.registerSASLMechanismHandler("DIGEST-MD5",
-                                                   digestMD5Handler);
+      DirectoryServer.registerSASLMechanismHandler("DIGEST-MD5", digestMD5Handler);
     }
   }
 
@@ -1281,28 +888,14 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    propList = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "DIGEST-MD5", saslProperties, requestControls,
-                           responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, hostname);
+      digestMD5(authHandler, saslProperties);
+    }
   }
 
 
@@ -1333,28 +926,14 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    propList = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "DIGEST-MD5", saslProperties, requestControls,
-                           responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, hostname);
+      digestMD5(authHandler, saslProperties);
+    }
   }
 
 
@@ -1369,30 +948,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5NullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
 
     LinkedHashMap<String,List<String>> saslProperties = null;
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1407,29 +966,9 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5EmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1444,32 +983,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5InvalidProperty()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("invalid", newArrayList("foo"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("foo");
-    saslProperties.put("invalid", propList);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1484,33 +1001,13 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleAuthIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
+    ArrayList<String> propList = newArrayList("dn:uid=test.user,o=test");
     propList.add("u:test.user");
     saslProperties.put("authid", propList);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
 
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1525,32 +1022,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MEmptyAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList(""));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("");
-    saslProperties.put("authid", propList);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1565,38 +1040,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleRealms()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test", "dc=example,dc=com"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    propList.add("dc=example,dc=com");
-    saslProperties.put("realm", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1627,34 +1075,16 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("qop", newArrayList("auth"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("auth");
-    saslProperties.put("qop", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "DIGEST-MD5", saslProperties, requestControls,
-                           responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, hostname);
+      digestMD5(authHandler, saslProperties);
+    }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -1667,41 +1097,12 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5UnsupportedQoPAuthInt()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
+    saslProperties.put("qop", newArrayList("auth-int"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<>();
-    propList.add("auth-int");
-    saslProperties.put("qop", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1717,41 +1118,12 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5UnsupportedQoPAuthConf()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
+    saslProperties.put("qop", newArrayList("auth-conf"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<>();
-    propList.add("auth-conf");
-    saslProperties.put("qop", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1766,43 +1138,13 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5InvalidQoP()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
+    saslProperties.put("qop", newArrayList("invalid"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<>();
-    propList.add("invalid");
-    saslProperties.put("qop", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
-
 
 
   /**
@@ -1815,43 +1157,12 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleQoPs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
+    saslProperties.put("qop", newArrayList("auth", "auth-int", "auth-conf"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<>();
-    propList.add("auth");
-    propList.add("auth-int");
-    propList.add("auth-conf");
-    saslProperties.put("qop", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1866,44 +1177,13 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleDigestURIs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
+    saslProperties.put("digest-uri", newArrayList("ldap/value1", "ldap/value2"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<>();
-    propList.add("ldap/value1");
-    propList.add("ldap/value2");
-    saslProperties.put("digest-uri", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
-
 
 
   /**
@@ -1916,42 +1196,12 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5MultipleAuthzIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("realm", newArrayList("o=test"));
+    saslProperties.put("authzid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    propList.add("u:test.user");
-    saslProperties.put("authzid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -1966,37 +1216,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindDigestMD5InvalidAuthDN()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:invalid"));
+    saslProperties.put("realm", newArrayList("o=test"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:invalid");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -2013,37 +1237,11 @@ public class LDAPAuthenticationHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:nosuchuser"));
+    saslProperties.put("realm", newArrayList("o=test"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("u:nosuchuser");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -2074,36 +1272,14 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:nosuchuser"));
+    saslProperties.put("realm", newArrayList("o=test"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("u:nosuchuser");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("wrongPassword"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("DIGEST-MD5", "wrongPassword", authHandler, saslProperties);
     }
   }
 
@@ -2133,37 +1309,11 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:nosuchuser"));
+    saslProperties.put("realm", newArrayList("o=test"));
 
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("u:nosuchuser");
-    saslProperties.put("authid", propList);
-
-    propList = new ArrayList<>();
-    propList.add("o=test");
-    saslProperties.put("realm", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"),
-                             "DIGEST-MD5", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    digestMd5SaslBind(saslProperties);
   }
 
 
@@ -2195,30 +1345,18 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
     requestControls.add(new PasswordPolicyRequestControl());
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    propList = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "DIGEST-MD5", saslProperties, requestControls,
-                           responseControls);
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, hostname);
+      authHandler.doSASLBind(ByteString.empty(), ByteString.valueOfUtf8("password"), "DIGEST-MD5", saslProperties,
+          requestControls, responseControls);
+    }
   }
 
 
@@ -2262,27 +1400,14 @@ public class LDAPAuthenticationHandlerTestCase
                  trustStorePath, "password");
 
 
-    Socket s = factory.createSocket("127.0.0.1",
-                                    TestCaseUtils.getServerLdapsPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
-      authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
-                             saslProperties, requestControls, responseControls);
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("EXTERNAL", null, authHandler, saslProperties);
     }
     finally
     {
-      s.close();
       DirectoryServer.registerSASLMechanismHandler("EXTERNAL", externalHandler);
     }
   }
@@ -2323,22 +1448,12 @@ public class LDAPAuthenticationHandlerTestCase
                  "password");
 
 
-    Socket s = factory.createSocket("127.0.0.1",
-                                    TestCaseUtils.getServerLdapsPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
-                           saslProperties, requestControls, responseControls);
-
-    s.close();
+    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
+    {
+      LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("EXTERNAL", null, authHandler, saslProperties);
+    }
   }
 
 
@@ -2382,35 +1497,19 @@ public class LDAPAuthenticationHandlerTestCase
                  "password");
 
 
-    Socket s = factory.createSocket("127.0.0.1",
-                                    TestCaseUtils.getServerLdapsPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("foo");
-    saslProperties.put("invalid", valueList);
+    saslProperties.put("invalid", newArrayList("foo"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort());)
     {
-      authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
-                             saslProperties, requestControls, responseControls);
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("EXTERNAL", null, authHandler, saslProperties);
     }
     finally
     {
-      s.close();
       DirectoryServer.registerSASLMechanismHandler("EXTERNAL", externalHandler);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which EXTERNAL
@@ -2447,24 +1546,16 @@ public class LDAPAuthenticationHandlerTestCase
                  "password");
 
 
-    Socket s = factory.createSocket("127.0.0.1",
-                                    TestCaseUtils.getServerLdapsPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
     requestControls.add(new PasswordPolicyRequestControl());
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
-                           saslProperties, requestControls, responseControls);
-
-    s.close();
+    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("EXTERNAL", null, authHandler, saslProperties);
+      authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL", saslProperties, requestControls, responseControls);
+    }
   }
 
 
@@ -2479,29 +1570,9 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPINullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-
     LinkedHashMap<String,List<String>> saslProperties = null;
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2516,31 +1587,93 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIEmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
+    gssapiSaslBind(saslProperties);
+  }
 
-    try
+  private Socket newSocket() throws UnknownHostException, IOException
+  {
+    return new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+  }
+
+  private LDAPAuthenticationHandler newLDAPAuthenticationHandler(Socket s, String hostName2) throws IOException
+  {
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+    AtomicInteger messageID = new AtomicInteger(1);
+    return new LDAPAuthenticationHandler(r, w, hostName2, messageID);
+  }
+
+  private void anonymous(LDAPAuthenticationHandler authHandler, Map<String, List<String>> saslProperties)
+      throws ClientException, LDAPException
+  {
+    doSASLBind("ANONYMOUS", "", authHandler, saslProperties);
+  }
+
+  private void gssapi(LDAPAuthenticationHandler authHandler, Map<String, List<String>> saslProperties)
+      throws ClientException, LDAPException
+  {
+    doSASLBind("GSSAPI", "", authHandler, saslProperties);
+  }
+
+  private void cramMD5(LDAPAuthenticationHandler authHandler, Map<String, List<String>> saslProperties)
+      throws ClientException, LDAPException
+  {
+    doSASLBind("CRAM-MD5", "password", authHandler, saslProperties);
+  }
+
+  private void plain(LDAPAuthenticationHandler authHandler, Map<String, List<String>> saslProperties)
+      throws ClientException, LDAPException
+  {
+    doSASLBind("PLAIN", "password", authHandler, saslProperties);
+  }
+
+  private void digestMD5(LDAPAuthenticationHandler authHandler, Map<String, List<String>> saslProperties)
+      throws ClientException, LDAPException
+  {
+    doSASLBind("DIGEST-MD5", "password", authHandler, saslProperties);
+  }
+
+  private void doSASLBind(String mechanism, String bindPassword, LDAPAuthenticationHandler authHandler,
+      Map<String, List<String>> saslProperties) throws ClientException, LDAPException
+  {
+    ByteString bindPwd = bindPassword != null ? ByteString.valueOfUtf8(bindPassword) : null;
+    authHandler.doSASLBind(ByteString.empty(), bindPwd, mechanism, saslProperties,
+        new ArrayList<Control>(), new ArrayList<Control>());
+  }
+
+  private void plainSaslBind(Map<String, List<String>> saslProperties) throws Exception
+  {
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
+      plain(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
     }
   }
 
+  private void cramMd5SaslBind(LinkedHashMap<String, List<String>> saslProperties) throws Exception
+  {
+    try (Socket s = newSocket())
+    {
+      cramMD5(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+    }
+  }
 
+  private void digestMd5SaslBind(LinkedHashMap<String, List<String>> saslProperties) throws Exception
+  {
+    try (Socket s = newSocket())
+    {
+      digestMD5(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+    }
+  }
+
+  private void gssapiSaslBind(LinkedHashMap<String, List<String>> saslProperties) throws Exception
+  {
+    try (Socket s = newSocket())
+    {
+      gssapi(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+    }
+  }
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -2552,32 +1685,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIEmptyAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList(""));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("");
-    saslProperties.put("authid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2592,33 +1703,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleAuthIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user", "dn:uid=test.user,o=test"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    valueList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2633,37 +1721,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleAuthzIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("authzid", newArrayList("u:test.user", "dn:uid=test.user,o=test"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    valueList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authzid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2678,37 +1740,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleKDCs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("kdc", newArrayList("kdc1", "kdc2"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("kdc1");
-    valueList.add("kdc2");
-    saslProperties.put("kdc", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2723,38 +1759,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleQoPs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("qop", newArrayList("auth", "auth-int", "auth-conf"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("auth");
-    valueList.add("auth-int");
-    valueList.add("auth-conf");
-    saslProperties.put("qop", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2770,36 +1779,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIUnsupportedQoPAuthInt()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("qop", newArrayList("auth-int"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("auth-int");
-    saslProperties.put("qop", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2815,36 +1799,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIUnsupportedQoPAuthConf()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("qop", newArrayList("auth-conf"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("auth-conf");
-    saslProperties.put("qop", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2859,36 +1818,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIInvalidQoP()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("qop", newArrayList("invalid"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("invalid");
-    saslProperties.put("qop", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2903,37 +1837,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIMultipleRealms()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("realm", newArrayList("realm1", "realm2"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("realm1");
-    valueList.add("realm2");
-    saslProperties.put("realm", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -2948,38 +1856,12 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPIInvalidProperty()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("u:test.user"));
+    saslProperties.put("invalid", newArrayList("foo"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("foo");
-    saslProperties.put("invalid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
-
 
 
   /**
@@ -2992,32 +1874,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindGSSAPINoAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("qop", newArrayList("auth"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("auth");
-    saslProperties.put("qop", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                             "GSSAPI", saslProperties, requestControls,
-                             responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    gssapiSaslBind(saslProperties);
   }
 
 
@@ -3051,32 +1911,17 @@ public class LDAPAuthenticationHandlerTestCase
     DirectoryServer.deregisterSASLMechanismHandler("PLAIN");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
+    try (Socket s = newSocket())
     {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      plain(authHandler, saslProperties);
     }
     finally
     {
-      s.close();
-      DirectoryServer.registerSASLMechanismHandler("PLAIN",
-                                                   plainHandler);
+      DirectoryServer.registerSASLMechanismHandler("PLAIN", plainHandler);
     }
   }
 
@@ -3106,25 +1951,13 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"), "PLAIN",
-                           saslProperties, requestControls, responseControls);
-
-    s.close();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      plain(authHandler, saslProperties);
+    }
   }
 
 
@@ -3139,29 +1972,9 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainNullProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-
     LinkedHashMap<String,List<String>> saslProperties = null;
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
 
 
@@ -3176,28 +1989,9 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainEmptyProperties()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
 
 
@@ -3212,36 +2006,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainMultipleAuthIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("dn:uid=test.user,o=test");
-    valueList.add("u:test.user");
-    saslProperties.put("authid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
@@ -3253,32 +2022,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainZeroLengthAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList(""));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("");
-    saslProperties.put("authid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
 
 
@@ -3293,37 +2040,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainMultipleAuthzIDs()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("authzid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("dn:uid=test.user,o=test");
-    valueList.add("u:test.user");
-    saslProperties.put("authzid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
 
 
@@ -3338,36 +2059,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainInvalidProperty()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    saslProperties.put("invalid", newArrayList("foo"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", valueList);
-
-    valueList = new ArrayList<>();
-    valueList.add("foo");
-    saslProperties.put("invalid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
 
 
@@ -3382,32 +2078,10 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSASLBindPlainNoAuthID()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    saslProperties.put("authzid", newArrayList("dn:uid=test.user,o=test"));
 
-    ArrayList<String> valueList = new ArrayList<>();
-    valueList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authzid", valueList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    try
-    {
-      authHandler.doSASLBind(ByteString.empty(),
-                             ByteString.valueOfUtf8("password"), "PLAIN",
-                             saslProperties, requestControls, responseControls);
-    }
-    finally
-    {
-      s.close();
-    }
+    plainSaslBind(saslProperties);
   }
 
 
@@ -3425,34 +2099,21 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
+    try (Socket s = newSocket())
+    {
+      LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+      saslProperties.put("authid", newArrayList("dn:uid=does.not.exist,o=test"));
 
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=does.not.exist,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"), "PLAIN",
-                           saslProperties, requestControls, responseControls);
-
-    s.close();
+      plain(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+    }
   }
 
-
-
   /**
-   * Tests the <CODE>doSASLBind</CODE> method for PLAIN authentication in which
-   * the wrong password has been provided for the target user.
+   * Tests the <CODE>doSASLBind</CODE> method for PLAIN authentication in which the wrong password
+   * has been provided for the target user.
    *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { LDAPException.class })
   public void testDoSASLBindPlainWrongPassword()
@@ -3472,25 +2133,13 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=does.not.exist,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("wrongPassword"), "PLAIN",
-                           saslProperties, requestControls, responseControls);
-
-    s.close();
+    saslProperties.put("authid", newArrayList("dn:uid=does.not.exist,o=test"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("PLAIN", "wrongPassword", authHandler, saslProperties);
+    }
   }
 
 
@@ -3520,27 +2169,17 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
     requestControls.add(new PasswordPolicyRequestControl());
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"), "PLAIN",
-                           saslProperties, requestControls, responseControls);
-
-    s.close();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSASLBind(ByteString.empty(), ByteString.valueOfUtf8("password"), "PLAIN", saslProperties,
+          requestControls, responseControls);
+    }
   }
 
 
@@ -3555,16 +2194,11 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentityUnauthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    assertNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      assertNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
 
@@ -3579,24 +2213,16 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentitySimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
+    ArrayList<Control> requestControls = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
 
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(),
-                             requestControls, responseControls);
-    assertNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(), requestControls, responseControls);
+      assertNull(authHandler.requestAuthorizationIdentity());
+    }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -3608,22 +2234,15 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentitySimpleRootUser()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
-                             ByteString.valueOfUtf8("password"), requestControls,
-                             responseControls);
-    assertNotNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"), ByteString.valueOfUtf8("password"),
+          requestControls, responseControls);
+      assertNotNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
 
@@ -3652,22 +2271,15 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<Control> requestControls  = new ArrayList<>();
     ArrayList<Control> responseControls = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=test.user,o=test"),
-                             ByteString.valueOfUtf8("password"), requestControls,
-                             responseControls);
-    assertNotNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=test.user,o=test"), ByteString.valueOfUtf8("password"),
+          requestControls, responseControls);
+      assertNotNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
 
@@ -3685,27 +2297,14 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("testDoSASLBindAnonymous");
-    saslProperties.put("trace", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    authHandler.doSASLBind(ByteString.empty(), ByteString.empty(),
-                           "ANONYMOUS", saslProperties, requestControls,
-                           responseControls);
-    assertNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      anonymous(authHandler, saslProperties);
+      assertNull(authHandler.requestAuthorizationIdentity());
+    }
     handler.finalizeSASLMechanismHandler();
   }
 
@@ -3737,28 +2336,14 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "CRAM-MD5", saslProperties, requestControls,
-                           responseControls);
-    assertNotNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      cramMD5(authHandler, saslProperties);
+      assertNotNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
 
@@ -3789,29 +2374,15 @@ public class LDAPAuthenticationHandlerTestCase
               "cn=Password Policies,cn=config");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
-    propList = new ArrayList<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, this.hostname, messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"),
-                           "DIGEST-MD5", saslProperties, requestControls,
-                           responseControls);
-    assertNotNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, hostname);
+      digestMD5(authHandler, saslProperties);
+      assertNotNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
 
@@ -3850,23 +2421,13 @@ public class LDAPAuthenticationHandlerTestCase
                  "password");
 
 
-    Socket s = factory.createSocket("127.0.0.1",
-                                    TestCaseUtils.getServerLdapsPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL",
-                           saslProperties, requestControls, responseControls);
-    assertNotNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      doSASLBind("EXTERNAL", null, authHandler, saslProperties);
+      assertNotNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
 
@@ -3895,26 +2456,14 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    AtomicInteger          messageID        = new AtomicInteger(1);
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
     LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
-    ArrayList<String> propList = new ArrayList<>();
-    propList.add("dn:uid=test.user,o=test");
-    saslProperties.put("authid", propList);
-
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(r, w, "localhost", messageID);
-    authHandler.doSASLBind(ByteString.empty(),
-                           ByteString.valueOfUtf8("password"), "PLAIN",
-                           saslProperties, requestControls, responseControls);
-    assertNotNull(authHandler.requestAuthorizationIdentity());
-
-    s.close();
+    saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
+    try (Socket s = newSocket())
+    {
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      plain(authHandler, saslProperties);
+      assertNotNull(authHandler.requestAuthorizationIdentity());
+    }
   }
 
   private void getFQDN() {
@@ -3924,6 +2473,4 @@ public class LDAPAuthenticationHandlerTestCase
          this.hostname = "localhost";
       }
   }
-
 }
-

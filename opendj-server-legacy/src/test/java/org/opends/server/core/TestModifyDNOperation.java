@@ -27,15 +27,8 @@
  */
 package org.opends.server.core;
 
-import java.net.Socket;
 import java.util.Collections;
-import java.util.Hashtable;
 import java.util.List;
-
-import javax.naming.Context;
-import javax.naming.InvalidNameException;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
@@ -48,15 +41,13 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -72,6 +63,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -761,34 +753,22 @@ public class TestModifyDNOperation extends OperationTestCase
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
     // Establish a connection to the server.
-    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-    InvocationCounterPlugin.resetAllCounters();
+      InvocationCounterPlugin.resetAllCounters();
 
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-    BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(b("cn=Directory Manager"), 3, b("password"));
-    LDAPMessage bindMessage = new LDAPMessage(1, bindRequest);
-    w.writeMessage(bindMessage);
+      conn.bind("cn=Directory Manager", "password");
 
-    bindMessage = r.readMessage();
-    BindResponseProtocolOp bindResponse = bindMessage.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
+      InvocationCounterPlugin.resetAllCounters();
+      ModifyDNRequestProtocolOp modifyRequest =
+          new ModifyDNRequestProtocolOp(b(entry.getName().toString()), b("uid=user.test0"), false);
+      conn.writeMessage(modifyRequest, ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
 
-    assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
-    InvocationCounterPlugin.resetAllCounters();
-    ModifyDNRequestProtocolOp modifyRequest =
-        new ModifyDNRequestProtocolOp(b(entry.getName().toString()), b("uid=user.test0"), false);
-    LDAPMessage message = new LDAPMessage(2, modifyRequest,
-                                          ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    ModifyDNResponseProtocolOp modifyResponse = message.getModifyDNResponseProtocolOp();
-
-    assertEquals(modifyResponse.getResultCode(), 80);
-//    assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
+      LDAPMessage message = conn.readMessage();
+      ModifyDNResponseProtocolOp modifyResponse = message.getModifyDNResponseProtocolOp();
+      assertEquals(modifyResponse.getResultCode(), 80);
+      // assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
     }
   }
 
@@ -800,19 +780,9 @@ public class TestModifyDNOperation extends OperationTestCase
     // modify DN operation does not proceed.
 
     // Establish a connection to the server.
-    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      LDAPWriter w = new LDAPWriter(s);
-      TestCaseUtils.configureSocket(s);
-
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(b("cn=Directory Manager"), 3, b("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      conn.bind("cn=Directory Manager", "password");
 
       // Since we are going to be watching the post-response count, we need to
       // wait for the server to become idle before kicking off the next request
@@ -830,14 +800,7 @@ public class TestModifyDNOperation extends OperationTestCase
         //long modifyDNRequests  = ldapStatistics.getModifyDNRequests();
         //long modifyDNResponses = ldapStatistics.getModifyDNResponses();
 
-        ModifyDNRequestProtocolOp modifyRequest =
-            new ModifyDNRequestProtocolOp(b(entry.getName().toString()), b("uid=user.test0"), false);
-        message = new LDAPMessage(2, modifyRequest);
-        w.writeMessage(message);
-
-        message = r.readMessage();
-        ModifyDNResponseProtocolOp modifyResponse = message.getModifyDNResponseProtocolOp();
-
+        ModifyDNResponseProtocolOp modifyResponse = conn.modifyDN(entry.getName().toString(), "uid=user.test0", false);
         assertEquals(modifyResponse.getResultCode(), LDAPResultCode.BUSY);
 
 //        assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
@@ -1081,30 +1044,16 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @throws Exception
    */
-  @Test(expectedExceptions=InvalidNameException.class)
+  @Test
   public void testInvalidModRDN() throws Exception
   {
-    Hashtable<String,String> env = new Hashtable<>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
-    String url = "ldap://localhost:" + TestCaseUtils.getServerLdapPort()
-            +"/dc=example,dc=com";
-    env.put(Context.PROVIDER_URL,url);
-    env.put(Context.SECURITY_AUTHENTICATION, "simple");
-    env.put(Context.SECURITY_PRINCIPAL, "cn=directory manager");
-    env.put(Context.SECURITY_CREDENTIALS, "password");
+    try (RemoteConnection c = new RemoteConnection("localhost", getServerLdapPort()))
+    {
+      c.bind("cn=Directory Manager", "password");
 
-    env.put("java.naming.ldap.deleteRDN", "true");  // default is 'true'
-    /* Create the initial context */
-    DirContext ctx = new InitialDirContext(env);
-    try
-    {
-      ctx.rename("uid=user.0,ou=People,dc=example,dc=com",
-                   "uid=,ou=People,dc=example,dc=com");
-    }
-    finally
-    {
-      /* Close the context when it's done */
-      ctx.close();
+      ModifyDNResponseProtocolOp modifyDNResponse =
+          c.modifyDN("uid=user.0,ou=People,dc=example,dc=com", "uid=,ou=People,dc=example,dc=com", true);
+      assertEquals(modifyDNResponse.getResultCode(), ResultCode.INVALID_DN_SYNTAX.intValue());
     }
   }
 }

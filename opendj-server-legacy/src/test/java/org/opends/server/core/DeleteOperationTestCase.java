@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,15 +36,18 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LockManager.DNLock;
-import org.opends.server.util.StaticUtils;
+import org.opends.server.types.Operation;
+import org.opends.server.types.WritabilityMode;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -721,38 +723,21 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
-    message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.bind("cn=Directory Manager", "password");
 
-    StaticUtils.close(s);
+      DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
+      conn.writeMessage(deleteRequest, DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -768,39 +753,21 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
-    message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.bind("cn=Directory Manager", "password");
 
-    StaticUtils.close(s);
+      DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
+      conn.writeMessage(deleteRequest, DisconnectClientPlugin.createDisconnectControlList("PreOperation"));
+
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -816,39 +783,22 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
-    message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.bind("cn=Directory Manager", "password");
 
-    StaticUtils.close(s);
+      DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
+      conn.writeMessage(deleteRequest,
+          DisconnectClientPlugin.createDisconnectControlList("PostOperation"));
+
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -864,34 +814,17 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
-    message = new LDAPMessage(2, deleteRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostResponse"));
-    w.writeMessage(message);
+      DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
+      conn.writeMessage(deleteRequest, DisconnectClientPlugin.createDisconnectControlList("PostResponse"));
 
 responseLoop:
     while (true)
     {
-      message = r.readMessage();
+      LDAPMessage message = conn.readMessage();
       if (message == null)
       {
         // The connection has been closed.
@@ -909,15 +842,12 @@ responseLoop:
           break responseLoop;
         default:
           // This is a problem.  It's an unexpected response.
-          StaticUtils.close(s);
-
           throw new Exception("Unexpected response message " + message +
                               " encountered in " +
                               "testDisconnectInPostResponseDelete");
       }
     }
-
-    StaticUtils.close(s);
+    }
   }
 
 

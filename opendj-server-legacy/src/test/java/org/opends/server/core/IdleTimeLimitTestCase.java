@@ -22,31 +22,23 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
+import static org.testng.Assert.*;
 
+import java.io.IOException;
 
-import java.net.Socket;
-
+import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPConstants;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.tools.LDAPWriter;
-import org.opends.server.util.StaticUtils;
-
-import static org.testng.Assert.*;
-
-
-
-/**
- * A set of test cases that involve disconnecting clients due to the idle time
- * limit.
- */
+/** A set of test cases that involve disconnecting clients due to the idle time limit. */
 public class IdleTimeLimitTestCase
        extends CoreTestCase
 {
@@ -77,27 +69,12 @@ public class IdleTimeLimitTestCase
       "set-global-configuration-prop",
       "--set", "idle-time-limit:5 seconds");
 
-
-    Socket s = null;
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      LDAPWriter w = new LDAPWriter(s);
-      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      TestCaseUtils.configureSocket(s);
-
-      LDAPMessage m = r.readMessage();
-      ExtendedResponseProtocolOp extendedResponse =
-           m.getExtendedResponseProtocolOp();
-      assertEquals(extendedResponse.getOID(),
-                   LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
-
-      assertNull(r.readMessage());
+      readNoticeOfDisconnectionMessage(conn);
     }
     finally
     {
-      StaticUtils.close(s);
-
       TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
         "--set", "idle-time-limit:0 seconds");
@@ -135,39 +112,14 @@ public class IdleTimeLimitTestCase
       "--set", "idle-time-limit:5 seconds");
 
 
-    Socket s = null;
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      LDAPWriter w = new LDAPWriter(s);
-      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      TestCaseUtils.configureSocket(s);
+      conn.bind("uid=test.user,o=test", "password");
 
-
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage m = new LDAPMessage(1, bindRequest);
-      w.writeMessage(m);
-
-
-      m = r.readMessage();
-      BindResponseProtocolOp bindResponse = m.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-
-      m = r.readMessage();
-      ExtendedResponseProtocolOp extendedResponse =
-           m.getExtendedResponseProtocolOp();
-      assertEquals(extendedResponse.getOID(),
-                   LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
-
-      assertNull(r.readMessage());
+      readNoticeOfDisconnectionMessage(conn);
     }
     finally
     {
-      StaticUtils.close(s);
-
       TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
         "--set", "idle-time-limit:0 seconds");
@@ -201,39 +153,19 @@ public class IdleTimeLimitTestCase
     );
 
 
-    Socket s = null;
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      LDAPWriter w = new LDAPWriter(s);
-      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      TestCaseUtils.configureSocket(s);
+      conn.bind("uid=test.user,o=test", "password");
 
-
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage m = new LDAPMessage(1, bindRequest);
-      w.writeMessage(m);
-
-
-      m = r.readMessage();
-      BindResponseProtocolOp bindResponse = m.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-
-      m = r.readMessage();
-      ExtendedResponseProtocolOp extendedResponse =
-           m.getExtendedResponseProtocolOp();
-      assertEquals(extendedResponse.getOID(),
-                   LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
-
-      assertNull(r.readMessage());
-    }
-    finally
-    {
-      StaticUtils.close(s);
+      readNoticeOfDisconnectionMessage(conn);
     }
   }
-}
 
+  private void readNoticeOfDisconnectionMessage(RemoteConnection conn) throws IOException, LDAPException
+  {
+    ExtendedResponseProtocolOp extendedResponse = conn.readMessage().getExtendedResponseProtocolOp();
+    assertEquals(extendedResponse.getOID(), LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
+
+    assertNull(conn.readMessage());
+  }
+}

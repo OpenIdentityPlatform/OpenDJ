@@ -22,30 +22,42 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS.
+ *      Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.PasswordPolicyRequestControl;
+import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.AddResponseProtocolOp;
+import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
+import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
+import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -101,64 +113,26 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
+      LDAPMessage bindMessage = c.bind("uid=test.user,o=test", "password", newPasswordPolicyControl());
+      assertTrue(passwordPolicyControlExists(bindMessage.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
 
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest, controls);
-      w.writeMessage(message);
+      AddRequest addRequest = newAddRequest("ou=People,o=test")
+          .addAttribute("objectClass", "organizationalUnit")
+          .addAttribute("ou", "People")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = c.add(addRequest, false);
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
-
-
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
-      rawAttrs.add(RawAttribute.create("objectClass", "organizationalUnit"));
-      rawAttrs.add(RawAttribute.create("ou", "People"));
-
-      AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
-           ByteString.valueOfUtf8("ou=People,o=test"), rawAttrs);
-
-      controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, addRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
   }
-
-
 
   /**
    * Tests that an appropriate password policy response control is returned for
@@ -172,61 +146,30 @@ public class PasswordPolicyControlTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("cn=Directory Manager"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      c.bind("cn=Directory Manager", "password", newPasswordPolicyControl());
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
-      rawAttrs.add(RawAttribute.create("objectClass", "inetOrgPerson"));
-      rawAttrs.add(RawAttribute.create("uid", "test.user"));
-      rawAttrs.add(RawAttribute.create("givenName", "Test"));
-      rawAttrs.add(RawAttribute.create("sn", "User"));
-      rawAttrs.add(RawAttribute.create("cn", "Test User"));
-      rawAttrs.add(RawAttribute.create("userPassword",
-                        "{SSHA}0pZPpMIm6xSBIW4hGvR/72fjO4M9p3Ff1g7QFw=="));
-
-      AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
-           ByteString.valueOfUtf8("ou=uid=test.user,o=test"), rawAttrs);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, addRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
+      AddRequest addRequest = newAddRequest("ou=uid=test.user,o=test")
+          .addAttribute("objectClass", "inetOrgPerson")
+          .addAttribute("uid", "test.user")
+          .addAttribute("givenName", "Test")
+          .addAttribute("sn", "User")
+          .addAttribute("cn", "Test User")
+          .addAttribute("userPassword", "{SSHA}0pZPpMIm6xSBIW4hGvR/72fjO4M9p3Ff1g7QFw==")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = c.add(addRequest, false);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
-    }
-    finally
-    {
-      StaticUtils.close(s);
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
     }
   }
 
   private boolean passwordPolicyControlExists(List<Control> controls, PasswordPolicyErrorType expectedErrorType)
       throws DirectoryException
   {
-    boolean found = false;
+    assertThat(controls).isNotEmpty();
+
     for(Control c : controls)
     {
       if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
@@ -241,10 +184,10 @@ public class PasswordPolicyControlTestCase
           pwpControl = (PasswordPolicyResponseControl)c;
         }
         assertEquals(pwpControl.getErrorType(), expectedErrorType);
-        found = true;
+        return true;
       }
     }
-    return found;
+    return false;
   }
 
 
@@ -262,55 +205,26 @@ public class PasswordPolicyControlTestCase
 
     setPasswordPolicyProp("--add", "password-validator:Length-Based Password Validator");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("cn=Directory Manager"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      c.bind("cn=Directory Manager", "password", newPasswordPolicyControl());
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
-      rawAttrs.add(RawAttribute.create("objectClass", "inetOrgPerson"));
-      rawAttrs.add(RawAttribute.create("uid", "test.user"));
-      rawAttrs.add(RawAttribute.create("givenName", "Test"));
-      rawAttrs.add(RawAttribute.create("sn", "User"));
-      rawAttrs.add(RawAttribute.create("cn", "Test User"));
-      rawAttrs.add(RawAttribute.create("userPassword", "short"));
-
-      AddRequestProtocolOp addRequest = new AddRequestProtocolOp(
-           ByteString.valueOfUtf8("ou=uid=test.user,o=test"), rawAttrs);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, addRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
+      AddRequest addRequest = newAddRequest("ou=uid=test.user,o=test")
+          .addAttribute("objectClass", "inetOrgPerson")
+          .addAttribute("uid", "test.user")
+          .addAttribute("givenName", "Test")
+          .addAttribute("sn", "User")
+          .addAttribute("cn", "Test User")
+          .addAttribute("userPassword", "short")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = c.add(addRequest, false);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
     }
     finally
     {
       setPasswordPolicyProp("--remove", "password-validator:Length-Based Password Validator");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -344,51 +258,28 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("wrong"));
-
       for (int i=1; i <= 3; i++)
       {
-        LDAPMessage message = new LDAPMessage(1, bindRequest);
-        w.writeMessage(message);
-
-        message = r.readMessage();
-        BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-        assertNotEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+        SimpleBindRequest request =
+            newSimpleBindRequest("uid=test.user,o=test", "wrong".getBytes())
+            .addControl(newPasswordPolicyControl());
+        LDAPMessage message = c.bind(request, false);
+        assertNotEquals(message.getBindResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
       }
 
-      bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
+      SimpleBindRequest request =
+          newSimpleBindRequest("uid=test.user,o=test", "password".getBytes())
+          .addControl(newPasswordPolicyControl());
 
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      LDAPMessage message = new LDAPMessage(4, bindRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertNotEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.ACCOUNT_LOCKED));
+      LDAPMessage message = c.bind(request, false);
+      assertNotEquals(message.getBindResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.ACCOUNT_LOCKED));
     }
     finally
     {
       setPasswordPolicyProp("--set", "lockout-failure-count:0");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -420,50 +311,26 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      c.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      CompareRequestProtocolOp compareRequest =
-           new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o",
-                                        ByteString.valueOfUtf8("test"));
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, compareRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      CompareResponseProtocolOp compareResponse =
-           message.getCompareResponseProtocolOp();
+      CompareRequest request = newCompareRequest("o=test", "o", "test").addControl(newPasswordPolicyControl());
+      LDAPMessage message = c.compare(request, false);
+      CompareResponseProtocolOp compareResponse = message.getCompareResponseProtocolOp();
       assertNotEquals(compareResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
+  }
+
+  private PasswordPolicyRequestControl newPasswordPolicyControl()
+  {
+    return PasswordPolicyRequestControl.newControl(true);
   }
 
 
@@ -500,48 +367,20 @@ public class PasswordPolicyControlTestCase
         "objectClass: organizationalUnit",
         "ou: People");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      c.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      DeleteRequestProtocolOp deleteRequest =
-           new DeleteRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"));
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, deleteRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      DeleteResponseProtocolOp deleteResponse =
-           message.getDeleteResponseProtocolOp();
+      DeleteRequest deleteRequest = newDeleteRequest("ou=People,o=test").addControl(newPasswordPolicyControl());
+      LDAPMessage message = c.delete(deleteRequest, false);
+      DeleteResponseProtocolOp deleteResponse = message.getDeleteResponseProtocolOp();
       assertNotEquals(deleteResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -621,54 +460,26 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8(userDN), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind(userDN, "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "description",
-                                      "foo"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(ByteString.valueOfUtf8(entryDN), mods);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
-
+      ModifyRequest modifyRequest =
+          newModifyRequest(entryDN).addModification(REPLACE, "description", "foo")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       if (changeAfterReset)
       {
-        assertEquals(modifyResponse.getResultCode(),
-            LDAPResultCode.CONSTRAINT_VIOLATION);
+        assertEquals(modifyResponse.getResultCode(), LDAPResultCode.CONSTRAINT_VIOLATION);
       }
       else
       {
-        assertEquals(modifyResponse.getResultCode(),
-            LDAPResultCode.SUCCESS);
+        assertEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
       }
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
+      List<Control> controls = message.getControls();
+      assertThat(controls).isNotEmpty();
 
       boolean found = false;
       for(Control c : controls)
@@ -699,8 +510,6 @@ public class PasswordPolicyControlTestCase
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -766,56 +575,23 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8(userDN), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind(userDN, "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      ModifyRequest modifyRequest = newModifyRequest(entryDN)
+          .addModification(REPLACE, "description", "foo")
+          .addControl(newPasswordPolicyControl())
+          .addControl(ProxiedAuthV2RequestControl.newControl("dn:" + authzDN));
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
+      assertEquals(modifyResponse.getResultCode(), LDAPResultCode.CONSTRAINT_VIOLATION);
 
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "description",
-                                      "foo"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(ByteString.valueOfUtf8(entryDN), mods);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-      controls.add(new LDAPControl(OID_PROXIED_AUTH_V2, true,
-          ByteString.valueOfUtf8("dn:" + authzDN)));
-
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
-
-      assertEquals(modifyResponse.getResultCode(),
-          LDAPResultCode.CONSTRAINT_VIOLATION);
-
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -849,53 +625,22 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
-                                      "newpassword"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(
-                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
+      ModifyRequest modifyRequest = newModifyRequest("uid=test.user,o=test")
+          .addModification(REPLACE, "userPassword", "newpassword")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED));
     }
     finally
     {
       setPasswordPolicyProp("--set", "allow-user-password-changes:true");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -927,53 +672,22 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
-                                      "password"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(
-                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
+      ModifyRequest modifyRequest = newModifyRequest("uid=test.user,o=test")
+          .addModification(REPLACE, "userPassword", "password")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.PASSWORD_IN_HISTORY));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.PASSWORD_IN_HISTORY));
     }
     finally
     {
       setPasswordPolicyProp("--set", "password-history-count:0");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -1007,53 +721,22 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
-                                      "newpassword"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(
-                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
+      ModifyRequest modifyRequest = newModifyRequest("uid=test.user,o=test")
+          .addModification(REPLACE, "userPassword", "newpassword")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD));
     }
     finally
     {
       setPasswordPolicyProp("--set", "password-change-requires-current-password:false");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -1087,53 +770,22 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "userPassword",
-                                      "newpassword"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(
-                    ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
+      ModifyRequest modifyRequest = newModifyRequest("uid=test.user,o=test")
+          .addModification(REPLACE, "userPassword", "newpassword")
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.PASSWORD_TOO_YOUNG));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.PASSWORD_TOO_YOUNG));
     }
     finally
     {
       setPasswordPolicyProp("--set", "min-password-age:0 seconds");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -1171,50 +823,22 @@ public class PasswordPolicyControlTestCase
         "objectClass: organizationalUnit",
         "ou: People");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      ModifyDNRequestProtocolOp modifyDNRequest =
-           new ModifyDNRequestProtocolOp(
-                    ByteString.valueOfUtf8("ou=People,o=test"),
-                    ByteString.valueOfUtf8("ou=Users"), true);
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, modifyDNRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyDNResponseProtocolOp modifyDNResponse =
-           message.getModifyDNResponseProtocolOp();
+      ModifyDNRequest modifyDNRequest = newModifyDNRequest("ou=People,o=test", "ou=Users")
+          .setDeleteOldRDN(true)
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage message = conn.modifyDN(modifyDNRequest, false);
+      ModifyDNResponseProtocolOp modifyDNResponse = message.getModifyDNResponseProtocolOp();
       assertNotEquals(modifyDNResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
   }
 
@@ -1245,52 +869,22 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-           ByteString.valueOfUtf8("uid=test.user,o=test"), 3,
-           ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      conn.bind("uid=test.user,o=test", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
-
-
-      SearchRequestProtocolOp searchRequest =
-           new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
-                                       SearchScope.BASE_OBJECT,
-                                       DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                       LDAPFilter.objectClassPresent(),
-                                       new LinkedHashSet<String>());
-
-      List<Control> controls = new ArrayList<>();
-      controls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL, true));
-
-      message = new LDAPMessage(2, searchRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      SearchResultDoneProtocolOp searchDone =
-           message.getSearchResultDoneProtocolOp();
+      SearchRequest searchRequest = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectclass=*)")
+          .addControl(newPasswordPolicyControl());
+      conn.search(searchRequest);
+      LDAPMessage message = conn.readMessage();
+      SearchResultDoneProtocolOp searchDone = message.getSearchResultDoneProtocolOp();
       assertNotEquals(searchDone.getResultCode(), LDAPResultCode.SUCCESS);
 
-      controls = message.getControls();
-      assertNotNull(controls);
-      assertFalse(controls.isEmpty());
-
-      assertTrue(passwordPolicyControlExists(controls, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
     }
     finally
     {
       setPasswordPolicyProp("--set", "force-change-on-add:false");
-
-      StaticUtils.close(s);
     }
   }
 

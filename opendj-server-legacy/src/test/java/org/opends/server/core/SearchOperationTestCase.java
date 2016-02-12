@@ -22,17 +22,21 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2016 ForgeRock AS
  */
 package org.opends.server.core;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -44,10 +48,27 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPConstants;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -207,13 +228,9 @@ public class SearchOperationTestCase extends OperationTestCase
        throws Exception
   {
     // Establish a connection to the server.
-    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      LDAPWriter w = new LDAPWriter(s);
-      TestCaseUtils.configureSocket(s);
-
-      bindAsManager(w, r);
+      bindAsManager(conn);
 
       // Since we are going to be watching the post-response count, we need to
       // wait for the server to become idle before kicking off the next request
@@ -228,12 +245,12 @@ public class SearchOperationTestCase extends OperationTestCase
       long searchReferences = ldapStatistics.getSearchResultReferences();
       long searchesDone     = ldapStatistics.getSearchResultsDone();
 
-      LDAPMessage message = new LDAPMessage(2, searchRequest, controls);
-      w.writeMessage(message);
+      conn.writeMessage(searchRequest, controls);
 
+      LDAPMessage message;
       SearchResultEntryProtocolOp searchResultEntry = null;
       SearchResultDoneProtocolOp searchResultDone = null;
-      while (searchResultDone == null && (message = r.readMessage()) != null)
+      while (searchResultDone == null && (message = conn.readMessage()) != null)
       {
         switch (message.getProtocolOpType())
         {
@@ -265,8 +282,7 @@ public class SearchOperationTestCase extends OperationTestCase
     }
   }
 
-  private void bindAsManager(LDAPWriter w, org.opends.server.tools.LDAPReader r)
-       throws IOException, LDAPException, DecodeException, InterruptedException
+  private void bindAsManager(RemoteConnection conn) throws Exception
   {
     // Since we are going to be watching the post-response count, we need to
     // wait for the server to become idle before kicking off the next request to
@@ -275,14 +291,7 @@ public class SearchOperationTestCase extends OperationTestCase
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
     InvocationCounterPlugin.resetAllCounters();
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(
-              ByteString.valueOfUtf8("cn=Directory Manager"),
-              3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
+    LDAPMessage message = conn.bind("cn=Directory Manager", "password");
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
   }

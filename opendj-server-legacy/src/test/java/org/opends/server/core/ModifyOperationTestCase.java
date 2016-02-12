@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +35,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -44,8 +45,6 @@ import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -53,7 +52,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CancelRequest;
@@ -69,7 +68,6 @@ import org.opends.server.types.RawModification;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -78,6 +76,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -123,39 +123,39 @@ public class ModifyOperationTestCase
 
     List<Control> noControls = new ArrayList<>();
 
-    LDAPAttribute ldapAttr = new LDAPAttribute("description", "foo");
-    List<RawModification> ldapMods = newRawModifications(add(ldapAttr));
+    List<RawModification> ldapMods = newRawModifications(ADD, "description", "foo");
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
-    ldapMods = newRawModifications(delete(ldapAttr));
+    ldapMods = newRawModifications(DELETE, "description", "foo");
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
-    ldapMods = newRawModifications(replace(ldapAttr));
+    ldapMods = newRawModifications(REPLACE, "description", "foo");
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
-    String value2 = "bar";
-    LDAPAttribute ldapAttr2 = new LDAPAttribute("description", value2);
-    ldapMods = newRawModifications(delete(ldapAttr), add(ldapAttr2));
+    ldapMods = newArrayList(
+        newRawModification(DELETE, "description", "foo"),
+        newRawModification(ADD, "description", "bar"));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOfUtf8("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOfUtf8("o=test"), ldapMods));
 
-    ldapAttr2 = new LDAPAttribute("cn", value2);
-    ldapMods = newRawModifications(replace(ldapAttr), replace(ldapAttr2));
+    ldapMods = newArrayList(
+        newRawModification(REPLACE, "description", "foo"),
+        newRawModification(REPLACE, "cn", "bar"));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
@@ -164,46 +164,39 @@ public class ModifyOperationTestCase
 
 
 
-    List<Modification> mods = newModifications(new Modification(ModificationType.ADD,
-        Attributes.create("description", "foo")));
+    List<Modification> mods = newModifications(ADD, "description", "foo");
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = newModifications(new Modification(ModificationType.DELETE,
-        Attributes.create("description", "foo")));
+    mods = newModifications(DELETE, "description", "foo");
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = newModifications(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
+    mods = newModifications(REPLACE, "description", "foo");
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = newModifications(
-        new Modification(ModificationType.DELETE,
-            Attributes.create("description", "foo")),
-        new Modification(ModificationType.ADD,
-            Attributes.create("description", "bar")));
+    mods = newArrayList(
+        newModification(DELETE, "description", "foo"),
+        newModification(ADD, "description", "bar"));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = newModifications(
-        new Modification(ModificationType.REPLACE,
-            Attributes.create("description", "foo")),
-        new Modification(ModificationType.REPLACE,
-            Attributes.create("cn", "bar")));
+    mods = newArrayList(
+        newModification(REPLACE, "description", "foo"),
+        newModification(REPLACE, "cn", "bar"));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
@@ -299,16 +292,9 @@ public class ModifyOperationTestCase
   @Test
   public void testGetEntryDNInitiallyNull()
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    List<RawModification> mods = newRawModifications(replace(attr));
-
+    List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
     ModifyOperation modifyOperation = newModifyOperation(null, ByteString.empty(), mods);
     assertNotNull(modifyOperation.getEntryDN());
-  }
-
-  private LDAPAttribute newLDAPAttribute(String attributeType, String... valueStrings)
-  {
-    return new LDAPAttribute(attributeType, newArrayList(valueStrings));
   }
 
   /**
@@ -320,9 +306,7 @@ public class ModifyOperationTestCase
   @Test
   public void testGetEntryDNInitiallyNonNull() throws Exception
   {
-    List<Modification> mods = newModifications(
-        new Modification(ModificationType.REPLACE,
-            Attributes.create("description", "foo")));
+    List<Modification> mods = newModifications(REPLACE, "description", "foo");
     ModifyOperation modifyOperation = newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
@@ -339,9 +323,7 @@ public class ModifyOperationTestCase
   @Test
   public void testGetEntryDNNonNullChangedToNull() throws Exception
   {
-    List<Modification> mods = newModifications(
-        new Modification(ModificationType.REPLACE,
-            Attributes.create("description", "foo")));
+    List<Modification> mods = newModifications(REPLACE, "description", "foo");
     ModifyOperation modifyOperation = newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
@@ -366,9 +348,7 @@ public class ModifyOperationTestCase
     List<RawModification> clonedMods = new ArrayList<>(rawMods);
     modifyOperation.setRawModifications(clonedMods);
 
-    LDAPAttribute attr = newLDAPAttribute("test", "test");
-
-    modifyOperation.addRawModification(replace(attr));
+    modifyOperation.addRawModification(newRawModification(REPLACE, "test", "test"));
 
     assertEquals(modifyOperation.getRawModifications().size(), rawMods.size() + 1);
 
@@ -444,10 +424,7 @@ public class ModifyOperationTestCase
              Attributes.create("description", "foo")));
 
 
-    List<Modification> mods = newModifications(
-        new Modification(ModificationType.REPLACE,
-            Attributes.create("l", "Austin")));
-
+    List<Modification> mods = newModifications(REPLACE, "l", "Austin");
     ModifyOperation modifyOperation =
         getRootConnection().processModify(DN.valueOf("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -467,8 +444,8 @@ public class ModifyOperationTestCase
   @Test
   public void testFailInvalidDN()
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("invaliddn", replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = processModify("invaliddn", mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -482,8 +459,8 @@ public class ModifyOperationTestCase
   @Test
   public void testFailNoSuchSuffix()
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("o=nonexistent", replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = processModify("o=nonexistent", mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -500,8 +477,8 @@ public class ModifyOperationTestCase
   public void testFailNoSuchParent(String baseDN)
          throws Exception
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("cn=test,ou=nosuchparent," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = processModify("cn=test,ou=nosuchparent," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -518,13 +495,11 @@ public class ModifyOperationTestCase
   public void testFailNoSuchEntry(String baseDN)
          throws Exception
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("cn=nosuchentry," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = processModify("cn=nosuchentry," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
-
-
 
   /**
    * Tests to ensure that a modify attempt fails if the modification doesn't
@@ -555,8 +530,8 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertThat(e.getAttribute(DirectoryServer.getAttributeType("description"))).isEmpty();
 
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("o=test", replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = processModify("o=test", mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -580,8 +555,7 @@ public class ModifyOperationTestCase
     List<Attribute> attrList = e.getAttribute(DirectoryServer.getAttributeType("o"));
     assertEquals(countValues(attrList), 1);
 
-    LDAPAttribute attr = newLDAPAttribute("o", "test2");
-    ModifyOperation modifyOperation = processModify("o=test", add(attr));
+    ModifyOperation modifyOperation = processModify("o=test", newRawModification(ADD, "o", "test2"));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -607,8 +581,8 @@ public class ModifyOperationTestCase
     List<Attribute> attrList = e.getAttribute(DirectoryServer.getAttributeType("o"));
     assertEquals(countValues(attrList), 1);
 
-    LDAPAttribute attr = newLDAPAttribute("o;lang-en-us", "test");
-    ModifyOperation modifyOperation = processModify(baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "o;lang-en-us", "test");
+    ModifyOperation modifyOperation = processModify(baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -652,8 +626,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("displayName", "foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "displayName", "foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -684,8 +658,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "ds-pwp-account-disabled: true");
 
-    LDAPAttribute attr = newLDAPAttribute("ds-pwp-account-disabled", "false");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "ds-pwp-account-disabled", "false");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -715,8 +689,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("displayName", "foo", "bar");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "displayName", "foo", "bar");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -747,34 +721,13 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("ds-pwp-account-disabled", "true", "false");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "ds-pwp-account-disabled", "true", "false");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
 
-  private LDAPModification replace(LDAPAttribute attr)
-  {
-    return new LDAPModification(ModificationType.REPLACE, attr);
-  }
-
-  private LDAPModification add(LDAPAttribute attr)
-  {
-    return new LDAPModification(ModificationType.ADD, attr);
-  }
-
-  private LDAPModification delete(LDAPAttribute attr)
-  {
-    return new LDAPModification(ModificationType.DELETE, attr);
-  }
-
-  private LDAPModification increment(LDAPAttribute attr)
-  {
-    return new LDAPModification(ModificationType.INCREMENT, attr);
-  }
-
-  private ModifyOperation processModify(String entryDN,
-      List<RawModification> mods)
+  private ModifyOperation processModify(String entryDN, List<RawModification> mods)
   {
     InternalClientConnection conn = getRootConnection();
     return conn.processModify(ByteString.valueOfUtf8(entryDN), mods);
@@ -816,8 +769,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("givenName", "Test");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "givenName", "Test");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -847,8 +800,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("description", "Foo", "Foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "Foo", "Foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -879,8 +832,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "manager: cn=boss," + baseDN);
 
-    LDAPAttribute attr = newLDAPAttribute("manager", "invaliddn");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "manager", "invaliddn");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -910,8 +863,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("manager", "invaliddn");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "manager", "invaliddn");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -941,8 +894,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("dc", "foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "dc", "foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -974,9 +927,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("dc", "foo");
-    attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1006,8 +958,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("uid", "foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "uid", "foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1037,8 +989,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("uid");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "uid");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1068,8 +1020,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("uid", "test.user");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "uid", "test.user");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1099,8 +1051,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("givenName", "Foo");
-    ModifyOperation modifyOperation = processModify("givenName=Test,sn=User," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "givenName", "Foo");
+    ModifyOperation modifyOperation = processModify("givenName=Test,sn=User," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1130,8 +1082,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("givenName");
-    ModifyOperation modifyOperation = processModify("givenName=Test,sn=User," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "givenName");
+    ModifyOperation modifyOperation = processModify("givenName=Test,sn=User," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1161,8 +1113,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("displayName");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "displayName");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1194,8 +1146,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "mail: bar");
 
-    LDAPAttribute attr = newLDAPAttribute("mail", "foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "mail", "foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1226,8 +1178,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = newLDAPAttribute("mail", "foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "mail", "foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1259,8 +1211,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "mail: bar");
 
-    LDAPAttribute attr = newLDAPAttribute("mail", "foo", "bar");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "mail", "foo", "bar");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1290,8 +1242,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("sn");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "sn");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1321,8 +1273,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("sn", "User");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "sn", "User");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1352,8 +1304,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = newLDAPAttribute("description", "bar");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "bar");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1385,8 +1337,7 @@ public class ModifyOperationTestCase
          "mail: foo");
 
     String dn = "uid=test.user," + baseDN;
-    LDAPAttribute attr = newLDAPAttribute("uid", "test.user");
-    ModifyOperation modifyOperation = processModify(dn, replace(attr));
+    ModifyOperation modifyOperation = processModify(dn, newRawModifications(REPLACE, "uid", "test.user"));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -1424,8 +1375,9 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = newLDAPAttribute("cn", "Test User");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr), add(attr));
+    RawModification delete = newRawModification(DELETE, "cn", "Test User");
+    RawModification add = newRawModification(ADD, "cn", "Test User");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete, add);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -1463,8 +1415,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = newLDAPAttribute("givenName;lang-fr", "X");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "givenName;lang-fr", "X");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -1502,8 +1454,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = new LDAPAttribute("description");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1533,8 +1485,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("description");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1564,8 +1516,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1596,9 +1548,9 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = newLDAPAttribute("mail", "foo");
-    LDAPAttribute attr2 = newLDAPAttribute("mail", "bar");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr), add(attr2));
+    RawModification delete = newRawModification(DELETE, "mail", "foo");
+    RawModification add = newRawModification(ADD, "mail", "bar");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete, add);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1630,9 +1582,9 @@ public class ModifyOperationTestCase
          "mail: foo",
          "mail: bar");
 
-    LDAPAttribute attr = newLDAPAttribute("mail", "foo");
-    LDAPAttribute attr2 = new LDAPAttribute("mail", "baz");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr), add(attr2));
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN,
+        newRawModification(DELETE, "mail", "foo"),
+        newRawModification(ADD, "mail", "baz"));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1663,9 +1615,9 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
-    LDAPAttribute attr = newLDAPAttribute("mail", "foo");
-    LDAPAttribute attr2 = newLDAPAttribute("mail", "bar", "baz");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr), add(attr2));
+    RawModification delete = newRawModification(DELETE, "mail", "foo");
+    RawModification add = newRawModification(ADD, "mail", "bar", "baz");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete, add);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -1694,8 +1646,8 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("displayName");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "displayName");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1725,8 +1677,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("displayName", "Foo");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "displayName", "Foo");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1756,8 +1708,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("objectClass");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "objectClass");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1787,8 +1739,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("objectClass");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    RawModification mod = newRawModification(REPLACE, "objectClass");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1812,8 +1764,8 @@ public class ModifyOperationTestCase
          "objectClass: extensibleObject",
          "ou: People");
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "organizationalUnit");
-    ModifyOperation modifyOperation = processModify("ou=People," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "objectClass", "organizationalUnit");
+    ModifyOperation modifyOperation = processModify("ou=People," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1837,8 +1789,8 @@ public class ModifyOperationTestCase
          "objectClass: extensibleObject",
          "ou: People");
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "organization");
-    ModifyOperation modifyOperation = processModify("ou=People," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "organization");
+    ModifyOperation modifyOperation = processModify("ou=People," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -1870,8 +1822,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("employeeNumber", "1");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "employeeNumber", "1");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -1908,8 +1860,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("employeeNumber", "10");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "employeeNumber", "10");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -1946,8 +1898,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("employeeNumber", "-1");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "employeeNumber", "-1");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -1996,8 +1948,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("displayName", "1");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "displayName", "1");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2028,8 +1980,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("description", "notnumeric");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "description", "notnumeric");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2061,8 +2013,8 @@ public class ModifyOperationTestCase
          "roomNumber: 1",
          "roomNumber: 2");
 
-    LDAPAttribute attr = newLDAPAttribute("roomNumber", "1");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "roomNumber", "1");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -2093,8 +2045,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "roomNumber: 1");
 
-    LDAPAttribute attr = new LDAPAttribute("roomNumber");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "roomNumber");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2125,8 +2077,8 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "roomNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("roomNumber", "1", "2");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "roomNumber", "1", "2");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2156,8 +2108,8 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("employeeNumber", "1");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
+    RawModification mod = newRawModification(INCREMENT, "employeeNumber", "1");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2190,8 +2142,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -2227,8 +2179,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -2267,8 +2219,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "inetOrgPerson");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "inetOrgPerson");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2299,8 +2251,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "organizationalUnit");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
+    RawModification mod = newRawModification(DELETE, "objectClass", "organizationalUnit");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
   }
@@ -2330,41 +2282,22 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+      long modifyRequests = ldapStatistics.getModifyRequests();
+      long modifyResponses = ldapStatistics.getModifyResponses();
 
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
+      ModifyRequest modifyRequest = Requests.newModifyRequest("uid=test.user," + baseDN)
+          .addModification(REPLACE, "entryUUID", "12345678-1234-1234-1234-1234567890ab");
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
+      assertFalse(modifyResponse.getResultCode() == 0);
 
-    LDAPAttribute attr = newLDAPAttribute("entryUUID", "12345678-1234-1234-1234-1234567890ab");
-    List<RawModification> mods = newRawModifications(replace(attr));
-
-    long modifyRequests  = ldapStatistics.getModifyRequests();
-    long modifyResponses = ldapStatistics.getModifyResponses();
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(
-                  ByteString.valueOfUtf8("uid=test.user," + baseDN), mods);
-    message = new LDAPMessage(2, modifyRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    ModifyResponseProtocolOp modifyResponse =
-         message.getModifyResponseProtocolOp();
-    assertFalse(modifyResponse.getResultCode() == 0);
-
-    assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
-    waitForModifyResponsesStat(modifyResponses+1);
+      assertEquals(ldapStatistics.getModifyRequests(), modifyRequests + 1);
+      waitForModifyResponsesStat(modifyResponses + 1);
+    }
   }
 
 
@@ -2396,8 +2329,8 @@ public class ModifyOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
@@ -2433,8 +2366,8 @@ public class ModifyOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -2470,43 +2403,25 @@ public class ModifyOperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+      long modifyRequests = ldapStatistics.getModifyRequests();
+      long modifyResponses = ldapStatistics.getModifyResponses();
 
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
+      ModifyRequest modifyRequest =
+          newModifyRequest("uid=test.user," + baseDN)
+          .addModification(ADD, "objectClass", "extensibleObject");
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
+      assertFalse(modifyResponse.getResultCode() == 0);
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    List<RawModification> mods = newRawModifications(add(attr));
+      assertEquals(ldapStatistics.getModifyRequests(), modifyRequests + 1);
+      waitForModifyResponsesStat(modifyResponses + 1);
 
-    long modifyRequests  = ldapStatistics.getModifyRequests();
-    long modifyResponses = ldapStatistics.getModifyResponses();
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(
-                  ByteString.valueOfUtf8("uid=test.user," + baseDN), mods);
-    message = new LDAPMessage(2, modifyRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    ModifyResponseProtocolOp modifyResponse =
-         message.getModifyResponseProtocolOp();
-    assertFalse(modifyResponse.getResultCode() == 0);
-
-    assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
-    waitForModifyResponsesStat(modifyResponses+1);
-
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+      DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    }
   }
 
 
@@ -2539,8 +2454,8 @@ public class ModifyOperationTestCase
     Backend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
@@ -2577,8 +2492,8 @@ public class ModifyOperationTestCase
     Backend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -2615,44 +2530,25 @@ public class ModifyOperationTestCase
     Backend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+      long modifyRequests = ldapStatistics.getModifyRequests();
+      long modifyResponses = ldapStatistics.getModifyResponses();
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+      ModifyRequest modifyRequest =
+          newModifyRequest("uid=test.user," + baseDN)
+          .addModification(ADD, "objectClass", "extensibleObject");
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
+      assertFalse(modifyResponse.getResultCode() == 0);
 
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
+      assertEquals(ldapStatistics.getModifyRequests(), modifyRequests + 1);
+      waitForModifyResponsesStat(modifyResponses + 1);
 
-    LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    List<RawModification> mods = newRawModifications(add(attr));
-
-    long modifyRequests  = ldapStatistics.getModifyRequests();
-    long modifyResponses = ldapStatistics.getModifyResponses();
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(
-                  ByteString.valueOfUtf8("uid=test.user," + baseDN), mods);
-    message = new LDAPMessage(2, modifyRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    ModifyResponseProtocolOp modifyResponse =
-         message.getModifyResponseProtocolOp();
-    assertFalse(modifyResponse.getResultCode() == 0);
-
-    assertEquals(ldapStatistics.getModifyRequests(), modifyRequests+1);
-    waitForModifyResponsesStat(modifyResponses+1);
-
-    b.setWritabilityMode(WritabilityMode.ENABLED);
+      b.setWritabilityMode(WritabilityMode.ENABLED);
+    }
   }
 
 
@@ -2673,8 +2569,8 @@ public class ModifyOperationTestCase
     {
       assertEquals(changeListener.getModifyCount(), 0);
 
-      LDAPAttribute attr = newLDAPAttribute("description", "foo");
-      ModifyOperation modifyOperation = processModify("o=test", replace(attr));
+      RawModification mod = newRawModification(REPLACE, "description", "foo");
+      ModifyOperation modifyOperation = processModify("o=test", mod);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -2704,8 +2600,8 @@ public class ModifyOperationTestCase
     {
       assertEquals(changeListener.getModifyCount(), 0);
 
-      LDAPAttribute attr = newLDAPAttribute("dc", "foo");
-      ModifyOperation modifyOperation = processModify(baseDN, replace(attr));
+      RawModification mod = newRawModification(REPLACE, "dc", "foo");
+      ModifyOperation modifyOperation = processModify(baseDN, mod);
       assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       retrieveFailedOperationElements(modifyOperation);
 
@@ -2728,8 +2624,7 @@ public class ModifyOperationTestCase
   public void testCancelBeforeStartup(String baseDN)
          throws Exception
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    List<RawModification> mods = newRawModifications(replace(attr));
+    List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
 
     ModifyOperation modifyOperation =
         newModifyOperation(null, ByteString.valueOfUtf8(baseDN), mods);
@@ -2752,8 +2647,7 @@ public class ModifyOperationTestCase
   public void testCancelAfterOperation(String baseDN)
          throws Exception
   {
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    List<RawModification> mods = newRawModifications(replace(attr));
+    List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
 
     ModifyOperation modifyOperation =
         newModifyOperation(null, ByteString.valueOfUtf8(baseDN), mods);
@@ -2781,8 +2675,8 @@ public class ModifyOperationTestCase
     final DNLock entryLock = DirectoryServer.getLockManager().tryReadLockEntry(DN.valueOf(baseDN));
     try
     {
-      LDAPAttribute attr = newLDAPAttribute("description", "foo");
-      ModifyOperation modifyOperation = processModify(baseDN, replace(attr));
+      RawModification mod = newRawModification(REPLACE, "description", "foo");
+      ModifyOperation modifyOperation = processModify(baseDN, mod);
       assertEquals(modifyOperation.getResultCode(), ResultCode.BUSY);
     }
     finally
@@ -2802,42 +2696,22 @@ public class ModifyOperationTestCase
   public void testDisconnectInPreParseModify(String baseDN)
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = newRawModifications(replace(attr));
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
-    message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.bind("cn=Directory Manager", "password");
 
-    StaticUtils.close(s);
+      List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
+      ModifyRequestProtocolOp modifyRequest = new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
+      conn.writeMessage(modifyRequest, DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -2851,44 +2725,22 @@ public class ModifyOperationTestCase
   @Test
   public void testDisconnectInPreOperationModify() throws Exception
   {
-
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = newRawModifications(replace(attr));
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
-    message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.bind("cn=Directory Manager", "password");
 
-    StaticUtils.close(s);
+      List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
+      ModifyRequestProtocolOp modifyRequest = new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
+      conn.writeMessage(modifyRequest, DisconnectClientPlugin.createDisconnectControlList("PreOperation"));
+
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -2903,42 +2755,28 @@ public class ModifyOperationTestCase
   public void testDisconnectInPostOperationModify(String baseDN)
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+      List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
 
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
+      ModifyRequestProtocolOp modifyRequest = new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
+      conn.writeMessage(modifyRequest, DisconnectClientPlugin.createDisconnectControlList("PostOperation"));
 
+      // The operation should NOT be aborted at the post operation stage. While
+      // the plugin can disconnect the client, the modify should have already
+      // been committed to the backend and a SUCCESS COULD get back to the client.
+      waitForResponse(conn, "testDisconnectInPostOperationModify");
+    }
+  }
 
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = newRawModifications(replace(attr));
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
-    message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostOperation"));
-    w.writeMessage(message);
-
-    // The operation should NOT be aborted at the post operation stage. While
-    // the plugin can disconnect the client, the modify should have already
-    // been committed to the backend and a SUCCESS COULD get back to the
-    // client.
-responseLoop:
+  private void waitForResponse(RemoteConnection conn, String string) throws Exception
+  {
+    responseLoop:
     while (true)
     {
-      message = r.readMessage();
+      LDAPMessage message = conn.readMessage();
       if (message == null)
       {
         // The connection has been closed.
@@ -2947,24 +2785,18 @@ responseLoop:
 
       switch (message.getProtocolOpType())
       {
-        case OP_TYPE_MODIFY_RESPONSE:
-          // This was expected.  The disconnect didn't happen until after the
-          // response was sent.
-          break;
-        case OP_TYPE_EXTENDED_RESPONSE:
-          // The server is notifying us that it will be closing the connection.
-          break responseLoop;
-        default:
-          // This is a problem.  It's an unexpected response.
-        StaticUtils.close(s);
-
-          throw new Exception("Unexpected response message " + message +
-                              " encountered in " +
-                              "testDisconnectInPostOperationModify");
+      case OP_TYPE_MODIFY_RESPONSE:
+        // This was expected. The disconnect didn't happen until after the
+        // response was sent.
+        break;
+      case OP_TYPE_EXTENDED_RESPONSE:
+        // The server is notifying us that it will be closing the connection.
+        break responseLoop;
+      default:
+        // This is a problem. It's an unexpected response.
+        throw new Exception("Unexpected response message " + message + " encountered in " + string);
       }
     }
-
-    StaticUtils.close(s);
   }
 
 
@@ -2979,73 +2811,37 @@ responseLoop:
   public void testDisconnectInPostResponseModify(String baseDN)
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-         message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    List<RawModification> mods = newRawModifications(replace(attr));
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
-    message = new LDAPMessage(2, modifyRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostResponse"));
-    w.writeMessage(message);
-
-responseLoop:
-    while (true)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      message = r.readMessage();
-      if (message == null)
-      {
-        // The connection has been closed.
-        break responseLoop;
-      }
+      conn.bind("cn=Directory Manager", "password");
 
-      switch (message.getProtocolOpType())
-      {
-        case OP_TYPE_MODIFY_RESPONSE:
-          // This was expected.  The disconnect didn't happen until after the
-          // response was sent.
-          break;
-        case OP_TYPE_EXTENDED_RESPONSE:
-          // The server is notifying us that it will be closing the connection.
-          break responseLoop;
-        default:
-          // This is a problem.  It's an unexpected response.
-        StaticUtils.close(s);
+      List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
+      ModifyRequestProtocolOp modifyRequest = new ModifyRequestProtocolOp(ByteString.valueOfUtf8(baseDN), mods);
+      conn.writeMessage(modifyRequest, DisconnectClientPlugin.createDisconnectControlList("PostResponse"));
 
-          throw new Exception("Unexpected response message " + message +
-                              " encountered in " +
-                              "testDisconnectInPostResponseModify");
-      }
+      waitForResponse(conn, "testDisconnectInPostResponseModify");
     }
-
-    StaticUtils.close(s);
   }
 
-  private List<Modification> newModifications(Modification... mods)
+  private List<Modification> newModifications(ModificationType modType, String attrType, String attrValue)
   {
-    return newArrayList(mods);
+    return newArrayList(newModification(modType, attrType, attrValue));
   }
 
-  private List<RawModification> newRawModifications(RawModification... mods)
+  private Modification newModification(ModificationType modType, String attrType, String attrValue)
   {
-    return newArrayList(mods);
+    return new Modification(modType, Attributes.create(attrType, attrValue));
+  }
+
+  private RawModification newRawModification(ModificationType modType, String attributeType, String... attributeValues)
+  {
+    return new LDAPModification(modType, new LDAPAttribute(attributeType, newArrayList(attributeValues)));
+  }
+
+  private List<RawModification> newRawModifications(ModificationType modType, String attributeType,
+      String... attributeValues)
+  {
+    return newArrayList(newRawModification(modType, attributeType, attributeValues));
   }
 
   /**
@@ -3174,8 +2970,7 @@ responseLoop:
     List<Control> controls =
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
-    List<RawModification> mods = newRawModifications(
-        RawModification.create(ModificationType.REPLACE, "description", "foo"));
+    List<RawModification> mods = newRawModifications(REPLACE, "description", "foo");
 
     ModifyOperation modifyOperation =
         newModifyOperation(controls, ByteString.valueOfUtf8("o=test"), mods);
@@ -3215,8 +3010,7 @@ responseLoop:
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("givenName", "Test");
-    List<RawModification> mods = newRawModifications(add(attr));
+    List<RawModification> mods = newRawModifications(ADD, "givenName", "Test");
 
     List<Control> requestControls = new ArrayList<>();
     requestControls.add(
@@ -3251,8 +3045,7 @@ responseLoop:
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = newLDAPAttribute("givenName", "Foo");
-    List<RawModification> mods = newRawModifications(delete(attr));
+    List<RawModification> mods = newRawModifications(DELETE, "givenName", "Foo");
 
     List<Control> requestControls = new ArrayList<>();
     requestControls.add(
@@ -3287,8 +3080,7 @@ responseLoop:
          "displayName: Test User",
          "userPassword: password");
 
-    LDAPAttribute attr = new LDAPAttribute("description");
-    List<RawModification> mods = newRawModifications(delete(attr));
+    List<RawModification> mods = newRawModifications(DELETE, "description");
 
     List<Control> requestControls = new ArrayList<>();
     requestControls.add(
@@ -3650,7 +3442,7 @@ responseLoop:
 
     ByteString value = ByteString.wrap(Base64.decode(certificateValue));
     LDAPAttribute attr = new LDAPAttribute("usercertificate", value);
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
+    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, new LDAPModification(ADD, attr));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -3683,8 +3475,7 @@ responseLoop:
 
     // First check that adding "dc" fails because it is not allowed by
     // inetOrgPerson.
-    LDAPAttribute attr = newLDAPAttribute("dc", "foo");
-    List<RawModification> mods = newRawModifications(add(attr));
+    List<RawModification> mods = newRawModifications(ADD, "dc", "foo");
 
     ModifyOperation modifyOperation = processModify("cn=Test User," + baseDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);

@@ -35,6 +35,7 @@ import java.util.Map;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -42,7 +43,6 @@ import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
-import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -50,6 +50,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CancelRequest;
@@ -69,6 +70,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -631,28 +633,23 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    bind(r, w);
+      long addRequests  = ldapStatistics.getAddRequests();
+      long addResponses = ldapStatistics.getAddResponses();
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"),
-        new LDAPAttribute("creatorsName", "cn=Directory Manager"),
-        new LDAPAttribute("createTimestamp", "20060101000000Z"));
+      AddRequest addRequest = newAddRequest("ou=People,o=test")
+          .addAttribute("objectClass", "top", "organizationalUnit")
+          .addAttribute("ou", "People")
+          .addAttribute("creatorsName", "cn=Directory Manager")
+          .addAttribute("createTimestamp", "20060101000000Z");
+      addFailure(conn, addRequest);
 
-    long addRequests  = ldapStatistics.getAddRequests();
-    long addResponses = ldapStatistics.getAddResponses();
-
-    addSuccess(r, w, attrs);
-
-    assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
-    waitForAddResponsesStat(addResponses+1);
-
-    StaticUtils.close(s);
+      assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
+      waitForAddResponsesStat(addResponses+1);
+    }
   }
 
   /**
@@ -1202,30 +1199,26 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    bind(r, w);
+      DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
+      long addRequests  = ldapStatistics.getAddRequests();
+      long addResponses = ldapStatistics.getAddResponses();
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+      AddRequest addRequest =
+          newAddRequest("ou=People,o=test")
+          .addAttribute("objectClass", "top", "organizationalUnit")
+          .addAttribute("ou", "People");
+      addFailure(conn, addRequest);
 
-    long addRequests  = ldapStatistics.getAddRequests();
-    long addResponses = ldapStatistics.getAddResponses();
+      assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
+      waitForAddResponsesStat(addResponses+1);
 
-    addSuccess(r, w, attrs);
-
-    assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
-    waitForAddResponsesStat(addResponses+1);
-
-    StaticUtils.close(s);
-
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+      DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    }
   }
 
   private void bind(LDAPReader r, LDAPWriter w) throws Exception
@@ -1239,14 +1232,10 @@ public class AddOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
   }
 
-  private void addSuccess(LDAPReader r, LDAPWriter w,
-      ArrayList<RawAttribute> attrs) throws Exception
+  private void addFailure(RemoteConnection conn, AddRequest addRequest) throws Exception
   {
-    writeAddRequest(w, attrs, null);
-
-    LDAPMessage message = r.readMessage();
-    AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
-    assertFalse(addResponse.getResultCode() == 0);
+    LDAPMessage message = conn.add(addRequest, false);
+    assertNotEquals(message.getAddResponseProtocolOp().getResultCode(), ResultCode.SUCCESS.intValue());
   }
 
   /**
@@ -1325,31 +1314,27 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    bind(r, w);
+      Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+      b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
+      long addRequests  = ldapStatistics.getAddRequests();
+      long addResponses = ldapStatistics.getAddResponses();
 
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
-    b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+      AddRequest addRequest =
+          newAddRequest("ou=People,o=test")
+          .addAttribute("objectClass", "top", "organizationalUnit")
+          .addAttribute("ou", "People");
+      addFailure(conn, addRequest);
 
-    long addRequests  = ldapStatistics.getAddRequests();
-    long addResponses = ldapStatistics.getAddResponses();
+      assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
+      waitForAddResponsesStat(addResponses+1);
 
-    addSuccess(r, w, attrs);
-
-    assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
-    waitForAddResponsesStat(addResponses+1);
-
-    StaticUtils.close(s);
-
-    b.setWritabilityMode(WritabilityMode.ENABLED);
+      b.setWritabilityMode(WritabilityMode.ENABLED);
+    }
   }
 
   /**
@@ -1547,8 +1532,7 @@ public class AddOperationTestCase
     }
   }
 
-  private void writeAddRequest(LDAPWriter w, ArrayList<RawAttribute> attrs,
-      String section) throws IOException
+  private void writeAddRequest(LDAPWriter w, List<RawAttribute> attrs, String section) throws IOException
   {
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
     List<Control> controls = section != null

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2016 ForgeRock AS
  */
 package org.opends.server.crypto;
 
@@ -33,21 +33,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.crypto.Mac;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DN;
@@ -60,8 +60,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.cli.CliConstants;
-
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -95,32 +94,34 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     assertNotNull(cert);
 
     // The certificate should now be accessible in the truststore backend via LDAP.
-    final InitialLdapContext ctx = ConnectionUtils.createLdapsContext(
-            "ldaps://" + "127.0.0.1" + ":"
-                    + String.valueOf(TestCaseUtils.getServerAdminPort()),
-            "cn=Directory Manager", "password",
-            CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null, null, null);
-    // TODO: should the below dn be in ConfigConstants?
-    final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
-    final LdapName dn = new LdapName(dnStr);
-    final SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
-    searchControls.setReturningAttributes(attrIDs);
-    final SearchResult certEntry = ctx.search(dn,
-               "(objectclass=ds-cfg-instance-key)", searchControls).next();
-    final javax.naming.directory.Attribute certAttr
-            = certEntry.getAttributes().get(attrIDs[0]);
-    /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
-    assertNotNull(certAttr);
-    byte[] ldapCert = (byte[])certAttr.get();
-    // Compare the certificate values.
-    assertTrue(Arrays.equals(ldapCert, cert));
+    ByteString ldapCert;
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerAdminPort(), true))
+    {
+      conn.bind("cn=Directory Manager", "password");
+
+      // TODO: should the below dn be in ConfigConstants?
+      final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
+      conn.search(dnStr, SearchScope.BASE_OBJECT, "(objectclass=ds-cfg-instance-key)",
+          "ds-cfg-public-key-certificate;binary");
+      List<SearchResultEntryProtocolOp> searchEntries = conn.readEntries();
+      assertThat(searchEntries).hasSize(1);
+      SearchResultEntryProtocolOp searchEntry = searchEntries.get(0);
+      List<LDAPAttribute> attributes = searchEntry.getAttributes();
+      assertThat(attributes).hasSize(1);
+      LDAPAttribute certAttr = attributes.get(0);
+      /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
+      assertNotNull(certAttr);
+      List<ByteString> values = certAttr.getValues();
+      assertThat(values).hasSize(1);
+      ldapCert = values.get(0);
+      // Compare the certificate values.
+      assertEquals(ldapCert.toByteArray(), cert);
+    }
 
     // Compare the MD5 hash of the LDAP attribute with the one
     // retrieved from the CryptoManager.
     MessageDigest md = MessageDigest.getInstance("MD5");
-    String actual = StaticUtils.bytesToHexNoSpace(md.digest(ldapCert));
+    String actual = StaticUtils.bytesToHexNoSpace(md.digest(ldapCert.toByteArray()));
     assertEquals(actual, cm.getInstanceKeyID());
 
     // Call twice to ensure idempotent.
