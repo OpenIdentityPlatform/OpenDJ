@@ -65,6 +65,11 @@
         </dependency>
 
         <dependency>
+          <groupId>com.github.stephenc.jcip</groupId>
+          <artifactId>jcip-annotations</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.forgerock</groupId>
             <artifactId>forgerock-build-tools</artifactId>
             <scope>test</scope>
