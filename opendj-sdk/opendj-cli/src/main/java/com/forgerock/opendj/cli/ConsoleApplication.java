@@ -556,35 +556,11 @@ public abstract class ConsoleApplication {
      *             If the port could not be retrieved for some reason.
      */
     public final int readPort(LocalizableMessage prompt, final int defaultValue) throws ClientException {
-        final ValidationCallback<Integer> callback = new ValidationCallback<Integer>() {
-            @Override
-            public Integer validate(ConsoleApplication app, String input) throws ClientException {
-                final String ninput = input.trim();
-                if (ninput.length() == 0) {
-                    return defaultValue;
-                }
-
-                try {
-                    int i = Integer.parseInt(ninput);
-                    if (i < 1 || i > 65535) {
-                        throw new NumberFormatException();
-                    }
-                    return i;
-                } catch (NumberFormatException e) {
-                    // Try again...
-                    app.println();
-                    app.println(ERR_BAD_PORT_NUMBER.get(ninput));
-                    app.println();
-                    return null;
-                }
-            }
-
-        };
         if (defaultValue != -1) {
             prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
         }
 
-        return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);
+        return readValidatedInput(prompt, Utils.portValidationCallback(defaultValue), CONFIRMATION_MAX_TRIES);
     }
 
     /**

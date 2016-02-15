@@ -625,4 +625,37 @@ public final class Utils {
         Arrays.fill(str, charToRepeat);
         return new String(str);
     }
+
+    /**
+     * Return a {@link ValidationCallback<Integer>} which can be used to validate a port number.
+     *
+     * @param defaultPort
+     *        The default value to suggest to the user.
+     * @return a {@link ValidationCallback<Integer>} which can be used to validate a port number.
+     */
+    public static ValidationCallback<Integer> portValidationCallback(final int defaultPort) {
+        return new ValidationCallback<Integer>() {
+            @Override
+            public Integer validate(ConsoleApplication app, String rawInput) throws ClientException {
+                final String input = rawInput.trim();
+                if (input.length() == 0) {
+                    return defaultPort;
+                }
+
+                try {
+                    int i = Integer.parseInt(input);
+                    if (i < 1 || i > 65535) {
+                        throw new NumberFormatException();
+                    }
+                    return i;
+                } catch (NumberFormatException e) {
+                    // Try again...
+                    app.println();
+                    app.println(ERR_BAD_PORT_NUMBER.get(input));
+                    app.println();
+                    return null;
+                }
+            }
+        };
+    }
 }

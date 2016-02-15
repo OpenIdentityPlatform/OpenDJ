@@ -60,6 +60,11 @@ public class CommandBuilder {
         }
     }
 
+    /** Creates a {@link CommandBuilder} with {@code null} command and subcommand names. */
+    public CommandBuilder() {
+        this(null, null);
+    }
+
     /**
      * The constructor for the CommandBuilder.
      *
@@ -108,6 +113,19 @@ public class CommandBuilder {
     public boolean removeArgument(final Argument argument) {
         obfuscatedArgs.remove(argument);
         return args.remove(argument);
+    }
+
+    /**
+     * Removes the provided arguments from this CommandBuilder.
+     * Arguments which are not in this {@link CommandBuilder} will be ignored.
+     *
+     * @param arguments
+     *            Arguments to be removed.
+     */
+    public void removeArguments(final Argument... arguments) {
+        for (final Argument argument : arguments) {
+            removeArgument(argument);
+        }
     }
 
     /**

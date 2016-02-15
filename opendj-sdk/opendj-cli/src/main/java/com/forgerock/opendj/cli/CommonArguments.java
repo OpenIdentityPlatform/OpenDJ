@@ -418,9 +418,27 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument bindDNArgument(final String defaultBindDN) throws ArgumentException {
+        return bindDNArgument(defaultBindDN, INFO_DESCRIPTION_BINDDN.get());
+    }
+
+
+    /**
+     * Returns the "bindDN" string argument. <br/>
+     * <i> N.B : the 'D' short option is also used by rootUserDN.</i>
+     *
+     * @param defaultBindDN
+     *            The default bind DN.
+     * @param description
+     *            The localized description to print in help messages.
+     * @return The "bindDN" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument bindDNArgument(final String defaultBindDN, final LocalizableMessage description)
+            throws ArgumentException {
         return StringArgument.builder(OPTION_LONG_BINDDN)
                 .shortIdentifier(OPTION_SHORT_BINDDN)
-                .description(INFO_DESCRIPTION_BINDDN.get())
+                .description(description)
                 .defaultValue(defaultBindDN)
                 .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
                 .buildArgument();
