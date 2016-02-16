@@ -51,35 +51,21 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
  */
 public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 {
-  /**
-   * Logger.
-   */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The 'showUsage' global argument.
-   */
+  /** The 'showUsage' global argument. */
   protected BooleanArgument showUsageArg;
 
-  /**
-   * The 'verbose' global argument.
-   */
+  /** The 'verbose' global argument. */
   protected BooleanArgument verboseArg;
 
-  /**
-   * The secure args list object.
-   */
-  protected SecureConnectionCliArgs secureArgsList ;
+  /** The secure args list object. */
+  protected SecureConnectionCliArgs secureArgsList;
 
-  /**
-   * Argument indicating a properties file argument.
-   */
+  /** Argument indicating a properties file argument. */
   protected StringArgument propertiesFileArg;
 
-  /**
-   * The argument which should be used to indicate that we will not
-   * look for properties file.
-   */
+  /** The argument which should be used to indicate that we will not look for properties file. */
   protected BooleanArgument noPropertiesFileArg;
 
   /**
@@ -254,23 +240,23 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 
   /**
    * Initialize the global options with the provided set of arguments.
+   *
    * @param args the arguments to use to initialize the global options.
    * @throws ArgumentException if there is a conflict with the provided
-   * arguments.
+   *                           arguments.
    */
-  protected void initializeGlobalArguments(Collection<Argument> args)
-  throws ArgumentException
+  protected void initializeGlobalArguments(Collection<Argument> args) throws ArgumentException
   {
     initializeGlobalArguments(args, null);
   }
 
-
   /**
    * Initialize the global options with the provided set of arguments.
-   * @param args the arguments to use to initialize the global options.
+   *
+   * @param args     the arguments to use to initialize the global options.
    * @param argGroup to which args will be added
    * @throws ArgumentException if there is a conflict with the provided
-   * arguments.
+   *                           arguments.
    */
   protected void initializeGlobalArguments(
           Collection<Argument> args,
@@ -311,10 +297,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   /**
    * Indication if provided global options are validate.
    *
-   * @param buf the LocalizableMessageBuilder to write the error messages.
+   * @param buf The {@link LocalizableMessageBuilder} to write the error message.
    * @return return code.
    */
-  public int validateGlobalOptions(LocalizableMessageBuilder buf)
+  public int validateGlobalOptions(final LocalizableMessageBuilder buf)
   {
     int ret = secureArgsList.validateGlobalOptions(buf) ;
 
@@ -336,10 +322,11 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 
     return ret;
   }
+
   /**
    * Indication if provided global options are validate.
    *
-   * @param err the stream to be used to print error message.
+   * @param err The stream to be used to print error message.
    * @return return code.
    */
   public int validateGlobalOptions(PrintStream err)
@@ -392,12 +379,11 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   }
 
   /**
-   * Returns the timeout to be used to connect in milliseconds.  The method
-   * must be called after parsing the arguments.
-   * @return the timeout to be used to connect in milliseconds.  Returns
-   * {@code 0} if there is no timeout.
-   * @throws IllegalStateException if the method is called before
-   * parsing the arguments.
+   * Returns the timeout to be used to connect in milliseconds.
+   * The method must be called after parsing the arguments.
+   *
+   * @return the timeout to be used to connect in milliseconds or {@code 0} if there is no timeout.
+   * @throws IllegalStateException if the method is called before parsing the arguments.
    */
   public int getConnectTimeout()throws IllegalStateException
   {
