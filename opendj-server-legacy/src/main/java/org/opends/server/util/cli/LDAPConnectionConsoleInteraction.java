@@ -619,9 +619,9 @@ public class LDAPConnectionConsoleInteraction
 
     // Get the LDAP bind credentials.
     state.bindDN = secureArgsList.bindDnArg.getValue();
-    state.adminUID= secureArgsList.adminUidHiddenArg.getValue();
+    state.adminUID= secureArgsList.adminUidArg.getValue();
     final boolean useAdmin = secureArgsList.useAdminUID();
-    if (useAdmin && secureArgsList.adminUidHiddenArg.isPresent())
+    if (useAdmin && secureArgsList.adminUidArg.isPresent())
     {
       state.providedAdminUID = state.adminUID;
     }
@@ -726,9 +726,9 @@ public class LDAPConnectionConsoleInteraction
         }
         if (addAdmin)
         {
-          copySecureArgsList.adminUidHiddenArg.clearValues();
-          copySecureArgsList.adminUidHiddenArg.addValue(getAdministratorUID());
-          commandBuilder.addArgument(copySecureArgsList.adminUidHiddenArg);
+          copySecureArgsList.adminUidArg.clearValues();
+          copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
+          commandBuilder.addArgument(copySecureArgsList.adminUidArg);
         }
         else if (addBindDN)
         {
@@ -739,9 +739,9 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (useAdmin)
       {
-        copySecureArgsList.adminUidHiddenArg.clearValues();
-        copySecureArgsList.adminUidHiddenArg.addValue(getAdministratorUID());
-        commandBuilder.addArgument(copySecureArgsList.adminUidHiddenArg);
+        copySecureArgsList.adminUidArg.clearValues();
+        copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
+        commandBuilder.addArgument(copySecureArgsList.adminUidArg);
       }
       else
       {
@@ -1967,8 +1967,8 @@ public class LDAPConnectionConsoleInteraction
     secureArgsList.useStartTLSArg.setPresent(state.useStartTLS);
     if (adminUid != null)
     {
-      secureArgsList.adminUidHiddenArg.addValue(adminUid);
-      secureArgsList.adminUidHiddenArg.setPresent(true);
+      secureArgsList.adminUidArg.addValue(adminUid);
+      secureArgsList.adminUidArg.setPresent(true);
     }
     if (bindDn != null)
     {
@@ -2014,8 +2014,8 @@ public class LDAPConnectionConsoleInteraction
     secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
     secureArgsList.bindPasswordFileArg.setPresent(false);
     state.bindPassword = null;
-    secureArgsList.adminUidHiddenArg.clearValues();
-    secureArgsList.adminUidHiddenArg.setPresent(false);
+    secureArgsList.adminUidArg.clearValues();
+    secureArgsList.adminUidArg.setPresent(false);
   }
 
   private void initializeTrustManager() throws ArgumentException

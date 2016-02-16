@@ -55,7 +55,6 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   private BooleanArgument removeLDIFFilesArg;
 
   private StringArgument referencedHostNameArg;
-  private StringArgument adminUidArg;
 
   /** This CLI is always using the administration connector with SSL. */
   private final boolean alwaysSSL = true;
@@ -95,7 +94,6 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     LinkedHashSet<Argument> args = new LinkedHashSet<>();
-    adminUidArg = adminUid(INFO_DESCRIPTION_ADMIN_UID.get());
     cliArg = cliArgument();
     args.add(cliArg);
 
@@ -162,15 +160,16 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     args.add(quietArg);
 
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
+    secureArgsList.createVisibleAdminUidArgument(INFO_DESCRIPTION_ADMIN_UID.get());
     int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
     if (index != -1)
     {
-      defaultArgs.add(index, adminUidArg);
+      defaultArgs.add(index, secureArgsList.adminUidArg);
       defaultArgs.remove(secureArgsList.bindDnArg);
     }
     else
     {
-      defaultArgs.add(adminUidArg);
+      defaultArgs.add(secureArgsList.adminUidArg);
     }
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
@@ -315,7 +314,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultAdministratorUID()
   {
-    return adminUidArg.getDefaultValue();
+    return secureArgsList.adminUidArg.getDefaultValue();
   }
 
   /**

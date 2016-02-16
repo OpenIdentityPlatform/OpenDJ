@@ -1952,7 +1952,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           LocalizableMessage msg =
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
-              parser.getSecureArgsList().adminUidHiddenArg.getLongIdentifier(),
+              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
               "--"+OPTION_LONG_BINDPWD,
               "--"+OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),

@@ -1256,7 +1256,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           println();
           printErrorMessage(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
-              "--"+parser.getSecureArgsList().adminUidHiddenArg.getLongIdentifier(),
+              "--"+parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
               "--"+OPTION_LONG_BINDPWD,
               "--"+OPTION_LONG_BINDPWD_FILE,
               exceptionMsg));
@@ -1267,7 +1267,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           throw new UserDataException(null,
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
                   "--"+
-                  parser.getSecureArgsList().adminUidHiddenArg.getLongIdentifier(),
+                  parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
                   "--"+OPTION_LONG_BINDPWD,
                   "--"+OPTION_LONG_BINDPWD_FILE,
                   "--"+parser.forceOnErrorArg.getLongIdentifier(),
@@ -1421,7 +1421,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           LocalizableMessage msg =
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
-              parser.getSecureArgsList().adminUidHiddenArg.getLongIdentifier(),
+              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
               "--"+OPTION_LONG_BINDPWD,
               "--"+OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),

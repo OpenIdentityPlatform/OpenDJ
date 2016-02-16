@@ -75,7 +75,7 @@ public final class SecureConnectionCliArgs
   /** The 'bindDN' global argument. */
   public StringArgument bindDnArg;
   /** The 'adminUID' global argument. */
-  public StringArgument adminUidHiddenArg;
+  public StringArgument adminUidArg;
   /** The 'bindPasswordFile' global argument. */
   public FileBasedArgument bindPasswordFileArg;
   /** The 'bindPassword' global argument. */
@@ -157,11 +157,11 @@ public final class SecureConnectionCliArgs
    */
   public String getAdministratorUID()
   {
-    if (adminUidHiddenArg.isPresent())
+    if (adminUidArg.isPresent())
     {
-      return adminUidHiddenArg.getValue();
+      return adminUidArg.getValue();
     }
-    return adminUidHiddenArg.getDefaultValue();
+    return adminUidArg.getDefaultValue();
   }
 
   /**
@@ -173,7 +173,7 @@ public final class SecureConnectionCliArgs
    */
   public boolean useAdminUID()
   {
-    return !adminUidHiddenArg.isHidden();
+    return !adminUidArg.isHidden();
   }
 
   /**
@@ -230,7 +230,7 @@ public final class SecureConnectionCliArgs
     argList.add(bindDnArg);
 
     // Classes that required admin UID to be not hidden must use CommonsArguments.adminUid().
-    adminUidHiddenArg = adminUidHiddenArgument(INFO_DESCRIPTION_ADMIN_UID.get());
+    adminUidArg = adminUidHiddenArgument(INFO_DESCRIPTION_ADMIN_UID.get());
 
     bindPasswordArg = bindPasswordArgument();
     argList.add(bindPasswordArg);
@@ -643,6 +643,24 @@ public final class SecureConnectionCliArgs
     {
       logger.error(LocalizableMessage.raw(
               "Internal error while reading arguments of this program from configuration"), e);
+    }
+  }
+
+  /**
+   * Replace the admin UID argument by a non hidden one.
+   *
+   * @param description
+   *         The localized description for the non hidden admin UID argument.
+   */
+  public void createVisibleAdminUidArgument(final LocalizableMessage description)
+  {
+    try
+    {
+      this.adminUidArg = adminUid(description);
+    }
+    catch (ArgumentException e)
+    {
+      // Will never append.
     }
   }
 

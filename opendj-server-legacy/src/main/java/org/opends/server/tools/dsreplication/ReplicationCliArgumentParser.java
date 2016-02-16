@@ -192,9 +192,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /** the 'change-number' argument for task reset-changenumber. */
   IntegerArgument resetChangeNumber;
 
-  /** The "adminUid" non hidden argument */
-  StringArgument adminUidArg;
-
   /** The text of the enable replication subcommand. */
   static final String ENABLE_REPLICATION_SUBCMD_NAME = "enable";
   /** The text of the disable replication subcommand. */
@@ -422,9 +419,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
                     .buildArgument();
     defaultArgs.add(index++, baseDNsArg);
 
-    adminUidArg = adminUid(
-            INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
-    defaultArgs.add(index++, adminUidArg);
+    secureArgsList.createVisibleAdminUidArgument(
+        INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
+    defaultArgs.add(index++, secureArgsList.adminUidArg);
 
     secureArgsList.bindPasswordArg =
             StringArgument.builder(OPTION_LONG_ADMIN_PWD)
@@ -965,7 +962,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   StringArgument getAdminUidArg()
   {
-    return adminUidArg;
+    return secureArgsList.adminUidArg;
   }
 
   /**
