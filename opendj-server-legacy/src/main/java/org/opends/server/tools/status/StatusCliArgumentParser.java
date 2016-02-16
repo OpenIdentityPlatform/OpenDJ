@@ -78,8 +78,8 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
-    defaultArgs.remove(secureArgsList.portArg);
-    defaultArgs.remove(secureArgsList.hostNameArg);
+    defaultArgs.remove(secureArgsList.getPortArg());
+    defaultArgs.remove(secureArgsList.getHostNameArg());
     defaultArgs.remove(verboseArg);
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);
@@ -174,9 +174,9 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
    */
   public String getExplicitBindDn()
   {
-    if (secureArgsList.bindDnArg.isPresent())
+    if (secureArgsList.getBindDnArg().isPresent())
     {
-      return secureArgsList.bindDnArg.getValue();
+      return secureArgsList.getBindDnArg().getValue();
     }
     return null;
   }
@@ -187,6 +187,6 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultBindDn()
   {
-    return secureArgsList.bindDnArg.getDefaultValue();
+    return secureArgsList.getBindDnArg().getDefaultValue();
   }
 }

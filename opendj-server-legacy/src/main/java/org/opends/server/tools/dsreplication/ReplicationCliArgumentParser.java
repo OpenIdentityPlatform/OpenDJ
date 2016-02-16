@@ -287,11 +287,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     int returnValue;
     super.validateGlobalOptions(buf);
     ArrayList<LocalizableMessage> errors = new ArrayList<>();
-    if (secureArgsList.bindPasswordArg.isPresent() &&
-        secureArgsList.bindPasswordFileArg.isPresent()) {
+    if (secureArgsList.getBindPasswordArg().isPresent() &&
+        secureArgsList.getBindPasswordFileArg().isPresent()) {
       LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          secureArgsList.bindPasswordArg.getLongIdentifier(),
-          secureArgsList.bindPasswordFileArg.getLongIdentifier());
+          secureArgsList.getBindPasswordArg().getLongIdentifier(),
+          secureArgsList.getBindPasswordFileArg().getLongIdentifier());
       errors.add(message);
     }
 
@@ -338,8 +338,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
           !isPurgeHistoricalSubcommand())
       {
         errors.add(ERR_REPLICATION_NO_ADMINISTRATOR_PASSWORD_PROVIDED.get(
-            "--"+secureArgsList.bindPasswordArg.getLongIdentifier(),
-            "--"+secureArgsList.bindPasswordFileArg.getLongIdentifier()));
+            "--"+ secureArgsList.getBindPasswordArg().getLongIdentifier(),
+            "--"+ secureArgsList.getBindPasswordFileArg().getLongIdentifier()));
       }
     }
 
@@ -392,11 +392,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
 
     Argument[] argsToRemove = {
-      secureArgsList.hostNameArg,
-      secureArgsList.portArg,
-      secureArgsList.bindDnArg,
-      secureArgsList.bindPasswordFileArg,
-      secureArgsList.bindPasswordArg
+            secureArgsList.getHostNameArg(),
+            secureArgsList.getPortArg(),
+            secureArgsList.getBindDnArg(),
+            secureArgsList.getBindPasswordFileArg(),
+            secureArgsList.getBindPasswordArg()
     };
 
     for (Argument arg : argsToRemove)
@@ -421,23 +421,23 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     secureArgsList.createVisibleAdminUidArgument(
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
-    defaultArgs.add(index++, secureArgsList.adminUidArg);
+    defaultArgs.add(index++, secureArgsList.getAdminUidArg());
 
-    secureArgsList.bindPasswordArg =
+    secureArgsList.setBindPasswordArgument(
             StringArgument.builder(OPTION_LONG_ADMIN_PWD)
                     .shortIdentifier(OPTION_SHORT_BINDPWD)
                     .description(INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get())
                     .valuePlaceholder(INFO_BINDPWD_PLACEHOLDER.get())
-                    .buildArgument();
-    defaultArgs.add(index++, secureArgsList.bindPasswordArg);
+                    .buildArgument());
+    defaultArgs.add(index++, secureArgsList.getBindPasswordArg());
 
-    secureArgsList.bindPasswordFileArg =
+    secureArgsList.setBindPasswordFileArgument(
             FileBasedArgument.builder(OPTION_LONG_ADMIN_PWD_FILE)
                     .shortIdentifier(OPTION_SHORT_BINDPWD_FILE)
                     .description(INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get())
                     .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
-                    .buildArgument();
-    defaultArgs.add(index++, secureArgsList.bindPasswordFileArg);
+                    .buildArgument());
+    defaultArgs.add(index++, secureArgsList.getBindPasswordFileArg());
 
     defaultArgs.remove(verboseArg);
 
@@ -672,13 +672,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     disableReplicationSubCmd = new SubCommand(this,
         DISABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_DISABLE_REPLICATION.get());
-    secureArgsList.bindDnArg =
-            StringArgument.builder(OPTION_LONG_BINDDN)
-                    .shortIdentifier(OPTION_SHORT_BINDDN)
-                    .description(INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get())
-                    .defaultValue("cn=Directory Manager")
-                    .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
-                    .buildArgument();
+    secureArgsList.setBindDnArgDescription(INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
     disableReplicationServerArg =
             BooleanArgument.builder("disableReplicationServer")
                     .shortIdentifier('a')
@@ -689,8 +683,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
                     .description(INFO_DESCRIPTION_DISABLE_ALL.get())
                     .buildArgument();
 
-    Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg, secureArgsList.bindDnArg,
+    Argument[] argsToAdd = { secureArgsList.getHostNameArg(),
+            secureArgsList.getPortArg(), secureArgsList.getBindDnArg(),
         disableReplicationServerArg, disableAllArg};
     for (Argument arg : argsToAdd)
     {
@@ -757,8 +751,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INITIALIZE_ALL_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_INITIALIZE_ALL_REPLICATION.get(
             INITIALIZE_REPLICATION_SUBCMD_NAME));
-    Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg };
+    Argument[] argsToAdd = { secureArgsList.getHostNameArg(),
+            secureArgsList.getPortArg() };
     for (Argument arg : argsToAdd)
     {
       initializeAllReplicationSubCmd.addArgument(arg);
@@ -786,8 +780,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
                     .hidden()
                     .buildArgument();
 
-    Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg,
+    Argument[] argsToAdd = { secureArgsList.getHostNameArg(),
+            secureArgsList.getPortArg(),
         externalInitializationLocalOnlyArg};
 
     for (Argument arg : argsToAdd)
@@ -810,8 +804,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_POST_EXTERNAL_INITIALIZATION.get(
             PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-    Argument[] argsToAdd = { secureArgsList.hostNameArg,
-        secureArgsList.portArg };
+    Argument[] argsToAdd = { secureArgsList.getHostNameArg(),
+            secureArgsList.getPortArg() };
     for (Argument arg : argsToAdd)
     {
       postExternalInitializationSubCmd.addArgument(arg);
@@ -852,7 +846,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
                     .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
                     .buildArgument();
     addArgumentsToSubCommand(
-            statusReplicationSubCmd, secureArgsList.hostNameArg, secureArgsList.portArg, scriptFriendlyArg);
+            statusReplicationSubCmd, secureArgsList.getHostNameArg(), secureArgsList.getPortArg(), scriptFriendlyArg);
   }
 
   /**
@@ -878,7 +872,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_PURGE_HISTORICAL.get());
 
     addArgumentsToSubCommand(purgeHistoricalSubCmd,
-            secureArgsList.hostNameArg, secureArgsList.portArg, maximumDurationArg);
+            secureArgsList.getHostNameArg(), secureArgsList.getPortArg(), maximumDurationArg);
     addArgumentsToSubCommand(purgeHistoricalSubCmd, taskArgs.getArguments());
   }
 
@@ -934,7 +928,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getBindPasswordAdmin()
   {
-    return getBindPassword(secureArgsList.bindPasswordArg, secureArgsList.bindPasswordFileArg);
+    return getBindPassword(secureArgsList.getBindPasswordArg(), secureArgsList.getBindPasswordFileArg());
   }
 
   /**
@@ -962,7 +956,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   StringArgument getAdminUidArg()
   {
-    return secureArgsList.adminUidArg;
+    return secureArgsList.getAdminUidArg();
   }
 
   /**
@@ -1028,7 +1022,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getHostNameToDisable()
   {
-    return getValue(secureArgsList.hostNameArg);
+    return getValue(secureArgsList.getHostNameArg());
   }
 
   /**
@@ -1039,7 +1033,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getHostNameToDisableOrDefault()
   {
-    return getValueOrDefault(secureArgsList.hostNameArg);
+    return getValueOrDefault(secureArgsList.getHostNameArg());
   }
 
   /**
@@ -1050,7 +1044,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getBindDNToDisable()
   {
-    return getValue(secureArgsList.bindDnArg);
+    return getValue(secureArgsList.getBindDnArg());
   }
 
   /**
@@ -1059,7 +1053,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getHostNameToStatusOrDefault()
   {
-    return getValueOrDefault(secureArgsList.hostNameArg);
+    return getValueOrDefault(secureArgsList.getHostNameArg());
   }
 
   /**
@@ -1070,7 +1064,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getHostNameToInitializeAllOrDefault()
   {
-    return getValueOrDefault(secureArgsList.hostNameArg);
+    return getValueOrDefault(secureArgsList.getHostNameArg());
   }
 
   /**
@@ -1169,7 +1163,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getPortToDisable()
   {
-    return getValue(secureArgsList.portArg);
+    return getValue(secureArgsList.getPortArg());
   }
 
   /**
@@ -1180,7 +1174,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getPortToDisableOrDefault()
   {
-    return getValueOrDefault(secureArgsList.portArg);
+    return getValueOrDefault(secureArgsList.getPortArg());
   }
 
   /**
@@ -1191,7 +1185,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getPortToInitializeAllOrDefault()
   {
-    return getValueOrDefault(secureArgsList.portArg);
+    return getValueOrDefault(secureArgsList.getPortArg());
   }
 
   /**
@@ -1200,7 +1194,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public int getPortToStatusOrDefault()
   {
-    return getValueOrDefault(secureArgsList.portArg);
+    return getValueOrDefault(secureArgsList.getPortArg());
   }
 
   /**
@@ -1556,7 +1550,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     Argument[][] conflictingPairs =
     {
-        {getAdminUidArg(), secureArgsList.bindDnArg},
+        {getAdminUidArg(), secureArgsList.getBindDnArg() },
         {disableAllArg, disableReplicationServerArg},
         {disableAllArg, baseDNsArg}
     };
@@ -1665,8 +1659,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       // This have to be explicitly specified because their original definition
       // has been replaced.
       boolean adminArgsPresent = getAdminUidArg().isPresent() ||
-      secureArgsList.bindPasswordArg.isPresent() ||
-      secureArgsList.bindPasswordFileArg.isPresent();
+      secureArgsList.getBindPasswordArg().isPresent() ||
+      secureArgsList.getBindPasswordFileArg().isPresent();
       return secureArgsPresent || adminArgsPresent;
     }
     return true;

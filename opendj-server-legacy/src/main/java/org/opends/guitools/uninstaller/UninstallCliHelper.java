@@ -791,39 +791,37 @@ public class UninstallCliHelper extends ConsoleApplication {
     while (!couldConnect && accepted)
     {
 
-      // This is done because we do not need to ask the user about these
-      // parameters.  If we force their presence the class
-      // LDAPConnectionConsoleInteraction will not prompt the user for
-      // them.
+      // This is done because we do not need to ask the user about these parameters.
+      // If we force their presence the class LDAPConnectionConsoleInteraction will not prompt the user for them.
       SecureConnectionCliArgs secureArgsList = parser.getSecureArgsList();
 
-      secureArgsList.hostNameArg.setPresent(true);
-      secureArgsList.portArg.setPresent(true);
-      secureArgsList.hostNameArg.clearValues();
-      secureArgsList.hostNameArg.addValue(
-          secureArgsList.hostNameArg.getDefaultValue());
-      secureArgsList.portArg.clearValues();
-      secureArgsList.portArg.addValue(
-          secureArgsList.portArg.getDefaultValue());
-      secureArgsList.bindDnArg.clearValues();
+      secureArgsList.getHostNameArg().setPresent(true);
+      secureArgsList.getPortArg().setPresent(true);
+      secureArgsList.getHostNameArg().clearValues();
+      secureArgsList.getHostNameArg().addValue(
+          secureArgsList.getHostNameArg().getDefaultValue());
+      secureArgsList.getPortArg().clearValues();
+      secureArgsList.getPortArg().addValue(
+          secureArgsList.getPortArg().getDefaultValue());
+      secureArgsList.getBindDnArg().clearValues();
       if (uid != null)
       {
-        secureArgsList.bindDnArg.addValue(ADSContext.getAdministratorDN(uid));
-        secureArgsList.bindDnArg.setPresent(true);
+        secureArgsList.getBindDnArg().addValue(ADSContext.getAdministratorDN(uid));
+        secureArgsList.getBindDnArg().setPresent(true);
       }
       else
       {
-        secureArgsList.bindDnArg.setPresent(false);
+        secureArgsList.getBindDnArg().setPresent(false);
       }
-      secureArgsList.bindPasswordArg.clearValues();
+      secureArgsList.getBindPasswordArg().clearValues();
       if (pwd != null)
       {
-        secureArgsList.bindPasswordArg.addValue(pwd);
-        secureArgsList.bindPasswordArg.setPresent(true);
+        secureArgsList.getBindPasswordArg().addValue(pwd);
+        secureArgsList.getBindPasswordArg().setPresent(true);
       }
       else
       {
-        secureArgsList.bindPasswordArg.setPresent(false);
+        secureArgsList.getBindPasswordArg().setPresent(false);
       }
 
       if (ci == null)
@@ -853,8 +851,8 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           URI uri = new URI(adminConnectorUrl);
           int port = uri.getPort();
-          secureArgsList.portArg.clearValues();
-          secureArgsList.portArg.addValue(String.valueOf(port));
+          secureArgsList.getPortArg().clearValues();
+          secureArgsList.getPortArg().addValue(String.valueOf(port));
           ci.setPortNumber(port);
         }
         catch (Throwable t)
@@ -1256,9 +1254,9 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           println();
           printErrorMessage(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
-              "--"+parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-              "--"+OPTION_LONG_BINDPWD,
-              "--"+OPTION_LONG_BINDPWD_FILE,
+              "--" + parser.getSecureArgsList().getAdminUidArg().getLongIdentifier(),
+              "--" + OPTION_LONG_BINDPWD,
+              "--" + OPTION_LONG_BINDPWD_FILE,
               exceptionMsg));
         }
         else
@@ -1266,11 +1264,10 @@ public class UninstallCliHelper extends ConsoleApplication {
           println();
           throw new UserDataException(null,
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
-                  "--"+
-                  parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-                  "--"+OPTION_LONG_BINDPWD,
-                  "--"+OPTION_LONG_BINDPWD_FILE,
-                  "--"+parser.forceOnErrorArg.getLongIdentifier(),
+                  "--" + parser.getSecureArgsList().getAdminUidArg().getLongIdentifier(),
+                  "--" + OPTION_LONG_BINDPWD,
+                  "--" + OPTION_LONG_BINDPWD_FILE,
+                  "--" + parser.forceOnErrorArg.getLongIdentifier(),
                   exceptionMsg));
         }
       }
@@ -1420,13 +1417,11 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           LocalizableMessage msg =
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
-              "--"+
-              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-              "--"+OPTION_LONG_BINDPWD,
-              "--"+OPTION_LONG_BINDPWD_FILE,
-              "--"+parser.forceOnErrorArg.getLongIdentifier(),
-              Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR));
+              "--" + parser.getSecureArgsList().getAdminUidArg().getLongIdentifier(),
+              "--" + OPTION_LONG_BINDPWD,
+              "--" + OPTION_LONG_BINDPWD_FILE,
+              "--" + parser.forceOnErrorArg.getLongIdentifier(),
+              Utils.getMessageFromCollection(exceptionMsgs, Constants.LINE_SEPARATOR));
           throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
         }
       }
@@ -1549,7 +1544,7 @@ public class UninstallCliHelper extends ConsoleApplication {
    {
      try
      {
-       return parser.getSecureArgsList().connectTimeoutArg.getIntValue();
+       return parser.getSecureArgsList().getConnectTimeoutArg().getIntValue();
      }
      catch (ArgumentException ae)
      {

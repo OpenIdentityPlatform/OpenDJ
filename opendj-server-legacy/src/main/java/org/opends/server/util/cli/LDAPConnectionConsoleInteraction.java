@@ -16,25 +16,31 @@
  */
 package org.opends.server.util.cli;
 
+import static com.forgerock.opendj.cli.Utils.portValidationCallback;
 import static com.forgerock.opendj.cli.Utils.isDN;
 import static com.forgerock.opendj.cli.Utils.getAdministratorDN;
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 import static org.opends.messages.ToolMessages.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.net.ssl.KeyManager;
 
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.FileBasedArgument;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationKeyManager;
@@ -64,6 +70,13 @@ import com.forgerock.opendj.cli.ValidationCallback;
  */
 public class LDAPConnectionConsoleInteraction
 {
+
+  private static final Protocol DEFAULT_PROMPT_PROTOCOL = Protocol.SSL;
+  private static final TrustMethod DEFAULT_PROMPT_TRUST_METHOD = TrustMethod.DISPLAY_CERTIFICATE;
+  private static final TrustOption DEFAULT_PROMPT_TRUST_OPTION = TrustOption.SESSION;
+
+  private static final boolean ALLOW_EMPTY_PATH = true;
+  private static final boolean FILE_MUST_EXISTS = true;
 
   /**
    * Information from the latest console interaction.
@@ -97,71 +110,61 @@ public class LDAPConnectionConsoleInteraction
     private String truststorePassword;
 
     private KeyManager keyManager;
-    private String keystorePath;
+    private String keyStorePath;
     private String keystorePassword;
     private String certifNickname;
 
     private State(SecureConnectionCliArgs secureArgs)
     {
-      useSSL = secureArgs.useSSL();
-      useStartTLS = secureArgs.useStartTLS();
-      trustAll = secureArgs.trustAllArg.isPresent();
+      setSsl(secureArgs);
+      trustAll = secureArgs.getTrustAllArg().isPresent();
     }
 
-    /**
-     * @return
-     */
     protected LocalizableMessage getPrompt()
     {
-      LocalizableMessage prompt;
       if (providedAdminUID != null)
       {
-        prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedAdminUID);
+        return INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedAdminUID);
       }
       else if (providedBindDN != null)
       {
-        prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedBindDN);
+        return INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedBindDN);
       }
       else if (bindDN != null)
       {
-        prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
+        return INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
       }
-      else
-      {
-        prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
-      }
-      return prompt;
+
+      return INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
     }
 
-    /**
-     * @return
-     */
     protected String getAdminOrBindDN()
     {
-      String dn;
       if (providedBindDN != null)
       {
-        dn = providedBindDN;
+        return providedBindDN;
       }
       else if (providedAdminUID != null)
       {
-        dn = getAdministratorDN(providedAdminUID);
+        return getAdministratorDN(providedAdminUID);
       }
       else if (bindDN != null)
       {
-        dn = bindDN;
+        return bindDN;
       }
       else if (adminUID != null)
       {
-        dn = getAdministratorDN(adminUID);
+        return getAdministratorDN(adminUID);
       }
-      else
-      {
-        dn = null;
-      }
-      return dn;
+
+      return null;
     }
 
+    private void setSsl(final SecureConnectionCliArgs secureArgs)
+    {
+      this.useSSL = secureArgs.alwaysSSL() || secureArgs.getUseSSLArg().isPresent();
+      this.useStartTLS = secureArgs.getUseStartTLSArg().isPresent();
+    }
   }
 
   /** The console application. */
@@ -170,7 +173,7 @@ public class LDAPConnectionConsoleInteraction
   private State state;
 
   /** The SecureConnectionCliArgsList object. */
-  private SecureConnectionCliArgs secureArgsList;
+  private final SecureConnectionCliArgs secureArgsList;
 
   /** The command builder that we can return with the connection information. */
   private CommandBuilder commandBuilder;
@@ -192,147 +195,87 @@ public class LDAPConnectionConsoleInteraction
   private boolean useAdminOrBindDn;
 
   /** Enumeration description protocols for interactive CLI choices. */
-  private enum Protocols
+  private enum Protocol
   {
-    LDAP(1, INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()),
-    SSL(2,  INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()),
-    START_TLS(3, INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
+    LDAP(INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()),
+    SSL(INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()),
+    START_TLS(INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
 
-    private Integer choice;
+    private final LocalizableMessage message;
 
-    private LocalizableMessage msg;
-
-    /**
-     * Private constructor.
-     *
-     * @param i
-     *          the menu return value.
-     * @param msg
-     *          the message message.
-     */
-    private Protocols(int i, LocalizableMessage msg)
+    Protocol(final LocalizableMessage message)
     {
-      choice = i;
-      this.msg = msg;
+      this.message = message;
     }
 
-    /**
-     * Returns the choice number.
-     *
-     * @return the attribute name.
-     */
-    public Integer getChoice()
+    private int getChoice()
     {
-      return choice;
-    }
-
-    /**
-     * Return the menu message.
-     *
-     * @return the menu message.
-     */
-    public LocalizableMessage getMenuMessage()
-    {
-      return msg;
+      return ordinal() + 1;
     }
   }
 
-  /**
-   * Enumeration description protocols for interactive CLI choices.
-   */
+  /** Enumeration description protocols for interactive CLI choices. */
   private enum TrustMethod
   {
-    TRUSTALL(1, INFO_LDAP_CONN_PROMPT_SECURITY_USE_TRUST_ALL.get()),
+    TRUSTALL(INFO_LDAP_CONN_PROMPT_SECURITY_USE_TRUST_ALL.get()),
+    TRUSTSTORE(INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE.get()),
+    DISPLAY_CERTIFICATE(INFO_LDAP_CONN_PROMPT_SECURITY_MANUAL_CHECK.get());
 
-    TRUSTSTORE(2, INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE.get()),
+    private LocalizableMessage message;
 
-    DISPLAY_CERTIFICATE(3, INFO_LDAP_CONN_PROMPT_SECURITY_MANUAL_CHECK.get());
-
-    private Integer choice;
-
-    private LocalizableMessage msg;
-
-    /**
-     * Private constructor.
-     *
-     * @param i
-     *          the menu return value.
-     * @param msg
-     *          the message message.
-     */
-    private TrustMethod(int i, LocalizableMessage msg)
+    TrustMethod(final LocalizableMessage message)
     {
-      choice = Integer.valueOf(i);
-      this.msg = msg;
+      this.message = message;
     }
 
-    /**
-     * Returns the choice number.
-     *
-     * @return the attribute name.
-     */
-    public Integer getChoice()
+    private int getChoice()
     {
-      return choice;
+      return ordinal() + 1;
     }
 
-    /**
-     * Return the menu message.
-     *
-     * @return the menu message.
-     */
-    public LocalizableMessage getMenuMessage()
+    private static TrustMethod getTrustMethodForIndex(final int value)
     {
-      return msg;
+      for (final TrustMethod trustMethod : TrustMethod.values())
+      {
+        if (trustMethod.getChoice() == value)
+        {
+          return trustMethod;
+        }
+      }
+      return null;
     }
   }
 
-  /**
-   * Enumeration description server certificate trust option.
-   */
+  /** Enumeration description server certificate trust option. */
   private enum TrustOption
   {
-    UNTRUSTED(1, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()),
-    SESSION(2, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
-    PERMAMENT(3, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()),
-    CERTIFICATE_DETAILS(4, INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
+    UNTRUSTED(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()),
+    SESSION(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
+    PERMAMENT(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()),
+    CERTIFICATE_DETAILS(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
 
-    private Integer choice;
+    private LocalizableMessage message;
 
-    private LocalizableMessage msg;
-
-    /**
-     * Private constructor.
-     *
-     * @param i
-     *          the menu return value.
-     * @param msg
-     *          the message message.
-     */
-    private TrustOption(int i, LocalizableMessage msg)
+    TrustOption(final LocalizableMessage message)
     {
-      choice = Integer.valueOf(i);
-      this.msg = msg;
+      this.message = message;
     }
 
-    /**
-     * Returns the choice number.
-     *
-     * @return the attribute name.
-     */
-    public Integer getChoice()
+    private int getChoice()
     {
-      return choice;
+      return ordinal() + 1;
     }
 
-    /**
-     * Return the menu message.
-     *
-     * @return the menu message.
-     */
-    public LocalizableMessage getMenuMessage()
+    private static TrustOption getTrustOptionForIndex(final int value)
     {
-      return msg;
+      for (final TrustOption trustOption : TrustOption.values())
+      {
+        if (trustOption.getChoice() == value)
+        {
+          return trustOption;
+        }
+      }
+      return null;
     }
   }
 
@@ -349,7 +292,7 @@ public class LDAPConnectionConsoleInteraction
   {
     this.app = app;
     this.secureArgsList = secureArgs;
-    this.commandBuilder = new CommandBuilder(null, null);
+    this.commandBuilder = new CommandBuilder();
     state = new State(secureArgs);
     copySecureArgsList = new SecureConnectionCliArgs(secureArgs.alwaysSSL());
     try
@@ -387,447 +330,328 @@ public class LDAPConnectionConsoleInteraction
    */
   public void run(boolean canUseStartTLS) throws ArgumentException
   {
-    // Reset everything
+    resetBeforeRun();
+    resolveHostName();
+    resolveConnectionType(canUseStartTLS);
+    resolvePortNumber();
+    resolveTrustAndKeyManagers();
+    resolveCredentialLogin();
+    resolveCredentialPassword();
+    resolveConnectTimeout();
+  }
+
+  private void resetBeforeRun() throws ArgumentException
+  {
     commandBuilder.clearArguments();
     copySecureArgsList.createGlobalArguments();
+    state.providedAdminUID = null;
+    state.providedBindDN = null;
+  }
 
-    boolean secureConnection = true;
+  private void resolveHostName() throws ArgumentException
+  {
+    state.hostName = secureArgsList.getHostNameArg().getValue();
+    promptForHostNameIfRequired();
+    addArgToCommandBuilder(copySecureArgsList.getHostNameArg(), state.hostName);
+  }
 
-    // Get the LDAP host.
-    state.hostName = secureArgsList.hostNameArg.getValue();
-    final String tmpHostName = state.hostName;
-    if (app.isInteractive() && !secureArgsList.hostNameArg.isPresent())
-    {
-      checkHeadingDisplayed();
+  private void resolveConnectionType(boolean canUseStartTLS)
+  {
+    state.setSsl(secureArgsList);
+    promptForConnectionTypeIfRequired(canUseStartTLS);
+    addConnectionTypeToCommandBuilder();
+  }
 
-      ValidationCallback<String> callback = new ValidationCallback<String>()
-      {
+  private void resolvePortNumber() throws ArgumentException
+  {
+    portNumber = (state.useSSL && !secureArgsList.getPortArg().isPresent())
+        ? secureArgsList.getPortFromConfig()
+        : secureArgsList.getPortArg().getIntValue();
+    promptForPortNumberIfRequired();
+    addArgToCommandBuilder(copySecureArgsList.getPortArg(), String.valueOf(portNumber));
+  }
 
-        @Override
-        public String validate(ConsoleApplication app, String input)
-            throws ClientException
-        {
-          String ninput = input.trim();
-          if (ninput.length() == 0)
-          {
-            return tmpHostName;
-          }
-          else
-          {
-            try
-            {
-              InetAddress.getByName(ninput);
-              return ninput;
-            }
-            catch (UnknownHostException e)
-            {
-              // Try again...
-              app.println();
-              app.println(ERR_LDAP_CONN_BAD_HOST_NAME.get(ninput));
-              app.println();
-              return null;
-            }
-          }
-        }
-
-      };
-
-      try
-      {
-        app.println();
-        state.hostName = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_HOST_NAME.get(state.hostName), callback);
-      }
-      catch (ClientException e)
-      {
-        throw cannotReadConnectionParameters(e);
-      }
-    }
-
-    copySecureArgsList.hostNameArg.clearValues();
-    copySecureArgsList.hostNameArg.addValue(state.hostName);
-    commandBuilder.addArgument(copySecureArgsList.hostNameArg);
-
-    // Connection type
-    state.useSSL = secureArgsList.useSSL();
-    state.useStartTLS = secureArgsList.useStartTLS();
-    boolean connectionTypeIsSet =
-        secureArgsList.alwaysSSL()
-            || secureArgsList.useSSLArg.isPresent()
-            || secureArgsList.useStartTLSArg.isPresent()
-            || (secureArgsList.useSSLArg.isValueSetByProperty() && secureArgsList.useStartTLSArg
-                .isValueSetByProperty());
-    if (app.isInteractive() && !connectionTypeIsSet)
-    {
-      checkHeadingDisplayed();
-
-      MenuBuilder<Integer> builder = new MenuBuilder<>(app);
-      builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_USE_SECURE_CTX.get());
-
-      Protocols defaultProtocol;
-      if (secureConnection)
-      {
-        defaultProtocol = Protocols.SSL;
-      }
-      else
-      {
-        defaultProtocol = Protocols.LDAP;
-      }
-      for (Protocols p : Protocols.values())
-      {
-        if (secureConnection && p.equals(Protocols.LDAP) && !displayLdapIfSecureParameters)
-        {
-          continue;
-        }
-        if (!canUseStartTLS && p.equals(Protocols.START_TLS))
-        {
-          continue;
-        }
-        int i =
-            builder.addNumberedOption(p.getMenuMessage(), MenuResult.success(p
-                .getChoice()));
-        if (p.equals(defaultProtocol))
-        {
-          builder.setDefault(
-              INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(i),
-              MenuResult.success(p.getChoice()));
-        }
-      }
-
-      Menu<Integer> menu = builder.toMenu();
-      try
-      {
-        MenuResult<Integer> result = menu.run();
-        if (result.isSuccess())
-        {
-          if (result.getValue().equals(Protocols.SSL.getChoice()))
-          {
-            state.useSSL = true;
-          }
-          else if (result.getValue().equals(Protocols.START_TLS.getChoice()))
-          {
-            state.useStartTLS = true;
-          }
-        }
-        else
-        {
-          // Should never happen.
-          throw new RuntimeException();
-        }
-      }
-      catch (ClientException e)
-      {
-        throw new RuntimeException(e);
-      }
-    }
-
-    if (state.useSSL)
-    {
-      commandBuilder.addArgument(copySecureArgsList.useSSLArg);
-    }
-    else if (state.useStartTLS)
-    {
-      commandBuilder.addArgument(copySecureArgsList.useStartTLSArg);
-    }
-
-    // Get the LDAP port.
-    if (!state.useSSL)
-    {
-      portNumber = secureArgsList.portArg.getIntValue();
-    }
-    else
-    {
-      if (secureArgsList.portArg.isPresent())
-      {
-        portNumber = secureArgsList.portArg.getIntValue();
-      }
-      else
-      {
-        portNumber = secureArgsList.getPortFromConfig();
-      }
-    }
-
-    final int tmpPortNumber = portNumber;
-    if (app.isInteractive() && !secureArgsList.portArg.isPresent())
-    {
-      checkHeadingDisplayed();
-
-      ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
-      {
-
-        @Override
-        public Integer validate(ConsoleApplication app, String input)
-            throws ClientException
-        {
-          String ninput = input.trim();
-          if (ninput.length() == 0)
-          {
-            return tmpPortNumber;
-          }
-          else
-          {
-            try
-            {
-              int i = Integer.parseInt(ninput);
-              if (i < 1 || i > 65535)
-              {
-                throw new NumberFormatException();
-              }
-              return i;
-            }
-            catch (NumberFormatException e)
-            {
-              // Try again...
-              app.println();
-              app.println(ERR_LDAP_CONN_BAD_PORT_NUMBER.get(ninput));
-              app.println();
-              return null;
-            }
-          }
-        }
-
-      };
-
-      try
-      {
-        app.println();
-        LocalizableMessage askPortNumber = null;
-        if (secureArgsList.alwaysSSL())
-        {
-          askPortNumber = INFO_ADMIN_CONN_PROMPT_PORT_NUMBER.get(portNumber);
-        }
-        else
-        {
-          askPortNumber = INFO_LDAP_CONN_PROMPT_PORT_NUMBER.get(portNumber);
-        }
-        portNumber = app.readValidatedInput(askPortNumber, callback);
-      }
-      catch (ClientException e)
-      {
-        throw cannotReadConnectionParameters(e);
-      }
-    }
-
-    copySecureArgsList.portArg.clearValues();
-    copySecureArgsList.portArg.addValue(String.valueOf(portNumber));
-    commandBuilder.addArgument(copySecureArgsList.portArg);
-
-    // Handle certificate
+  private void resolveTrustAndKeyManagers() throws ArgumentException {
     if ((state.useSSL || state.useStartTLS) && state.trustManager == null)
     {
-      initializeTrustManager();
+      initializeTrustAndKeyManagers();
+    }
+  }
+
+  private void resolveCredentialLogin() throws ArgumentException
+  {
+    setAdminUidAndBindDnFromArgs();
+    if (useKeyManager())
+    {
+      return;
+    }
+    promptForCredentialLoginIfRequired(secureArgsList.getBindDnArg().getValue(),
+                                       secureArgsList.getAdminUidArg().getValue());
+    final boolean onlyBindDnProvided = state.providedAdminUID != null || state.providedBindDN == null;
+    if ((useAdminOrBindDn && onlyBindDnProvided)
+     || (!useAdminOrBindDn && isAdminUidArgVisible()))
+    {
+      addArgToCommandBuilder(copySecureArgsList.getAdminUidArg(), getAdministratorUID());
+    }
+    else
+    {
+      addArgToCommandBuilder(copySecureArgsList.getBindDnArg(), getBindDN());
+    }
+  }
+
+  private void setAdminUidAndBindDnFromArgs()
+  {
+    final Argument adminUid = secureArgsList.getAdminUidArg();
+    final Argument bindDn = secureArgsList.getBindDnArg();
+
+    state.providedAdminUID = (isAdminUidArgVisible() && adminUid.isPresent()) ? adminUid.getValue() : null;
+    state.providedBindDN = ((useAdminOrBindDn || !isAdminUidArgVisible()) && bindDn.isPresent()) ? bindDn.getValue()
+                                                                                                 : null;
+    state.adminUID = !useKeyManager() ? adminUid.getValue() : null;
+    state.bindDN = !useKeyManager() ? bindDn.getValue() : null;
+  }
+
+  private void resolveCredentialPassword() throws ArgumentException
+  {
+    if (secureArgsList.getBindPasswordArg().isPresent())
+    {
+      state.bindPassword = secureArgsList.getBindPasswordArg().getValue();
     }
 
-    // Get the LDAP bind credentials.
-    state.bindDN = secureArgsList.bindDnArg.getValue();
-    state.adminUID= secureArgsList.adminUidArg.getValue();
-    final boolean useAdmin = secureArgsList.useAdminUID();
-    if (useAdmin && secureArgsList.adminUidArg.isPresent())
+    if (useKeyManager())
     {
-      state.providedAdminUID = state.adminUID;
+      return;
     }
-    else
+
+    setBindPasswordFileFromArgs();
+    final boolean addedPasswordFileArgument = secureArgsList.getBindPasswordFileArg().isPresent();
+    if (!addedPasswordFileArgument && (state.bindPassword == null || "-".equals(state.bindPassword)))
     {
-      state.providedAdminUID = null;
+      promptForBindPasswordIfRequired();
     }
-    if ((!useAdmin || useAdminOrBindDn) && secureArgsList.bindDnArg.isPresent())
+
+    final Argument bindPassword = copySecureArgsList.getBindPasswordArg();
+    bindPassword.clearValues();
+    bindPassword.addValue(state.bindPassword);
+    if (!addedPasswordFileArgument)
     {
-      state.providedBindDN = state.bindDN;
+      commandBuilder.addObfuscatedArgument(bindPassword);
     }
-    else
+  }
+
+  private void setBindPasswordFileFromArgs() throws ArgumentException
+  {
+    final FileBasedArgument bindPasswordFile = secureArgsList.getBindPasswordFileArg();
+    if (bindPasswordFile.isPresent())
     {
-      state.providedBindDN = null;
-    }
-    boolean argIsPresent = state.providedAdminUID != null || state.providedBindDN != null;
-    final String tmpBindDN = state.bindDN;
-    final String tmpAdminUID = state.adminUID;
-    if (state.keyManager == null)
-    {
-      if (app.isInteractive() && !argIsPresent)
+      // Read from file if it exists.
+      state.bindPassword = bindPasswordFile.getValue();
+      if (state.bindPassword == null)
       {
-        checkHeadingDisplayed();
+        throw new ArgumentException(
+            ERR_ERROR_NO_ADMIN_PASSWORD.get(isAdminUidArgVisible() ? state.adminUID : state.bindDN));
+      }
+      addArgToCommandBuilder(copySecureArgsList.getBindPasswordFileArg(), bindPasswordFile.getNameToValueMap());
+    }
+  }
 
-        ValidationCallback<String> callback = new ValidationCallback<String>()
+  private void resolveConnectTimeout() throws ArgumentException
+  {
+    state.connectTimeout = secureArgsList.getConnectTimeoutArg().getIntValue();
+  }
+
+  private void promptForHostNameIfRequired() throws ArgumentException
+  {
+    if (!app.isInteractive() || secureArgsList.getHostNameArg().isPresent())
+    {
+      return;
+    }
+    checkHeadingDisplayed();
+    ValidationCallback<String> callback = new ValidationCallback<String>()
+    {
+      @Override
+      public String validate(ConsoleApplication app, String rawInput) throws ClientException
+      {
+        final String input = rawInput.trim();
+        if (input.length() == 0)
         {
-
-          @Override
-          public String validate(ConsoleApplication app, String input)
-              throws ClientException
-          {
-            String ninput = input.trim();
-            if (ninput.length() == 0)
-            {
-              if (useAdmin)
-              {
-                return tmpAdminUID;
-              }
-              else
-              {
-                return tmpBindDN;
-              }
-            }
-            else
-            {
-              return ninput;
-            }
-          }
-
-        };
+          return state.hostName;
+        }
 
         try
         {
-          app.println();
-          if (useAdminOrBindDn)
-          {
-            String def = state.adminUID != null ? state.adminUID : state.bindDN;
-            String v =
-                app.readValidatedInput(
-                    INFO_LDAP_CONN_GLOBAL_ADMINISTRATOR_OR_BINDDN_PROMPT.get(def), callback);
-            if (isDN(v))
-            {
-              state.bindDN = v;
-              state.providedBindDN = v;
-              state.adminUID = null;
-              state.providedAdminUID = null;
-            }
-            else
-            {
-              state.bindDN = null;
-              state.providedBindDN = null;
-              state.adminUID = v;
-              state.providedAdminUID = v;
-            }
-          }
-          else if (useAdmin)
-          {
-            state.adminUID =
-                app.readValidatedInput(INFO_LDAP_CONN_PROMPT_ADMINISTRATOR_UID.get(state.adminUID), callback);
-            state.providedAdminUID = state.adminUID;
-          }
-          else
-          {
-            state.bindDN =
-                app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN.get(state.bindDN), callback);
-            state.providedBindDN = state.bindDN;
-          }
+          // Ensure that the prompted host is known
+          InetAddress.getByName(input);
+          return input;
         }
-        catch (ClientException e)
+        catch (UnknownHostException e)
         {
-          throw cannotReadConnectionParameters(e);
+          // Try again...
+          app.println();
+          app.println(ERR_LDAP_CONN_BAD_HOST_NAME.get(input));
+          app.println();
+          return null;
         }
       }
+    };
+
+    try
+    {
+      app.println();
+      state.hostName = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_HOST_NAME.get(state.hostName), callback);
+    }
+    catch (ClientException e)
+    {
+      throw cannotReadConnectionParameters(e);
+    }
+  }
+
+  private void promptForConnectionTypeIfRequired(final boolean canUseStartTLS)
+  {
+    final boolean valuesSetByProperty = secureArgsList.getUseSSLArg().isValueSetByProperty()
+                                     && secureArgsList.getUseStartTLSArg().isValueSetByProperty();
+    if (!app.isInteractive() || state.useSSL || state.useStartTLS || valuesSetByProperty)
+    {
+      return;
+    }
+    checkHeadingDisplayed();
+    final MenuBuilder<Integer> builder = new MenuBuilder<>(app);
+    builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_USE_SECURE_CTX.get());
+
+    for (Protocol p : Protocol.values())
+    {
+      if ((!displayLdapIfSecureParameters && Protocol.LDAP.equals(p))
+          || (!canUseStartTLS && Protocol.START_TLS.equals(p)))
+      {
+        continue;
+      }
+
+      final MenuResult<Integer> menuResult = MenuResult.success(p.getChoice());
+      final int i = builder.addNumberedOption(p.message, menuResult);
+      if (DEFAULT_PROMPT_PROTOCOL.equals(p))
+      {
+        builder.setDefault(INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(i), menuResult);
+      }
+    }
+
+    Menu<Integer> menu = builder.toMenu();
+    try
+    {
+      final MenuResult<Integer> result = menu.run();
+      throwIfMenuResultNotSucceeded(result);
+      final int userChoice = result.getValue();
+      if (Protocol.SSL.getChoice() == userChoice)
+      {
+        state.useSSL = true;
+      }
+      else if (Protocol.START_TLS.getChoice() == userChoice)
+      {
+        state.useStartTLS = true;
+      }
+    }
+    catch (ClientException e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void promptForPortNumberIfRequired() throws ArgumentException
+  {
+    if (!app.isInteractive() || secureArgsList.getPortArg().isPresent())
+    {
+      return;
+    }
+    checkHeadingDisplayed();
+    try
+    {
+      app.println();
+      final LocalizableMessage askPortNumberMsg = secureArgsList.alwaysSSL() ?
+          INFO_ADMIN_CONN_PROMPT_PORT_NUMBER.get(portNumber) :
+          INFO_LDAP_CONN_PROMPT_PORT_NUMBER.get(portNumber);
+      portNumber = app.readValidatedInput(askPortNumberMsg, portValidationCallback(portNumber));
+    }
+    catch (ClientException e)
+    {
+      throw cannotReadConnectionParameters(e);
+    }
+  }
+
+  private void promptForCredentialLoginIfRequired(final String defaultBindDN, final String defaultAdminUID)
+      throws ArgumentException
+  {
+    if (!app.isInteractive() || state.providedAdminUID != null || state.providedBindDN != null)
+    {
+      return;
+    }
+    checkHeadingDisplayed();
+    ValidationCallback<String> callback = new ValidationCallback<String>()
+    {
+      @Override public String validate(ConsoleApplication app, String rawInput) throws ClientException
+      {
+        final String input = rawInput.trim();
+        if (input.isEmpty())
+        {
+          return isAdminUidArgVisible() ? defaultAdminUID : defaultBindDN;
+        }
+
+        return input;
+      }
+    };
+
+    try
+    {
+      app.println();
       if (useAdminOrBindDn)
       {
-        boolean addAdmin = state.providedAdminUID != null;
-        boolean addBindDN = state.providedBindDN != null;
-        if (!addAdmin && !addBindDN)
+        String def = state.adminUID != null ? state.adminUID : state.bindDN;
+        String v = app.readValidatedInput(INFO_LDAP_CONN_GLOBAL_ADMINISTRATOR_OR_BINDDN_PROMPT.get(def), callback);
+        if (isDN(v))
         {
-          addAdmin = getAdministratorUID() != null;
-          addBindDN = getBindDN() != null;
+          state.bindDN = v;
+          state.providedBindDN = v;
+          state.adminUID = null;
+          state.providedAdminUID = null;
         }
-        if (addAdmin)
+        else
         {
-          copySecureArgsList.adminUidArg.clearValues();
-          copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
-          commandBuilder.addArgument(copySecureArgsList.adminUidArg);
-        }
-        else if (addBindDN)
-        {
-          copySecureArgsList.bindDnArg.clearValues();
-          copySecureArgsList.bindDnArg.addValue(getBindDN());
-          commandBuilder.addArgument(copySecureArgsList.bindDnArg);
+          state.bindDN = null;
+          state.providedBindDN = null;
+          state.adminUID = v;
+          state.providedAdminUID = v;
         }
       }
-      else if (useAdmin)
+      else if (isAdminUidArgVisible())
       {
-        copySecureArgsList.adminUidArg.clearValues();
-        copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
-        commandBuilder.addArgument(copySecureArgsList.adminUidArg);
+        state.adminUID = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_ADMINISTRATOR_UID.get(state.adminUID), callback);
+        state.providedAdminUID = state.adminUID;
       }
       else
       {
-        copySecureArgsList.bindDnArg.clearValues();
-        copySecureArgsList.bindDnArg.addValue(getBindDN());
-        commandBuilder.addArgument(copySecureArgsList.bindDnArg);
+        state.bindDN = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN.get(state.bindDN), callback);
+        state.providedBindDN = state.bindDN;
       }
     }
-    else
+    catch (ClientException e)
     {
-      state.bindDN = null;
-      state.adminUID = null;
+      throw cannotReadConnectionParameters(e);
     }
-
-    boolean addedPasswordFileArgument = false;
-    if (secureArgsList.bindPasswordArg.isPresent())
-    {
-      state.bindPassword = secureArgsList.bindPasswordArg.getValue();
-    }
-    if (state.keyManager == null)
-    {
-      if (secureArgsList.bindPasswordFileArg.isPresent())
-      {
-        // Read from file if it exists.
-        state.bindPassword = secureArgsList.bindPasswordFileArg.getValue();
-
-        if (state.bindPassword == null)
-        {
-          if (useAdmin)
-          {
-            throw new ArgumentException(ERR_ERROR_NO_ADMIN_PASSWORD.get(state.adminUID));
-          }
-          else
-          {
-            throw new ArgumentException(ERR_ERROR_NO_ADMIN_PASSWORD.get(state.bindDN));
-          }
-        }
-        copySecureArgsList.bindPasswordFileArg.clearValues();
-        copySecureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(
-            secureArgsList.bindPasswordFileArg.getNameToValueMap());
-        commandBuilder.addArgument(copySecureArgsList.bindPasswordFileArg);
-        addedPasswordFileArgument = true;
-      }
-      else if (state.bindPassword == null || "-".equals(state.bindPassword))
-      {
-        // Read the password from the stdin.
-        if (!app.isInteractive())
-        {
-          throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
-        }
-
-        checkHeadingDisplayed();
-
-        try
-        {
-          app.println();
-          state.bindPassword = readPassword(state.getPrompt());
-        }
-        catch (Exception e)
-        {
-          throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
-        }
-      }
-      copySecureArgsList.bindPasswordArg.clearValues();
-      copySecureArgsList.bindPasswordArg.addValue(state.bindPassword);
-      if (!addedPasswordFileArgument)
-      {
-        commandBuilder.addObfuscatedArgument(copySecureArgsList.bindPasswordArg);
-      }
-    }
-    state.connectTimeout = secureArgsList.connectTimeoutArg.getIntValue();
   }
 
-  private ArgumentException cannotReadConnectionParameters(ClientException e)
+  private void promptForBindPasswordIfRequired() throws ArgumentException
   {
-    return new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
-  }
-
-  private String readPassword(LocalizableMessage prompt) throws ClientException
-  {
-    final char[] pwd = app.readPassword(prompt);
-    if (pwd != null)
+    if (!app.isInteractive())
     {
-      return String.valueOf(pwd);
+      throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
     }
-    return null;
+    checkHeadingDisplayed();
+    try
+    {
+      state.bindPassword = readPassword(state.getPrompt());
+    }
+    catch (Exception e)
+    {
+      throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
+    }
   }
 
   /**
@@ -837,205 +661,90 @@ public class LDAPConnectionConsoleInteraction
    * @throws ArgumentException
    *           If an error occurs when getting args values.
    */
-  private ApplicationTrustManager getTrustManagerInternal()
-      throws ArgumentException
+  private ApplicationTrustManager getTrustManagerInternal() throws ArgumentException
   {
     // Remove these arguments since this method might be called several times.
-    commandBuilder.removeArgument(copySecureArgsList.trustAllArg);
-    commandBuilder.removeArgument(copySecureArgsList.trustStorePathArg);
-    commandBuilder.removeArgument(copySecureArgsList.trustStorePasswordArg);
-    commandBuilder.removeArgument(copySecureArgsList.trustStorePasswordFileArg);
+    commandBuilder.removeArguments(copySecureArgsList.getTrustAllArg(),
+                                   copySecureArgsList.getTrustStorePathArg(),
+                                   copySecureArgsList.getTrustStorePasswordArg(),
+                                   copySecureArgsList.getTrustStorePasswordFileArg());
 
-    // If we have the trustALL flag, don't do anything
-    // just return null
-    if (secureArgsList.trustAllArg.isPresent())
+    final TrustMethod trustMethod = resolveTrustMethod();
+    if (TrustMethod.TRUSTALL == trustMethod)
     {
-      commandBuilder.addArgument(copySecureArgsList.trustAllArg);
       return null;
     }
 
-    // Check if some trust manager info are set
-    boolean weDontKnowTheTrustMethod =
-        !secureArgsList.trustAllArg.isPresent()
-        && !secureArgsList.trustStorePathArg.isPresent()
-        && !secureArgsList.trustStorePasswordArg.isPresent()
-        && !secureArgsList.trustStorePasswordFileArg.isPresent();
-    boolean askForTrustStore = false;
-
-    state.trustAll = secureArgsList.trustAllArg.isPresent();
-
-    // Try to use the local instance trust store, to avoid certificate
-    // validation when both the CLI and the server are in the same instance.
-    if (weDontKnowTheTrustMethod && addLocalTrustStore())
-    {
-      weDontKnowTheTrustMethod = false;
-    }
-
-    if (app.isInteractive() && weDontKnowTheTrustMethod)
-    {
-      checkHeadingDisplayed();
-
-      app.println();
-      MenuBuilder<Integer> builder = new MenuBuilder<>(app);
-      builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_METHOD.get());
-
-      TrustMethod defaultTrustMethod = TrustMethod.DISPLAY_CERTIFICATE;
-      for (TrustMethod t : TrustMethod.values())
-      {
-        int i =
-            builder.addNumberedOption(t.getMenuMessage(), MenuResult.success(t
-                .getChoice()));
-        if (t.equals(defaultTrustMethod))
-        {
-          builder.setDefault(
-              INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
-                  .get(Integer.valueOf(i)), MenuResult.success(t.getChoice()));
-        }
-      }
-
-      Menu<Integer> menu = builder.toMenu();
-      state.trustStoreInMemory = false;
-      try
-      {
-        MenuResult<Integer> result = menu.run();
-        if (result.isSuccess())
-        {
-          if (result.getValue().equals(TrustMethod.TRUSTALL.getChoice()))
-          {
-            commandBuilder.addArgument(copySecureArgsList.trustAllArg);
-            state.trustAll = true;
-            // If we have the trustALL flag, don't do anything
-            // just return null
-            return null;
-          }
-          else if (result.getValue().equals(TrustMethod.TRUSTSTORE.getChoice()))
-          {
-            // We have to ask for trust store info
-            askForTrustStore = true;
-          }
-          else if (result.getValue().equals(
-              TrustMethod.DISPLAY_CERTIFICATE.getChoice()))
-          {
-            // The certificate will be displayed to the user
-            askForTrustStore = false;
-            state.trustStoreInMemory = true;
-
-            // There is no direct equivalent for this option, so propose the
-            // trust all option as command-line argument.
-            commandBuilder.addArgument(copySecureArgsList.trustAllArg);
-          }
-          else
-          {
-            // Should never happen.
-            throw new RuntimeException();
-          }
-        }
-        else
-        {
-          // Should never happen.
-          throw new RuntimeException();
-        }
-      }
-      catch (ClientException e)
-      {
-        throw new RuntimeException(e);
-
-      }
-    }
-
-    // If we do not trust all server certificates, we have to get info
-    // about trust store. First get the trust store path.
-    state.truststorePath = secureArgsList.trustStorePathArg.getValue();
-
-    if (app.isInteractive() && !secureArgsList.trustStorePathArg.isPresent() && askForTrustStore)
-    {
-      checkHeadingDisplayed();
-
-      ValidationCallback<String> callback = new ValidationCallback<String>()
-      {
-        @Override
-        public String validate(ConsoleApplication app, String input)
-            throws ClientException
-        {
-          String ninput = input.trim();
-          if (ninput.length() == 0)
-          {
-            app.println();
-            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
-            app.println();
-            return null;
-          }
-          File f = new File(ninput);
-          if (f.exists() && f.canRead() && !f.isDirectory())
-          {
-            return ninput;
-          }
-          else
-          {
-            app.println();
-            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
-            app.println();
-            return null;
-          }
-        }
-      };
-
-      try
-      {
-        app.println();
-        state.truststorePath = app.readValidatedInput(
-                INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(), callback);
-      }
-      catch (ClientException e)
-      {
-        throw cannotReadConnectionParameters(e);
-      }
-    }
-
-    if (state.truststorePath != null)
-    {
-      copySecureArgsList.trustStorePathArg.clearValues();
-      copySecureArgsList.trustStorePathArg.addValue(state.truststorePath);
-      commandBuilder.addArgument(copySecureArgsList.trustStorePathArg);
-    }
-
-    // Then the truststore password.
-    //  As the most common case is to have no password for truststore,
-    // we don't ask it in the interactive mode.
-    if (secureArgsList.trustStorePasswordArg.isPresent())
-    {
-      state.truststorePassword = secureArgsList.trustStorePasswordArg.getValue();
-    }
-    if (secureArgsList.trustStorePasswordFileArg.isPresent())
-    {
-      // Read from file if it exists.
-      state.truststorePassword = secureArgsList.trustStorePasswordFileArg.getValue();
-    }
+    final boolean promptForTrustStore = TrustMethod.TRUSTSTORE == trustMethod;
+    resolveTrustStorePath(promptForTrustStore);
+    setTrustStorePassword();
+    setTrustStorePasswordFromFile();
     if ("-".equals(state.truststorePassword))
     {
       // Read the password from the stdin.
-      if (!app.isInteractive())
-      {
-        state.truststorePassword = null;
-      }
-      else
-      {
-        checkHeadingDisplayed();
-
-        try
-        {
-          app.println();
-          LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD.get(state.truststorePath);
-          state.truststorePassword = readPassword(prompt);
-        }
-        catch (Exception e)
-        {
-          throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
-        }
-      }
+      promptForTrustStorePasswordIfRequired();
     }
 
-    // We've got all the information to get the truststore manager
+    return resolveTrustStore();
+  }
+
+  /** As the most common case is to have no password for trust store, we do not ask it in the interactive mode.*/
+  private void setTrustStorePassword()
+  {
+    if (secureArgsList.getTrustStorePasswordArg().isPresent())
+    {
+      state.truststorePassword = secureArgsList.getTrustStorePasswordArg().getValue();
+    }
+  }
+
+  private void setTrustStorePasswordFromFile()
+  {
+    if (secureArgsList.getTrustStorePasswordFileArg().isPresent())
+    {
+      state.truststorePassword = secureArgsList.getTrustStorePasswordFileArg().getValue();
+    }
+  }
+
+  /** Return the trust method chosen by user or {@code null} if the information is not available. */
+  private TrustMethod resolveTrustMethod()
+  {
+    state.trustAll = secureArgsList.getTrustAllArg().isPresent();
+    // Check if some trust manager info are set
+    boolean needPromptForTrustMethod = !state.trustAll
+        && !secureArgsList.getTrustStorePathArg().isPresent()
+        && !secureArgsList.getTrustStorePasswordArg().isPresent()
+        && !secureArgsList.getTrustStorePasswordFileArg().isPresent();
+
+    TrustMethod trustMethod = state.trustAll ? TrustMethod.TRUSTALL : null;
+    // Try to use the local instance trust store, to avoid certificate
+    // validation when both the CLI and the server are in the same instance.
+    if (needPromptForTrustMethod && !useLocalTrustStoreIfPossible())
+    {
+      trustMethod = promptForTrustMethodIfRequired();
+    }
+
+    if (trustMethod != TrustMethod.TRUSTSTORE)
+    {
+      // There is no direct equivalent for the display certificate option,
+      // so propose trust all option as command-line argument.
+      commandBuilder.addArgument(copySecureArgsList.getTrustAllArg());
+    }
+
+    return trustMethod;
+  }
+
+  private void resolveTrustStorePath(final boolean promptForTrustStore) throws ArgumentException
+  {
+    state.truststorePath = secureArgsList.getTrustStorePathArg().getValue();
+    if (promptForTrustStore)
+    {
+      promptForTrustStorePathIfRequired();
+    }
+    addArgToCommandBuilder(copySecureArgsList.getTrustStorePathArg(), state.truststorePath);
+  }
+
+  private ApplicationTrustManager resolveTrustStore() throws ArgumentException
+  {
     try
     {
       state.truststore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -1043,14 +752,7 @@ public class LDAPConnectionConsoleInteraction
       {
         try (FileInputStream fos = new FileInputStream(state.truststorePath))
         {
-          if (state.truststorePassword != null)
-          {
-            state.truststore.load(fos, state.truststorePassword.toCharArray());
-          }
-          else
-          {
-            state.truststore.load(fos, null);
-          }
+          state.truststore.load(fos, state.truststorePassword != null ? state.truststorePassword.toCharArray() : null);
         }
       }
       else
@@ -1058,23 +760,102 @@ public class LDAPConnectionConsoleInteraction
         state.truststore.load(null, null);
       }
 
-      if (secureArgsList.trustStorePasswordFileArg.isPresent() && state.truststorePath != null)
+      if (secureArgsList.getTrustStorePasswordFileArg().isPresent() && state.truststorePath != null)
       {
-        copySecureArgsList.trustStorePasswordFileArg.clearValues();
-        copySecureArgsList.trustStorePasswordFileArg.getNameToValueMap()
-            .putAll(secureArgsList.trustStorePasswordFileArg.getNameToValueMap());
-        commandBuilder.addArgument(copySecureArgsList.trustStorePasswordFileArg);
+        addArgToCommandBuilder(copySecureArgsList.getTrustStorePasswordFileArg(),
+            secureArgsList.getTrustStorePasswordFileArg().getNameToValueMap());
       }
       else if (state.truststorePassword != null && state.truststorePath != null)
       {
-        // Only add the trust store password if there is one AND if the user
-        // specified a trust store path.
-        copySecureArgsList.trustStorePasswordArg.clearValues();
-        copySecureArgsList.trustStorePasswordArg.addValue(state.truststorePassword);
-        commandBuilder.addObfuscatedArgument(copySecureArgsList.trustStorePasswordArg);
+        addObfuscatedArgToCommandBuilder(copySecureArgsList.getTrustStorePasswordArg(), state.truststorePassword);
       }
 
       return new ApplicationTrustManager(state.truststore);
+    }
+    catch (Exception e)
+    {
+      throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
+    }
+  }
+
+  private TrustMethod promptForTrustMethodIfRequired()
+  {
+    if (!app.isInteractive())
+    {
+      return null;
+    }
+
+    checkHeadingDisplayed();
+    app.println();
+    MenuBuilder<Integer> builder = new MenuBuilder<>(app);
+    builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_METHOD.get());
+
+    for (TrustMethod t : TrustMethod.values())
+    {
+      int i = builder.addNumberedOption(t.message, MenuResult.success(t.getChoice()));
+      if (DEFAULT_PROMPT_TRUST_METHOD.equals(t))
+      {
+        builder.setDefault(
+            INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(i), MenuResult.success(t.getChoice()));
+      }
+    }
+
+    Menu<Integer> menu = builder.toMenu();
+    state.trustStoreInMemory = false;
+    try
+    {
+      final MenuResult<Integer> result = menu.run();
+      throwIfMenuResultNotSucceeded(result);
+      final int userChoice = result.getValue();
+      if (TrustMethod.TRUSTALL.getChoice() == userChoice)
+      {
+        state.trustAll = true;
+      }
+      else if (TrustMethod.DISPLAY_CERTIFICATE.getChoice() == userChoice)
+      {
+        state.trustStoreInMemory = true;
+      }
+      return TrustMethod.getTrustMethodForIndex(userChoice);
+    }
+    catch (ClientException e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void promptForTrustStorePathIfRequired() throws ArgumentException
+  {
+    if (!app.isInteractive() || secureArgsList.getTrustStorePathArg().isPresent())
+    {
+      return;
+    }
+
+    checkHeadingDisplayed();
+    try
+    {
+      app.println();
+      state.truststorePath = app.readValidatedInput(
+          INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
+          filePathValidationCallback(!ALLOW_EMPTY_PATH, FILE_MUST_EXISTS));
+    }
+    catch (ClientException e)
+    {
+      throw cannotReadConnectionParameters(e);
+    }
+  }
+
+  private void promptForTrustStorePasswordIfRequired() throws ArgumentException
+  {
+    if (!app.isInteractive())
+    {
+      return;
+    }
+
+    checkHeadingDisplayed();
+    try
+    {
+      state.truststorePassword = readPassword(
+          INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD.get(state.truststorePath));
     }
     catch (Exception e)
     {
@@ -1092,218 +873,283 @@ public class LDAPConnectionConsoleInteraction
   private KeyManager getKeyManagerInternal() throws ArgumentException
   {
     //  Remove these arguments since this method might be called several times.
-    commandBuilder.removeArgument(copySecureArgsList.certNicknameArg);
-    commandBuilder.removeArgument(copySecureArgsList.keyStorePathArg);
-    commandBuilder.removeArgument(copySecureArgsList.keyStorePasswordArg);
-    commandBuilder.removeArgument(copySecureArgsList.keyStorePasswordFileArg);
+    commandBuilder.removeArguments(copySecureArgsList.getCertNicknameArg(),
+                                   copySecureArgsList.getKeyStorePathArg(),
+                                   copySecureArgsList.getKeyStorePasswordArg(),
+                                   copySecureArgsList.getKeyStorePasswordFileArg());
 
-    // Do we need client side authentication ?
-    // If one of the client side authentication args is set, we assume
-    // that we
-    // need client side authentication.
-    boolean weDontKnowIfWeNeedKeystore =
-        !secureArgsList.keyStorePathArg.isPresent()
-        && !secureArgsList.keyStorePasswordArg.isPresent()
-        && !secureArgsList.keyStorePasswordFileArg.isPresent()
-        && !secureArgsList.certNicknameArg.isPresent();
-
-    // We don't have specific key manager parameter.
-    // We assume that no client side authentication is required
-    // Client side authentication is not the common use case. As a
-    // consequence, interactive mode doesn't add an extra question
-    // which will be in most cases useless.
-    if (weDontKnowIfWeNeedKeystore)
+    if (!secureArgsList.getKeyStorePathArg().isPresent()
+     && !secureArgsList.getKeyStorePasswordArg().isPresent()
+     && !secureArgsList.getKeyStorePasswordFileArg().isPresent()
+     && !secureArgsList.getCertNicknameArg().isPresent())
     {
+      // If no one of these parameters above are set, we assume that we do not need client side authentication.
+      // Client side authentication is not the common use case so interactive mode doesn't add an extra question.
       return null;
     }
 
-    // Get info about keystore. First get the keystore path.
-    state.keystorePath = secureArgsList.keyStorePathArg.getValue();
-    if (app.isInteractive() && !secureArgsList.keyStorePathArg.isPresent())
+    resolveKeyStorePath();
+    resolveKeyStorePassword();
+
+    final KeyStore keystore = createKeyStore();
+    resolveCertificateNickname(keystore);
+
+    final ApplicationKeyManager keyManager = new ApplicationKeyManager(keystore, state.keystorePassword.toCharArray());
+    addKeyStorePasswordArgToCommandBuilder();
+    if (state.certifNickname != null)
     {
-      checkHeadingDisplayed();
-
-      ValidationCallback<String> callback = new ValidationCallback<String>()
-      {
-        @Override
-        public String validate(ConsoleApplication app, String input)
-            throws ClientException
-        {
-          String ninput = input.trim();
-          if (ninput.length() == 0)
-          {
-            return ninput;
-          }
-          File f = new File(ninput);
-          if (f.exists() && f.canRead() && !f.isDirectory())
-          {
-            return ninput;
-          }
-          else
-          {
-            app.println();
-            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
-            app.println();
-            return null;
-          }
-        }
-      };
-
-      try
-      {
-        app.println();
-        state.keystorePath = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PATH.get(), callback);
-      }
-      catch (ClientException e)
-      {
-        throw cannotReadConnectionParameters(e);
-      }
+      addArgToCommandBuilder(copySecureArgsList.getCertNicknameArg(), state.certifNickname);
+      return SelectableCertificateKeyManager.wrap(
+          new KeyManager[] { keyManager }, CollectionUtils.newTreeSet(state.certifNickname))[0];
     }
 
-    if (state.keystorePath != null)
+    return keyManager;
+  }
+
+  private void resolveKeyStorePath() throws ArgumentException
+  {
+    state.keyStorePath = secureArgsList.getKeyStorePathArg().getValue();
+    promptForKeyStorePathIfRequired();
+
+    if (state.keyStorePath == null)
     {
-      copySecureArgsList.keyStorePathArg.clearValues();
-      copySecureArgsList.keyStorePathArg.addValue(state.keystorePath);
-      commandBuilder.addArgument(copySecureArgsList.keyStorePathArg);
-    }
-    else
-    {
-      // KeystorePath is null. Either it's unspecified or there's a pb
-      // We should throw an exception here, anyway since code below will
-      // anyway
       throw new ArgumentException(ERR_ERROR_INCOMPATIBLE_PROPERTY_MOD.get("null keystorePath"));
     }
+    addArgToCommandBuilder(copySecureArgsList.getKeyStorePathArg(), state.keyStorePath);
+  }
 
-    // Then the keystore password.
-    state.keystorePassword = secureArgsList.keyStorePasswordArg.getValue();
+  private void resolveKeyStorePassword() throws ArgumentException
+  {
+    state.keystorePassword = secureArgsList.getKeyStorePasswordArg().getValue();
 
-    if (secureArgsList.keyStorePasswordFileArg.isPresent())
+    if (secureArgsList.getKeyStorePasswordFileArg().isPresent())
     {
-      // Read from file if it exists.
-      state.keystorePassword = secureArgsList.keyStorePasswordFileArg.getValue();
-
+      state.keystorePassword = secureArgsList.getKeyStorePasswordFileArg().getValue();
       if (state.keystorePassword == null)
       {
-        throw new ArgumentException(ERR_ERROR_NO_ADMIN_PASSWORD.get(state.keystorePassword));
+        throw new ArgumentException(ERR_INSTALLDS_NO_KEYSTORE_PASSWORD.get(
+            secureArgsList.getKeyStorePathArg().getLongIdentifier(),
+            secureArgsList.getKeyStorePasswordFileArg().getLongIdentifier()));
       }
     }
     else if (state.keystorePassword == null || "-".equals(state.keystorePassword))
     {
-      // Read the password from the stdin.
-      if (!app.isInteractive())
-      {
-        throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
-      }
-
-      checkHeadingDisplayed();
-
-      try
-      {
-        app.println();
-        LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD.get(state.keystorePath);
-        state.keystorePassword = readPassword(prompt);
-      }
-      catch (Exception e)
-      {
-        throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
-      }
+      promptForKeyStorePasswordIfRequired();
     }
+  }
 
-    // finally the certificate name, if needed.
-    KeyStore keystore = null;
-    Enumeration<String> aliasesEnum = null;
-    try (FileInputStream fos = new FileInputStream(state.keystorePath))
+  private KeyStore createKeyStore() throws ArgumentException
+  {
+    try (FileInputStream fos = new FileInputStream(state.keyStorePath))
     {
-      keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+      final KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
       keystore.load(fos, state.keystorePassword.toCharArray());
-      aliasesEnum = keystore.aliases();
+      return keystore;
     }
     catch (Exception e)
     {
       throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
     }
+  }
 
-    state.certifNickname = secureArgsList.certNicknameArg.getValue();
-    if (app.isInteractive() && !secureArgsList.certNicknameArg.isPresent() && aliasesEnum.hasMoreElements())
+  private void resolveCertificateNickname(final KeyStore keystore) throws ArgumentException
+  {
+    state.certifNickname = secureArgsList.getCertNicknameArg().getValue();
+    try
     {
-      checkHeadingDisplayed();
+      promptForCertificateNicknameIfRequired(keystore, keystore.aliases());
+    }
+    catch (final KeyStoreException e)
+    {
+      throw new ArgumentException(ERR_RESOLVE_KEYSTORE_ALIASES.get(e.getMessage()), e);
+    }
+  }
 
-      try
+  private void promptForKeyStorePathIfRequired() throws ArgumentException
+  {
+    if (!app.isInteractive() || secureArgsList.getKeyStorePathArg().isPresent())
+    {
+      return;
+    }
+    checkHeadingDisplayed();
+    try
+    {
+      app.println();
+      state.keyStorePath = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PATH.get(),
+                                                  filePathValidationCallback(ALLOW_EMPTY_PATH, FILE_MUST_EXISTS));
+    }
+    catch (ClientException e)
+    {
+      throw cannotReadConnectionParameters(e);
+    }
+  }
+
+  private void promptForKeyStorePasswordIfRequired() throws ArgumentException
+  {
+    if (!app.isInteractive())
+    {
+      throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
+    }
+    checkHeadingDisplayed();
+    try
+    {
+      state.keystorePassword = readPassword(INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD.get(state.keyStorePath));
+    }
+    catch (Exception e)
+    {
+      throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
+    }
+  }
+
+  private void promptForCertificateNicknameIfRequired(KeyStore keystore, Enumeration<String> aliasesEnum)
+      throws ArgumentException
+  {
+    if (!app.isInteractive() || secureArgsList.getCertNicknameArg().isPresent() || !aliasesEnum.hasMoreElements())
+    {
+      return;
+    }
+    state.certifNickname = null;
+    checkHeadingDisplayed();
+    try
+    {
+      MenuBuilder<String> builder = new MenuBuilder<>(app);
+      builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIASES.get());
+      int certificateNumber = 0;
+      while (aliasesEnum.hasMoreElements())
       {
-        MenuBuilder<String> builder = new MenuBuilder<>(app);
-        builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIASES.get());
-        int certificateNumber = 0;
-        for (; aliasesEnum.hasMoreElements();)
+        final String alias = aliasesEnum.nextElement();
+        if (keystore.isKeyEntry(alias))
         {
-          String alias = aliasesEnum.nextElement();
-          if (keystore.isKeyEntry(alias))
-          {
-            X509Certificate certif =
-                (X509Certificate) keystore.getCertificate(alias);
-            certificateNumber++;
-            builder.addNumberedOption(
-                    INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIAS.get(alias,
-                        certif.getSubjectDN().getName()), MenuResult.success(alias));
-          }
-        }
-
-        if (certificateNumber > 1)
-        {
-          app.println();
-          Menu<String> menu = builder.toMenu();
-          MenuResult<String> result = menu.run();
-          if (result.isSuccess())
-          {
-            state.certifNickname = result.getValue();
-          }
-          else
-          {
-            // Should never happen.
-            throw new RuntimeException();
-          }
-        }
-        else
-        {
-          state.certifNickname = null;
+          certificateNumber++;
+          X509Certificate certif = (X509Certificate) keystore.getCertificate(alias);
+          builder.addNumberedOption(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIAS.get(
+                                                                                alias, certif.getSubjectDN().getName()),
+                                    MenuResult.success(alias));
         }
       }
-      catch (KeyStoreException e)
+
+      if (certificateNumber > 1)
       {
-        throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
-      }
-      catch (ClientException e)
-      {
-        throw cannotReadConnectionParameters(e);
+        app.println();
+        Menu<String> menu = builder.toMenu();
+        final MenuResult<String> result = menu.run();
+        throwIfMenuResultNotSucceeded(result);
+        state.certifNickname = result.getValue();
       }
     }
-
-    // We'we got all the information to get the keys manager
-    ApplicationKeyManager akm =
-        new ApplicationKeyManager(keystore, state.keystorePassword.toCharArray());
-
-    if (secureArgsList.keyStorePasswordFileArg.isPresent())
+    catch (KeyStoreException e)
     {
-      copySecureArgsList.keyStorePasswordFileArg.clearValues();
-      copySecureArgsList.keyStorePasswordFileArg.getNameToValueMap().putAll(
-          secureArgsList.keyStorePasswordFileArg.getNameToValueMap());
-      commandBuilder.addArgument(copySecureArgsList.keyStorePasswordFileArg);
+      throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
+    }
+    catch (ClientException e)
+    {
+      throw cannotReadConnectionParameters(e);
+    }
+  }
+
+  private void addKeyStorePasswordArgToCommandBuilder()
+  {
+    if (secureArgsList.getKeyStorePasswordFileArg().isPresent())
+    {
+      addArgToCommandBuilder(copySecureArgsList.getKeyStorePasswordFileArg(),
+          secureArgsList.getKeyStorePasswordFileArg().getNameToValueMap());
     }
     else if (state.keystorePassword != null)
     {
-      copySecureArgsList.keyStorePasswordArg.clearValues();
-      copySecureArgsList.keyStorePasswordArg.addValue(state.keystorePassword);
-      commandBuilder.addObfuscatedArgument(copySecureArgsList.keyStorePasswordArg);
+      addObfuscatedArgToCommandBuilder(copySecureArgsList.getKeyStorePasswordArg(), state.keystorePassword);
     }
+  }
 
-    if (state.certifNickname != null)
+  private void addConnectionTypeToCommandBuilder()
+  {
+    if (state.useSSL)
     {
-      copySecureArgsList.certNicknameArg.clearValues();
-      copySecureArgsList.certNicknameArg.addValue(state.certifNickname);
-      return SelectableCertificateKeyManager.wrap(
-          new KeyManager[] { akm },
-          CollectionUtils.newTreeSet(state.certifNickname))[0];
+      commandBuilder.addArgument(copySecureArgsList.getUseSSLArg());
     }
-    return akm;
+    else if (state.useStartTLS)
+    {
+      commandBuilder.addArgument(copySecureArgsList.getUseStartTLSArg());
+    }
+  }
+
+  private void addArgToCommandBuilder(final Argument arg, final String value)
+  {
+    addArgToCommandBuilder(arg, value, false);
+  }
+
+  private void addObfuscatedArgToCommandBuilder(final Argument arg, final String value)
+  {
+    addArgToCommandBuilder(arg, value, true);
+  }
+
+  private void addArgToCommandBuilder(final Argument arg, final String value, final boolean obfuscated)
+  {
+    if (value != null)
+    {
+      arg.clearValues();
+      arg.addValue(value);
+      commandBuilder.addArgument(arg);
+    }
+  }
+
+  private void addArgToCommandBuilder(final FileBasedArgument arg, final Map<String, String> nameToValueMap)
+  {
+    arg.clearValues();
+    arg.getNameToValueMap().putAll(nameToValueMap);
+    commandBuilder.addArgument(arg);
+  }
+
+  private ArgumentException cannotReadConnectionParameters(ClientException e)
+  {
+    return new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS.get(e.getMessage()), e.getCause());
+  }
+
+  private String readPassword(LocalizableMessage prompt) throws ClientException
+  {
+    app.println();
+    final char[] pwd = app.readPassword(prompt);
+    if (pwd != null)
+    {
+      return String.valueOf(pwd);
+    }
+    return null;
+  }
+
+  private ValidationCallback<String> filePathValidationCallback(
+      final boolean allowEmptyPath, final boolean checkExistenceAndReadability)
+  {
+    return new ValidationCallback<String>()
+    {
+      @Override
+      public String validate(final ConsoleApplication app, final String filePathUserInput) throws ClientException
+      {
+        final String filePath = filePathUserInput.trim();
+        final File f = new File(filePath);
+
+        if ((!allowEmptyPath && filePath.isEmpty())
+            || f.isDirectory()
+            || (checkExistenceAndReadability && !(f.exists() && f.canRead())))
+        {
+          app.println();
+          app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
+          app.println();
+          return null;
+        }
+
+        return filePath;
+      }
+    };
+  }
+
+  /** Returns {@code true} if client script uses the adminUID argument. */
+  private boolean isAdminUidArgVisible()
+  {
+    return !secureArgsList.getAdminUidArg().isHidden();
+  }
+
+  private boolean useKeyManager()
+  {
+    return state.keyManager != null;
   }
 
   /**
@@ -1373,10 +1219,6 @@ public class LDAPConnectionConsoleInteraction
     if (useAdminOrBindDn)
     {
       return state.getAdminOrBindDN();
-    }
-    else if (secureArgsList.useAdminUID())
-    {
-      return getAdministratorDN(state.adminUID);
     }
     else
     {
@@ -1480,219 +1322,196 @@ public class LDAPConnectionConsoleInteraction
    *          the host we tried to connect and that presented the certificate.
    * @return true if the server certificate is trusted.
    */
-  public boolean checkServerCertificate(X509Certificate[] chain,
-      String authType, String host)
+  public boolean checkServerCertificate(final X509Certificate[] chain, final String authType, final String host)
   {
     if (state.trustManager == null)
     {
       try
       {
-        initializeTrustManager();
+        initializeTrustAndKeyManagers();
       }
       catch (ArgumentException ae)
       {
-        // Should not occur
+        // Should not append because this.run() should has been called at this stage.
         throw new RuntimeException(ae);
       }
     }
-    app.println();
-    app.println(INFO_LDAP_CONN_PROMPT_SECURITY_SERVER_CERTIFICATE.get());
-    app.println();
-    for (int i = 0; i < chain.length; i++)
-    {
-      // Certificate DN
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(chain[i].getSubjectDN()));
-
-      // certificate validity
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
-          chain[i].getNotBefore(), chain[i].getNotAfter()));
-
-      // certificate Issuer
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(chain[i].getIssuerDN()));
-
-      if (i + 1 < chain.length)
-      {
-        app.println();
-        app.println();
-      }
-    }
+    printCertificateChain(chain);
     MenuBuilder<Integer> builder = new MenuBuilder<>(app);
     builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION.get());
 
-    TrustOption defaultTrustMethod = TrustOption.SESSION;
     for (TrustOption t : TrustOption.values())
     {
-      int i = builder.addNumberedOption(t.getMenuMessage(), MenuResult.success(t.getChoice()));
-      if (t.equals(defaultTrustMethod))
+      final MenuResult<Integer> result = MenuResult.success(t.getChoice());
+      int i = builder.addNumberedOption(t.message, result);
+      if (DEFAULT_PROMPT_TRUST_OPTION.equals(t))
       {
-        builder.setDefault(INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(
-            Integer.valueOf(i)), MenuResult.success(t.getChoice()));
+        builder.setDefault(INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(i), result);
       }
     }
 
     app.println();
     app.println();
 
-    Menu<Integer> menu = builder.toMenu();
-    while (true)
+    final Menu<Integer> menu = builder.toMenu();
+    try
     {
-      try
+      boolean promptAgain;
+      int userChoice;
+      do
       {
-        MenuResult<Integer> result = menu.run();
-        if (result.isSuccess())
+        promptAgain = false;
+        final MenuResult<Integer> result = menu.run();
+        throwIfMenuResultNotSucceeded(result);
+        userChoice = result.getValue();
+        if (TrustOption.CERTIFICATE_DETAILS.getChoice() == userChoice)
         {
-          if (result.getValue().equals(TrustOption.UNTRUSTED.getChoice()))
-          {
-            return false;
-          }
-
-          if (result.getValue().equals(
-              TrustOption.CERTIFICATE_DETAILS.getChoice()))
-          {
-            for (X509Certificate cert : chain)
-            {
-              app.println();
-              app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE.get(cert));
-            }
-            continue;
-          }
-
-          // We should add it in the memory truststore
-          for (X509Certificate cert : chain)
-          {
-            String alias = cert.getSubjectDN().getName();
-            try
-            {
-              state.truststore.setCertificateEntry(alias, cert);
-            }
-            catch (KeyStoreException e1)
-            {
-              // What else should we do?
-              return false;
-            }
-          }
-
-          // Update the trust manager
-          if (state.trustManager == null)
-          {
-            state.trustManager = new ApplicationTrustManager(state.truststore);
-          }
-          if (authType != null && host != null)
-          {
-            // Update the trust manager with the new certificate
-            state.trustManager.acceptCertificate(chain, authType, host);
-          }
-          else
-          {
-            // Do a full reset of the contents of the keystore.
-            state.trustManager = new ApplicationTrustManager(state.truststore);
-          }
-          if (result.getValue().equals(TrustOption.PERMAMENT.getChoice()))
-          {
-            ValidationCallback<String> callback =
-                new ValidationCallback<String>()
-                {
-                  @Override
-                  public String validate(ConsoleApplication app, String input)
-                      throws ClientException
-                  {
-                    String ninput = input.trim();
-                    if (ninput.length() == 0)
-                    {
-                      app.println();
-                      app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
-                      app.println();
-                      return null;
-                    }
-                    File f = new File(ninput);
-                    if (!f.isDirectory())
-                    {
-                      return ninput;
-                    }
-                    else
-                    {
-                      app.println();
-                      app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
-                      app.println();
-                      return null;
-                    }
-                  }
-                };
-
-            String truststorePath;
-            try
-            {
-              app.println();
-              truststorePath =
-                  app.readValidatedInput(INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(), callback);
-            }
-            catch (ClientException e)
-            {
-              return true;
-            }
-
-            // Read the password from the stdin.
-            String truststorePassword;
-            try
-            {
-              app.println();
-              LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD.get(truststorePath);
-              truststorePassword = readPassword(prompt);
-            }
-            catch (Exception e)
-            {
-              return true;
-            }
-            try
-            {
-              KeyStore ts = KeyStore.getInstance("JKS");
-              FileInputStream fis;
-              try
-              {
-                fis = new FileInputStream(truststorePath);
-              }
-              catch (FileNotFoundException e)
-              {
-                fis = null;
-              }
-              ts.load(fis, truststorePassword.toCharArray());
-              if (fis != null)
-              {
-                fis.close();
-              }
-              for (X509Certificate cert : chain)
-              {
-                String alias = cert.getSubjectDN().getName();
-                ts.setCertificateEntry(alias, cert);
-              }
-              FileOutputStream fos = new FileOutputStream(truststorePath);
-              try
-              {
-                ts.store(fos, truststorePassword.toCharArray());
-              }
-              finally
-              {
-                fos.close();
-              }
-            }
-            catch (Exception e)
-            {
-              return true;
-            }
-          }
-          return true;
-        }
-        else
-        {
-          // Should never happen.
-          throw new RuntimeException();
+          promptAgain = true;
+          printCertificateDetails(chain);
         }
       }
-      catch (ClientException cliE)
+      while (promptAgain);
+
+      return trustCertificate(TrustOption.getTrustOptionForIndex(userChoice), chain, authType, host);
+    }
+    catch (ClientException e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void printCertificateChain(X509Certificate[] chain)
+  {
+    app.println();
+    app.println(INFO_LDAP_CONN_PROMPT_SECURITY_SERVER_CERTIFICATE.get());
+    app.println();
+    boolean printSeparatorLines = false;
+    for (final X509Certificate cert : chain)
+    {
+      if (!printSeparatorLines)
       {
-        throw new RuntimeException(cliE);
+        app.println();
+        app.println();
+        printSeparatorLines = true;
+      }
+
+      // Certificate DN
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(cert.getSubjectDN()));
+      // certificate validity
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
+          cert.getNotBefore(), cert.getNotAfter()));
+      // certificate Issuer
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(cert.getIssuerDN()));
+    }
+  }
+
+  private void printCertificateDetails(X509Certificate[] chain)
+  {
+    for (X509Certificate cert : chain)
+    {
+      app.println();
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE.get(cert));
+    }
+  }
+
+  private boolean trustCertificate(final TrustOption trustOption, final X509Certificate[] chain,
+      final String authType, final String host) throws ClientException
+  {
+    try
+    {
+      switch (trustOption)
+      {
+      case SESSION:
+        updateTrustManager(chain, authType, host);
+        return true;
+
+      case PERMAMENT:
+        updateTrustManager(chain, authType, host);
+        try
+        {
+          trustCertificatePermanently(chain);
+        }
+        catch (Exception e)
+        {
+          app.println(ERR_TRUSTING_CERTIFICATE_PERMANENTLY.get(e.getMessage()));
+        }
+        return true;
+
+      case UNTRUSTED:
+      default:
+        return false;
       }
     }
+    catch (KeyStoreException e)
+    {
+      app.println(ERR_TRUSTING_CERTIFICATE.get(e.getMessage()));
+      return false;
+    }
+  }
+
+  private void updateTrustManager(X509Certificate[] chain, String authType, String host) throws KeyStoreException
+  {
+    // User choice if to add the certificate to the trust store for the current session or permanently.
+    for (final X509Certificate cert : chain)
+    {
+      state.truststore.setCertificateEntry(cert.getSubjectDN().getName(), cert);
+    }
+
+    // Update the trust manager
+    if (state.trustManager == null)
+    {
+      state.trustManager = new ApplicationTrustManager(state.truststore);
+    }
+
+    if (authType != null && host != null)
+    {
+      // Update the trust manager with the new certificate
+      state.trustManager.acceptCertificate(chain, authType, host);
+    }
+    else
+    {
+      // Do a full reset of the contents of the keystore.
+      state.trustManager = new ApplicationTrustManager(state.truststore);
+    }
+  }
+
+  private void trustCertificatePermanently(final X509Certificate[] chain) throws Exception
+  {
+    app.println();
+    final String trustStorePath = app.readValidatedInput(
+        INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
+        filePathValidationCallback(!ALLOW_EMPTY_PATH, !FILE_MUST_EXISTS));
+
+    // Read the password from the stdin.
+    final String trustStorePasswordStr = readPassword(
+        INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD.get(trustStorePath));
+    final KeyStore keyStore = KeyStore.getInstance("JKS");
+    final char[] trustStorePassword = trustStorePasswordStr.toCharArray();
+    loadKeyStoreFromFile(keyStore, trustStorePath, trustStorePassword);
+
+    for (final X509Certificate cert : chain)
+    {
+      keyStore.setCertificateEntry(cert.getSubjectDN().getName(), cert);
+    }
+
+    try (final FileOutputStream trustStoreOutputFile = new FileOutputStream(trustStorePath))
+    {
+      keyStore.store(trustStoreOutputFile, trustStorePassword);
+    }
+  }
+
+  private void loadKeyStoreFromFile(
+      final KeyStore keyStore, final String trustStorePath, final char[] trustStorePassword) throws Exception
+  {
+      try (FileInputStream inputStream = new FileInputStream(trustStorePath))
+      {
+        keyStore.load(inputStream, trustStorePassword);
+      }
+      catch (FileNotFoundException ignored)
+      {
+        // create empty keystore
+        keyStore.load(null, trustStorePassword);
+      }
   }
 
   /**
@@ -1718,7 +1537,7 @@ public class LDAPConnectionConsoleInteraction
     if (state.useSSL)
     {
       SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-      sslConnectionFactory.init(getTrustManager() == null, state.keystorePath,
+      sslConnectionFactory.init(getTrustManager() == null, state.keyStorePath,
           state.keystorePassword, state.certifNickname, state.truststorePath, state.truststorePassword);
       options.setSSLConnectionFactory(sslConnectionFactory);
     }
@@ -1729,9 +1548,8 @@ public class LDAPConnectionConsoleInteraction
   /**
    * Prompts the user to accept the certificate.
    *
-   * @param t
-   *          the throwable that was generated because the certificate was not
-   *          trusted.
+   * @param errorRaised
+   *          the error raised because the certificate was not trusted.
    * @param usedTrustManager
    *          the trustManager used when trying to establish the connection.
    * @param usedUrl
@@ -1741,85 +1559,58 @@ public class LDAPConnectionConsoleInteraction
    * @return {@code true} if the user accepted the certificate and
    *         {@code false} otherwise.
    */
-  public boolean promptForCertificateConfirmation(Throwable t,
+  public boolean promptForCertificateConfirmation(Throwable errorRaised,
       ApplicationTrustManager usedTrustManager, String usedUrl, LocalizedLogger logger)
   {
-    ApplicationTrustManager.Cause cause;
-    if (usedTrustManager != null)
+    final ApplicationTrustManager.Cause cause = usedTrustManager != null ? usedTrustManager.getLastRefusedCause()
+                                                                         : null;
+    logger.debug(INFO_CERTIFICATE_EXCEPTION_CAUSE.get(cause));
+
+    if (cause == null)
     {
-      cause = usedTrustManager.getLastRefusedCause();
+      app.println(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), errorRaised));
+      return false;
+    }
+
+    String host;
+    int port;
+    try
+    {
+      URI uri = new URI(usedUrl);
+      host = uri.getHost();
+      port = uri.getPort();
+    }
+    catch (URISyntaxException e)
+    {
+      logger.warn(ERROR_CERTIFICATE_PARSING_URL.get(usedUrl, e));
+      host = INFO_NOT_AVAILABLE_LABEL.get().toString();
+      port = -1;
+    }
+
+    final String authType = usedTrustManager.getLastRefusedAuthType();
+    if (authType == null)
+    {
+      logger.warn(ERROR_CERTIFICATE_NULL_AUTH_TYPE.get());
     }
     else
     {
-      cause = null;
-    }
-    if (logger != null)
-    {
-      logger.debug(LocalizableMessage.raw("Certificate exception cause: " + cause));
+      app.println(ApplicationTrustManager.Cause.NOT_TRUSTED.equals(authType)
+          ? INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(host, port)
+          : INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(host, port, host, host, port));
     }
 
-    if (cause != null)
+    final X509Certificate[] chain = usedTrustManager.getLastRefusedChain();
+    if (chain == null)
     {
-      String h;
-      int p;
-      try
-      {
-        URI uri = new URI(usedUrl);
-        h = uri.getHost();
-        p = uri.getPort();
-      }
-      catch (Throwable t1)
-      {
-        printLogger(logger, "Error parsing ldap url of ldap url. " + t1);
-        h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-        p = -1;
-      }
-
-      String authType = usedTrustManager.getLastRefusedAuthType();
-      if (authType == null)
-      {
-        printLogger(logger, "Null auth type for this certificate exception.");
-      }
-      else
-      {
-        LocalizableMessage msg;
-        if (authType.equals(ApplicationTrustManager.Cause.NOT_TRUSTED))
-        {
-          msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(h, p);
-        }
-        else
-        {
-          msg = INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(h, p, h, h, p);
-        }
-        app.println(msg);
-      }
-
-      X509Certificate[] chain = usedTrustManager.getLastRefusedChain();
-      if (chain == null)
-      {
-        printLogger(logger, "Null chain for this certificate exception.");
-        return false;
-      }
-      if (h == null)
-      {
-        printLogger(logger, "Null host name for this certificate exception.");
-      }
-      return checkServerCertificate(chain, authType, h);
+      logger.warn(ERROR_CERTIFICATE_NULL_CHAIN.get());
+      return false;
     }
-    else
+    if (host == null)
     {
-      app.println(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t));
+      logger.warn(ERROR_CERTIFICATE_NULL_HOST_NAME.get());
     }
-    return false;
-  }
 
-  private void printLogger(final LocalizedLogger logger,
-      final String msg)
-  {
-    if (logger != null)
-    {
-      logger.warn(LocalizableMessage.raw(msg));
-    }
+    return checkServerCertificate(chain, authType, host);
   }
 
   /**
@@ -1860,20 +1651,9 @@ public class LDAPConnectionConsoleInteraction
   }
 
   /**
-   * Tells whether during interaction we can ask for both the DN or the admin
-   * UID.
-   *
-   * @return {@code true} if during interaction we can ask for both the DN
-   *         and the admin UID and {@code false} otherwise.
-   */
-  public boolean isUseAdminOrBindDn()
-  {
-    return useAdminOrBindDn;
-  }
-
-  /**
    * Tells whether we can ask during interaction for both the DN and the admin
    * UID or not.
+   * Default value is {@code false}.
    *
    * @param useAdminOrBindDn
    *          whether we can ask for both the DN and the admin UID during
@@ -1893,8 +1673,7 @@ public class LDAPConnectionConsoleInteraction
    *          whether propose LDAP as protocol even if the user provided
    *          security parameters or not.
    */
-  public void setDisplayLdapIfSecureParameters(
-      boolean displayLdapIfSecureParameters)
+  public void setDisplayLdapIfSecureParameters(boolean displayLdapIfSecureParameters)
   {
     this.displayLdapIfSecureParameters = displayLdapIfSecureParameters;
   }
@@ -1919,7 +1698,7 @@ public class LDAPConnectionConsoleInteraction
   {
     if (!state.trustManagerInitialized)
     {
-      initializeTrustManager();
+      initializeTrustAndKeyManagers();
     }
   }
 
@@ -1948,46 +1727,46 @@ public class LDAPConnectionConsoleInteraction
     resetConnectionArguments();
     if (hostName != null)
     {
-      secureArgsList.hostNameArg.addValue(hostName);
-      secureArgsList.hostNameArg.setPresent(true);
+      secureArgsList.getHostNameArg().addValue(hostName);
+      secureArgsList.getHostNameArg().setPresent(true);
     }
     // resetConnectionArguments does not clear the values for the port
-    secureArgsList.portArg.clearValues();
+    secureArgsList.getPortArg().clearValues();
     if (port != -1)
     {
-      secureArgsList.portArg.addValue(String.valueOf(port));
-      secureArgsList.portArg.setPresent(true);
+      secureArgsList.getPortArg().addValue(String.valueOf(port));
+      secureArgsList.getPortArg().setPresent(true);
     }
     else
     {
       // This is done to be able to call IntegerArgument.getIntValue()
-      secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
+      secureArgsList.getPortArg().addValue(secureArgsList.getPortArg().getDefaultValue());
     }
-    secureArgsList.useSSLArg.setPresent(state.useSSL);
-    secureArgsList.useStartTLSArg.setPresent(state.useStartTLS);
+    secureArgsList.getUseSSLArg().setPresent(state.useSSL);
+    secureArgsList.getUseStartTLSArg().setPresent(state.useStartTLS);
     if (adminUid != null)
     {
-      secureArgsList.adminUidArg.addValue(adminUid);
-      secureArgsList.adminUidArg.setPresent(true);
+      secureArgsList.getAdminUidArg().addValue(adminUid);
+      secureArgsList.getAdminUidArg().setPresent(true);
     }
     if (bindDn != null)
     {
-      secureArgsList.bindDnArg.addValue(bindDn);
-      secureArgsList.bindDnArg.setPresent(true);
+      secureArgsList.getBindDnArg().addValue(bindDn);
+      secureArgsList.getBindDnArg().setPresent(true);
     }
     if (pwdFile != null)
     {
-      secureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(pwdFile);
+      secureArgsList.getBindPasswordFileArg().getNameToValueMap().putAll(pwdFile);
       for (String value : pwdFile.keySet())
       {
-        secureArgsList.bindPasswordFileArg.addValue(value);
+        secureArgsList.getBindPasswordFileArg().addValue(value);
       }
-      secureArgsList.bindPasswordFileArg.setPresent(true);
+      secureArgsList.getBindPasswordFileArg().setPresent(true);
     }
     else if (bindPwd != null)
     {
-      secureArgsList.bindPasswordArg.addValue(bindPwd);
-      secureArgsList.bindPasswordArg.setPresent(true);
+      secureArgsList.getBindPasswordArg().addValue(bindPwd);
+      secureArgsList.getBindPasswordArg().setPresent(true);
     }
     state = new State(secureArgsList);
   }
@@ -2000,32 +1779,30 @@ public class LDAPConnectionConsoleInteraction
    */
   public void resetConnectionArguments()
   {
-    secureArgsList.hostNameArg.clearValues();
-    secureArgsList.hostNameArg.setPresent(false);
-    secureArgsList.portArg.clearValues();
-    secureArgsList.portArg.setPresent(false);
+    secureArgsList.getHostNameArg().clearValues();
+    secureArgsList.getHostNameArg().setPresent(false);
+    secureArgsList.getPortArg().clearValues();
+    secureArgsList.getPortArg().setPresent(false);
     //  This is done to be able to call IntegerArgument.getIntValue()
-    secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
-    secureArgsList.bindDnArg.clearValues();
-    secureArgsList.bindDnArg.setPresent(false);
-    secureArgsList.bindPasswordArg.clearValues();
-    secureArgsList.bindPasswordArg.setPresent(false);
-    secureArgsList.bindPasswordFileArg.clearValues();
-    secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
-    secureArgsList.bindPasswordFileArg.setPresent(false);
+    secureArgsList.getPortArg().addValue(secureArgsList.getPortArg().getDefaultValue());
+    secureArgsList.getBindDnArg().clearValues();
+    secureArgsList.getBindDnArg().setPresent(false);
+    secureArgsList.getBindPasswordArg().clearValues();
+    secureArgsList.getBindPasswordArg().setPresent(false);
+    secureArgsList.getBindPasswordFileArg().clearValues();
+    secureArgsList.getBindPasswordFileArg().getNameToValueMap().clear();
+    secureArgsList.getBindPasswordFileArg().setPresent(false);
     state.bindPassword = null;
-    secureArgsList.adminUidArg.clearValues();
-    secureArgsList.adminUidArg.setPresent(false);
+    secureArgsList.getAdminUidArg().clearValues();
+    secureArgsList.getAdminUidArg().setPresent(false);
   }
 
-  private void initializeTrustManager() throws ArgumentException
+  private void initializeTrustAndKeyManagers() throws ArgumentException
   {
     // Get trust store info
     state.trustManager = getTrustManagerInternal();
-
     // Check if we need client side authentication
     state.keyManager = getKeyManagerInternal();
-
     state.trustManagerInitialized = true;
   }
 
@@ -2058,35 +1835,33 @@ public class LDAPConnectionConsoleInteraction
    *
    * @return true if the local trust store has been added.
    */
-  private boolean addLocalTrustStore()
+  private boolean useLocalTrustStoreIfPossible()
   {
     try
     {
-      // If remote host, return
-      if (!InetAddress.getLocalHost().getHostName().equals(state.hostName)
-          || secureArgsList.getAdminPortFromConfig() != portNumber)
+      if (InetAddress.getLocalHost().getHostName().equals(state.hostName)
+          && secureArgsList.getAdminPortFromConfig() == portNumber)
       {
-        return false;
+        final String trustStoreFileAbsolute = secureArgsList.getTruststoreFileFromConfig();
+        if (trustStoreFileAbsolute != null)
+        {
+          secureArgsList.getTrustStorePathArg().addValue(trustStoreFileAbsolute);
+          return true;
+        }
       }
-      // check if we are in a local instance. Already checked the host,
-      // now check the port
-      if (secureArgsList.getAdminPortFromConfig() != portNumber)
-      {
-        return false;
-      }
-
-      String truststoreFileAbsolute = secureArgsList.getTruststoreFileFromConfig();
-      if (truststoreFileAbsolute != null)
-      {
-        secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
-        return true;
-      }
-      return false;
     }
     catch (Exception ex)
     {
       // do nothing
-      return false;
+    }
+    return false;
+  }
+
+  private void throwIfMenuResultNotSucceeded(final MenuResult<?> result)
+  {
+    if (!result.isSuccess())
+    {
+      throw new RuntimeException("Expected successful menu result, but got " + result);
     }
   }
 }

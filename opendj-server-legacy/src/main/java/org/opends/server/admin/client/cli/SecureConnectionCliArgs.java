@@ -68,42 +68,24 @@ public final class SecureConnectionCliArgs
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The 'hostName' global argument. */
-  public StringArgument hostNameArg;
-  /** The 'port' global argument. */
-  public IntegerArgument portArg;
-  /** The 'bindDN' global argument. */
-  public StringArgument bindDnArg;
-  /** The 'adminUID' global argument. */
-  public StringArgument adminUidArg;
-  /** The 'bindPasswordFile' global argument. */
-  public FileBasedArgument bindPasswordFileArg;
-  /** The 'bindPassword' global argument. */
-  public StringArgument bindPasswordArg;
-  /** The 'trustAllArg' global argument. */
-  public BooleanArgument trustAllArg;
-  /** The 'trustStore' global argument. */
-  public StringArgument trustStorePathArg;
-  /** The 'trustStorePassword' global argument. */
-  public StringArgument trustStorePasswordArg;
-  /** The 'trustStorePasswordFile' global argument. */
-  public FileBasedArgument trustStorePasswordFileArg;
-  /** The 'keyStore' global argument. */
-  public StringArgument keyStorePathArg;
-  /** The 'keyStorePassword' global argument. */
-  public StringArgument keyStorePasswordArg;
-  /** The 'keyStorePasswordFile' global argument. */
-  public FileBasedArgument keyStorePasswordFileArg;
-  /** The 'certNicknameArg' global argument. */
-  public StringArgument certNicknameArg;
-  /** The 'useSSLArg' global argument. */
-  public BooleanArgument useSSLArg;
-  /** The 'useStartTLSArg' global argument. */
-  public BooleanArgument useStartTLSArg;
-  /** Argument indicating a SASL option. */
-  public StringArgument saslOptionArg;
-  /** Argument to specify the connection timeout. */
-  public IntegerArgument connectTimeoutArg;
+  private StringArgument hostNameArg;
+  private IntegerArgument portArg;
+  private StringArgument bindDnArg;
+  private StringArgument adminUidArg;
+  private FileBasedArgument bindPasswordFileArg;
+  private StringArgument bindPasswordArg;
+  private BooleanArgument trustAllArg;
+  private StringArgument trustStorePathArg;
+  private StringArgument trustStorePasswordArg;
+  private FileBasedArgument trustStorePasswordFileArg;
+  private StringArgument keyStorePathArg;
+  private StringArgument keyStorePasswordArg;
+  private FileBasedArgument keyStorePasswordFileArg;
+  private StringArgument certNicknameArg;
+  private BooleanArgument useSSLArg;
+  private BooleanArgument useStartTLSArg;
+  private StringArgument saslOptionArg;
+  private IntegerArgument connectTimeoutArg;
 
   /** Private container for global arguments. */
   private Set<Argument> argList;
@@ -165,18 +147,6 @@ public final class SecureConnectionCliArgs
   }
 
   /**
-   * Tells whether this parser uses the Administrator UID (instead of the bind
-   * DN) or not.
-   *
-   * @return {@code true} if this parser uses the Administrator UID and
-   *         {@code false} otherwise.
-   */
-  public boolean useAdminUID()
-  {
-    return !adminUidArg.isHidden();
-  }
-
-  /**
    * Get the bindDN which has to be used for the command.
    *
    * @return The bindDN specified by the command line argument, or the default
@@ -229,7 +199,7 @@ public final class SecureConnectionCliArgs
     bindDnArg = bindDNArgument(CliConstants.DEFAULT_ROOT_USER_DN);
     argList.add(bindDnArg);
 
-    // Classes that required admin UID to be not hidden must use CommonsArguments.adminUid().
+    // Classes that required admin UID to be not hidden must call createVisibleAdminUidArgument(localizedDescription)
     adminUidArg = adminUidHiddenArgument(INFO_DESCRIPTION_ADMIN_UID.get());
 
     bindPasswordArg = bindPasswordArgument();
@@ -373,26 +343,6 @@ public final class SecureConnectionCliArgs
     {
       errors.add(msg.get(pathArg.getValue()));
     }
-  }
-
-  /**
-   * Indicate if the SSL mode is required.
-   *
-   * @return True if SSL mode is required
-   */
-  public boolean useSSL()
-  {
-    return useSSLArg.isPresent() || alwaysSSL();
-  }
-
-  /**
-   * Indicate if the startTLS mode is required.
-   *
-   * @return True if startTLS mode is required
-   */
-  public boolean useStartTLS()
-  {
-    return useStartTLSArg.isPresent();
   }
 
   /**
@@ -658,9 +608,9 @@ public final class SecureConnectionCliArgs
     {
       this.adminUidArg = adminUid(description);
     }
-    catch (ArgumentException e)
+    catch (final ArgumentException unexpected)
     {
-      // Will never append.
+      throw new RuntimeException("Unexpected");
     }
   }
 
@@ -668,5 +618,208 @@ public final class SecureConnectionCliArgs
   {
     return portArgument(
             defaultValue, alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
+  }
+
+  /**
+   * Return the 'keyStore' global argument.
+   *
+   * @return The 'keyStore' global argument.
+   */
+  public StringArgument getKeyStorePathArg() {
+    return keyStorePathArg;
+  }
+
+  /**
+   * Return the 'hostName' global argument.
+   *
+   * @return The 'hostName' global argument.
+   */
+  public StringArgument getHostNameArg() {
+    return hostNameArg;
+  }
+
+  /**
+   * Return the 'port' global argument.
+   *
+   * @return The 'port' global argument.
+   */
+  public IntegerArgument getPortArg() {
+    return portArg;
+  }
+
+  /**
+   * Return the 'bindDN' global argument.
+   *
+   * @return The 'bindDN' global argument.
+   */
+  public StringArgument getBindDnArg() {
+    return bindDnArg;
+  }
+
+  /**
+   * Return the 'adminUID' global argument.
+   *
+   * @return The 'adminUID' global argument.
+   */
+  public StringArgument getAdminUidArg() {
+    return adminUidArg;
+  }
+
+  /**
+   * Return the 'bindPasswordFile' global argument.
+   *
+   * @return The 'bindPasswordFile' global argument.
+   */
+  public FileBasedArgument getBindPasswordFileArg() {
+    return bindPasswordFileArg;
+  }
+
+  /**
+   * Return the 'bindPassword' global argument.
+   *
+   * @return The 'bindPassword' global argument.
+   */
+  public StringArgument getBindPasswordArg() {
+    return bindPasswordArg;
+  }
+
+  /**
+   * Return the 'trustAllArg' global argument.
+   *
+   * @return The 'trustAllArg' global argument.
+   */
+  public BooleanArgument getTrustAllArg() {
+    return trustAllArg;
+  }
+
+  /**
+   * Return the 'trustStore' global argument.
+   *
+   * @return The 'trustStore' global argument.
+   */
+  public StringArgument getTrustStorePathArg() {
+    return trustStorePathArg;
+  }
+
+  /**
+   * Return the 'trustStorePassword' global argument.
+   *
+   * @return The 'trustStorePassword' global argument.
+   */
+  public StringArgument getTrustStorePasswordArg() {
+    return trustStorePasswordArg;
+  }
+
+  /**
+   * Return the 'trustStorePasswordFile' global argument.
+   *
+   * @return The 'trustStorePasswordFile' global argument.
+   */
+  public FileBasedArgument getTrustStorePasswordFileArg() {
+    return trustStorePasswordFileArg;
+  }
+
+  /**
+   * Return the 'keyStorePassword' global argument.
+   *
+   * @return The 'keyStorePassword' global argument.
+   */
+  public StringArgument getKeyStorePasswordArg() {
+    return keyStorePasswordArg;
+  }
+
+  /**
+   * Return the 'keyStorePasswordFile' global argument.
+   *
+   * @return The 'keyStorePasswordFile' global argument.
+   */
+  public FileBasedArgument getKeyStorePasswordFileArg() {
+    return keyStorePasswordFileArg;
+  }
+
+  /**
+   * Return the 'certNicknameArg' global argument.
+   *
+   * @return The 'certNicknameArg' global argument.
+   */
+  public StringArgument getCertNicknameArg() {
+    return certNicknameArg;
+  }
+
+  /**
+   * Return the 'useSSLArg' global argument.
+   *
+   * @return The 'useSSLArg' global argument.
+   */
+  public BooleanArgument getUseSSLArg() {
+    return useSSLArg;
+  }
+
+  /**
+   * Return the 'useStartTLSArg' global argument.
+   *
+   * @return The 'useStartTLSArg' global argument.
+   */
+  public BooleanArgument getUseStartTLSArg() {
+    return useStartTLSArg;
+  }
+
+  /**
+   * Return the 'saslOption' argument.
+   *
+   * @return the 'saslOption' argument.
+   */
+  public StringArgument getSaslOptionArg() {
+    return saslOptionArg;
+  }
+
+  /**
+   * Return the 'connectTimeout' argument.
+   *
+   * @return the 'connectTimeout' argument.
+   */
+  public IntegerArgument getConnectTimeoutArg() {
+    return connectTimeoutArg;
+  }
+
+  /**
+   * Set the bind DN argument with the provided description.
+   * Note that this method will create a new {@link Argument} instance replacing the current one.
+   *
+   * @param description
+   *         The localized description which will be used in help messages.
+   */
+  public void setBindDnArgDescription(final LocalizableMessage description)
+  {
+    try
+    {
+      this.bindDnArg = bindDNArgument(CliConstants.DEFAULT_ROOT_USER_DN, description);
+    }
+    catch (final ArgumentException unexpected)
+    {
+      throw new RuntimeException("unexpected");
+    }
+  }
+
+  /**
+   * Set the bind password argument.
+   *
+   * @param bindPasswordArg
+   *         The argument which will replace the current one.
+   */
+  public void setBindPasswordArgument(final StringArgument bindPasswordArg)
+  {
+    this.bindPasswordArg = bindPasswordArg;
+  }
+
+  /**
+   * Set the bind password file argument.
+   *
+   * @param bindPasswordFileArg
+   *         The argument which will replace the current one.
+   */
+  public void setBindPasswordFileArgument(final FileBasedArgument bindPasswordFileArg)
+  {
+    this.bindPasswordFileArg = bindPasswordFileArg;
   }
 }

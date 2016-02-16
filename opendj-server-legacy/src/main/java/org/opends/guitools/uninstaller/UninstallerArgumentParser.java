@@ -25,6 +25,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -159,20 +160,20 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     quietArg = quietArgument();
     args.add(quietArg);
 
-    ArrayList<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
+    final List<Argument> defaultArgs = new ArrayList<>(createGlobalArguments(outStream, alwaysSSL));
     secureArgsList.createVisibleAdminUidArgument(INFO_DESCRIPTION_ADMIN_UID.get());
-    int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
+    int index = defaultArgs.indexOf(secureArgsList.getBindDnArg());
     if (index != -1)
     {
-      defaultArgs.add(index, secureArgsList.adminUidArg);
-      defaultArgs.remove(secureArgsList.bindDnArg);
+      defaultArgs.add(index, secureArgsList.getAdminUidArg());
+      defaultArgs.remove(secureArgsList.getBindDnArg());
     }
     else
     {
-      defaultArgs.add(secureArgsList.adminUidArg);
+      defaultArgs.add(secureArgsList.getAdminUidArg());
     }
-    defaultArgs.remove(secureArgsList.hostNameArg);
-    defaultArgs.remove(secureArgsList.portArg);
+    defaultArgs.remove(secureArgsList.getHostNameArg());
+    defaultArgs.remove(secureArgsList.getPortArg());
     referencedHostNameArg =
             StringArgument.builder(OPTION_LONG_REFERENCED_HOST_NAME)
                     .shortIdentifier(OPTION_SHORT_HOST)
@@ -314,7 +315,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultAdministratorUID()
   {
-    return secureArgsList.adminUidArg.getDefaultValue();
+    return secureArgsList.getAdminUidArg().getDefaultValue();
   }
 
   /**

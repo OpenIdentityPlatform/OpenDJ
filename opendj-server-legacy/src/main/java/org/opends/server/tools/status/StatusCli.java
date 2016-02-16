@@ -278,10 +278,10 @@ public class StatusCli extends ConsoleApplication
       {
         logger.error(LocalizableMessage.raw("Error parsing url: " + ldapUrl));
       }
-      secureArgsList.hostNameArg.setPresent(true);
-      secureArgsList.portArg.setPresent(true);
-      secureArgsList.hostNameArg.addValue(secureArgsList.hostNameArg.getDefaultValue());
-      secureArgsList.portArg.addValue(Integer.toString(port));
+      secureArgsList.getHostNameArg().setPresent(true);
+      secureArgsList.getPortArg().setPresent(true);
+      secureArgsList.getHostNameArg().addValue(secureArgsList.getHostNameArg().getDefaultValue());
+      secureArgsList.getPortArg().addValue(Integer.toString(port));
       // We already know if SSL or StartTLS can be used.  If we cannot
       // use them we will not propose them in the connection parameters
       // and if none of them can be used we will just not ask for the

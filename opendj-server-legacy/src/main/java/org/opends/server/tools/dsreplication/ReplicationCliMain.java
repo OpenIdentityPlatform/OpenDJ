@@ -448,7 +448,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
+    if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
     {
       try
       {
@@ -458,7 +458,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 .valuePlaceholder(INFO_BINDPWD_FILE_PLACEHOLDER.get())
                 .buildArgument();
         userProvidedAdminPwdFile.getNameToValueMap().putAll(
-            argParser.getSecureArgsList().bindPasswordFileArg.getNameToValueMap());
+            argParser.getSecureArgsList().getBindPasswordFileArg().getNameToValueMap());
       }
       catch (Throwable t)
       {
@@ -2150,9 +2150,9 @@ public class ReplicationCliMain extends ConsoleApplication
     else if (bindDn1 == null)
     {
       pwd = adminPwd;
-      if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
+      if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
       {
-        pwdFile = argParser.getSecureArgsList().bindPasswordFileArg.
+        pwdFile = argParser.getSecureArgsList().getBindPasswordFileArg().
           getNameToValueMap();
       }
     }
@@ -2352,7 +2352,7 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.getServer1().setSecureReplication(secureReplication1);
     uData.getServer1().setConfigureReplicationServer(configureReplicationServer1);
     uData.getServer1().setConfigureReplicationDomain(configureReplicationDomain1);
-    firstServerCommandBuilder = new CommandBuilder(null, null);
+    firstServerCommandBuilder = new CommandBuilder();
     if (mustPrintCommandBuilder())
     {
       firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
@@ -2390,9 +2390,9 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         doNotDisplayFirstError = true;
         pwd = adminPwd;
-        if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
+        if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
         {
-          pwdFile = argParser.getSecureArgsList().bindPasswordFileArg.
+          pwdFile = argParser.getSecureArgsList().getBindPasswordFileArg().
             getNameToValueMap();
         }
       }
@@ -3138,9 +3138,9 @@ public class ReplicationCliMain extends ConsoleApplication
     int portSource = argParser.getPortSource();
 
     Map<String, String> pwdFile = null;
-    if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
+    if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
     {
-      pwdFile = argParser.getSecureArgsList().bindPasswordFileArg.getNameToValueMap();
+      pwdFile = argParser.getSecureArgsList().getBindPasswordFileArg().getNameToValueMap();
     }
 
     /*
@@ -3193,7 +3193,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setAdminPwd(adminPwd);
     }
 
-    firstServerCommandBuilder = new CommandBuilder(null, null);
+    firstServerCommandBuilder = new CommandBuilder();
     if (mustPrintCommandBuilder())
     {
       firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());

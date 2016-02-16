@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.util.args;
 
@@ -139,29 +139,11 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
   private LDAPConnection connect(SecureConnectionCliArgs args, PrintStream out, PrintStream err)
       throws LDAPConnectionException, ArgumentException
   {
-    // If both a bind password and bind password file were provided, then return
-    // an error.
-    if (args.bindPasswordArg.isPresent() && args.bindPasswordFileArg.isPresent())
-    {
-      printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-          args.bindPasswordArg.getLongIdentifier(), args.bindPasswordFileArg.getLongIdentifier()));
-    }
-
-    // If both a key store password and key store password file were provided,
-    // then return an error.
-    if (args.keyStorePasswordArg.isPresent() && args.keyStorePasswordFileArg.isPresent())
-    {
-      printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-          args.keyStorePasswordArg.getLongIdentifier(), args.keyStorePasswordFileArg.getLongIdentifier()));
-    }
-
-    // If both a trust store password and trust store password file were
-    // provided, then return an error.
-    if (args.trustStorePasswordArg.isPresent() && args.trustStorePasswordFileArg.isPresent())
-    {
-      printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-          args.trustStorePasswordArg.getLongIdentifier(), args.trustStorePasswordFileArg.getLongIdentifier()));
-    }
+    // Checks for conflicting arguments
+    throwIfArgumentsConflict(err, args.getBindPasswordArg(), args.getBindPasswordArg());
+    throwIfArgumentsConflict(err, args.getKeyStorePasswordArg(), args.getKeyStorePasswordFileArg());
+    throwIfArgumentsConflict(err, args.getTrustStorePasswordArg(), args.getTrustStorePasswordFileArg());
+    throwIfArgumentsConflict(err, args.getUseSSLArg(), args.getUseStartTLSArg());
 
     // Create the LDAP connection options object, which will be used to
     // customize the way that we connect to the server and specify a set of
@@ -171,30 +153,25 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
 
     // See if we should use SSL or StartTLS when establishing the connection.
     // If so, then make sure only one of them was specified.
-    if (args.useSSLArg.isPresent())
+    if (args.getUseSSLArg().isPresent())
     {
-      if (args.useStartTLSArg.isPresent())
-      {
-        printAndThrowException(err, ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-            args.useSSLArg.getLongIdentifier(), args.useSSLArg.getLongIdentifier()));
-      }
       connectionOptions.setUseSSL(true);
     }
-    else if (args.useStartTLSArg.isPresent())
+    else if (args.getUseStartTLSArg().isPresent())
     {
       connectionOptions.setStartTLS(true);
     }
 
     // If we should blindly trust any certificate, then install the appropriate
     // SSL connection factory.
-    if (args.useSSLArg.isPresent() || args.useStartTLSArg.isPresent())
+    if (args.getUseSSLArg().isPresent() || args.getUseStartTLSArg().isPresent())
     {
       try
       {
         String clientAlias;
-        if (args.certNicknameArg.isPresent())
+        if (args.getCertNicknameArg().isPresent())
         {
-          clientAlias = args.certNicknameArg.getValue();
+          clientAlias = args.getCertNicknameArg().getValue();
         }
         else
         {
@@ -202,12 +179,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
         }
 
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-        sslConnectionFactory.init(args.trustAllArg.isPresent(),
-                                  args.keyStorePathArg.getValue(),
-                                  args.keyStorePasswordArg.getValue(),
+        sslConnectionFactory.init(args.getTrustAllArg().isPresent(),
+                                  args.getKeyStorePathArg().getValue(),
+                                  args.getKeyStorePasswordArg().getValue(),
                                   clientAlias,
-                                  args.trustStorePathArg.getValue(),
-                                  args.trustStorePasswordArg.getValue());
+                                  args.getTrustStorePathArg().getValue(),
+                                  args.getTrustStorePasswordArg().getValue());
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
       catch (SSLConnectionException sce)
@@ -218,12 +195,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
 
     // If one or more SASL options were provided, then make sure that one of
     // them was "mech" and specified a valid SASL mechanism.
-    if (args.saslOptionArg.isPresent())
+    if (args.getSaslOptionArg().isPresent())
     {
       String mechanism = null;
       LinkedList<String> options = new LinkedList<>();
 
-      for (String s : args.saslOptionArg.getValues())
+      for (String s : args.getSaslOptionArg().getValues())
       {
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
@@ -256,14 +233,14 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
       }
     }
 
-    int timeout = args.connectTimeoutArg.getIntValue();
+    int timeout = args.getConnectTimeoutArg().getIntValue();
 
     final String passwordValue = getPasswordValue(
-        args.bindPasswordArg, args.bindPasswordFileArg, args.bindDnArg, out, err);
+            args.getBindPasswordArg(), args.getBindPasswordFileArg(), args.getBindDnArg(), out, err);
     return connect(
-            args.hostNameArg.getValue(),
-            args.portArg.getIntValue(),
-            args.bindDnArg.getValue(),
+            args.getHostNameArg().getValue(),
+            args.getPortArg().getIntValue(),
+            args.getBindDnArg().getValue(),
             passwordValue,
             connectionOptions, timeout, out, err);
   }
@@ -484,6 +461,15 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
     catch (ArgumentException ae)
     {
       ae.printStackTrace(); // Should never happen
+    }
+  }
+
+  private void throwIfArgumentsConflict(final PrintStream err, final Argument arg1, final Argument arg2)
+      throws ArgumentException
+  {
+    if (arg1.isPresent() && arg2.isPresent())
+    {
+      printAndThrowException(err, ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier()));
     }
   }
 }

@@ -22,7 +22,6 @@ import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
@@ -37,9 +36,6 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
@@ -53,18 +49,12 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The 'showUsage' global argument. */
-  protected BooleanArgument showUsageArg;
-
   /** The 'verbose' global argument. */
   protected BooleanArgument verboseArg;
-
   /** The secure args list object. */
   protected SecureConnectionCliArgs secureArgsList;
-
   /** Argument indicating a properties file argument. */
   protected StringArgument propertiesFileArg;
-
   /** The argument which should be used to indicate that we will not look for properties file. */
   protected BooleanArgument noPropertiesFileArg;
 
@@ -99,7 +89,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     return secureArgsList.getBindDN();
   }
 
-
   /**
    * Returns the Administrator UID provided in the command-line.
    * @return the Administrator UID provided in the command-line.
@@ -107,86 +96,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   public String getAdministratorUID()
   {
     return secureArgsList.getAdministratorUID();
-  }
-
-  /**
-   * Get the password which has to be used for the command.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @param pwdArg
-   *          The password StringArgument argument.
-   * @param fileArg
-   *          The password FileBased argument.
-   * @return The password stored into the specified file on by the
-   *         command line argument, or prompts it if not specified.
-   */
-  protected String getBindPassword(String dn, OutputStream out,
-      OutputStream err, StringArgument pwdArg, FileBasedArgument fileArg)
-  {
-    if (fileArg.isPresent())
-    {
-      return fileArg.getValue();
-    }
-
-    String bindPasswordValue = pwdArg.isPresent() ? pwdArg.getValue() : null;
-    if (bindPasswordValue == null || "-".equals(bindPasswordValue))
-    {
-      // Read the password from the STDin.
-      try
-      {
-        return readPassword(dn, out);
-      }
-      catch (Exception ex)
-      {
-        logger.traceException(ex);
-        try
-        {
-          err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-          err.write(LINE_SEPARATOR.getBytes());
-        }
-        catch (IOException e)
-        {
-          // Nothing to do.
-        }
-      }
-    }
-    return bindPasswordValue;
-  }
-
-  private String readPassword(String dn, OutputStream out) throws IOException,
-      ClientException
-  {
-    out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
-    out.flush();
-    char[] pwChars = ConsoleApplication.readPassword();
-    return new String(pwChars);
-  }
-
-  /**
-   * Gets the password which has to be used for the command.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @return The password stored into the specified file on by the
-   *         command line argument, or prompts it if not specified.
-   */
-  public String getBindPassword(String dn, OutputStream out, OutputStream err)
-  {
-    return getBindPassword(dn, out, err, secureArgsList.bindPasswordArg,
-        secureArgsList.bindPasswordFileArg);
   }
 
   /**
@@ -198,8 +107,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public String getBindPassword()
   {
-    return getBindPassword(secureArgsList.bindPasswordArg,
-        secureArgsList.bindPasswordFileArg);
+    return getBindPassword(secureArgsList.getBindPasswordArg(), secureArgsList.getBindPasswordFileArg());
   }
 
   /**
@@ -220,7 +128,8 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     secureArgsList = new SecureConnectionCliArgs(alwaysSSL);
     Set<Argument> set = secureArgsList.createGlobalArguments();
 
-    showUsageArg = showUsageArgument();
+    /* The 'showUsage' global argument. */
+    final BooleanArgument showUsageArg = showUsageArgument();
     setUsageArgument(showUsageArg, outStream);
     set.add(showUsageArg);
 
@@ -347,27 +256,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     return verboseArg.isPresent();
   }
 
-
-  /**
-   * Indicate if the SSL mode is required.
-   *
-   * @return True if SSL mode is required
-   */
-  public boolean useSSL()
-  {
-    return secureArgsList.useSSL();
-  }
-
-  /**
-   * Indicate if the startTLS mode is required.
-   *
-   * @return True if startTLS mode is required
-   */
-  public boolean useStartTLS()
-  {
-    return secureArgsList.useStartTLS();
-  }
-
   /**
    * Handle TrustStore.
    *
@@ -389,7 +277,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   {
     try
     {
-      return secureArgsList.connectTimeoutArg.getIntValue();
+      return secureArgsList.getConnectTimeoutArg().getIntValue();
     }
     catch (ArgumentException ae)
     {
