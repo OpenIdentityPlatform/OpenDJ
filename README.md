@@ -37,12 +37,23 @@ or a nightly build from the [ForgeRock community resource center](https://forger
 Build it yourself
 -----------------
 
-You need `git` and `maven` in order to get the source code and build it:
+You need `git` and `maven` in order to get the source code and build it. The OpenDJ Directory Server binaries will be
+built in `opendj-server-legacy/target/package`:
 
 ```bash
 git clone ssh://git@stash.forgerock.org:7999/opendj/opendj.git
 cd opendj
 mvn clean install
+
+# OpenDJ Server is built here:
+cd opendj-server-legacy/target/package
+
+# Package is *.zip:
+ls *.zip
+
+# ...or install and run immediately:
+cd opendj
+./setup
 ```
 
 Getting started
