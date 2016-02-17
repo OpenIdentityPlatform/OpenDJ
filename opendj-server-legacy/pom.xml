@@ -1248,6 +1248,7 @@
                 </goals>
                 <configuration>
                   <testSourceDirectory>src/test/java</testSourceDirectory>
+                  <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
