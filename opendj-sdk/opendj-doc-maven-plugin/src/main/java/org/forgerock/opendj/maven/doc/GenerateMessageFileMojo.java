@@ -28,7 +28,6 @@ package org.forgerock.opendj.maven.doc;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.*;
 import static org.forgerock.opendj.maven.doc.DocsMessages.*;
-import static org.forgerock.util.Utils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
