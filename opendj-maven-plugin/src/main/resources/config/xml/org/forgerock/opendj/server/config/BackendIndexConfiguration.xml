@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2009 Sun Microsystems, Inc.
-  Portions copyright 2014 ForgeRock AS.
+  Portions copyright 2014-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="backend-index" plural-name="backend-indexes"
   package="org.forgerock.opendj.server.config"
@@ -216,6 +216,38 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-index-extensible-matching-rule</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="confidentiality-enabled">
+    <adm:synopsis>
+      Specifies whether contents of the index should be confidential.
+    </adm:synopsis>
+    <adm:description>
+      Setting the flag to true will hash keys for equality type indexes using SHA-1
+      and encrypt the list of entries matching a substring key for substring indexes.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          If the index for the attribute must be protected for security purposes and values
+          for that attribute already exist in the database, the index must be rebuilt
+          before it will be accurate.
+          The property cannot be set on a backend for which confidentiality is not enabled.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-confidentiality-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

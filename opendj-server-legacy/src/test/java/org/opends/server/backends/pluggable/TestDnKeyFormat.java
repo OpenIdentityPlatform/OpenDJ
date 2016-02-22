@@ -25,6 +25,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
@@ -355,12 +356,12 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     try (final LDIFReader reader = new LDIFReader(new LDIFImportConfig(new ByteArrayInputStream(originalLDIFBytes))))
     {
       Entry entryBefore, entryAfter;
+      DataConfig dataConfig = new DataConfig.Builder().compress(false).encode(false).build();
+      ID2Entry id2entry = new ID2Entry(new TreeName("o=test", "id2entry"), dataConfig);
       while ((entryBefore = reader.readEntry(false)) != null) {
-        ByteString bytes = ID2Entry.entryToDatabase(entryBefore,
-            new DataConfig(false, false, null));
+        ByteString bytes = id2entry.entryToDatabase(entryBefore, dataConfig);
 
-        entryAfter = ID2Entry.entryFromDatabase(bytes,
-                          DirectoryServer.getDefaultCompressedSchema());
+        entryAfter = id2entry.entryFromDatabase(bytes, DirectoryServer.getDefaultCompressedSchema());
 
         // check DN and number of attributes
         assertEquals(entryBefore.getAttributes().size(), entryAfter

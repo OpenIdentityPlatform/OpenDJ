@@ -171,8 +171,8 @@ class ExportJob
   private void exportContainer(ReadableTransaction txn, EntryContainer entryContainer)
        throws StorageRuntimeException, IOException, LDIFException
   {
-    Cursor<ByteString, ByteString> cursor = txn.openCursor(entryContainer.getID2Entry().getName());
-    try
+    ID2Entry id2entry = entryContainer.getID2Entry();
+    try (final Cursor<ByteString, ByteString> cursor = txn.openCursor(id2entry.getName()))
     {
       while (cursor.next())
       {
@@ -209,8 +209,7 @@ class ExportJob
         Entry entry = null;
         try
         {
-          entry = ID2Entry.entryFromDatabase(value,
-                       entryContainer.getRootContainer().getCompressedSchema());
+          entry = id2entry.entryFromDatabase(value, entryContainer.getRootContainer().getCompressedSchema());
         }
         catch (Exception e)
         {
@@ -234,10 +233,6 @@ class ExportJob
           skippedCount++;
         }
       }
-    }
-    finally
-    {
-      cursor.close();
     }
   }
 

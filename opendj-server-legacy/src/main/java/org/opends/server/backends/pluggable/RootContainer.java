@@ -174,7 +174,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
   EntryContainer openEntryContainer(DN baseDN, WriteableTransaction txn, AccessMode accessMode)
       throws StorageRuntimeException, ConfigException
   {
-    EntryContainer ec = new EntryContainer(baseDN, backendId, config, storage, this);
+    EntryContainer ec = new EntryContainer(baseDN, backendId, config, storage, this, serverContext);
     ec.open(txn, accessMode);
     return ec;
   }

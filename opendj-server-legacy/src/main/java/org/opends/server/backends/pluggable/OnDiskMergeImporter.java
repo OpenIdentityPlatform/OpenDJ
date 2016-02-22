@@ -733,8 +733,8 @@ final class OnDiskMergeImporter
           Executors.newSingleThreadScheduledExecutor(newThreadFactory(null, PHASE1_REPORTER_THREAD_NAME, true));
       scheduler.scheduleAtFixedRate(new PhaseOneProgressReporter(), 10, 10, TimeUnit.SECONDS);
       final PromiseImpl<Void, Exception> promise = PromiseImpl.create();
-      try (final SequentialCursor<ByteString, ByteString> cursor =
-          importer.openCursor(entryContainer.getID2Entry().getName()))
+      final ID2Entry id2Entry = entryContainer.getID2Entry();
+      try (final SequentialCursor<ByteString, ByteString> cursor = importer.openCursor(id2Entry.getName()))
       {
         while (cursor.next())
         {
@@ -748,7 +748,7 @@ final class OnDiskMergeImporter
               try
               {
                 entryProcessor.processEntry(entryContainer,
-                    new EntryID(key), ID2Entry.entryFromDatabase(value, schema));
+                    new EntryID(key), id2Entry.entryFromDatabase(value, schema));
                 nbEntriesProcessed.incrementAndGet();
               }
               catch (Exception e)
@@ -3190,7 +3190,7 @@ final class OnDiskMergeImporter
     {
       if (resultContainer.size() < indexLimit)
       {
-        resultContainer.add(value.toLong());
+        resultContainer.add(index.importDecodeValue(value));
       }
       /*
        * else EntryIDSet is above index entry limits, discard additional values

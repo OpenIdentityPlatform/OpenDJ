@@ -2750,4 +2750,10 @@ public class CryptoManagerImpl
   {
     return sslCipherSuites;
   }
+
+  @Override
+  public CryptoSuite newCryptoSuite(String cipherTransformation, int cipherKeyLength)
+  {
+    return new CryptoSuite(this, cipherTransformation, cipherKeyLength);
+  }
 }

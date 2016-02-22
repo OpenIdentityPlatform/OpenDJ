@@ -12,12 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
 import org.forgerock.util.Reject;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.types.EntryEncodeConfig;
 
 /**
@@ -26,66 +27,123 @@ import org.opends.server.types.EntryEncodeConfig;
  */
 final class DataConfig
 {
+  /**
+   * Builder for a DataConfig with all compression/encryption options.
+   */
+  static final class Builder
+  {
+    private boolean compressed;
+    private boolean encrypted;
+    private boolean compactEncoding;
+    private CompressedSchema compressedSchema;
+    private CryptoSuite cryptoSuite;
+
+    Builder()
+    {
+      // Nothing to do.
+    }
+
+    public Builder encode(boolean enabled)
+    {
+      this.compactEncoding = enabled;
+      return this;
+    }
+
+    public Builder compress(boolean enabled)
+    {
+      this.compressed = enabled;
+      return this;
+    }
+
+    public Builder encrypt(boolean enabled)
+    {
+      this.encrypted = enabled;
+      return this;
+    }
+
+    public Builder schema(CompressedSchema schema)
+    {
+      this.compressedSchema = schema;
+      return this;
+    }
+
+    public Builder cryptoSuite(CryptoSuite cs)
+    {
+      this.cryptoSuite = cs;
+      return this;
+    }
+
+    public DataConfig build()
+    {
+      return new DataConfig(this);
+    }
+  }
   /** Indicates whether data should be compressed before writing to the storage. */
   private final boolean compressed;
 
   /** The configuration to use when encoding entries in the tree. */
   private final EntryEncodeConfig encodeConfig;
 
+  private final boolean encrypted;
+
+  private final CryptoSuite cryptoSuite;
   /**
    * Construct a new DataConfig object with the specified settings.
    *
-   * @param compressed true if data should be compressed, false if not.
-   * @param compactEncoding true if data should be encoded in compact form,
-   * false if not.
-   * @param compressedSchema the compressed schema manager to use.  It must not
-   * be {@code null} if compactEncoding is {@code true}.
+   * @param builder the builder with the configuration
    */
-  DataConfig(boolean compressed, boolean compactEncoding, CompressedSchema compressedSchema)
+  private DataConfig(Builder builder)
   {
-    this.compressed = compressed;
+    this.compressed = builder.compressed;
+    this.encrypted = builder.encrypted;
+    this.cryptoSuite = builder.cryptoSuite;
 
-    if (compressedSchema == null)
+    if (builder.compressedSchema == null)
     {
-      Reject.ifTrue(compactEncoding);
-      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, false);
+      Reject.ifTrue(builder.compactEncoding);
+      this.encodeConfig = new EntryEncodeConfig(false, builder.compactEncoding, false);
     }
     else
     {
-      this.encodeConfig =
-          new EntryEncodeConfig(false, compactEncoding, compactEncoding, compressedSchema);
+      this.encodeConfig = new EntryEncodeConfig(false, builder.compactEncoding, builder.compactEncoding,
+          builder.compressedSchema);
     }
   }
 
-  /**
-   * Determine whether data should be compressed before writing to the tree.
-   * @return true if data should be compressed, false if not.
-   */
   boolean isCompressed()
   {
     return compressed;
   }
 
-  /**
-   * Get the EntryEncodeConfig object in use by this configuration.
-   * @return the EntryEncodeConfig object in use by this configuration.
-   */
+  boolean isEncrypted()
+  {
+    return encrypted;
+  }
+
   EntryEncodeConfig getEntryEncodeConfig()
   {
     return encodeConfig;
   }
 
-  /**
-   * Get a string representation of this object.
-   * @return A string representation of this object.
-   */
+  CryptoSuite getCryptoSuite()
+  {
+    return cryptoSuite;
+  }
+
   @Override
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
     builder.append("DataConfig(compressed=");
     builder.append(compressed);
+    builder.append(", encrypted=");
+    builder.append(encrypted);
     builder.append(", ");
+    if (encrypted)
+    {
+      builder.append(cryptoSuite.toString());
+      builder.append(", ");
+    }
     encodeConfig.toString(builder);
     builder.append(")");
     return builder.toString();

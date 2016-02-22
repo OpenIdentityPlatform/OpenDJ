@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -506,7 +506,16 @@ public final class ByteSequenceReader {
         return sequence.toString();
     }
 
-    private InputStream asInputStream() {
+    /**
+     * Returns an {@link InputStream} from the current position in the sequence.
+     * There is only a single {@link InputStream} for a given ByteSequence, so
+     * multiple calls to {@code asInputStream()} will always return the same object.
+     * The returned {@code InputStream} does not support {@code mark()}.
+     * Calling {@code close()} does nothing.
+     *
+     * @return an {@link InputStream} from the current position in the sequence
+     */
+    public InputStream asInputStream() {
         if (inputStream == null) {
             inputStream = new InputStream() {
                 @Override

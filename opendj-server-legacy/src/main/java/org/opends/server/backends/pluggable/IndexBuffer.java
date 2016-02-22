@@ -47,7 +47,7 @@ class IndexBuffer
 
     void writeTrustState(WriteableTransaction txn) throws StorageRuntimeException;
 
-    void put(Index index, ByteString key, EntryID entryID);
+    void put(DefaultIndex index, ByteString key, EntryID entryID);
 
     void put(VLVIndex index, ByteString sortKey);
 
@@ -223,7 +223,7 @@ class IndexBuffer
     }
 
     @Override
-    public void put(Index index, ByteString key, EntryID entryID)
+    public void put(DefaultIndex index, ByteString key, EntryID entryID)
     {
       createOrGetBufferedIndexValues(index, key).addEntryID(entryID);
     }
@@ -272,20 +272,18 @@ class IndexBuffer
   {
     private final WriteableTransaction txn;
     private final EntryID expectedEntryID;
-    private final ByteString encodedEntryID;
 
     ImportIndexBuffer(WriteableTransaction txn, EntryID expectedEntryID)
     {
       this.txn = txn;
       this.expectedEntryID = expectedEntryID;
-      this.encodedEntryID = ByteString.valueOfLong(expectedEntryID.longValue());
     }
 
     @Override
-    public void put(Index index, ByteString key, EntryID entryID)
+    public void put(DefaultIndex index, ByteString key, EntryID entryID)
     {
       Reject.ifFalse(this.expectedEntryID.equals(entryID), "Unexpected entryID");
-      txn.put(index.getName(), key, encodedEntryID);
+      txn.put(index.getName(), key, index.importToValue(entryID));
     }
 
     @Override
@@ -370,7 +368,7 @@ class IndexBuffer
     impl.writeTrustState(txn);
   }
 
-  void put(Index index, ByteString key, EntryID entryID)
+  void put(DefaultIndex index, ByteString key, EntryID entryID)
   {
     impl.put(index, key, entryID);
   }

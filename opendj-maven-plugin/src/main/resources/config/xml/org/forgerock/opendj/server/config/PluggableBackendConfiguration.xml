@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2014-2015 ForgeRock AS.
+  Copyright 2014-2016 ForgeRock AS.
   ! -->
 <adm:managed-object abstract="true" name="pluggable-backend"
   plural-name="pluggable-backends" package="org.forgerock.opendj.server.config"
@@ -282,6 +282,95 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-index-filter-analyzer-max-filters</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="confidentiality-enabled">
+    <adm:synopsis>
+      Indicates whether the backend should make entries in database files readable only by Directory Server.
+    </adm:synopsis>
+    <adm:description>
+      Confidentiality is achieved by enrypting entries before writing them to the underlying storage.
+      Entry encryption will protect data on disk from unauthorised parties reading the files; for complete
+      protection, also set confidentiality for sensitive attributes indexes.
+      The property cannot be set to false if some of the indexes have confidentiality set to true.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-confidentiality-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="cipher-transformation">
+    <adm:synopsis>
+      Specifies the cipher for the directory server.
+      The syntax is "algorithm/mode/padding".
+    </adm:synopsis>
+    <adm:description>
+      The full transformation is required: specifying only an algorithm
+      and allowing the cipher provider to supply the default mode and
+      padding is not supported, because there is no guarantee these
+      default values are the same among different implementations.
+      Some cipher algorithms, including RC4 and ARCFOUR, do not have a
+      mode or padding, and hence must be specified using NONE for the
+      mode field and NoPadding for the padding field. For example,
+      RC4/NONE/NoPadding.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect cryptographic operations performed after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>AES/CBC/PKCS5Padding</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cipher-transformation</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="cipher-key-length">
+    <adm:synopsis>
+      Specifies the key length in bits for the preferred cipher.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect cryptographic operations performed after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>128</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cipher-key-length</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

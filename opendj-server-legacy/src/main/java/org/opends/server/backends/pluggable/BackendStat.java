@@ -579,13 +579,9 @@ public class BackendStat
     final String subCommandName = subCommand.getName();
     try
     {
-      DirectoryServer.InitializationBuilder initializationBuilder =
-          new DirectoryServer.InitializationBuilder(configFile.getValue());
-      if (subCommandName.equals(DUMP_INDEX) || subCommandName.equals(SHOW_INDEX_STATUS))
-      {
-        initializationBuilder.requireCryptoServices();
-      }
-      initializationBuilder.initialize();
+      new DirectoryServer.InitializationBuilder(configFile.getValue())
+          .requireCryptoServices()
+          .initialize();
     }
     catch (InitializationException e)
     {

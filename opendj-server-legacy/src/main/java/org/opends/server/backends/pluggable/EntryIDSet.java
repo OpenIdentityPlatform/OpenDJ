@@ -19,6 +19,7 @@ package org.opends.server.backends.pluggable;
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,8 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Iterators;
+import org.opends.server.types.CryptoManagerException;
+import org.opends.server.crypto.CryptoSuite;
 
 /**
  * Represents a set of Entry IDs. It can represent a set where the IDs are not defined, for example when the index entry
@@ -533,6 +536,69 @@ final class EntryIDSet implements Iterable<EntryID>
       }
       return ids;
     }
+  }
+
+  /**
+   * Decorate a V1 or V2 codec with encryption. When writing EntryIDSets to disk,
+   * prepend two bytes, {0, 1} to mark them as encrypted.
+   * The first is tag zero (unused in other encodings), followed by a byte
+   * indicating version 1 of encryption.
+   */
+  static class EntryIDSetCodecV3 implements EntryIDSetCodec
+  {
+    private static final byte CODEC_V3_TAG = 0x00;
+    private static final byte CODEC_V3_VERSION = 0x01;
+    private final EntryIDSetCodec delegate;
+    private final CryptoSuite cryptoSuite;
+    EntryIDSetCodecV3(EntryIDSetCodec delegate, CryptoSuite cryptoSuite)
+    {
+      this.delegate = delegate;
+      this.cryptoSuite = cryptoSuite;
+    }
+
+    @Override
+    public ByteString encode(EntryIDSet idSet)
+    {
+      ByteString encodedValue = delegate.encode(idSet);
+      ByteStringBuilder builder = new ByteStringBuilder(encodedValue.length());
+      builder.appendByte(CODEC_V3_TAG);
+      builder.appendByte(CODEC_V3_VERSION);
+      try
+      {
+        builder.appendBytes(cryptoSuite.encrypt(encodedValue.toByteArray()));
+        return builder.toByteString();
+      }
+      catch (GeneralSecurityException | CryptoManagerException e)
+      {
+        // Only if the underlying crypto provider has serious problems.
+        throw new IllegalStateException();
+      }
+    }
+
+    @Override
+    public EntryIDSet decode(ByteSequence key, ByteString value)
+    {
+      checkNotNull(value, "value must not be null");
+      if (value.byteAt(0) == CODEC_V3_TAG)
+      {
+        try
+        {
+          return delegate.decode(key,
+              ByteString.wrap(cryptoSuite.decrypt(value.subSequence(2, value.length()).toByteArray())));
+        }
+        catch (GeneralSecurityException | CryptoManagerException e)
+        {
+          // Only if data is completely corrupted.
+          throw new IllegalStateException();
+        }
+      }
+      return delegate.decode(key, value);
+    }
+  }
+
+  static EntryIDSetCodec newEntryIDSetCodecV3(EntryIDSetCodec codec, CryptoSuite cs)
+  {
+    return new EntryIDSetCodecV3(codec, cs);
   }
 
   static EntryIDSet newUndefinedSet()

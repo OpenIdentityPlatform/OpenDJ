@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -38,6 +38,8 @@ interface Index extends Tree
   Cursor<ByteString, EntryIDSet> openCursor(ReadableTransaction txn);
 
   boolean setIndexEntryLimit(int indexEntryLimit);
+
+  boolean setProtected(boolean protectIndex);
 
   void setTrusted(WriteableTransaction txn, boolean trusted);
 

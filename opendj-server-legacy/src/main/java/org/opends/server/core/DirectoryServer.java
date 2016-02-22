@@ -143,6 +143,7 @@ import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
+import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -1026,6 +1027,12 @@ public final class DirectoryServer
     public LoggerConfigManager getLoggerConfigManager()
     {
       return directoryServer.loggerConfigManager;
+    }
+
+    @Override
+    public CryptoManager getCryptoManager()
+    {
+      return directoryServer.cryptoManager;
     }
   }
 

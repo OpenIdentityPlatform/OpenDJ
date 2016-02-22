@@ -20,6 +20,7 @@ import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
+import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
 
@@ -118,4 +119,11 @@ public interface ServerContext
    * @return the logger config manager
    */
   LoggerConfigManager getLoggerConfigManager();
+
+  /**
+   * Returns the Crypto Manager for the instance.
+   *
+   * @return the Crypto Manager for the instance
+   */
+  CryptoManager getCryptoManager();
 }

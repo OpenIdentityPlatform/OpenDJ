@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -36,6 +36,7 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.crypto.CryptoSuite;
 
 /**
  * Represents an index implemented by a tree in which each key maps to a set of entry IDs. The key
@@ -46,11 +47,14 @@ class DefaultIndex extends AbstractTree implements Index
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The limit on the number of entry IDs that may be indexed by one key. */
   private final State state;
   private final EntryContainer entryContainer;
+  /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
+
   private EntryIDSetCodec codec;
+  protected boolean encryptValues;
+  protected CryptoSuite cryptoSuite;
 
   /**
    * A flag to indicate if this index should be trusted to be consistent with the entries tree.
@@ -92,6 +96,10 @@ class DefaultIndex extends AbstractTree implements Index
   {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
     codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
+    if (encryptValues)
+    {
+      codec = new EntryIDSet.EntryIDSetCodecV3(codec, cryptoSuite);
+    }
     trusted = flags.contains(TRUSTED);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
@@ -141,6 +149,17 @@ class DefaultIndex extends AbstractTree implements Index
   ByteString toValue(EntryIDSet entryIDSet)
   {
     return codec.encode(entryIDSet);
+  }
+
+  // Keeps temporary values during import encrypted even in on-disk buffers.
+  long importDecodeValue(ByteString value)
+  {
+    return encryptValues ? decodeValue(ByteString.empty(), value).iterator().next().longValue() : value.toLong();
+  }
+
+  ByteString importToValue(EntryID entryID)
+  {
+    return encryptValues ? toValue(newDefinedSet(entryID.longValue())) : entryID.toByteString();
   }
 
   @Override
@@ -268,6 +287,14 @@ class DefaultIndex extends AbstractTree implements Index
   {
     final boolean rebuildRequired = this.indexEntryLimit < indexEntryLimit;
     this.indexEntryLimit = indexEntryLimit;
+    return rebuildRequired;
+  }
+
+  @Override
+  public boolean setProtected(boolean protectIndex)
+  {
+    final boolean rebuildRequired = this.encryptValues != protectIndex;
+    this.encryptValues = protectIndex;
     return rebuildRequired;
   }
 

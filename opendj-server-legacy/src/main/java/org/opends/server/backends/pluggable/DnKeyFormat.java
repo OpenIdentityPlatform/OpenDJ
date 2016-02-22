@@ -24,8 +24,6 @@ import org.forgerock.opendj.ldap.DN;
 /** Handles the disk representation of LDAP data. */
 public class DnKeyFormat
 {
-  /** The format version used by this class to encode and decode a ByteString. */
-  static final byte FORMAT_VERSION = 0x01;
 
   // The following fields have been copied from the DN class in the SDK
   /** RDN separator for normalized byte string of a DN. */

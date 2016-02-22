@@ -47,6 +47,7 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
@@ -96,6 +97,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
+  static final String PROTECTED_INDEX_ID = ":hash";
+
   /** This class implements an attribute indexer for matching rules in a Backend. */
   static final class MatchingRuleIndex extends DefaultIndex
   {
@@ -103,11 +106,13 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     private final Indexer indexer;
 
     private MatchingRuleIndex(EntryContainer entryContainer, AttributeType attributeType, State state, Indexer indexer,
-        int indexEntryLimit)
+        int indexEntryLimit, boolean encryptValues, CryptoSuite cryptoSuite)
     {
       super(getIndexName(entryContainer, attributeType, indexer.getIndexID()), state, indexEntryLimit, entryContainer);
       this.attributeType = attributeType;
       this.indexer = indexer;
+      this.encryptValues = encryptValues;
+      this.cryptoSuite = cryptoSuite;
     }
 
     Set<ByteString> indexEntry(Entry entry)
@@ -192,6 +197,45 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
+  /**
+   * Decorates an Indexer so that we can post process key and change index name for
+   * those attributes declared as protected in the configuration.
+   */
+  private static class HashedKeyEqualityIndexer implements Indexer {
+
+    private final Indexer delegate;
+    private CryptoSuite cryptoSuite;
+
+    private HashedKeyEqualityIndexer(Indexer delegate, CryptoSuite cryptoSuite)
+    {
+      this.delegate = delegate;
+      this.cryptoSuite = cryptoSuite;
+    }
+
+    @Override
+    public String getIndexID()
+    {
+      return delegate.getIndexID() + PROTECTED_INDEX_ID;
+    }
+
+    @Override
+    public void createKeys(Schema schema, ByteSequence value, Collection<ByteString> keys) throws DecodeException
+    {
+      Collection<ByteString> hashKeys = new ArrayList<>(1);
+      delegate.createKeys(schema, value, hashKeys);
+      for (ByteString key : hashKeys)
+      {
+        keys.add(cryptoSuite.hash48(key).toByteString());
+      }
+    }
+
+    @Override
+    public String keyToHumanReadableString(ByteSequence key)
+    {
+      return key.toByteString().toHexString();
+    }
+  }
+
   /** The key bytes used for the presence index as a {@link ByteString}. */
   static final ByteString PRESENCE_KEY = ByteString.valueOfUtf8("+");
 
@@ -233,47 +277,76 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   private Map<String, MatchingRuleIndex> indexIdToIndexes;
   private IndexingOptions indexingOptions;
   private final State state;
+  private final CryptoSuite cryptoSuite;
 
-  AttributeIndex(BackendIndexCfg config, State state, EntryContainer entryContainer) throws ConfigException
+  AttributeIndex(BackendIndexCfg config, State state, EntryContainer entryContainer, CryptoSuite cryptoSuite)
+      throws ConfigException
   {
     this.entryContainer = entryContainer;
     this.config = config;
     this.state = state;
+    this.cryptoSuite = cryptoSuite;
     this.indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
-    this.indexIdToIndexes = Collections.unmodifiableMap(buildIndexes(entryContainer, state, config));
+    this.indexIdToIndexes = Collections.unmodifiableMap(buildIndexes(entryContainer, state, config, cryptoSuite));
   }
 
-  private static Map<String, MatchingRuleIndex> buildIndexes(EntryContainer entryContainer, State state,
-      BackendIndexCfg config) throws ConfigException
+  private Map<String, MatchingRuleIndex> buildIndexes(EntryContainer entryContainer, State state,
+      BackendIndexCfg config, CryptoSuite cryptoSuite) throws ConfigException
   {
     final AttributeType attributeType = config.getAttribute();
     final int indexEntryLimit = config.getIndexEntryLimit();
     final IndexingOptions indexingOptions = new IndexingOptionsImpl(config.getSubstringLength());
 
-    Collection<Indexer> indexers = new ArrayList<>();
+    Map<Indexer, Boolean> indexers = new HashMap<>();
     for(IndexType indexType : config.getIndexType()) {
       switch (indexType)
       {
       case PRESENCE:
-        indexers.add(PRESENCE_INDEXER);
+        indexers.put(PRESENCE_INDEXER, false);
         break;
       case EXTENSIBLE:
-        indexers.addAll(
+        indexers.putAll(
             getExtensibleIndexers(config.getAttribute(), config.getIndexExtensibleMatchingRule(), indexingOptions));
         break;
-      case APPROXIMATE:
       case EQUALITY:
-      case ORDERING:
+        indexers.putAll(buildBaseIndexers(config.isConfidentialityEnabled(), false, indexType, attributeType,
+            indexingOptions));
+        break;
       case SUBSTRING:
-        MatchingRule rule = getMatchingRule(indexType, attributeType);
-        throwIfNoMatchingRule(attributeType, indexType, rule);
-        indexers.addAll(rule.createIndexers(indexingOptions));
+        indexers.putAll(buildBaseIndexers(false, config.isConfidentialityEnabled(), indexType, attributeType,
+            indexingOptions));
+        break;
+      case APPROXIMATE:
+      case ORDERING:
+        indexers.putAll(buildBaseIndexers(false, false, indexType, attributeType, indexingOptions));
         break;
       default:
        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
       }
     }
-    return buildIndexesForIndexers(entryContainer, attributeType, state, indexEntryLimit, indexers);
+    return buildIndexesForIndexers(entryContainer, attributeType, state, indexEntryLimit, indexers, cryptoSuite);
+  }
+
+  private Map<Indexer, Boolean> buildBaseIndexers(boolean protectIndexKeys, boolean protectIndexValues,
+      IndexType indexType, AttributeType attributeType, IndexingOptions indexingOptions) throws ConfigException
+  {
+    Map<Indexer, Boolean> indexers = new HashMap<>();
+    MatchingRule rule = getMatchingRule(indexType, attributeType);
+    throwIfNoMatchingRule(attributeType, indexType, rule);
+    throwIfProtectKeysAndValues(attributeType, protectIndexKeys, protectIndexValues);
+    Collection<? extends Indexer> ruleIndexers = rule.createIndexers(indexingOptions);
+    for (Indexer indexer: ruleIndexers)
+    {
+      if (protectIndexKeys)
+      {
+        indexers.put(new HashedKeyEqualityIndexer(indexer, cryptoSuite), false);
+      }
+      else
+      {
+        indexers.put(indexer, protectIndexValues);
+      }
+    }
+    return indexers;
   }
 
   private static void throwIfNoMatchingRule(AttributeType attributeType, IndexType indexType, MatchingRule rule)
@@ -285,22 +358,34 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
+  private void throwIfProtectKeysAndValues(AttributeType attributeType, boolean protectKeys, boolean protectValues)
+      throws ConfigException
+  {
+    if (protectKeys && protectValues)
+    {
+      throw new ConfigException(ERR_CONFIG_INDEX_CANNOT_PROTECT_BOTH.get(attributeType));
+    }
+  }
+
   private static Map<String, MatchingRuleIndex> buildIndexesForIndexers(EntryContainer entryContainer,
-      AttributeType attributeType, State state, int indexEntryLimit, Collection<? extends Indexer> indexers)
+      AttributeType attributeType, State state, int indexEntryLimit, Map<Indexer, Boolean> indexers,
+      CryptoSuite cryptoSuite)
   {
     final Map<String, MatchingRuleIndex> indexes = new HashMap<>();
-    for (Indexer indexer : indexers)
+    for (Map.Entry<Indexer, Boolean> indexerEntry : indexers.entrySet())
     {
-      final String indexID = indexer.getIndexID();
+      final String indexID = indexerEntry.getKey().getIndexID();
       if (!indexes.containsKey(indexID))
       {
-        indexes.put(indexID, new MatchingRuleIndex(entryContainer, attributeType, state, indexer, indexEntryLimit));
+        indexes.put(indexID,
+            new MatchingRuleIndex(entryContainer, attributeType, state, indexerEntry.getKey(),
+            indexEntryLimit, indexerEntry.getValue(), cryptoSuite));
       }
     }
     return indexes;
   }
 
-  private static Collection<Indexer> getExtensibleIndexers(AttributeType attributeType, Set<String> extensibleRules,
+  private static Map<Indexer, Boolean> getExtensibleIndexers(AttributeType attributeType, Set<String> extensibleRules,
       IndexingOptions options) throws ConfigException
   {
     IndexType indexType = IndexType.EXTENSIBLE;
@@ -309,12 +394,15 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
     }
 
-    final Collection<Indexer> indexers = new ArrayList<>();
+    final Map<Indexer, Boolean> indexers = new HashMap<>();
     for (final String ruleName : extensibleRules)
     {
       final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
       throwIfNoMatchingRule(attributeType, indexType, rule);
-      indexers.addAll(rule.createIndexers(options));
+      for (Indexer indexer : rule.createIndexers(options))
+      {
+        indexers.put(indexer, false);
+      }
     }
 
     return indexers;
@@ -354,6 +442,11 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   AttributeType getAttributeType()
   {
     return config.getAttribute();
+  }
+
+  public CryptoSuite getCryptoSuite()
+  {
+    return cryptoSuite;
   }
 
   /**
@@ -722,11 +815,22 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   public synchronized boolean isConfigurationChangeAcceptable(
       BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    return isIndexAcceptable(cfg, IndexType.EQUALITY, unacceptableReasons)
+    return isIndexConfidentialityAcceptable(cfg, unacceptableReasons)
+        && isIndexAcceptable(cfg, IndexType.EQUALITY, unacceptableReasons)
         && isIndexAcceptable(cfg, IndexType.SUBSTRING, unacceptableReasons)
         && isIndexAcceptable(cfg, IndexType.ORDERING, unacceptableReasons)
         && isIndexAcceptable(cfg, IndexType.APPROXIMATE, unacceptableReasons)
         && isExtensibleIndexAcceptable(cfg, unacceptableReasons);
+  }
+
+  private boolean isIndexConfidentialityAcceptable(BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    if (!entryContainer.isConfidentialityEnabled() && cfg.isConfidentialityEnabled())
+    {
+      unacceptableReasons.add(ERR_CLEARTEXT_BACKEND_FOR_INDEX_CONFIDENTIALITY.get(cfg.getAttribute().getNameOrOID()));
+      return false;
+    }
+    return true;
   }
 
   private boolean isExtensibleIndexAcceptable(BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -781,7 +885,8 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     final IndexingOptions newIndexingOptions = new IndexingOptionsImpl(newConfiguration.getSubstringLength());
     try
     {
-      final Map<String, MatchingRuleIndex> newIndexIdToIndexes = buildIndexes(entryContainer, state, newConfiguration);
+      final Map<String, MatchingRuleIndex> newIndexIdToIndexes = buildIndexes(entryContainer, state, newConfiguration,
+          cryptoSuite);
 
       final Map<String, MatchingRuleIndex> removedIndexes = new HashMap<>(indexIdToIndexes);
       removedIndexes.keySet().removeAll(newIndexIdToIndexes.keySet());
@@ -836,7 +941,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
       for (Index updatedIndex : updatedIndexes.values())
       {
-        updateIndex(updatedIndex, newConfiguration.getIndexEntryLimit(), ccr);
+        updateIndex(updatedIndex, newConfiguration, ccr);
       }
     }
     catch (Exception e)
@@ -858,13 +963,18 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
-  private static void updateIndex(Index updatedIndex, int newIndexEntryLimit, ConfigChangeResult ccr)
+  private static void updateIndex(Index updatedIndex, BackendIndexCfg newConfig, ConfigChangeResult ccr)
   {
-    if (updatedIndex.setIndexEntryLimit(newIndexEntryLimit))
+    // This index could still be used since a new smaller index size limit doesn't impact validity of the results.
+    if (updatedIndex.setIndexEntryLimit(newConfig.getIndexEntryLimit()))
     {
-      // This index can still be used since index size limit doesn't impact validity of the results.
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
+    }
+    if (updatedIndex.setProtected(newConfig.isConfidentialityEnabled()))
+    {
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
     }
   }
 
@@ -895,6 +1005,11 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       }
     }
     return true;
+  }
+
+  boolean isConfidentialityEnabled()
+  {
+    return config.isConfidentialityEnabled();
   }
 
   /**

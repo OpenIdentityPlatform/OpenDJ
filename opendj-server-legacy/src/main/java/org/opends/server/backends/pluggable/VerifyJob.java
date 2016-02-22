@@ -373,7 +373,7 @@ class VerifyJob
         Entry entry;
         try
         {
-          entry = ID2Entry.entryFromDatabase(value, rootContainer.getCompressedSchema());
+          entry = id2entry.entryFromDatabase(value, rootContainer.getCompressedSchema());
         }
         catch (Exception e)
         {

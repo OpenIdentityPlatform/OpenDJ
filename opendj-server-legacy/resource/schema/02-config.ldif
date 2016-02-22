@@ -3830,7 +3830,13 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.156
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.159
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.157
+  NAME 'ds-cfg-confidentiality-enabled'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.158
   NAME 'ds-task-import-offheap-size'
   EQUALITY integerMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
@@ -5754,6 +5760,9 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.22
         ds-cfg-entries-compressed $
         ds-cfg-compact-encoding $
         ds-cfg-index-filter-analyzer-enabled $
+        ds-cfg-confidentiality-enabled $
+        ds-cfg-cipher-transformation $
+        ds-cfg-cipher-key-length $
         ds-cfg-index-filter-analyzer-max-filters )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
@@ -5777,6 +5786,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.24
          ds-cfg-index-type )
   MAY ( ds-cfg-index-entry-limit $
               ds-cfg-substring-length $
+              ds-cfg-confidentiality-enabled $
               ds-cfg-index-extensible-matching-rule )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.25
