@@ -1,27 +1,17 @@
 <!--
-  ! CDDL HEADER START
-  !
-  ! The contents of this file are subject to the terms of the
-  ! Common Development and Distribution License, Version 1.0 only
-  ! (the "License").  You may not use this file except in compliance
-  ! with the License.
-  !
-  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
-  ! or http://forgerock.org/license/CDDLv1.0.html.
-  ! See the License for the specific language governing permissions
-  ! and limitations under the License.
-  !
-  ! When distributing Covered Code, include this CDDL HEADER in each
-  ! file and include the License file at legal-notices/CDDLv1_0.txt.
-  ! If applicable, add the following below this CDDL HEADER, with the
-  ! fields enclosed by brackets "[]" replaced with your own identifying
-  ! information:
-  !      Portions Copyright [yyyy] [name of copyright owner]
-  !
-  ! CDDL HEADER END
-  !
-  !
-  !      Copyright 2008 Sun Microsystems, Inc.
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2008 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -40,29 +30,19 @@
   <xsl:template name="copyright-notice">
     <xsl:value-of
       select="concat('/*&#xa;',
-                     ' * CDDL HEADER START&#xa;',
+                     ' * The contents of this file are subject to the terms of the Common Development and&#xa;',
+                     ' * Distribution License (the License). You may not use this file except in compliance with the&#xa;',
+                     ' * License.&#xa;',
                      ' *&#xa;',
-                     ' * The contents of this file are subject to the terms of the&#xa;',
-                     ' * Common Development and Distribution License, Version 1.0 only&#xa;',
-                     ' * (the &quot;License&quot;).  You may not use this file except in compliance&#xa;',
-                     ' * with the License.&#xa;',
+                     ' * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the&#xa;',
+                     ' * specific language governing permission and limitations under the License.&#xa;',
                      ' *&#xa;',
-                     ' * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt&#xa;',
-                     ' * or http://forgerock.org/license/CDDLv1.0.html.&#xa;',
-                     ' * See the License for the specific language governing permissions&#xa;',
-                     ' * and limitations under the License.&#xa;',
+                     ' * When distributing Covered Software, include this CDDL Header Notice in each file and include&#xa;',
+                     ' * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL&#xa;',
+                     ' * Header, with the fields enclosed by brackets [] replaced by your own identifying&#xa;',
+                     ' * information: &quot;Portions Copyright [year] [name of copyright owner]&quot;.&#xa;',
                      ' *&#xa;',
-                     ' * When distributing Covered Code, include this CDDL HEADER in each&#xa;',
-                     ' * file and include the License file at legal-notices/CDDLv1_0.txt.&#xa;',
-                     ' * If applicable, add the following below this CDDL HEADER, with the&#xa;',
-                     ' * fields enclosed by brackets &quot;[]&quot; replaced with your own identifying&#xa;',
-                     ' * information:&#xa;',
-                     ' *      Portions Copyright [yyyy] [name of copyright owner]&#xa;',
-                     ' *&#xa;',
-                     ' * CDDL HEADER END&#xa;',
-                     ' *&#xa;',
-                     ' *&#xa;',
-                     ' *      Copyright 2008 Sun Microsystems, Inc.&#xa;',
+                     ' * Copyright 2008 Sun Microsystems, Inc.&#xa;',
                      ' */&#xa;')" />
   </xsl:template>
   <!--
