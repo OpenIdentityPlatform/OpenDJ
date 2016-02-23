@@ -295,20 +295,6 @@
                                 <goals>
                                     <goal>update-copyright</goal>
                                 </goals>
-                                <configuration>
-                                    <!-- We need to accept the second part of the following regular
-                                       ! expression for submodules:
-                                       ! * opendj-rest2ldap
-                                       !
-                                       ! Please note that the regexp
-                                       !  '\"Portions Copyright \[year\] \[name of copyright owner\]\"'
-                                       ! must never be found before 'CDDL HEADER END' in other submodules,
-                                       ! otherwise the plugin will fail.
-                                     -->
-                                    <lineBeforeCopyrightRegExp>
-                                        (CDDL HEADER END|\"Portions Copyright \[year\] \[name of copyright owner\]\")
-                                    </lineBeforeCopyrightRegExp>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

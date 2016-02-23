@@ -313,7 +313,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
      * Number of lines to add after the line which contains the lineBeforeCopyrightToken.
      * Used only if a new copyright line is needed.
      */
-    @Parameter(required = true, defaultValue = "2")
+    @Parameter(required = true, defaultValue = "1")
     private Integer nbLinesToSkip;
 
     /**
@@ -321,11 +321,11 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
      * copyright section. Used only if a new copyright or portion copyright is
      * needed.
      */
-    @Parameter(required = true, defaultValue = "6")
+    @Parameter(required = true, defaultValue = "1")
     private Integer numberSpaceIdentation;
 
     /** The last non empty commented line before the copyright section. */
-    @Parameter(required = true, defaultValue = "CDDL\\s+HEADER\\s+END")
+    @Parameter(required = true, defaultValue = "\\\"Portions Copyright \\[year\\] \\[name of copyright owner\\]\\\"")
     private String lineBeforeCopyrightRegExp;
 
     /** The regular expression which identifies a copyrighted line. */

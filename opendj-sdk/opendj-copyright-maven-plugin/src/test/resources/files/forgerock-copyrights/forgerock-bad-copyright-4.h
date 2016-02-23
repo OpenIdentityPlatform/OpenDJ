@@ -9,9 +9,9 @@
  * When distributing Covered Software, include this CDDL Header Notice in each file and include
  * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
- * information: "Portions Copyright [year] [name of copyright owner]".
+ * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2010-2013 Old Copyright Owner Inc.
+ * Copyright 2010 Old Copyright Owner Inc.
  */
  
-EXPECTED OUTPUT: Portions Copyright YEAR ForgeRock AS.
+ EXPECTED OUTPUT: Portions copyright YEAR ForgeRock AS.

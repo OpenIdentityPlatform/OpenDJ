@@ -48,7 +48,7 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
 
     private static final String CURRENT_YEAR = Integer.toString(Calendar.getInstance().get(Calendar.YEAR));
     private static final String RESOURCE_DIR = "src/test/resources/files/";
-    private static final String[] TEST_FOLDERS = { "openam-copyrights", "opendj-copyrights", "openidm-copyrights"};
+    private static final String[] TEST_FOLDERS = { "forgerock-copyrights", "openidm-copyrights"};
 
     /** Customs tags in tests files. */
     private static final String MUST_BE_REMOVED_TAG = "MUST BE REMOVED:";
@@ -73,9 +73,7 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
                 // New copyright end String
             { TEST_FOLDERS[0], "Portions\\s+Copyright\\s+\\[year\\]\\s+\\[name\\s+of\\s+copyright\\s+owner\\]",
                 1, 1, "Portions copyright", "Copyright", "ForgeRock\\s+AS", "ForgeRock AS." },
-            { TEST_FOLDERS[1], "CDDL\\s+HEADER\\s+END", 1, 6, "Portions Copyright", "Copyright",
-                "ForgeRock\\s+AS\\.", "ForgeRock AS." },
-            { TEST_FOLDERS[2],
+            { TEST_FOLDERS[1],
                 "DO\\s+NOT\\s+ALTER\\s+OR\\s+REMOVE\\s+COPYRIGHT\\s+NOTICES\\s+OR\\s+THIS\\s+HEADER.", 1, 1,
                 "Portions Copyrighted", "Copyright (c)", "ForgeRock\\s+AS\\.",
                 "ForgeRock AS. All rights reserved." }

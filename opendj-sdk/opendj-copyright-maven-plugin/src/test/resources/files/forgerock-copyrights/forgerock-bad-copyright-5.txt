@@ -11,7 +11,8 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2010 Old Copyright Owner Inc.
+ * copyright 2010-2012 Very Old copyright owner Inc.
+ * copyright 2013-2014 Old copyright owner Inc.
  */
  
  EXPECTED OUTPUT: Portions copyright YEAR ForgeRock AS.
