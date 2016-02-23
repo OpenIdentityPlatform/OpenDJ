@@ -125,20 +125,6 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
 
     }
 
-    private String getLocalScmRootPath(final File basedir) throws ScmException {
-        final Commandline cl = GitCommandLineUtils.getBaseGitCommandLine(basedir, "rev-parse");
-        cl.addArguments(new String[] { "--show-toplevel" });
-
-        final StringStreamConsumer stdout = new CommandLineUtils.StringStreamConsumer();
-        final StringStreamConsumer stderr = new CommandLineUtils.StringStreamConsumer();
-        final ScmLogger dummyLogger = new ScmLogDispatcher();
-
-        final int exitCode = GitCommandLineUtils.execute(cl, stdout, stderr, dummyLogger);
-        return exitCode == 0 ? stdout.getOutput().trim().replace(" ", "%20")
-                             : basedir.getPath();
-    }
-
-
     /** The string representation of the current year. */
     Integer currentYear = Calendar.getInstance().get(Calendar.YEAR);
 
@@ -222,6 +208,19 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             throw new MojoExecutionException("Encountered an error while examining modified files,  SCM status:  "
                     + e.getMessage() + "No further checks will be performed.", e);
         }
+    }
+
+    private String getLocalScmRootPath(final File basedir) throws ScmException {
+        final Commandline cl = GitCommandLineUtils.getBaseGitCommandLine(basedir, "rev-parse");
+        cl.addArguments(new String[] { "--show-toplevel" });
+
+        final StringStreamConsumer stdout = new CommandLineUtils.StringStreamConsumer();
+        final StringStreamConsumer stderr = new CommandLineUtils.StringStreamConsumer();
+        final ScmLogger dummyLogger = new ScmLogDispatcher();
+
+        final int exitCode = GitCommandLineUtils.execute(cl, stdout, stderr, dummyLogger);
+        return exitCode == 0 ? stdout.getOutput().trim().replace(" ", "%20")
+                             : basedir.getPath();
     }
 
     private void ensureCommandSuccess(final ScmResult result, final String cmd) throws MojoFailureException {
