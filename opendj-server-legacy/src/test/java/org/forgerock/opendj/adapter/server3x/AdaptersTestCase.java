@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -236,15 +236,11 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
         LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
 
-        Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
                 Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
-        try {
+
+        try (Connection connection = factory.getConnection()) {
             connection.bind(request);
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 
@@ -256,16 +252,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test
     public void testAdapterConnectionSASLBindRequest() throws LdapException,
             GeneralSecurityException {
-        final Connection connection = Adapters.newRootConnection();
-
         PlainSASLBindRequest request =
                 Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
-        try {
+        try (final Connection connection = Adapters.newRootConnection()) {
             connection.bind(request);
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 
@@ -277,11 +267,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test(dataProvider = "anonymousConnectionFactories", expectedExceptions = LdapException.class)
     public void testConnectionAnonymousSASLBindRequest(final ConnectionFactory factory) throws LdapException {
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.bind(Requests.newAnonymousSASLBindRequest("anonymousSASLBindRequest"));
-        } finally {
-            connection.close();
         }
     }
 
@@ -292,11 +279,11 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterConnectionSimpleBindAsRoot() throws Exception {
-        final Connection connection = Adapters.newRootConnection();
-        final BindResult result = connection.bind("cn=Directory Manager", "password".toCharArray());
-        assertThat(connection.isValid()).isTrue();
-        assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
-        connection.close();
+        try (final Connection connection = Adapters.newRootConnection()) {
+            final BindResult result = connection.bind("cn=Directory Manager", "password".toCharArray());
+            assertThat(connection.isValid()).isTrue();
+            assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+        }
     }
 
     /**
@@ -306,10 +293,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterConnectionSimpleBindAsAUser() throws Exception {
-        final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING));
-        final BindResult result = connection.bind(USER_0_DN_STRING, "password".toCharArray());
-        assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
-        connection.close();
+        try (final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING))) {
+            final BindResult result = connection.bind(USER_0_DN_STRING, "password".toCharArray());
+            assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
+        }
     }
 
     /**
@@ -319,12 +306,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test(expectedExceptions = AuthenticationException.class)
     public void testAdapterConnectionSimpleBindAsAUserWrongPassword() throws Exception {
-        final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING));
-        try {
+        try (final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING))) {
             // Invalid credentials
             connection.bind(USER_0_DN_STRING, "pass".toCharArray());
-        } finally {
-            connection.close();
         }
     }
 
@@ -336,10 +320,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test
     public void testAdapterConnectionSimpleBind() throws Exception {
         // Anonymous
-        final Connection connection = Adapters.newAnonymousConnection();
-        final BindResult result = connection.bind("", "".toCharArray());
-        assertThat(result.getDiagnosticMessage()).isEmpty();
-        connection.close();
+        try (final Connection connection = Adapters.newAnonymousConnection()) {
+            final BindResult result = connection.bind("", "".toCharArray());
+            assertThat(result.getDiagnosticMessage()).isEmpty();
+        }
     }
 
     /**
@@ -379,8 +363,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories",
             expectedExceptions = ConstraintViolationException.class)
     public void testAdapterAddRequestFails(final ConnectionFactory factory) throws Exception {
-        final Connection connection = factory.getConnection();
-
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
                 "dn: sn=bjensen,o=test",
@@ -389,15 +371,14 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "cn: bjensen");
         // @formatter:on
 
-        // First add :
-        Result r = connection.add(addRequest);
-        assertThat(r.getDiagnosticMessage()).isEmpty();
-        assertThat(r.isSuccess()).isTrue();
-        // Second :
-        try {
+        try (final Connection connection = factory.getConnection()) {
+
+            // First add :
+            Result r = connection.add(addRequest);
+            assertThat(r.getDiagnosticMessage()).isEmpty();
+            assertThat(r.isSuccess()).isTrue();
+            // Second :
             r = connection.add(addRequest);
-        } finally {
-            connection.close();
         }
     }
 
@@ -479,12 +460,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = EntryNotFoundException.class)
     public void testAdapterSearchSingleEntryWithNoResults(final ConnectionFactory factory)
             throws Exception {
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.searchSingleEntry(Requests.newSearchRequest("o=test",
                     SearchScope.WHOLE_SUBTREE, "(uid=unknown)"));
-        } finally {
-            connection.close();
         }
     }
 
@@ -499,8 +477,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = NoSuchElementException.class)
     public void testAdapterSearchRequestSubEntriesWithNoResult(final ConnectionFactory factory)
             throws LdapException, SearchResultReferenceIOException {
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             final SearchRequest request =
                     Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
                             "cn=*", "cn", "subtreeSpecification")
@@ -511,8 +488,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             assertThat(reader.isEntry()).isFalse();
             assertThat(reader.isReference()).isFalse();
             reader.readEntry();
-        } finally {
-            connection.close();
         }
     }
 
@@ -558,11 +533,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = EntryNotFoundException.class)
     public void testAdapterDeleteRequestNoSuchEntry(final ConnectionFactory factory) throws LdapException {
         final DeleteRequest deleteRequest = Requests.newDeleteRequest("cn=test");
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.delete(deleteRequest);
-        } finally {
-            connection.close();
         }
     }
 
@@ -598,27 +570,24 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterDeleteRequest() throws LdapException {
-        final Connection connection = Adapters.newRootConnection();
-        // Checks if the entry exists.
-        SearchResultEntry sre =
-                connection.searchSingleEntry(Requests.newSearchRequest(
-                        "uid=user.3, o=test", SearchScope.BASE_OBJECT, "(uid=user.3)"));
-        assertThat(sre).isNotNull();
+        try (final Connection connection = Adapters.newRootConnection()) {
+            // Checks if the entry exists.
+            SearchResultEntry sre =
+                    connection.searchSingleEntry(Requests.newSearchRequest(
+                            "uid=user.3, o=test", SearchScope.BASE_OBJECT, "(uid=user.3)"));
+            assertThat(sre).isNotNull();
 
-        final DeleteRequest deleteRequest =
-                Requests.newDeleteRequest("uid=user.3, o=test");
+            final DeleteRequest deleteRequest =
+                    Requests.newDeleteRequest("uid=user.3, o=test");
 
-        connection.delete(deleteRequest);
+            connection.delete(deleteRequest);
 
-        // Verifies if the entry was correctly deleted.
-        try {
+            // Verifies if the entry was correctly deleted.
             connection.searchSingleEntry(Requests.newSearchRequest("uid=user.3, o=test",
                     SearchScope.BASE_OBJECT, "(uid=user.3)"));
             fail("Expected EntryNotFoundException to be thrown");
         } catch (EntryNotFoundException ex) {
             // Expected - no result.
-        } finally {
-            connection.close();
         }
     }
 
@@ -776,12 +745,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterExtendedOperation(final ConnectionFactory factory) throws LdapException {
         final WhoAmIExtendedRequest request = Requests.newWhoAmIExtendedRequest();
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             final WhoAmIExtendedResult extResult = connection.extendedRequest(request);
             assertThat(extResult.getAuthorizationID()).isNotEmpty();
-        } finally {
-            connection.close();
         }
     }
 
@@ -798,11 +764,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final DeleteRequest deleteRequest =
                 Requests.newDeleteRequest("uid=user.2,o=test");
 
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.delete(deleteRequest);
-        } finally {
-            connection.close();
         }
     }
 
@@ -824,11 +787,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 "cn: scarter");
         // @formatter:on
 
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.add(addRequest);
-        } finally {
-            connection.close();
         }
     }
 
@@ -842,16 +802,11 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformModifyDNRequest(final ConnectionFactory factory)
             throws LdapException {
-        final Connection connection = factory.getConnection();
-
         final ModifyDNRequest changeRequest =
                 Requests.newModifyDNRequest("uid=user.2,o=test", "uid=user.test")
                         .setDeleteOldRDN(true);
-
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.modifyDN(changeRequest);
-        } finally {
-            connection.close();
         }
     }
 
@@ -870,11 +825,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                         PreReadRequestControl.newControl(true, "mail")).addModification(
                         ModificationType.REPLACE, "mail", "modified@example.com");
 
-        final Connection connection = factory.getConnection();
-        try {
+        try (final Connection connection = factory.getConnection()) {
             connection.modify(changeRequest);
-        } finally {
-            connection.close();
         }
     }
 
@@ -889,14 +841,14 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         final CompareRequest compareRequest =
                 Requests.newCompareRequest(USER_0_DN_STRING, "uid", "user.0");
 
-        final Connection connection = factory.getConnection();
-        final CompareResult result = connection.compare(compareRequest);
-        assertThat(result.getResultCode()).isEqualTo(ResultCode.COMPARE_TRUE);
+        try (final Connection connection = factory.getConnection()) {
+            final CompareResult result = connection.compare(compareRequest);
+            assertThat(result.getResultCode()).isEqualTo(ResultCode.COMPARE_TRUE);
 
-        assertThat(result.getDiagnosticMessage()).isEmpty();
-        assertThat(result.getControls()).isEmpty();
-        assertThat(result.getMatchedDN()).isEmpty();
-        connection.close();
+            assertThat(result.getDiagnosticMessage()).isEmpty();
+            assertThat(result.getControls()).isEmpty();
+            assertThat(result.getMatchedDN()).isEmpty();
+        }
     }
 
     /**
