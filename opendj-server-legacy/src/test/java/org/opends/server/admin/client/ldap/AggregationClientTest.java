@@ -301,7 +301,7 @@ public class AggregationClientTest extends AdminTestCase {
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
     c.addExpectedAttribute("ds-cfg-attribute-type", "description");
     c.addExpectedAttribute("ds-cfg-rotation-policy",
-        "cn=LDAP Connection Handler,cn=connection handlers,cn=config");
+        "cn=LDAP Connection Handler,cn=connection handlers, cn=config");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
@@ -329,8 +329,8 @@ public class AggregationClientTest extends AdminTestCase {
         "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
     c.addExpectedModification("ds-cfg-rotation-policy",
-        "cn=LDAPS Connection Handler,cn=connection handlers,cn=config",
-        "cn=JMX Connection Handler,cn=connection handlers,cn=config");
+        "cn=LDAPS Connection Handler,cn=connection handlers, cn=config",
+        "cn=JMX Connection Handler,cn=connection handlers, cn=config");
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     TestChildCfgClient child = parent.getTestChild("test child 2");

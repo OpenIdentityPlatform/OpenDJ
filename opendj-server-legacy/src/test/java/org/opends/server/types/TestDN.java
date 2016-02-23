@@ -248,7 +248,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "testDNs")
   public void testToString(String rawDN, String unused, String stringDN) throws Exception {
     DN dn = DN.valueOf(rawDN);
-    assertEquals(dn.toString(), stringDN);
+    assertEquals(dn.toString(), rawDN);
   }
 
 
