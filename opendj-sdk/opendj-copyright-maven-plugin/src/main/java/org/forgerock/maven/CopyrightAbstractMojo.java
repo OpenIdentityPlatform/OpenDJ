@@ -92,14 +92,10 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
 
     /** The file extensions to test. */
     public static final List<String> CHECKED_EXTENSIONS = Arrays.asList(
-            "bat", "c", "h", "html", "java", "ldif", "Makefile", "mc", "properties", "sh", "txt", "xml", "xsd", "xsl");
-
-    private static final List<String> EXCLUDED_END_COMMENT_BLOCK_TOKEN = Arrays.asList("*/", "-->");
-    private static final List<String> SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN = Arrays.asList("*", "#", "rem", "!");
-    private static final List<String> SUPPORTED_START_BLOCK_COMMENT_TOKEN = Arrays.asList("/*", "<!--");
+            "bat", "c", "fml", "h", "html", "java", "java.stub", "ldif", "mc",
+            "md", "properties", "security", "sh", "txt", "xjb", "xml", "xml.vm", "xsd", "xsl");
 
     private final class CustomGitExeScmProvider extends GitExeScmProvider {
-
         @Override
         protected GitCommand getDiffCommand() {
             return new CustomGitDiffCommand();
@@ -107,7 +103,6 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     }
 
     private class CustomGitDiffCommand extends GitDiffCommand implements GitCommand {
-
         @Override
         protected DiffScmResult executeDiffCommand(ScmProviderRepository repo, ScmFileSet fileSet,
                 ScmVersion unused, ScmVersion unused2) throws ScmException {
@@ -123,6 +118,118 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
                     cl.toString(), consumer.getChangedFiles(), consumer.getDifferences(), consumer.getPatch());
         }
 
+    }
+
+    private static String resolveExtension(final String filePath) {
+        int firstPeriodPos = filePath.indexOf('.');
+        if (firstPeriodPos > 0) {
+            return filePath.substring(firstPeriodPos + 1);
+        }
+        return "";
+    }
+
+    enum CommentParser {
+        BAT("rem"),
+        DEFAULT("#", "*", "!", "//"),
+        JAVA("/*", "*/", Arrays.asList("*", "//", "")),
+        MC(";"),
+        SH("#"),
+        XML("<!--", "-->", Arrays.asList("!", "~", ""));
+
+        static CommentParser createParserForFile(final String filePath) {
+            switch (resolveExtension(filePath)) {
+            case "java":
+            case "c":
+            case "h":
+                return JAVA;
+            case "fml":
+            case "html":
+            case "md":
+            case "xjb":
+            case "xml":
+            case "xml.vm":
+            case "xsd":
+            case "xsl":
+                return XML;
+            case "bat":
+                return BAT;
+            case "security":
+            case "sh":
+            case "ldif":
+            case "properties":
+                return SH;
+            case "mc":
+                return MC;
+            default:
+                return DEFAULT;
+            }
+        }
+
+        private final String startBlock;
+        private final String endBlock;
+        private final List<String> middleBlockTokens;
+        private String currentLine = "";
+        private boolean supportCommentBlocks;
+        private boolean commentBlockOpened;
+
+        CommentParser(final String... middleBlockTokens) {
+            this(null, null, Arrays.asList(middleBlockTokens));
+        }
+
+        CommentParser(final String startBlock, final String endBlock, final List<String> middleBlockTokens) {
+            this.startBlock = startBlock;
+            this.endBlock = endBlock;
+            this.middleBlockTokens = middleBlockTokens;
+            this.supportCommentBlocks = startBlock != null && endBlock != null;
+        }
+
+        void consumeLine(final String line) {
+            if (line != null) {
+                if (supportCommentBlocks && currentLine.endsWith(endBlock)) {
+                    commentBlockOpened = false;
+                }
+                currentLine = line.trim();
+                if (supportCommentBlocks && currentLine.startsWith(startBlock)) {
+                    commentBlockOpened = true;
+                }
+            }
+        }
+
+        boolean isCommentLine() {
+            return commentBlockOpened
+                    || startsWithCommentLineToken();
+        }
+
+        private boolean startsWithCommentLineToken() {
+            return getCommentTokenInLine(currentLine) != null;
+        }
+
+        private String getCommentTokenInLine(final String line) {
+            for (final String token : middleBlockTokens) {
+                if (line.startsWith(token)) {
+                    return token;
+                }
+            }
+            return null;
+        }
+
+        String getNewCommentedLine(final String line) throws Exception {
+            final String commentToken = getCommentTokenInLine(line.trim());
+            if (commentToken == null) {
+                throw new Exception("Incompatibles comments lines in the file.");
+            }
+
+            String resultLine = "";
+            if (commentToken.isEmpty()) {
+                resultLine = " ";
+            }
+            return resultLine + line.substring(0, line.indexOf(commentToken) + commentToken.length());
+        }
+
+        boolean isNonEmptyCommentedLine() {
+            final String commentToken = getCommentTokenInLine(currentLine);
+            return commentToken == null || !commentToken.equals(currentLine);
+        }
     }
 
     /** The string representation of the current year. */
@@ -262,20 +369,12 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
     /** Examines the provided files list to determine whether each changed file copyright is acceptable. */
     void checkCopyrights() throws MojoExecutionException, MojoFailureException {
         for (final File changedFile : getChangedFiles()) {
-            if (!changedFile.exists() || !changedFile.isFile()) {
-                continue;
-            }
-
-            final String changedFileName = changedFile.getPath();
-            int lastPeriodPos = changedFileName.lastIndexOf('.');
-            if (lastPeriodPos > 0) {
-                String extension = changedFileName.substring(lastPeriodPos + 1);
-                if (!CHECKED_EXTENSIONS.contains(extension.toLowerCase())) {
-                    continue;
-                }
-            } else if (fileNameEquals("bin", changedFile.getParentFile())
-                    && fileNameEquals("resource", changedFile.getParentFile().getParentFile())) {
-                // ignore resource/bin directory.
+            if (!changedFile.exists()
+                    || !changedFile.isFile()
+                    || !CHECKED_EXTENSIONS.contains(resolveExtension(changedFile.getPath()).toLowerCase())
+                    || (fileNameEquals("bin", changedFile.getParentFile())
+                           && fileNameEquals("resource", changedFile.getParentFile().getParentFile()))) {
+                // Verify that the file must be checked (ignore bin/resource directory)
                 continue;
             }
 
@@ -295,11 +394,12 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
      */
     private boolean checkCopyrightForFile(File changedFile) throws MojoExecutionException {
         try (BufferedReader reader = new BufferedReader(new FileReader(changedFile))) {
+            final CommentParser commentParser = CommentParser.createParserForFile(changedFile.getPath());
             String line;
             while ((line = reader.readLine()) != null) {
-                String lowerLine = line.toLowerCase().trim();
-                if (isCommentLine(lowerLine)
-                        && lowerLine.contains("copyright")
+                commentParser.consumeLine(line);
+                if (commentParser.isCommentLine()
+                        && line.toLowerCase().trim().contains("copyright")
                         && line.contains(currentYear.toString())
                         && line.contains(copyrightOwnerToken)) {
                     return true;
@@ -311,40 +411,5 @@ public abstract class CopyrightAbstractMojo extends AbstractMojo {
             throw new MojoExecutionException("Could not read file " + changedFile.getPath()
                     + " to check copyright date. No further copyright date checking will be performed.");
         }
-    }
-
-    private String getCommentToken(String line, boolean includesStartBlock) {
-        final List<String> supportedTokens = new ArrayList<>(SUPPORTED_COMMENT_MIDDLE_BLOCK_TOKEN);
-        if (includesStartBlock) {
-            supportedTokens.addAll(SUPPORTED_START_BLOCK_COMMENT_TOKEN);
-        }
-
-        if (trimmedLineStartsWith(line, EXCLUDED_END_COMMENT_BLOCK_TOKEN) != null) {
-            return null;
-        }
-
-        return trimmedLineStartsWith(line, supportedTokens);
-    }
-
-    private String trimmedLineStartsWith(String line, List<String> supportedTokens) {
-        for (String token : supportedTokens) {
-            if (line.trim().startsWith(token)) {
-                return token;
-            }
-        }
-        return null;
-    }
-
-    boolean isNonEmptyCommentedLine(String line) {
-        String commentToken = getCommentTokenInBlock(line);
-        return commentToken == null || !commentToken.equals(line.trim());
-    }
-
-    String getCommentTokenInBlock(String line) {
-        return getCommentToken(line, false);
-    }
-
-    boolean isCommentLine(String line) {
-        return getCommentToken(line, true) != null;
     }
 }

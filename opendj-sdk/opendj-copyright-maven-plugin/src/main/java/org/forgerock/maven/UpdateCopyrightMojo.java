@@ -106,8 +106,8 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
         private boolean commentBlockEnded;
         private boolean portionsCopyrightNeeded;
         private boolean copyrightSectionPresent;
+        private CommentParser commentParser;
         private String curLine;
-        private String curLowerLine;
         private Integer startYear;
         private Integer endYear;
         private final BufferedReader reader;
@@ -116,6 +116,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
         private UpdateCopyrightFile(String filePath) throws IOException {
             this.filePath = filePath;
             reader = new BufferedReader(new FileReader(filePath));
+            commentParser = CommentParser.createParserForFile(filePath);
             final File tmpFile = new File(filePath + ".tmp");
             if (!tmpFile.exists()) {
                 tmpFile.createNewFile();
@@ -174,12 +175,17 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
                 previousLine = bufferedLines.get(indexAdd);
             }
             indexAdd++;
+            final String newCommentedLine = commentParser.getNewCommentedLine(previousLine);
             if (!portionsCopyrightNeeded) {
                 for (int i = 0; i < nbLinesToSkip; i++) {
-                    bufferedLines.add(indexAdd++, getNewCommentedLine());
+                    if (!bufferedLines.get(indexAdd).equals(newCommentedLine)) {
+                        // We have a blank line already so do not add a new one.
+                        bufferedLines.add(indexAdd, newCommentedLine);
+                    }
+                    indexAdd++;
                 }
             }
-            final String newCopyrightLine = getNewCommentedLine()
+            final String newCopyrightLine = newCommentedLine
                     + indent() + (portionsCopyrightNeeded ? newPortionsCopyrightLabel : newCopyrightLabel)
                     + " " + currentYear + " " + forgeRockCopyrightLabel;
             bufferedLines.add(indexAdd, newCopyrightLine);
@@ -219,7 +225,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
             nextLine();
             while (curLine != null) {
                 if (curLineMatches(lineBeforeCopyrightCompiledRegExp)) {
-                    if (!isCommentLine(curLowerLine)) {
+                    if (!commentParser.isCommentLine()) {
                         throw new Exception("The line before copyright token must be a commented line");
                     }
                     lineBeforeCopyrightReaded = true;
@@ -236,7 +242,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
             while (curLine != null) {
                 if (isOldCopyrightOwnerLine()) {
                     return true;
-                } else if (isNonEmptyCommentedLine(curLine)
+                } else if (commentParser.isNonEmptyCommentedLine()
                             || isCopyrightLine()
                             || commentBlockEnded) {
                     return false;
@@ -250,7 +256,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
             while (curLine != null) {
                 if (isCopyrightLine()) {
                     return true;
-                } else if ((isNonEmptyCommentedLine(curLine) && !isOldCopyrightOwnerLine())
+                } else if ((commentParser.isNonEmptyCommentedLine() && !isOldCopyrightOwnerLine())
                             || commentBlockEnded) {
                     return false;
                 }
@@ -277,6 +283,7 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
 
         private void nextLine() throws Exception {
             curLine = reader.readLine();
+            commentParser.consumeLine(curLine);
             if (curLine == null && !copyrightUpdated) {
                 throw new Exception("unexpected end of file while trying to read copyright");
             } else  if (curLine != null) {
@@ -284,27 +291,11 @@ public class UpdateCopyrightMojo extends CopyrightAbstractMojo {
             }
 
             if (!copyrightUpdated) {
-                curLowerLine = curLine.trim().toLowerCase();
-                if (lineBeforeCopyrightReaded && !isCommentLine(curLowerLine)) {
+                if (lineBeforeCopyrightReaded && !commentParser.isCommentLine()) {
                     commentBlockEnded = true;
                 }
             }
         }
-
-        private String getNewCommentedLine() throws Exception {
-            int indexCommentToken = 1;
-            String commentToken = null;
-            String linePattern = null;
-            while (bufferedLines.size() > indexCommentToken && commentToken == null) {
-                linePattern = bufferedLines.get(indexCommentToken++);
-                commentToken = getCommentTokenInBlock(linePattern);
-            }
-            if (commentToken == null) {
-                throw new Exception("Incompatibles comments lines in the file.");
-            }
-            return linePattern.substring(0, linePattern.indexOf(commentToken) + 1);
-        }
-
     }
 
     private static final Pattern OLD_COPYRIGHT_REGEXP = Pattern.compile(".*copyright.*", CASE_INSENSITIVE);
