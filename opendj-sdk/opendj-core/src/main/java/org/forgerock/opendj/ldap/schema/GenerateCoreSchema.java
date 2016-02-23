@@ -1,33 +1,24 @@
 /*
- * CDDL HEADER START
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
  *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Version 1.0 only
- * (the "License").  You may not use this file except in compliance
- * with the License.
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
  *
- * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
- * or http://forgerock.org/license/CDDLv1.0.html.
- * See the License for the specific language governing permissions
- * and limitations under the License.
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at legal-notices/CDDLv1_0.txt.
- * If applicable, add the following below this CDDL HEADER, with the
- * fields enclosed by brackets "[]" replaced with your own identifying
- * information:
- *      Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- *
- *
- *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 Manuel Gaupp
- *      Portions Copyright 2015 ForgeRock AS.
+ * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2014 Manuel Gaupp
+ * Portions Copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -100,193 +91,183 @@ final class GenerateCoreSchema {
             objectClasses.put(fieldName, objectClass);
         }
 
-        System.out.println("/*");
-        System.out.println(" * CDDL HEADER START");
-        System.out.println(" *");
-        System.out.println(" * The contents of this file are subject to the terms of the");
-        System.out.println(" * Common Development and Distribution License, Version 1.0 only");
-        System.out.println(" * (the \"License\").  You may not use this file except in compliance");
-        System.out.println(" * with the License.");
-        System.out.println(" *");
-        System.out.println(" * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt");
-        System.out.println(" * or http://forgerock.org/license/CDDLv1.0.html.");
-        System.out.println(" * See the License for the specific language governing permissions");
-        System.out.println(" * and limitations under the License.");
-        System.out.println(" *");
-        System.out.println(" * When distributing Covered Code, include this CDDL HEADER in each");
-        System.out.println(" * file and include the License file at legal-notices/CDDLv1_0.txt.");
-        System.out.println(" * If applicable, add the following below this CDDL HEADER, with the");
-        System.out.println(" * fields enclosed by brackets \"[]\" replaced with your own identifying");
-        System.out.println(" * information:");
-        System.out.println(" *      Portions Copyright [yyyy] [name of copyright owner]");
-        System.out.println(" *");
-        System.out.println(" * CDDL HEADER END");
-        System.out.println(" *");
-        System.out.println(" *");
-        System.out.println(" *      Copyright 2009 Sun Microsystems, Inc.");
-        final int year = Calendar.getInstance().get(Calendar.YEAR);
-        System.out.println(" *      Portions copyright 2014" + (year > 2014 ? "-" + year : "") + " ForgeRock AS");
-        System.out.println(" */");
-        System.out.println("package org.forgerock.opendj.ldap.schema;");
-        System.out.println();
-        System.out.println();
-        System.out.println("// DON'T EDIT THIS FILE!");
-        System.out.println("// It is automatically generated using GenerateCoreSchema class.");
-        System.out.println();
-        System.out.println("/**");
-        System.out.println(" * The OpenDJ SDK core schema contains standard LDAP "
+        final PrintStream out = System.out;
+        out.println("/*");
+        out.println(" * The contents of this file are subject to the terms of the Common Development and");
+        out.println(" * Distribution License (the License). You may not use this file except in compliance with the");
+        out.println(" * License.");
+        out.println(" *");
+        out.println(" * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the");
+        out.println(" * specific language governing permission and limitations under the License.");
+        out.println(" *");
+        out.println(" * When distributing Covered Software, include this CDDL Header Notice in each file and include");
+        out.println(" * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL");
+        out.println(" * Header, with the fields enclosed by brackets [] replaced by your own identifying");
+        out.println(" * information: \"Portions Copyright [year] [name of copyright owner]\".");
+        out.println(" *");
+        out.println(" * Copyright 2009 Sun Microsystems, Inc.");
+        out.println(" * Portions copyright 2014-" + Calendar.getInstance().get(Calendar.YEAR) + " ForgeRock AS.");
+        out.println(" */");
+        out.println("package org.forgerock.opendj.ldap.schema;");
+        out.println();
+        out.println();
+        out.println("// DON'T EDIT THIS FILE!");
+        out.println("// It is automatically generated using GenerateCoreSchema class.");
+        out.println();
+        out.println("/**");
+        out.println(" * The OpenDJ SDK core schema contains standard LDAP "
                 + "RFC schema elements. These include:");
-        System.out.println(" * <ul>");
-        System.out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4512\">RFC 4512 -");
-        System.out
+        out.println(" * <ul>");
+        out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4512\">RFC 4512 -");
+        out
                 .println(" * Lightweight Directory Access Protocol (LDAP): Directory Information");
-        System.out.println(" * Models </a>");
-        System.out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4517\">RFC 4517 -");
-        System.out
+        out.println(" * Models </a>");
+        out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4517\">RFC 4517 -");
+        out
                 .println(" * Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching");
-        System.out.println(" * Rules </a>");
-        System.out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4519\">RFC 4519 -");
-        System.out.println(" * Lightweight Directory Access Protocol (LDAP): Schema for User");
-        System.out.println(" * Applications </a>");
-        System.out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4530\">RFC 4530 -");
-        System.out
+        out.println(" * Rules </a>");
+        out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4519\">RFC 4519 -");
+        out.println(" * Lightweight Directory Access Protocol (LDAP): Schema for User");
+        out.println(" * Applications </a>");
+        out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4530\">RFC 4530 -");
+        out
                 .println(" * Lightweight Directory Access Protocol (LDAP): entryUUID Operational");
-        System.out.println(" * Attribute </a>");
-        System.out
+        out.println(" * Attribute </a>");
+        out
                 .println(" * <li><a href=\"http://tools.ietf.org/html/rfc3045\">RFC 3045 - Storing");
-        System.out.println(" * Vendor Information in the LDAP Root DSE </a>");
-        System.out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc3112\">RFC 3112 - LDAP");
-        System.out.println(" * Authentication Password Schema </a>");
-        System.out.println(" * </ul>");
-        System.out.println(" * <p>");
-        System.out.println(" * The core schema is non-strict: attempts to retrieve");
-        System.out.println(" * non-existent Attribute Types will return a temporary");
-        System.out.println(" * Attribute Type having the Octet String syntax.");
-        System.out.println(" */");
-        System.out.println("public final class CoreSchema {");
+        out.println(" * Vendor Information in the LDAP Root DSE </a>");
+        out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc3112\">RFC 3112 - LDAP");
+        out.println(" * Authentication Password Schema </a>");
+        out.println(" * </ul>");
+        out.println(" * <p>");
+        out.println(" * The core schema is non-strict: attempts to retrieve");
+        out.println(" * non-existent Attribute Types will return a temporary");
+        out.println(" * Attribute Type having the Octet String syntax.");
+        out.println(" */");
+        out.println("public final class CoreSchema {");
 
-        System.out.println("    // Core Syntaxes");
+        out.println("    // Core Syntaxes");
         for (final Map.Entry<String, Syntax> syntax : syntaxes.entrySet()) {
-            System.out.println("    private static final Syntax " + syntax.getKey() + " =");
-            System.out.println("        CoreSchemaImpl.getInstance().getSyntax(\""
+            out.println("    private static final Syntax " + syntax.getKey() + " =");
+            out.println("        CoreSchemaImpl.getInstance().getSyntax(\""
                     + syntax.getValue().getOID() + "\");");
         }
 
-        System.out.println();
-        System.out.println("    // Core Matching Rules");
+        out.println();
+        out.println("    // Core Matching Rules");
         for (final Map.Entry<String, MatchingRule> matchingRule : matchingRules.entrySet()) {
-            System.out.println("    private static final MatchingRule " + matchingRule.getKey()
+            out.println("    private static final MatchingRule " + matchingRule.getKey()
                     + " =");
-            System.out.println("        CoreSchemaImpl.getInstance().getMatchingRule(\""
+            out.println("        CoreSchemaImpl.getInstance().getMatchingRule(\""
                     + matchingRule.getValue().getOID() + "\");");
         }
 
-        System.out.println();
-        System.out.println("    // Core Attribute Types");
+        out.println();
+        out.println("    // Core Attribute Types");
         for (final Map.Entry<String, AttributeType> attributeType : attributeTypes.entrySet()) {
-            System.out.println("    private static final AttributeType " + attributeType.getKey()
+            out.println("    private static final AttributeType " + attributeType.getKey()
                     + " =");
-            System.out.println("        CoreSchemaImpl.getInstance().getAttributeType(\""
+            out.println("        CoreSchemaImpl.getInstance().getAttributeType(\""
                     + attributeType.getValue().getOID() + "\");");
         }
 
-        System.out.println();
-        System.out.println("    // Core Object Classes");
+        out.println();
+        out.println("    // Core Object Classes");
         for (final Map.Entry<String, ObjectClass> objectClass : objectClasses.entrySet()) {
-            System.out.println("    private static final ObjectClass " + objectClass.getKey() + " =");
-            System.out.println("        CoreSchemaImpl.getInstance().getObjectClass(\""
+            out.println("    private static final ObjectClass " + objectClass.getKey() + " =");
+            out.println("        CoreSchemaImpl.getInstance().getObjectClass(\""
                     + objectClass.getValue().getOID() + "\");");
         }
 
-        System.out.println();
-        System.out.println("    // Prevent instantiation");
-        System.out.println("    private CoreSchema() {");
-        System.out.println("      // Nothing to do.");
-        System.out.println("    }");
+        out.println();
+        out.println("    // Prevent instantiation");
+        out.println("    private CoreSchema() {");
+        out.println("      // Nothing to do.");
+        out.println("    }");
 
-        System.out.println();
-        System.out.println("    /**");
-        System.out.println("     * Returns a reference to the singleton core schema.");
-        System.out.println("     *");
-        System.out.println("     * @return The core schema.");
-        System.out.println("     */");
-        System.out.println("    public static Schema getInstance() {");
-        System.out.println("        return CoreSchemaImpl.getInstance();");
-        System.out.println("    }");
+        out.println();
+        out.println("    /**");
+        out.println("     * Returns a reference to the singleton core schema.");
+        out.println("     *");
+        out.println("     * @return The core schema.");
+        out.println("     */");
+        out.println("    public static Schema getInstance() {");
+        out.println("        return CoreSchemaImpl.getInstance();");
+        out.println("    }");
 
         for (final Map.Entry<String, Syntax> syntax : syntaxes.entrySet()) {
-            System.out.println();
+            out.println();
 
             final String description =
                     toCodeJavaDoc(syntax.getValue().getDescription().replaceAll(" Syntax$", "")
                             + " Syntax");
-            System.out.println("    /**");
-            System.out.println("     * Returns a reference to the " + description);
-            System.out.println("     * which has the OID "
+            out.println("    /**");
+            out.println("     * Returns a reference to the " + description);
+            out.println("     * which has the OID "
                     + toCodeJavaDoc(syntax.getValue().getOID()) + ".");
-            System.out.println("     *");
-            System.out.println("     * @return A reference to the " + description + ".");
+            out.println("     *");
+            out.println("     * @return A reference to the " + description + ".");
 
-            System.out.println("     */");
-            System.out.println("    public static Syntax get" + toJavaName(syntax.getKey()) + "() {");
-            System.out.println("        return " + syntax.getKey() + ";");
-            System.out.println("    }");
+            out.println("     */");
+            out.println("    public static Syntax get" + toJavaName(syntax.getKey()) + "() {");
+            out.println("        return " + syntax.getKey() + ";");
+            out.println("    }");
         }
 
         for (final Map.Entry<String, MatchingRule> matchingRule : matchingRules.entrySet()) {
-            System.out.println();
+            out.println();
 
             final String description = toCodeJavaDoc(matchingRule.getValue().getNameOrOID());
-            System.out.println("    /**");
-            System.out.println("     * Returns a reference to the " + description + " Matching Rule");
-            System.out.println("     * which has the OID "
+            out.println("    /**");
+            out.println("     * Returns a reference to the " + description + " Matching Rule");
+            out.println("     * which has the OID "
                     + toCodeJavaDoc(matchingRule.getValue().getOID()) + ".");
-            System.out.println("     *");
-            System.out.println("     * @return A reference to the " + description + " Matching Rule.");
+            out.println("     *");
+            out.println("     * @return A reference to the " + description + " Matching Rule.");
 
-            System.out.println("     */");
-            System.out.println("    public static MatchingRule get" + toJavaName(matchingRule.getKey()) + "() {");
-            System.out.println("        return " + matchingRule.getKey() + ";");
-            System.out.println("    }");
+            out.println("     */");
+            out.println("    public static MatchingRule get" + toJavaName(matchingRule.getKey()) + "() {");
+            out.println("        return " + matchingRule.getKey() + ";");
+            out.println("    }");
         }
 
         for (final Map.Entry<String, AttributeType> attributeType : attributeTypes.entrySet()) {
-            System.out.println();
+            out.println();
 
             final String description = toCodeJavaDoc(attributeType.getValue().getNameOrOID());
-            System.out.println("    /**");
-            System.out.println("     * Returns a reference to the " + description + " Attribute Type");
-            System.out.println("     * which has the OID "
+            out.println("    /**");
+            out.println("     * Returns a reference to the " + description + " Attribute Type");
+            out.println("     * which has the OID "
                     + toCodeJavaDoc(attributeType.getValue().getOID()) + ".");
-            System.out.println("     *");
-            System.out.println("     * @return A reference to the " + description + " Attribute Type.");
+            out.println("     *");
+            out.println("     * @return A reference to the " + description + " Attribute Type.");
 
-            System.out.println("     */");
-            System.out.println("    public static AttributeType get"
+            out.println("     */");
+            out.println("    public static AttributeType get"
                     + toJavaName(attributeType.getKey()) + "() {");
-            System.out.println("        return " + attributeType.getKey() + ";");
-            System.out.println("    }");
+            out.println("        return " + attributeType.getKey() + ";");
+            out.println("    }");
         }
 
         for (final Map.Entry<String, ObjectClass> objectClass : objectClasses.entrySet()) {
-            System.out.println();
+            out.println();
 
             final String description = toCodeJavaDoc(objectClass.getValue().getNameOrOID());
-            System.out.println("    /**");
-            System.out.println("     * Returns a reference to the " + description + " Object Class");
-            System.out.println("     * which has the OID "
+            out.println("    /**");
+            out.println("     * Returns a reference to the " + description + " Object Class");
+            out.println("     * which has the OID "
                     + toCodeJavaDoc(objectClass.getValue().getOID()) + ".");
-            System.out.println("     *");
-            System.out.println("     * @return A reference to the " + description + " Object Class.");
+            out.println("     *");
+            out.println("     * @return A reference to the " + description + " Object Class.");
 
-            System.out.println("     */");
-            System.out.println("    public static ObjectClass get" + toJavaName(objectClass.getKey())
+            out.println("     */");
+            out.println("    public static ObjectClass get" + toJavaName(objectClass.getKey())
                     + "() {");
-            System.out.println("        return " + objectClass.getKey() + ";");
-            System.out.println("    }");
+            out.println("        return " + objectClass.getKey() + ";");
+            out.println("    }");
         }
 
-        System.out.println("}");
+        out.println("}");
     }
 
     private static boolean isOpenDSOID(final String oid) {

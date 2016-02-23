@@ -1,29 +1,18 @@
 @echo off
-rem CDDL HEADER START
+rem The contents of this file are subject to the terms of the Common Development and
+rem Distribution License (the License). You may not use this file except in compliance with the
+rem License.
 rem
-rem The contents of this file are subject to the terms of the
-rem Common Development and Distribution License, Version 1.0 only
-rem (the "License").  You may not use this file except in compliance
-rem with the License.
+rem You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+rem specific language governing permission and limitations under the License.
 rem
-rem You can obtain a copy of the license at
-rem legal-notices/CDDLv1_0.txt
-rem or http://forgerock.org/license/CDDLv1.0.html.
-rem See the License for the specific language governing permissions
-rem and limitations under the License.
+rem When distributing Covered Software, include this CDDL Header Notice in each file and include
+rem the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+rem Header, with the fields enclosed by brackets [] replaced by your own identifying
+rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
-rem When distributing Covered Code, include this CDDL HEADER in each
-rem file and include the License file at legal-notices/CDDLv1_0.txt.
-rem legal-notices/CDDLv1_0.txt.  If applicable,
-rem add the following below this CDDL HEADER, with the fields enclosed
-rem by brackets "[]" replaced with your own identifying information:
-rem      Portions Copyright [yyyy] [name of copyright owner]
-rem
-rem CDDL HEADER END
-rem
-rem
-rem      Copyright 2008-2009 Sun Microsystems, Inc.
-rem      Portions copyright 2013-2015 ForgeRock AS.
+rem Copyright 2008-2009 Sun Microsystems, Inc.
+rem Portions copyright 2013-2015 ForgeRock AS.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
