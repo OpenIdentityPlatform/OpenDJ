@@ -26,6 +26,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.types.SubEntry.CollectiveConflictBehavior.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -73,7 +74,6 @@ public class SubEntry {
       this.name = name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -81,57 +81,26 @@ public class SubEntry {
     }
   }
 
-  /**
-   * The name of the "collectiveConflictBehavior" attribute type,
-   * formatted in all lowercase characters.
-   */
-  public static final String ATTR_COLLECTIVE_CONFLICT_BEHAVIOR =
-          "collectiveconflictbehavior";
-
-  /**
-   * The name of the "inheritFromDNAttribute" attribute type,
-   * formatted in all lowercase characters.
-   */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_DN =
-          "inheritfromdnattribute";
-
-  /**
-   * The name of the "inheritFromRDNAttribute" attribute type,
-   * formatted in all lowercase characters.
-   */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN =
-          "inheritfromrdnattribute";
-
-  /**
-   * The name of the "inheritFromRDNType" attribute type,
-   * formatted in all lowercase characters.
-   */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE =
-          "inheritfromrdntype";
-
-  /**
-   * The name of the "inheritFromBaseRDN" attribute type,
-   * formatted in all lowercase characters.
-   */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_BASE =
-          "inheritfrombaserdn";
-
-  /**
-   * The name of the "inheritAttribute" attribute type,
-   * formatted in all lowercase characters.
-   */
-  public static final String ATTR_INHERIT_COLLECTIVE_ATTR =
-          "inheritattribute";
-
+  /** The lowercased name of the "collectiveConflictBehavior" attribute type. */
+  public static final String ATTR_COLLECTIVE_CONFLICT_BEHAVIOR_LC = "collectiveconflictbehavior";
+  /** The lowercased name of the "inheritFromDNAttribute" attribute type. */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_DN_LC = "inheritfromdnattribute";
+  /** The lowercased name of the "inheritFromRDNAttribute" attribute type. */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_LC = "inheritfromrdnattribute";
+  /** The lowercased name of the "inheritFromRDNType" attribute type. */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE_LC = "inheritfromrdntype";
+  /** The lowercased name of the "inheritFromBaseRDN" attribute type. */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_BASE_LC = "inheritfrombaserdn";
+  /** The lowercased name of the "inheritAttribute" attribute type. */
+  public static final String ATTR_INHERIT_COLLECTIVE_ATTR_LC = "inheritattribute";
   /** Attribute option to mark attributes collective. */
-  private static final String ATTR_OPTION_COLLECTIVE =
-          "collective";
+  private static final String ATTR_OPTION_COLLECTIVE = "collective";
 
   /** Entry object. */
   private Entry entry;
 
   /** Subtree specification. */
-  private SubtreeSpecification subTreeSpec;
+  private final SubtreeSpecification subTreeSpec;
 
   /** Collective subentry flag. */
   private boolean isCollective;
@@ -158,11 +127,10 @@ public class SubEntry {
   private DN inheritFromBaseDN;
 
   /** Collective attributes. */
-  private List<Attribute> collectiveAttributes;
+  private final List<Attribute> collectiveAttributes = new ArrayList<>();
 
   /** Conflict behavior. */
-  private CollectiveConflictBehavior conflictBehavior =
-          CollectiveConflictBehavior.REAL_OVERRIDES_VIRTUAL;
+  private CollectiveConflictBehavior conflictBehavior = REAL_OVERRIDES_VIRTUAL;
 
   /**
    * Constructs a subentry object from a given entry object.
@@ -174,73 +142,17 @@ public class SubEntry {
   {
     this.entry = entry;
 
-    // Process subtree specification.
-    this.subTreeSpec = null;
-    String specString = null;
-    boolean isValidSpec = true;
-    AttributeType specAttrType = DirectoryServer.getAttributeType(ATTR_SUBTREE_SPEC_LC);
-    for (Attribute attr : entry.getAttribute(specAttrType))
-    {
-      for (ByteString value : attr)
-      {
-        specString = value.toString();
-        try
-        {
-          this.subTreeSpec = SubtreeSpecification.valueOf(entry.getName().parent(), specString);
-          isValidSpec = true;
-        }
-        catch (DirectoryException de)
-        {
-          isValidSpec = false;
-        }
-        if (this.subTreeSpec != null)
-        {
-          break;
-        }
-      }
-      if (this.subTreeSpec != null)
-      {
-        break;
-      }
-    }
-
-    // Check that the subtree spec is flagged as valid. If it is not
-    // that means all parsers have failed and it is invalid syntax.
-    if (!isValidSpec)
-    {
-      LocalizableMessage message =
-        ERR_ATTR_SYNTAX_SUBTREE_SPECIFICATION_INVALID.get(
-          specString);
-      throw new DirectoryException(
-              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-    }
-
-    // Subentry has to to have a subtree specification.
-    if (this.subTreeSpec == null)
-    {
-      // There is none for some reason eg this could be
-      // old Draft based ldapSubEntry so create a dummy.
-      this.subTreeSpec = new SubtreeSpecification(entry.getName().parent(),
-          null, -1, -1, null, null, null);
-    }
-
-    // Determine if this subentry is collective attribute subentry.
+    this.subTreeSpec = buildSubTreeSpecification(entry);
     this.isCollective = entry.isCollectiveAttributeSubentry();
 
-    // Determine if this subentry is inherited collective
-    // attribute subentry and if so what kind.
-    this.isInheritedCollective =
-            entry.isInheritedCollectiveAttributeSubentry();
+    this.isInheritedCollective = entry.isInheritedCollectiveAttributeSubentry();
     if (this.isInheritedCollective)
     {
-      this.isInheritedFromDNCollective =
-              entry.isInheritedFromDNCollectiveAttributeSubentry();
-      this.isInheritedFromRDNCollective =
-              entry.isInheritedFromRDNCollectiveAttributeSubentry();
+      this.isInheritedFromDNCollective = entry.isInheritedFromDNCollectiveAttributeSubentry();
+      this.isInheritedFromRDNCollective = entry.isInheritedFromRDNCollectiveAttributeSubentry();
     }
 
     // Process collective attributes.
-    this.collectiveAttributes = new ArrayList<>();
     if (this.isCollective)
     {
       List<Attribute> subAttrList = entry.getAttributes();
@@ -249,9 +161,7 @@ public class SubEntry {
         AttributeType attrType = subAttr.getAttributeDescription().getAttributeType();
         if (attrType.isCollective())
         {
-          CollectiveVirtualAttribute collectiveAttr =
-                  new CollectiveVirtualAttribute(subAttr);
-          this.collectiveAttributes.add(collectiveAttr);
+          this.collectiveAttributes.add(new CollectiveVirtualAttribute(subAttr));
         }
         else if (subAttr.hasOption(ATTR_OPTION_COLLECTIVE))
         {
@@ -259,14 +169,13 @@ public class SubEntry {
           builder.addAll(subAttr);
           for (String option : subAttr.getAttributeDescription().getOptions())
           {
-            if (!option.equals(ATTR_OPTION_COLLECTIVE))
+            if (!ATTR_OPTION_COLLECTIVE.equals(option))
             {
               builder.setOption(option);
             }
           }
           Attribute attr = builder.toAttribute();
-          CollectiveVirtualAttribute collectiveAttr = new CollectiveVirtualAttribute(attr);
-          this.collectiveAttributes.add(collectiveAttr);
+          this.collectiveAttributes.add(new CollectiveVirtualAttribute(attr));
         }
       }
     }
@@ -276,7 +185,7 @@ public class SubEntry {
     {
       if (this.isInheritedFromDNCollective)
       {
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_DN))
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_DN_LC))
         {
           for (ByteString value : attr)
           {
@@ -289,7 +198,7 @@ public class SubEntry {
 
       if (this.isInheritedFromRDNCollective)
       {
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN))
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_LC))
         {
           for (ByteString value : attr)
           {
@@ -298,7 +207,7 @@ public class SubEntry {
             break;
           }
         }
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE))
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE_LC))
         {
           for (ByteString value : attr)
           {
@@ -306,7 +215,7 @@ public class SubEntry {
             break;
           }
         }
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE))
+        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE_LC))
         {
           for (ByteString value : attr)
           {
@@ -318,13 +227,12 @@ public class SubEntry {
         }
       }
 
-      for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_ATTR))
+      for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_ATTR_LC))
       {
         for (ByteString value : attr)
         {
-          CollectiveVirtualAttribute collectiveAttr =
-              new CollectiveVirtualAttribute(Attributes.empty(value.toString()));
-          this.collectiveAttributes.add(collectiveAttr);
+          Attribute collectiveAttr = Attributes.empty(value.toString());
+          this.collectiveAttributes.add(new CollectiveVirtualAttribute(collectiveAttr));
         }
       }
     }
@@ -332,7 +240,7 @@ public class SubEntry {
     // Establish collective attribute conflict behavior.
     if (this.isCollective || this.isInheritedCollective)
     {
-      for (Attribute attr : entry.getAttribute(ATTR_COLLECTIVE_CONFLICT_BEHAVIOR))
+      for (Attribute attr : entry.getAttribute(ATTR_COLLECTIVE_CONFLICT_BEHAVIOR_LC))
       {
         for (ByteString value : attr)
         {
@@ -349,6 +257,46 @@ public class SubEntry {
     }
   }
 
+  private SubtreeSpecification buildSubTreeSpecification(Entry entry) throws DirectoryException
+  {
+    String specString = null;
+    boolean isValidSpec = true;
+    AttributeType specAttrType = DirectoryServer.getAttributeType(ATTR_SUBTREE_SPEC_LC);
+    for (Attribute attr : entry.getAttribute(specAttrType))
+    {
+      for (ByteString value : attr)
+      {
+        specString = value.toString();
+        try
+        {
+          SubtreeSpecification subTreeSpec = SubtreeSpecification.valueOf(entry.getName().parent(), specString);
+          if (subTreeSpec != null)
+          {
+            return subTreeSpec;
+          }
+          isValidSpec = true;
+        }
+        catch (DirectoryException ignored)
+        {
+          isValidSpec = false;
+        }
+      }
+    }
+
+    // Check that the subtree spec is flagged as valid. If it is not
+    // that means all parsers have failed and it is invalid syntax.
+    if (!isValidSpec)
+    {
+      LocalizableMessage message = ERR_ATTR_SYNTAX_SUBTREE_SPECIFICATION_INVALID.get(specString);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+    }
+
+    // Subentry has to have a subtree specification.
+    // There is none for some reason eg this could be
+    // old Draft based ldapSubEntry so create a dummy.
+    return new SubtreeSpecification(entry.getName().parent(), null, -1, -1, null, null, null);
+  }
+
   /**
    * Retrieves the distinguished name for this subentry.
    * @return  The distinguished name for this subentry.
@@ -359,8 +307,7 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve the actual entry object
-   * for this subentry.
+   * Getter to retrieve the actual entry object for this subentry.
    * @return entry object for this subentry.
    */
   public final Entry getEntry()
@@ -369,10 +316,8 @@ public class SubEntry {
   }
 
   /**
-   * Indicates whether or not this subentry is
-   * a collective attribute subentry.
-   * @return <code>true</code> if collective,
-   *         <code>false</code> otherwise.
+   * Indicates whether this subentry is a collective attribute subentry.
+   * @return {@code true} if collective, {@code false} otherwise.
    */
   public boolean isCollective()
   {
@@ -380,11 +325,8 @@ public class SubEntry {
   }
 
   /**
-   * Indicates whether or not this subentry is
-   * an inherited collective attribute subentry.
-   * @return <code>true</code> if inherited
-   *         collective, <code>false</code>
-   *         otherwise.
+   * Indicates whether this subentry is inherited collective attribute subentry.
+   * @return {@code true} if inherited collective, {@code false} otherwise.
    */
   public boolean isInheritedCollective()
   {
@@ -392,12 +334,8 @@ public class SubEntry {
   }
 
   /**
-   * Indicates whether or not this subentry is
-   * an inherited from DN collective attribute
-   * subentry.
-   * @return <code>true</code> if inherited
-   *         from DN collective,
-   *         <code>false</code> otherwise.
+   * Indicates whether this subentry is inherited from DN collective attribute subentry.
+   * @return {@code true} if inherited from DN collective, {@code false} otherwise.
    */
   public boolean isInheritedFromDNCollective()
   {
@@ -405,12 +343,8 @@ public class SubEntry {
   }
 
   /**
-   * Indicates whether or not this subentry is
-   * an inherited from RDN collective attribute
-   * subentry.
-   * @return <code>true</code> if inherited
-   *         from RDN collective,
-   *         <code>false</code> otherwise.
+   * Indicates whether this subentry is inherited from RDN collective attribute subentry.
+   * @return {@code true} if inherited from RDN collective, {@code false} otherwise.
    */
   public boolean isInheritedFromRDNCollective()
   {
@@ -418,10 +352,8 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve inheritFromDNAttribute type
-   * for inherited collective attribute subentry.
-   * @return Type of inheritFromDNAttribute or,
-   *         <code>null</code> if there is none.
+   * Getter to retrieve inheritFromDNAttribute type for inherited collective attribute subentry.
+   * @return Type of inheritFromDNAttribute, or {@code null} if there is none.
    */
   public AttributeType getInheritFromDNType()
   {
@@ -429,10 +361,8 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve inheritFromRDNAttribute type
-   * for inherited collective attribute subentry.
-   * @return Type of inheritFromRDNAttribute or,
-   *         <code>null</code> if there is none.
+   * Getter to retrieve inheritFromRDNAttribute type for inherited collective attribute subentry.
+   * @return Type of inheritFromRDNAttribute, or {@code null} if there is none.
    */
   public AttributeType getInheritFromRDNAttrType()
   {
@@ -440,10 +370,8 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve inheritFromRDNAttribute value
-   * for inherited collective attribute subentry.
-   * @return ByteString of inheritFromRDNAttribute
-   *         or, <code>null</code> if there is none.
+   * Getter to retrieve inheritFromRDNAttribute value for inherited collective attribute subentry.
+   * @return ByteString of inheritFromRDNAttribute, or {@code null} if there is none.
    */
   public ByteString getInheritFromRDNAttrValue()
   {
@@ -451,10 +379,8 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve RDN type of inheritFromRDNType
-   * for inherited collective attribute subentry.
-   * @return RDN Type of inheritFromRDNAttribute or,
-   *         <code>null</code> if there is none.
+   * Getter to retrieve RDN type of inheritFromRDNType for inherited collective attribute subentry.
+   * @return RDN Type of inheritFromRDNAttribute, or {@code null} if there is none.
    */
   public AttributeType getInheritFromRDNType()
   {
@@ -462,10 +388,8 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve inheritFromDNAttribute value
-   * for inherited collective attribute subentry.
-   * @return ByteString of inheritFromDNAttribute
-   *         or, <code>null</code> if there is none.
+   * Getter to retrieve inheritFromDNAttribute value for inherited collective attribute subentry.
+   * @return ByteString of inheritFromDNAttribute, or {@code null} if there is none.
    */
   public ByteString getInheritFromDNAttrValue()
   {
@@ -473,10 +397,8 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve inheritFromBaseRDN DN
-   * for inherited collective attribute subentry.
-   * @return DN of inheritFromBaseRDN or,
-   *         <code>null</code> if there is none.
+   * Getter to retrieve inheritFromBaseRDN DN for inherited collective attribute subentry.
+   * @return DN of inheritFromBaseRDN, or {@code null} if there is none.
    */
   public DN getInheritFromBaseDN()
   {
@@ -502,13 +424,17 @@ public class SubEntry {
   }
 
   /**
-   * Getter for collective conflict behavior defined for this
-   * collective attributes subentry.
-   * @return conflict behavior for this collective attributes
-   *         subentry.
+   * Getter for collective conflict behavior defined for this collective attributes subentry.
+   * @return conflict behavior for this collective attributes subentry.
    */
   public CollectiveConflictBehavior getConflictBehavior()
   {
     return this.conflictBehavior;
+  }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "(" + this.entry.getName() + ")";
   }
 }

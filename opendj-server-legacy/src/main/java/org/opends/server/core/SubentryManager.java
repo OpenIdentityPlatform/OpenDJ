@@ -12,11 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,7 +46,14 @@ import org.opends.server.controls.SubentriesControl;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SubEntry;
+import org.opends.server.types.SubtreeSpecification;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
@@ -75,26 +90,21 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** A mapping between the DNs and applicable subentries. */
-  private Map<DN,List<SubEntry>> dn2SubEntry;
-
-  /** A mapping between the DNs and applicable collective subentries. */
-  private Map<DN,List<SubEntry>> dn2CollectiveSubEntry;
-
-  /** A mapping between subentry DNs and subentry objects. */
-  private DITCacheMap<SubEntry> dit2SubEntry;
-
-  /** Internal search all operational attributes. */
-  private Set<String> requestAttrs;
-
-  /** Lock to protect internal data structures. */
-  private final ReadWriteLock lock;
-
-  /** The set of change notification listeners. */
-  private List<SubentryChangeListener> changeListeners;
-
   /** Dummy configuration DN for Subentry Manager. */
   private static final String CONFIG_DN = "cn=Subentry Manager,cn=config";
+
+  /** A mapping between the DNs and applicable subentries. */
+  private final Map<DN, List<SubEntry>> dn2SubEntry = new HashMap<>();
+  /** A mapping between the DNs and applicable collective subentries. */
+  private final Map<DN, List<SubEntry>> dn2CollectiveSubEntry = new HashMap<>();
+  /** A mapping between subentry DNs and subentry objects. */
+  private final DITCacheMap<SubEntry> dit2SubEntry = new DITCacheMap<>();
+  /** Internal search all operational attributes. */
+  private final Set<String> requestAttrs = newLinkedHashSet("*", "+");
+  /** Lock to protect internal data structures. */
+  private final ReadWriteLock lock = new ReentrantReadWriteLock();
+  /** The set of change notification listeners. */
+  private final List<SubentryChangeListener> changeListeners = new CopyOnWriteArrayList<>();
 
   /**
    * Creates a new instance of this subentry manager.
@@ -119,14 +129,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           PluginType.POST_SYNCHRONIZATION_MODIFY,
           PluginType.POST_SYNCHRONIZATION_MODIFY_DN),
           true);
-
-    lock = new ReentrantReadWriteLock();
-
-    dn2SubEntry = new HashMap<>();
-    dn2CollectiveSubEntry = new HashMap<>();
-    dit2SubEntry = new DITCacheMap<>();
-    changeListeners = new CopyOnWriteArrayList<>();
-    requestAttrs = newLinkedHashSet("*", "+");
 
     DirectoryServer.registerInternalPlugin(this);
     DirectoryServer.registerBackendInitializationListener(this);
@@ -179,32 +181,17 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   private void addSubentry(Entry entry) throws DirectoryException
   {
     SubEntry subEntry = new SubEntry(entry);
-    SubtreeSpecification subSpec =
-            subEntry.getSubTreeSpecification();
+    SubtreeSpecification subSpec = subEntry.getSubTreeSpecification();
     DN subDN = subSpec.getBaseDN();
-    List<SubEntry> subList = null;
     lock.writeLock().lock();
     try
     {
-      if (subEntry.isCollective() || subEntry.isInheritedCollective())
-      {
-        subList = dn2CollectiveSubEntry.get(subDN);
-      }
-      else
-      {
-        subList = dn2SubEntry.get(subDN);
-      }
+      Map<DN, List<SubEntry>> subEntryMap = getSubEntryMap(subEntry);
+      List<SubEntry> subList = subEntryMap.get(subDN);
       if (subList == null)
       {
         subList = new ArrayList<>();
-        if (subEntry.isCollective() || subEntry.isInheritedCollective())
-        {
-          dn2CollectiveSubEntry.put(subDN, subList);
-        }
-        else
-        {
-          dn2SubEntry.put(subDN, subList);
-        }
+        subEntryMap.put(subDN, subList);
       }
       dit2SubEntry.put(entry.getName(), subEntry);
       subList.add(subEntry);
@@ -215,74 +202,56 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
+  private Map<DN, List<SubEntry>> getSubEntryMap(SubEntry subEntry)
+  {
+    return (subEntry.isCollective() || subEntry.isInheritedCollective()) ? dn2CollectiveSubEntry : dn2SubEntry;
+  }
+
   /**
    * Remove a given entry from this subentry manager.
-   * @param entry to remove.
+   *
+   * @param entry
+   *          to remove.
    */
   private void removeSubentry(Entry entry)
   {
     lock.writeLock().lock();
     try
     {
-      boolean removed = false;
-      Iterator<Map.Entry<DN, List<SubEntry>>> setIterator =
-              dn2SubEntry.entrySet().iterator();
-      while (setIterator.hasNext())
+      if (!removeSubEntry(dn2SubEntry, entry))
       {
-        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
-        List<SubEntry> subList = mapEntry.getValue();
-        Iterator<SubEntry> listIterator = subList.iterator();
-        while (listIterator.hasNext())
-        {
-          SubEntry subEntry = listIterator.next();
-          if (subEntry.getDN().equals(entry.getName()))
-          {
-            dit2SubEntry.remove(entry.getName());
-            listIterator.remove();
-            removed = true;
-            break;
-          }
-        }
-        if (subList.isEmpty())
-        {
-          setIterator.remove();
-        }
-        if (removed)
-        {
-          return;
-        }
-      }
-      setIterator = dn2CollectiveSubEntry.entrySet().iterator();
-      while (setIterator.hasNext())
-      {
-        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
-        List<SubEntry> subList = mapEntry.getValue();
-        Iterator<SubEntry> listIterator = subList.iterator();
-        while (listIterator.hasNext())
-        {
-          SubEntry subEntry = listIterator.next();
-          if (subEntry.getDN().equals(entry.getName()))
-          {
-            dit2SubEntry.remove(entry.getName());
-            listIterator.remove();
-            removed = true;
-            break;
-          }
-        }
-        if (subList.isEmpty())
-        {
-          setIterator.remove();
-        }
-        if (removed)
-        {
-          return;
-        }
+        removeSubEntry(dn2CollectiveSubEntry, entry);
       }
     }
     finally
     {
       lock.writeLock().unlock();
     }
+  }
+
+  private boolean removeSubEntry(Map<DN, List<SubEntry>> subEntryMap, Entry entry)
+  {
+    Iterator<List<SubEntry>> subEntryListsIt = subEntryMap.values().iterator();
+    while (subEntryListsIt.hasNext())
+    {
+      List<SubEntry> subEntries = subEntryListsIt.next();
+      Iterator<SubEntry> subEntriesIt = subEntries.iterator();
+      while (subEntriesIt.hasNext())
+      {
+        SubEntry subEntry = subEntriesIt.next();
+        if (subEntry.getDN().equals(entry.getName()))
+        {
+          dit2SubEntry.remove(entry.getName());
+          subEntriesIt.remove();
+          if (subEntries.isEmpty())
+          {
+            subEntryListsIt.remove();
+          }
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -417,31 +386,33 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * Return subentries applicable to specific DN.
    * Note that this getter will skip any collective subentries,
    * returning only applicable regular subentries.
-   * @param  dn for which to retrieve applicable
-   *         subentries.
+   * @param  dn for which to retrieve applicable subentries.
    * @return applicable subentries.
    */
   public List<SubEntry> getSubentries(DN dn)
   {
-    if (dn2SubEntry.isEmpty())
+    return getSubentries(dn2SubEntry, dn);
+  }
+
+  private List<SubEntry> getSubentries(Map<DN, List<SubEntry>> subEntryMap, DN dn)
+  {
+    if (subEntryMap.isEmpty())
     {
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<>();
     lock.readLock().lock();
     try
     {
-      for (DN subDN = dn; subDN != null;
-           subDN = subDN.parent())
+      List<SubEntry> subentries = new ArrayList<>();
+      for (DN subDN = dn; subDN != null; subDN = subDN.parent())
       {
-        List<SubEntry> subList = dn2SubEntry.get(subDN);
+        List<SubEntry> subList = subEntryMap.get(subDN);
         if (subList != null)
         {
           for (SubEntry subEntry : subList)
           {
-            SubtreeSpecification subSpec =
-                    subEntry.getSubTreeSpecification();
+            SubtreeSpecification subSpec = subEntry.getSubTreeSpecification();
             if (subSpec.isDNWithinScope(dn))
             {
               subentries.add(subEntry);
@@ -449,13 +420,12 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
         }
       }
+      return subentries;
     }
     finally
     {
       lock.readLock().unlock();
     }
-
-    return subentries;
   }
 
   /**
@@ -468,26 +438,28 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    */
   public List<SubEntry> getSubentries(Entry entry)
   {
-    if (dn2SubEntry.isEmpty())
+    return getSubentries(dn2SubEntry, entry);
+  }
+
+  private List<SubEntry> getSubentries(Map<DN, List<SubEntry>> subEntryMap, Entry entry)
+  {
+    if (subEntryMap.isEmpty())
     {
       return Collections.emptyList();
     }
 
-    List<SubEntry> subentries = new ArrayList<>();
-
     lock.readLock().lock();
     try
     {
-      for (DN subDN = entry.getName(); subDN != null;
-           subDN = subDN.parent())
+      List<SubEntry> subentries = new ArrayList<>();
+      for (DN subDN = entry.getName(); subDN != null; subDN = subDN.parent())
       {
-        List<SubEntry> subList = dn2SubEntry.get(subDN);
+        List<SubEntry> subList = subEntryMap.get(subDN);
         if (subList != null)
         {
           for (SubEntry subEntry : subList)
           {
-            SubtreeSpecification subSpec =
-                    subEntry.getSubTreeSpecification();
+            SubtreeSpecification subSpec = subEntry.getSubTreeSpecification();
             if (subSpec.isWithinScope(entry))
             {
               subentries.add(subEntry);
@@ -495,13 +467,12 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
         }
       }
+      return subentries;
     }
     finally
     {
       lock.readLock().unlock();
     }
-
-    return subentries;
   }
 
   /**
@@ -514,40 +485,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    */
   public List<SubEntry> getCollectiveSubentries(DN dn)
   {
-    if (dn2CollectiveSubEntry.isEmpty())
-    {
-      return Collections.emptyList();
-    }
-
-    List<SubEntry> subentries = new ArrayList<>();
-
-    lock.readLock().lock();
-    try
-    {
-      for (DN subDN = dn; subDN != null;
-           subDN = subDN.parent())
-      {
-        List<SubEntry> subList = dn2CollectiveSubEntry.get(subDN);
-        if (subList != null)
-        {
-          for (SubEntry subEntry : subList)
-          {
-            SubtreeSpecification subSpec =
-                    subEntry.getSubTreeSpecification();
-            if (subSpec.isDNWithinScope(dn))
-            {
-              subentries.add(subEntry);
-            }
-          }
-        }
-      }
-    }
-    finally
-    {
-      lock.readLock().unlock();
-    }
-
-    return subentries;
+    return getSubentries(dn2CollectiveSubEntry, dn);
   }
 
   /**
@@ -560,40 +498,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    */
   public List<SubEntry> getCollectiveSubentries(Entry entry)
   {
-    if (dn2CollectiveSubEntry.isEmpty())
-    {
-      return Collections.emptyList();
-    }
-
-    List<SubEntry> subentries = new ArrayList<>();
-
-    lock.readLock().lock();
-    try
-    {
-      for (DN subDN = entry.getName(); subDN != null;
-           subDN = subDN.parent())
-      {
-        List<SubEntry> subList = dn2CollectiveSubEntry.get(subDN);
-        if (subList != null)
-        {
-          for (SubEntry subEntry : subList)
-          {
-            SubtreeSpecification subSpec =
-                    subEntry.getSubTreeSpecification();
-            if (subSpec.isWithinScope(entry))
-            {
-              subentries.add(subEntry);
-            }
-          }
-        }
-      }
-    }
-    finally
-    {
-      lock.readLock().unlock();
-    }
-
-    return subentries;
+    return getSubentries(dn2CollectiveSubEntry, entry);
   }
 
   /**
@@ -606,81 +511,48 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      Iterator<Map.Entry<DN, List<SubEntry>>> setIterator =
-              dn2SubEntry.entrySet().iterator();
-      while (setIterator.hasNext())
-      {
-        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
-        List<SubEntry> subList = mapEntry.getValue();
-        Iterator<SubEntry> listIterator = subList.iterator();
-        while (listIterator.hasNext())
-        {
-          SubEntry subEntry = listIterator.next();
-          if (backend.handlesEntry(subEntry.getDN()))
-          {
-            dit2SubEntry.remove(subEntry.getDN());
-            listIterator.remove();
-
-            // Notify change listeners.
-            for (SubentryChangeListener changeListener :
-              changeListeners)
-            {
-              try
-              {
-                changeListener.handleSubentryDelete(
-                        subEntry.getEntry());
-              }
-              catch (Exception e)
-              {
-                logger.traceException(e);
-              }
-            }
-          }
-        }
-        if (subList.isEmpty())
-        {
-          setIterator.remove();
-        }
-      }
-      setIterator = dn2CollectiveSubEntry.entrySet().iterator();
-      while (setIterator.hasNext())
-      {
-        Map.Entry<DN, List<SubEntry>> mapEntry = setIterator.next();
-        List<SubEntry> subList = mapEntry.getValue();
-        Iterator<SubEntry> listIterator = subList.iterator();
-        while (listIterator.hasNext())
-        {
-          SubEntry subEntry = listIterator.next();
-          if (backend.handlesEntry(subEntry.getDN()))
-          {
-            dit2SubEntry.remove(subEntry.getDN());
-            listIterator.remove();
-
-            // Notify change listeners.
-            for (SubentryChangeListener changeListener :
-              changeListeners)
-            {
-              try
-              {
-                changeListener.handleSubentryDelete(
-                        subEntry.getEntry());
-              }
-              catch (Exception e)
-              {
-                logger.traceException(e);
-              }
-            }
-          }
-        }
-        if (subList.isEmpty())
-        {
-          setIterator.remove();
-        }
-      }
+      performBackendPostFinalizationProcessing(dn2SubEntry, backend);
+      performBackendPostFinalizationProcessing(dn2CollectiveSubEntry, backend);
     }
     finally
     {
       lock.writeLock().unlock();
+    }
+  }
+
+  private void performBackendPostFinalizationProcessing(Map<DN, List<SubEntry>> subEntryMap, Backend<?> backend)
+  {
+    Iterator<List<SubEntry>> subEntryListsIt = subEntryMap.values().iterator();
+    while (subEntryListsIt.hasNext())
+    {
+      List<SubEntry> subEntryList = subEntryListsIt.next();
+      Iterator<SubEntry> subEntriesIt = subEntryList.iterator();
+      while (subEntriesIt.hasNext())
+      {
+        SubEntry subEntry = subEntriesIt.next();
+        if (backend.handlesEntry(subEntry.getDN()))
+        {
+          dit2SubEntry.remove(subEntry.getDN());
+          subEntriesIt.remove();
+
+          // Notify change listeners.
+          for (SubentryChangeListener changeListener : changeListeners)
+          {
+            try
+            {
+              changeListener.handleSubentryDelete(subEntry.getEntry());
+            }
+            catch (Exception e)
+            {
+              logger.traceException(e);
+            }
+          }
+        }
+      }
+      if (subEntryList.isEmpty())
+      {
+        subEntryListsIt.remove();
+      }
     }
   }
 
@@ -860,7 +732,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(
           PreOperationAddOperation addOperation)
@@ -898,7 +769,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(
           PreOperationDeleteOperation deleteOperation)
@@ -950,7 +820,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(
           PreOperationModifyOperation modifyOperation)
@@ -991,7 +860,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PreOperation doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
@@ -1049,7 +917,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
@@ -1065,7 +932,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
@@ -1081,7 +947,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
@@ -1098,7 +963,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
@@ -1115,7 +979,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationAddOperation addOperation)
@@ -1127,7 +990,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationDeleteOperation deleteOperation)
@@ -1139,7 +1001,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyOperation modifyOperation)
@@ -1152,7 +1013,6 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyDNOperation modifyDNOperation)

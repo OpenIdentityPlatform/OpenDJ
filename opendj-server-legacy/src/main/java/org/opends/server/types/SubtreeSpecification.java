@@ -16,7 +16,18 @@
  */
 package org.opends.server.types;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.InputMismatchException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -61,8 +72,6 @@ public final class SubtreeSpecification
     /** The set of refinements which must all be true. */
     private final Collection<Refinement> refinementSet;
 
-
-
     /**
      * Create a new AND refinement.
      *
@@ -75,9 +84,6 @@ public final class SubtreeSpecification
       this.refinementSet = refinementSet;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -96,18 +102,12 @@ public final class SubtreeSpecification
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return refinementSet.hashCode();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -123,9 +123,6 @@ public final class SubtreeSpecification
       return true;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -155,17 +152,11 @@ public final class SubtreeSpecification
     }
   }
 
-
-
-  /**
-   * A refinement which uses a search filter.
-   */
+  /** A refinement which uses a search filter. */
   public static final class FilterRefinement extends Refinement
   {
     /** The search filter. */
     private final SearchFilter filter;
-
-
 
     /**
      * Create a new filter refinement.
@@ -178,9 +169,6 @@ public final class SubtreeSpecification
       this.filter = filter;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -198,18 +186,12 @@ public final class SubtreeSpecification
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return filter.hashCode();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -225,9 +207,6 @@ public final class SubtreeSpecification
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -235,8 +214,6 @@ public final class SubtreeSpecification
       return builder;
     }
   }
-
-
 
   /**
    * RFC 3672 subtree specification Item refinement. This type of
@@ -251,8 +228,6 @@ public final class SubtreeSpecification
     /** The item's normalized object class. */
     private final String normalizedObjectClass;
 
-
-
     /**
      * Create a new item refinement.
      *
@@ -266,9 +241,6 @@ public final class SubtreeSpecification
           .toLowerCase(objectClass.trim());
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -288,18 +260,12 @@ public final class SubtreeSpecification
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return normalizedObjectClass.hashCode();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -307,9 +273,6 @@ public final class SubtreeSpecification
       return oc != null && entry.hasObjectClass(oc);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -318,8 +281,6 @@ public final class SubtreeSpecification
       return builder;
     }
   }
-
-
 
   /**
    * RFC 3672 subtree specification NOT refinement. This type of
@@ -332,8 +293,6 @@ public final class SubtreeSpecification
     /** The inverted refinement. */
     private final Refinement refinement;
 
-
-
     /**
      * Create a new NOT refinement.
      *
@@ -345,9 +304,6 @@ public final class SubtreeSpecification
       this.refinement = refinement;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -366,27 +322,18 @@ public final class SubtreeSpecification
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return refinement.hashCode();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
       return !refinement.matches(entry);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -394,8 +341,6 @@ public final class SubtreeSpecification
       return refinement.toString(builder);
     }
   }
-
-
 
   /**
    * RFC 3672 subtree specification OR refinement. This type of
@@ -406,8 +351,6 @@ public final class SubtreeSpecification
   {
     /** The set of refinements of which at least one must be true. */
     private final Collection<Refinement> refinementSet;
-
-
 
     /**
      * Create a new OR refinement.
@@ -421,9 +364,6 @@ public final class SubtreeSpecification
       this.refinementSet = refinementSet;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj)
     {
@@ -442,18 +382,12 @@ public final class SubtreeSpecification
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
       return refinementSet.hashCode();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean matches(final Entry entry)
     {
@@ -469,9 +403,6 @@ public final class SubtreeSpecification
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public StringBuilder toString(final StringBuilder builder)
     {
@@ -501,34 +432,20 @@ public final class SubtreeSpecification
     }
   }
 
-
-
-  /**
-   * Abstract interface for RFC3672 specification filter refinements.
-   */
+  /** Abstract interface for RFC3672 specification filter refinements. */
   public static abstract class Refinement
   {
-    /**
-     * Create a new RFC3672 specification filter refinement.
-     */
+    /** Create a new RFC3672 specification filter refinement. */
     protected Refinement()
     {
       // No implementation required.
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public abstract boolean equals(Object obj);
 
-
-
-    /** {@inheritDoc} */
     @Override
     public abstract int hashCode();
-
-
 
     /**
      * Check if the refinement matches the given entry.
@@ -540,9 +457,6 @@ public final class SubtreeSpecification
      */
     public abstract boolean matches(Entry entry);
 
-
-
-    /** {@inheritDoc} */
     @Override
     public final String toString()
     {
@@ -550,8 +464,6 @@ public final class SubtreeSpecification
 
       return toString(builder).toString();
     }
-
-
 
     /**
      * Append the string representation of the refinement to the
@@ -563,8 +475,6 @@ public final class SubtreeSpecification
      */
     public abstract StringBuilder toString(StringBuilder builder);
   }
-
-
 
   /**
    * Internal utility class which can be used by sub-classes to help
@@ -605,8 +515,6 @@ public final class SubtreeSpecification
     private static Pattern STRING_VALUE_TOKEN = Pattern
         .compile("\"([^\"]|(\"\"))*\"");
 
-
-
     /**
      * Create a new parser for a subtree specification string value.
      *
@@ -617,8 +525,6 @@ public final class SubtreeSpecification
     {
       this.scanner = new Scanner(value);
     }
-
-
 
     /**
      * Determine if there are remaining tokens.
@@ -631,8 +537,6 @@ public final class SubtreeSpecification
       return scanner.hasNext();
     }
 
-
-
     /**
      * Determine if the next token is a right-brace character.
      *
@@ -643,8 +547,6 @@ public final class SubtreeSpecification
     {
       return scanner.hasNext(RBRACE);
     }
-
-
 
     /**
      * Scans the next token of the input as a non-negative
@@ -664,8 +566,6 @@ public final class SubtreeSpecification
       return Integer.parseInt(s);
     }
 
-
-
     /**
      * Scans the next token of the input as a key value.
      *
@@ -680,8 +580,6 @@ public final class SubtreeSpecification
     {
       return StaticUtils.toLowerCase(scanner.next());
     }
-
-
 
     /**
      * Scans the next token of the input as a name value.
@@ -700,8 +598,6 @@ public final class SubtreeSpecification
     {
       return nextValue(NAME, NAME_TOKEN);
     }
-
-
 
     /**
      * Scans the next tokens of the input as a set of specific
@@ -724,7 +620,6 @@ public final class SubtreeSpecification
         final Set<DN> chopAfter) throws InputMismatchException,
         NoSuchElementException, DirectoryException
     {
-
       // Skip leading open-brace.
       skipLeftBrace();
 
@@ -754,11 +649,11 @@ public final class SubtreeSpecification
         // <type>:<value>.
         final String type = StaticUtils.toLowerCase(nextName());
         skipColon();
-        if (type.equals("chopbefore"))
+        if ("chopbefore".equals(type))
         {
           chopBefore.add(DN.valueOf(nextStringValue()));
         }
-        else if (type.equals("chopafter"))
+        else if ("chopafter".equals(type))
         {
           chopAfter.add(DN.valueOf(nextStringValue()));
         }
@@ -768,8 +663,6 @@ public final class SubtreeSpecification
         }
       }
     }
-
-
 
     /**
      * Scans the next token of the input as a string quoted according
@@ -791,8 +684,6 @@ public final class SubtreeSpecification
       return s.substring(1, s.length() - 1).replace("\"\"", "\"");
     }
 
-
-
     /**
      * Skip a colon separator.
      *
@@ -806,8 +697,6 @@ public final class SubtreeSpecification
     {
       nextValue(COLON, COLON_TOKEN);
     }
-
-
 
     /**
      * Skip a left-brace character.
@@ -823,8 +712,6 @@ public final class SubtreeSpecification
       nextValue(LBRACE, LBRACE_TOKEN);
     }
 
-
-
     /**
      * Skip a right-brace character.
      *
@@ -839,8 +726,6 @@ public final class SubtreeSpecification
       nextValue(RBRACE, RBRACE_TOKEN);
     }
 
-
-
     /**
      * Skip a comma separator.
      *
@@ -854,8 +739,6 @@ public final class SubtreeSpecification
     {
       nextValue(SEP, SEP_TOKEN);
     }
-
-
 
     /**
      * Parse the next token from the string using the specified
@@ -898,8 +781,6 @@ public final class SubtreeSpecification
     }
   }
 
-
-
   /**
    * Parses the string argument as an RFC3672 subtree specification.
    *
@@ -916,7 +797,6 @@ public final class SubtreeSpecification
   public static SubtreeSpecification valueOf(final DN rootDN,
       final String s) throws DirectoryException
   {
-
     // Default values.
     DN relativeBaseDN = null;
 
@@ -965,7 +845,7 @@ public final class SubtreeSpecification
         }
 
         final String key = parser.nextKey();
-        if (key.equals("base"))
+        if ("base".equals(key))
         {
           if (relativeBaseDN != null)
           {
@@ -974,7 +854,7 @@ public final class SubtreeSpecification
           }
           relativeBaseDN = DN.valueOf(parser.nextStringValue());
         }
-        else if (key.equals("minimum"))
+        else if ("minimum".equals(key))
         {
           if (minimum != -1)
           {
@@ -983,7 +863,7 @@ public final class SubtreeSpecification
           }
           minimum = parser.nextInt();
         }
-        else if (key.equals("maximum"))
+        else if ("maximum".equals(key))
         {
           if (maximum != -1)
           {
@@ -992,7 +872,7 @@ public final class SubtreeSpecification
           }
           maximum = parser.nextInt();
         }
-        else if (key.equals("specificationfilter"))
+        else if ("specificationfilter".equals(key))
         {
           if (refinement != null)
           {
@@ -1000,8 +880,7 @@ public final class SubtreeSpecification
             throw new InputMismatchException();
           }
 
-          // First try normal search filter before RFC3672
-          // refinements.
+          // First try normal search filter before RFC3672 refinements.
           try
           {
             final SearchFilter filter = SearchFilter
@@ -1013,7 +892,7 @@ public final class SubtreeSpecification
             refinement = parseRefinement(parser);
           }
         }
-        else if (key.equals("specificexclusions"))
+        else if ("specificexclusions".equals(key))
         {
           if (!chopBefore.isEmpty() || !chopAfter.isEmpty())
           {
@@ -1046,21 +925,15 @@ public final class SubtreeSpecification
       isValid = false;
     }
 
-    if (isValid)
-    {
-      return new SubtreeSpecification(rootDN, relativeBaseDN,
-          minimum, maximum, chopBefore, chopAfter, refinement);
-    }
-    else
+    if (!isValid)
     {
       final LocalizableMessage message =
         ERR_ATTR_SYNTAX_RFC3672_SUBTREE_SPECIFICATION_INVALID.get(s);
       throw new DirectoryException(
           ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
+    return new SubtreeSpecification(rootDN, relativeBaseDN, minimum, maximum, chopBefore, chopAfter, refinement);
   }
-
-
 
   /**
    * Parse a single refinement.
@@ -1082,26 +955,21 @@ public final class SubtreeSpecification
     // Skip the colon separator.
     parser.skipColon();
 
-    if (type.equals("item"))
+    if ("item".equals(type))
     {
       return new ItemRefinement(parser.nextName());
     }
-    else if (type.equals("not"))
+    else if ("not".equals(type))
     {
-      final Refinement refinement = parseRefinement(parser);
-      return new NotRefinement(refinement);
+      return new NotRefinement(parseRefinement(parser));
     }
-    else if (type.equals("and"))
+    else if ("and".equals(type))
     {
-      final ArrayList<Refinement> refinements =
-        parseRefinementSet(parser);
-      return new AndRefinement(refinements);
+      return new AndRefinement(parseRefinementSet(parser));
     }
-    else if (type.equals("or"))
+    else if ("or".equals(type))
     {
-      final ArrayList<Refinement> refinements =
-        parseRefinementSet(parser);
-      return new OrRefinement(refinements);
+      return new OrRefinement(parseRefinementSet(parser));
     }
     else
     {
@@ -1109,8 +977,6 @@ public final class SubtreeSpecification
       throw new InputMismatchException();
     }
   }
-
-
 
   /**
    * Parse a list of refinements.
@@ -1155,14 +1021,11 @@ public final class SubtreeSpecification
       }
 
       // Parse each sub-refinement.
-      final Refinement refinement = parseRefinement(parser);
-      refinements.add(refinement);
+      refinements.add(parseRefinement(parser));
     }
 
     return refinements;
   }
-
-
 
   /** The absolute base of the subtree. */
   private final DN baseDN;
@@ -1186,8 +1049,6 @@ public final class SubtreeSpecification
 
   /** The optional specification filter refinements. */
   private final Refinement refinements;
-
-
 
   /**
    * Create a new RFC3672 subtree specification.
@@ -1260,8 +1121,6 @@ public final class SubtreeSpecification
     this.refinements = refinements;
   }
 
-
-
   /**
    * Indicates whether the provided object is logically equal to this
    * subtree specification object.
@@ -1275,7 +1134,6 @@ public final class SubtreeSpecification
   @Override
   public boolean equals(final Object obj)
   {
-
     if (this == obj)
     {
       return true;
@@ -1285,30 +1143,16 @@ public final class SubtreeSpecification
     {
       final SubtreeSpecification other = (SubtreeSpecification) obj;
 
-      if (!commonComponentsEquals(other))
-      {
-        return false;
-      }
-
-      if (!getBaseDN().equals(other.getBaseDN()))
-      {
-        return false;
-      }
-
-      if (refinements != null)
-      {
-        return refinements.equals(other.refinements);
-      }
-      else
-      {
-        return refinements == other.refinements;
-      }
+      return minimumDepth == other.minimumDepth
+          && maximumDepth == other.maximumDepth
+          && chopBefore.values().equals(other.chopBefore.values())
+          && chopAfter.values().equals(other.chopAfter.values())
+          && getBaseDN().equals(other.getBaseDN())
+          && Objects.equals(refinements, other.refinements);
     }
 
     return false;
   }
-
-
 
   /**
    * Get the absolute base DN of the subtree specification.
@@ -1321,8 +1165,6 @@ public final class SubtreeSpecification
     return baseDN;
   }
 
-
-
   /**
    * Get the set of chop after relative DNs.
    *
@@ -1330,11 +1172,8 @@ public final class SubtreeSpecification
    */
   public Iterable<DN> getChopAfter()
   {
-
     return chopAfter.values();
   }
-
-
 
   /**
    * Get the set of chop before relative DNs.
@@ -1343,11 +1182,8 @@ public final class SubtreeSpecification
    */
   public Iterable<DN> getChopBefore()
   {
-
     return chopBefore.values();
   }
-
-
 
   /**
    * Get the maximum depth of the subtree specification.
@@ -1358,8 +1194,6 @@ public final class SubtreeSpecification
   {
     return maximumDepth;
   }
-
-
 
   /**
    * Get the minimum depth of the subtree specification.
@@ -1372,8 +1206,6 @@ public final class SubtreeSpecification
     return minimumDepth;
   }
 
-
-
   /**
    * Get the specification filter refinements.
    *
@@ -1384,8 +1216,6 @@ public final class SubtreeSpecification
   {
     return refinements;
   }
-
-
 
   /**
    * Get the relative base DN.
@@ -1398,8 +1228,6 @@ public final class SubtreeSpecification
     return relativeBaseDN;
   }
 
-
-
   /**
    * Get the root DN.
    *
@@ -1410,8 +1238,6 @@ public final class SubtreeSpecification
     return rootDN;
   }
 
-
-
   /**
    * Retrieves the hash code for this subtree specification object.
    *
@@ -1420,9 +1246,9 @@ public final class SubtreeSpecification
   @Override
   public int hashCode()
   {
-
-    int hash = commonComponentsHashCode();
-
+    int hash = minimumDepth * 31 + maximumDepth;
+    hash = hash * 31 + chopBefore.values().hashCode();
+    hash = hash * 31 + chopAfter.values().hashCode();
     hash = hash * 31 + getBaseDN().hashCode();
 
     if (refinements != null)
@@ -1432,8 +1258,6 @@ public final class SubtreeSpecification
 
     return hash;
   }
-
-
 
   /**
    * Determine if the specified DN is within the scope of the subtree
@@ -1447,7 +1271,6 @@ public final class SubtreeSpecification
    */
   public boolean isDNWithinScope(final DN dn)
   {
-
     if (!dn.isSubordinateOrEqualTo(baseDN))
     {
       return false;
@@ -1497,8 +1320,6 @@ public final class SubtreeSpecification
     return true;
   }
 
-
-
   /**
    * Determine if an entry is within the scope of the subtree
    * specification.
@@ -1514,8 +1335,6 @@ public final class SubtreeSpecification
         && (refinements == null || refinements.matches(entry));
   }
 
-
-
   /**
    * Retrieves a string representation of this subtree specification
    * object.
@@ -1530,8 +1349,6 @@ public final class SubtreeSpecification
     return toString(builder).toString();
   }
 
-
-
   /**
    * Append the string representation of the subtree specification to
    * the provided string builder.
@@ -1542,7 +1359,6 @@ public final class SubtreeSpecification
    */
   public StringBuilder toString(final StringBuilder builder)
   {
-
     boolean isFirstElement = true;
 
     // Output the optional base DN.
@@ -1550,8 +1366,7 @@ public final class SubtreeSpecification
     if (relativeBaseDN != null && !relativeBaseDN.isRootDN())
     {
       builder.append(" base ");
-      StaticUtils.toRFC3641StringValue(builder,
-          relativeBaseDN.toString());
+      StaticUtils.toRFC3641StringValue(builder, relativeBaseDN.toString());
       isFirstElement = false;
     }
 
@@ -1562,43 +1377,19 @@ public final class SubtreeSpecification
     if (chopBefore.iterator().hasNext()
         || chopAfter.iterator().hasNext())
     {
-      if (!isFirstElement)
-      {
-        builder.append(",");
-      }
-      else
-      {
-        isFirstElement = false;
-      }
-      builder.append(" specificExclusions { ");
+      isFirstElement = append2(builder, isFirstElement, " specificExclusions { ");
 
       boolean isFirst = true;
 
       for (final DN dn : chopBefore)
       {
-        if (!isFirst)
-        {
-          builder.append(", chopBefore:");
-        }
-        else
-        {
-          builder.append("chopBefore:");
-          isFirst = false;
-        }
+        isFirst = append(builder, isFirst, "chopBefore:");
         StaticUtils.toRFC3641StringValue(builder, dn.toString());
       }
 
       for (final DN dn : chopAfter)
       {
-        if (!isFirst)
-        {
-          builder.append(", chopAfter:");
-        }
-        else
-        {
-          builder.append("chopAfter:");
-          isFirst = false;
-        }
+        isFirst = append(builder, isFirst, "chopAfter:");
         StaticUtils.toRFC3641StringValue(builder, dn.toString());
       }
 
@@ -1608,45 +1399,21 @@ public final class SubtreeSpecification
     // Output the optional minimum depth.
     if (getMinimumDepth() > 0)
     {
-      if (!isFirstElement)
-      {
-        builder.append(",");
-      }
-      else
-      {
-        isFirstElement = false;
-      }
-      builder.append(" minimum ");
+      isFirstElement = append2(builder, isFirstElement, " minimum ");
       builder.append(getMinimumDepth());
     }
 
     // Output the optional maximum depth.
     if (getMaximumDepth() >= 0)
     {
-      if (!isFirstElement)
-      {
-        builder.append(",");
-      }
-      else
-      {
-        isFirstElement = false;
-      }
-      builder.append(" maximum ");
+      isFirstElement = append2(builder, isFirstElement, " maximum ");
       builder.append(getMaximumDepth());
     }
 
     // Output the optional refinements.
     if (refinements != null)
     {
-      if (!isFirstElement)
-      {
-        builder.append(",");
-      }
-      else
-      {
-        isFirstElement = false;
-      }
-      builder.append(" specificationFilter ");
+      isFirstElement = append2(builder, isFirstElement, " specificationFilter ");
       refinements.toString(builder);
     }
 
@@ -1655,42 +1422,31 @@ public final class SubtreeSpecification
     return builder;
   }
 
-
-
-  /**
-   * Determine if the common components of this subtree specification
-   * are equal to the common components of another subtree
-   * specification.
-   *
-   * @param other
-   *          The other subtree specification.
-   * @return Returns <code>true</code> if they are equal.
-   */
-  private boolean commonComponentsEquals(
-      final SubtreeSpecification other)
+  private boolean append2(final StringBuilder builder, boolean isFirst, String toAppend)
   {
-    if (this == other)
+    if (isFirst)
     {
-      return true;
+      isFirst = false;
     }
-    return minimumDepth == other.minimumDepth
-        && maximumDepth == other.maximumDepth
-        && chopBefore.values().equals(other.chopBefore.values())
-        && chopAfter.values().equals(other.chopAfter.values());
+    else
+    {
+      builder.append(",");
+    }
+    builder.append(toAppend);
+    return isFirst;
   }
 
-
-
-  /**
-   * Get a hash code of the subtree specification's common components.
-   *
-   * @return The computed hash code.
-   */
-  private int commonComponentsHashCode()
+  private boolean append(final StringBuilder builder, boolean isFirst, String toAppend)
   {
-    int hash = minimumDepth * 31 + maximumDepth;
-    hash = hash * 31 + chopBefore.values().hashCode();
-    hash = hash * 31 + chopAfter.values().hashCode();
-    return hash;
+    if (isFirst)
+    {
+      isFirst = false;
+    }
+    else
+    {
+      builder.append(", ");
+    }
+    builder.append(toAppend);
+    return isFirst;
   }
 }
