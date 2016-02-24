@@ -66,7 +66,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.cli.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentConstants;

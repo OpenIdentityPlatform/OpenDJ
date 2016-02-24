@@ -44,7 +44,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.cli.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;

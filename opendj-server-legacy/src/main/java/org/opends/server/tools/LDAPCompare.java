@@ -23,7 +23,7 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
+import static org.opends.server.util.cli.LDAPConnectionArgumentParser.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

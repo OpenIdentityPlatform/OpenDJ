@@ -54,7 +54,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.EmbeddedUtils;
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.cli.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;

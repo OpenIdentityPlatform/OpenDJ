@@ -62,7 +62,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.cli.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;

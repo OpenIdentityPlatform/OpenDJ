@@ -25,7 +25,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
+import static org.opends.server.util.cli.LDAPConnectionArgumentParser.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

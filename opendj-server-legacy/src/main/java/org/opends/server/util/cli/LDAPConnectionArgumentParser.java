@@ -14,7 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-package org.opends.server.util.args;
+package org.opends.server.util.cli;
 
 import static org.opends.messages.ToolMessages.*;
 
@@ -36,7 +36,6 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
