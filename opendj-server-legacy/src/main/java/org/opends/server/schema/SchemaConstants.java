@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2013 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.schema;
@@ -25,14 +25,14 @@ package org.opends.server.schema;
  * <p>
  * Here is a definition for the prefixes:
  * <dl>
- * <dt>AMR</dt>
- * <dd>Approximate Matching Rule</dd>
- * <dt>EMR</dt>
- * <dd>Equality Matching Rule</dd>
- * <dt>OMR</dt>
- * <dd>Ordering Matching Rule</dd>
- * <dt>SMR</dt>
- * <dd>Syntax Matching Rule</dd>
+ * <dt>AMR
+ * <dd>Approximate Matching Rule
+ * <dt>EMR
+ * <dd>Equality Matching Rule
+ * <dt>OMR
+ * <dd>Ordering Matching Rule
+ * <dt>SMR
+ * <dd>Syntax Matching Rule
  * </dl>
  * </p>
  */
