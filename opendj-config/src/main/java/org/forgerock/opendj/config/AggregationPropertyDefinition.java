@@ -12,11 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.config.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import org.forgerock.util.Reject;

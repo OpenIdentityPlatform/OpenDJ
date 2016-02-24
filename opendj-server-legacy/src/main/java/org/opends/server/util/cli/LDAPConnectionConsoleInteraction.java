@@ -19,7 +19,8 @@ package org.opends.server.util.cli;
 import static com.forgerock.opendj.cli.Utils.isDN;
 import static com.forgerock.opendj.cli.Utils.getAdministratorDN;
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-import static com.forgerock.opendj.cli.CliMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
 import java.io.FileInputStream;

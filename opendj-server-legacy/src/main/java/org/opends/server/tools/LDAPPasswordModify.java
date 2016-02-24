@@ -16,15 +16,6 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_CONNECTION_TIMEOUT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIMEOUT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;

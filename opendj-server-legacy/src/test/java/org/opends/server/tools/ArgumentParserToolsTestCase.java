@@ -11,10 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
+import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 
 import static org.assertj.core.api.Assertions.*;

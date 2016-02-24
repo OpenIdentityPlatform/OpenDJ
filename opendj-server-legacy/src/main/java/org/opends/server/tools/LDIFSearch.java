@@ -17,8 +17,6 @@
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 

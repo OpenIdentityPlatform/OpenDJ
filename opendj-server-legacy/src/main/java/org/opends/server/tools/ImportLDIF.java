@@ -16,7 +16,6 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;

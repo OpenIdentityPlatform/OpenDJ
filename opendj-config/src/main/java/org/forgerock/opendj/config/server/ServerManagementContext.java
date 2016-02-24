@@ -12,12 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.server;
 
-import static com.forgerock.opendj.ldap.config.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 import static org.forgerock.opendj.config.PropertyException.defaultBehaviorException;
 import static org.forgerock.opendj.config.PropertyException.propertyIsSingleValuedException;

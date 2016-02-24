@@ -12,12 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
-import static com.forgerock.opendj.ldap.config.AdminMessages.*;
-import static com.forgerock.opendj.ldap.config.ExtensionMessages.NOTE_LOG_EXTENSION_INFORMATION;
+import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -52,7 +51,7 @@ import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.forgerock.opendj.ldap.config.AdminMessages;
+import com.forgerock.opendj.ldap.config.ConfigMessages;
 
 /**
  * This class is responsible for managing the configuration framework including:
@@ -114,7 +113,7 @@ public final class ConfigurationFramework {
             "/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
 
     private static final LocalizedLogger adminLogger = LocalizedLogger
-            .getLocalizedLogger(AdminMessages.resourceName());
+            .getLocalizedLogger(ConfigMessages.resourceName());
     private static final Logger debugLogger = LoggerFactory.getLogger(ConfigurationFramework.class);
 
     /** The name of the lib directory. */

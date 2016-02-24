@@ -17,8 +17,6 @@
 package org.opends.server.tools.makeldif;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.INFO_MAKELDIF_DESCRIPTION_SEED;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 

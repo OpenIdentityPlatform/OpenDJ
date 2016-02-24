@@ -17,11 +17,10 @@
 package org.opends.server.tools.status;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.util.Utils.*;
-
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;

@@ -133,7 +133,6 @@ import com.forgerock.opendj.cli.TextTablePrinter;
 import com.forgerock.opendj.cli.ValidationCallback;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -147,9 +146,7 @@ import static org.opends.admin.ads.ServerDescriptor.getServerRepresentation;
 import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_TASK_SUCESSFULL;
-import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE;
-import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;

@@ -12,14 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.server.protocols.ldap;
 
 import org.testng.annotations.Test;
 
-import static org.opends.messages.ProtocolMessages.ERR_ECN_INVALID_ELEMENT_TYPE;
+import static org.opends.messages.ProtocolMessages.ERR_LDAP_MESSAGE_DECODE_MESSAGE_ID;
 import static org.opends.messages.ProtocolMessages.ERR_ECN_CANNOT_DECODE_VALUE;
 
 import org.forgerock.i18n.LocalizableMessageDescriptor;
@@ -36,9 +36,8 @@ public class TestLDAPException extends LdapTestCase
   @Test
   public void testLDAPException()
   {
-    LocalizableMessageDescriptor.Arg1 msgDesc = ERR_ECN_INVALID_ELEMENT_TYPE;
-    LDAPException ex =
-        new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgDesc.get(""));
+    LocalizableMessageDescriptor.Arg1 msgDesc = ERR_LDAP_MESSAGE_DECODE_MESSAGE_ID;
+    LDAPException ex = new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgDesc.get(""));
     assertEquals(ex.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     assertTrue(StaticUtils.hasDescriptor(ex.getMessageObject(), msgDesc));
   }
@@ -46,10 +45,9 @@ public class TestLDAPException extends LdapTestCase
   @Test
   public void testLDAPExceptionThrowable()
   {
-    LocalizableMessageDescriptor.Arg1 msgID = ERR_ECN_INVALID_ELEMENT_TYPE;
+    LocalizableMessageDescriptor.Arg1 msgID = ERR_LDAP_MESSAGE_DECODE_MESSAGE_ID;
     LDAPException ex = new LDAPException(LDAPResultCode.OTHER, msgID.get(""));
-    LocalizableMessageDescriptor.Arg1<Object> msgID1 =
-        ERR_ECN_CANNOT_DECODE_VALUE;
+    LocalizableMessageDescriptor.Arg1<Object> msgID1 = ERR_ECN_CANNOT_DECODE_VALUE;
     new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID1.get(""), ex);
     assertEquals(ex.getResultCode(), LDAPResultCode.OTHER);
     assertTrue(StaticUtils.hasDescriptor(ex.getMessageObject(), msgID));

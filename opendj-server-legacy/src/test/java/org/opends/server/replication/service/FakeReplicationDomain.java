@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
@@ -22,14 +22,13 @@ import java.io.OutputStream;
 import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * This class is the minimum implementation of a Concrete ReplicationDomain
@@ -123,8 +122,7 @@ public class FakeReplicationDomain extends ReplicationDomain
     }
     catch (IOException e)
     {
-      throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
-          ERR_BACKEND_EXPORT_ENTRY.get("", ""));
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, LocalizableMessage.raw("exportBackend"));
     }
   }
 
@@ -138,11 +136,10 @@ public class FakeReplicationDomain extends ReplicationDomain
       try
       {
         ret = input.read(buffer, 0, 1000);
-      } catch (IOException e)
+      }
+      catch (IOException e)
       {
-        throw new DirectoryException(
-            ResultCode.OPERATIONS_ERROR,
-            ERR_BACKEND_EXPORT_ENTRY.get("", ""));
+        throw new DirectoryException(ResultCode.OPERATIONS_ERROR, LocalizableMessage.raw("importBackend"));
       }
       if (ret>0)
       {

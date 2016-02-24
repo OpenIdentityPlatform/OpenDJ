@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-import static com.forgerock.opendj.ldap.config.AdminMessages.*;
+import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 
 /**
  * This exception is thrown when an authentication error occurs while connecting

@@ -17,9 +17,10 @@
 package org.opends.guitools.uninstaller;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.OutputStream;
 import java.util.ArrayList;

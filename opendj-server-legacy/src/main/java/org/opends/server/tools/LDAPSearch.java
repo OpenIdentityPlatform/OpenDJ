@@ -17,13 +17,6 @@
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_BINDPASSWORDFILE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_VERSION;
-import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
