@@ -17,10 +17,10 @@
 package org.opends.server.protocols.internal;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -33,7 +33,6 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
@@ -50,6 +49,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -507,9 +507,7 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE,
-        new LDAPAttribute("description", "This is a test")));
+    List<RawModification> mods = newArrayList(RawModification.create(REPLACE, "description", "This is a test"));
 
     InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation =
@@ -535,9 +533,8 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "This is a test")));
+    List<Modification> mods = newArrayList(
+        new Modification(REPLACE, Attributes.create("description", "This is a test")));
 
     InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation =

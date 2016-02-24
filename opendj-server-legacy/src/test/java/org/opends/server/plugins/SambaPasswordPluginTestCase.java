@@ -17,6 +17,8 @@
 package org.opends.server.plugins;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -30,6 +32,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
@@ -141,13 +145,12 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
      * Samba administrative user needs a permission to manipulate user accounts.
      * Hence, we add a very permissive ACI.
      */
-    LinkedList<Modification> mods =
-        newLinkedList(new Modification(ModificationType.ADD, Attributes.create("aci",
-        "(target=\"ldap:///uid=*,o=test\")(targetattr=\"*\")"
-            + "(version 3.0; acl \"Samba admin\"; allow (all) "
-            + "userdn=\"ldap:///cn=samba admin,o=test\";)")));
-
-    ModifyOperation modOp = getRootConnection().processModify(DN.valueOf("o=test"), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest("o=test")
+        .addModification(ADD, "aci",
+            "(target=\"ldap:///uid=*,o=test\")(targetattr=\"*\")"
+                + "(version 3.0; acl \"Samba admin\"; allow (all) "
+                + "userdn=\"ldap:///cn=samba admin,o=test\";)");
+    ModifyOperation modOp = getRootConnection().processModify(modifyRequest);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -219,10 +222,9 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     TestCaseUtils.addEntry(testEntry);
 
     // Perform the modify operation
-    LinkedList<Modification> mods = newLinkedList(
-        new Modification(ModificationType.REPLACE, Attributes.create("userPassword", "password")));
-
-    ModifyOperation modOp = getRootConnection().processModify(testEntry.getName(), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest(from(testEntry.getName()))
+        .addModification(REPLACE, "userPassword", "password");
+    ModifyOperation modOp = getRootConnection().processModify(modifyRequest);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS);
 
     // Verification of the change

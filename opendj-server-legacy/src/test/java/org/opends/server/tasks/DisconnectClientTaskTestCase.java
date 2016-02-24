@@ -12,24 +12,29 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
-import java.net.Socket;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.extensions.GetConnectionIDExtendedOperation;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.DN;
-import org.opends.server.util.StaticUtils;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
+
+import java.io.IOException;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.LdapException;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.extensions.GetConnectionIDExtendedOperation;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPConstants;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 /** Tests the disconnect client task. */
 public class DisconnectClientTaskTestCase
@@ -60,64 +65,36 @@ public class DisconnectClientTaskTestCase
          throws Exception
   {
     // Establish a connection to the server, bind, and get the connection ID.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r =
-        new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w =
-        new org.opends.server.tools.LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+      long connectionID = getConnectionID(conn);
 
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      // Invoke the disconnect client task.
+      String taskID = "Disconnect Client " + connectionID;
+      LocalizableMessage disconnectMessage = LocalizableMessage.raw("testDisconnectWithNotification");
+      DN taskDN = DN.valueOf("ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=Tasks");
+      TestCaseUtils.addEntry(
+          "dn: " + taskDN,
+          "objectClass: top",
+          "objectClass: ds-task",
+          "objectClass: ds-task-disconnect",
+          "ds-task-id: " + taskID,
+          "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
+          "ds-task-disconnect-connection-id: " + connectionID,
+          "ds-task-disconnect-notify-client: true",
+          "ds-task-disconnect-message: " + disconnectMessage);
 
-
-    ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_GET_CONNECTION_ID_EXTOP);
-    message = new LDAPMessage(2, extendedRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    ExtendedResponseProtocolOp extendedResponse =
-         message.getExtendedResponseProtocolOp();
-    assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
-    assertEquals(extendedResponse.getOID(), OID_GET_CONNECTION_ID_EXTOP);
-    long connectionID = GetConnectionIDExtendedOperation.decodeResponseValue(
-                             extendedResponse.getValue());
+      waitTaskCompletedSuccessfully(taskDN);
 
 
-    // Invoke the disconnect client task.
-    String taskID = "Disconnect Client " + connectionID;
-    LocalizableMessage disconnectMessage = LocalizableMessage.raw("testDisconnectWithNotification");
-    DN taskDN = DN.valueOf("ds-task-id=" + taskID +
-                          ",cn=Scheduled Tasks,cn=Tasks");
-    TestCaseUtils.addEntry(
-      "dn: " + taskDN,
-      "objectClass: top",
-      "objectClass: ds-task",
-      "objectClass: ds-task-disconnect",
-      "ds-task-id: " + taskID,
-      "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
-      "ds-task-disconnect-connection-id: " + connectionID,
-      "ds-task-disconnect-notify-client: true",
-      "ds-task-disconnect-message: " + disconnectMessage);
-
-    waitTaskCompletedSuccessfully(taskDN);
-
-
-    // Make sure that we get a notice of disconnection on the initial connection.
-    message = r.readMessage();
-    extendedResponse = message.getExtendedResponseProtocolOp();
-    assertEquals(extendedResponse.getOID(),
-                 LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
-    assertEquals(extendedResponse.getErrorMessage(), disconnectMessage);
-
-    StaticUtils.close(s);
+      // Make sure that we get a notice of disconnection on the initial connection.
+      LDAPMessage message = conn.readMessage();
+      ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
+      assertEquals(extendedResponse.getOID(), LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
+      assertEquals(extendedResponse.getErrorMessage(), disconnectMessage);
+    }
   }
 
 
@@ -133,57 +110,41 @@ public class DisconnectClientTaskTestCase
          throws Exception
   {
     // Establish a connection to the server, bind, and get the connection ID.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r =
-        new org.opends.server.tools.LDAPReader(s);
-    org.opends.server.tools.LDAPWriter w =
-        new org.opends.server.tools.LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      long connectionID = getConnectionID(conn);
 
 
-    ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_GET_CONNECTION_ID_EXTOP);
-    message = new LDAPMessage(2, extendedRequest);
-    w.writeMessage(message);
+      // Invoke the disconnect client task.
+      String taskID = "Disconnect Client " + connectionID;
+      DN taskDN = DN.valueOf("ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=Tasks");
+      TestCaseUtils.addEntry(
+          "dn: " + taskDN,
+          "objectClass: top",
+          "objectClass: ds-task",
+          "objectClass: ds-task-disconnect",
+          "ds-task-id: " + taskID,
+          "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
+          "ds-task-disconnect-connection-id: " + connectionID,
+          "ds-task-disconnect-notify-client: false");
 
-    message = r.readMessage();
-    ExtendedResponseProtocolOp extendedResponse =
-         message.getExtendedResponseProtocolOp();
+      waitTaskCompletedSuccessfully(taskDN);
+
+
+      // Make sure that the client connection has been closed with no notice of disconnection.
+      assertNull(conn.readMessage());
+    }
+  }
+
+  private long getConnectionID(RemoteConnection conn) throws IOException, LDAPException, LdapException, DecodeException
+  {
+    LDAPMessage message = conn.extendedRequest(OID_GET_CONNECTION_ID_EXTOP);
+
+    ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
     assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
     assertEquals(extendedResponse.getOID(), OID_GET_CONNECTION_ID_EXTOP);
-    long connectionID = GetConnectionIDExtendedOperation.decodeResponseValue(
-                             extendedResponse.getValue());
-
-
-    // Invoke the disconnect client task.
-    String taskID = "Disconnect Client " + connectionID;
-    DN taskDN = DN.valueOf("ds-task-id=" + taskID +
-                          ",cn=Scheduled Tasks,cn=Tasks");
-    TestCaseUtils.addEntry(
-      "dn: " + taskDN,
-      "objectClass: top",
-      "objectClass: ds-task",
-      "objectClass: ds-task-disconnect",
-      "ds-task-id: " + taskID,
-      "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
-      "ds-task-disconnect-connection-id: " + connectionID,
-      "ds-task-disconnect-notify-client: false");
-
-    waitTaskCompletedSuccessfully(taskDN);
-
-
-    // Make sure that the client connection has been closed with no notice of disconnection.
-    assertNull(r.readMessage());
-
-    StaticUtils.close(s);
+    return GetConnectionIDExtendedOperation.decodeResponseValue(extendedResponse.getValue());
   }
 }

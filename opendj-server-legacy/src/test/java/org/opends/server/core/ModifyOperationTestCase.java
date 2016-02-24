@@ -32,11 +32,9 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
@@ -57,7 +55,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.Base64;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -67,12 +64,14 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.controls.GenericControl.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 /**
@@ -717,23 +716,9 @@ public class ModifyOperationTestCase
     retrieveFailedOperationElements(modifyOperation);
   }
 
-  private ModifyOperation processModify(String entryDN, List<RawModification> mods)
-  {
-    InternalClientConnection conn = getRootConnection();
-    return conn.processModify(ByteString.valueOfUtf8(entryDN), mods);
-  }
-
   private ModifyOperation processModify(String entryDN, RawModification... mods)
   {
-    InternalClientConnection conn = getRootConnection();
-    return conn.processModify(ByteString.valueOfUtf8(entryDN), Arrays.asList(mods));
-  }
-
-  private ModifyOperation processModify(String entryDN,
-      List<RawModification> mods, List<Control> requestControls)
-  {
-    InternalClientConnection conn = getRootConnection();
-    return conn.processModify(ByteString.valueOfUtf8(entryDN), mods, requestControls);
+    return getRootConnection().processModify(ByteString.valueOfUtf8(entryDN), Arrays.asList(mods));
   }
 
   /**
@@ -1327,7 +1312,7 @@ public class ModifyOperationTestCase
          "mail: foo");
 
     String dn = "uid=test.user," + baseDN;
-    ModifyOperation modifyOperation = processModify(dn, newRawModifications(REPLACE, "uid", "test.user"));
+    ModifyOperation modifyOperation = processModify(dn, newRawModification(REPLACE, "uid", "test.user"));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -3000,14 +2985,10 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    List<RawModification> mods = newRawModifications(ADD, "givenName", "Test");
-
-    List<Control> requestControls = new ArrayList<>();
-    requestControls.add(
-        new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
-
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN,
-                            mods, requestControls);
+    ModifyRequest modifyRequest = Requests.newModifyRequest("uid=test.user," + baseDN)
+        .addModification(ADD, "givenName", "Test")
+        .addControl(newControl(OID_PERMISSIVE_MODIFY_CONTROL));
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -3035,14 +3016,10 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    List<RawModification> mods = newRawModifications(DELETE, "givenName", "Foo");
-
-    List<Control> requestControls = new ArrayList<>();
-    requestControls.add(
-        new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
-
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN,
-                            mods, requestControls);
+    ModifyRequest modifyRequest = Requests.newModifyRequest("uid=test.user," + baseDN)
+        .addModification(DELETE, "givenName", "Foo")
+        .addControl(newControl(OID_PERMISSIVE_MODIFY_CONTROL));
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -3070,14 +3047,10 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password");
 
-    List<RawModification> mods = newRawModifications(DELETE, "description");
-
-    List<Control> requestControls = new ArrayList<>();
-    requestControls.add(
-        new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
-
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN,
-                            mods, requestControls);
+    ModifyRequest modifyRequest = Requests.newModifyRequest("uid=test.user," + baseDN)
+        .addModification(DELETE, "description")
+        .addControl(newControl(OID_PERMISSIVE_MODIFY_CONTROL));
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
   }
@@ -3463,11 +3436,9 @@ public class ModifyOperationTestCase
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "sn: User", "cn: Test User");
 
-    // First check that adding "dc" fails because it is not allowed by
-    // inetOrgPerson.
-    List<RawModification> mods = newRawModifications(ADD, "dc", "foo");
-
-    ModifyOperation modifyOperation = processModify("cn=Test User," + baseDN, mods);
+    // First check that adding "dc" fails because it is not allowed by inetOrgPerson.
+    RawModification mod = newRawModification(ADD, "dc", "foo");
+    ModifyOperation modifyOperation = processModify("cn=Test User," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
 
     int res = applyModifications(
@@ -3487,7 +3458,7 @@ public class ModifyOperationTestCase
     try
     {
       // Modify existing entry.
-      modifyOperation = processModify("cn=Test User," + baseDN, mods);
+      modifyOperation = processModify("cn=Test User," + baseDN, mod);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
       // Add new entry and modify.
@@ -3495,7 +3466,7 @@ public class ModifyOperationTestCase
           "objectClass: top", "objectClass: person",
           "objectClass: organizationalPerson", "sn: User2", "cn: Test User2");
 
-      modifyOperation = processModify("cn=Test User2," + baseDN, mods);
+      modifyOperation = processModify("cn=Test User2," + baseDN, mod);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
     finally
@@ -3520,7 +3491,7 @@ public class ModifyOperationTestCase
           "objectClass: top", "objectClass: person",
           "objectClass: organizationalPerson", "sn: User3", "cn: Test User3");
 
-      modifyOperation = processModify("cn=Test User3," + baseDN, mods);
+      modifyOperation = processModify("cn=Test User3," + baseDN, mod);
       assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
     }
   }

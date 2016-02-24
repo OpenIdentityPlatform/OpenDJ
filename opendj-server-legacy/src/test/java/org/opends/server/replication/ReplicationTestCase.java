@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -30,8 +30,11 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
@@ -67,6 +70,7 @@ import org.testng.annotations.Test;
 
 import static java.util.concurrent.TimeUnit.*;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
@@ -598,6 +602,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     Attribute attr = Attributes.create(attrName, attrValue);
     return newArrayList(new Modification(REPLACE, attr));
+  }
+
+  protected static ModifyRequest modifyRequest(DN entryDN, ModificationType modType, String attrName, String attrValue)
+  {
+    return Requests.newModifyRequest(from(entryDN)).addModification(modType, attrName, attrValue);
   }
 
   /** Utility method to create, run a task and check its result. */

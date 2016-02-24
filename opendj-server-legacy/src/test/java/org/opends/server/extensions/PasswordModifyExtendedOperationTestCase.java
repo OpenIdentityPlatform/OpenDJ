@@ -23,8 +23,9 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -36,21 +37,19 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -1419,7 +1418,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
-    applyPwdPolicyMods(dnStr, attr, null);
+    applyPwdPolicyMods(dnStr, attr);
 
 
     String[] args =
@@ -1454,7 +1453,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
-    applyPwdPolicyMods(dnStr, attr, null);
+    applyPwdPolicyMods(dnStr, attr);
 
     String[] args =
     {
@@ -1506,7 +1505,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     }
     finally {
-      applyPwdPolicyMods(dnStr, attr, null);
+      applyPwdPolicyMods(dnStr, attr);
     }
   }
 
@@ -1543,7 +1542,7 @@ public class PasswordModifyExtendedOperationTestCase
       assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
     }
     finally {
-      applyPwdPolicyMods(dnStr, attr, null);
+      applyPwdPolicyMods(dnStr, attr);
     }
   }
 
@@ -1835,23 +1834,19 @@ public class PasswordModifyExtendedOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  private void applyPwdPolicyMods(String pwPolDN, String attr, String value)
+  private void applyPwdPolicyMods(String pwpDN, String attrName, Object... attrValues)
       throws DirectoryException
   {
-    List<Modification> mods = newModifications(REPLACE, attr, value);
-    ModifyOperation op = getRootConnection().processModify(DN.valueOf(pwPolDN), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest(pwpDN)
+.addModification(REPLACE, attrName, attrValues);
+    ModifyOperation op = getRootConnection().processModify(modifyRequest);
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
   }
 
   private void setPasswordChangedTime(Entry userEntry) {
-    List<Modification> mods = newModifications(REPLACE, "pwdchangedtime", "20050101000000.000Z");
-    ModifyOperation op = getRootConnection().processModify(userEntry.getName(), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest(from(userEntry.getName()))
+        .addModification(REPLACE, "pwdchangedtime", "20050101000000.000Z");
+    ModifyOperation op = getRootConnection().processModify(modifyRequest);
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-  }
-
-  private List<Modification> newModifications(ModificationType modType, String attrName, String attrValue)
-  {
-    return newArrayList(new Modification(modType,
-        attrValue == null ? Attributes.empty(attrName) : Attributes.create(attrName, attrValue)));
   }
 }

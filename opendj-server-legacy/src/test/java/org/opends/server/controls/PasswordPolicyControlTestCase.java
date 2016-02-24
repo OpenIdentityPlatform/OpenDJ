@@ -103,16 +103,18 @@ public class PasswordPolicyControlTestCase
         "userPassword: password",
         "ds-privilege-name: bypass-acl");
 
-    try (RemoteConnection c = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      LDAPMessage bindMessage = c.bind("uid=test.user,o=test", "password", newPasswordPolicyControl());
+      SimpleBindRequest bindRequest = newSimpleBindRequest("uid=test.user,o=test", "password".toCharArray())
+          .addControl(newPasswordPolicyControl());
+      LDAPMessage bindMessage = conn.bind(bindRequest, false);
       assertTrue(passwordPolicyControlExists(bindMessage.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
 
       AddRequest addRequest = newAddRequest("ou=People,o=test")
           .addAttribute("objectClass", "organizationalUnit")
           .addAttribute("ou", "People")
           .addControl(newPasswordPolicyControl());
-      LDAPMessage message = c.add(addRequest, false);
+      LDAPMessage message = conn.add(addRequest, false);
 
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);

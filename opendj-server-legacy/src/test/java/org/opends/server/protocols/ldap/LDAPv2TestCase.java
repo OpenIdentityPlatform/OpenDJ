@@ -12,28 +12,36 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2010-2015 ForgeRock AS.
+ * Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap ;
 
-import java.net.Socket;
-import java.util.ArrayList;
-
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.util.StaticUtils;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.controls.GenericControl.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
+
+import java.io.IOException;
+import java.util.Arrays;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 /**
  * This class provides a number of tests to ensure that the server interacts
@@ -73,23 +81,9 @@ public class LDAPv2TestCase
       "replace: ds-cfg-allow-ldap-v2",
       "ds-cfg-allow-ldap-v2: false");
 
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(),
-                   LDAPResultCode.PROTOCOL_ERROR);
+      bindLdapV2(conn, "cn=Directory Manager", "password", LDAPResultCode.PROTOCOL_ERROR);
     }
     finally
     {
@@ -98,9 +92,6 @@ public class LDAPv2TestCase
         "changetype: modify",
         "replace: ds-cfg-allow-ldap-v2",
         "ds-cfg-allow-ldap-v2: true");
-
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
     }
   }
 
@@ -116,34 +107,11 @@ public class LDAPv2TestCase
   public void testRejectExtendedRequest()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-      ExtendedRequestProtocolOp extendedRequest =
-           new ExtendedRequestProtocolOp(OID_START_TLS_REQUEST);
-      message = new LDAPMessage(2, extendedRequest);
-      w.writeMessage(message);
-
-      assertNull(r.readMessage());
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
+      conn.writeMessage(new ExtendedRequestProtocolOp(OID_START_TLS_REQUEST));
+      assertNull(conn.readMessage());
     }
   }
 
@@ -159,46 +127,36 @@ public class LDAPv2TestCase
   public void testRejectAddControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
+      AddRequest addRequest = Requests.newAddRequest("ou=People,o=test")
+          .addAttribute("objectClass", "organizationalUnit")
+          .addAttribute("ou", "People")
+          .addControl(newControl(OID_MANAGE_DSAIT_CONTROL, true));
 
-      ArrayList<RawAttribute> addAttrs = new ArrayList<>();
-      addAttrs.add(RawAttribute.create("objectClass", "organizationalUnit"));
-      addAttrs.add(RawAttribute.create("ou", "People"));
-
-      AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), addAttrs);
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      message = new LDAPMessage(2, addRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
+      LDAPMessage message = conn.add(addRequest, false);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertEquals(addResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
-    }
   }
 
+  private void bindLdapV2(RemoteConnection conn, String bindDN, String bindPwd) throws IOException, LDAPException
+  {
+    bindLdapV2(conn, bindDN, bindPwd, LDAPResultCode.SUCCESS);
+  }
 
+  private void bindLdapV2(RemoteConnection conn, String bindDN, String bindPwd, int expectedRC, Control... controls)
+      throws IOException, LDAPException
+  {
+    conn.writeMessage(new BindRequestProtocolOp(ByteString.valueOfUtf8(bindDN), 2, ByteString.valueOfUtf8(bindPwd)),
+        Arrays.asList(controls));
+
+    LDAPMessage message = conn.readMessage();
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), expectedRC);
+  }
 
   /**
    * Tests to ensure that the server will reject an LDAPv2 bind request if it
@@ -210,33 +168,12 @@ public class LDAPv2TestCase
   public void testRejectBindControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      LDAPMessage message = new LDAPMessage(1, bindRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
+      bindLdapV2(conn, "cn=Directory Manager", "password",
+          LDAPResultCode.PROTOCOL_ERROR, new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
     }
   }
-
-
 
   /**
    * Tests to ensure that the server will reject an LDAPv2 compare request if it
@@ -248,41 +185,15 @@ public class LDAPv2TestCase
   public void testRejectCompareControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-      CompareRequestProtocolOp compareRequest =
-           new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
-                                        "o", ByteString.valueOfUtf8("test"));
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      message = new LDAPMessage(2, compareRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      CompareResponseProtocolOp compareResponse =
-           message.getCompareResponseProtocolOp();
-      assertEquals(compareResponse.getResultCode(),
-                   LDAPResultCode.PROTOCOL_ERROR);
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
+      CompareRequest compareRequest = newCompareRequest("o=test", "o", "test")
+          .addControl(newControl(OID_MANAGE_DSAIT_CONTROL, true));
+      LDAPMessage message = conn.compare(compareRequest, false);
+      CompareResponseProtocolOp compareResponse = message.getCompareResponseProtocolOp();
+      assertEquals(compareResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
   }
 
@@ -298,40 +209,15 @@ public class LDAPv2TestCase
   public void testRejectDeleteControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-      DeleteRequestProtocolOp deleteRequest =
-           new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      message = new LDAPMessage(2, deleteRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      DeleteResponseProtocolOp deleteResponse =
-           message.getDeleteResponseProtocolOp();
-      assertEquals(deleteResponse.getResultCode(),
-                   LDAPResultCode.PROTOCOL_ERROR);
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
+      DeleteRequest deleteRequest = newDeleteRequest("o=test")
+          .addControl(newControl(OID_MANAGE_DSAIT_CONTROL, true));
+      LDAPMessage message = conn.delete(deleteRequest, false);
+      DeleteResponseProtocolOp deleteResponse = message.getDeleteResponseProtocolOp();
+      assertEquals(deleteResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
   }
 
@@ -347,43 +233,16 @@ public class LDAPv2TestCase
   public void testRejectModifyControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-      ArrayList<RawModification> mods = new ArrayList<>();
-      mods.add(RawModification.create(ModificationType.REPLACE, "description", "foo"));
-
-      ModifyRequestProtocolOp modifyRequest =
-           new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      message = new LDAPMessage(2, modifyRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyResponseProtocolOp modifyResponse =
-           message.getModifyResponseProtocolOp();
-      assertEquals(modifyResponse.getResultCode(),
-                   LDAPResultCode.PROTOCOL_ERROR);
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
+      ModifyRequest modifyRequest = newModifyRequest("o=test")
+          .addModification(REPLACE, "description", "foo")
+          .addControl(newControl(OID_MANAGE_DSAIT_CONTROL, true));
+      LDAPMessage message = conn.modify(modifyRequest, false);
+      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
+      assertEquals(modifyResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
   }
 
@@ -399,41 +258,15 @@ public class LDAPv2TestCase
   public void testRejectModifyDNControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-      ModifyDNRequestProtocolOp modifyDNRequest =
-           new ModifyDNRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
-                                         ByteString.valueOfUtf8("cn=test"), false);
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      message = new LDAPMessage(2, modifyDNRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      ModifyDNResponseProtocolOp modifyDNResponse =
-           message.getModifyDNResponseProtocolOp();
-      assertEquals(modifyDNResponse.getResultCode(),
-                   LDAPResultCode.PROTOCOL_ERROR);
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
+      ModifyDNRequest modifyDNRequest = newModifyDNRequest("o=test", "cn=test")
+          .addControl(newControl(OID_MANAGE_DSAIT_CONTROL, true));
+      LDAPMessage message = conn.modifyDN(modifyDNRequest, false);
+      ModifyDNResponseProtocolOp modifyDNResponse = message.getModifyDNResponseProtocolOp();
+      assertEquals(modifyDNResponse.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
     }
   }
 
@@ -449,43 +282,16 @@ public class LDAPv2TestCase
   public void testRejectSearchControls()
          throws Exception
   {
-    Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-
-      SearchRequestProtocolOp searchRequest =
-           new SearchRequestProtocolOp(ByteString.empty(),
-                    SearchScope.BASE_OBJECT,
-                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                    LDAPFilter.objectClassPresent(), null);
-      ArrayList<Control> controls = new ArrayList<>(1);
-      controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
-      message = new LDAPMessage(2, searchRequest, controls);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      SearchResultDoneProtocolOp searchDone =
-           message.getSearchResultDoneProtocolOp();
+      SearchRequest searchRequest = newSearchRequest(DN.rootDN(), BASE_OBJECT, Filter.objectClassPresent())
+          .addControl(newControl(OID_MANAGE_DSAIT_CONTROL, true));
+      conn.search(searchRequest);
+      LDAPMessage message = conn.readMessage();
+      SearchResultDoneProtocolOp searchDone = message.getSearchResultDoneProtocolOp();
       assertEquals(searchDone.getResultCode(), LDAPResultCode.PROTOCOL_ERROR);
-    }
-    finally
-    {
-      StaticUtils.close(r, w);
-      StaticUtils.close(s);
     }
   }
 }
-

@@ -21,26 +21,16 @@ import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.extensions.TestPasswordValidator;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.tools.LDAPWriter;
 import org.opends.server.tools.RemoteConnection;
-import org.opends.server.types.RawModification;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -417,41 +407,15 @@ public class PasswordValidatorTestCase
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("uid=test.user,o=test", "password");
+      conn.modify(newModifyRequest("uid=test.user,o=test")
+          .addModification(REPLACE, "userPassword", "newPassword"));
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-      new BindRequestProtocolOp(
-               ByteString.valueOfUtf8("uid=test.user,o=test"),
-                                3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-    LDAPAttribute attr = new LDAPAttribute("userPassword", "newPassword");
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(
-                  ByteString.valueOfUtf8("uid=test.user,o=test"), mods);
-    message = new LDAPMessage(2, modifyRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    ModifyResponseProtocolOp modifyResponse =
-         message.getModifyResponseProtocolOp();
-    assertEquals(modifyResponse.getResultCode(), 0);
-
-    assertEquals(TestPasswordValidator.getLastNewPassword(),
-                 ByteString.valueOfUtf8("newPassword"));
-    assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
+      assertEquals(TestPasswordValidator.getLastNewPassword(), ByteString.valueOfUtf8("newPassword"));
+      assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
+    }
   }
 
 

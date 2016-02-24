@@ -12,35 +12,46 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.tools.*;
-import org.opends.server.tools.LDAPReader;
-import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.AuthenticationType;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -607,11 +618,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindOperation bindOperation =
-                       conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
+    BindOperation bindOperation = conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getSASLAuthUserEntry());
   }
@@ -675,11 +682,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindOperation bindOperation =
-         conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
+    BindOperation bindOperation = conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getUserEntryDN());
   }
@@ -720,11 +723,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindOperation bindOperation =
-         conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
+    BindOperation bindOperation = conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(bindOperation.getProcessingStartTime() > 0);
     assertTrue(bindOperation.getProcessingStopTime() >=
@@ -800,11 +799,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindOperation bindOperation =
-         conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds);
+    BindOperation bindOperation = conn.processSASLBind(DN.rootDN(), "PLAIN", saslCreds());
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
 //    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
@@ -826,27 +821,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreParseSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), 3,
-                                   ByteString.empty());
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(anonymousBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PreParse"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -862,28 +848,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreOperationSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), 3,
-                                   ByteString.empty());
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(anonymousBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PreOperation"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -899,28 +875,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostOperationSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), 3,
-                                   ByteString.empty());
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(anonymousBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PostOperation"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -936,27 +902,17 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostResponseSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), 3,
-                                   ByteString.empty());
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostResponse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    while (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
-      message = r.readMessage();
-    }
+      conn.writeMessage(anonymousBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PostResponse"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      while (message != null)
+      {
+        assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
+        message = conn.readMessage();
+      }
+    }
   }
 
 
@@ -971,30 +927,41 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreParseSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(bindRequest(), DisconnectClientPlugin.createDisconnectControlList("PreParse"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
+  private BindRequestProtocolOp bindRequest()
+  {
+    String bindDn = "cn=Directory Manager";
+    String bindPwd = "password";
+    return new BindRequestProtocolOp(ByteString.valueOfUtf8(bindDn), 3, ByteString.valueOfUtf8(bindPwd));
+  }
 
+  private BindRequestProtocolOp anonymousBindRequest()
+  {
+    return new BindRequestProtocolOp(ByteString.empty(), 3, ByteString.empty());
+  }
+
+  private ByteString saslCreds()
+  {
+    return ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
+  }
+
+  private BindRequestProtocolOp plainBindRequest()
+  {
+    return new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds());
+  }
 
   /**
    * Tests an authenticated simple bind operation to ensure that it's treated
@@ -1007,28 +974,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreOperationSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(bindRequest(), DisconnectClientPlugin.createDisconnectControlList("PreOperation"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -1044,28 +1001,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostOperationSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(bindRequest(), DisconnectClientPlugin.createDisconnectControlList("PostOperation"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -1081,27 +1028,17 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostResponseSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostResponse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    while (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
-      message = r.readMessage();
-    }
+      conn.writeMessage(bindRequest(), DisconnectClientPlugin.createDisconnectControlList("PostResponse"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      while (message != null)
+      {
+        assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
+        message = conn.readMessage();
+      }
+    }
   }
 
 
@@ -1116,29 +1053,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreParseSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(plainBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PreParse"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -1153,30 +1079,20 @@ public class BindOperationTestCase
   public void testBindDisconnectInPreOperationSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
-    }
+      conn.writeMessage(
+          plainBindRequest(),
+          DisconnectClientPlugin.createDisconnectControlList("PreOperation"));
 
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
+    }
   }
 
 
@@ -1191,33 +1107,19 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostOperationSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    if (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      conn.writeMessage(plainBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PostOperation"));
+
+      LDAPMessage message = conn.readMessage();
+      if (message != null)
+      {
+        // If we got an element back, then it must be a notice of disconnect
+        // unsolicited notification.
+        assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      }
     }
-
-    StaticUtils.close(s);
   }
-
-
 
   /**
    * Tests a SASL bind operation to ensure that it's treated properly if the
@@ -1229,32 +1131,18 @@ public class BindOperationTestCase
   public void testBindDisconnectInPostResponseSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         DisconnectClientPlugin.createDisconnectControlList(
-              "PostResponse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    while (message != null)
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
-      message = r.readMessage();
+      conn.writeMessage(plainBindRequest(), DisconnectClientPlugin.createDisconnectControlList("PostResponse"));
+
+      LDAPMessage message = conn.readMessage();
+      while (message != null)
+      {
+        assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
+        message = conn.readMessage();
+      }
     }
-
-    StaticUtils.close(s);
   }
-
-
 
   /**
    * Tests an anonymous simple bind operation to ensure that it's treated
@@ -1267,23 +1155,14 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreParseSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(anonymousBindRequest(), ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), 3,
-                                   ByteString.empty());
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 80);
-
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 80);
+    }
   }
 
 
@@ -1299,27 +1178,15 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreOperationSimpleAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(anonymousBindRequest(), ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), 3,
-                                   ByteString.empty());
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitControlList(80,
-                                                              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 80);
-
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 80);
+    }
   }
-
-
 
   /**
    * Tests an authenticated simple bind operation to ensure that it's treated
@@ -1332,23 +1199,14 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreParseSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(bindRequest(), ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 80);
-
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 80);
+    }
   }
 
 
@@ -1364,24 +1222,14 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreOperationSimpleAuthenticated()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(bindRequest(), ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitControlList(80,
-                                                              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 80);
-
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 80);
+    }
   }
 
 
@@ -1396,25 +1244,14 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreParseSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(plainBindRequest(), ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitControlList(80, "PreParse"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 80);
-
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 80);
+    }
   }
 
 
@@ -1429,26 +1266,14 @@ public class BindOperationTestCase
   public void testBindShortCircuitInPreOperationSASL()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(plainBindRequest(), ShortCircuitPlugin.createShortCircuitControlList(80, "PreOperation"));
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "PLAIN", saslCreds);
-    LDAPMessage message = new LDAPMessage(1, bindRequest,
-         ShortCircuitPlugin.createShortCircuitControlList(80,
-                                                              "PreOperation"));
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 80);
-
-    StaticUtils.close(s);
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 80);
+    }
   }
 
 
@@ -1479,12 +1304,7 @@ public class BindOperationTestCase
     InternalClientConnection conn =
          new InternalClientConnection(new AuthenticationInfo());
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindOperation bindOperation =
-         conn.processSASLBind(ByteString.valueOfUtf8("invaliddn"), "PLAIN",
-                              saslCreds);
+    BindOperation bindOperation = conn.processSASLBind(ByteString.valueOfUtf8("invaliddn"), "PLAIN", saslCreds());
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
@@ -1527,13 +1347,10 @@ public class BindOperationTestCase
     ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new LDAPControl("1.2.3.4", true));
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new BindOperationBasis(conn, nextOperationID(), nextMessageID(),
                            requestControls, "3", DN.rootDN(), "PLAIN",
-                        saslCreds);
+            saslCreds());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
@@ -1578,13 +1395,10 @@ public class BindOperationTestCase
     ArrayList<Control> requestControls = new ArrayList<>(1);
     requestControls.add(new LDAPControl("1.2.3.4", false));
 
-    ByteString saslCreds =
-         ByteString.valueOfUtf8("\u0000dn:cn=Directory Manager\u0000password");
-
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new BindOperationBasis(conn, nextOperationID(), nextMessageID(),
                            requestControls, "3", DN.rootDN(), "PLAIN",
-                           saslCreds);
+            saslCreds());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1652,26 +1466,21 @@ public class BindOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    bindWithDnRequiresPassword(false);
 
-    String attr = "ds-cfg-bind-with-dn-requires-password";
-    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf("cn=config"), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                ByteString.empty());
+    BindOperation bindOperation = getRootConnection().processSimpleBind("cn=Directory Manager", "");
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
 
-    mods = newArrayList(new Modification(REPLACE, Attributes.create(attr, "true")));
-    modifyOperation =  conn.processModify(DN.valueOf("cn=config"), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    bindWithDnRequiresPassword(true);
   }
 
-
+  private void bindWithDnRequiresPassword(boolean required)
+  {
+    ModifyRequest modifyRequest = newModifyRequest("cn=config")
+        .addModification(REPLACE, "ds-cfg-bind-with-dn-requires-password", Boolean.toString(required));
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
 
   /**
    * Tests performing a simple bind operation as a user who doesn't have a
@@ -1828,42 +1637,21 @@ public class BindOperationTestCase
     String dnString = "uid=rebind.test,o=test";
     DN userDN = DN.valueOf(dnString);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    TestCaseUtils.configureSocket(s);
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind(dnString, "password");
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8(dnString),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+      assertNotNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+      assertEquals(DirectoryServer.getAuthenticatedUsers().get(userDN).size(), 1);
 
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
+      // We occasionally run into
+      // ProtocolMessages.MSGID_LDAP_CLIENT_DUPLICATE_MESSAGE_ID, so we wait
+      // for previous ops to complete.
+      TestCaseUtils.quiesceServer();
+      conn.bind("cn=Directory Manager", "password");
 
-    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
-    assertEquals(DirectoryServer.getAuthenticatedUsers().get(userDN).size(),
-                 1);
-
-    // We occasionally run into
-    // ProtocolMessages.MSGID_LDAP_CLIENT_DUPLICATE_MESSAGE_ID, so we wait
-    // for previous ops to complete.
-    TestCaseUtils.quiesceServer();
-    bindRequest = new BindRequestProtocolOp(
-                           ByteString.valueOfUtf8("cn=Directory Manager"), 3,
-                           ByteString.valueOfUtf8("password"));
-    message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0, message.toString());
-
-    assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
-
-    s.close();
+      assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+    }
   }
 
 
@@ -1901,44 +1689,31 @@ public class BindOperationTestCase
     String dnString = "uid=test,ou=people,dc=example,dc=com";
     DN userDN = DN.valueOf(dnString);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    TestCaseUtils.configureSocket(s);
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8(dnString),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-            message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
-            userDN));
-    assertEquals(DirectoryServer.getAuthenticatedUsers().get(
-            userDN).size(), 1);
-
-    String[] args =
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
-      "--noPropertiesFile",
-      "ou=people,dc=example,dc=com"
-    };
-    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+      conn.bind(dnString, "password");
 
-    assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+      assertNotNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+      assertEquals(DirectoryServer.getAuthenticatedUsers().get(userDN).size(), 1);
 
-    s.close();
+      String[] args =
+        {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "cn=Directory Manager",
+        "-w", "password",
+        "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+        "--noPropertiesFile",
+        "ou=people,dc=example,dc=com"
+        };
+      assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
 
-    TestCaseUtils.clearBackend("userRoot");
+      assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+    }
+    finally
+    {
+      TestCaseUtils.clearBackend("userRoot");
+    }
   }
 
 
@@ -1976,54 +1751,37 @@ public class BindOperationTestCase
     String dnString = "uid=test,ou=people,dc=example,dc=com";
     DN userDN = DN.valueOf(dnString);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    TestCaseUtils.configureSocket(s);
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8(dnString),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
-
-    message = r.readMessage();
-    BindResponseProtocolOp bindResponse =
-            message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-
-    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
-            userDN));
-    assertEquals(DirectoryServer.getAuthenticatedUsers().get(
-            userDN).size(), 1);
-
-    String path = TestCaseUtils.createTempFile(
-         "dn: ou=people,dc=example,dc=com",
-         "changetype: moddn",
-         "newRDN: ou=users",
-         "deleteOldRDN: 1");
-    String[] args =
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "--noPropertiesFile",
-      "-f", path
-    };
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+      conn.bind(dnString, "password");
 
-    String newDNString = "uid=test,ou=users,dc=example,dc=com";
-    DN newUserDN = DN.valueOf(newDNString);
+      assertNotNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+      assertEquals(DirectoryServer.getAuthenticatedUsers().get(userDN).size(), 1);
 
-    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
-            newUserDN));
-    assertEquals(DirectoryServer.getAuthenticatedUsers().get(
-            newUserDN).size(), 1);
+      String path = TestCaseUtils.createTempFile(
+          "dn: ou=people,dc=example,dc=com",
+          "changetype: moddn",
+          "newRDN: ou=users",
+          "deleteOldRDN: 1");
+      String[] args =
+        {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "cn=Directory Manager",
+        "-w", "password",
+        "--noPropertiesFile",
+        "-f", path
+        };
+      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
-    s.close();
-
-    TestCaseUtils.clearBackend("userRoot");
+      DN newUserDN = DN.valueOf("uid=test,ou=users,dc=example,dc=com");
+      assertNotNull(DirectoryServer.getAuthenticatedUsers().get(newUserDN));
+      assertEquals(DirectoryServer.getAuthenticatedUsers().get(newUserDN).size(), 1);
+    }
+    finally
+    {
+      TestCaseUtils.clearBackend("userRoot");
+    }
   }
 
 

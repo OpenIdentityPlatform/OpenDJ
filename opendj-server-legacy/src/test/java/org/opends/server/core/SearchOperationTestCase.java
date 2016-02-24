@@ -38,7 +38,6 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -281,9 +280,7 @@ public class SearchOperationTestCase extends OperationTestCase
     assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
 
     InvocationCounterPlugin.resetAllCounters();
-    LDAPMessage message = conn.bind("cn=Directory Manager", "password");
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+    conn.bind("cn=Directory Manager", "password");
   }
 
   @Test

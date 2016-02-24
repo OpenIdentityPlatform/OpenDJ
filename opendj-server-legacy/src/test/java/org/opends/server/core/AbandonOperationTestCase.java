@@ -20,7 +20,6 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
@@ -54,14 +53,12 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.tools.LDAPWriter;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -202,20 +199,14 @@ public class AbandonOperationTestCase
   {
     // Establish a connection to the server.  It can be unauthenticated for the
     // purpose of this test.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPWriter w = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      // Send the abandon request to the server and wait a few seconds to ensure
+      // it has completed before closing the connection.
+      conn.writeMessage(new AbandonRequestProtocolOp(1), DisconnectClientPlugin.createDisconnectControlList("PreParse"));
 
-
-    // Send the abandon request to the server and wait a few seconds to ensure
-    // it has completed before closing the connection.
-    AbandonRequestProtocolOp abandonRequest = new AbandonRequestProtocolOp(1);
-    LDAPMessage message = new LDAPMessage(2, abandonRequest,
-         DisconnectClientPlugin.createDisconnectControlList("PreParse"));
-    w.writeMessage(message);
-
-    Thread.sleep(3000);
-
-    StaticUtils.close(s);
+      Thread.sleep(3000);
+    }
 
     // NOTE:  We can't check to see if pre-parse plugins were called yet
     //        because there's no plugin ordering.  It's possible that the
@@ -237,18 +228,14 @@ public class AbandonOperationTestCase
   {
     // Establish a connection to the server.  It can be unauthenticated for the
     // purpose of this test.
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPWriter w = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      // Send the abandon request to the server and wait a few seconds to ensure
+      // it has completed before closing the connection.
+      conn.writeMessage(new AbandonRequestProtocolOp(1));
 
-
-    // Send the abandon request to the server and wait a few seconds to ensure
-    // it has completed before closing the connection.
-    AbandonRequestProtocolOp abandonRequest = new AbandonRequestProtocolOp(1);
-    w.writeMessage(new LDAPMessage(2, abandonRequest));
-
-    Thread.sleep(3000);
-
-    s.close();
+      Thread.sleep(3000);
+    }
   }
 
 

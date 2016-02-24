@@ -18,7 +18,6 @@ package org.opends.server.replication;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -27,6 +26,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -36,10 +37,23 @@ import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
-import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.HeartbeatThread;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.OperationContext;
+import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RDN;
 import org.opends.server.util.TestTimer;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
@@ -48,6 +62,7 @@ import org.testng.annotations.Test;
 
 import static java.util.concurrent.TimeUnit.*;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -1116,8 +1131,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       assertClientReceivesExpectedMsg(broker, AddMsg.class, personEntry.getName());
 
       // Modify the entry
-      List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-      connection.processModify(personEntry.getName(), mods);
+      connection.processModify(modifyRequest(personEntry.getName(), REPLACE, "telephonenumber", "01 02 45"));
       assertClientReceivesExpectedMsg(broker, ModifyMsg.class, personEntry.getName());
 
       // Modify the entry DN
@@ -1157,7 +1171,7 @@ public class UpdateOperationTest extends ReplicationTestCase
        * Test the reception of Modify Msg
        */
       ModifyMsg modMsg = new ModifyMsg(gen.newCSN(), personWithUUIDEntry.getName(),
-          mods, user1entryUUID);
+          generatemods("telephonenumber", "01 02 45"), user1entryUUID);
       modMsg.setAssured(assured);
       broker.publish(modMsg);
 
@@ -1340,9 +1354,9 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private static void setReceiveStatus(DN syncConfigDN, boolean enable)
   {
-    Attribute attr = Attributes.create("ds-cfg-receive-status", enable ? "TRUE" : "FALSE");
-    ModifyOperation modOp = getRootConnection().processModify(syncConfigDN,
-        Arrays.asList(new Modification(ModificationType.REPLACE, attr)));
+    String attrValue = enable ? "TRUE" : "FALSE";
+    ModifyRequest request = modifyRequest(syncConfigDN, REPLACE, "ds-cfg-receive-status", attrValue);
+    ModifyOperation modOp = getRootConnection().processModify(request);
     assertEquals(modOp.getResultCode(), ResultCode.SUCCESS, "Cannot set receive status");
   }
 
@@ -1382,8 +1396,7 @@ public class UpdateOperationTest extends ReplicationTestCase
           "The entry has not been created");
 
       // Modify the entry
-      List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-      connection.processModify(user3Entry.getName(), mods);
+      connection.processModify(modifyRequest(user3Entry.getName(), REPLACE, "telephonenumber", "01 02 45"));
 
       // See if the client has received the msg
       ReplicationMsg msg = broker.receive();

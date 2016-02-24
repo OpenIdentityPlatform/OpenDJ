@@ -31,6 +31,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -76,6 +77,7 @@ import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ModifyDNChangeRecordEntry;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -1427,55 +1429,6 @@ public final class InternalClientConnection
     return extendedOperation;
   }
 
-
-
-  /**
-   * Processes an internal modify operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN        The raw entry DN for this modify
-   *                           operation.
-   * @param  rawModifications  The set of modifications for this
-   *                           modify operation.
-   *
-   * @return  A reference to the modify operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public ModifyOperation processModify(String rawEntryDN,
-                              List<RawModification> rawModifications)
-  {
-    return processModify(ByteString.valueOfUtf8(rawEntryDN),
-                         rawModifications, null);
-  }
-
-
-
-  /**
-   * Processes an internal modify operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN        The raw entry DN for this modify
-   *                           operation.
-   * @param  rawModifications  The set of modifications for this
-   *                           modify operation.
-   * @param  controls          The set of controls to include in the
-   *                           request.
-   *
-   * @return  A reference to the modify operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public ModifyOperation processModify(String rawEntryDN,
-                              List<RawModification> rawModifications,
-                              List<Control> controls)
-  {
-    return processModify(ByteString.valueOfUtf8(rawEntryDN),
-                         rawModifications, controls);
-  }
-
-
-
   /**
    * Processes an internal modify operation with the provided
    * information.
@@ -1497,22 +1450,7 @@ public final class InternalClientConnection
 
 
 
-  /**
-   * Processes an internal modify operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN        The raw entry DN for this modify
-   *                           operation.
-   * @param  rawModifications  The set of modifications for this
-   *                           modify operation.
-   * @param  controls          The set of controls to include in the
-   *                           request.
-   *
-   * @return  A reference to the modify operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public ModifyOperation processModify(ByteString rawEntryDN,
+  private ModifyOperation processModify(ByteString rawEntryDN,
                               List<RawModification> rawModifications,
                               List<Control> controls)
   {
@@ -1587,13 +1525,25 @@ public final class InternalClientConnection
    *          and contains information about the result of the
    *          processing.
    */
-  public ModifyOperation processModify(
-                              ModifyChangeRecordEntry modifyRecord)
+  public ModifyOperation processModify(ModifyChangeRecordEntry modifyRecord)
   {
-    return processModify(modifyRecord.getDN().toString(),
-                         modifyRecord.getModifications());
+    return processModify(ByteString.valueOfObject(modifyRecord.getDN()),
+        modifyRecord.getModifications(), null);
   }
 
+  /**
+   * Processes an internal modify operation with the provided information.
+   *
+   * @param modifyRequest
+   *          The modify request with information about the changes to perform.
+   * @return A reference to the modify operation that was processed and contains information about
+   *         the result of the processing.
+   */
+  public ModifyOperation processModify(ModifyRequest modifyRequest)
+  {
+    return processModify(ByteString.valueOfObject(modifyRequest.getName()),
+        toRawModifications(modifyRequest.getModifications()), to(modifyRequest.getControls()));
+  }
 
 
   /**

@@ -12,33 +12,31 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2010-2015 ForgeRock AS.
+ * Portions Copyright 2010-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-import java.util.ArrayList;
-
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicy;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /** A set of generic test cases for password storage schemes. */
@@ -299,33 +297,25 @@ public abstract class PasswordStorageSchemeTestCase
   {
     // This code was borrowed from
     // PasswordPolicyTestCase.testAllowPreEncodedPasswordsAuth
-    boolean previousValue = false;
     try {
       DN dn = DN.valueOf("cn=Default Password Policy,cn=Password Policies,cn=config");
       PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-      previousValue = p.isAllowPreEncodedPasswords();
+      final boolean previousValue = p.isAllowPreEncodedPasswords();
 
-      String attr  = "ds-cfg-allow-pre-encoded-passwords";
-
-      ArrayList<Modification> mods = new ArrayList<>();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create(attr, String.valueOf(allowPreencoded))));
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperation modifyOperation = conn.processModify(dn, mods);
+      ModifyRequest modifyRequest = Requests.newModifyRequest("cn=Default Password Policy,cn=Password Policies,cn=config")
+          .addModification(REPLACE, "ds-cfg-allow-pre-encoded-passwords", allowPreencoded);
+      ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
       p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
       assertEquals(p.isAllowPreEncodedPasswords(), allowPreencoded);
+      return previousValue;
     } catch (Exception e) {
       System.err.println("Failed to set ds-cfg-allow-pre-encoded-passwords " +
                          " to " + allowPreencoded);
       e.printStackTrace();
       throw e;
     }
-
-    return previousValue;
   }
 
   protected static void testAuthPasswords(final String upperName,

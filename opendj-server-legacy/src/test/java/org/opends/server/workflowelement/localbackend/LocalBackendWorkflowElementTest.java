@@ -12,36 +12,32 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.workflowelement.localbackend;
-
-import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
-/**
- * This set of tests test the LocalBackendWorkflowElement.
- */
+/** This set of tests test the LocalBackendWorkflowElement. */
 @SuppressWarnings("javadoc")
 public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
 {
@@ -80,7 +76,7 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
 
     // Add a new suffix in the backend and create a base entry for the new suffix
     String backendConfigDN = "ds-cfg-backend-id=userRoot," + DN_BACKEND_BASE;
-    modifyAttribute(backendConfigDN, ModificationType.ADD, backendBaseDNName, suffix2);
+    modifyAttribute(backendConfigDN, ADD, backendBaseDNName, suffix2);
     addBaseEntry(suffix2, "workflow suffix");
 
     // Both old and new suffix should be accessible.
@@ -88,14 +84,14 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
     searchEntry(suffix2, ResultCode.SUCCESS);
 
     // Remove the new suffix...
-    modifyAttribute(backendConfigDN, ModificationType.DELETE, backendBaseDNName, suffix2);
+    modifyAttribute(backendConfigDN, DELETE, backendBaseDNName, suffix2);
 
     // ...and check that the removed suffix is no more accessible.
     searchEntry(suffix, ResultCode.SUCCESS);
     searchEntry(suffix2, ResultCode.NO_SUCH_OBJECT);
 
     // Replace the suffix with suffix2 in the backend
-    modifyAttribute(backendConfigDN, ModificationType.REPLACE, backendBaseDNName, suffix2);
+    modifyAttribute(backendConfigDN, REPLACE, backendBaseDNName, suffix2);
 
     // Now none of the suffixes are accessible: this means the entries
     // under the old suffix are not moved to the new suffix.
@@ -110,7 +106,7 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
     searchEntry(suffix2, ResultCode.SUCCESS);
 
     // Reset the configuration with previous suffix
-    modifyAttribute(backendConfigDN, ModificationType.REPLACE, backendBaseDNName, suffix);
+    modifyAttribute(backendConfigDN, REPLACE, backendBaseDNName, suffix);
   }
 
   /**
@@ -256,16 +252,15 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
    *
    * @param baseDN          the request base DN string
    * @param modType         the modification type (add/delete/replace)
-   * @param attributeName   the name  of the attribute to add/delete/replace
-   * @param attributeValue  the value of the attribute to add/delete/replace
+   * @param attrName   the name  of the attribute to add/delete/replace
+   * @param attrValue  the value of the attribute to add/delete/replace
    */
-  private void modifyAttribute(String baseDN, ModificationType modType, String attributeName, String attributeValue)
+  private void modifyAttribute(String baseDN, ModificationType modType, String attrName, String attrValue)
       throws Exception
   {
-    ArrayList<Modification> mods = new ArrayList<>();
-    Attribute attributeToModify = Attributes.create(attributeName, attributeValue);
-    mods.add(new Modification(modType, attributeToModify));
-    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(baseDN), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest(baseDN)
+        .addModification(modType, attrName, attrValue);
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }

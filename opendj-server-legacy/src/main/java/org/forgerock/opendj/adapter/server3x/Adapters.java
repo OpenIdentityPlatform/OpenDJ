@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -57,7 +57,6 @@ import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -238,10 +237,7 @@ public final class Adapters {
 
             @Override
             public Result modify(final ModifyRequest request) throws LdapException {
-                final ModifyOperation modifyOperation =
-                        icc.processModify(valueOfObject(request.getName()), toRawModifications(request
-                                .getModifications()), to(request.getControls()));
-                return getResponseResult(modifyOperation);
+                return getResponseResult(icc.processModify(request));
             }
 
             @Override

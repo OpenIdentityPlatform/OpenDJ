@@ -12,34 +12,26 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
 
-import java.util.ArrayList;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
-
-
-
-/**
- * A set of test cases for the rebuild-index tool (see issue #1897).
- */
+/** A set of test cases for the rebuild-index tool (see issue #1897). */
+@SuppressWarnings("javadoc")
 public class RebuildIndexTestCase
        extends ToolsTestCase
 {
@@ -63,45 +55,26 @@ public class RebuildIndexTestCase
     configFilePath = DirectoryServer.getConfigFile();
 
     // Add the airius.com suffix to userRoot
-    final InternalClientConnection rootConnection =
-      InternalClientConnection.getRootConnection();
-    final ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("ds-cfg-base-dn", baseDN)));
     // Backend should be disabled.
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-enabled", "false")));
-    final ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.valueOf(userRootDN), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest(userRootDN)
+        .addModification(ADD, "ds-cfg-base-dn", baseDN)
+        .addModification(REPLACE, "ds-cfg-enabled", "false");
+    final ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
-  /**
-   * Performs necessary cleanup.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
   @AfterClass
-  public void cleanup()
-         throws Exception
+  public void cleanup() throws Exception
   {
-    // remove the airius.com suffix to userRoot
-    final InternalClientConnection rootConnection =
-      InternalClientConnection.getRootConnection();
-    final ArrayList<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-cfg-base-dn", baseDN)));
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-enabled", "true")));
-    final ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.valueOf(userRootDN), mods);
+    ModifyRequest modifyRequest = Requests.newModifyRequest(userRootDN)
+        .addModification(DELETE, "ds-cfg-base-dn", baseDN)
+        .addModification(REPLACE, "ds-cfg-enabled", "true");
+    final ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  /**
-   * Tries to rebuild an index but the index doesn't exist in the base DN.
-   */
+  /** Tries to rebuild an index but the index doesn't exist in the base DN. */
   @Test
   public void testRebuildIndexOnNonExistentShouldFail()
   {
@@ -137,5 +110,5 @@ public class RebuildIndexTestCase
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
   }
-
 }
+

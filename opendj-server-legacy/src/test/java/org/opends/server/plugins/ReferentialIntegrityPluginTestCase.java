@@ -18,14 +18,14 @@
 package org.opends.server.plugins;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -43,11 +43,9 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
@@ -56,6 +54,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -1024,10 +1023,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @param attrValStrings The values to add to the entry.
    */
   private ModifyOperation
-  addAttrEntry(DN dn, String attrName, String... attrValStrings) {
-    LinkedList<Modification> mods = newLinkedList(
-        new Modification(ADD, Attributes.create(attrName, attrValStrings)));
-    return getRootConnection().processModify(dn, mods);
+  addAttrEntry(DN dn, String attrName, Object... attrValStrings) {
+    ModifyRequest modifyRequest = Requests.newModifyRequest(from(dn))
+        .addModification(ADD, attrName, attrValStrings);
+    return getRootConnection().processModify(modifyRequest);
   }
 
   /**
@@ -1037,10 +1036,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @param attrName The attribute type to replace the values in.
    * @param attrValStrings The values to replace in the the entry.
    */
-  private ModifyOperation  replaceAttrEntry(DN dn, String attrName, String... attrValStrings) {
-    LinkedList<Modification> mods = newLinkedList(
-        new Modification(REPLACE, Attributes.create(attrName, attrValStrings)));
-    return getRootConnection().processModify(dn, mods);
+  private ModifyOperation  replaceAttrEntry(DN dn, String attrName, Object... attrValStrings) {
+    ModifyRequest modifyRequest = Requests.newModifyRequest(from(dn))
+        .addModification(REPLACE, attrName, attrValStrings);
+    return getRootConnection().processModify(modifyRequest);
   }
 
   /**
@@ -1053,13 +1052,11 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private void
   deleteAttrsEntry(DN dn, String... attrTypeStrings) throws Exception {
-    LinkedList<Modification> mods = new LinkedList<>();
+    ModifyRequest modifyRequest = Requests.newModifyRequest(from(dn));
     for(String attrTypeString : attrTypeStrings) {
-      AttributeType attrType = getAttributeType(attrTypeString);
-      mods.add(new Modification(ModificationType.DELETE,
-          Attributes.empty(attrType)));
+      modifyRequest.addModification(DELETE, attrTypeString);
     }
-    getRootConnection().processModify(dn, mods);
+    getRootConnection().processModify(modifyRequest);
   }
 
   private void deleteEntries(String... dns) throws Exception{

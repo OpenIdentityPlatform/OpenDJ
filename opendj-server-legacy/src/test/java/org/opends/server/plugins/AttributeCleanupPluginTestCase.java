@@ -12,11 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011 profiq s.r.o.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -32,18 +33,21 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.*;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * Tests for the attribute cleanup plugin.
- */
+/** Tests for the attribute cleanup plugin. */
 @SuppressWarnings("javadoc")
 public class AttributeCleanupPluginTestCase extends PluginTestCase
 {
@@ -242,30 +246,15 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * cn: Name Surname
      * sn: Surname
      */
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOfUtf8("top"));
-    values.add(ByteString.valueOfUtf8("person"));
-    values.add(ByteString.valueOfUtf8("organizationalperson"));
-    values.add(ByteString.valueOfUtf8("inetorgperson"));
+    AddOperationBasis addOperation = add("dn: uid=test,dc=example,dc=com",
+        RawAttribute.create("objectClass", toByteStrings("top", "person", "organizationalperson", "inetorgperson")),
+        RawAttribute.create("uid", "test"),
+        RawAttribute.create("cn", "Name Surname"),
+        RawAttribute.create("sn", "Surname"));
 
-    List<RawAttribute> rawAttributes = new ArrayList<>();
-    rawAttributes.add(RawAttribute.create("objectClass", values));
-    rawAttributes.add(RawAttribute.create("uid", "test"));
-    rawAttributes.add(RawAttribute.create("cn", "Name Surname"));
-    rawAttributes.add(RawAttribute.create("sn", "Surname"));
-
-    AddOperationBasis addOperation =
-      new AddOperationBasis(InternalClientConnection.getRootConnection(),
-                            1,
-                            1,
-                            null,
-                            ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
-                            rawAttributes);
 
     /* Process the operation. The processing should continue. */
-
     PluginResult.PreParse res = plugin.doPreParse(addOperation);
-
     assertTrue(res.continueProcessing());
 
     /* Verify that the 'cn' attribute has been renamed to 'description'
@@ -289,7 +278,22 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     }
 
     fail();
+  }
 
+  private ArrayList<ByteString> toByteStrings(String... strings)
+  {
+    ArrayList<ByteString> results = new ArrayList<>(strings.length);
+    for (String s : strings)
+    {
+      results.add(ByteString.valueOfUtf8(s));
+    }
+    return results;
+  }
+
+  private AddOperationBasis add(String entryDN, RawAttribute... rawAttributes)
+  {
+    return new AddOperationBasis(getRootConnection(), 1, 1, null,
+        ByteString.valueOfUtf8(entryDN), Arrays.asList(rawAttributes));
   }
 
   /**
@@ -339,29 +343,14 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * modifyTimeStamp: 2011091212400000Z
      * createTimeStamp: 2011091212400000Z
      */
+    AddOperationBasis addOperation = add("dn: uid=test,dc=example,dc=com",
+        RawAttribute.create("objectClass", toByteStrings("top", "person", "organizationalperson", "inetorgperson")),
+        RawAttribute.create("uid", "test"),
+        RawAttribute.create("cn", "Name Surname"),
+        RawAttribute.create("sn", "Surname"),
+        RawAttribute.create("modifyTimeStamp", "2011091212400000Z"),
+        RawAttribute.create("createTimeStamp", "2011091212400000Z"));
 
-    ArrayList<ByteString> values = new ArrayList<>();
-    values.add(ByteString.valueOfUtf8("top"));
-    values.add(ByteString.valueOfUtf8("person"));
-    values.add(ByteString.valueOfUtf8("organizationalperson"));
-    values.add(ByteString.valueOfUtf8("inetorgperson"));
-
-    List<RawAttribute> rawAttributes = new ArrayList<>();
-
-    rawAttributes.add(RawAttribute.create("objectClass", values));
-    rawAttributes.add(RawAttribute.create("uid", "test"));
-    rawAttributes.add(RawAttribute.create("cn", "Name Surname"));
-    rawAttributes.add(RawAttribute.create("sn", "Surname"));
-    rawAttributes.add(RawAttribute.create("modifyTimeStamp", "2011091212400000Z"));
-    rawAttributes.add(RawAttribute.create("createTimeStamp", "2011091212400000Z"));
-
-    AddOperationBasis addOperation =
-      new AddOperationBasis(InternalClientConnection.getRootConnection(),
-                            1,
-                            1,
-                            null,
-                            ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
-                            rawAttributes);
 
     /* Process the operation and expect the server to continue
      * processing the operation.
@@ -436,23 +425,9 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * createTimeStamp: 2011091212400000Z
      * -
      */
-
-    List<RawModification> rawMods= new ArrayList<>();
-
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "modifyTimeStamp",
-                                       "2011091212400000Z"));
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "createTimeStamp",
-                                       "2011091212400000Z"));
-
-    ModifyOperationBasis modifyOperation =
-      new ModifyOperationBasis(InternalClientConnection.getRootConnection(),
-                               1,
-                               1,
-                               null,
-                               ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
-                               rawMods);
+    ModifyOperationBasis modifyOperation = modify("dn: uid=test,dc=example,dc=com",
+        newRawModification(REPLACE, "modifyTimeStamp", "2011091212400000Z"),
+        newRawModification(REPLACE, "createTimeStamp", "2011091212400000Z"));
 
     /* Process the request. The result should be SUCCESS and the server
      * should stop the processing.
@@ -463,6 +438,11 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
 
     plugin.finalizePlugin();
 
+  }
+
+  private ModifyOperationBasis modify(String entryDN, RawModification... rawMods)
+  {
+    return new ModifyOperationBasis(getRootConnection(), 1, 1, null, ByteString.valueOfUtf8(entryDN), newArrayList(rawMods));
   }
 
   /**
@@ -516,29 +496,11 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * createTimeStamp: 2011091212400000Z
      * -
      */
-
-    List<RawModification> rawMods= new ArrayList<>();
-
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "cn",
-                                       "Test User"));
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "sn",
-                                       "User"));
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "modifyTimeStamp",
-                                       "2011091212400000Z"));
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "createTimeStamp",
-                                       "2011091212400000Z"));
-
-    ModifyOperationBasis modifyOperation =
-      new ModifyOperationBasis(InternalClientConnection.getRootConnection(),
-                               1,
-                               1,
-                               null,
-                               ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
-                               rawMods);
+    ModifyOperationBasis modifyOperation = modify("dn: uid=test,dc=example,dc=com",
+        newRawModification(REPLACE, "cn", "Test User"),
+        newRawModification(REPLACE, "sn", "User"),
+        newRawModification(REPLACE, "modifyTimeStamp", "2011091212400000Z"),
+        newRawModification(REPLACE, "createTimeStamp", "2011091212400000Z"));
 
     /* Process the MODIFY operation making sure the remaining number of
      * modifications is 2 and that the '*TimeStamp' modifications are
@@ -548,7 +510,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
 
     assertEquals(modifyOperation.getRawModifications().size(), 2);
 
-    rawMods = modifyOperation.getRawModifications();
+    List<RawModification> rawMods = modifyOperation.getRawModifications();
     assertNotNull(rawMods);
 
     for(RawModification rawMod : rawMods )
@@ -564,6 +526,11 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
 
     plugin.finalizePlugin();
 
+  }
+
+  private RawModification newRawModification(ModificationType modType, String attrName, String attrValue)
+  {
+    return RawModification.create(modType, attrName, attrValue);
   }
 
 
@@ -611,40 +578,21 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * replace: modifyTimeStamp
      * modifyTimeStamp: 2011091212400000Z
      */
-    List<RawModification> rawMods= new ArrayList<>();
-
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "cn",
-                                       "Test User"));
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "sn",
-                                       "User"));
-    rawMods.add(RawModification.create(ModificationType.REPLACE,
-                                       "modifyTimeStamp",
-                                       "2011091212400000Z"));
-
-    ModifyOperationBasis modifyOperation =
-      new ModifyOperationBasis(InternalClientConnection.getRootConnection(),
-                               1,
-                               1,
-                               null,
-                               ByteString.valueOfUtf8("dn: uid=test,dc=example,dc=com"),
-                               rawMods);
+    ModifyOperationBasis modifyOperation = modify("dn: uid=test,dc=example,dc=com",
+        newRawModification(REPLACE, "cn", "Test User"),
+        newRawModification(REPLACE, "sn", "User"),
+        newRawModification(REPLACE, "modifyTimeStamp", "2011091212400000Z"));
 
     /* Process the MODIFY operation. */
-
     PluginResult.PreParse res = plugin.doPreParse(modifyOperation);
-
     assertTrue(res.continueProcessing());
 
     /* Verify that the attribute has been properly renamed by comparing
      * the value of the attribute 'description' with the original value
      * of the 'modifyTimeStamp' attribute.
      */
-    rawMods = modifyOperation.getRawModifications();
-
+    List<RawModification> rawMods = modifyOperation.getRawModifications();
     assertNotNull(rawMods);
-
     for(RawModification rawMod : rawMods )
     {
       RawAttribute modAttr = rawMod.getAttribute();

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -54,6 +55,7 @@ import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
@@ -63,16 +65,18 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.LDAPException;
 
 /** Modeled like an SDK Connection, but implemented using the servers' ProtocolOp classes */
 @SuppressWarnings("javadoc")
 public final class RemoteConnection implements Closeable
 {
+  private final String host;
   private final Socket socket;
   private LDAPReader r;
   private LDAPWriter w;
-  private int messageID;
+  private AtomicInteger messageID = new AtomicInteger(1);
 
   public RemoteConnection(String host, int port) throws Exception
   {
@@ -81,6 +85,7 @@ public final class RemoteConnection implements Closeable
 
   public RemoteConnection(String host, int port, boolean secure) throws Exception
   {
+    this.host = host;
     socket = secure ? getSslSocket(host, port) : new Socket(host, port);
     r = new LDAPReader(socket);
     w = new LDAPWriter(socket);
@@ -108,10 +113,10 @@ public final class RemoteConnection implements Closeable
         .getControls());
   }
 
-  public LDAPMessage bind(String bindDN, String bindPassword, Control... controls)
+  public void bind(String bindDN, String bindPassword, Control... controls)
       throws IOException, LDAPException, LdapException
   {
-    return bind(bindDN, bindPassword.getBytes(), true, Arrays.asList(controls));
+    bind(bindDN, bindPassword.getBytes(), true, Arrays.asList(controls));
   }
 
   private LDAPMessage bind(String bindDN, byte[] bindPassword, boolean throwOnExceptionalResultCode,
@@ -125,6 +130,11 @@ public final class RemoteConnection implements Closeable
       return validateNoException(message, response.getResultCode(), response.getErrorMessage());
     }
     return message;
+  }
+
+  public void unbind() throws IOException, LDAPException, LdapException
+  {
+    writeMessage(new UnbindRequestProtocolOp());
   }
 
   public LDAPMessage add(AddRequest addRequest) throws IOException, LDAPException, LdapException
@@ -268,8 +278,8 @@ public final class RemoteConnection implements Closeable
     return delete(deleteRequest, true);
   }
 
-  public LDAPMessage delete(DeleteRequest deleteRequest, boolean throwOnExceptionalResultCode) throws IOException,
-      LDAPException, LdapException
+  public LDAPMessage delete(DeleteRequest deleteRequest, boolean throwOnExceptionalResultCode)
+      throws IOException, LDAPException, LdapException
   {
     writeMessage(new DeleteRequestProtocolOp(bs(deleteRequest.getName())), to(deleteRequest.getControls()));
     LDAPMessage message = r.readMessage();
@@ -281,6 +291,18 @@ public final class RemoteConnection implements Closeable
     return message;
   }
 
+  public LDAPMessage extendedRequest(String oid) throws IOException, LDAPException, LdapException
+  {
+    return extendedRequest(oid, null);
+  }
+
+  public LDAPMessage extendedRequest(String oid, ByteString requestValue)
+      throws IOException, LDAPException, LdapException
+  {
+    writeMessage(new ExtendedRequestProtocolOp(oid, requestValue));
+    return r.readMessage();
+  }
+
   private ByteString bs(Object o)
   {
     return o != null ? ByteString.valueOfObject(o) : null;
@@ -288,12 +310,17 @@ public final class RemoteConnection implements Closeable
 
   public void writeMessage(ProtocolOp protocolOp) throws IOException
   {
-    writeMessage(protocolOp, null);
+    writeMessage(protocolOp, (List<org.opends.server.types.Control>) null);
   }
 
   public void writeMessage(ProtocolOp protocolOp, List<org.opends.server.types.Control> controls) throws IOException
   {
-    w.writeMessage(new LDAPMessage(++messageID, protocolOp, controls));
+    w.writeMessage(new LDAPMessage(messageID.getAndIncrement(), protocolOp, controls));
+  }
+
+  public void writeMessage(ProtocolOp protocolOp, org.opends.server.types.Control control) throws IOException
+  {
+    w.writeMessage(new LDAPMessage(messageID.getAndIncrement(), protocolOp, Arrays.asList(control)));
   }
 
   public LDAPMessage readMessage() throws IOException, LDAPException
@@ -310,6 +337,16 @@ public final class RemoteConnection implements Closeable
       throw LdapException.newLdapException(rc, errorMessage);
     }
     return message;
+  }
+
+  public LDAPWriter getLdapWriter()
+  {
+    return this.w;
+  }
+
+  public LDAPAuthenticationHandler newLDAPAuthenticationHandler()
+  {
+    return new LDAPAuthenticationHandler(r, w, host, messageID);
   }
 
   @Override

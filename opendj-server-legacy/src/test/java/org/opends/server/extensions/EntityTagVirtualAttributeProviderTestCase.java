@@ -17,16 +17,20 @@ package org.opends.server.extensions;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
+import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
+import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -36,10 +40,7 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
-import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -48,26 +49,22 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static java.util.Collections.*;
-
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -501,13 +498,13 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     Entry e1 = readEntry(userDN);
     String etag1 = e1.parseAttribute(ETAG).asString();
     assertNotNull(etag1);
+    AssertionRequestControl ctrl = AssertionRequestControl.newControl(true, Filter.equality(ETAG, etag1));
 
     // Apply a change using the assertion control for optimistic concurrency.
-    Attribute attr = Attributes.create(DESCRIPTION, "first modify");
-    List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
-    Control c = new LDAPAssertionRequestControl(true, LDAPFilter.createEqualityFilter(ETAG, ByteString.valueOfUtf8(etag1)));
-    List<Control> ctrls = Collections.singletonList(c);
-    ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
+    ModifyRequest modifyRequest = newModifyRequest(from(userDN))
+        .addModification(REPLACE, DESCRIPTION, "first modify")
+        .addControl(ctrl);
+    ModifyOperation modifyOperation = conn.processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     // Reread the entry and check that the description has been added and that
@@ -518,14 +515,13 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag2);
     assertFalse(etag1.equals(etag2));
 
-    String description2 = e2.parseAttribute(DESCRIPTION).asString();
-    assertNotNull(description2);
-    assertEquals(description2, "first modify");
+    String description2 = assertDescriptionValue(e2, "first modify");
 
     // Simulate a concurrent update: perform another update using the old etag.
-    Attribute attr2 = Attributes.create(DESCRIPTION, "second modify");
-    mods = newArrayList(new Modification(ModificationType.REPLACE, attr2));
-    modifyOperation = conn.processModify(userDN, mods, ctrls);
+    modifyRequest = newModifyRequest(from(userDN))
+        .addModification(REPLACE, DESCRIPTION, "second modify")
+        .addControl(ctrl);
+    modifyOperation = conn.processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.ASSERTION_FAILED);
 
     // Reread the entry and check that the description and etag have not changed
@@ -535,9 +531,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag3);
     assertEquals(etag2, etag3);
 
-    String description3 = e3.parseAttribute(DESCRIPTION).asString();
-    assertNotNull(description3);
-    assertEquals(description3, description2);
+    assertDescriptionValue(e3, description2);
   }
 
   /**
@@ -582,10 +576,10 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag1);
 
     // Apply a change using the pre and post read controls.
-    Attribute attr = Attributes.create(DESCRIPTION, "modified value");
-    List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
-    List<Control> ctrls = singletonList((Control) new LDAPPreReadRequestControl(true, singleton(ETAG)));
-    ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
+    ModifyRequest modifyRequest = newModifyRequest(from(userDN))
+        .addModification(REPLACE, DESCRIPTION, "modified value")
+        .addControl(PreReadRequestControl.newControl(true, ETAG));
+    ModifyOperation modifyOperation = conn.processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     // Reread the entry and check that the description has been added and that
@@ -596,14 +590,20 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag2);
     assertFalse(etag1.equals(etag2));
 
-    String description2 = e2.parseAttribute(DESCRIPTION).asString();
-    assertNotNull(description2);
-    assertEquals(description2, "modified value");
+    assertDescriptionValue(e2, "modified value");
 
     // Now check that the pre-read is the same as the initial etag.
     LDAPPreReadResponseControl preReadControl = getLDAPPreReadResponseControl(modifyOperation);
     String etagPreRead = preReadControl.getSearchEntry().parseAttribute(ETAG).asString();
     assertEquals(etagPreRead, etag1);
+  }
+
+  private String assertDescriptionValue(Entry entry, String expected)
+  {
+    String description = entry.parseAttribute(DESCRIPTION).asString();
+    assertNotNull(description);
+    assertEquals(description, expected);
+    return description;
   }
 
   /**
@@ -648,10 +648,10 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag1);
 
     // Apply a change using the pre and post read controls.
-    Attribute attr = Attributes.create(DESCRIPTION, "modified value");
-    List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
-    List<Control> ctrls = singletonList((Control) new LDAPPostReadRequestControl(true, singleton(ETAG)));
-    ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
+    ModifyRequest modifyRequest = newModifyRequest(from(userDN))
+        .addModification(REPLACE, DESCRIPTION, "modified value")
+        .addControl(PostReadRequestControl.newControl(true, ETAG));
+    ModifyOperation modifyOperation = conn.processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     // Reread the entry and check that the description has been added and that
@@ -662,9 +662,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     assertNotNull(etag2);
     assertFalse(etag1.equals(etag2));
 
-    String description2 = e2.parseAttribute(DESCRIPTION).asString();
-    assertNotNull(description2);
-    assertEquals(description2, "modified value");
+    assertDescriptionValue(e2, "modified value");
 
     // Now check that the post-read is the same as the initial etag.
     LDAPPostReadResponseControl postReadControl = getLDAPPostReadResponseControl(modifyOperation);

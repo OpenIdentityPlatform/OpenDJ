@@ -17,16 +17,16 @@
 package org.opends.server.extensions;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.FingerprintCertificateMapperCfgDefn;
@@ -34,12 +34,9 @@ import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -50,6 +47,8 @@ import org.testng.annotations.Test;
 public class FingerprintCertificateMapperTestCase
        extends ExtensionsTestCase
 {
+  private static final String FINGERPRINT_MAPPER_DN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
+
   /**
    * Ensures that the Directory Server is running.
    *
@@ -431,17 +430,8 @@ public class FingerprintCertificateMapperTestCase
   @Test
   public void testRemoveFingerprintAttribute() throws Exception
   {
-    String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
-
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-fingerprint-attribute"));
-
-    ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
-    ModifyOperation modifyOperation =
-         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
-    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    delete(FINGERPRINT_MAPPER_DN, "ds-cfg-fingerprint-attribute");
   }
-
-
 
   /**
    * Tests to ensure that an attempt to remove the fingerprint algorithm will fail.
@@ -451,17 +441,8 @@ public class FingerprintCertificateMapperTestCase
   @Test
   public void testRemoveFingerprintAlgorithm() throws Exception
   {
-    String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
-
-    Attribute a = Attributes.empty(DirectoryServer.getAttributeType("ds-cfg-fingerprint-algorithm"));
-
-    ArrayList<Modification> mods = newArrayList(new Modification(DELETE, a));
-    ModifyOperation modifyOperation =
-        getRootConnection().processModify(DN.valueOf(mapperDN), mods);
-    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    delete(FINGERPRINT_MAPPER_DN, "ds-cfg-fingerprint-algorithm");
   }
-
-
 
   /**
    * Tests to ensure that an attmept to set an undefined fingerprint attribute
@@ -494,15 +475,17 @@ public class FingerprintCertificateMapperTestCase
 
 
   /**
-   * Tests to ensure that an attmept to set an invalid base DN will fail.
+   * Tests to ensure that an attempt to set an invalid base DN will fail.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { AssertionError.class })
-  public void testSetInvalidBaseDN()
-         throws Exception
+  @Test
+  public void testSetInvalidBaseDN() throws Exception
   {
-    setBaseDNs(new String[] { "invalid" });
+    ModifyRequest modifyRequest = newModifyRequest(FINGERPRINT_MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-user-base-dn", "invalid");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.INVALID_ATTRIBUTE_SYNTAX);
   }
 
 
@@ -513,17 +496,9 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void enableMapper()
-          throws Exception
+  private void enableMapper() throws Exception
   {
-    String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
-    String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
-
-    ArrayList<Modification> mods = newArrayList(
-        new Modification(REPLACE, Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
-    ModifyOperation modifyOperation =
-         getRootConnection().processModify(DN.valueOf(externalDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    replace("cn=EXTERNAL,cn=SASL Mechanisms,cn=config", "ds-cfg-certificate-mapper", FINGERPRINT_MAPPER_DN);
   }
 
 
@@ -534,17 +509,11 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void disableMapper()
-          throws Exception
+  private void disableMapper() throws Exception
   {
-    String externalDN = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String mapperDN = "cn=Subject Equals DN,cn=Certificate Mappers,cn=config";
 
-    ArrayList<Modification> mods = newArrayList(
-        new Modification(REPLACE, Attributes.create("ds-cfg-certificate-mapper", mapperDN)));
-    ModifyOperation modifyOperation =
-         getRootConnection().processModify(DN.valueOf(externalDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    replace("cn=EXTERNAL,cn=SASL Mechanisms,cn=config", "ds-cfg-certificate-mapper", mapperDN);
   }
 
 
@@ -558,19 +527,24 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void setFingerprintAttribute(String attrName)
-          throws Exception
+  private void setFingerprintAttribute(String attrName) throws Exception
   {
-    String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
+    replace(FINGERPRINT_MAPPER_DN, "ds-cfg-fingerprint-attribute", attrName);
+  }
 
-    ArrayList<Modification> mods = newArrayList(
-        new Modification(REPLACE, Attributes.create("ds-cfg-fingerprint-attribute", attrName)));
-    ModifyOperation modifyOperation =
-         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
+  private void replace(String mapperDN, String attrName, String attrValues) throws DirectoryException
+  {
+    ModifyRequest modifyRequest = newModifyRequest(mapperDN).addModification(REPLACE, attrName, attrValues);
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
+  private void delete(String mapperDN, String attrName) throws DirectoryException
+  {
+    ModifyRequest modifyRequest = newModifyRequest(mapperDN).addModification(DELETE, attrName);
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
 
   /**
    * Alters the configuration of the fingerprint certificate mapper so that it
@@ -583,37 +557,7 @@ public class FingerprintCertificateMapperTestCase
   private void setFingerprintAlgorithm(String algorithm)
           throws Exception
   {
-    String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
-
-    ArrayList<Modification> mods = newArrayList(
-        new Modification(REPLACE, Attributes.create("ds-cfg-fingerprint-algorithm", algorithm)));
-    ModifyOperation modifyOperation =
-         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-
-  /**
-   * Alters the configuration of the Subject DN to User Attribute certificate
-   * mapper so that it will look for the subject DN below the specified set of
-   * base DNs.
-   *
-   * @param  baseDNs  The set of base DNs to use when mapping certificates to
-   *                  users.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  private void setBaseDNs(String[] baseDNs)
-          throws Exception
-  {
-    String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
-
-    ArrayList<Modification> mods = newArrayList(
-        new Modification(REPLACE, Attributes.create("ds-cfg-user-base-dn", baseDNs)));
-    ModifyOperation modifyOperation =
-         getRootConnection().processModify(DN.valueOf(mapperDN), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    replace(FINGERPRINT_MAPPER_DN, "ds-cfg-fingerprint-algorithm", algorithm);
   }
 
   /**

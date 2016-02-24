@@ -11,14 +11,17 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends;
 
 import static java.util.concurrent.TimeUnit.*;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -45,7 +48,6 @@ import java.util.concurrent.Callable;
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
@@ -688,12 +690,15 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           "telephonenumber: 131313");
 
       // mod 'sn' of fiona with 'sn' configured as ecl-incl-att
-      final ModifyOperation modOp1 = connection.processModify(uentry1.getName(), createAttributeModif("sn", "newsn"));
+      final ModifyOperation modOp1 = connection.processModify(
+          newModifyRequest(from(uentry1.getName()))
+          .addModification(REPLACE, "sn", "newsn"));
       waitForSearchOpResult(modOp1, ResultCode.SUCCESS);
 
       // mod 'telephonenumber' of robert
-      final ModifyOperation modOp2 = connection.processModify(uentry2.getName(),
-          createAttributeModif("telephonenumber", "555555"));
+      final ModifyOperation modOp2 = connection.processModify(
+          newModifyRequest(from(uentry2.getName()))
+          .addModification(REPLACE, "telephonenumber", "555555"));
       waitForSearchOpResult(modOp2, ResultCode.SUCCESS);
 
       // moddn robert to robert2
@@ -1204,14 +1209,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   {
     assertSameServerId(replicaId, csn);
     DN baseDN = DN.valueOf("uid=" + testName + "3," + replicaId.getBaseDN());
-    List<Modification> mods = createAttributeModif("description", "new value");
+    List<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create("description", "new value")));
     return new ModifyMsg(csn, baseDN, mods, testName + "uuid3");
-  }
-
-  private List<Modification> createAttributeModif(String attributeName, String valueString)
-  {
-    Attribute attr = Attributes.create(attributeName, valueString);
-    return newArrayList(new Modification(ModificationType.REPLACE, attr));
   }
 
   private UpdateMsg generateModDNMsg(ReplicaId replicaId, CSN csn, String testName) throws Exception

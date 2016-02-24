@@ -51,7 +51,6 @@ import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ServerContext;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -72,6 +71,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -1531,10 +1531,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                 OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME,
                 provider.getCurrentTime()));
 
-            InternalClientConnection conn = InternalClientConnection
-                .getRootConnection();
-            ModifyOperation internalModify = conn.processModify(userEntry
-                .getName().toString(), modifications);
+            ModifyOperation internalModify = getRootConnection().processModify(
+                ByteString.valueOfObject(userEntry.getName()), modifications);
 
             ResultCode resultCode = internalModify.getResultCode();
             if (resultCode != ResultCode.SUCCESS)

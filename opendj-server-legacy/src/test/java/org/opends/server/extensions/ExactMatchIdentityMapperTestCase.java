@@ -21,8 +21,9 @@ import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExactMatchIdentityMapperCfgDefn;
@@ -30,25 +31,26 @@ import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the exact match identity mapper.
- */
+/** A set of test cases for the exact match identity mapper. */
 public class ExactMatchIdentityMapperTestCase
        extends ExtensionsTestCase
 {
+  private static final String MAPPER_DN = "cn=Exact Match,cn=Identity Mappers,cn=config";
+
   /**
    * Ensures that the Directory Server is running.
    *
@@ -266,7 +268,7 @@ public class ExactMatchIdentityMapperTestCase
   public void testMapperEnabled()
          throws Exception
   {
-    DN mapperDN = DN.valueOf("cn=Exact Match,cn=Identity Mappers,cn=config");
+    DN mapperDN = DN.valueOf(MAPPER_DN);
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof ExactMatchIdentityMapper);
@@ -762,8 +764,7 @@ public class ExactMatchIdentityMapperTestCase
   public void testChangingMapAttribute()
          throws Exception
   {
-    String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    DN mapperDN = DN.valueOf(mapperDNString);
+    DN mapperDN = DN.valueOf(MAPPER_DN);
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof ExactMatchIdentityMapper);
@@ -794,18 +795,11 @@ public class ExactMatchIdentityMapperTestCase
     assertNull(mappedEntry);
 
 
-    InternalClientConnection conn = getRootConnection();
     // Create a modification to change the map attribute from uid to cn.
-    ArrayList<ByteString> values = newArrayList(ByteString.valueOfUtf8("cn"));
 
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("ds-cfg-match-attribute",
-                                                    values)));
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    ModifyRequest modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-attribute", "cn");
+    processModifyIsSuccessful(modifyRequest);
 
     // Verify that "test" no longer works but "test user" does.
     mappedEntry = mapper.getEntryForID("test");
@@ -817,10 +811,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the configuration back to the way it was.
-    values.set(0, ByteString.valueOfUtf8("uid"));
-    modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    ModifyRequest modifyRequest2 = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-attribute", "uid");
+    processModifyIsSuccessful(modifyRequest2);
 
 
     // Verify that the original matching pattern is back.
@@ -844,8 +837,7 @@ public class ExactMatchIdentityMapperTestCase
   public void testChangingMapBaseDN()
          throws Exception
   {
-    String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    DN mapperDN = DN.valueOf(mapperDNString);
+    DN mapperDN = DN.valueOf(MAPPER_DN);
     IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
     assertNotNull(mapper);
     assertTrue(mapper instanceof ExactMatchIdentityMapper);
@@ -872,17 +864,10 @@ public class ExactMatchIdentityMapperTestCase
     assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
 
-    InternalClientConnection conn = getRootConnection();
     // Create a modification to set the map base DN to "dc=example,dc=com".
-    ArrayList<ByteString> values = newArrayList(ByteString.valueOfUtf8("dc=example,dc=com"));
-
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("ds-cfg-match-base-dn",
-                                                    values)));
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    ModifyRequest modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-base-dn", "dc=example,dc=com");
+    processModifyIsSuccessful(modifyRequest);
 
 
     // Verify that we can't find the user anymore.
@@ -891,10 +876,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the base DN to "o=test".
-    values.set(0, ByteString.valueOfUtf8("o=test"));
-    modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-base-dn", "o=test");
+    processModifyIsSuccessful(modifyRequest);
 
 
     // Verify that we can retrieve the user again.
@@ -904,10 +888,9 @@ public class ExactMatchIdentityMapperTestCase
 
 
     // Change the configuration back to its original setting.
-    values.clear();
-    modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-base-dn");
+    processModifyIsSuccessful(modifyRequest);
 
 
     // Verify that we can still retrieve the user.
@@ -915,8 +898,6 @@ public class ExactMatchIdentityMapperTestCase
     assertNotNull(mappedEntry);
     assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
   }
-
-
 
   /**
    * Tests that an internal modification to remove the match attribute will be
@@ -929,15 +910,9 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE,
-                                  new LDAPAttribute("ds-cfg-match-attribute")));
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    ModifyRequest modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-attribute");
+    processModifyIsNotSuccessful(modifyRequest);
   }
 
 
@@ -953,15 +928,9 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE,
-        new LDAPAttribute("ds-cfg-match-attribute", "undefinedAttribute")));
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    ModifyRequest modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-attribute", "undefinedAttribute");
+    processModifyIsNotSuccessful(modifyRequest);
   }
 
 
@@ -977,14 +946,20 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     // Create a modification to remove the match attribute.
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE,
-        new LDAPAttribute("ds-cfg-match-base-dn", "invalidDN")));
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    String mapperDNString = "cn=Exact Match,cn=Identity Mappers,cn=config";
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8(mapperDNString), mods);
-    assertNotSame(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    ModifyRequest modifyRequest = newModifyRequest(MAPPER_DN)
+        .addModification(REPLACE, "ds-cfg-match-base-dn", "invalidDN");
+    processModifyIsNotSuccessful(modifyRequest);
+  }
+
+  private void processModifyIsSuccessful(ModifyRequest modifyRequest)
+  {
+    ModifyOperation op = getRootConnection().processModify(modifyRequest);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private void processModifyIsNotSuccessful(ModifyRequest modifyRequest)
+  {
+    ModifyOperation op = getRootConnection().processModify(modifyRequest);
+    assertNotSame(op.getResultCode(), ResultCode.SUCCESS);
   }
 }

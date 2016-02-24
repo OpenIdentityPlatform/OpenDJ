@@ -12,143 +12,131 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
-
-
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.io.UnsupportedEncodingException;
-import java.io.IOException;
+import java.util.List;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
-import org.opends.server.tools.*;
-import static org.testng.Assert.*;
+import org.opends.server.tools.LDAPAuthenticationHandler;
+import org.opends.server.tools.LDAPCompare;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-import com.forgerock.opendj.cli.ClientException;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of testcases for configuration attribute
  * "ds-cfg-reject-unauthenticated-requests".
  */
-
+@SuppressWarnings("javadoc")
 public class RejectUnauthReqTests extends CoreTestCase
 {
+  private class Args
+  {
+    private final List<String> args = new ArrayList<>();
+
+    public void add(String arg)
+    {
+      args.add(arg);
+    }
+
+    public void add(String arg, Object value)
+    {
+      args.add(arg);
+      args.add(value.toString());
+    }
+
+    public String[] toArray()
+    {
+      return args.toArray(new String[args.size()]);
+    }
+
+    @Override
+    public String toString()
+    {
+      return args.toString();
+    }
+  }
 
   /**
-   * Utility method which is called by the testcase sending an ADD
-   * request.
+   * Utility method which is called by the testcase sending an ADD request.
    *
-   * @param authentication
+   * @param authenticate
    *          The flag to set the authentication on and off.
    * @return The error code of operation performed.
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  private int performAddOperation(boolean authentication) throws Exception
+  private int performAddOperation(boolean authenticate) throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(
         "dn: o=rejectTestCase,o=test", "objectclass: top",
         "objectclass: organization", "o: rejectTestCase",
         "description: Reject Test Case");
-    String[] args = null;
-    if (authentication)
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D",
-          "cn=directory manager",
-          "-w",
-          "password",
-          "-a",
-          "-f",
-          filePath,
-      };
-    }
-    else
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-a",
-          "-f",
-          filePath,
-      };
-    }
-    return LDAPModify.mainModify(args, false, null, null);
+    return LDAPModify.mainModify(addArgs(authenticate, filePath), false, null, null);
   }
 
+  private String[] modifyArgs(boolean authenticate, String filePath)
+  {
+    return args(authenticate, false, filePath);
+  }
 
+  private String[] addArgs(boolean authenticate, String filePath)
+  {
+    return args(authenticate, true, filePath);
+  }
+
+  private String[] args(boolean authenticate, boolean add, String filePath)
+  {
+    Args args = new Args();
+    args.add("--noPropertiesFile");
+    args.add("-h", "127.0.0.1");
+    args.add("-p", TestCaseUtils.getServerLdapPort());
+    if (authenticate)
+    {
+      args.add("-D", "cn=directory manager");
+      args.add("-w", "password");
+    }
+    if (add)
+    {
+      args.add("-a");
+    }
+    args.add("-f", filePath);
+    return args.toArray();
+  }
 
   /**
-   * Utility method which is called by the testcase sending a MODIFY
-   * request.
+   * Utility method which is called by the testcase sending a MODIFY request.
    *
-   * @param authentication
+   * @param authenticate
    *          The flag to set the authentication on and off.
    * @return The error code of operation performed.
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  private int performModifyOperation(boolean authentication) throws Exception
+  private int performModifyOperation(boolean authenticate) throws Exception
   {
     String path = TestCaseUtils.createTempFile("dn: o=rejectTestCase,o=test",
         "changetype: modify", "replace: description",
         "description: New Description");
-    String[] args = null;
-    if (authentication)
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D",
-          "cn=directory manager",
-          "-w",
-          "password",
-          "-f",
-          path
-      };
-    }
-    else
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-f",
-          path
-      };
-    }
-    return LDAPModify.mainModify(args, false, null, null);
+    return LDAPModify.mainModify(modifyArgs(authenticate, path), false, null, null);
   }
 
 
@@ -165,42 +153,23 @@ public class RejectUnauthReqTests extends CoreTestCase
    */
   private int performCompareOperation(boolean authentication) throws Exception
   {
-    String[] args = null;
-    if (authentication)
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D",
-          "cn=Directory Manager",
-          "-w",
-          "password",
-          "o:test",
-          "o=test"
-      };
-    }
-    else
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "o:test",
-          "o=test"
-      };
-    }
-
-    return LDAPCompare.mainCompare(args, false, null, null);
+    return LDAPCompare.mainCompare(compareArgs(authentication), false, null, null);
   }
 
-
+  private String[] compareArgs(boolean authenticate)
+  {
+    Args args = new Args();
+    args.add("--noPropertiesFile");
+    args.add("-h", "127.0.0.1");
+    args.add("-p", TestCaseUtils.getServerLdapPort());
+    if (authenticate)
+    {
+      args.add("-D", "cn=Directory Manager");
+      args.add("-w", "password");
+    }
+    args.add("o:test", "o=test");
+    return args.toArray();
+  }
 
   /**
    * Utility method which is called by the testcase sending a MODRDN
@@ -217,41 +186,23 @@ public class RejectUnauthReqTests extends CoreTestCase
     String path = TestCaseUtils
         .createTempFile("dn: o=rejectTestCase,o=Test", "changetype: modrdn",
             "newrdn: o=mod_rejectTestCase", "deleteoldrdn: 0");
-    String[] args = null;
-    if (authentication)
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D",
-          "cn=directory manager",
-          "-w",
-          "password",
-          "-f",
-          path
-      };
-    }
-    else
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-f",
-          path
-      };
-    }
-    return LDAPModify.mainModify(args, false, null, null);
+    return LDAPModify.mainModify(modRdnArgs(authentication, path), false, null, null);
   }
 
-
+  private String[] modRdnArgs(boolean authenticate, String path)
+  {
+    Args args = new Args();
+    args.add("--noPropertiesFile");
+    args.add("-h", "127.0.0.1");
+    args.add("-p", TestCaseUtils.getServerLdapPort());
+    if (authenticate)
+    {
+      args.add("-D", "cn=directory manager");
+      args.add("-w", "password");
+    }
+    args.add("-f", path);
+    return args.toArray();
+  }
 
   /**
    * Utility method which is called by the testcase sending a DELETE
@@ -265,41 +216,24 @@ public class RejectUnauthReqTests extends CoreTestCase
    */
   private int performDeleteOperation(boolean authentication) throws Exception
   {
-    String[] args = null;
-    if (authentication)
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-V",
-          "3",
-          "-D",
-          "cn=Directory Manager",
-          "-w",
-          "password",
-          "o=mod_rejectTestCase,o=test"
-      };
-    }
-    else
-    {
-      args = new String[]
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "o=mod_rejectTestCase,o=test"
-      };
-    }
-    return LDAPDelete.mainDelete(args, false, null, null);
+    return LDAPDelete.mainDelete(deleteArgs(authentication), false, null, null);
   }
 
-
+  private String[] deleteArgs(boolean authenticate)
+  {
+    Args args = new Args();
+    args.add("--noPropertiesFile");
+    args.add("-h", "127.0.0.1");
+    args.add("-p", TestCaseUtils.getServerLdapPort());
+    if (authenticate)
+    {
+      args.add("-V", "3");
+      args.add("-D", "cn=Directory Manager");
+      args.add("-w", "password");
+    }
+    args.add("o=mod_rejectTestCase,o=test");
+    return args.toArray();
+  }
 
   /**
    * Ensures that the Directory Server is running before executing the
@@ -315,69 +249,54 @@ public class RejectUnauthReqTests extends CoreTestCase
     TestCaseUtils.initializeTestBackend(true);
   }
 
+  private enum Auth
+  {
+    ANONYMOUS, SIMPLE, START_TLS
+  }
 
+  private String[] searchArgs(Auth auth)
+  {
+    Args args = new Args();
+    args.add("--noPropertiesFile");
+    args.add("-h", "127.0.0.1");
+    args.add("-p", TestCaseUtils.getServerLdapPort());
+    if (!Auth.ANONYMOUS.equals(auth))
+    {
+      args.add("-D", "cn=Directory Manager");
+      args.add("-w", "password");
+    }
+    if (Auth.START_TLS.equals(auth))
+    {
+      args.add("-q");
+      args.add("-X");
+    }
+    args.add("-b", "");
+    args.add("-s", "base");
+    args.add("(objectClass=*)");
+    return args.toArray();
+  }
 
   /**
-   * Tests whether an authenticated SEARCH request will be allowed
-   * with the default configuration settings for
-   * "ds-cfg-reject-unauthenticated-requests".
+   * Tests whether an authenticated SEARCH request will be allowed with the default configuration
+   * settings for "ds-cfg-reject-unauthenticated-requests".
    */
   @Test
   public void testAuthSearchDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
-
-    String[] args =
-    {
-        "--noPropertiesFile",
-        "-h",
-        "127.0.0.1",
-        "-p",
-        String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D",
-        "cn=Directory Manager",
-        "-w",
-        "password",
-        "-b",
-        "",
-        "-s",
-        "base",
-        "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.SIMPLE), false, null, System.err), 0);
   }
 
-
-
   /**
-   * Tests whether an unauthenticated SEARCH request will be allowed
-   * with the default configuration settings for
-   * "ds-cfg-reject-unauthenticated-requests".
+   * Tests whether an unauthenticated SEARCH request will be allowed with the default configuration
+   * settings for "ds-cfg-reject-unauthenticated-requests".
    */
   @Test
   public void testUnauthSearchDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
-
-    String[] args =
-    {
-        "--noPropertiesFile",
-        "-h",
-        "127.0.0.1",
-        "-p",
-        String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-b",
-        "",
-        "-s",
-        "base",
-        "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.ANONYMOUS), false, null, System.err), 0);
   }
-
-
 
   /**
    * Tests whether an authenticated BIND request will be allowed with
@@ -389,8 +308,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
 
-    InternalClientConnection conn = new InternalClientConnection(
-        new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     ByteString user = ByteString.valueOfUtf8("cn=Directory Manager");
     ByteString password = ByteString.valueOfUtf8("password");
     BindOperation bindOperation = conn.processSimpleBind(user, password);
@@ -409,8 +327,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
 
-    InternalClientConnection conn = new InternalClientConnection(
-        new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation = conn.processSimpleBind(DN.rootDN(), null);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -430,23 +347,16 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
+      authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
+          ByteString.valueOfUtf8("password"), new ArrayList<Control>(),
+          new ArrayList<Control>());
+      assertNotNull(authHandler.requestAuthorizationIdentity());
 
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
-        reader, writer, "localhost", nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
-        ByteString.valueOfUtf8("password"), new ArrayList<Control>(),
-        new ArrayList<Control>());
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNotNull(authzID);
-
-    LDAPMessage unbindMessage = new LDAPMessage(
-        nextMessageID.getAndIncrement(), new UnbindRequestProtocolOp());
-    writer.writeMessage(unbindMessage);
-    s.close();
+      conn.unbind();
+    }
   }
 
 
@@ -464,20 +374,12 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
-
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
-        reader, writer, "localhost", nextMessageID);
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNull(authzID);
-
-    LDAPMessage unbindMessage = new LDAPMessage(
-        nextMessageID.getAndIncrement(), new UnbindRequestProtocolOp());
-    writer.writeMessage(unbindMessage);
-    s.close();
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
+      assertNull(authHandler.requestAuthorizationIdentity());
+      conn.unbind();
+    }
   }
 
 
@@ -494,30 +396,8 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testStartTLSUnauthDefCfg() throws Exception
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
-
-    String[] argSearch =
-    {
-        "--noPropertiesFile",
-        "-h",
-        "127.0.0.1",
-        "-p",
-        String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D",
-        "cn=directory manager",
-        "-w",
-        "password",
-        "-q",
-        "-X",
-        "-b",
-        "",
-        "-s",
-        "base",
-        "(objectClass=*)"
-    };
-    assertEquals(LDAPSearch.mainSearch(argSearch, false, null, System.err), 0);
+    assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.START_TLS), false, null, System.err), 0);
   }
-
-
 
   /**
    * Tests the whether the authenticated ADD,MODIFY,COMPARE,MODRDN and
@@ -532,13 +412,9 @@ public class RejectUnauthReqTests extends CoreTestCase
     DirectoryServer.setRejectUnauthenticatedRequests(false);
 
     assertEquals(performAddOperation(true), 0);
-
     assertEquals(performModifyOperation(true), 0);
-
     assertEquals(performCompareOperation(true), 0);
-
     assertEquals(performModRdnOperation(true), 0);
-
     assertEquals(performDeleteOperation(true), 0);
   }
 
@@ -558,13 +434,9 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testOtherOpsUnauthDefCfg() throws Exception
   {
     assertEquals(performAddOperation(false), 0);
-
     assertEquals(performModifyOperation(false), 0);
-
     assertEquals(performCompareOperation(false), 0);
-
     assertEquals(performModRdnOperation(false), 0);
-
     assertEquals(performDeleteOperation(false), 0);
   }
 
@@ -582,48 +454,14 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      String[] args =
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-b",
-          "",
-          "-s",
-          "base",
-          "(objectClass=*)"
-      };
-
-      assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-
-      String[] authArgs =
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D",
-          "cn=Directory Manager",
-          "-w",
-          "password",
-          "-b",
-          "",
-          "-s",
-          "base",
-          "(objectClass=*)"
-      };
-      assertEquals(LDAPSearch.mainSearch(authArgs, false, null, System.err), 0);
+      assertFalse(LDAPSearch.mainSearch(searchArgs(Auth.ANONYMOUS), false, null, null) == 0);
+      assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.START_TLS), false, null, System.err), 0);
     }
     finally
     {
       DirectoryServer.setRejectUnauthenticatedRequests(false);
     }
   }
-
-
 
   /**
    * Tests whether authenticated and unauthenticated BIND requests
@@ -637,8 +475,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      InternalClientConnection conn = new InternalClientConnection(
-          new AuthenticationInfo());
+      InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
       ByteString user = ByteString.valueOfUtf8("cn=Directory Manager");
       ByteString password = ByteString.valueOfUtf8("password");
       // Unauthenticated BIND request.
@@ -671,26 +508,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      String[] argSearch =
-      {
-          "--noPropertiesFile",
-          "-h",
-          "127.0.0.1",
-          "-p",
-          String.valueOf(TestCaseUtils.getServerLdapPort()),
-          "-D",
-          "cn=directory manager",
-          "-w",
-          "password",
-          "-q",
-          "-X",
-          "-b",
-          "",
-          "-s",
-          "base",
-          "(objectClass=*)"
-      };
-      assertEquals(LDAPSearch.mainSearch(argSearch, false, null, System.err), 0);
+      assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.START_TLS), false, null, System.err), 0);
     }
     finally
     {
@@ -715,10 +533,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      InternalClientConnection conn = InternalClientConnection
-          .getRootConnection();
-      ExtendedOperation extOp = conn.processExtendedOperation(
-          OID_WHO_AM_I_REQUEST, null);
+      ExtendedOperation extOp = getRootConnection().processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
       assertEquals(extOp.getResultCode(), ResultCode.SUCCESS);
       assertNotNull(extOp.getResponseValue());
     }
@@ -734,43 +549,26 @@ public class RejectUnauthReqTests extends CoreTestCase
    * Tests whether the who am I? extended operation with an
    * unauthenticated connection fails with new setting of
    * "ds-cfg-reject-unauthenticated-requests".
-   *
-   * @throws UnsupportedEncodingException
-   *           If an unexpected problem occurs.
-   * @throws IOException
-   *           If an unexpected problem occurs.
-   * @throws ClientException
-   *           If an unexpected problem occurs.
    */
   @Test
-  public void testUnauthWAINewCfg() throws UnsupportedEncodingException,
-      IOException, ClientException
+  public void testUnauthWAINewCfg() throws Exception
   {
-    try
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-      LDAPReader reader = new LDAPReader(s);
-      LDAPWriter writer = new LDAPWriter(s);
-      AtomicInteger nextMessageID = new AtomicInteger(1);
-      LDAPAuthenticationHandler authHandler = new LDAPAuthenticationHandler(
-          reader, writer, "localhost", nextMessageID);
-      ByteString authzID = null;
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
       try
       {
-        authzID = authHandler.requestAuthorizationIdentity();
+        authHandler.requestAuthorizationIdentity();
+        fail();
       }
-      catch (LDAPException e)
+      catch (LDAPException expected)
       {
-        assertNull(authzID);
       }
       finally
       {
-        LDAPMessage unbindMessage = new LDAPMessage(nextMessageID
-            .getAndIncrement(), new UnbindRequestProtocolOp());
-        writer.writeMessage(unbindMessage);
-        s.close();
+        conn.unbind();
       }
     }
     finally
@@ -796,13 +594,9 @@ public class RejectUnauthReqTests extends CoreTestCase
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
       assertEquals(performAddOperation(true), 0);
-
       assertEquals(performModifyOperation(true), 0);
-
       assertEquals(performCompareOperation(true), 0);
-
       assertEquals(performModRdnOperation(true), 0);
-
       assertEquals(performDeleteOperation(true), 0);
     }
     finally
@@ -827,15 +621,11 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      assertFalse(performAddOperation(false) == 0);
-
-      assertFalse(performModifyOperation(false) == 0);
-
-      assertFalse(performCompareOperation(false) == 0);
-
-      assertFalse(performModRdnOperation(false) == 0);
-
-      assertFalse(performDeleteOperation(false) == 0);
+      assertNotEquals(performAddOperation(false), 0);
+      assertNotEquals(performModifyOperation(false), 0);
+      assertNotEquals(performCompareOperation(false), 0);
+      assertNotEquals(performModRdnOperation(false), 0);
+      assertNotEquals(performDeleteOperation(false), 0);
     }
     finally
     {

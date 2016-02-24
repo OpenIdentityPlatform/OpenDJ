@@ -12,23 +12,24 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.Test;
 
 /**
@@ -66,13 +67,8 @@ public class IsolationTest extends ReplicationTestCase
       domain.start();
 
       // check that the updates fail with the unwilling to perform error.
-      InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-      ModifyOperation op =
-        conn.processModify(baseDn, generatemods("description", "test"));
-
-      // check that the update failed.
-      assertEquals(ResultCode.UNWILLING_TO_PERFORM, op.getResultCode());
+      ModifyOperation op = modify(baseDn, "description", "test");
+      assertEquals(op.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
 
       // now configure the domain to accept changes even though it is not
       // connected to any replication server.
@@ -80,7 +76,7 @@ public class IsolationTest extends ReplicationTestCase
       domain.applyConfigurationChange(domainConf);
 
       // try a new modify operation on the base entry.
-      op = conn.processModify(baseDn, generatemods("description", "test"));
+      op = modify(baseDn, "description", "test");
 
       // check that the operation was successful.
       assertEquals(op.getResultCode(), ResultCode.SUCCESS,
@@ -93,5 +89,10 @@ public class IsolationTest extends ReplicationTestCase
         MultimasterReplication.deleteDomain(baseDn);
       }
     }
+  }
+
+  private ModifyOperation modify(DN baseDn, String attrName, String attrValue)
+  {
+    return getRootConnection().processModify(modifyRequest(baseDn, REPLACE, attrName, attrValue));
   }
 }

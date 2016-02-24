@@ -17,6 +17,7 @@
 package org.opends.server.protocols.ldap;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -24,15 +25,14 @@ import static org.testng.Assert.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.io.IOException;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
@@ -40,11 +40,12 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.RawAttribute;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
@@ -232,76 +233,30 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   public void binaryOptionUsingV2() throws Exception
   {
     //Construct a V2 connection.
-    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-        org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-        org.opends.server.tools.LDAPWriter w = new org.opends.server.tools.LDAPWriter(s))
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(
-                    ByteString.valueOfUtf8("cn=Directory Manager"), 2,
-                    ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
+      bindLdapV2(conn, "cn=Directory Manager", "password");
 
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
-      ArrayList<RawAttribute> addAttrs = new ArrayList<>();
-      addAttrs.add(RawAttribute.create("objectClass", "inetOrgPerson"));
-      addAttrs.add(RawAttribute.create("uid", "user.7"));
-      addAttrs.add(RawAttribute.create("cn", "user 7"));
-      addAttrs.add(RawAttribute.create("sn", "sn#1"));
-      addAttrs.add(RawAttribute.create("sn;x-foo", "sn#2"));
-      addAttrs.add(RawAttribute.create("sn;lang-fr", "sn#3"));
-      addAttrs.add(RawAttribute.create("userCertificate;binary",
-                                       ByteString.wrap(Base64.decode(CERT))));
-
-      AddRequestProtocolOp addRequest =
-           new AddRequestProtocolOp(ByteString.valueOfUtf8("uid=user.7,o=test"),
-                                    addAttrs);
-      message = new LDAPMessage(2, addRequest);
-      w.writeMessage(message);
-
-      message = r.readMessage();
+      AddRequest addRequest = Requests.newAddRequest("uid=user.7,o=test")
+          .addAttribute("objectClass", "inetOrgPerson")
+          .addAttribute("uid", "user.7")
+          .addAttribute("cn", "user 7")
+          .addAttribute("sn", "sn#1")
+          .addAttribute("sn;x-foo", "sn#2")
+          .addAttribute("sn;lang-fr", "sn#3")
+          .addAttribute("userCertificate;binary", ByteString.wrap(Base64.decode(CERT)));
+      LDAPMessage message = conn.add(addRequest);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertEquals(addResponse.getResultCode(),0);
 
       //Create a SEARCH request to search for this added entry.
-      LinkedHashSet<String> attrs = new LinkedHashSet<>();
       //Request only the interesting attributes.
-      attrs.add("sn");
-      attrs.add("userCertificate;binary");
-      SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
-                                     SearchScope.WHOLE_SUBTREE,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false,
-                                     LDAPFilter.decode("(uid=user.7)"),
-                                     attrs);
-      message = new LDAPMessage(2, searchRequest);
-      w.writeMessage(message);
-
-      SearchResultEntryProtocolOp searchResultEntry = null;
-      SearchResultDoneProtocolOp searchResultDone = null;
-      while (searchResultDone == null)
-      {
-        message = r.readMessage();
-        switch (message.getProtocolOpType())
-        {
-          case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-            searchResultEntry = message.getSearchResultEntryProtocolOp();
-            break;
-          case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-            searchResultDone = message.getSearchResultDoneProtocolOp();
-            assertEquals(searchResultDone.getResultCode(),
-                         LDAPResultCode.SUCCESS);
-            break;
-        }
-      }
-      assertNotNull(searchResultEntry);
+      conn.search(Requests.newSearchRequest("o=test", WHOLE_SUBTREE, "(uid=user.7)", "sn", "userCertificate;binary"));
+      List<SearchResultEntryProtocolOp> entries = conn.readEntries();
+      assertThat(entries).hasSize(1);
       boolean certWithNoOption = false;
       boolean snWithMultiVal = false;
-      for(LDAPAttribute a:searchResultEntry.getAttributes())
+      for (LDAPAttribute a : entries.get(0).getAttributes())
       {
         //Shouldn't be userCertificate;binary.
         if ("userCertificate".equalsIgnoreCase(a.getAttributeType()))
@@ -321,7 +276,14 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     }
   }
 
+  private void bindLdapV2(RemoteConnection conn, String bindDN, String bindPwd) throws IOException, LDAPException
+  {
+    conn.writeMessage(new BindRequestProtocolOp(ByteString.valueOfUtf8(bindDN), 2, ByteString.valueOfUtf8(bindPwd)));
 
+    LDAPMessage message = conn.readMessage();
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+  }
 
   /**
    * Test to verify that the DB stores the binary option by

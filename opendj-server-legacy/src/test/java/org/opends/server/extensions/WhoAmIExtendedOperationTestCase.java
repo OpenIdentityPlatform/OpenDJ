@@ -12,15 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -32,16 +30,17 @@ import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.LDAPAuthenticationHandler;
-import org.opends.server.tools.LDAPReader;
-import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.cli.ClientException;
 
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -146,28 +145,15 @@ public class WhoAmIExtendedOperationTestCase
   public void testAsLDAPRootUser()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
+      doSimpleBind(authHandler, "cn=Directory Manager", "password");
+      assertNotNull(authHandler.requestAuthorizationIdentity());
 
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(reader, writer, "localhost",
-                                       nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
-                             ByteString.valueOfUtf8("password"),
-                             new ArrayList<Control>(),
-                             new ArrayList<Control>());
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNotNull(authzID);
-
-    LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                                new UnbindRequestProtocolOp());
-    writer.writeMessage(unbindMessage);
-    s.close();
+      conn.unbind();
+    }
   }
-
-
 
   /**
    * Tests the use of the Who Am I? extended operation with an unauthenticated
@@ -179,21 +165,12 @@ public class WhoAmIExtendedOperationTestCase
   public void testAsLDAPAnonymous()
          throws Exception
   {
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
-
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(reader, writer, "localhost",
-                                       nextMessageID);
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNull(authzID);
-
-    LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                                new UnbindRequestProtocolOp());
-    writer.writeMessage(unbindMessage);
-    s.close();
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
+      assertNull(authHandler.requestAuthorizationIdentity());
+      conn.unbind();
+    }
   }
 
 
@@ -222,25 +199,15 @@ public class WhoAmIExtendedOperationTestCase
          "userPassword: password");
 
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
 
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(reader, writer, "localhost",
-                                       nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=test.user,o=test"),
-                             ByteString.valueOfUtf8("password"),
-                             new ArrayList<Control>(),
-                             new ArrayList<Control>());
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNotNull(authzID);
+      doSimpleBind(authHandler, "uid=test.user,o=test", "password");
+      assertNotNull(authHandler.requestAuthorizationIdentity());
 
-    LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                                new UnbindRequestProtocolOp());
-    writer.writeMessage(unbindMessage);
-    s.close();
+      conn.unbind();
+    }
   }
 
 
@@ -283,37 +250,24 @@ public class WhoAmIExtendedOperationTestCase
          "ds-privilege-name: bypass-acl",
          "ds-privilege-name: proxied-auth");
 
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+      // Bind as the proxy user with an alternate authorization identity, and use
+      // the "Who Am I?" operation.
+      HashMap<String,List<String>> saslProperties = new HashMap<>(2);
+      saslProperties.put("authID", newArrayList("dn:uid=proxy.user,o=test"));
+      saslProperties.put("authzID", newArrayList("dn:uid=test.user,o=test"));
 
+      authHandler.doSASLPlain(ByteString.empty(),
+          ByteString.valueOfUtf8("password"), saslProperties,
+          new ArrayList<Control>(),
+          new ArrayList<Control>());
+      assertAuthzID(authHandler.requestAuthorizationIdentity(), "dn:uid=test.user,o=test");
 
-    // Bind as the proxy user with an alternate authorization identity, and use
-    // the "Who Am I?" operation.
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(reader, writer, "localhost",
-                                       nextMessageID);
-
-    HashMap<String,List<String>> saslProperties = new HashMap<>(2);
-    saslProperties.put("authID", newArrayList("dn:uid=proxy.user,o=test"));
-    saslProperties.put("authzID", newArrayList("dn:uid=test.user,o=test"));
-
-    authHandler.doSASLPlain(ByteString.empty(),
-                            ByteString.valueOfUtf8("password"), saslProperties,
-                            new ArrayList<Control>(),
-                            new ArrayList<Control>());
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNotNull(authzID);
-    assertEquals(authzID.toString(), "dn:uid=test.user,o=test");
-
-
-    // Close the connection to the server.
-    LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                                new UnbindRequestProtocolOp());
-    writer.writeMessage(unbindMessage);
-    s.close();
+      conn.unbind();
+    }
   }
 
 
@@ -355,54 +309,34 @@ public class WhoAmIExtendedOperationTestCase
          "ds-privilege-name: bypass-acl",
          "ds-privilege-name: proxied-auth");
 
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+      // Bind as the proxy user and use the "Who Am I?" operation, but without the
+      // proxied auth control.
+      doSimpleBind(authHandler, "uid=proxy.user,o=test", "password");
+      assertAuthzID(authHandler.requestAuthorizationIdentity(), "dn:uid=proxy.user,o=test");
 
+      // Use the "Who Am I?" operation again, this time with the proxy control.
+      conn.writeMessage(
+          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST),
+          new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test.user,o=test")));
 
-    // Bind as the proxy user and use the "Who Am I?" operation, but without the
-    // proxied auth control.
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(reader, writer, "localhost",
-                                       nextMessageID);
-    authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=proxy.user,o=test"),
-                             ByteString.valueOfUtf8("password"),
-                             new ArrayList<Control>(),
-                             new ArrayList<Control>());
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNotNull(authzID);
-    assertEquals(authzID.toString(), "dn:uid=proxy.user,o=test");
+      LDAPMessage message = conn.readMessage();
+      ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
+      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      assertAuthzID(extendedResponse.getValue(), "dn:uid=test.user,o=test");
 
-
-    // Use the "Who Am I?" operation again, this time with the proxy control.
-    ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    ArrayList<Control> requestControls = new ArrayList<>(1);
-    requestControls.add(new ProxiedAuthV2Control(
-         ByteString.valueOfUtf8("dn:uid=test.user,o=test")));
-    LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                          extendedRequest, requestControls);
-    writer.writeMessage(message);
-
-    message = reader.readMessage();
-    ExtendedResponseProtocolOp extendedResponse =
-         message.getExtendedResponseProtocolOp();
-    assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
-    authzID = extendedResponse.getValue();
-    assertNotNull(authzID);
-    assertEquals(authzID.toString(), "dn:uid=test.user,o=test");
-
-
-    // Close the connection to the server.
-    message = new LDAPMessage(nextMessageID.getAndIncrement(),
-                              new UnbindRequestProtocolOp());
-    writer.writeMessage(message);
-    s.close();
+      conn.unbind();
+    }
   }
 
-
+  private void assertAuthzID(ByteString authzID, String expected)
+  {
+    assertNotNull(authzID);
+    assertEquals(authzID.toString(), expected);
+  }
 
   /**
    * Tests the use of the Who Am I? extended operation in conjunction with the
@@ -441,51 +375,33 @@ public class WhoAmIExtendedOperationTestCase
          "userPassword: password",
          "ds-privilege-name: bypass-acl");
 
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+      // Bind as the proxy user and use the "Who Am I?" operation, but without the
+      // proxied auth control.
+      doSimpleBind(authHandler, "uid=cantproxy.user,o=test", "password");
+      assertAuthzID(authHandler.requestAuthorizationIdentity(), "dn:uid=cantproxy.user,o=test");
 
+      // Use the "Who Am I?" operation again, this time with the proxy control.
+      conn.writeMessage(
+          new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST),
+          new ProxiedAuthV2Control(ByteString.valueOfUtf8("dn:uid=test.user,o=test")));
 
-    // Bind as the proxy user and use the "Who Am I?" operation, but without the
-    // proxied auth control.
-    AtomicInteger nextMessageID = new AtomicInteger(1);
-    LDAPAuthenticationHandler authHandler =
-         new LDAPAuthenticationHandler(reader, writer, "localhost",
-                                       nextMessageID);
-    authHandler.doSimpleBind(3,
-                             ByteString.valueOfUtf8("uid=cantproxy.user,o=test"),
-                             ByteString.valueOfUtf8("password"),
-                             new ArrayList<Control>(),
-                             new ArrayList<Control>());
-    ByteString authzID = authHandler.requestAuthorizationIdentity();
-    assertNotNull(authzID);
-    assertEquals(authzID.toString(), "dn:uid=cantproxy.user,o=test");
+      LDAPMessage message = conn.readMessage();
+      ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
+      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.AUTHORIZATION_DENIED);
+      assertNull(extendedResponse.getValue());
 
+      conn.unbind();
+    }
+  }
 
-    // Use the "Who Am I?" operation again, this time with the proxy control.
-    ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    ArrayList<Control> requestControls = new ArrayList<>(1);
-    requestControls.add(new ProxiedAuthV2Control(
-         ByteString.valueOfUtf8("dn:uid=test.user,o=test")));
-    LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                          extendedRequest, requestControls);
-    writer.writeMessage(message);
-
-    message = reader.readMessage();
-    ExtendedResponseProtocolOp extendedResponse =
-         message.getExtendedResponseProtocolOp();
-    assertEquals(extendedResponse.getResultCode(),
-                 LDAPResultCode.AUTHORIZATION_DENIED);
-    assertNull(extendedResponse.getValue());
-
-
-    // Close the connection to the server.
-    message = new LDAPMessage(nextMessageID.getAndIncrement(),
-                              new UnbindRequestProtocolOp());
-    writer.writeMessage(message);
-    s.close();
+  private void doSimpleBind(LDAPAuthenticationHandler authHandler, String bindDn, String bindPwd)
+      throws ClientException, LDAPException
+  {
+    authHandler.doSimpleBind(3, ByteString.valueOfUtf8(bindDn), ByteString.valueOfUtf8(bindPwd),
+        new ArrayList<Control>(), new ArrayList<Control>());
   }
 }
-

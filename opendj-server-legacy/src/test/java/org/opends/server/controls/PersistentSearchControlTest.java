@@ -12,11 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -24,7 +25,11 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
@@ -34,18 +39,19 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.*;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -507,15 +513,9 @@ public class PersistentSearchControlTest extends ControlsTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
     //Modify the configuration to allow only 1 concurrent persistent search.
-    InternalClientConnection conn = getRootConnection();
-
-    LDAPAttribute attr = new LDAPAttribute("ds-cfg-max-psearches", "1");
-
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOfUtf8("cn=config"), mods);
+    ModifyRequest modifyRequest = newModifyRequest("cn=config")
+        .addModification(ModificationType.REPLACE, "ds-cfg-max-psearches", "1");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     //Create a persistent search request.
@@ -524,7 +524,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
         .setTypesOnly(true)
         .addAttribute("cn")
         .addControl(new PersistentSearchControl(changeTypes, true, true));
-    final InternalSearchOperation search = conn.processSearch(request);
+    final InternalSearchOperation search = getRootConnection().processSearch(request);
 
     Thread t = new Thread(new Runnable() {
       @Override

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -20,25 +20,25 @@ import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -183,29 +183,22 @@ public class BackendConfigManagerTestCase
     assertNull(DirectoryServer.getBackend(backendID));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
 
-
-    InternalClientConnection conn = getRootConnection();
     // Modify the backend to enable it.
-    ArrayList<Modification> mods = newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "true")));
-    ModifyOperation modifyOperation =
-         conn.processModify(backendEntry.getName(), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    enableBackend(backendEntry, true);
 
     Backend<?> backend = DirectoryServer.getBackend(backendID);
     assertBackend(baseDN, backend);
     createEntry(baseDN, backend);
 
-
     // Modify the backend to disable it.
-    mods = newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "false")));
-    modifyOperation = conn.processModify(backendEntry.getName(), mods);
+    enableBackend(backendEntry, false);
     assertNull(DirectoryServer.getBackend(backendID));
     assertFalse(DirectoryServer.entryExists(baseDN));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
 
 
     // Delete the disabled backend.
-    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getName());
+    DeleteOperation deleteOperation = getRootConnection().processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -413,28 +406,19 @@ public class BackendConfigManagerTestCase
     // Now we can create the grandchild base entry.
     createEntry(grandchildBaseDN, grandchildBackend);
 
-
     InternalClientConnection conn = getRootConnection();
     // Verify that a subtree search can see all three entries.
     final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE);
     assertSearchResultsSize(request, 3);
 
-
     // Disable the intermediate (child) backend.  This should be allowed.
-    ArrayList<Modification> mods =
-        newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "false")));
-    ModifyOperation modifyOperation =
-         conn.processModify(childBackendEntry.getName(), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
+    enableBackend(childBackendEntry, false);
 
     assertSearchResultsSize(request, 2);
 
 
     // Re-enable the intermediate backend.
-    mods = newArrayList(new Modification(REPLACE, Attributes.create("ds-cfg-enabled", "true")));
-    modifyOperation = conn.processModify(childBackendEntry.getName(), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    enableBackend(childBackendEntry, true);
 
 
     // Update our reference to the child backend since the old one is no longer
@@ -476,6 +460,14 @@ public class BackendConfigManagerTestCase
     deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(parentBackendID));
+  }
+
+  private void enableBackend(Entry entry, boolean enabled)
+  {
+    ModifyRequest modifyRequest = newModifyRequest(from(entry.getName()))
+        .addModification(REPLACE, "ds-cfg-enabled", Boolean.toString(enabled));
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   private void assertSearchResultsSize(final SearchRequest request, int expected)

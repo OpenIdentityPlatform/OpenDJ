@@ -19,7 +19,6 @@ package org.opends.server.types;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.opends.server.admin.std.meta.RootDNCfgDefn;
@@ -59,23 +59,22 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.RemoteConnection;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -513,21 +512,16 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
 
-    List<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create("ds-cfg-size-limit", "2000")));
-
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf("cn=config"), mods);
+    ModifyRequest modifyRequest = newModifyRequest("cn=config")
+        .addModification(REPLACE, "ds-cfg-size-limit", "2000");
+    ModifyOperation modifyOperation = conn.processModify(modifyRequest);
     assertPrivilege(modifyOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      mods.clear();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("ds-cfg-size-limit", "1000")));
-
-      modifyOperation = conn.processModify(DN.valueOf("cn=config"), mods);
+      modifyRequest = newModifyRequest("cn=config")
+          .addModification(REPLACE, "ds-cfg-size-limit", "1000");
+      modifyOperation = conn.processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -637,23 +631,16 @@ public class PrivilegeTestCase extends TypesTestCase
     assertEquals(conn.hasPrivilege(Privilege.SUBENTRY_WRITE, null),
             hasPrivilege);
 
-    List<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.REPLACE,
-                              Attributes.create("subtreeSpecification",
-                              "{base \"ou=doesnotexist\"}")));
-
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf("cn=Subentry Target,o=test"), mods);
+    ModifyRequest modifyRequest = newModifyRequest("cn=Subentry Target,o=test")
+        .addModification(REPLACE, "subtreeSpecification", "{base \"ou=doesnotexist\"}");
+    ModifyOperation modifyOperation = conn.processModify(modifyRequest);
     assertPrivilege(modifyOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      mods.clear();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("subtreeSpecification", "{}")));
-
-      modifyOperation = conn.processModify(
-              DN.valueOf("cn=Subentry Target,o=test"), mods);
+      modifyRequest = newModifyRequest("cn=Subentry Target,o=test")
+          .addModification(REPLACE, "subtreeSpecification", "{}");
+      modifyOperation = conn.processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -876,21 +863,16 @@ public class PrivilegeTestCase extends TypesTestCase
          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
          "X-ORIGIN 'PrivilegeTestCase' )";
 
-    List<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("attributetypes", attrDefinition)));
-
-    ModifyOperation modifyOperation =
-         conn.processModify(DN.valueOf("cn=schema"), mods);
+    ModifyRequest modifyRequest = newModifyRequest("cn=schema")
+        .addModification(ADD, "attributetypes", attrDefinition);
+    ModifyOperation modifyOperation = conn.processModify(modifyRequest);
     assertPrivilege(modifyOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
     {
-      mods.clear();
-      mods.add(new Modification(ModificationType.DELETE,
-          Attributes.create("attributetypes", attrDefinition)));
-
-      modifyOperation = conn.processModify(DN.valueOf("cn=schema"), mods);
+      modifyRequest = newModifyRequest("cn=schema")
+          .addModification(DELETE, "attributetypes", attrDefinition);
+      modifyOperation = conn.processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -1203,13 +1185,8 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Try to modify the entry to add a description.
-    List<Modification> mods = new ArrayList<>(1);
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
-
-    ModifyOperation modifyOperation = new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(),
-                             controls, e.getName(), mods);
-    modifyOperation.run();
+    List<Modification> mods = newModifications(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = runModifyOperation(conn, e, controls, mods);
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
 
@@ -1241,7 +1218,10 @@ public class PrivilegeTestCase extends TypesTestCase
     }
   }
 
-
+  private List<Modification> newModifications(ModificationType modType, String attrName, String attrValue)
+  {
+    return newArrayList(new Modification(modType, Attributes.create(attrName, attrValue)));
+  }
 
   /**
    * Tests to ensure that the use of the Directory Server will properly respect
@@ -1347,15 +1327,8 @@ public class PrivilegeTestCase extends TypesTestCase
     }
 
 
-    // Try to modify the entry to add a description.
-    List<Modification> mods = new ArrayList<>(1);
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
-
-    ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(),
-                             controls, e.getName(), mods);
-    modifyOperation.run();
+    List<Modification> mods = newModifications(REPLACE, "description", "foo");
+    ModifyOperation modifyOperation = runModifyOperation(conn, e, controls, mods);
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
 
@@ -1385,6 +1358,15 @@ public class PrivilegeTestCase extends TypesTestCase
       DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
       assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
+  }
+
+  private ModifyOperation runModifyOperation(InternalClientConnection conn, Entry e, List<Control> controls,
+      List<Modification> mods)
+  {
+    ModifyOperation op =
+        new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(), controls, e.getName(), mods);
+    op.run();
+    return op;
   }
 
 
@@ -2268,21 +2250,9 @@ public class PrivilegeTestCase extends TypesTestCase
 
     // We won't use an internal connection here because these are not notified
     // of dynamic changes to authentication info.
-    try (Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      TestCaseUtils.configureSocket(s);
-      LDAPReader r = new LDAPReader(s);
-      LDAPWriter w = new LDAPWriter(s);
-
-      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-          ByteString.valueOfUtf8("cn=Test User,o=test"), 3,
-          ByteString.valueOfUtf8("password"));
-      LDAPMessage message = new LDAPMessage(1, bindRequest);
-      w.writeMessage(message);
-
-      message = r.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertEquals(bindResponse.getResultCode(), 0);
+      conn.bind("cn=Test User,o=test", "password");
 
       CopyOnWriteArraySet<ClientConnection> connections = DirectoryServer
           .getAuthenticatedUsers().get(DN.valueOf("cn=Test User,o=test"));
@@ -2299,21 +2269,17 @@ public class PrivilegeTestCase extends TypesTestCase
 
       // Modify the user entry to add the CONFIG_READ privilege and verify that
       // the client connection reflects that.
-      List<Modification> mods = new ArrayList<>();
-      mods.add(new Modification(ModificationType.ADD, Attributes.create(
-          "ds-privilege-name", "config-read")));
-      ModifyOperation modifyOperation = rootConnection.processModify(
-          DN.valueOf("cn=Test User,o=test"), mods);
+      ModifyRequest modifyRequest = newModifyRequest("cn=Test User,o=test")
+          .addModification(ADD, "ds-privilege-name", "config-read");
+      ModifyOperation modifyOperation = rootConnection.processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       assertTrue(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
 
       // Take the privilege away from the user and verify that it is recognized
       // immediately.
-      mods.clear();
-      mods.add(new Modification(ModificationType.DELETE, Attributes.create(
-          "ds-privilege-name", "config-read")));
-      modifyOperation = rootConnection.processModify(
-          DN.valueOf("cn=Test User,o=test"), mods);
+      modifyRequest = newModifyRequest("cn=Test User,o=test")
+          .addModification(DELETE, "ds-privilege-name", "config-read");
+      modifyOperation = rootConnection.processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       assertFalse(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
 
@@ -2346,11 +2312,9 @@ public class PrivilegeTestCase extends TypesTestCase
     // Update the set of root privileges to include proxied auth.
     InternalClientConnection internalRootConn = getRootConnection();
 
-    List<Modification> mods = new ArrayList<>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("ds-cfg-default-root-privilege-name",
-                                    "proxied-auth")));
-    ModifyOperation modifyOperation = internalRootConn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
+    ModifyRequest modifyRequest = newModifyRequest("cn=Root DNs,cn=config")
+        .addModification(ADD, "ds-cfg-default-root-privilege-name", "proxied-auth");
+    ModifyOperation modifyOperation = internalRootConn.processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2362,11 +2326,9 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Update the set of root privileges to revoke proxied auth.
-    mods.clear();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-cfg-default-root-privilege-name",
-                                    "proxied-auth")));
-    modifyOperation = internalRootConn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
+    modifyRequest = newModifyRequest("cn=Root DNs,cn=config")
+        .addModification(DELETE, "ds-cfg-default-root-privilege-name", "proxied-auth");
+    modifyOperation = internalRootConn.processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 

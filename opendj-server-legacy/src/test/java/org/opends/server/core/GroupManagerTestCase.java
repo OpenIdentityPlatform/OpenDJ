@@ -12,18 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
@@ -35,20 +34,20 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
-import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -236,34 +235,23 @@ public class GroupManagerTestCase
     //Add even numbered members.
     group1Instance.addMember(user2Entry);
     group1Instance.addMember(user4Entry);
+
     //Switch things around, change groups and members to odd numbered nested
     //groups and odd numbered members via ldap modify.
-    LinkedList<Modification> mods = new LinkedList<>();
-    Attribute g1 = Attributes.create("member", "cn=group 1,ou=Groups,o=test");
-    Attribute g2 = Attributes.create("member", "cn=group 2,ou=Groups,o=test");
-    Attribute g3 = Attributes.create("member", "cn=group 3,ou=Groups,o=test");
-    Attribute g4 = Attributes.create("member", "cn=group 4,ou=Groups,o=test");
-    Attribute u1 = Attributes.create("member", "uid=user.1,ou=People,o=test");
-    Attribute u2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
-    Attribute u3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
-    Attribute u4 = Attributes.create("member", "uid=user.4,ou=People,o=test");
-    Attribute u5 = Attributes.create("member", "uid=user.5,ou=People,o=test");
-    //Delete even groups and users.
-    mods.add(new Modification(ModificationType.DELETE, g2));
-    mods.add(new Modification(ModificationType.DELETE, g4));
-    mods.add(new Modification(ModificationType.DELETE, u2));
-    mods.add(new Modification(ModificationType.DELETE, u4));
+    final ModifyRequest modifyRequest = newModifyRequest(from(group1Instance.getGroupDN()));
+    modifyRequest.addModification(DELETE, "member", "cn=group 2,ou=Groups,o=test");
+    modifyRequest.addModification(DELETE, "member", "cn=group 4,ou=Groups,o=test");
+    modifyRequest.addModification(DELETE, "member", "uid=user.2,ou=People,o=test");
+    modifyRequest.addModification(DELETE, "member", "uid=user.4,ou=People,o=test");
     //Add odd groups and users.
-    mods.add(new Modification(ModificationType.ADD, g1));
-    mods.add(new Modification(ModificationType.ADD, g3));
-    mods.add(new Modification(ModificationType.ADD, u1));
-    mods.add(new Modification(ModificationType.ADD, u3));
-    mods.add(new Modification(ModificationType.ADD, u5));
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-            conn.processModify(group1Instance.getGroupDN(), mods);
+    modifyRequest.addModification(ADD, "member", "cn=group 1,ou=Groups,o=test");
+    modifyRequest.addModification(ADD, "member", "cn=group 3,ou=Groups,o=test");
+    modifyRequest.addModification(ADD, "member", "uid=user.1,ou=People,o=test");
+    modifyRequest.addModification(ADD, "member", "uid=user.3,ou=People,o=test");
+    modifyRequest.addModification(ADD, "member", "uid=user.5,ou=People,o=test");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
     //Check that the user membership changes were picked up.
     assertFalse(group1Instance.isMember(user2Entry));
     assertFalse(group1Instance.isMember(user4Entry));
@@ -316,10 +304,8 @@ public class GroupManagerTestCase
     //Add some nested groups and members.
     group1Instance.addNestedGroup(group2DN);
     group1Instance.addMember(user1Entry);
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
     //Delete the group.
-    DeleteOperation deleteOperation = conn.processDelete(group1DN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(group1DN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(group1DN));
     //Membership check should throw an exception.
@@ -447,15 +433,10 @@ public class GroupManagerTestCase
               "it didn't");
     } catch (DirectoryException ex) {}
     //Modify list via ldap modify.
-    LinkedList<Modification> mods = new LinkedList<>();
-    Attribute a2 = Attributes.create("member", "cn=group 2,ou=Groups,o=test");
-    Attribute a3 = Attributes.create("member", "cn=group 1,ou=Groups,o=test");
-    mods.add(new Modification(ModificationType.DELETE, a2));
-    mods.add(new Modification(ModificationType.ADD, a3));
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-                        conn.processModify(group1Instance.getGroupDN(), mods);
+    final ModifyRequest modifyRequest = newModifyRequest(from(group1Instance.getGroupDN()))
+        .addModification(DELETE, "member", "cn=group 2,ou=Groups,o=test")
+        .addModification(ADD, "member", "cn=group 1,ou=Groups,o=test");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     //Check removing a group already removed via ldap modify fails.
     try
@@ -585,9 +566,7 @@ public class GroupManagerTestCase
     groupInstance.toString(new StringBuilder());
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -705,15 +684,10 @@ public class GroupManagerTestCase
 
 
     // Modify the group and make sure the group manager gets updated accordingly
-    LinkedList<Modification> mods = new LinkedList<>();
-    Attribute a2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
-    Attribute a3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
-    mods.add(new Modification(ModificationType.DELETE, a2));
-    mods.add(new Modification(ModificationType.ADD, a3));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(groupDN, mods);
+    final ModifyRequest modifyRequest = newModifyRequest(from(groupDN))
+        .addModification(DELETE, "member", "uid=user.2,ou=People,o=test")
+        .addModification(ADD, "member", "uid=user.3,ou=People,o=test");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     groupInstance = groupManager.getGroupInstance(groupDN);
@@ -725,7 +699,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -776,9 +750,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -896,15 +868,10 @@ public class GroupManagerTestCase
 
 
     // Modify the group and make sure the group manager gets updated accordingly
-    LinkedList<Modification> mods = new LinkedList<>();
-    Attribute a2 = Attributes.create("uniquemember", "uid=user.2,ou=People,o=test");
-    Attribute a3 = Attributes.create("uniquemember", "uid=user.3,ou=People,o=test");
-    mods.add(new Modification(ModificationType.DELETE, a2));
-    mods.add(new Modification(ModificationType.ADD, a3));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(groupDN, mods);
+    final ModifyRequest modifyRequest = newModifyRequest(from(groupDN))
+        .addModification(DELETE, "uniquemember", "uid=user.2,ou=People,o=test")
+        .addModification(ADD, "uniquemember", "uid=user.3,ou=People,o=test");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     groupInstance = groupManager.getGroupInstance(groupDN);
@@ -916,7 +883,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -967,9 +934,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -1087,15 +1052,10 @@ public class GroupManagerTestCase
 
 
     // Modify the group and make sure the group manager gets updated accordingly
-    LinkedList<Modification> mods = new LinkedList<>();
-    Attribute a2 = Attributes.create("member", "uid=user.2,ou=People,o=test");
-    Attribute a3 = Attributes.create("member", "uid=user.3,ou=People,o=test");
-    mods.add(new Modification(ModificationType.DELETE, a2));
-    mods.add(new Modification(ModificationType.ADD, a3));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation = conn.processModify(groupDN, mods);
+    final ModifyRequest modifyRequest = newModifyRequest(from(groupDN))
+        .addModification(DELETE, "member", "uid=user.2,ou=People,o=test")
+        .addModification(ADD, "member", "uid=user.3,ou=People,o=test");
+    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     groupInstance = groupManager.getGroupInstance(groupDN);
@@ -1107,7 +1067,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -1158,9 +1118,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -1234,10 +1192,8 @@ public class GroupManagerTestCase
     RDN newRDN = RDN.decode("cn=Renamed Group");
     DN  newDN  = DN.valueOf("cn=Renamed Group,ou=Groups,o=test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN(groupDN, newRDN, true);
+ getRootConnection().processModifyDN(groupDN, newRDN, true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
     groupInstance = groupManager.getGroupInstance(groupDN);
@@ -1250,7 +1206,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    DeleteOperation deleteOperation = conn.processDelete(newDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(newDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(newDN));
   }
@@ -1473,21 +1429,19 @@ public class GroupManagerTestCase
 
 
     // Delete all of the groups and make sure the group manager gets updated accordingly
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(group1DN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(group1DN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(group1DN));
 
-    deleteOperation = conn.processDelete(group2DN);
+    deleteOperation = getRootConnection().processDelete(group2DN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(group2DN));
 
-    deleteOperation = conn.processDelete(group3DN);
+    deleteOperation = getRootConnection().processDelete(group3DN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(group3DN));
 
-    deleteOperation = conn.processDelete(group4DN);
+    deleteOperation = getRootConnection().processDelete(group4DN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(group3DN));
   }
@@ -1628,9 +1582,7 @@ public class GroupManagerTestCase
 
 
     // Delete the group and make sure the group manager gets updated accordingly
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -1752,9 +1704,7 @@ public class GroupManagerTestCase
     groupInstance.toString(new StringBuilder());
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -1813,9 +1763,7 @@ public class GroupManagerTestCase
     DynamicGroup dynamicGroup = (DynamicGroup) groupInstance;
     assertTrue(dynamicGroup.getMemberURLs().isEmpty());
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -1912,9 +1860,7 @@ public class GroupManagerTestCase
                "Expected member set to be empty but it was not:  " + memberSet);
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -2012,9 +1958,7 @@ public class GroupManagerTestCase
                "Expected member set to be empty but it was not:  " + memberSet);
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -2113,9 +2057,7 @@ public class GroupManagerTestCase
                "Expected member set to be empty but it was not:  " + memberSet);
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }
@@ -2218,9 +2160,7 @@ public class GroupManagerTestCase
                "Expected member set to be empty but it was not:  " + memberSet);
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(groupDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(groupDN));
   }

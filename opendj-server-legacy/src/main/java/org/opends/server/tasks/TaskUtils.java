@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -25,9 +25,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.messages.TaskMessages;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -36,19 +35,19 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RawModification;
-import org.opends.server.util.CollectionUtils;
-import org.opends.server.util.ServerConstants;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -222,20 +221,14 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, ServerConstants.TRUE_VALUE);
-    LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
-
-    ArrayList<RawModification> modList = CollectionUtils.<RawModification> newArrayList(m);
-
-    String backendDNString = configEntryDN.toString();
-    ByteString rawEntryDN = ByteString.valueOfUtf8(backendDNString);
-    ModifyOperation internalModify = getRootConnection().processModify(rawEntryDN, modList);
+    ModifyRequest modifyRequest = newModifyRequest(from(configEntryDN))
+        .addModification(REPLACE, ATTR_BACKEND_ENABLED, TRUE_VALUE);
+    ModifyOperation internalModify = getRootConnection().processModify(modifyRequest);
 
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      LocalizableMessage message =
-          TaskMessages.ERR_TASK_CANNOT_ENABLE_BACKEND.get(backendDNString);
+      LocalizableMessage message = ERR_TASK_CANNOT_ENABLE_BACKEND.get(configEntryDN);
       throw new DirectoryException(resultCode, message);
     }
   }
@@ -264,20 +257,14 @@ public class TaskUtils
                                    e.getMessageObject(), e);
     }
 
-    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, ServerConstants.FALSE_VALUE);
-    LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
-
-    ArrayList<RawModification> modList = CollectionUtils.<RawModification> newArrayList(m);
-
-    String backendDNString = configEntryDN.toString();
-    ByteString rawEntryDN = ByteString.valueOfUtf8(backendDNString);
-    ModifyOperation internalModify = getRootConnection().processModify(rawEntryDN, modList);
+    ModifyRequest modifyRequest = newModifyRequest(from(configEntryDN))
+        .addModification(REPLACE, ATTR_BACKEND_ENABLED, FALSE_VALUE);
+    ModifyOperation internalModify = getRootConnection().processModify(modifyRequest);
 
     ResultCode resultCode = internalModify.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      LocalizableMessage message =
-          TaskMessages.ERR_TASK_CANNOT_DISABLE_BACKEND.get(backendDNString);
+      LocalizableMessage message = ERR_TASK_CANNOT_DISABLE_BACKEND.get(configEntryDN);
       throw new DirectoryException(resultCode, message);
     }
   }

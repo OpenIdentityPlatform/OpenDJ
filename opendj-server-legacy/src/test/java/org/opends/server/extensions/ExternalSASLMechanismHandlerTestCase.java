@@ -12,13 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.Socket;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,9 +36,8 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -279,20 +277,14 @@ public class ExternalSASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader reader = new LDAPReader(s);
-    LDAPWriter writer = new LDAPWriter(s);
+    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.writeMessage(new BindRequestProtocolOp(ByteString.empty(), "EXTERNAL", null));
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.empty(), "EXTERNAL", null);
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
-
-    message = reader.readMessage();
-    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertFalse(bindResponse.getResultCode() == 0);
-
-    s.close();
+      LDAPMessage message = conn.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertFalse(bindResponse.getResultCode() == 0);
+    }
  }
 
 

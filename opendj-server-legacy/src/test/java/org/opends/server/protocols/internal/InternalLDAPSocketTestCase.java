@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.internal;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
@@ -33,11 +33,21 @@ import javax.naming.directory.SearchControls;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.AddRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
+import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
+import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
+import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.DN;
@@ -46,13 +56,12 @@ import org.opends.server.types.RawModification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * This class provides a number of tests to cover the internal LDAP socket
- * implementation.
- */
+/** This class provides a number of tests to cover the internal LDAP socket implementation. */
 public class InternalLDAPSocketTestCase extends InternalTestCase
 {
   /**
@@ -80,38 +89,28 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     TestCaseUtils.initializeTestBackend(false);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      writer.writeMessage(bindRequestMessage());
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
+      LDAPMessage message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+      List<RawAttribute> attrList = newArrayList(
+          RawAttribute.create("objectClass", "organization"),
+          RawAttribute.create("o", "test"));
 
+      AddRequestProtocolOp addRequest = new AddRequestProtocolOp(ByteString.valueOfUtf8("o=test"), attrList);
+      writer.writeMessage(new LDAPMessage(2, addRequest));
 
-    ArrayList<RawAttribute> attrList = new ArrayList<>();
-    attrList.add(RawAttribute.create("objectClass", "organization"));
-    attrList.add(RawAttribute.create("o", "test"));
-
-    AddRequestProtocolOp addRequest =
-         new AddRequestProtocolOp(ByteString.valueOfUtf8("o=test"), attrList);
-    writer.writeMessage(new LDAPMessage(2, addRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getAddResponseProtocolOp().getResultCode(),
-                 LDAPResultCode.SUCCESS);
-    assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
-
-    reader.close();
-    writer.close();
-    socket.close();
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getAddResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
+      assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
+    }
   }
 
 
@@ -173,34 +172,24 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      writer.writeMessage(bindRequestMessage());
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
+      LDAPMessage message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+      CompareRequestProtocolOp compareRequest =
+          new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o", ByteString.valueOfUtf8("test"));
+      writer.writeMessage(new LDAPMessage(2, compareRequest));
 
-
-    CompareRequestProtocolOp compareRequest =
-         new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o",
-                                      ByteString.valueOfUtf8("test"));
-    writer.writeMessage(new LDAPMessage(2, compareRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getCompareResponseProtocolOp().getResultCode(),
-                 LDAPResultCode.COMPARE_TRUE);
-
-    reader.close();
-    writer.close();
-    socket.close();
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getCompareResponseProtocolOp().getResultCode(), LDAPResultCode.COMPARE_TRUE);
+    }
   }
 
 
@@ -257,34 +246,24 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      writer.writeMessage(bindRequestMessage());
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
+      LDAPMessage message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+      DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
+      writer.writeMessage(new LDAPMessage(2, deleteRequest));
 
-
-    DeleteRequestProtocolOp deleteRequest =
-         new DeleteRequestProtocolOp(ByteString.valueOfUtf8("o=test"));
-    writer.writeMessage(new LDAPMessage(2, deleteRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getDeleteResponseProtocolOp().getResultCode(),
-                 LDAPResultCode.SUCCESS);
-    assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
-
-    reader.close();
-    writer.close();
-    socket.close();
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getDeleteResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
+      assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
+    }
   }
 
 
@@ -331,37 +310,27 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
   @Test
   public void testExtendedOperation() throws Exception
   {
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      writer.writeMessage(bindRequestMessage());
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
+      LDAPMessage message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+      ExtendedRequestProtocolOp extendedRequest = new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
+      writer.writeMessage(new LDAPMessage(2, extendedRequest));
 
+      message = reader.readMessage();
+      assertNotNull(message);
 
-    ExtendedRequestProtocolOp extendedRequest =
-         new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST);
-    writer.writeMessage(new LDAPMessage(2, extendedRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-
-    ExtendedResponseProtocolOp extendedResponse =
-         message.getExtendedResponseProtocolOp();
-    assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
-    assertTrue(extendedResponse.getValue().toString().equalsIgnoreCase(
-                    "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
-
-    reader.close();
-    writer.close();
-    socket.close();
+      ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
+      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      assertTrue(extendedResponse.getValue().toString().equalsIgnoreCase(
+          "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
+    }
   }
 
 
@@ -378,36 +347,38 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      writer.writeMessage(bindRequestMessage());
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
+      LDAPMessage message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+
+      List<RawModification> mods = newArrayList(
+          RawModification.create(REPLACE, "description", "foo"));
+
+      ModifyRequestProtocolOp modifyRequest = new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
+      writer.writeMessage(new LDAPMessage(2, modifyRequest));
+
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getModifyResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
+    }
+  }
+
+
+
+  /**
+   * @return
+   */
+  private LDAPMessage bindRequestMessage()
+  {
+    BindRequestProtocolOp bindRequest = bindRequest();
     LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
-
-
-    ArrayList<RawModification> mods = new ArrayList<>();
-    mods.add(RawModification.create(ModificationType.REPLACE, "description", "foo"));
-
-    ModifyRequestProtocolOp modifyRequest =
-         new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods);
-    writer.writeMessage(new LDAPMessage(2, modifyRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getModifyResponseProtocolOp().getResultCode(),
-                 LDAPResultCode.SUCCESS);
-
-    reader.close();
-    writer.close();
-    socket.close();
+    return message;
   }
 
 
@@ -467,37 +438,42 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
     assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
 
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      LDAPMessage message = bindRequestMessage();
+      writer.writeMessage(message);
 
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+
+      ModifyDNRequestProtocolOp modifyDNRequest =
+          new ModifyDNRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), ByteString.valueOfUtf8("ou=Users"),
+              true);
+      writer.writeMessage(new LDAPMessage(2, modifyDNRequest));
+
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getModifyDNResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
+
+      assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
+      assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
+    }
+  }
+
+
+
+  /**
+   * @return
+   */
+  private BindRequestProtocolOp bindRequest()
+  {
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
-
-
-    ModifyDNRequestProtocolOp modifyDNRequest =
-         new ModifyDNRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"),
-                                       ByteString.valueOfUtf8("ou=Users"), true);
-    writer.writeMessage(new LDAPMessage(2, modifyDNRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getModifyDNResponseProtocolOp().getResultCode(),
-                 LDAPResultCode.SUCCESS);
-
-    assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=People,o=test")));
-    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=Users,o=test")));
-
-    reader.close();
-    writer.close();
-    socket.close();
+        new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"), 3, ByteString
+            .valueOfUtf8("password"));
+    return bindRequest;
   }
 
 
@@ -556,43 +532,29 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
 
-    InternalLDAPSocket socket = new InternalLDAPSocket();
-    LDAPReader reader = new LDAPReader(socket);
-    LDAPWriter writer = new LDAPWriter(socket);
+    try (InternalLDAPSocket socket = new InternalLDAPSocket();
+        LDAPReader reader = new LDAPReader(socket);
+        LDAPWriter writer = new LDAPWriter(socket))
+    {
+      writer.writeMessage(bindRequestMessage());
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(ByteString.valueOfUtf8("cn=Directory Manager"),
-                                   3, ByteString.valueOfUtf8("password"));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    writer.writeMessage(message);
+      LDAPMessage message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
 
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getBindResponseProtocolOp().getResultCode(), 0);
+      SearchRequestProtocolOp searchRequest =
+          new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"), SearchScope.BASE_OBJECT,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false, LDAPFilter.objectClassPresent(), new LinkedHashSet<String>());
+      writer.writeMessage(new LDAPMessage(2, searchRequest));
 
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getSearchResultEntryProtocolOp().getDN(), DN.valueOf("o=test"));
 
-    SearchRequestProtocolOp searchRequest =
-         new SearchRequestProtocolOp(ByteString.valueOfUtf8("o=test"),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER,
-                                     0, 0, false,
-                                     LDAPFilter.objectClassPresent(),
-                                     new LinkedHashSet<String>());
-    writer.writeMessage(new LDAPMessage(2, searchRequest));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getSearchResultEntryProtocolOp().getDN(),
-                 DN.valueOf("o=test"));
-
-    message = reader.readMessage();
-    assertNotNull(message);
-    assertEquals(message.getSearchResultDoneProtocolOp().getResultCode(),
-                 LDAPResultCode.SUCCESS);
-
-    reader.close();
-    writer.close();
-    socket.close();
+      message = reader.readMessage();
+      assertNotNull(message);
+      assertEquals(message.getSearchResultDoneProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
+    }
   }
 
 
@@ -634,4 +596,3 @@ public class InternalLDAPSocketTestCase extends InternalTestCase
     context.close();
   }
 }
-
