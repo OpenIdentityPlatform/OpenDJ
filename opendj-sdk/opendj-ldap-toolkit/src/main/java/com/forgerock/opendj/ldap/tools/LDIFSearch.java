@@ -16,10 +16,6 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_SIZE_LIMIT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_TIME_LIMIT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;

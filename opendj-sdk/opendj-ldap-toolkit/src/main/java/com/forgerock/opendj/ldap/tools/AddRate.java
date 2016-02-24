@@ -16,7 +16,6 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static java.util.concurrent.TimeUnit.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 

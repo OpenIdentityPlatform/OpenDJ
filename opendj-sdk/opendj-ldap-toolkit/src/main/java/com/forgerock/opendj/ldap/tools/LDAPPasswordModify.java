@@ -17,8 +17,6 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;

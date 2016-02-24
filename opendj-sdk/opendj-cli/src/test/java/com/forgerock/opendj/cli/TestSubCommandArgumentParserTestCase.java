@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
-
-import static com.forgerock.opendj.cli.CliMessages.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,9 +49,9 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
     public void setup() throws Exception {
         parser = new SubCommandArgumentParser(getClass().getName(), LocalizableMessage.raw("test description"), true);
 
-        sc1 = new SubCommand(parser, "sub-command1", INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
+        sc1 = new SubCommand(parser, "sub-command1", LocalizableMessage.raw("sub-command1"));
         sc2 = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",
-                INFO_BACKUPDB_DESCRIPTION_BACKUP_ALL.get());
+                             LocalizableMessage.raw("sub-command2"));
     }
 
     /**

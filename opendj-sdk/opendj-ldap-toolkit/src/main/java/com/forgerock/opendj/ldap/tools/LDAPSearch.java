@@ -73,12 +73,7 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
 
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_SIMPLE_PAGE_SIZE;
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_SIZE_LIMIT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEARCH_DESCRIPTION_TIME_LIMIT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SIZE_LIMIT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_LIMIT_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static org.forgerock.util.Utils.*;

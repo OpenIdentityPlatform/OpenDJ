@@ -17,8 +17,6 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.INFO_MAKELDIF_DESCRIPTION_SEED;
-import static com.forgerock.opendj.cli.CliMessages.INFO_SEED_PLACEHOLDER;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static org.forgerock.util.Utils.closeSilently;
