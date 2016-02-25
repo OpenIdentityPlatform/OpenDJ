@@ -365,31 +365,13 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       }
       buf.append(message);
     }
-    if (removeAllArg.isPresent())
-    {
-      BooleanArgument[] removeArgs = {
-          removeServerLibrariesArg,
-          removeDatabasesArg,
-          removeLogFilesArg,
-          removeConfigurationFilesArg,
-          removeBackupFilesArg,
-          removeLDIFFilesArg
-      };
-      for (BooleanArgument removeArg : removeArgs)
-      {
-        if (removeArg.isPresent())
-        {
-          LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              removeAllArg.getLongIdentifier(),
-              removeArg.getLongIdentifier());
-          if (buf.length() > 0)
-          {
-            buf.append(LINE_SEPARATOR);
-          }
-          buf.append(message);
-        }
-      }
-    }
+
+    appendErrorMessageIfArgumentsConflict(buf, removeAllArg, removeServerLibrariesArg);
+    appendErrorMessageIfArgumentsConflict(buf, removeAllArg, removeDatabasesArg);
+    appendErrorMessageIfArgumentsConflict(buf, removeAllArg, removeLogFilesArg);
+    appendErrorMessageIfArgumentsConflict(buf, removeAllArg, removeConfigurationFilesArg);
+    appendErrorMessageIfArgumentsConflict(buf, removeAllArg, removeBackupFilesArg);
+    appendErrorMessageIfArgumentsConflict(buf, removeAllArg, removeLDIFFilesArg);
     super.validateGlobalOptions(buf);
     if (buf.length() > 0)
     {

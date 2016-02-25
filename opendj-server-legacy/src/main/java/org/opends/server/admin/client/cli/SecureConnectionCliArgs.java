@@ -19,7 +19,6 @@ package org.opends.server.admin.client.cli;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 
@@ -298,21 +297,16 @@ public final class SecureConnectionCliArgs
    */
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
-    List<LocalizableMessage> errors = new ArrayList<>();
-
-    addIfArgsAreConflicting(errors, bindPasswordArg, bindPasswordFileArg);
-
-    // Couldn't have at the same time trustAll and trustStore related args
-    addIfArgsAreConflicting(errors, trustAllArg, trustStorePathArg);
-    addIfArgsAreConflicting(errors, trustAllArg, trustStorePasswordArg);
-    addIfArgsAreConflicting(errors, trustAllArg, trustStorePasswordFileArg);
-
-    addIfArgsAreConflicting(errors, trustStorePasswordArg, trustStorePasswordFileArg);
+    final List<LocalizableMessage> errors = new ArrayList<>();
+    addErrorMessageIfArgumentsConflict(errors, bindPasswordArg, bindPasswordFileArg);
+    addErrorMessageIfArgumentsConflict(errors, trustAllArg, trustStorePathArg);
+    addErrorMessageIfArgumentsConflict(errors, trustAllArg, trustStorePasswordArg);
+    addErrorMessageIfArgumentsConflict(errors, trustAllArg, trustStorePasswordFileArg);
+    addErrorMessageIfArgumentsConflict(errors, trustStorePasswordArg, trustStorePasswordFileArg);
+    addErrorMessageIfArgumentsConflict(errors, useStartTLSArg, useSSLArg);
 
     checkIfPathArgumentIsReadable(errors, trustStorePathArg, ERR_CANNOT_READ_TRUSTSTORE);
     checkIfPathArgumentIsReadable(errors, keyStorePathArg, ERR_CANNOT_READ_KEYSTORE);
-
-    addIfArgsAreConflicting(errors, useStartTLSArg, useSSLArg);
 
     if (!errors.isEmpty())
     {
@@ -328,14 +322,6 @@ public final class SecureConnectionCliArgs
     }
 
     return SUCCESS.get();
-  }
-
-  private void addIfArgsAreConflicting(List<LocalizableMessage> errors, Argument arg1, Argument arg2)
-  {
-    if (arg1.isPresent() && arg2.isPresent())
-    {
-      errors.add(ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier()));
-    }
   }
 
   private void checkIfPathArgumentIsReadable(List<LocalizableMessage> errors, StringArgument pathArg, Arg1<Object> msg)

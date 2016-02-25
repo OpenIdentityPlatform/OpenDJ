@@ -16,10 +16,10 @@
  */
 package org.opends.guitools.controlpanel;
 
+import static com.forgerock.opendj.cli.Utils.addErrorMessageIfArgumentsConflict;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import java.util.LinkedHashSet;
 
@@ -145,14 +145,7 @@ public class ControlPanelArgumentParser extends ArgumentParser
     {
       errorMessages.add(ae.getMessageObject());
     }
-
-    if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
-    {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          bindPasswordArg.getLongIdentifier(),
-          bindPasswordFileArg.getLongIdentifier());
-      errorMessages.add(message);
-    }
+    addErrorMessageIfArgumentsConflict(errorMessages, bindPasswordArg, bindPasswordArg);
 
     if (!errorMessages.isEmpty())
     {

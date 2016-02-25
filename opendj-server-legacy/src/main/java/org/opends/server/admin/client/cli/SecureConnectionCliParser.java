@@ -211,24 +211,11 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public int validateGlobalOptions(final LocalizableMessageBuilder buf)
   {
-    int ret = secureArgsList.validateGlobalOptions(buf) ;
-
-    // Couldn't have at the same time properties file arg and
-    // propertiesFileArg
-    if (noPropertiesFileArg.isPresent()
-        && propertiesFileArg.isPresent())
+    final int ret = secureArgsList.validateGlobalOptions(buf) ;
+    if (appendErrorMessageIfArgumentsConflict(buf, noPropertiesFileArg, propertiesFileArg))
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          noPropertiesFileArg.getLongIdentifier(), propertiesFileArg
-              .getLongIdentifier());
-      if (buf.length() > 0)
-      {
-        buf.append(LINE_SEPARATOR);
-      }
-      buf.append(message);
       return CONFLICTING_ARGS.get();
     }
-
     return ret;
   }
 

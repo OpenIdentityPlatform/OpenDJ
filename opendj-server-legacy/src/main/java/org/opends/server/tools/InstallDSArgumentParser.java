@@ -21,8 +21,7 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEH
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_ROOT_USER_PWD_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
-
+import static com.forgerock.opendj.cli.Utils.addErrorMessageIfArgumentsConflict;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -503,13 +502,7 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   private void checkServerPassword(Collection<LocalizableMessage> errorMessages)
   {
-    if (directoryManagerPwdStringArg.isPresent() &&
-        directoryManagerPwdFileArg.isPresent())
-    {
-      errorMessages.add(ERR_TOOL_CONFLICTING_ARGS.get(
-          directoryManagerPwdStringArg.getLongIdentifier(),
-          directoryManagerPwdFileArg.getLongIdentifier()));
-    }
+    addErrorMessageIfArgumentsConflict(errorMessages, directoryManagerPwdStringArg, directoryManagerPwdFileArg);
 
     if (noPromptArg.isPresent() && !directoryManagerPwdStringArg.isPresent() &&
         !directoryManagerPwdFileArg.isPresent())
@@ -575,39 +568,13 @@ public class InstallDSArgumentParser extends ArgumentParser
   private void checkImportDataArguments(Collection<LocalizableMessage> errorMessages)
   {
     //  Make sure that the user didn't provide conflicting arguments.
-    if (addBaseEntryArg.isPresent())
-    {
-      if (importLDIFArg.isPresent())
-      {
-        errorMessages.add(conflictingArgs(addBaseEntryArg, importLDIFArg));
-      }
-      else if (sampleDataArg.isPresent())
-      {
-        errorMessages.add(conflictingArgs(addBaseEntryArg, sampleDataArg));
-      }
-    }
-    else if (importLDIFArg.isPresent() && sampleDataArg.isPresent())
-    {
-      errorMessages.add(conflictingArgs(importLDIFArg, sampleDataArg));
-    }
-
-    if (rejectedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
-    {
-      errorMessages.add(conflictingArgs(addBaseEntryArg, rejectedImportFileArg));
-    }
-    else if (rejectedImportFileArg.isPresent() && sampleDataArg.isPresent())
-    {
-      errorMessages.add(conflictingArgs(rejectedImportFileArg, sampleDataArg));
-    }
-
-    if (skippedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
-    {
-      errorMessages.add(conflictingArgs(addBaseEntryArg, skippedImportFileArg));
-    }
-    else if (skippedImportFileArg.isPresent() && sampleDataArg.isPresent())
-    {
-      errorMessages.add(conflictingArgs(skippedImportFileArg, sampleDataArg));
-    }
+    addErrorMessageIfArgumentsConflict(errorMessages, addBaseEntryArg, importLDIFArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, addBaseEntryArg, sampleDataArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, importLDIFArg, sampleDataArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, addBaseEntryArg, rejectedImportFileArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, rejectedImportFileArg, sampleDataArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, addBaseEntryArg, skippedImportFileArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, skippedImportFileArg, sampleDataArg);
 
     final boolean noBaseDNProvided = !baseDNArg.isPresent() && baseDNArg.getDefaultValue() == null;
     if (noPromptArg.isPresent() && noBaseDNProvided)
@@ -621,11 +588,6 @@ public class InstallDSArgumentParser extends ArgumentParser
         }
       }
     }
-  }
-
-  private LocalizableMessage conflictingArgs(Argument arg1, Argument arg2)
-  {
-    return ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier());
   }
 
   /**
@@ -678,14 +640,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     {
       if (!generateSelfSignedCertificateArg.isPresent())
       {
-        // Check that we have only a password.
-        if (keyStorePasswordArg.isPresent() &&
-            keyStorePasswordFileArg.isPresent())
-        {
-          errorMessages.add(ERR_TOOL_CONFLICTING_ARGS.get(
-              keyStorePasswordArg.getLongIdentifier(),
-              keyStorePasswordFileArg.getLongIdentifier()));
-        }
+        addErrorMessageIfArgumentsConflict(errorMessages, keyStorePasswordArg, keyStorePasswordFileArg);
 
         // Check that we have one password in no prompt mode.
         if (noPromptArg.isPresent() && !keyStorePasswordArg.isPresent() &&

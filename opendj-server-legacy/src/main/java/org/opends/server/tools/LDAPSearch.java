@@ -19,7 +19,6 @@ package org.opends.server.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -1015,30 +1014,16 @@ public class LDAPSearch
       attributes.addAll(filterAndAttributeStrings);
     }
 
-    if(bindPassword.isPresent() && bindPasswordFile.isPresent())
+    try
     {
-      printWrappedText(err,
-          ERR_TOOL_CONFLICTING_ARGS.get(bindPassword.getLongIdentifier(), bindPasswordFile.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
+      throwIfArgumentsConflict(bindPassword, bindPasswordFile);
+      throwIfArgumentsConflict(useSSL, startTLS);
+      throwIfArgumentsConflict(keyStorePassword, keyStorePasswordFile);
+      throwIfArgumentsConflict(trustStorePassword, trustStorePasswordFile);
     }
-
-    if (useSSL.isPresent() && startTLS.isPresent())
+    catch (final ArgumentException conflict)
     {
-      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(useSSL.getLongIdentifier(), startTLS.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
-    if (keyStorePassword.isPresent() && keyStorePasswordFile.isPresent())
-    {
-      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(
-          keyStorePassword.getLongIdentifier(), keyStorePasswordFile.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
-    if (trustStorePassword.isPresent() && trustStorePasswordFile.isPresent())
-    {
-      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(
-          trustStorePassword.getLongIdentifier(), trustStorePasswordFile.getLongIdentifier()));
+      printWrappedText(err, conflict.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
 

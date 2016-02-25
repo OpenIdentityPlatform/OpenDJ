@@ -19,7 +19,6 @@ package org.opends.server.util.cli;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import java.io.PrintStream;
 import java.util.LinkedList;
@@ -139,11 +138,10 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
   private LDAPConnection connect(SecureConnectionCliArgs args, PrintStream out, PrintStream err)
       throws LDAPConnectionException, ArgumentException
   {
-    // Checks for conflicting arguments
-    throwIfArgumentsConflict(err, args.getBindPasswordArg(), args.getBindPasswordArg());
-    throwIfArgumentsConflict(err, args.getKeyStorePasswordArg(), args.getKeyStorePasswordFileArg());
-    throwIfArgumentsConflict(err, args.getTrustStorePasswordArg(), args.getTrustStorePasswordFileArg());
-    throwIfArgumentsConflict(err, args.getUseSSLArg(), args.getUseStartTLSArg());
+    throwIfArgumentsConflict(args.getBindPasswordArg(), args.getBindPasswordArg());
+    throwIfArgumentsConflict(args.getKeyStorePasswordArg(), args.getKeyStorePasswordFileArg());
+    throwIfArgumentsConflict(args.getTrustStorePasswordArg(), args.getTrustStorePasswordFileArg());
+    throwIfArgumentsConflict(args.getUseSSLArg(), args.getUseStartTLSArg());
 
     // Create the LDAP connection options object, which will be used to
     // customize the way that we connect to the server and specify a set of
@@ -461,15 +459,6 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
     catch (ArgumentException ae)
     {
       ae.printStackTrace(); // Should never happen
-    }
-  }
-
-  private void throwIfArgumentsConflict(final PrintStream err, final Argument arg1, final Argument arg2)
-      throws ArgumentException
-  {
-    if (arg1.isPresent() && arg2.isPresent())
-    {
-      printAndThrowException(err, ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier()));
     }
   }
 }

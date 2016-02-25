@@ -18,7 +18,6 @@ package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -264,34 +263,18 @@ public class EncodePassword
     }
 
     // Check for conflicting arguments.
-    if (clearPassword.isPresent() && clearPasswordFile.isPresent())
+    try
     {
-      printWrappedText(err,
-          ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(), clearPasswordFile.getLongIdentifier()));
+      throwIfArgumentsConflict(clearPassword, clearPasswordFile);
+      throwIfArgumentsConflict(clearPassword, interactivePassword);
+      throwIfArgumentsConflict(clearPasswordFile, interactivePassword);
+      throwIfArgumentsConflict(encodedPassword, encodedPasswordFile);
+    }
+    catch (final ArgumentException conflict)
+    {
+      printWrappedText(err, conflict.getMessageObject());
       return OPERATIONS_ERROR;
     }
-
-    if (clearPassword.isPresent() && interactivePassword.isPresent())
-    {
-      printWrappedText(err,
-          ERR_TOOL_CONFLICTING_ARGS.get(clearPassword.getLongIdentifier(), interactivePassword.getLongIdentifier()));
-      return OPERATIONS_ERROR;
-    }
-
-    if (clearPasswordFile.isPresent() && interactivePassword.isPresent())
-    {
-      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(clearPasswordFile.getLongIdentifier(),
-                                                          interactivePassword.getLongIdentifier()));
-      return OPERATIONS_ERROR;
-    }
-
-    if (encodedPassword.isPresent() && encodedPasswordFile.isPresent())
-    {
-      printWrappedText(err,
-          ERR_TOOL_CONFLICTING_ARGS.get(encodedPassword.getLongIdentifier(), encodedPasswordFile.getLongIdentifier()));
-      return OPERATIONS_ERROR;
-    }
-
 
     // If we are not going to just list the storage schemes, then the clear-text
     // password must have been provided.  If we're going to encode a password,

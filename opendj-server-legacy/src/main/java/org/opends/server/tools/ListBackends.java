@@ -19,7 +19,6 @@ package org.opends.server.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -205,7 +204,7 @@ public class ListBackends
     // arguments.
     if (backendID.isPresent() && baseDN.isPresent())
     {
-      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(backendID.getLongIdentifier(), baseDN.getLongIdentifier()));
+      printWrappedText(err, conflictingArgsErrorMessage(backendID, baseDN));
       return 1;
     }
 

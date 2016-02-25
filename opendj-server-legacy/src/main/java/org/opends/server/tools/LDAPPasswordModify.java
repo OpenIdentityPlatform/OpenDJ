@@ -24,7 +24,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
@@ -365,48 +364,20 @@ public class LDAPPasswordModify
 
 
     // Make sure that the user didn't specify any conflicting arguments.
-    if (bindPW.isPresent() && bindPWFile.isPresent())
+    try
     {
-      printWrappedText(
-          err, ERR_TOOL_CONFLICTING_ARGS.get(bindPW.getLongIdentifier(), bindPWFile.getLongIdentifier()));
+      throwIfArgumentsConflict(bindPW, bindPWFile);
+      throwIfArgumentsConflict(newPW, newPWFile);
+      throwIfArgumentsConflict(currentPW, currentPWFile);
+      throwIfArgumentsConflict(useSSL, useStartTLS);
+      throwIfArgumentsConflict(sslKeyStorePIN, sslKeyStorePINFile);
+      throwIfArgumentsConflict(sslTrustStorePIN, sslTrustStorePINFile);
+    }
+    catch(final ArgumentException conflict)
+    {
+      printWrappedText(err, conflict.getMessageObject());
       return CLIENT_SIDE_PARAM_ERROR;
     }
-
-    if (newPW.isPresent() && newPWFile.isPresent())
-    {
-      printWrappedText(
-          err, ERR_TOOL_CONFLICTING_ARGS.get(newPW.getLongIdentifier(), newPWFile.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
-    if (currentPW.isPresent() && currentPWFile.isPresent())
-    {
-      printWrappedText(err,
-          ERR_TOOL_CONFLICTING_ARGS.get(currentPW.getLongIdentifier(), currentPWFile.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
-    if (useSSL.isPresent() && useStartTLS.isPresent())
-    {
-      printWrappedText(
-          err, ERR_TOOL_CONFLICTING_ARGS.get(useSSL.getLongIdentifier(), useStartTLS.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
-    if (sslKeyStorePIN.isPresent() && sslKeyStorePINFile.isPresent())
-    {
-      printWrappedText(err,
-          ERR_TOOL_CONFLICTING_ARGS.get(sslKeyStorePIN.getLongIdentifier(), sslKeyStorePINFile.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
-    if (sslTrustStorePIN.isPresent() && sslTrustStorePINFile.isPresent())
-    {
-      printWrappedText(err, ERR_TOOL_CONFLICTING_ARGS.get(sslTrustStorePIN.getLongIdentifier(),
-                                                          sslTrustStorePINFile.getLongIdentifier()));
-      return CLIENT_SIDE_PARAM_ERROR;
-    }
-
 
     // If a bind DN was provided, make sure that a password was given.  If a
     // password was given, make sure a bind DN was provided.  If neither were

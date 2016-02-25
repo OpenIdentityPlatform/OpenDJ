@@ -19,7 +19,6 @@ package org.opends.server.tools.dsreplication;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -287,14 +286,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     int returnValue;
     super.validateGlobalOptions(buf);
-    ArrayList<LocalizableMessage> errors = new ArrayList<>();
-    if (secureArgsList.getBindPasswordArg().isPresent() &&
-        secureArgsList.getBindPasswordFileArg().isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          secureArgsList.getBindPasswordArg().getLongIdentifier(),
-          secureArgsList.getBindPasswordFileArg().getLongIdentifier());
-      errors.add(message);
-    }
+    final List<LocalizableMessage> errors = new ArrayList<>();
+    addErrorMessageIfArgumentsConflict(
+        errors, secureArgsList.getBindPasswordArg(), secureArgsList.getBindPasswordFileArg());
 
     // Check that we can write on the provided path where we write the
     // equivalent non-interactive commands.
@@ -316,13 +310,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       }
     }
 
-    if (noPromptArg.isPresent() && advancedArg.isPresent())
-    {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          noPromptArg.getLongIdentifier(),
-          advancedArg.getLongIdentifier());
-      errors.add(message);
-    }
+    addErrorMessageIfArgumentsConflict(errors, noPromptArg, advancedArg);
 
     if (!isInteractive())
     {
@@ -1504,28 +1492,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private void validateEnableReplicationOptions(LocalizableMessageBuilder buf)
   {
-    Argument[][] conflictingPairs =
-    {
-        { server1.bindPasswordArg, server1.bindPasswordFileArg },
-        { server2.bindPasswordArg, server2.bindPasswordFileArg },
-        { server1.replicationPortArg, server1.noReplicationServerArg },
-        { server1.noReplicationServerArg, server1.onlyReplicationServerArg },
-        { server2.replicationPortArg, server2.noReplicationServerArg },
-        { server2.noReplicationServerArg, server2.onlyReplicationServerArg },
-        {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
-    };
-
-    for (Argument[] conflictingPair : conflictingPairs)
-    {
-      Argument arg1 = conflictingPair[0];
-      Argument arg2 = conflictingPair[1];
-      if (arg1.isPresent() && arg2.isPresent())
-      {
-        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-            arg1.getLongIdentifier(), arg2.getLongIdentifier());
-        addMessage(buf, message);
-      }
-    }
+    appendErrorMessageIfArgumentsConflict(buf, server1.bindPasswordArg, server1.bindPasswordFileArg );
+    appendErrorMessageIfArgumentsConflict(buf, server2.bindPasswordArg, server2.bindPasswordFileArg );
+    appendErrorMessageIfArgumentsConflict(buf, server1.replicationPortArg, server1.noReplicationServerArg );
+    appendErrorMessageIfArgumentsConflict(buf, server1.noReplicationServerArg, server1.onlyReplicationServerArg );
+    appendErrorMessageIfArgumentsConflict(buf, server2.replicationPortArg, server2.noReplicationServerArg );
+    appendErrorMessageIfArgumentsConflict(buf, server2.noReplicationServerArg, server2.onlyReplicationServerArg );
+    appendErrorMessageIfArgumentsConflict(buf,noSchemaReplicationArg, useSecondServerAsSchemaSourceArg);
 
     if (server1.hostNameArg.getValue().equalsIgnoreCase(server2.hostNameArg.getValue())
         && !isInteractive()
@@ -1549,24 +1522,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private void validateDisableReplicationOptions(LocalizableMessageBuilder buf)
   {
-    Argument[][] conflictingPairs =
-    {
-        {getAdminUidArg(), secureArgsList.getBindDnArg() },
-        {disableAllArg, disableReplicationServerArg},
-        {disableAllArg, baseDNsArg}
-    };
-
-    for (Argument[] conflictingPair : conflictingPairs)
-    {
-      Argument arg1 = conflictingPair[0];
-      Argument arg2 = conflictingPair[1];
-      if (arg1.isPresent() && arg2.isPresent())
-      {
-        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-            arg1.getLongIdentifier(), arg2.getLongIdentifier());
-        addMessage(buf, message);
-      }
-    }
+    appendErrorMessageIfArgumentsConflict(buf, getAdminUidArg(), secureArgsList.getBindDnArg());
+    appendErrorMessageIfArgumentsConflict(buf, disableAllArg, disableReplicationServerArg);
+    appendErrorMessageIfArgumentsConflict(buf, disableAllArg, baseDNsArg);
   }
 
   /**

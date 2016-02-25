@@ -1136,28 +1136,21 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     private void checkForConflictingArguments() throws ArgumentException {
-        throwIfConflictingArgsSet(quietArgument, verboseArgument);
-        throwIfConflictingArgsSet(batchArgument, batchFileArgument);
+        throwIfArgumentsConflict(quietArgument, verboseArgument);
+        throwIfArgumentsConflict(batchArgument, batchFileArgument);
 
         throwIfSetInInteractiveMode(batchFileArgument);
         throwIfSetInInteractiveMode(batchArgument);
         throwIfSetInInteractiveMode(quietArgument);
 
-        throwIfConflictingArgsSet(scriptFriendlyArgument, verboseArgument);
-        throwIfConflictingArgsSet(noPropertiesFileArgument, propertiesFileArgument);
+        throwIfArgumentsConflict(scriptFriendlyArgument, verboseArgument);
+        throwIfArgumentsConflict(noPropertiesFileArgument, propertiesFileArgument);
     }
 
     private void throwIfSetInInteractiveMode(Argument arg) throws ArgumentException {
         if (arg.isPresent() && !noPromptArgument.isPresent()) {
             throw new ArgumentException(ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
                     arg.getLongIdentifier(), noPromptArgument.getLongIdentifier()));
-        }
-    }
-
-    private void throwIfConflictingArgsSet(Argument arg1, Argument arg2) throws ArgumentException {
-        if (arg1.isPresent() && arg2.isPresent()) {
-            throw new ArgumentException(ERR_TOOL_CONFLICTING_ARGS.get(
-                    arg1.getLongIdentifier(), arg2.getLongIdentifier()));
         }
     }
 
