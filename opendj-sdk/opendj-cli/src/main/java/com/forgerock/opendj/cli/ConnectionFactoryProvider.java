@@ -20,6 +20,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
+import static com.forgerock.opendj.cli.Utils.throwIfArgumentsConflict;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
@@ -447,45 +448,12 @@ public final class ConnectionFactoryProvider {
      *             an argument exception is thrown.
      */
     private void checkForConflictingArguments() throws ArgumentException {
-        // Couldn't have at the same time bindPassword and bindPasswordFile
-        if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
-            final LocalizableMessage message =
-                    ERR_TOOL_CONFLICTING_ARGS.get(bindPasswordArg.getLongIdentifier(),
-                            bindPasswordFileArg.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
-
-        /*
-         * Couldn't have at the same time trustAll and trustStore related arg
-         */
-        if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
-            final LocalizableMessage message =
-                    ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-                            trustStorePathArg.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
-        if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
-            final LocalizableMessage message =
-                    ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-                            trustStorePasswordArg.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
-        if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
-            final LocalizableMessage message =
-                    ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-                            trustStorePasswordFileArg.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
-
-        /*
-         * Couldn't have at the same time trustStorePasswordArg and trustStorePasswordFileArg
-         */
-        if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
-            final LocalizableMessage message =
-                    ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg.getLongIdentifier(),
-                            trustStorePasswordFileArg.getLongIdentifier());
-            throw new ArgumentException(message);
-        }
+        throwIfArgumentsConflict(bindPasswordArg, bindPasswordFileArg);
+        throwIfArgumentsConflict(trustAllArg, trustStorePathArg);
+        throwIfArgumentsConflict(trustAllArg, trustStorePasswordArg);
+        throwIfArgumentsConflict(trustAllArg, trustStorePasswordFileArg);
+        throwIfArgumentsConflict(trustStorePasswordArg, trustStorePasswordFileArg);
+        throwIfArgumentsConflict(useStartTLSArg, useSSLArg);
 
         if (trustStorePathArg.isPresent()) {
             // Check that the path exists and is readable
@@ -503,14 +471,6 @@ public final class ConnectionFactoryProvider {
                 final LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(value);
                 throw new ArgumentException(message);
             }
-        }
-
-        // Couldn't have at the same time startTLSArg and useSSLArg
-        if (useStartTLSArg.isPresent() && useSSLArg.isPresent()) {
-            final LocalizableMessage message =
-                    ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg.getLongIdentifier(), useSSLArg
-                            .getLongIdentifier());
-            throw new ArgumentException(message);
         }
     }
 

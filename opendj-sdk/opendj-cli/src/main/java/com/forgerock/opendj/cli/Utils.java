@@ -31,6 +31,7 @@ import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -657,5 +658,83 @@ public final class Utils {
                 }
             }
         };
+    }
+
+    /**
+     * Throws an {@link ArgumentException} if both provided {@link Argument} are presents in the command line arguments.
+     *
+     * @param arg1
+     *         The first {@link Argument} which should not be present if {@literal arg2} is.
+     * @param arg2
+     *         The second {@link Argument} which should not be present if {@literal arg1} is.
+     * @throws ArgumentException
+     *         If both provided {@link Argument} are presents in the command line arguments
+     */
+    public static void throwIfArgumentsConflict(final Argument arg1, final Argument arg2) throws ArgumentException {
+        if (argsConflicts(arg1, arg2)) {
+            throw new ArgumentException(conflictingArgsErrorMessage(arg1, arg2));
+        }
+    }
+
+    /**
+     * Adds a {@link LocalizableMessage} to the provided {@link Collection<LocalizableMessage>}
+     * if both provided {@link Argument} are presents in the command line arguments.
+     *
+     * @param errors
+     *         The {@link Collection<LocalizableMessage>} to use to add the conflict error (if occurs).
+     * @param arg1
+     *         The first {@link Argument} which should not be present if {@literal arg2} is.
+     * @param arg2
+     *         The second {@link Argument} which should not be present if {@literal arg1} is.
+     */
+    public static void addErrorMessageIfArgumentsConflict(
+            final Collection<LocalizableMessage> errors, final Argument arg1, final Argument arg2) {
+        if (argsConflicts(arg1, arg2)) {
+            errors.add(conflictingArgsErrorMessage(arg1, arg2));
+        }
+    }
+
+    /**
+     * Return {@code true} if provided {@link Argument} are presents in the command line arguments.
+     * <p>
+     * If so, adds a {@link LocalizableMessage} to the provided {@link LocalizableMessageBuilder}.
+     *
+     * @param builder
+     *         The {@link LocalizableMessageBuilder} to use to write the conflict error (if occurs).
+     * @param arg1
+     *         The first {@link Argument} which should not be present if {@literal arg2} is.
+     * @param arg2
+     *         The second {@link Argument} which should not be present if {@literal arg1} is.
+     * @return {@code true} if provided {@link Argument} are presents in the command line arguments.
+     */
+    public static boolean appendErrorMessageIfArgumentsConflict(
+        final LocalizableMessageBuilder builder, final Argument arg1, final Argument arg2) {
+        if (argsConflicts(arg1, arg2)) {
+            if (builder.length() > 0) {
+                builder.append(LINE_SEPARATOR);
+            }
+            builder.append(conflictingArgsErrorMessage(arg1, arg2));
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean argsConflicts(final Argument arg1, final Argument arg2) {
+        return arg1.isPresent() && arg2.isPresent();
+    }
+
+    /**
+     * Returns a {@link LocalizableMessage} which explains to the user
+     * that provided {@link Argument}s can not be used together on the command line.
+     *
+     * @param arg1
+     *         The first {@link Argument} which conflicts with {@literal arg2}.
+     * @param arg2
+     *         The second {@link Argument} which conflicts with {@literal arg1}.
+     * @return A {@link LocalizableMessage} which explains to the user that arguments
+     *         can not be used together on the command line.
+     */
+    public static LocalizableMessage conflictingArgsErrorMessage(final Argument arg1, final Argument arg2) {
+        return ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier());
     }
 }
