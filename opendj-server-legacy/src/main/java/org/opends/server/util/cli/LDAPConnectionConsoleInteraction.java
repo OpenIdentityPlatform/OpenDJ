@@ -20,8 +20,6 @@ import static com.forgerock.opendj.cli.Utils.isDN;
 import static com.forgerock.opendj.cli.Utils.getAdministratorDN;
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

@@ -17,7 +17,6 @@
 package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static org.forgerock.opendj.config.dsconfig.DSConfig.PROPERTY_SCRIPT_NAME;
 
 import java.io.PrintStream;

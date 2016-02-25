@@ -17,7 +17,6 @@
 package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 

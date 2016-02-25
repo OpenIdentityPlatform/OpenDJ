@@ -12,12 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static org.forgerock.util.Utils.closeSilently;
 
 import javax.net.ssl.SSLException;
