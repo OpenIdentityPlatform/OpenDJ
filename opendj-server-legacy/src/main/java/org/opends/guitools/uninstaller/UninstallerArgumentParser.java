@@ -19,7 +19,6 @@ package org.opends.guitools.uninstaller;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 
@@ -356,9 +355,8 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   {
     if (!noPromptArg.isPresent() && forceOnErrorArg.isPresent())
     {
-      final LocalizableMessage message =
-          ERR_TOOL_CONFLICTING_ARGS.get(forceOnErrorArg.getLongIdentifier(),
-              noPromptArg.getLongIdentifier());
+      final LocalizableMessage message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
+          forceOnErrorArg.getLongIdentifier(), noPromptArg.getLongIdentifier());
       if (buf.length() > 0)
       {
         buf.append(LINE_SEPARATOR);
