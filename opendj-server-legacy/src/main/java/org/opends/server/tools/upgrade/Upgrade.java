@@ -78,6 +78,10 @@ public final class Upgrade
   static
   {
     // @formatter:off
+    /** See OPENDJ-2716 */
+    register("2.5.0",
+        copySchemaFile("03-changelog.ldif"));
+
     register("2.5.0",
         modifyConfigEntry(INFO_UPGRADE_TASK_6869_SUMMARY.get(),
         "(objectClass=ds-cfg-collation-matching-rule)",
