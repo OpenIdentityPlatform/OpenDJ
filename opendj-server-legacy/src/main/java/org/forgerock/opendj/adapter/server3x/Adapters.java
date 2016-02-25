@@ -56,7 +56,6 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -72,15 +71,10 @@ import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 
-/**
- * This class provides a connection factory and an adapter for the OpenDJ 2.x
- * server.
- */
+/** This class provides a connection factory and an adapter for the OpenDJ 2.x server. */
 public final class Adapters {
 
-    /**
-     * Constructor.
-     */
+    /** Constructor. */
     private Adapters() {
         // No implementation required.
     }
@@ -226,13 +220,7 @@ public final class Adapters {
 
             @Override
             public Result modifyDN(final ModifyDNRequest request) throws LdapException {
-                final ModifyDNOperation modifyDNOperation =
-                        icc.processModifyDN(valueOfObject(request.getName()),
-                                valueOfObject(request.getNewRDN()),
-                                request.isDeleteOldRDN(),
-                                request.getNewSuperior() != null ? valueOfObject(request.getNewSuperior()) : null,
-                                to(request.getControls()));
-                return getResponseResult(modifyDNOperation);
+                return getResponseResult(icc.processModifyDN(request));
             }
 
             @Override

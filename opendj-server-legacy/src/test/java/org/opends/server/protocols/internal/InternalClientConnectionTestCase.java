@@ -563,7 +563,7 @@ public class InternalClientConnectionTestCase
     InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(ByteString.valueOfUtf8("cn=test,o=test"),
-                              ByteString.valueOfUtf8("cn=test2"), true);
+                              ByteString.valueOfUtf8("cn=test2"), true, null, null);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -589,7 +589,7 @@ public class InternalClientConnectionTestCase
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(ByteString.valueOfUtf8("cn=test,o=test"),
                               ByteString.valueOfUtf8("cn=test2"), true,
-                              ByteString.valueOfUtf8("dc=example,dc=com"));
+                              ByteString.valueOfUtf8("dc=example,dc=com"), null);
     assertEquals(modifyDNOperation.getResultCode(),
                  ResultCode.UNWILLING_TO_PERFORM);
   }

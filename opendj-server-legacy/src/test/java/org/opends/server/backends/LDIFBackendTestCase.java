@@ -16,6 +16,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -381,15 +382,13 @@ public class LDIFBackendTestCase
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
 
-    InternalClientConnection conn = getRootConnection();
-    ModifyDNOperation modifyDNOperation =
-      conn.processModifyDN("ou=leaf before,o=ldif", "ou=leaf after", true);
+    ModifyDNOperation modifyDNOperation = processModifyDN("ou=leaf before,o=ldif", "ou=leaf after", true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
     assertFalse(DirectoryServer.entryExists(beforeDN));
     assertTrue(DirectoryServer.entryExists(afterDN));
 
-    DeleteOperation deleteOperation = conn.processDelete(afterDN);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(afterDN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(DirectoryServer.entryExists(afterDN));
   }
@@ -411,14 +410,11 @@ public class LDIFBackendTestCase
       "objectClass: organizationalUnit",
       "ou: new entry");
 
-    InternalClientConnection conn = getRootConnection();
-    ModifyDNOperation modifyDNOperation =
-         conn.processModifyDN("ou=new entry,o=ldif", "ou=People", true);
-    assertEquals(modifyDNOperation.getResultCode(),
-                 ResultCode.ENTRY_ALREADY_EXISTS);
+    ModifyDNOperation modifyDNOperation = processModifyDN("ou=new entry,o=ldif", "ou=People", true);
+    assertEquals(modifyDNOperation.getResultCode(), ResultCode.ENTRY_ALREADY_EXISTS);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=new entry,o=ldif")));
 
-    DeleteOperation deleteOperation = conn.processDelete("ou=new entry,o=ldif");
+    DeleteOperation deleteOperation = getRootConnection().processDelete("ou=new entry,o=ldif");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("ou=new entry,o=ldif")));
   }
@@ -483,9 +479,7 @@ public class LDIFBackendTestCase
     assertTrue(DirectoryServer.entryExists(childBeforeDN));
     assertFalse(DirectoryServer.entryExists(childAfterDN));
 
-    InternalClientConnection conn = getRootConnection();
-    ModifyDNOperation modifyDNOperation =
-      conn.processModifyDN("ou=People,o=ldif", "ou=Users", true);
+    ModifyDNOperation modifyDNOperation = processModifyDN("ou=People,o=ldif", "ou=Users", true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 
     assertFalse(DirectoryServer.entryExists(beforeDN));
@@ -494,8 +488,7 @@ public class LDIFBackendTestCase
     assertFalse(DirectoryServer.entryExists(childBeforeDN));
     assertTrue(DirectoryServer.entryExists(childAfterDN));
 
-    modifyDNOperation =
-         conn.processModifyDN("ou=Users,o=ldif", "ou=People", true);
+    modifyDNOperation = processModifyDN("ou=Users,o=ldif", "ou=People", true);
 
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
@@ -504,7 +497,10 @@ public class LDIFBackendTestCase
     assertFalse(DirectoryServer.entryExists(childAfterDN));
   }
 
-
+  private ModifyDNOperation processModifyDN(String name, String newRDN, boolean deleteOldRDN)
+  {
+    return getRootConnection().processModifyDN(newModifyDNRequest(name, newRDN).setDeleteOldRDN(deleteOldRDN));
+  }
 
   /**
    * Tests to ensure that a base-level search works as expected.

@@ -80,6 +80,7 @@ import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -597,7 +598,6 @@ public final class InternalClientConnection
     // time limit for internal client connections.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConnectionValid()
   {
@@ -1546,81 +1546,6 @@ public final class InternalClientConnection
         toRawModifications(modifyRequest.getModifications()), to(modifyRequest.getControls()));
   }
 
-
-  /**
-   * Processes an internal modify DN operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN    The current DN of the entry to rename.
-   * @param  rawNewRDN     The new RDN to use for the entry.
-   * @param  deleteOldRDN  The flag indicating whether the old RDN
-   *                       value is to be removed from the entry.
-   *
-   * @return  A reference to the modify DN operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public ModifyDNOperation processModifyDN(String rawEntryDN,
-                                           String rawNewRDN,
-                                           boolean deleteOldRDN)
-  {
-    return processModifyDN(ByteString.valueOfUtf8(rawEntryDN),
-        ByteString.valueOfUtf8(rawNewRDN),
-                           deleteOldRDN, null, null);
-  }
-
-
-
-  /**
-   * Processes an internal modify DN operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN    The current DN of the entry to rename.
-   * @param  rawNewRDN     The new RDN to use for the entry.
-   * @param  deleteOldRDN  The flag indicating whether the old RDN
-   *                       value is to be removed from the entry.
-   * @param  controls      The set of controls to include in the
-   *                       request.
-   *
-   * @return  A reference to the modify DN operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public ModifyDNOperation processModifyDN(String rawEntryDN,
-                                           String rawNewRDN,
-                                           boolean deleteOldRDN,
-                                           List<Control> controls)
-  {
-    return processModifyDN(ByteString.valueOfUtf8(rawEntryDN),
-        ByteString.valueOfUtf8(rawNewRDN),
-                           deleteOldRDN, null, controls);
-  }
-
-
-
-  /**
-   * Processes an internal modify DN operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN    The current DN of the entry to rename.
-   * @param  rawNewRDN     The new RDN to use for the entry.
-   * @param  deleteOldRDN  The flag indicating whether the old RDN
-   *                       value is to be removed from the entry.
-   *
-   * @return  A reference to the modify DN operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
-                                           ByteString rawNewRDN,
-                                           boolean deleteOldRDN)
-  {
-    return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null,
-                           null);
-  }
-
-
-
   /**
    * Processes an internal modify DN operation with the provided
    * information.
@@ -1677,35 +1602,6 @@ public final class InternalClientConnection
         ByteString.valueOfUtf8(rawNewRDN), deleteOldRDN,
         ByteString.valueOfUtf8(rawNewSuperior), controls);
   }
-
-
-
-  /**
-   * Processes an internal modify DN operation with the provided
-   * information.
-   *
-   * @param  rawEntryDN      The current DN of the entry to rename.
-   * @param  rawNewRDN       The new RDN to use for the entry.
-   * @param  deleteOldRDN    The flag indicating whether the old RDN
-   *                         value is to be removed from the entry.
-   * @param  rawNewSuperior  The new superior for the modify DN
-   *                         operation, or <CODE>null</CODE> if the
-   *                         entry will remain below the same parent.
-   *
-   * @return  A reference to the modify DN operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
-                                           ByteString rawNewRDN,
-                                           boolean deleteOldRDN,
-                                           ByteString rawNewSuperior)
-  {
-    return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN,
-                           rawNewSuperior, null);
-  }
-
-
 
   /**
    * Processes an internal modify DN operation with the provided
@@ -1852,26 +1748,25 @@ public final class InternalClientConnection
    * Processes an internal modify DN operation with the provided information.
    *
    * @param modifyDNRequest
-   *          The modify DN request with information about the processing to perform.
+   *          The modify DN requests with information about the processing to perform.
    * @return A reference to the modify DN operation that was processed and contains information about
    *         the result of the processing.
    */
   public ModifyDNOperation processModifyDN(ModifyDNRequest modifyDNRequest)
   {
-    return processModifyDN(modifyDNRequest.getName(),
-                           modifyDNRequest.getNewRDN(),
-                           modifyDNRequest.isDeleteOldRDN(),
-                           modifyDNRequest.getNewSuperior());
+    ModifyDNRequest r = modifyDNRequest;
+    ByteString rawNewSuperior = r.getNewSuperior() != null ? valueOfObject(r.getNewSuperior()) : null;
+    return processModifyDN(valueOfObject(r.getName()), valueOfObject(r.getNewRDN()), r.isDeleteOldRDN(),
+        rawNewSuperior, to(r.getControls()));
   }
 
   /**
-   * Processes an internal search operation with the provided
-   * information.
+   * Processes an internal search operation with the provided information.
    *
-   * @param  request         The search request.
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing.
+   * @param request
+   *          The search request.
+   * @return A reference to the internal search operation that was processed and contains
+   *         information about the result of the processing.
    */
   public InternalSearchOperation processSearch(final SearchRequest request)
   {
@@ -2241,7 +2136,6 @@ public final class InternalClientConnection
     return 0;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getSSF() {
       //Always return strongest value.

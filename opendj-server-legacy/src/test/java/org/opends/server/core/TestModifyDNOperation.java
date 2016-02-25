@@ -24,6 +24,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -53,6 +54,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -916,8 +918,9 @@ public class TestModifyDNOperation extends OperationTestCase
       assertFalse(DirectoryServer.entryExists(
                       dn("uid=first.test,ou=Users,dc=example,dc=com")));
 
-      ModifyDNOperation modifyDNOperation =
-          getRootConnection().processModifyDN("ou=People,dc=example,dc=com", "ou=Users", true);
+      ModifyDNRequest modifyDNRequest =
+          newModifyDNRequest("ou=People,dc=example,dc=com", "ou=Users").setDeleteOldRDN(true);
+      ModifyDNOperation modifyDNOperation = getRootConnection().processModifyDN(modifyDNRequest);
       assertSuccess(modifyDNOperation);
 //      assertEquals(InvocationCounterPlugin.getSubordinateModifyDNCount(), 2);
 
