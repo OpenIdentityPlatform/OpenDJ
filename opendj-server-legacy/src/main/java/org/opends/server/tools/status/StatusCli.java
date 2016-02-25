@@ -98,6 +98,8 @@ public class StatusCli extends ConsoleApplication
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private static final boolean ALLOW_ANONYMOUS_IF_NON_INTERACTIVE = true;
+
   private boolean displayMustAuthenticateLegend;
   private boolean displayMustStartLegend;
 
@@ -287,7 +289,7 @@ public class StatusCli extends ConsoleApplication
       // and if none of them can be used we will just not ask for the
       // protocol to be used.
       final LDAPConnectionConsoleInteraction ci =
-          new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
+          new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList(), ALLOW_ANONYMOUS_IF_NON_INTERACTIVE);
       try
       {
         ci.run(false);

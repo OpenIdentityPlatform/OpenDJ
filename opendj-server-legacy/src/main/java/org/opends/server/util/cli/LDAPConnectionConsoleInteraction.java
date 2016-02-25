@@ -77,6 +77,7 @@ public class LDAPConnectionConsoleInteraction
 
   private static final boolean ALLOW_EMPTY_PATH = true;
   private static final boolean FILE_MUST_EXISTS = true;
+  private boolean allowAnonymousIfNonInteractive;
 
   /**
    * Information from the latest console interaction.
@@ -280,7 +281,7 @@ public class LDAPConnectionConsoleInteraction
   }
 
   /**
-   * Constructs a parameterized instance.
+   * Constructs a new console interaction.
    *
    * @param app
    *          console application
@@ -290,9 +291,28 @@ public class LDAPConnectionConsoleInteraction
    */
   public LDAPConnectionConsoleInteraction(ConsoleApplication app, SecureConnectionCliArgs secureArgs)
   {
+    this(app, secureArgs, false);
+  }
+
+  /**
+   * Constructs a new console interaction.
+   *
+   * @param app
+   *          console application
+   * @param secureArgs
+   *          existing set of arguments that have already been parsed and
+   *          contain some potential command line specified LDAP arguments
+   * @param allowAnonymousIfNonInteractive
+   *          If this console interaction should allow anonymous user in non interactive mode.
+   *          If console application is interactive, the user will always be prompted for credentials.
+   */
+  public LDAPConnectionConsoleInteraction(
+      ConsoleApplication app, SecureConnectionCliArgs secureArgs, final boolean allowAnonymousIfNonInteractive)
+  {
     this.app = app;
     this.secureArgsList = secureArgs;
     this.commandBuilder = new CommandBuilder();
+    this.allowAnonymousIfNonInteractive = allowAnonymousIfNonInteractive;
     state = new State(secureArgs);
     copySecureArgsList = new SecureConnectionCliArgs(secureArgs.alwaysSSL());
     try
@@ -641,6 +661,10 @@ public class LDAPConnectionConsoleInteraction
   {
     if (!app.isInteractive())
     {
+      if (allowAnonymousIfNonInteractive)
+      {
+        return;
+      }
       throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
     }
     checkHeadingDisplayed();
