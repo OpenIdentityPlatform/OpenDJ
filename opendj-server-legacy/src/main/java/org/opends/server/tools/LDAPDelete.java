@@ -18,6 +18,7 @@ package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_BINDPASSWORDFILE;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 

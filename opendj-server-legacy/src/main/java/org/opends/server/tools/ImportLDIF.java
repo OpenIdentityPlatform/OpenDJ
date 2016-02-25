@@ -23,6 +23,7 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -225,7 +226,7 @@ public class ImportLDIF extends TaskTool {
       if (templateFile.isPresent())
       {
         printWrappedText(err,
-            ERR_LDIFIMPORT_CONFLICTING_OPTIONS.get(ldifFiles.getLongIdentifier(), templateFile.getLongIdentifier()));
+            ERR_TOOL_CONFLICTING_ARGS.get(ldifFiles.getLongIdentifier(), templateFile.getLongIdentifier()));
         return 1;
       }
     }

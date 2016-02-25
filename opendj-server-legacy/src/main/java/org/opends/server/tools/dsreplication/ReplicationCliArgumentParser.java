@@ -19,6 +19,7 @@ package org.opends.server.tools.dsreplication;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 

@@ -21,6 +21,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_BINDPASSWORDFILE;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;

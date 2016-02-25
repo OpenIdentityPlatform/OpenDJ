@@ -19,6 +19,7 @@ package org.opends.server.util.cli;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import java.io.PrintStream;
 import java.util.LinkedList;

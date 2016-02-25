@@ -21,6 +21,8 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEH
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_ROOT_USER_PWD_FILE_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
+
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -504,7 +506,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     if (directoryManagerPwdStringArg.isPresent() &&
         directoryManagerPwdFileArg.isPresent())
     {
-      errorMessages.add(ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+      errorMessages.add(ERR_TOOL_CONFLICTING_ARGS.get(
           directoryManagerPwdStringArg.getLongIdentifier(),
           directoryManagerPwdFileArg.getLongIdentifier()));
     }
@@ -680,7 +682,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         if (keyStorePasswordArg.isPresent() &&
             keyStorePasswordFileArg.isPresent())
         {
-          errorMessages.add(ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+          errorMessages.add(ERR_TOOL_CONFLICTING_ARGS.get(
               keyStorePasswordArg.getLongIdentifier(),
               keyStorePasswordFileArg.getLongIdentifier()));
         }

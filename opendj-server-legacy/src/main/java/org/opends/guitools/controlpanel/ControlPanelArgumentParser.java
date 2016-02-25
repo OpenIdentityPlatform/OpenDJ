@@ -19,6 +19,7 @@ package org.opends.guitools.controlpanel;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TOOL_CONFLICTING_ARGS;
 
 import java.util.LinkedHashSet;
 
