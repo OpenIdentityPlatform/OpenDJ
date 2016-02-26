@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -589,6 +589,8 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     return accessMode.isWriteable() ? writeableStorage : new ReadOnlyTransactionImpl(writeableStorage);
   }
 
+  private static final int IMPORT_DB_CACHE_SIZE = 32 * MB;
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Use read committed isolation instead of the default which is repeatable read. */
@@ -655,6 +657,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         .setAllowCreate(true)
         .setLockTimeout(0, TimeUnit.SECONDS)
         .setTxnTimeout(0, TimeUnit.SECONDS)
+        .setCacheSize(IMPORT_DB_CACHE_SIZE)
         .setDurability(Durability.COMMIT_NO_SYNC)
         .setConfigParam(CLEANER_MIN_UTILIZATION, String.valueOf(config.getDBCleanerMinUtilization()))
         .setConfigParam(LOG_FILE_MAX, String.valueOf(config.getDBLogFileMax()));
