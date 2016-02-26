@@ -80,7 +80,10 @@ public final class Upgrade
     // @formatter:off
     /** See OPENDJ-2716 */
     register("2.5.0",
-        copySchemaFile("03-changelog.ldif"));
+        newAttributeTypes(INFO_UPGRADE_TASK_2716_1_SUMMARY.get(),
+        "03-changelog.ldif", "1.3.6.1.4.1.36733.2.1.1.6"), // includedAttributes
+        newObjectClasses(INFO_UPGRADE_TASK_2716_2_SUMMARY.get(),
+        "03-changelog.ldif", "2.16.840.1.113730.3.2.1")); // changeLogEntry
 
     register("2.5.0",
         modifyConfigEntry(INFO_UPGRADE_TASK_6869_SUMMARY.get(),

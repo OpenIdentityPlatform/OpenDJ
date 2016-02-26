@@ -506,22 +506,22 @@ final class UpgradeUtils
   }
 
   /**
-   * This task adds new attributes / object classes to the specified destination
-   * file. The new attributes and object classes must be originally defined in
-   * the template file.
+   * This task adds or updates attributes / object classes in the specified
+   * destination file. The new attributes and object classes must be originally
+   * defined in the template file. The definitions will replace previous definitions
+   * if they have the same normalized value (i.e. OID), and add new definitions if
+   * they don't previously exist.
    *
    * @param templateFile
-   *          The file in which the new attribute/object definition can be read.
+   *          The file in which the attribute/object definition can be read.
    * @param destination
-   *          The file where we want to add the new definitions.
+   *          The file where we want to update the definitions.
    * @param attributes
-   *          Those attributes needed to be inserted into the new destination
-   *          file.
+   *          Those attributes needed to be stored in the new destination file.
    * @param objectClasses
-   *          Those object classes needed to be inserted into the new
-   *          destination file.
+   *          Those object classes needed to be stored in the new destination file.
    * @return An integer which represents each time an attribute / object class
-   *         is inserted successfully to the destination file.
+   *         is updated successfully in the destination file.
    * @throws IOException
    *           If an unexpected IO error occurred while reading the entry.
    * @throws IllegalStateException

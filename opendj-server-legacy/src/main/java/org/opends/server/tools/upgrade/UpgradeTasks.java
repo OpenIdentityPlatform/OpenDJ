@@ -229,14 +229,16 @@ public final class UpgradeTasks
   }
 
   /**
-   * This task adds a new attribute type (must exists in the original file) to
-   * the specified file placed in parameter. The destination must be a file
-   * contained in the config/schema folder. E.g : This example adds a new
-   * attribute type named 'etag' in the 00.core.ldif. The 'etag' attribute
-   * already exists in the 00-core.ldif template schema file.
+   * This task adds or updates an attribute type (must exist in the original file)
+   * to the file specified in {@code fileName}. The destination must be a file
+   * contained in the config/schema folder. The attribute type is updated if an
+   * attribute with the same OID exists.
+   *
+   * e.g : This example adds a new attribute type named 'etag' in the 00-core.ldif.
+   * The 'etag' attribute already exists in the 00-core.ldif template schema file.
    *
    * <pre>
-   * register(&quot;2.5.0.7192&quot;,
+   * register(&quot;2.5.0&quot;,
    *   newAttributeTypes(LocalizableMessage.raw(&quot;New attribute etag&quot;),
    *   false, &quot;00-core.ldif&quot;,
    *   &quot;1.3.6.1.4.1.36733.2.1.1.59&quot;));
@@ -245,13 +247,13 @@ public final class UpgradeTasks
    * @param summary
    *          The summary of the task.
    * @param fileName
-   *          The file where to add the new attribute types. This file must be
+   *          The file where to add the new definitions. This file must be
    *          contained in the configuration/schema folder.
    * @param attributeOids
-   *          The OIDs of the new attributes to add to.
-   * @return An upgrade task which adds new attribute types, defined previously
-   *         in the configuration template files, reads the definition
-   *         and adds it onto the specified file in parameter.
+   *          The OIDs of the attributes to add or update.
+   * @return An upgrade task which adds or updates attribute types, defined
+   *         previously in the configuration template files, reads the
+   *         definition and adds it onto the file specified in {@code fileName}
    */
   public static UpgradeTask newAttributeTypes(final LocalizableMessage summary,
       final String fileName, final String... attributeOids)
@@ -296,21 +298,21 @@ public final class UpgradeTasks
   }
 
   /**
-   * This task adds a new object class (must exists in the original file) to the
-   * specified file placed in parameter. The destination must be a file
-   * contained in the config/schema folder.
+   * This task adds or updates an object class (must exist in the original file)
+   * to the file specified in {@code fileName}. The destination must be a file
+   * contained in the config/schema folder. The object class will be updated if
+   * a definition with the same OID exists, and added otherwise.
    *
    * @param summary
    *          The summary of the task.
    * @param fileName
-   *          The file where to add the new object classes. This file must be
+   *          The file where to add the new definitions. This file must be
    *          contained in the configuration/schema folder.
    * @param objectClassesOids
-   *          The OIDs of the new object classes to add to.
-   * @return An upgrade task which adds new object classes, defined previously
-   *         in the configuration template files,
-   *         reads the definition and adds it onto the specified file in
-   *         parameter.
+   *          The OIDs of the object classes to add or update.
+   * @return An upgrade task which adds or updates object classes, defined
+   *         previously in the configuration template files, reads the
+   *         definition and adds it onto the file specified in {@code fileName}
    */
   public static UpgradeTask newObjectClasses(final LocalizableMessage summary,
       final String fileName, final String... objectClassesOids)
