@@ -23,8 +23,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -401,13 +403,29 @@ final class UpgradeUtils
       writer.writeComment(INFO_CONFIG_FILE_HEADER.get());
       writer.setWrapColumn(0);
 
-      boolean entryAlreadyExist = false;
       DN ldifDN = null;
-      if (filter == null && (changeType == ADD || changeType == DELETE))
+      Set<DN> ldifDNs = new HashSet<>();
+      if (filter == null)
       {
-        // The first line should start with dn:
-        ldifDN = DN.valueOf(ldifLines[0].replaceFirst("dn: ", ""));
+        switch (changeType)
+        {
+        case ADD:
+          // The first line should start with dn:
+          ldifDN = DN.valueOf(removeDnPrefix(ldifLines[0]));
+          ldifDNs.add(ldifDN);
+          break;
+
+        case DELETE:
+          // All lines represent dns
+          for (String dnLine : ldifLines)
+          {
+            ldifDNs.add(DN.valueOf(removeDnPrefix(dnLine)));
+          }
+          break;
+        }
       }
+
+      boolean entryAlreadyExist = false;
       final Filter f = filter != null ? filter : Filter.alwaysFalse();
       final Matcher matcher = f.matcher(schema);
       while (entryReader.hasNext())
@@ -424,8 +442,7 @@ final class UpgradeUtils
                 readLDIFLines(entryDN, changeType, ldifLines));
             entry = Entries.modifyEntryPermissive(entry, mr.getModifications());
             changeCount++;
-            logger.debug(LocalizableMessage.raw(
-                "The following entry has been modified : %s", entryDN));
+            logger.debug(LocalizableMessage.raw("The following entry has been modified : %s", entryDN));
           }
           catch (Exception ex)
           {
@@ -433,7 +450,7 @@ final class UpgradeUtils
           }
         }
 
-        if (entryDN.equals(ldifDN))
+        if (ldifDNs.remove(entryDN))
         {
           logger.debug(LocalizableMessage.raw("Entry %s found", entryDN));
           entryAlreadyExist = true;
@@ -442,8 +459,7 @@ final class UpgradeUtils
           {
             entry = null;
             changeCount++;
-            logger.debug(LocalizableMessage.raw(
-                "The following entry has been deleted : %s", entryDN));
+            logger.debug(LocalizableMessage.raw("The following entry has been deleted : %s", entryDN));
           }
         }
 
@@ -457,8 +473,7 @@ final class UpgradeUtils
       {
         final AddRequest ar = Requests.newAddRequest(ldifLines);
         writer.writeEntry(ar);
-        logger.debug(LocalizableMessage.raw("Entry successfully added %s in %s",
-            ldifDN, original.getAbsolutePath()));
+        logger.debug(LocalizableMessage.raw("Entry successfully added %s in %s", ldifDN, original.getAbsolutePath()));
         changeCount++;
       }
     }
@@ -483,6 +498,11 @@ final class UpgradeUtils
     }
 
     return changeCount;
+  }
+
+  private static String removeDnPrefix(String dnLine)
+  {
+    return dnLine.replaceFirst("dn: ", "");
   }
 
   /**

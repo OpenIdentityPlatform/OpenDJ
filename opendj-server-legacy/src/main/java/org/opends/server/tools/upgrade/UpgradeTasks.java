@@ -195,20 +195,18 @@ public final class UpgradeTasks
   }
 
   /**
-   * Returns a new upgrade task which deletes a config entry from the underlying
-   * config file.
+   * Returns a new upgrade task which deletes a config entry from the underlying config file.
    *
    * @param summary
    *          The summary of this upgrade task.
-   * @param dnInLDIF
-   *          The dn to delete in the form of LDIF.
-   * @return A new upgrade task which applies an LDIF record to all
-   *         configuration entries matching the provided filter.
+   * @param dnsInLDIF
+   *          The dns to delete in the form of LDIF.
+   * @return A new upgrade task which applies an LDIF record to all configuration entries matching
+   *         the provided filter.
    */
-  public static UpgradeTask deleteConfigEntry(final LocalizableMessage summary,
-      final String dnInLDIF)
+  public static UpgradeTask deleteConfigEntry(final LocalizableMessage summary, final String... dnsInLDIF)
   {
-    return updateConfigEntry(summary, null, ChangeOperationType.DELETE, dnInLDIF);
+    return updateConfigEntry(summary, null, ChangeOperationType.DELETE, dnsInLDIF);
   }
 
   /**
