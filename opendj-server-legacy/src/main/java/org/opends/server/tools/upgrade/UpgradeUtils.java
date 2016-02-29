@@ -11,17 +11,35 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools.upgrade;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.Entries;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
+import org.forgerock.opendj.ldap.Matcher;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -37,7 +55,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.util.ChangeOperationType;
-import org.opends.server.util.StaticUtils;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
@@ -56,39 +73,24 @@ final class UpgradeUtils
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The config folder of the current instance. */
-  static final File configDirectory = new File(getInstancePath(),
-      Installation.CONFIG_PATH_RELATIVE);
-
+  static final File configDirectory = new File(getInstancePath(), CONFIG_PATH_RELATIVE);
   /** The config/schema folder of the current instance. */
-  static final File configSchemaDirectory = new File(
-      configDirectory, Installation.SCHEMA_PATH_RELATIVE);
-
+  static final File configSchemaDirectory = new File(configDirectory, SCHEMA_PATH_RELATIVE);
   /** The template folder of the current installation. */
-  static final File templateDirectory = new File(getInstallationPath(),
-       Installation.TEMPLATE_RELATIVE_PATH);
-
+  static final File templateDirectory = new File(getInstallationPath(), TEMPLATE_RELATIVE_PATH);
   /** The template/config folder of the current installation. */
-  static final File templateConfigDirectory = new File(templateDirectory,
-       Installation.CONFIG_PATH_RELATIVE);
-
+  static final File templateConfigDirectory = new File(templateDirectory, CONFIG_PATH_RELATIVE);
   /** The template/config/schema folder of the current installation. */
-  static final File templateConfigSchemaDirectory = new File(
-      templateConfigDirectory,
-      Installation.SCHEMA_PATH_RELATIVE);
-
+  static final File templateConfigSchemaDirectory = new File(templateConfigDirectory, SCHEMA_PATH_RELATIVE);
   /** The config/snmp/security folder of the current instance. */
   static final File configSnmpSecurityDirectory = new File(
-      configDirectory + File.separator + Installation.SNMP_PATH_RELATIVE
-          + File.separator + Installation.SECURITY_PATH_RELATIVE);
-
+      configDirectory + File.separator + SNMP_PATH_RELATIVE + File.separator + SECURITY_PATH_RELATIVE);
   /** The lib folder of the current installation. */
-  static final File libDirectory = new File(getInstallationPath(), Installation.LIB_RELATIVE_PATH);
-
+  static final File libDirectory = new File(getInstallationPath(), LIB_RELATIVE_PATH);
   /** The bin folder of the current installation. */
-  static final File binDirectory = new File(getInstallationPath(), Installation.UNIX_BINARIES_PATH_RELATIVE);
-
+  static final File binDirectory = new File(getInstallationPath(), UNIX_BINARIES_PATH_RELATIVE);
   /** The bat folder of the current installation. */
-  static final File batDirectory = new File(getInstallationPath(), Installation.WINDOWS_BINARIES_PATH_RELATIVE);
+  static final File batDirectory = new File(getInstallationPath(), WINDOWS_BINARIES_PATH_RELATIVE);
 
   /**
    * Returns the path of the installation of the directory server. Note that
@@ -106,29 +108,28 @@ final class UpgradeUtils
 
     /* Get the install path from the Class Path */
     final String sep = System.getProperty("path.separator");
-    final String[] classPaths =
-        System.getProperty("java.class.path").split(sep);
-    String path = getInstallPath(classPaths);
-    if (path != null)
+    final String[] classPaths = System.getProperty("java.class.path").split(sep);
+    final String path = getInstallPath(classPaths);
+    if (path == null)
     {
-      final File f = new File(path).getAbsoluteFile();
-      final File librariesDir = f.getParentFile();
-
-      /*
-       * Do a best effort to avoid having a relative representation (for
-       * instance to avoid having ../../../).
-       */
-      try
-      {
-        installPath = librariesDir.getParentFile().getCanonicalPath();
-      }
-      catch (IOException ioe)
-      {
-        // Best effort
-        installPath = librariesDir.getParent();
-      }
+      return installPath;
     }
-    return installPath;
+
+    /*
+     * Do a best effort to avoid having a relative representation
+     * (for instance to avoid having ../../../).
+     */
+    final File f = new File(path).getAbsoluteFile();
+    final File librariesDir = f.getParentFile();
+    try
+    {
+      return librariesDir.getParentFile().getCanonicalPath();
+    }
+    catch (IOException ignore)
+    {
+      // Best effort
+      return librariesDir.getParent();
+    }
   }
 
   private static String getInstallPath(final String[] classPaths)
@@ -136,7 +137,7 @@ final class UpgradeUtils
     for (String classPath : classPaths)
     {
       final String normPath = classPath.replace(File.separatorChar, '/');
-      if (normPath.endsWith(Installation.OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
+      if (normPath.endsWith(OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
       {
         return classPath;
       }
@@ -154,59 +155,34 @@ final class UpgradeUtils
    */
   static String getInstancePathFromInstallPath(final String installPath)
   {
-    String instancePathFileName = Installation.INSTANCE_LOCATION_PATH;
-    final File _svcScriptPath =
-        new File(installPath + File.separator
-            + SVC_SCRIPT_FILE_NAME);
+    final File svcScriptPath = new File(installPath, SVC_SCRIPT_FILE_NAME);
 
     // look for /etc/opt/opendj/instance.loc
-    File f = new File(instancePathFileName);
-    if (!_svcScriptPath.exists() || !f.exists())
+    File f = new File(INSTANCE_LOCATION_PATH);
+    if (!svcScriptPath.exists() || !f.exists())
     {
       // look for <installPath>/instance.loc
-      instancePathFileName =
-          installPath + File.separator
-              + Installation.INSTANCE_LOCATION_PATH_RELATIVE;
-      f = new File(instancePathFileName);
+      f = new File(installPath, INSTANCE_LOCATION_PATH_RELATIVE);
       if (!f.exists())
       {
         return installPath;
       }
     }
 
-    BufferedReader reader;
-    try
-    {
-      reader = new BufferedReader(new FileReader(instancePathFileName));
-    }
-    catch (Exception e)
-    {
-      return installPath;
-    }
-
     // Read the first line and close the file.
-    String line;
-    try
+    try (BufferedReader reader = new BufferedReader(new FileReader(f)))
     {
-      line = reader.readLine();
+      String line = reader.readLine();
       File instanceLoc = new File(line.trim());
       if (instanceLoc.isAbsolute())
       {
         return instanceLoc.getAbsolutePath();
       }
-      else
-      {
-        return new File(installPath + File.separator + instanceLoc.getPath())
-            .getAbsolutePath();
-      }
+      return new File(installPath, instanceLoc.getPath()).getAbsolutePath();
     }
-    catch (Exception e)
+    catch (IOException e)
     {
       return installPath;
-    }
-    finally
-    {
-      StaticUtils.close(reader);
     }
   }
 
@@ -220,27 +196,26 @@ final class UpgradeUtils
    */
   static String getPath(File f)
   {
-    String path = null;
-    if (f != null)
+    if (f == null)
     {
-      try
-      {
-        /*
-         * Do a best effort to avoid having a relative representation (for
-         * instance to avoid having ../../../).
-         */
-        f = f.getCanonicalFile();
-      }
-      catch (IOException ioe)
-      {
-        /*
-         * This is a best effort to get the best possible representation of the
-         * file: reporting the error is not necessary.
-         */
-      }
-      path = f.toString();
+      return null;
     }
-    return path;
+    try
+    {
+      /*
+       * Do a best effort to avoid having a relative representation
+       * (for instance to avoid having ../../../).
+       */
+      return f.getCanonicalFile().toString();
+    }
+    catch (IOException ignore)
+    {
+      /*
+       * This is a best effort to get the best possible representation of the file:
+       * reporting the error is not necessary.
+       */
+      return f.toString();
+    }
   }
 
   /**
@@ -252,8 +227,7 @@ final class UpgradeUtils
    *          the relative path.
    * @return the absolute path for the given parentPath and relativePath.
    */
-  static String getPath(final String parentPath,
-      final String relativePath)
+  static String getPath(final String parentPath, final String relativePath)
   {
     return getPath(new File(new File(parentPath), relativePath));
   }
@@ -261,7 +235,7 @@ final class UpgradeUtils
   static File getFileForPath(String path)
   {
     final File f = new File(path);
-    return f.isAbsolute() ? f : new File(getInstancePath() + File.separator + path);
+    return f.isAbsolute() ? f : new File(getInstancePath(), path);
   }
 
   /**
@@ -321,12 +295,7 @@ final class UpgradeUtils
   static String getInstancePath()
   {
     final String installPath = getInstallationPath();
-    if (installPath == null)
-    {
-      return null;
-    }
-
-    return getInstancePathFromInstallPath(installPath);
+    return installPath != null ? getInstancePathFromInstallPath(installPath) : null;
   }
 
   /**
@@ -336,31 +305,28 @@ final class UpgradeUtils
    */
   static String getInstallationPath()
   {
-    // The upgrade runs from the bits extracted by BuildExtractor
-    // in the staging directory.  However
-    // we still want the Installation to point at the build being
+    // The upgrade runs from the bits extracted by BuildExtractor in the staging directory.
+    // However we still want the Installation to point at the build being
     // upgraded so the install path reported in [installroot].
     String installationPath = System.getProperty("INSTALL_ROOT");
-    if (installationPath == null)
+    if (installationPath != null)
     {
-      final String path = getInstallPathFromClasspath();
-      if (path != null)
-      {
-        final File f = new File(path);
-        if (f.getParentFile() != null
-            && f.getParentFile().getParentFile() != null
-            && new File(f.getParentFile().getParentFile(),
-                Installation.LOCKS_PATH_RELATIVE).exists())
-        {
-          installationPath = getPath(f.getParentFile().getParentFile());
-        }
-        else
-        {
-          installationPath = path;
-        }
-      }
+      return installationPath;
     }
-    return installationPath;
+
+    final String path = getInstallPathFromClasspath();
+    if (path != null)
+    {
+      final File f = new File(path);
+      if (f.getParentFile() != null
+          && f.getParentFile().getParentFile() != null
+          && new File(f.getParentFile().getParentFile(), LOCKS_PATH_RELATIVE).exists())
+      {
+        return getPath(f.getParentFile().getParentFile());
+      }
+      return path;
+    }
+    return null;
   }
 
   /**
@@ -425,16 +391,10 @@ final class UpgradeUtils
         File.createTempFile("copyConfig", ".tmp", original.getParentFile());
 
     int changeCount = 0;
-    LDIFEntryReader entryReader = null;
-    LDIFEntryWriter writer = null;
-    try
+    final Schema schema = getUpgradeSchema();
+    try (LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configPath)).setSchema(schema);
+        LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(copyConfig)))
     {
-      final Schema schema = getUpgradeSchema();
-      entryReader =
-          new LDIFEntryReader(new FileInputStream(configPath))
-              .setSchema(schema);
-
-      writer = new LDIFEntryWriter(new FileOutputStream(copyConfig));
       writer.setWrapColumn(80);
 
       // Writes the header on the new file.
@@ -506,12 +466,9 @@ final class UpgradeUtils
     {
       throw new IOException(ex.getMessage());
     }
-    finally
-    {
-      // The reader and writer must be close before renaming files.
-      // Otherwise it causes exceptions under windows OS.
-      StaticUtils.close(entryReader, writer);
-    }
+
+    // The reader and writer must be closed before renaming files.
+    // Otherwise it causes exceptions under windows OS.
 
     try
     {
@@ -557,74 +514,45 @@ final class UpgradeUtils
       throws IOException, IllegalStateException
   {
     int changeCount = 0;
-    LDIFEntryReader templateReader = null;
-    LDIFEntryReader destinationReader = null;
-    LDIFEntryWriter destinationWriter = null;
-    File copy = null;
-    try
+
+    final Entry templateSchemaEntry = readFirstEntryFromTemplate(templateFile);
+    final Entry destinationSchemaEntry = readFirstEntryFromTemplate(destination);
+
+    if (attributes != null)
     {
-      templateReader = new LDIFEntryReader(new FileInputStream(templateFile));
-      if (!templateReader.hasNext())
+      for (final String att : attributes)
       {
-        // Unless template are corrupted, this should not happen.
-        throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE.get(
-            templateFile.getPath()).toString());
+        final ByteString attributeType = getSchemaElement(templateSchemaEntry, "attributeTypes", att);
+        destinationSchemaEntry.getAttribute("attributeTypes").add(attributeType);
+        changeCount++;
+        logger.debug(LocalizableMessage.raw("Added %s", attributeType));
       }
-      final Entry templateSchemaEntry = templateReader.readEntry();
+    }
 
-      destinationReader = new LDIFEntryReader(
-          new FileInputStream(destination));
-      if (!destinationReader.hasNext())
+    if (objectClasses != null)
+    {
+      for (final String oc : objectClasses)
       {
-        // Unless template are corrupted, this should not happen.
-        throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE.get(
-            destination.getPath()).toString());
+        final ByteString objectClass = getSchemaElement(templateSchemaEntry, "objectClasses", oc);
+        destinationSchemaEntry.getAttribute("objectClasses").add(objectClass);
+        changeCount++;
+        logger.trace("Added %s", objectClass);
       }
-      final Entry destinationSchemaEntry = destinationReader.readEntry();
+    }
 
-      if (attributes != null)
-      {
-        for (final String att : attributes)
-        {
-          final ByteString attributeType =
-              getSchemaElement(templateSchemaEntry, "attributeTypes", att);
-          destinationSchemaEntry.getAttribute("attributeTypes").add(
-              attributeType);
-          changeCount++;
-          logger.debug(LocalizableMessage.raw(String.format("Added %s", attributeType)));
-        }
-      }
-
-      if (objectClasses != null)
-      {
-        for (final String oc : objectClasses)
-        {
-          final ByteString objectClass =
-              getSchemaElement(templateSchemaEntry, "objectClasses", oc);
-          destinationSchemaEntry.getAttribute("objectClasses").add(objectClass);
-          changeCount++;
-          logger.trace("Added %s", objectClass);
-        }
-      }
-
+    File copy = File.createTempFile("copySchema", ".tmp", destination.getParentFile());
+    try (final FileOutputStream fos = new FileOutputStream(copy);
+        LDIFEntryWriter destinationWriter = new LDIFEntryWriter(fos))
+    {
       // Then writes the new schema entry.
-      copy =
-          File.createTempFile("copySchema", ".tmp",
-              destination.getParentFile());
-      final FileOutputStream fos = new FileOutputStream(copy);
-      destinationWriter = new LDIFEntryWriter(fos);
       destinationWriter.setWrapColumn(79);
       // Copy comments to fos (get License and first comments only).
       writeFileHeaderComments(templateFile, destinationWriter);
       // Writes the entry after.
       destinationWriter.writeEntry(destinationSchemaEntry);
     }
-    finally
-    {
-      // Readers and writer must be close before writing files.
-      // This causes exceptions under windows OS.
-      StaticUtils.close(templateReader, destinationReader, destinationWriter);
-    }
+    // Readers and writer must be closed before writing files.
+    // This causes exceptions under windows OS.
 
     // Renames the copy to make it the new schema file.
     try
@@ -641,6 +569,19 @@ final class UpgradeUtils
     return changeCount;
   }
 
+  private static Entry readFirstEntryFromTemplate(final File destination) throws DecodeException, IOException
+  {
+    try (LDIFEntryReader r = new LDIFEntryReader(new FileInputStream(destination)))
+    {
+      if (!r.hasNext())
+      {
+        // Unless template are corrupted, this should not happen.
+        throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE.get(destination.getPath()).toString());
+      }
+      return r.readEntry();
+    }
+  }
+
   /**
    * Gets and writes the first comments of a file.
    *
@@ -654,10 +595,8 @@ final class UpgradeUtils
   private static void writeFileHeaderComments(final File file,
       final LDIFEntryWriter writer) throws IOException
   {
-    BufferedReader br = null;
-    try
+    try (BufferedReader br = new BufferedReader(new FileReader(file)))
     {
-      br = new BufferedReader(new FileReader(file));
       String comment = br.readLine();
 
       while (comment != null && comment.startsWith("#"))
@@ -670,11 +609,8 @@ final class UpgradeUtils
     {
       throw ex;
     }
-    finally
-    {
-      StaticUtils.close(br);
-    }
   }
+
   /**
    * Returns the definition of the selected attribute / object class OID.
    *
@@ -729,83 +665,65 @@ final class UpgradeUtils
   static void updateConfigUpgradeSchemaFile(final File folder,
       final String revision) throws Exception
   {
+    if (!folder.isDirectory())
+    {
+      return;
+    }
     // We need to upgrade the schema.ldif.<rev> file contained in the
     // config/upgrade folder otherwise, we cannot enable the backend at
     // server's start. We need to read all files contained in config/schema
     // and add all attribute/object classes in this new super entry which
     // will be read at start-up.
     Entry theNewSchemaEntry = new LinkedHashMapEntry();
-    LDIFEntryReader reader = null;
-    LDIFEntryWriter writer = null;
-    try
+    final FilenameFilter filter = new SchemaConfigManager.SchemaFileFilter();
+    for (final File f : folder.listFiles(filter))
     {
-      if (folder.isDirectory())
+      logger.debug(LocalizableMessage.raw("Processing %s", f.getAbsolutePath()));
+      try (LDIFEntryReader reader = new LDIFEntryReader(new FileInputStream(f)))
       {
-        final FilenameFilter filter =
-            new SchemaConfigManager.SchemaFileFilter();
-        for (final File f : folder.listFiles(filter))
+        while (reader.hasNext())
         {
-          logger.debug(LocalizableMessage.raw(String.format("Processing %s", f
-              .getAbsolutePath())));
-          reader = new LDIFEntryReader(new FileInputStream(f));
-          try
+          final Entry entry = reader.readEntry();
+          theNewSchemaEntry.setName(entry.getName());
+          for (final Attribute at : entry.getAllAttributes())
           {
-            while (reader.hasNext())
-            {
-              final Entry entry = reader.readEntry();
-              theNewSchemaEntry.setName(entry.getName());
-              for (final Attribute at : entry.getAllAttributes())
-              {
-                theNewSchemaEntry.addAttribute(at);
-              }
-            }
-          }
-          catch (Exception ex)
-          {
-            throw new Exception("Error parsing existing schema file "
-                + f.getName() + " - " + ex.getMessage(), ex);
+            theNewSchemaEntry.addAttribute(at);
           }
         }
-
-        // Creates a File object representing
-        // config/upgrade/schema.ldif.revision which the server creates
-        // the first time it starts if there are schema customizations.
-        final File destination =
-            new File(configDirectory, Installation.UPGRADE_PATH
-                + File.separator + "schema.ldif." + revision);
-
-        // Checks if the parent exists (eg. embedded
-        // server doesn't seem to provide that folder)
-        File parentDirectory = destination.getParentFile();
-        if (!parentDirectory.exists())
-        {
-          logger.debug(LocalizableMessage.raw(String.format("Parent file of %s doesn't exist",
-              destination.getPath())));
-
-          parentDirectory.mkdirs();
-
-          logger.debug(LocalizableMessage.raw(String.format("Parent directory %s created.",
-              parentDirectory.getPath())));
-        }
-        if (!destination.exists())
-        {
-          destination.createNewFile();
-        }
-
-        logger.debug(LocalizableMessage.raw(String.format("Writing entries in %s.", destination
-            .getAbsolutePath())));
-
-        writer = new LDIFEntryWriter(new FileOutputStream(destination));
-        writer.writeEntry(theNewSchemaEntry);
-
-        logger.debug(LocalizableMessage.raw(String.format(
-            "%s created and completed successfully.", destination
-                .getAbsolutePath())));
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("Error parsing existing schema file " + f.getName() + " - " + ex.getMessage(), ex);
       }
     }
-    finally
+
+    // Creates a File object representing
+    // config/upgrade/schema.ldif.revision which the server creates
+    // the first time it starts if there are schema customizations.
+    final File destination = new File(configDirectory, UPGRADE_PATH + File.separator + "schema.ldif." + revision);
+
+    // Checks if the parent exists (eg. embedded
+    // server doesn't seem to provide that folder)
+    File parentDirectory = destination.getParentFile();
+    if (!parentDirectory.exists())
     {
-      StaticUtils.close(reader, writer);
+      logger.debug(LocalizableMessage.raw("Parent file of %s doesn't exist", destination.getPath()));
+
+      parentDirectory.mkdirs();
+
+      logger.debug(LocalizableMessage.raw("Parent directory %s created.", parentDirectory.getPath()));
+    }
+    if (!destination.exists())
+    {
+      destination.createNewFile();
+    }
+
+    logger.debug(LocalizableMessage.raw("Writing entries in %s.", destination.getAbsolutePath()));
+
+    try (LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(destination)))
+    {
+      writer.writeEntry(theNewSchemaEntry);
+      logger.debug(LocalizableMessage.raw("%s created and completed successfully.", destination.getAbsolutePath()));
     }
   }
 

@@ -694,9 +694,7 @@ public final class UpgradeTasks
         context.notifyProgress(pnc);
 
         // Sets the arguments like the rebuild index command line.
-        args.addAll(Arrays.asList(
-            "-f",
-            new File(configDirectory, CURRENT_CONFIG_FILE_NAME).getAbsolutePath()));
+        args.addAll(Arrays.asList("-f", getConfigLdifFile().getAbsolutePath()));
 
         /*
          * Index(es) could be contained in several backends or none, If none,
@@ -1164,10 +1162,10 @@ public final class UpgradeTasks
     }
   }
 
-  private static void displayTaskLogInformation(final String summary,
+  private static void displayTaskLogInformation(final LocalizableMessage summary,
       final String filter, final String... ldif)
   {
-    logger.debug(LocalizableMessage.raw(summary));
+    logger.debug(summary);
     if (filter != null)
     {
       logger.debug(LocalizableMessage.raw(filter));
@@ -1211,19 +1209,17 @@ public final class UpgradeTasks
   }
 
   private static void performConfigFileUpdate(final LocalizableMessage summary, final String filter,
-      final ChangeOperationType changeOperationType,
-      final UpgradeContext context, final String... ldif)
+      final ChangeOperationType changeOperationType, final UpgradeContext context, final String... ldif)
       throws ClientException
   {
-    displayTaskLogInformation(summary.toString(), filter, ldif);
+    displayTaskLogInformation(summary, filter, ldif);
 
     final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 20);
     context.notifyProgress(pnc);
 
     try
     {
-      final File configFile =
-          new File(configDirectory, Installation.CURRENT_CONFIG_FILE_NAME);
+      final File configFile = getConfigLdifFile();
 
       final Filter filterVal = filter != null ? Filter.valueOf(filter) : null;
       final int changeCount = updateConfigFile(
@@ -1237,6 +1233,11 @@ public final class UpgradeTasks
     {
       manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
     }
+  }
+
+  private static File getConfigLdifFile()
+  {
+    return new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
   }
 
   static UpgradeTask clearReplicationDbDirectory()
