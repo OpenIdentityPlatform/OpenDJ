@@ -511,20 +511,21 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             If {@code dn} or {@code scope} was {@code null}.
      */
     public boolean isInScopeOf(DN dn, SearchScope scope) {
-        if (scope == SearchScope.BASE_OBJECT) {
+        switch (scope.asEnum()) {
+        case BASE_OBJECT:
             // The base DN must equal this DN.
             return equals(dn);
-        } else if (scope == SearchScope.SINGLE_LEVEL) {
+        case SINGLE_LEVEL:
             // The parent DN must equal the base DN.
             return isChildOf(dn);
-        } else if (scope == SearchScope.SUBORDINATES) {
+        case SUBORDINATES:
             // This DN must be a descendant of the provided base DN, but
             // not equal to it.
             return isSubordinateOrEqualTo(dn) && !equals(dn);
-        } else if (scope == SearchScope.WHOLE_SUBTREE) {
+        case WHOLE_SUBTREE:
             // This DN must be a descendant of the provided base DN.
             return isSubordinateOrEqualTo(dn);
-        } else {
+        default:
             // This is a scope that we don't recognize.
             return false;
         }

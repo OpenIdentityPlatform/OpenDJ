@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -379,18 +379,24 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final Matcher matcher = filter.matcher(schema);
             final AttributeFilter attributeFilter =
                 new AttributeFilter(request.getAttributes(), schema).typesOnly(request.isTypesOnly());
-            if (scope.equals(SearchScope.BASE_OBJECT)) {
+            switch (scope.asEnum()) {
+            case BASE_OBJECT:
                 final Entry baseEntry = getRequiredEntry(request, dn);
                 if (matcher.matches(baseEntry).toBoolean()) {
                     sendEntry(attributeFilter, entryHandler, baseEntry);
                 }
                 resultHandler.handleResult(newResult(ResultCode.SUCCESS));
-            } else if (scope.equals(SearchScope.SINGLE_LEVEL) || scope.equals(SearchScope.SUBORDINATES)
-                || scope.equals(SearchScope.WHOLE_SUBTREE)) {
+                break;
+
+            case SINGLE_LEVEL:
+            case SUBORDINATES:
+            case WHOLE_SUBTREE:
                 searchWithSubordinates(requestContext, entryHandler, resultHandler, dn, matcher, attributeFilter,
                     request.getSizeLimit(), scope,
                     request.getControl(SimplePagedResultsControl.DECODER, new DecodeOptions()));
-            } else {
+                break;
+
+            default:
                 throw newLdapException(ResultCode.PROTOCOL_ERROR,
                         "Search request contains an unsupported search scope");
             }
