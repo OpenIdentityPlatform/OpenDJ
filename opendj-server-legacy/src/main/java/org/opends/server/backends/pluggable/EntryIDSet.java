@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -693,6 +693,30 @@ final class EntryIDSet implements Iterable<EntryID>
     StringBuilder builder  = new StringBuilder(16);
     toString(builder);
     return builder.toString();
+  }
+
+  /**
+   * Copy the list of IDs contained in this {@link EntryIDSet} into the given
+   * array. This function does nothing if this {@link EntryIDSet} is not
+   * defined.
+   *
+   * @param array
+   *          Array where to copy this {@link EntryIDSet} entries id.
+   * @param offset
+   *          The offset within the array of the first byte to be written; must
+   *          be non-negative and no larger than array.length.
+   * @return The number of elements copied or -1 if this {@link EntryIDSet} is
+   *         not defined.
+   */
+  public int copyTo(long[] array, int offset)
+  {
+    if (isDefined())
+    {
+      final long[] ids = concreteImpl.getIDs();
+      System.arraycopy(ids, 0, array, offset, ids.length);
+      return ids.length;
+    }
+    return -1;
   }
 
   /**

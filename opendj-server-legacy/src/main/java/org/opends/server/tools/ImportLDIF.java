@@ -161,6 +161,7 @@ public class ImportLDIF extends TaskTool {
   private StringArgument  templateFile;
   private BooleanArgument skipDNValidation;
   private IntegerArgument threadCount;
+  private IntegerArgument offHeapSize;
   private StringArgument  tmpDirectory;
 
   private int process(String[] args, boolean initializeServer,
@@ -397,6 +398,13 @@ public class ImportLDIF extends TaskTool {
                       .defaultValue(0)
                       .valuePlaceholder(INFO_LDIFIMPORT_THREAD_COUNT_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
+      offHeapSize =
+              IntegerArgument.builder("offHeapSize")
+                      .description(INFO_LDIFIMPORT_DESCRIPTION_OFFHEAP_SIZE.get())
+                      .lowerBound(0)
+                      .defaultValue(700)
+                      .valuePlaceholder(INFO_LDIFIMPORT_OFFHEAP_SIZE_PLACEHOLDER.get())
+                      .buildAndAddToParser(argParser);
       tmpDirectory =
               StringArgument.builder("tmpdirectory")
                       .description(INFO_LDIFIMPORT_DESCRIPTION_TEMP_DIRECTORY.get())
@@ -437,6 +445,7 @@ public class ImportLDIF extends TaskTool {
     addAttribute(attributes, ATTR_IMPORT_TEMPLATE_FILE, templateFile.getValue());
     addAttribute(attributes, ATTR_IMPORT_RANDOM_SEED, randomSeed.getValue());
     addAttribute(attributes, ATTR_IMPORT_THREAD_COUNT, threadCount.getValue());
+    addAttribute(attributes, ATTR_IMPORT_OFFHEAP_SIZE, offHeapSize.getValue());
 
     // Optional attributes
     addAttribute2(attributes, ATTR_IMPORT_BACKEND_ID, backendID);
@@ -932,30 +941,40 @@ public class ImportLDIF extends TaskTool {
     }
 
 
-      // Create the LDIF import configuration to use when reading the LDIF.
-      importConfig.setCompressed(isCompressed.isPresent());
-      importConfig.setClearBackend(clearBackend.isPresent());
-      importConfig.setEncrypted(isEncrypted.isPresent());
-      importConfig.setExcludeAttributes(excludeAttributes);
-      importConfig.setExcludeBranches(excludeBranches);
-      importConfig.setExcludeFilters(excludeFilters);
-      importConfig.setIncludeAttributes(includeAttributes);
-      importConfig.setIncludeBranches(includeBranches);
-      importConfig.setIncludeFilters(includeFilters);
-      importConfig.setValidateSchema(!skipSchemaValidation.isPresent());
-      importConfig.setSkipDNValidation(skipDNValidation.isPresent());
-      importConfig.setTmpDirectory(tmpDirectory.getValue());
+    // Create the LDIF import configuration to use when reading the LDIF.
+    importConfig.setCompressed(isCompressed.isPresent());
+    importConfig.setClearBackend(clearBackend.isPresent());
+    importConfig.setEncrypted(isEncrypted.isPresent());
+    importConfig.setExcludeAttributes(excludeAttributes);
+    importConfig.setExcludeBranches(excludeBranches);
+    importConfig.setExcludeFilters(excludeFilters);
+    importConfig.setIncludeAttributes(includeAttributes);
+    importConfig.setIncludeBranches(includeBranches);
+    importConfig.setIncludeFilters(includeFilters);
+    importConfig.setValidateSchema(!skipSchemaValidation.isPresent());
+    importConfig.setSkipDNValidation(skipDNValidation.isPresent());
+    importConfig.setTmpDirectory(tmpDirectory.getValue());
 
-      try
-      {
-          importConfig.setThreadCount(threadCount.getIntValue());
-      }
-      catch(Exception e)
-      {
-          logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT,
-                  threadCount.getValue(), e.getMessage());
-          return 1;
-      }
+    try
+    {
+        importConfig.setThreadCount(threadCount.getIntValue());
+    }
+    catch(Exception e)
+    {
+        logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT,
+                threadCount.getValue(), e.getMessage());
+        return 1;
+    }
+
+    try
+    {
+      importConfig.setOffHeapSize(offHeapSize.getIntValue());
+    }
+    catch (Exception e)
+    {
+      logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_OFFHEAP_SIZE, offHeapSize.getValue(), e.getMessage());
+      return 1;
+    }
 
     importConfig.setBufferSize(LDIF_BUFFER_SIZE);
     importConfig.setExcludeAllUserAttributes(excludeAllUserAttributes);

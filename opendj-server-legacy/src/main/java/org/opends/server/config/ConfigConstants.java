@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.config;
 
@@ -3827,6 +3827,13 @@ public final class ConfigConstants
    */
   public static final String ATTR_IMPORT_THREAD_COUNT =
        NAME_PREFIX_TASK + "import-thread-count";
+
+  /**
+   * The name of the attribute in an import task definition that specifies the
+   * off-heap memory size used during the import.
+   */
+  public static final String ATTR_IMPORT_OFFHEAP_SIZE =
+       NAME_PREFIX_TASK + "import-offheap-size";
 
   /**
    * The name of the attribute in an import task definition that specifies

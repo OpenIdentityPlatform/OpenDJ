@@ -95,6 +95,7 @@ public class ImportTask extends Task
   private boolean skipDNValidation;
   private String tmpDirectory;
   private int threadCount;
+  private int offHeapSize;
   private String backendID;
   private String rejectFile;
   private String skipFile;
@@ -155,6 +156,7 @@ public class ImportTask extends Task
     AttributeType typeClearBackend = getAttributeType(ATTR_IMPORT_CLEAR_BACKEND);
     AttributeType typeRandomSeed = getAttributeType(ATTR_IMPORT_RANDOM_SEED);
     AttributeType typeThreadCount = getAttributeType(ATTR_IMPORT_THREAD_COUNT);
+    AttributeType typeOffHeapSize = getAttributeType(ATTR_IMPORT_OFFHEAP_SIZE);
     AttributeType typeTmpDirectory = getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
     AttributeType typeDNCheckPhase2 = getAttributeType(ATTR_IMPORT_SKIP_DN_VALIDATION);
 
@@ -210,6 +212,7 @@ public class ImportTask extends Task
     clearBackend = asBoolean(taskEntry, typeClearBackend);
     randomSeed = asInt(taskEntry, typeRandomSeed);
     threadCount = asInt(taskEntry, typeThreadCount);
+    offHeapSize = asInt(taskEntry, typeOffHeapSize);
 
     // Make sure that either the "includeBranchStrings" argument or the
     // "backendID" argument was provided.
@@ -590,6 +593,7 @@ public class ImportTask extends Task
     importConfig.setSkipDNValidation(skipDNValidation);
     importConfig.setTmpDirectory(tmpDirectory);
     importConfig.setThreadCount(threadCount);
+    importConfig.setOffHeapSize(offHeapSize);
 
     // FIXME -- Should this be conditional?
     importConfig.setInvokeImportPlugins(true);

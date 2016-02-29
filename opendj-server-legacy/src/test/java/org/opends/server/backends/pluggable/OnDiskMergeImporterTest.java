@@ -92,13 +92,9 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 
     buffer.writeByteSequence(0, binary);
     buffer.writeInt(4, 1234);
-    buffer.writeCompactUnsignedLong(8, 42);
-    buffer.writeCompactUnsignedLong(9, 0xFFFF);
 
     assertThat(buffer.readByteString(0, 4)).isEqualTo(binary);
     assertThat(buffer.readInt(4)).isEqualTo(1234);
-    assertThat(buffer.readCompactUnsignedLong(8)).isEqualTo(42);
-    assertThat(buffer.readCompactUnsignedLong(9)).isEqualTo(0xFFFF);
   }
 
   @Test
@@ -314,10 +310,12 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     final int NB_REGION = 10;
     final ByteString KEY = ByteString.valueOfUtf8("key");
     final File tempDir = TestCaseUtils.createTemporaryDirectory("testExternalSortChunk");
-    try(final BufferPool bufferPool = new BufferPool(2, 4 + 1 + KEY.length() + 1 + 4)) {
-      // 4: record offset, 1: key length, 1: value length, 4: value
+    try (final BufferPool bufferPool = new BufferPool(2, 4 + 4 + KEY.length() + 4 + 4))
+    {
+      // 4: record offset, 4: key length, 4: value length, 4: value
       final ExternalSortChunk chunk =
-          new ExternalSortChunk(tempDir, "test", bufferPool, StringConcatCollector.INSTANCE, new ForkJoinPool());
+          new ExternalSortChunk(tempDir, "test", bufferPool, StringConcatCollector.INSTANCE,
+              StringConcatCollector.INSTANCE, new ForkJoinPool());
 
       List<ByteString> expected = new ArrayList<>(NB_REGION);
       for (int i = 0; i < NB_REGION; i++)
