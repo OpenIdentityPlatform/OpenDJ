@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.WeakHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -55,6 +56,9 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
     static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
     static final byte NORMALIZED_ESC_BYTE = 0x02;
+
+    static final char RDN_CHAR_SEPARATOR = ',';
+    static final char AVA_CHAR_SEPARATOR = '+';
 
     private static final DN ROOT_DN = new DN(CoreSchema.getInstance(), null, null, "");
 
@@ -191,15 +195,13 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
-     * Parses the provided LDAP string representation of a DN using the default
-     * schema.
+     * Parses the provided LDAP string representation of a DN using the default schema.
      *
      * @param dn
      *            The LDAP string representation of a DN.
      * @return The parsed DN.
      * @throws LocalizedIllegalArgumentException
-     *             If {@code dn} is not a valid LDAP string representation of a
-     *             DN.
+     *             If {@code dn} is not a valid LDAP string representation of a DN.
      * @throws NullPointerException
      *             If {@code dn} was {@code null}.
      * @see #format(String, Object...)
@@ -209,8 +211,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
-     * Parses the provided LDAP string representation of a DN using the provided
-     * schema.
+     * Parses the provided LDAP string representation of a DN using the provided schema.
      *
      * @param dn
      *            The LDAP string representation of a DN.
@@ -218,8 +219,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *            The schema to use when parsing the DN.
      * @return The parsed DN.
      * @throws LocalizedIllegalArgumentException
-     *             If {@code dn} is not a valid LDAP string representation of a
-     *             DN.
+     *             If {@code dn} is not a valid LDAP string representation of a DN.
      * @throws NullPointerException
      *             If {@code dn} or {@code schema} was {@code null}.
      * @see #format(String, Schema, Object...)
@@ -243,21 +243,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
-     * Compares the provided DN values to determine their relative order in a
-     * sorted list. The order is the natural order as defined by the
-     * {@code toNormalizedByteString()} method.
+     * Parses the provided LDAP string representation of a DN using the default schema.
      *
-     * @param dn1
-     *            The first DN to be compared. It must not be {@code null}.
-     * @param dn2
-     *            The second DN to be compared. It must not be {@code null}.
-     * @return A negative integer if the first DN should come before the second
-     *         DN in a sorted list, a positive integer if the first DN should
-     *         come after the second DN in a sorted list, or zero if the two DN
-     *         values can be considered equal.
+     * @param dn
+     *            The LDAP byte string representation of a DN.
+     * @return The parsed DN.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code dn} is not a valid LDAP byte string representation of a DN.
+     * @throws NullPointerException
+     *             If {@code dn} was {@code null}.
      */
-    private static int compareTo(final DN dn1, final DN dn2) {
-        return dn1.toNormalizedByteString().compareTo(dn2.toNormalizedByteString());
+    public static DN valueOf(ByteString dn) {
+        return DN.valueOf(dn.toString());
     }
 
     /** Decodes a DN using the provided reader and schema. */
@@ -446,7 +443,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
     @Override
     public int compareTo(final DN dn) {
-        return compareTo(this, dn);
+        return toNormalizedByteString().compareTo(dn.toNormalizedByteString());
     }
 
     @Override
@@ -814,6 +811,29 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
+     * Returns the RDN at the specified index for this DN,
+     * or {@code null} if no such RDN exists.
+     * <p>
+     * Here is an example usage:
+     * <pre>
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(0) => "ou=people"
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(1) => "dc=example"
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(2) => "dc=com"
+     * DN.valueOf("ou=people,dc=example,dc=com").rdn(3) => null
+     * </pre>
+     *
+     * @param index
+     *            The index of the requested RDN.
+     * @return The RDN at the specified index, or {@code null} if no such RDN exists.
+     * @throws IllegalArgumentException
+     *             If {@code index} is less than zero.
+     */
+    public RDN rdn(int index) {
+        DN parentDN = parent(index);
+        return parentDN != null ? parentDN.rdn : null;
+    }
+
+    /**
      * Returns a copy of this DN whose parent DN, {@code fromDN}, has been
      * renamed to the new parent DN, {@code toDN}. If this DN is not subordinate
      * or equal to {@code fromDN} then this DN is returned (i.e. the DN is not
@@ -863,7 +883,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             final StringBuilder builder = new StringBuilder();
             rdn.toString(builder);
             if (!parent.isRootDN()) {
-                builder.append(',');
+                builder.append(RDN_CHAR_SEPARATOR);
                 builder.append(parent);
             }
             stringValue = builder.toString();
@@ -883,20 +903,13 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     public ByteString toNormalizedByteString() {
         if (normalizedDN == null) {
-            if (rdn() == null) {
+            if (rdn == null) {
                 normalizedDN = ByteString.empty();
             } else {
-                final ByteStringBuilder builder = new ByteStringBuilder();
-                int i = size() - 1;
-                parent(i).rdn().toNormalizedByteString(builder);
-                for (i--; i >= 0; i--) {
-                    final RDN rdn = parent(i).rdn();
-                    // Only add a separator if the RDN is not RDN.maxValue().
-                    if (rdn.size() != 0) {
-                        builder.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
-                    }
-                    rdn.toNormalizedByteString(builder);
-                }
+                final ByteString normalizedParent = parent.toNormalizedByteString();
+                final ByteStringBuilder builder = new ByteStringBuilder(normalizedParent.length() + 16);
+                builder.appendBytes(normalizedParent);
+                rdn.toNormalizedByteString(builder);
                 normalizedDN = builder.toByteString();
             }
         }
@@ -916,20 +929,38 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             return "";
         }
 
+        // This code differs from toNormalizedByteString(),
+        // because we do not care about ordering comparisons.
+        // (so we do not append the RDN_SEPARATOR first)
         final StringBuilder builder = new StringBuilder();
         int i = size() - 1;
         parent(i).rdn().toNormalizedUrlSafeString(builder);
         for (i--; i >= 0; i--) {
             final RDN rdn = parent(i).rdn();
-            // Only add a separator if the RDN is not RDN.maxValue().
+            // Only add a separator if the RDN is not RDN.maxValue() or RDN.minValue().
             if (rdn.size() != 0) {
-                builder.append(',');
+                builder.append(RDN_CHAR_SEPARATOR);
             }
             rdn.toNormalizedUrlSafeString(builder);
         }
         return builder.toString();
     }
 
+    /**
+     * Returns a UUID whose content is based on the normalized content of this DN.
+     * Two equivalent DNs subject to the same schema will always yield the same UUID.
+     *
+     * @return the UUID representing this DN
+     */
+    public UUID toUUID() {
+        ByteString normDN = toNormalizedByteString();
+        if (!normDN.isEmpty()) {
+            // remove leading RDN separator
+            normDN = normDN.subSequence(1, normDN.length());
+        }
+        return UUID.nameUUIDFromBytes(normDN.toByteArray());
+    }
+    
     /**
      * A compact representation of a DN, suitable for equality and comparisons, and providing a natural hierarchical
      * ordering.

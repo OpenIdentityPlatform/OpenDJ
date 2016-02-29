@@ -21,6 +21,7 @@ import static org.fest.assertions.Assertions.*;
 import static org.testng.Assert.assertEquals;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -194,8 +195,14 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
         final MatchingRule rule = getRule();
         final ByteString normalizedValue1 =
                 rule.normalizeAttributeValue(ByteString.valueOfUtf8(value1));
-        final ByteString expectedValue = ByteString.valueOfUtf8(value2);
+        final ByteString expectedValue = toExpectedNormalizedByteString(value2);
         assertEquals(normalizedValue1, expectedValue);
     }
 
+    private ByteString toExpectedNormalizedByteString(final String s) {
+        if (s.isEmpty()) {
+            return ByteString.valueOfUtf8(s);
+        }
+        return new ByteStringBuilder().appendByte(0).appendUtf8(s).toByteString();
+    }
 }

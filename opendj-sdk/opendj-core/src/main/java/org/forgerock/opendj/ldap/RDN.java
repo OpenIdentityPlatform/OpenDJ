@@ -16,6 +16,11 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.DN.AVA_CHAR_SEPARATOR;
+import static org.forgerock.opendj.ldap.DN.RDN_CHAR_SEPARATOR;
+import static org.forgerock.opendj.ldap.DN.NORMALIZED_AVA_SEPARATOR;
+import static org.forgerock.opendj.ldap.DN.NORMALIZED_RDN_SEPARATOR;
+
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
 
 import java.util.ArrayList;
@@ -30,10 +35,10 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Iterators;
 import com.forgerock.opendj.util.SubstringReader;
-import org.forgerock.util.Reject;
 
 /**
  * A relative distinguished name (RDN) as defined in RFC 4512 section 2.3 is the
@@ -63,18 +68,44 @@ import org.forgerock.util.Reject;
  */
 public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
-    /** Separator for AVAs. */
-    private static final char AVA_CHAR_SEPARATOR = '+';
-
     /**
-     * A constant holding a special RDN having zero AVAs and which always
-     * compares greater than any other RDN other than itself.
+     * A constant holding a special RDN having zero AVAs
+     * and which sorts before any RDN other than itself.
+     */
+    private static final RDN MIN_VALUE = new RDN(new AVA[0], "");
+    /**
+     * A constant holding a special RDN having zero AVAs
+     * and which sorts after any RDN other than itself.
      */
     private static final RDN MAX_VALUE = new RDN(new AVA[0], "");
 
     /**
-     * Returns a constant containing a special RDN which is greater than any
-     * other RDN other than itself. This RDN may be used in order to perform
+     * Returns a constant containing a special RDN which sorts before any
+     * RDN other than itself. This RDN may be used in order to perform
+     * range queries on DN keyed collections such as {@code SortedSet}s and
+     * {@code SortedMap}s. For example, the following code can be used to
+     * construct a range whose contents is a sub-tree of entries, excluding the base entry:
+     *
+     * <pre>
+     * SortedMap<DN, Entry> entries = ...;
+     * DN baseDN = ...;
+     *
+     * // Returns a map containing the baseDN and all of its subordinates.
+     * SortedMap<DN,Entry> subtree = entries.subMap(
+     *     baseDN.child(RDN.minValue()), baseDN.child(RDN.maxValue()));
+     * </pre>
+     *
+     * @return A constant containing a special RDN which sorts before any
+     *         RDN other than itself.
+     * @see #maxValue()
+     */
+    public static RDN minValue() {
+        return MIN_VALUE;
+    }
+
+    /**
+     * Returns a constant containing a special RDN which sorts after any
+     * RDN other than itself. This RDN may be used in order to perform
      * range queries on DN keyed collections such as {@code SortedSet}s and
      * {@code SortedMap}s. For example, the following code can be used to
      * construct a range whose contents is a sub-tree of entries:
@@ -84,11 +115,12 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      * DN baseDN = ...;
      *
      * // Returns a map containing the baseDN and all of its subordinates.
-     * SortedMap<DN,Entry> subtree = entries.subMap(baseDN, baseDN.child(RDN.maxValue));
+     * SortedMap<DN,Entry> subtree = entries.subMap(baseDN, baseDN.child(RDN.maxValue()));
      * </pre>
      *
-     * @return A constant containing a special RDN which is greater than any
-     *         other RDN other than itself.
+     * @return A constant containing a special RDN which sorts after any
+     *         RDN other than itself.
+     * @see #minValue()
      */
     public static RDN maxValue() {
         return MAX_VALUE;
@@ -244,6 +276,9 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
     @Override
     public int compareTo(final RDN rdn) {
+        // FIXME how about replacing this method body with the following code?
+        // return toNormalizedByteString().compareTo(rdn.toNormalizedByteString())
+
         // Identity.
         if (this == rdn) {
             return 0;
@@ -253,9 +288,16 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         if (this == MAX_VALUE) {
             return 1;
         }
-
         if (rdn == MAX_VALUE) {
             return -1;
+        }
+
+        // MIN_VALUE is always less than any other RDN other than itself.
+        if (this == MIN_VALUE) {
+            return -1;
+        }
+        if (rdn == MIN_VALUE) {
+            return 1;
         }
 
         // Compare number of AVAs first as this is quick and easy.
@@ -348,6 +390,22 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     }
 
     /**
+     * Indicates whether this RDN includes the specified attribute type.
+     *
+     * @param attributeType  The attribute type for which to make the determination.
+     * @return {@code true} if the RDN includes the specified attribute type,
+     *         or {@code false} if not.
+     */
+    public boolean hasAttributeType(AttributeType attributeType) {
+        for (AVA ava : avas) {
+            if (ava.getAttributeType().equals(attributeType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns an iterator of the AVAs contained in this RDN. The AVAs will be
      * returned in the user provided order.
      * <p>
@@ -386,7 +444,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
             final StringBuilder builder = new StringBuilder();
             avas[0].toString(builder);
             for (int i = 1; i < avas.length; i++) {
-                builder.append('+');
+                builder.append(AVA_CHAR_SEPARATOR);
                 avas[i].toString(builder);
             }
             stringValue = builder.toString();
@@ -411,17 +469,22 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     ByteStringBuilder toNormalizedByteString(final ByteStringBuilder builder) {
         switch (size()) {
         case 0:
-            // Handle RDN.maxValue().
-            builder.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
+            if (this == MIN_VALUE) {
+                builder.appendByte(NORMALIZED_RDN_SEPARATOR);
+            } else { // can only be MAX_VALUE
+                builder.appendByte(NORMALIZED_AVA_SEPARATOR);
+            }
             break;
         case 1:
+            builder.appendByte(NORMALIZED_RDN_SEPARATOR);
             getFirstAVA().toNormalizedByteString(builder);
             break;
         default:
+            builder.appendByte(NORMALIZED_RDN_SEPARATOR);
             Iterator<AVA> it = getSortedAvas();
             it.next().toNormalizedByteString(builder);
             while (it.hasNext()) {
-                builder.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
+                builder.appendByte(NORMALIZED_AVA_SEPARATOR);
                 it.next().toNormalizedByteString(builder);
             }
             break;
@@ -441,8 +504,13 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     StringBuilder toNormalizedUrlSafeString(final StringBuilder builder) {
         switch (size()) {
         case 0:
-            // Handle RDN.maxValue().
-            builder.append(RDN.AVA_CHAR_SEPARATOR);
+            // since MIN_VALUE and MAX_VALUE are only used for sorting DNs,
+            // it is strange to call toNormalizedUrlSafeString() on one of them
+            if (this == MIN_VALUE) {
+                builder.append(RDN_CHAR_SEPARATOR);
+            } else { // can only be MAX_VALUE
+                builder.append(AVA_CHAR_SEPARATOR);
+            }
             break;
         case 1:
             getFirstAVA().toNormalizedUrlSafe(builder);
@@ -451,7 +519,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
             Iterator<AVA> it = getSortedAvas();
             it.next().toNormalizedUrlSafe(builder);
             while (it.hasNext()) {
-                builder.append(RDN.AVA_CHAR_SEPARATOR);
+                builder.append(AVA_CHAR_SEPARATOR);
                 it.next().toNormalizedUrlSafe(builder);
             }
             break;

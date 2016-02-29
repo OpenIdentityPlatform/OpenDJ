@@ -12,17 +12,22 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
 import static java.lang.Integer.*;
 
-import static org.fest.assertions.Assertions.*;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
@@ -594,18 +599,22 @@ public class DNTestCase extends SdkTestCase {
         dn.isChildOf((String) null);
     }
 
-    /**
-     * Tests the parent method that require iteration.
-     */
+    /** Tests the parent and rdn method that require iteration. */
     @Test
-    public void testIterableParent() {
+    public void testIterableParentAndRdn() {
         final String str = "ou=people,dc=example,dc=com";
         final DN dn = DN.valueOf(str);
         // Parent at index 0 is self.
-        assertEquals(dn, dn.parent(0));
+        assertEquals(dn.parent(0), dn);
         assertEquals(dn.parent(1), DN.valueOf("dc=example,dc=com"));
         assertEquals(dn.parent(2), DN.valueOf("dc=com"));
         assertEquals(dn.parent(3), DN.rootDN());
+        assertEquals(dn.parent(4), null);
+
+        assertEquals(dn.rdn(0), RDN.valueOf("ou=people"));
+        assertEquals(dn.rdn(1), RDN.valueOf("dc=example"));
+        assertEquals(dn.rdn(2), RDN.valueOf("dc=com"));
+        assertEquals(dn.rdn(3), null);
     }
 
     /**
@@ -674,8 +683,6 @@ public class DNTestCase extends SdkTestCase {
 
         assertEquals(p.rdn(), RDN.valueOf("dc=bar"));
 
-        assertEquals(p.rdn(), RDN.valueOf("dc=bar"));
-
         assertEquals(p.parent(), DN.valueOf("dc=opendj,dc=org"));
         assertEquals(p.parent(), e.parent());
 
@@ -719,15 +726,25 @@ public class DNTestCase extends SdkTestCase {
     }
 
     /**
-     * Tests the root DN.
+     * Tests {@link DN#valueOf(String)}.
      *
      * @throws Exception
      *             If the test failed unexpectedly.
      */
     @Test(expectedExceptions = { NullPointerException.class, AssertionError.class })
-    public void testRootDN2() throws Exception {
-        final DN dn = DN.valueOf(null);
-        assertEquals(dn, DN.rootDN());
+    public void testValueOfString() throws Exception {
+        DN.valueOf((String) null);
+    }
+
+    /**
+     * Tests {@link DN#valueOf(ByteString)}.
+     *
+     * @throws Exception
+     *             If the test failed unexpectedly.
+     */
+    @Test(expectedExceptions = { NullPointerException.class, AssertionError.class })
+    public void testValueOfByteString() throws Exception {
+        DN.valueOf((ByteString) null);
     }
 
     /**
@@ -1030,7 +1047,7 @@ public class DNTestCase extends SdkTestCase {
     }
 
     @DataProvider
-    public Object[][] toIrreversibleNormalizedByteStringDataProvider() {
+    public Object[][] toNormalizedByteStringDataProvider() {
         // @formatter:off
         return new Object[][] {
             // first value to normalize, second value to normalize, expected sign of comparison between the two
@@ -1038,6 +1055,13 @@ public class DNTestCase extends SdkTestCase {
             { "dc=example,dc=com", "dc=example,dc=com", 0 },
             { "cn=test+dc=example,dc=com", "cn=test+dc=example,dc=com", 0 },
             { "dc=example+cn=test,dc=com", "cn=test+dc=example,dc=com", 0 },
+            // siblings
+            { "cn=test,dc=com", "cn=test+dc=example,dc=com", -1 },
+            { "cn=test+dc=example,dc=com", "cn=test,dc=com", 1 },
+            { "dc=example,dc=com", "cn=test+dc=example,dc=com", 1 },
+            { "cn=test+dc=example,dc=com", "dc=example,dc=com", -1 },
+            { "dc=example,dc=com", "dc=example+cn=test,dc=com", 1 },
+            { "dc=example+cn=test,dc=com", "dc=example,dc=com", -1 },
             // parent entry is followed by its children, not its siblings
             { "dc=com", "dc=example,dc=com", -1 },
             { "dc=com", "dc=test,dc=example,dc=com", -1},
@@ -1071,7 +1095,7 @@ public class DNTestCase extends SdkTestCase {
         // @formatter:on
     }
 
-    @Test(dataProvider = "toIrreversibleNormalizedByteStringDataProvider")
+    @Test(dataProvider = "toNormalizedByteStringDataProvider")
     public void testToNormalizedByteString(String first, String second, int expectedCompareResult) {
         DN actual = DN.valueOf(first);
         DN expected = DN.valueOf(second);
@@ -1092,7 +1116,81 @@ public class DNTestCase extends SdkTestCase {
     }
 
     @DataProvider
-    public Object[][] toIrreversibleReadableStringDataProvider() {
+    private Object[][] minAndMaxRdnsDataProvider() {
+        DN dcCom          = DN.valueOf("dc=com");
+        DN dcExampleDcCom = DN.valueOf("dc=example,dc=com");
+        DN cnTestDcCom    = DN.valueOf("cn=test,dc=com");
+        return new Object[][] {
+            { dcCom,          dcCom.child(RDN.minValue()),          -1 },
+            { dcCom,          dcCom.child(RDN.maxValue()),          -1 },
+            { dcExampleDcCom, dcExampleDcCom.child(RDN.minValue()), -1 },
+            { dcExampleDcCom, dcExampleDcCom.child(RDN.maxValue()), -1 },
+            { dcExampleDcCom, dcCom.child(RDN.minValue()),           1 },
+            { dcExampleDcCom, dcCom.child(RDN.maxValue()),          -1 },
+            // siblings
+            { DN.valueOf("cn=test+dc=example,dc=com"), cnTestDcCom.child(RDN.minValue()), 1 },
+            { DN.valueOf("dc=example+cn=test,dc=com"), cnTestDcCom.child(RDN.minValue()), 1 },
+            { DN.valueOf("cn=test+dc=example,dc=com"), cnTestDcCom.child(RDN.maxValue()), 1 },
+            { DN.valueOf("dc=example+cn=test,dc=com"), cnTestDcCom.child(RDN.maxValue()), 1 },
+        };
+    }
+
+    /** Using DN as a Map key depends on this behaviour. In particular MemoryBackend depends on this behaviour. */
+    @Test(dataProvider = "minAndMaxRdnsDataProvider")
+    public void testToNormalizedByteStringWithMinAndMaxRdns(DN dn1, DN dn2, int expectedCompareResult) {
+        int cmp = dn1.toNormalizedByteString().compareTo(dn2.toNormalizedByteString());
+        assertThat(signum(cmp)).isEqualTo(expectedCompareResult);
+    }
+
+    @Test
+    public void testToNormalizedByteStringWithMinAndMaxRdnsInOrderedCollection() {
+        DN dcCom = DN.valueOf("dc=com");
+        DN cnTestDcCom = DN.valueOf("cn=test,dc=com");
+        DN cnDeeperCnTestDcCom = DN.valueOf("cn=deeper,cn=test,dc=com");
+        DN cnTestAndDcExampleDcCom = DN.valueOf("cn=test+dc=example,dc=com");
+        DN dcExampleDcCom = DN.valueOf("dc=example,dc=com");
+
+        TreeMap<ByteString, DN> map = new TreeMap<>();
+        putAll(map, dcCom, cnTestDcCom, cnDeeperCnTestDcCom, cnTestAndDcExampleDcCom, dcExampleDcCom);
+
+        assertThat(subordinates(map, dcCom))
+            .containsExactly(cnTestDcCom, cnDeeperCnTestDcCom, cnTestAndDcExampleDcCom, dcExampleDcCom);
+        assertThat(subordinates(map, cnTestDcCom))
+            .containsExactly(cnDeeperCnTestDcCom);
+
+        assertThat(after(map, cnTestDcCom))
+            .containsExactly(cnDeeperCnTestDcCom, cnTestAndDcExampleDcCom, dcExampleDcCom);
+        assertThat(after(map, cnDeeperCnTestDcCom))
+            .containsExactly(cnTestAndDcExampleDcCom, dcExampleDcCom);
+
+        assertThat(before(map, cnTestDcCom))
+            .containsExactly(dcCom);
+        assertThat(before(map, cnDeeperCnTestDcCom))
+            .containsExactly(dcCom, cnTestDcCom);
+    }
+
+    private void putAll(Map<ByteString, DN> map, DN... dns) {
+        for (DN dn : dns) {
+            map.put(dn.toNormalizedByteString(), dn);
+        }
+    }
+
+    private Collection<DN> subordinates(TreeMap<ByteString, DN> map, DN dn) {
+        return map.subMap(
+            dn.child(RDN.minValue()).toNormalizedByteString(),
+            dn.child(RDN.maxValue()).toNormalizedByteString()).values();
+    }
+
+    private Collection<DN> before(TreeMap<ByteString, DN> map, DN dn) {
+        return map.headMap(dn.toNormalizedByteString(), false).values();
+    }
+
+    private Collection<DN> after(TreeMap<ByteString, DN> map, DN dn) {
+        return map.tailMap(dn.toNormalizedByteString(), false).values();
+    }
+
+    @DataProvider
+    public Object[][] toNormalizedUrlSafeStringDataProvider() {
         // @formatter:off
         return new Object[][] {
             // first value = string used to build DN, second value = expected readable string
@@ -1125,7 +1223,7 @@ public class DNTestCase extends SdkTestCase {
         // @formatter:on
     }
 
-    @Test(dataProvider = "toIrreversibleReadableStringDataProvider")
+    @Test(dataProvider = "toNormalizedUrlSafeStringDataProvider")
     public void testToNormalizedUrlSafeString(String dnAsString, String expectedReadableString) {
         DN actual = DN.valueOf(dnAsString);
         assertEquals(actual.toNormalizedUrlSafeString(), expectedReadableString);
@@ -1140,5 +1238,12 @@ public class DNTestCase extends SdkTestCase {
         String irreversibleReadableString = dn1.toNormalizedUrlSafeString();
         assertEquals(irreversibleReadableString, dn2.toNormalizedUrlSafeString());
         assertEquals(irreversibleReadableString, dn3.toNormalizedUrlSafeString());
+    }
+
+    @Test
+    public void toUUID() {
+        UUID uuid1 = DN.valueOf("dc=example+cn=test,dc=com").toUUID();
+        UUID uuid2 = DN.valueOf("cn=test+dc=example,dc=com").toUUID();
+        assertEquals(uuid1, uuid2);
     }
 }
