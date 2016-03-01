@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -121,7 +121,7 @@ public class DeleteOperationBasis
     {
       if (entryDN == null)
       {
-        entryDN = DN.decode(rawEntryDN);
+        entryDN = DN.valueOf(rawEntryDN);
       }
     }
     catch (DirectoryException de)

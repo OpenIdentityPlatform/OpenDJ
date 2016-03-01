@@ -209,7 +209,7 @@ public class ModifyDNOperationBasis
     {
       if (entryDN == null)
       {
-        entryDN = DN.decode(rawEntryDN);
+        entryDN = DN.valueOf(rawEntryDN);
       }
     }
     catch (DirectoryException de)
@@ -304,7 +304,7 @@ public class ModifyDNOperationBasis
       {
         if (newSuperior == null)
         {
-          newSuperior = DN.decode(rawNewSuperior);
+          newSuperior = DN.valueOf(rawNewSuperior);
         }
       }
       catch (DirectoryException de)

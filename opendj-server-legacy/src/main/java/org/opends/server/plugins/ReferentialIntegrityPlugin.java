@@ -1150,7 +1150,7 @@ public class ReferentialIntegrityPlugin
     {
       for (ByteString attrVal : attr)
       {
-        DN valueEntryDN = DN.decode(attrVal);
+        DN valueEntryDN = DN.valueOf(attrVal);
 
         final Entry valueEntry;
         if (currentConfiguration.getCheckReferencesScopeCriteria() == CheckReferencesScopeCriteria.NAMING_CONTEXT

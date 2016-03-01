@@ -132,7 +132,7 @@ public class VirtualStaticGroup
 
         try
         {
-          targetDN = DN.decode(v);
+          targetDN = DN.valueOf(v);
         }
         catch (DirectoryException de)
         {

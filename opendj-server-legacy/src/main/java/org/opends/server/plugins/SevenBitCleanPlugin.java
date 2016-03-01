@@ -175,7 +175,7 @@ public final class SevenBitCleanPlugin
     DN entryDN;
     try
     {
-      entryDN = DN.decode(addOperation.getRawEntryDN());
+      entryDN = DN.valueOf(addOperation.getRawEntryDN());
     }
     catch (DirectoryException de)
     {
@@ -239,7 +239,7 @@ public final class SevenBitCleanPlugin
     DN entryDN;
     try
     {
-      entryDN = DN.decode(modifyOperation.getRawEntryDN());
+      entryDN = DN.valueOf(modifyOperation.getRawEntryDN());
     }
     catch (DirectoryException de)
     {
@@ -315,7 +315,7 @@ public final class SevenBitCleanPlugin
     DN entryDN;
     try
     {
-      entryDN = DN.decode(modifyDNOperation.getRawEntryDN());
+      entryDN = DN.valueOf(modifyDNOperation.getRawEntryDN());
     }
     catch (DirectoryException de)
     {

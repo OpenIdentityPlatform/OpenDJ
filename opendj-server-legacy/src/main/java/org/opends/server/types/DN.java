@@ -502,7 +502,7 @@ public final class DN implements Comparable<DN>, Serializable
    *                              decode the provided ASN.1 octet
    *                              string as a DN.
    */
-  public static DN decode(ByteSequence dnString)
+  public static DN valueOf(ByteSequence dnString)
          throws DirectoryException
   {
     // A null or empty DN is acceptable.

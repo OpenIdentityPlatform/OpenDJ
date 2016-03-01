@@ -193,7 +193,7 @@ public class AddOperationBasis
     {
       if (entryDN == null)
       {
-        entryDN = DN.decode(rawEntryDN);
+        entryDN = DN.valueOf(rawEntryDN);
       }
     }
     catch (DirectoryException de)

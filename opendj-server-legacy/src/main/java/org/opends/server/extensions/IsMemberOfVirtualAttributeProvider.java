@@ -115,7 +115,7 @@ public class IsMemberOfVirtualAttributeProvider
   {
     try
     {
-      DN groupDN = DN.decode(value);
+      DN groupDN = DN.valueOf(value);
       Group<?> g = DirectoryServer.getGroupManager().getGroupInstance(groupDN);
       return g != null && g.isMember(entry);
     }
@@ -352,7 +352,7 @@ public class IsMemberOfVirtualAttributeProvider
         {
           try
           {
-            DN dn = DN.decode(filter.getAssertionValue());
+            DN dn = DN.valueOf(filter.getAssertionValue());
             return DirectoryServer.getGroupManager().getGroupInstance(dn);
           }
           catch (Exception e)

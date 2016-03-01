@@ -298,7 +298,7 @@ public class TestDN extends TypesTestCase {
 
 
   /**
-   * Tests the <CODE>decode</CODE> method which takes a ByteString
+   * Tests the <CODE>valueOf</CODE> method which takes a ByteString
    * argument.
    *
    * @param rawDN
@@ -311,8 +311,8 @@ public class TestDN extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "testDNs")
-  public void testDecodeByteString(String rawDN, String normDN, String unused) throws Exception {
-    DN dn = DN.decode(ByteString.valueOfUtf8(rawDN));
+  public void testValueOfByteString(String rawDN, String normDN, String unused) throws Exception {
+    DN dn = DN.valueOf(ByteString.valueOfUtf8(rawDN));
     assertEquals(dn.toNormalizedUrlSafeString(), normDN);
   }
 
@@ -357,14 +357,14 @@ public class TestDN extends TypesTestCase {
 
 
   /**
-   * Tests both variants of the {@code decode} method with null arguments.
+   * Tests both variants of the {@code valueOf} method with null arguments.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testDecodeNull() throws Exception {
-    assertEquals(DN.decode((ByteString) null), DN.rootDN());
+  public void testValueOfNull() throws Exception {
+    assertEquals(DN.valueOf((ByteString) null), DN.rootDN());
     assertEquals(DN.valueOf((String) null), DN.rootDN());
   }
 
@@ -397,7 +397,7 @@ public class TestDN extends TypesTestCase {
   @Test(dataProvider = "illegalDNs", expectedExceptions = DirectoryException.class)
   public void testIllegalOctetStringDNs(String dn) throws Exception {
     ByteString octetString = ByteString.valueOfUtf8(dn);
-    DN.decode(octetString);
+    DN.valueOf(octetString);
   }
 
 

@@ -221,7 +221,7 @@ public class SubEntry {
           {
             // Has to have a parent since subentry itself
             // cannot be a suffix entry within the server.
-            this.inheritFromBaseDN = getDN().parent().child(DN.decode(value));
+            this.inheritFromBaseDN = getDN().parent().child(DN.valueOf(value));
             break;
           }
         }

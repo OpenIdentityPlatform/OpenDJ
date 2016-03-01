@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2011-2015 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -391,7 +391,7 @@ abstract class AbstractTextAccessLogPublisher
       {
         try
         {
-          targetDN = DN.decode(rawTargetDN);
+          targetDN = DN.valueOf(rawTargetDN);
         }
         catch (final DirectoryException e)
         {

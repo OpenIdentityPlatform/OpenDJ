@@ -308,7 +308,7 @@ policyLoop:
         {
           try
           {
-            policyDN = DN.decode(v);
+            policyDN = DN.valueOf(v);
             AuthenticationPolicy authPolicy = DirectoryServer
                 .getAuthenticationPolicy(policyDN);
             if (authPolicy == null)

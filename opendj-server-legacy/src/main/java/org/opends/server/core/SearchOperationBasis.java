@@ -305,7 +305,7 @@ public class SearchOperationBasis
     {
       if (baseDN == null)
       {
-        baseDN = DN.decode(rawBaseDN);
+        baseDN = DN.valueOf(rawBaseDN);
       }
     }
     catch (DirectoryException de)

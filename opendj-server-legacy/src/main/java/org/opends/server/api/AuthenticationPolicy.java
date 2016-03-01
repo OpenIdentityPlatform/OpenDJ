@@ -24,10 +24,14 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SubEntry;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -77,9 +81,9 @@ public abstract class AuthenticationPolicy
       DN subentryDN;
       try
       {
-        subentryDN = DN.decode(v);
+        subentryDN = DN.valueOf(v);
       }
-      catch (Exception e)
+      catch (DirectoryException e)
       {
         logger.traceException(e);
 

@@ -16,20 +16,28 @@
  */
 package org.opends.server.extensions;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.admin.std.server.EntryDNVirtualAttributeCfg;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.opends.server.admin.std.server.EntryDNVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.util.ServerConstants.*;
 
@@ -225,7 +233,7 @@ public class EntryDNVirtualAttributeProvider
                             SearchOperation searchOperation)
   {
     SearchFilter      filter = searchOperation.getFilter();
-    LinkedHashSet<DN> dnSet  = new LinkedHashSet<>();
+    Set<DN> dnSet = new LinkedHashSet<>();
     extractDNs(rule.getAttributeType(), filter, dnSet);
 
     if (dnSet.isEmpty())
@@ -268,8 +276,7 @@ public class EntryDNVirtualAttributeProvider
    * @param  dnSet          The set into which the identified DNs should be
    *                        placed.
    */
-  private void extractDNs(AttributeType attributeType, SearchFilter filter,
-                          LinkedHashSet<DN> dnSet)
+  private void extractDNs(AttributeType attributeType, SearchFilter filter, Set<DN> dnSet)
   {
     switch (filter.getFilterType())
     {
@@ -286,9 +293,9 @@ public class EntryDNVirtualAttributeProvider
         {
           try
           {
-            dnSet.add(DN.decode(filter.getAssertionValue()));
+            dnSet.add(DN.valueOf(filter.getAssertionValue()));
           }
-          catch (Exception e)
+          catch (DirectoryException e)
           {
             logger.traceException(e);
           }
@@ -297,4 +304,3 @@ public class EntryDNVirtualAttributeProvider
     }
   }
 }
-

@@ -552,7 +552,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
             case ADD:
               for (ByteString v : attribute)
               {
-                DN member = DN.decode(v);
+                DN member = DN.valueOf(v);
                 memberDNs.add(toCompactDn(member));
                 if (DirectoryServer.getGroupManager().getGroupInstance(member) != null)
                 {
@@ -570,7 +570,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
               {
                 for (ByteString v : attribute)
                 {
-                  DN member = DN.decode(v);
+                  DN member = DN.valueOf(v);
                   memberDNs.remove(toCompactDn(member));
                   nestedGroups.remove(member);
                 }
@@ -581,7 +581,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
               nestedGroups.clear();
               for (ByteString v : attribute)
               {
-                DN member = DN.decode(v);
+                DN member = DN.valueOf(v);
                 memberDNs.add(toCompactDn(member));
                 if (DirectoryServer.getGroupManager().getGroupInstance(member) != null)
                 {

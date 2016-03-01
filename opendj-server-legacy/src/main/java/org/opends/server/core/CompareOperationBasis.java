@@ -170,7 +170,7 @@ public class CompareOperationBasis
     if (entryDN == null) {
       try
       {
-        entryDN = DN.decode(rawEntryDN);
+        entryDN = DN.valueOf(rawEntryDN);
       }
       catch (DirectoryException de)
       {
@@ -336,7 +336,7 @@ public class CompareOperationBasis
       {
         if (entryDN == null)
         {
-          entryDN = DN.decode(rawEntryDN);
+          entryDN = DN.valueOf(rawEntryDN);
         }
       }
       catch (DirectoryException de)

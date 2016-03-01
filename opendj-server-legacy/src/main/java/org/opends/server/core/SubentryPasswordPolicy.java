@@ -256,7 +256,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       {
         for (ByteString val : attr)
         {
-          DN validatorDN = DN.decode(val);
+          DN validatorDN = DN.valueOf(val);
           if (DirectoryServer.getPasswordValidator(validatorDN) == null)
           {
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,

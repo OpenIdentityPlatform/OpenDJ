@@ -158,7 +158,7 @@ public class ModifyOperationBasis
   {
     if (entryDN == null){
       try {
-        entryDN = DN.decode(rawEntryDN);
+        entryDN = DN.valueOf(rawEntryDN);
       }
       catch (DirectoryException de) {
         logger.traceException(de);

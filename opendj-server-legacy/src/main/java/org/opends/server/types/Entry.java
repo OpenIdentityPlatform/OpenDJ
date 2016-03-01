@@ -2867,7 +2867,7 @@ public class Entry
               {
                 for (ByteString value : attr)
                 {
-                  inheritFromDN = DN.decode(value);
+                  inheritFromDN = DN.valueOf(value);
                   // Respect subentry root scope.
                   if (!inheritFromDN.isSubordinateOrEqualTo(
                        subEntry.getDN().parent()))
@@ -3372,7 +3372,7 @@ public class Entry
 
         // Next is the DN itself.
         ByteSequence dnBytes = entryBuffer.readByteSequence(dnLength);
-        dn = DN.decode(dnBytes.toByteString());
+        dn = DN.valueOf(dnBytes.toByteString());
       }
 
 
