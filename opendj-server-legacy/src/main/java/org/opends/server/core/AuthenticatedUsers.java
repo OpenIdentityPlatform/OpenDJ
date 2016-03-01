@@ -172,11 +172,12 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
   @Override
   public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
-    if (op.getResultCode() != ResultCode.SUCCESS) {
+    final DN entryDN = op.getEntryDN();
+    if (op.getResultCode() != ResultCode.SUCCESS || operationDoesNotTargetAuthenticatedUser(entryDN))
+    {
       return PostResponse.continueOperationProcessing();
     }
 
-    final DN entryDN = op.getEntryDN();
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been deleted and terminate them
     Set<CopyOnWriteArraySet<ClientConnection>> arraySet = new HashSet<>();
@@ -201,12 +202,25 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     return PostResponse.continueOperationProcessing();
   }
 
+  private boolean operationDoesNotTargetAuthenticatedUser(final DN entryDN)
+  {
+    lock.readLock().lock();
+    try
+    {
+      return !userMap.containsSubtree(entryDN);
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
+  }
+
   @Override
   public PostResponse doPostResponse(PostResponseModifyOperation op)
   {
     final Entry oldEntry = op.getCurrentEntry();
-
-    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null)
+    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null
+            ||  operationDoesNotTargetAuthenticatedUser(oldEntry.getName()))
     {
       return PostResponse.continueOperationProcessing();
     }
@@ -244,8 +258,9 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
   {
     final Entry oldEntry = op.getOriginalEntry();
     final Entry newEntry = op.getUpdatedEntry();
-
-    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null || newEntry == null) {
+    if (op.getResultCode() != ResultCode.SUCCESS || oldEntry == null || newEntry == null
+            || operationDoesNotTargetAuthenticatedUser(oldEntry.getName()))
+    {
       return PostResponse.continueOperationProcessing();
     }
 

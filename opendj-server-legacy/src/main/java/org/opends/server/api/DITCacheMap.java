@@ -347,6 +347,18 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
 
 
   /**
+   * Returns {@code true} if there are stored objects subordinate to subtree DN.
+   * @param key subtree DN.
+   * @return {@code true} if there are stored objects subordinate to subtree DN.
+   */
+  public boolean containsSubtree(DN key)
+  {
+    return ditCacheMap.containsKey(key);
+  }
+
+
+
+  /**
    * Removes a set of stored objects subordinate to subtree DN.
    * @param key subtree DN.
    * @param values collection for removed objects subordinate
