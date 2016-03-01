@@ -630,6 +630,9 @@ public final class Upgrade
         "cn=UUID Ordering Matching Rule,cn=Matching Rules,cn=config",
         "cn=Word Equality Matching Rule,cn=Matching Rules,cn=config"));
 
+    /** see OPENDJ-2730 */
+    register("4.0.0", removeOldJarFiles());
+
     /**
      * All upgrades will refresh the server configuration schema and generate a new upgrade folder.
      */

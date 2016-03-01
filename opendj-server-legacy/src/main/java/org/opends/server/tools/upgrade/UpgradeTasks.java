@@ -81,6 +81,9 @@ public final class UpgradeTasks
   /** A flag for marking 'rebuild all' task accepted by user. */
   static boolean isRebuildAllIndexesTaskAccepted;
 
+  private static final List<String> SUPPORTED_LOCALES_FOR_3_0_0 = Arrays.asList(
+      "ca_ES", "de", "es", "fr", "ja", "ko", "pl", "zh_CN", "zh_TW");
+
   /**
    * Returns a new upgrade task which adds a config entry to the underlying
    * config file.
@@ -1312,6 +1315,45 @@ public final class UpgradeTasks
         return INFO_UPGRADE_TASK_DELETE_CHANGELOG_SUMMARY.get(replicationDbDir).toString();
       }
     };
+  }
+
+  /** Removes server and localized jars from previous version since names have changed. */
+  static UpgradeTask removeOldJarFiles()
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException
+      {
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(
+            INFORMATION, INFO_UPGRADE_TASK_REMOVE_OLD_JARS.get(), 0);
+        context.notifyProgress(pnc);
+
+        for (final String locale : SUPPORTED_LOCALES_FOR_3_0_0)
+        {
+          deleteJarFileIfExists("OpenDJ_" + locale);
+          deleteJarFileIfExists("OpenDJ-" + locale);
+        }
+        deleteJarFileIfExists("OpenDJ",
+            // Jar files from 2.6.x
+            "jackson-core-asl", "jackson-mapper-asl", "json-fluent", "json-resource-servlet",
+            "mail", "opendj-ldap-sdk", "opendj-rest2ldap-servlet", "opendj-server2x-adapter");
+        context.notifyProgress(pnc.setProgress(100));
+      }
+
+      private void deleteJarFileIfExists(final String... jarFileNames)
+      {
+        for (final String jarFileName : jarFileNames)
+        {
+          final File f = new File(libDirectory, jarFileName + ".jar");
+          if (f.exists())
+          {
+            f.delete();
+          }
+        }
+      }
+    };
+
   }
 
   /** Prevent instantiation. */
