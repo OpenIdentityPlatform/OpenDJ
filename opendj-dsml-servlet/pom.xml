@@ -265,13 +265,6 @@
     </build>
 
     <profiles>
-    <!--
-       Profile to run precommit tasks: checkstyle, copyright (TODO), SVN eol check (TODO),
-       unit-tests
-
-       Tests are not run by default due to running time (average of 8-10 minutes).
-    -->
-
         <profile>
             <id>precommit</id>
             <build>
@@ -279,7 +272,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>2.14</version>
                         <executions>
                             <!-- Disable default from parent -->
                             <execution>
