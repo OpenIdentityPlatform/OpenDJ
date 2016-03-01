@@ -818,6 +818,26 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertThat(runSearch(request, false)).isEmpty();
   }
 
+  @DataProvider
+  protected Object[][] subStringSearchFilter()
+  {
+    return new Object[][] {
+      // @formatter:off
+      { "sn=abadin*", 1},
+      { "sn=*abadin*", 1},
+      { "sn=*abadin", 0},
+      { "sn=*adines", 1}
+      // @formatter:on
+    };
+  }
+
+  @Test(dataProvider = "subStringSearchFilter")
+  public void testFilterUsingSubStringSearch(final String filter, int numberOfEntries) throws Exception
+  {
+    SearchRequest request = newSearchRequest(testBaseDN, SearchScope.WHOLE_SUBTREE, filter);
+    assertThat(runSearch(request, false)).hasSize(numberOfEntries);
+  }
+
   @Test
   public void testSearchIsConsideredUnindexedBasedOnLookThroughLimit() throws DirectoryException {
     final int nbEntries = topEntries.size() + entries.size() + workEntries.size();
@@ -853,7 +873,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   }
 
 
-  @DataProvider(name = "userEntrySearchData")
+  @DataProvider
   protected Object[][] userEntrySearchData()
   {
     return new Object[][] {
