@@ -17,10 +17,9 @@
 
 package org.opends.server.admin.client.cli;
 
-import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
