@@ -529,13 +529,7 @@ public final class ConnectionFactoryProvider {
     }
 
     private String getAuthID(final String mech) throws ArgumentException {
-        String value = null;
-        for (final String s : saslOptionArg.getValues()) {
-            if (s.startsWith(SASL_PROPERTY_AUTHID)) {
-                value = parseSASLOptionValue(s);
-                break;
-            }
-        }
+        String value = getAuthID();
         if (value == null && bindNameArg.isPresent()) {
             value = "dn: " + bindNameArg.getValue();
         }
@@ -551,21 +545,17 @@ public final class ConnectionFactoryProvider {
             }
         }
         if (value == null) {
-            final LocalizableMessage message = ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(mech);
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(mech));
         }
         return value;
     }
 
+    private String getAuthID() throws ArgumentException {
+        return getSaslProperty(SASL_PROPERTY_AUTHID);
+    }
+
     private String getAuthzID() throws ArgumentException {
-        String value = null;
-        for (final String s : saslOptionArg.getValues()) {
-            if (s.startsWith(SASL_PROPERTY_AUTHZID)) {
-                value = parseSASLOptionValue(s);
-                break;
-            }
-        }
-        return value;
+        return getSaslProperty(SASL_PROPERTY_AUTHZID);
     }
 
     /**
@@ -611,13 +601,7 @@ public final class ConnectionFactoryProvider {
      */
     public BindRequest getBindRequest() throws ArgumentException {
         if (bindRequest == null) {
-            String mech = null;
-            for (final String s : saslOptionArg.getValues()) {
-                if (s.startsWith(SASL_PROPERTY_MECH)) {
-                    mech = parseSASLOptionValue(s);
-                    break;
-                }
-            }
+            String mech = getMechanism();
 
             if (mech == null) {
                 if (bindNameArg.isPresent() || bindPasswordFileArg.isPresent()
@@ -672,21 +656,30 @@ public final class ConnectionFactoryProvider {
         return bindRequest;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public String toString() {
-        return connFactory.toString();
+    private String getMechanism() throws ArgumentException {
+        return getSaslProperty(SASL_PROPERTY_MECH);
     }
 
     private String getKDC() throws ArgumentException {
-        String value = null;
+        return getSaslProperty(SASL_PROPERTY_KDC);
+    }
+
+    private String getRealm() throws ArgumentException {
+        return getSaslProperty(SASL_PROPERTY_REALM);
+    }
+
+    private String getSaslProperty(String propertyName) throws ArgumentException {
         for (final String s : saslOptionArg.getValues()) {
-            if (s.startsWith(SASL_PROPERTY_KDC)) {
-                value = parseSASLOptionValue(s);
-                break;
+            if (s.startsWith(propertyName)) {
+                return parseSASLOptionValue(s);
             }
         }
-        return value;
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return connFactory.toString();
     }
 
     /**
@@ -797,17 +790,6 @@ public final class ConnectionFactoryProvider {
         return value;
     }
 
-    private String getRealm() throws ArgumentException {
-        String value = null;
-        for (final String s : saslOptionArg.getValues()) {
-            if (s.startsWith(SASL_PROPERTY_REALM)) {
-                value = parseSASLOptionValue(s);
-                break;
-            }
-        }
-        return value;
-    }
-
     /**
      * Retrieves a <CODE>TrustManager</CODE> object that may be used for
      * interactions requiring access to a trust manager.
@@ -855,7 +837,6 @@ public final class ConnectionFactoryProvider {
      *
      * @return The PIN that should be used to access the trust store, can be null.
      */
-
     private char[] getTrustStorePIN() {
         String pwd;
         if (trustStorePasswordArg.isPresent()) {
@@ -870,11 +851,9 @@ public final class ConnectionFactoryProvider {
 
     private String parseSASLOptionValue(final String option) throws ArgumentException {
         final int equalPos = option.indexOf('=');
-        if (equalPos <= 0) {
-            final LocalizableMessage message = ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(option);
-            throw new ArgumentException(message);
+        if (equalPos == -1) {
+            throw new ArgumentException(ERR_LDAP_CONN_CANNOT_PARSE_SASL_OPTION.get(option));
         }
-
         return option.substring(equalPos + 1, option.length());
     }
 
