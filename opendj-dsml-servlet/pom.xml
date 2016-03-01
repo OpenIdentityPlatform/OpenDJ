@@ -115,7 +115,7 @@
                                     <version>${project.version}</version>
                                     <classifier>ca_ES</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-ca_ES.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_ca_ES.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -124,7 +124,7 @@
                                     <version>${project.version}</version>
                                     <classifier>de</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-de.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_de.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -133,7 +133,7 @@
                                     <version>${project.version}</version>
                                     <classifier>es</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-es.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_es.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -142,7 +142,7 @@
                                     <version>${project.version}</version>
                                     <classifier>fr</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-fr.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_fr.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -151,7 +151,7 @@
                                     <version>${project.version}</version>
                                     <classifier>ja</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-ja.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_ja.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -160,7 +160,7 @@
                                     <version>${project.version}</version>
                                     <classifier>ko</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-ko.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_ko.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -169,7 +169,7 @@
                                     <version>${project.version}</version>
                                     <classifier>pl</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-pl.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_pl.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -178,7 +178,7 @@
                                     <version>${project.version}</version>
                                     <classifier>zh_CN</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-zh_CN.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_zh_CN.jar</destFileName>
                                 </artifactItem>
 
                                 <artifactItem>
@@ -187,7 +187,7 @@
                                     <version>${project.version}</version>
                                     <classifier>zh_TW</classifier>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
-                                    <destFileName>${product.name.lowercase}-zh_TW.jar</destFileName>
+                                    <destFileName>${product.name.lowercase}_zh_TW.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

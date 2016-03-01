@@ -147,8 +147,8 @@
         <product.name>OpenDJ</product.name>
         <product.name.lowercase>opendj</product.name.lowercase>
         <opendj.core.test.jar.version>4.0.0-SNAPSHOT</opendj.core.test.jar.version>
+        <localized.jars.classifier>i18n</localized.jars.classifier>
     </properties>
-
 
     <build>
         <pluginManagement>

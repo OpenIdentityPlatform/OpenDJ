@@ -877,7 +877,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>ca_ES</classifier>
+              <finalName>opendj_ca_ES</finalName>
               <includes>
                 <include>**/*_ca_ES.properties</include>
               </includes>
@@ -891,7 +891,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>de</classifier>
+              <finalName>opendj_de</finalName>
               <includes>
                 <include>**/*_de.properties</include>
               </includes>
@@ -905,7 +905,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>es</classifier>
+              <finalName>opendj_es</finalName>
               <includes>
                 <include>**/*_es.properties</include>
               </includes>
@@ -919,7 +919,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>fr</classifier>
+              <finalName>opendj_fr</finalName>
               <includes>
                 <include>**/*_fr.properties</include>
               </includes>
@@ -933,7 +933,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>ja</classifier>
+              <finalName>opendj_ja</finalName>
               <includes>
                 <include>**/*_ja.properties</include>
               </includes>
@@ -947,7 +947,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>ko</classifier>
+              <finalName>opendj_ko</finalName>
               <includes>
                 <include>**/*_ko.properties</include>
               </includes>
@@ -961,7 +961,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>pl</classifier>
+              <finalName>opendj_pl</finalName>
               <includes>
                 <include>**/*_pl.properties</include>
               </includes>
@@ -975,7 +975,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>zh_CN</classifier>
+              <finalName>opendj_zh_CN</finalName>
               <includes>
                 <include>**/*_zh_CN.properties</include>
               </includes>
@@ -989,7 +989,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>zh_TW</classifier>
+              <finalName>opendj_zh_TW</finalName>
               <includes>
                 <include>**/*_zh_TW.properties</include>
               </includes>
@@ -1357,6 +1357,63 @@
                   <sources>
                     <source>src/snmp</source>
                   </sources>
+                </configuration>
+              </execution>
+
+              <!-- Attach localized jars to this module -->
+              <execution>
+                <id>attach-localized-jars</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${jars.dir}/opendj_ca_ES.jar</file>
+                      <classifier>${localized.jars.classifier}-ca_ES</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_de.jar</file>
+                      <classifier>${localized.jars.classifier}-de</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_es.jar</file>
+                      <classifier>${localized.jars.classifier}-es</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_fr.jar</file>
+                      <classifier>${localized.jars.classifier}-fr</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_ja.jar</file>
+                      <classifier>${localized.jars.classifier}-ja</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_ko.jar</file>
+                      <classifier>${localized.jars.classifier}-ko</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_pl.jar</file>
+                      <classifier>${localized.jars.classifier}-pl</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_zh_CN.jar</file>
+                      <classifier>${localized.jars.classifier}-zh_CN</classifier>
+                    </artifact>
+
+                    <artifact>
+                      <file>${jars.dir}/opendj_zh_TW.jar</file>
+                      <classifier>${localized.jars.classifier}-zh_TW</classifier>
+                    </artifact>
+                  </artifacts>
                 </configuration>
               </execution>
             </executions>
