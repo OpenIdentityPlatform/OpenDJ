@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -40,46 +40,37 @@ public class ByteStringUtility
    */
   public static ByteString convertValue(Object obj) throws IOException
   {
-    ByteString bs = null;
-    if (obj != null)
+    if (obj == null)
     {
-      if (obj instanceof String)
+      return null;
+    }
+    else if (obj instanceof String)
+    {
+      return ByteString.valueOfUtf8((String) obj);
+    }
+    else if (obj instanceof byte[])
+    {
+      return ByteString.wrap((byte[]) obj);
+    }
+    else if (obj instanceof URI)
+    {
+      // read raw content and return as a byte[].
+      try (InputStream is = ((URI) obj).toURL().openStream())
       {
-        bs = ByteString.valueOfUtf8((String)obj);
-      }
-      else if (obj instanceof byte [])
-      {
-        bs = ByteString.wrap((byte [])obj);
-      }
-      else if (obj instanceof URI)
-      {
-        // read raw content and return as a byte[].
-        InputStream is = null;
-        try
+        ByteStringBuilder bsb = new ByteStringBuilder();
+        while (bsb.appendBytes(is, 2048) != -1)
         {
-          is = ((URI) obj).toURL().openStream();
-          ByteStringBuilder bsb = new ByteStringBuilder();
-          while (bsb.appendBytes(is, 2048) != -1)
-          {
-            // do nothing
-          }
-          bs = bsb.toByteString();
+          // do nothing
         }
-        finally
-        {
-          if (is != null)
-          {
-            is.close();
-          }
-        }
-      }
-      else if (obj instanceof Element)
-      {
-        Element element = (Element) obj;
-        bs = ByteString.valueOfUtf8(element.getTextContent());
+        return bsb.toByteString();
       }
     }
-    return bs;
+    else if (obj instanceof Element)
+    {
+      Element element = (Element) obj;
+      return ByteString.valueOfUtf8(element.getTextContent());
+    }
+    return null;
   }
 
   /**

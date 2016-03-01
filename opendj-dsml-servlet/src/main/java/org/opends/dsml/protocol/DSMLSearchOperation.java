@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
-
-
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,8 +41,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 import static org.opends.messages.ProtocolMessages.*;
-
-
 
 /**
  * This class provides the functionality for the performing an LDAP
@@ -252,7 +248,7 @@ public class DSMLSearchOperation
    *
    * @param ad
    *          the attribute description for this Present filter.
-   * @returna new Present search filter with the provided information.
+   * @return a new Present search filter with the provided information.
    * @throws LDAPException
    *           an LDAPException is thrown if the ASN.1 element
    *           provided by the attribute description cannot be decoded
@@ -322,72 +318,62 @@ public class DSMLSearchOperation
   private static LDAPFilter createFilter(JAXBElement<?> xmlElement)
       throws LDAPException, IOException
   {
-    LDAPFilter result = null;
-
     String filterName = xmlElement.getName().getLocalPart();
-
-    if ("and".equals(filterName))
+    switch (filterName)
     {
+    case "and":
       // <xsd:element name="and" type="FilterSet"/>
-      result = createANDFilter((FilterSet) xmlElement.getValue());
-    }
-    else if ("or".equals(filterName))
-    {
+      return createANDFilter((FilterSet) xmlElement.getValue());
+
+    case "or":
       // <xsd:element name="or" type="FilterSet"/>
-      result = createORFilter((FilterSet) xmlElement.getValue());
-    }
-    else if ("not".equals(filterName))
-    {
+      return createORFilter((FilterSet) xmlElement.getValue());
+
+    case "not":
       // <xsd:element name="not" type="Filter"/>
-      result = createNOTFilter((Filter) xmlElement.getValue());
-    }
-    else if ("equalityMatch".equals(filterName))
-    {
+      return createNOTFilter((Filter) xmlElement.getValue());
+
+    case "equalityMatch":
       // <xsd:element name="equalityMatch"
       // type="AttributeValueAssertion"/>
-      result = createEqualityFilter((AttributeValueAssertion) xmlElement
+      return createEqualityFilter((AttributeValueAssertion) xmlElement
           .getValue());
-    }
-    else if ("substrings".equals(filterName))
-    {
+
+    case "substrings":
       // <xsd:element name="substrings" type="SubstringFilter"/>
-      result = createSubstringFilter((SubstringFilter) xmlElement.getValue());
-    }
-    else if ("greaterOrEqual".equals(filterName))
-    {
+      return createSubstringFilter((SubstringFilter) xmlElement.getValue());
+
+    case "greaterOrEqual":
       // <xsd:element name="greaterOrEqual"
       // type="AttributeValueAssertion"/>
-      result = createGreaterOrEqualFilter((AttributeValueAssertion) xmlElement
+      return createGreaterOrEqualFilter((AttributeValueAssertion) xmlElement
           .getValue());
-    }
-    else if ("lessOrEqual".equals(filterName))
-    {
+
+    case "lessOrEqual":
       // <xsd:element name="lessOrEqual"
       // type="AttributeValueAssertion"/>
-      result = createLessOrEqualFilter((AttributeValueAssertion) xmlElement
+      return createLessOrEqualFilter((AttributeValueAssertion) xmlElement
           .getValue());
-    }
-    else if ("present".equals(filterName))
-    {
+
+    case "present":
       // <xsd:element name="present" type="AttributeDescription"/>
-      result =
-        createPresentFilter((AttributeDescription) xmlElement.getValue());
-    }
-    else if ("approxMatch".equals(filterName))
-    {
+      return createPresentFilter((AttributeDescription) xmlElement.getValue());
+
+    case "approxMatch":
       // <xsd:element name="approxMatch"
       // type="AttributeValueAssertion"/>
-      result = createApproximateFilter((AttributeValueAssertion) xmlElement
+      return createApproximateFilter((AttributeValueAssertion) xmlElement
           .getValue());
-    }
-    else if ("extensibleMatch".equals(filterName))
-    {
+
+    case "extensibleMatch":
       // <xsd:element name="extensibleMatch"
       // type="MatchingRuleAssertion"/>
-      result = createExtensibleFilter((MatchingRuleAssertion) xmlElement
+      return createExtensibleFilter((MatchingRuleAssertion) xmlElement
           .getValue());
+
+    default:
+      return null;
     }
-    return result;
   }
 
 
@@ -408,50 +394,47 @@ public class DSMLSearchOperation
   private static LDAPFilter createFilter(Filter filter)
     throws LDAPException, IOException
   {
-
-    LDAPFilter result = null;
-
     if (filter.getAnd() != null)
     {
-      result = createANDFilter(filter.getAnd());
+      return createANDFilter(filter.getAnd());
     }
     else if (filter.getApproxMatch() != null)
     {
-      result = createApproximateFilter(filter.getApproxMatch());
+      return createApproximateFilter(filter.getApproxMatch());
     }
     else if (filter.getEqualityMatch() != null)
     {
-      result = createEqualityFilter(filter.getEqualityMatch());
+      return createEqualityFilter(filter.getEqualityMatch());
     }
     else if (filter.getExtensibleMatch() != null)
     {
-      result = createExtensibleFilter(filter.getExtensibleMatch());
+      return createExtensibleFilter(filter.getExtensibleMatch());
     }
     else if (filter.getGreaterOrEqual() != null)
     {
-      result = createGreaterOrEqualFilter(filter.getGreaterOrEqual());
+      return createGreaterOrEqualFilter(filter.getGreaterOrEqual());
     }
     else if (filter.getLessOrEqual() != null)
     {
-      result = createLessOrEqualFilter(filter.getLessOrEqual());
+      return createLessOrEqualFilter(filter.getLessOrEqual());
     }
     else if (filter.getNot() != null)
     {
-      result = createNOTFilter(filter.getNot());
+      return createNOTFilter(filter.getNot());
     }
     else if (filter.getOr() != null)
     {
-      result = createORFilter(filter.getOr());
+      return createORFilter(filter.getOr());
     }
     else if (filter.getPresent() != null)
     {
-      result = createPresentFilter(filter.getPresent());
+      return createPresentFilter(filter.getPresent());
     }
     else if (filter.getSubstrings() != null)
     {
-      result = createSubstringFilter(filter.getSubstrings());
+      return createSubstringFilter(filter.getSubstrings());
     }
-    return result;
+    return null;
   }
 
 
