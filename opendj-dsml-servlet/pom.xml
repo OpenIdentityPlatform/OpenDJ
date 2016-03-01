@@ -29,8 +29,10 @@
     <packaging>war</packaging>
 
     <properties>
-       <!-- Folder to store the ForgeRock binary license. The license url could be specified with the option -Dbinary.license.url on the maven command line -->
-       <include.binary.license>${project.basedir}/legal-notices/</include.binary.license>
+        <!-- Folder to store the ForgeRock binary license. The license url could be specified with the option -Dbinary.license.url on the maven command line -->
+        <include.binary.license>${project.basedir}/legal-notices/</include.binary.license>
+        <opendj.server.module.name>opendj-server-legacy</opendj.server.module.name>
+        <opendj.jars.folder>opendj-jars</opendj.jars.folder>
     </properties>
 
     <dependencies>
@@ -50,12 +52,7 @@
             <artifactId>i18n-slf4j</artifactId>
         </dependency>
 
-        <!-- OpenDJ SDK dependencies -->
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-cli</artifactId>
-        </dependency>
-
+        <!-- OpenDJ SDK dependency -->
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-core</artifactId>
@@ -69,72 +66,9 @@
 
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <type>jar</type>
+            <artifactId>${opendj.server.module.name}</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>ca_ES</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>de</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>es</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>fr</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>ja</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>ko</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>pl</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>zh_CN</classifier>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-server-legacy</artifactId>
-            <classifier>zh_TW</classifier>
-            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -151,6 +85,112 @@
                         <goals>
                             <goal>parse-version</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-and-rename-opendj-server-legacy-jars</id>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <!-- Copy and rename opendj main jar -->
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}.jar</destFileName>
+                                </artifactItem>
+
+                                <!-- Copy and rename opendj localized jars -->
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>ca_ES</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-ca_ES.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>de</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-de.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>es</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-es.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>fr</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-fr.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>ja</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-ja.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>ko</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-ko.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>pl</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-pl.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>zh_CN</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-zh_CN.jar</destFileName>
+                                </artifactItem>
+
+                                <artifactItem>
+                                    <groupId>org.forgerock.opendj</groupId>
+                                    <artifactId>${opendj.server.module.name}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>zh_TW</classifier>
+                                    <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
+                                    <destFileName>${product.name.lowercase}-zh_TW.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -209,6 +249,12 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <webResources>
+                        <!-- Include OpenDJ jars -->
+                        <resource>
+                            <targetPath>WEB-INF/lib</targetPath>
+                            <directory>${project.build.directory}/opendj-jars</directory>
+                        </resource>
+
                         <!-- Include CDDLv1_0.txt -->
                         <resource>
                             <targetPath>WEB-INF/legal-notices</targetPath>
@@ -239,26 +285,6 @@
                             </includes>
                         </resource>
                     </webResources>
-
-                    <!-- Excludes transitive dependencies -->
-                    <packagingExcludes>
-                        WEB-INF/lib/activation-*.jar,
-                        WEB-INF/lib/chf-*.jar,
-                        WEB-INF/lib/forgerock-persistit*.jar,
-                        WEB-INF/lib/forgerock-audit*.jar,
-                        WEB-INF/lib/grizzly-*.jar,
-                        WEB-INF/lib/jackson-*.jar,
-                        WEB-INF/lib/javax*.jar,
-                        WEB-INF/lib/je*.jar,
-                        WEB-INF/lib/json-*.jar,
-                        WEB-INF/lib/joda-time-*.jar,
-                        WEB-INF/lib/opendj-grizzly*.jar,
-                        WEB-INF/lib/opendj-rest2ldap*.jar,
-                        WEB-INF/lib/opendj-server-${project.version}*.jar,
-                        WEB-INF/lib/org.apache.servicemix.bundles.javax-inject-*.jar,
-                        WEB-INF/lib/super-csv-*.jar,
-                        WEB-INF/lib/validation-api-*.jar
-                    </packagingExcludes>
                 </configuration>
             </plugin>
         </plugins>
