@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -764,6 +763,6 @@ public class EntryHistorical
           entryDN);
     }
 
-    return UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
+    return entryDN.toUUID().toString();
   }
 }

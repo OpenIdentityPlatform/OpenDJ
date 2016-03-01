@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -2545,5 +2546,16 @@ public final class DN implements Comparable<DN>, Iterable<RDN>, Serializable
   public Iterator<RDN> iterator()
   {
     return Arrays.asList(rdnComponents).iterator();
+  }
+
+  /**
+   * Returns a UUID whose content is based on the normalized content of this DN. Two equivalent DNs
+   * subject to the same schema will always yield the same UUID.
+   *
+   * @return the UUID representing this DN
+   */
+  public UUID toUUID()
+  {
+    return UUID.nameUUIDFromBytes(toNormalizedByteString().toByteArray());
   }
 }

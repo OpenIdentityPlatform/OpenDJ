@@ -18,7 +18,6 @@ package org.opends.server.extensions;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -42,7 +41,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -112,7 +110,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN)
          throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
+    String uuidString = entryDN.toUUID().toString();
 
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
@@ -141,8 +139,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testGetUserEntry()
          throws Exception
   {
-    String uuidString =
-         UUID.nameUUIDFromBytes(getBytes("dc=example,dc=com")).toString();
+    String uuidString = DN.valueOf("dc=example,dc=com").toUUID().toString();
 
     TestCaseUtils.clearBackend("userRoot");
 
@@ -287,7 +284,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testSearchEntryUUIDAttrInMatchingFilter(DN entryDN)
          throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(entryDN.toNormalizedByteString().toByteArray()).toString();
+    String uuidString = entryDN.toUUID().toString();
 
     final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryUUID=" + uuidString + ")")
         .addAttribute("entryuuid");
@@ -298,8 +295,6 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(entryUUIDType));
   }
-
-
 
   /**
    * Performs an internal search to retrieve the specified entry, ensuring that
@@ -395,7 +390,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   @Test
   public void testGetValues() throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(getBytes("o=test")).toString();
+    String uuidString = DN.valueOf("o=test").toUUID().toString();
 
     EntryUUIDVirtualAttributeProvider provider =
          new EntryUUIDVirtualAttributeProvider();
@@ -437,7 +432,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   @Test
   public void testHasMatchingValue() throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(getBytes("o=test")).toString();
+    String uuidString = DN.valueOf("o=test").toUUID().toString();
 
     EntryUUIDVirtualAttributeProvider provider =
          new EntryUUIDVirtualAttributeProvider();

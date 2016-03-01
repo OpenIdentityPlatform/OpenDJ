@@ -12,14 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -44,9 +43,7 @@ import org.opends.server.types.VirtualAttributeRule;
 public class EntryUUIDVirtualAttributeProvider
        extends VirtualAttributeProvider<EntryUUIDVirtualAttributeCfg>
 {
-  /**
-   * Creates a new instance of this entryUUID virtual attribute provider.
-   */
+  /** Creates a new instance of this entryUUID virtual attribute provider. */
   public EntryUUIDVirtualAttributeProvider()
   {
     super();
@@ -55,23 +52,18 @@ public class EntryUUIDVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    ByteString normDN = entry.getName().toNormalizedByteString();
-    String uuid = UUID.nameUUIDFromBytes(normDN.toByteArray()).toString();
-    return Attributes.create(rule.getAttributeType(), uuid);
+    return Attributes.create(rule.getAttributeType(), entry.getName().toUUID().toString());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -79,7 +71,6 @@ public class EntryUUIDVirtualAttributeProvider
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -91,7 +82,6 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -101,7 +91,6 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -111,7 +100,6 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -121,7 +109,6 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -130,7 +117,6 @@ public class EntryUUIDVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -142,4 +128,3 @@ public class EntryUUIDVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 }
-

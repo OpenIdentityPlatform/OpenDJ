@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
@@ -34,8 +35,10 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
 /**
@@ -89,16 +92,11 @@ public final class EntryUUIDPlugin
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
     currentConfig.removeEntryUUIDChangeListener(this);
   }
-
-
 
   @Override
   public final PluginResult.ImportLDIF
@@ -112,13 +110,10 @@ public final class EntryUUIDPlugin
       return PluginResult.ImportLDIF.continueEntryProcessing();
     }
 
-
     // Construct a new UUID.  In order to make sure that UUIDs are consistent
     // when the same LDIF is generated on multiple servers, we'll base the UUID
     // on the byte representation of the normalized DN.
-    byte[] dnBytes = entry.getName().toNormalizedByteString().toByteArray();
-    UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
-
+    UUID uuid = entry.getName().toUUID();
     uuidList = Attributes.createAsList(entryUUIDType, uuid.toString());
     entry.putAttribute(entryUUIDType, uuidList);
 
@@ -126,9 +121,6 @@ public final class EntryUUIDPlugin
     return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
@@ -144,7 +136,6 @@ public final class EntryUUIDPlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-
     // Construct a new random UUID.
     UUID uuid = UUID.randomUUID();
     uuidList = Attributes.createAsList(entryUUIDType, uuid.toString());
@@ -154,9 +145,6 @@ public final class EntryUUIDPlugin
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -165,9 +153,6 @@ public final class EntryUUIDPlugin
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       EntryUUIDPluginCfg configuration,
@@ -186,7 +171,6 @@ public final class EntryUUIDPlugin
           // These are acceptable.
           break;
 
-
         default:
           unacceptableReasons.add(ERR_PLUGIN_ENTRYUUID_INVALID_PLUGIN_TYPE.get(pluginType));
           configAcceptable = false;
@@ -196,9 +180,6 @@ public final class EntryUUIDPlugin
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  EntryUUIDPluginCfg configuration)
@@ -207,4 +188,3 @@ public final class EntryUUIDPlugin
     return new ConfigChangeResult();
   }
 }
-
