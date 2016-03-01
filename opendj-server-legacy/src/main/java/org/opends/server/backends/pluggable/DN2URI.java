@@ -608,15 +608,15 @@ class DN2URI extends AbstractTree
      * find subordinates of the base entry from the top of the tree downwards.
      */
     ByteString baseDN = toKey(searchOp.getBaseDN());
-    ByteStringBuilder suffix = beforeKey(baseDN);
-    ByteStringBuilder end = afterKey(baseDN);
+    ByteStringBuilder beforeFirstChild = beforeFirstChildOf(baseDN);
+    ByteStringBuilder afterLastChild = afterLastChildOf(baseDN);
 
     try (Cursor<ByteString, ByteString> cursor = txn.openCursor(getName()))
     {
       // Initialize the cursor very close to the starting value then
       // step forward until we pass the ending value.
-      boolean success = cursor.positionToKeyOrNext(suffix);
-      while (success && cursor.getKey().compareTo(end) < 0)
+      boolean success = cursor.positionToKeyOrNext(beforeFirstChild);
+      while (success && cursor.getKey().compareTo(afterLastChild) < 0)
       {
         // We have found a subordinate referral.
         // Make sure the referral is within scope.

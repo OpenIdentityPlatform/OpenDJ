@@ -1084,14 +1084,14 @@ public class EntryContainer
     /*
      * We will iterate forwards through a range of the dn2id keys to
      * find subordinates of the target entry from the top of the tree
-     * downwards. For example, any subordinates of "dc=example,dc=com" appear
-     * in dn2id with a key ending in ",dc=example,dc=com". The entry
-     * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
+     * downwards. For example, any subordinates of dn "dc=example,dc=com" appear
+     * in dn2id with a dn ending in ",dc=example,dc=com". The dn
+     * "cn=joe,ou=people,dc=example,dc=com" will appear after the dn
      * "ou=people,dc=example,dc=com".
      */
     ByteString baseDNKey = dnToDNKey(aBaseDN, this.baseDN.size());
-    ByteStringBuilder suffix = beforeKey(baseDNKey);
-    ByteStringBuilder end = afterKey(baseDNKey);
+    ByteStringBuilder beforeFirstChild = beforeFirstChildOf(baseDNKey);
+    ByteStringBuilder afterLastChild = afterLastChildOf(baseDNKey);
 
     // Set the starting value.
     ByteSequence begin;
@@ -1112,7 +1112,7 @@ public class EntryContainer
     else
     {
       // Set the starting value to the suffix.
-      begin = suffix;
+      begin = beforeFirstChild;
     }
 
     int lookthroughCount = 0;
@@ -1124,7 +1124,7 @@ public class EntryContainer
       boolean success = cursor.positionToKeyOrNext(begin);
 
       // Step forward until we pass the ending value.
-      while (success && cursor.getKey().compareTo(end) < 0)
+      while (success && cursor.getKey().compareTo(afterLastChild) < 0)
       {
         if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
         {

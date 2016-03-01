@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -92,19 +92,19 @@ public class DnKeyFormat
         && key.byteAt(index) == DN.NORMALIZED_RDN_SEPARATOR && key.byteAt(index - 1) != DN.NORMALIZED_ESC_BYTE;
   }
 
-  static ByteStringBuilder beforeKey(final ByteSequence key)
+  static ByteStringBuilder beforeFirstChildOf(final ByteSequence key)
   {
     final ByteStringBuilder beforeKey = new ByteStringBuilder(key.length() + 1);
     beforeKey.appendBytes(key);
-    beforeKey.appendByte(0x00);
+    beforeKey.appendByte(DN.NORMALIZED_RDN_SEPARATOR);
     return beforeKey;
   }
 
-  static ByteStringBuilder afterKey(final ByteSequence key)
+  static ByteStringBuilder afterLastChildOf(final ByteSequence key)
   {
     final ByteStringBuilder afterKey = new ByteStringBuilder(key.length() + 1);
     afterKey.appendBytes(key);
-    afterKey.appendByte(0x01);
+    afterKey.appendByte(DN.NORMALIZED_AVA_SEPARATOR);
     return afterKey;
   }
 }

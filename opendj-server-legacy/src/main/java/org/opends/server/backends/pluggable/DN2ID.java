@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -257,23 +257,23 @@ class DN2ID extends AbstractTree
   {
     private final ByteStringBuilder builder;
     private final ByteSequence limit;
-    private boolean cursorOnParent;
+    private boolean cursorCurrentlyOnParent;
 
     ChildrenCursor(Cursor<ByteString, ByteString> delegate)
     {
       super(delegate);
       builder = new ByteStringBuilder(128);
-      limit = delegate.isDefined() ? afterKey(delegate.getKey()) : ByteString.empty();
-      cursorOnParent = true;
+      limit = delegate.isDefined() ? afterLastChildOf(delegate.getKey()) : ByteString.empty();
+      cursorCurrentlyOnParent = true;
     }
 
     @Override
     public boolean next()
     {
-      if (cursorOnParent) {
+      if (cursorCurrentlyOnParent) {
         // Go to the first children
         delegate.next();
-        cursorOnParent = false;
+        cursorCurrentlyOnParent = false;
       } else {
         // Go to the next sibling
         delegate.positionToKeyOrNext(nextSibling());
@@ -299,7 +299,7 @@ class DN2ID extends AbstractTree
     SubtreeCursor(Cursor<ByteString, ByteString> delegate)
     {
       super(delegate);
-      limit = delegate.isDefined() ? afterKey(delegate.getKey()) : ByteString.empty();
+      limit = delegate.isDefined() ? afterLastChildOf(delegate.getKey()) : ByteString.empty();
     }
 
     @Override
