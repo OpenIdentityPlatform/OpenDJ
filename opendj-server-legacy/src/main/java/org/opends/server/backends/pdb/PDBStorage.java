@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pdb;
 
@@ -709,6 +709,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  private final ThreadLocal<Boolean> isInsideWriteTransaction = new ThreadLocal<Boolean>();
+
   private final ServerContext serverContext;
   private final File backendDirectory;
   private AccessMode accessMode;
@@ -852,13 +854,11 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public <T> T read(final ReadOperation<T> operation) throws Exception
   {
-    final Transaction txn = db.getTransaction();
     // This check may be unnecessary for PDB, but it will help us detect bad business logic
     // in the pluggable backend that would cause problems for JE.
-    // A nested read would be a serious problem for the JE storage
-    // as it could result in self-deadlock where an inner read attempts to read-lock a record
-    // that has been write-locked in an outer write.
-    throwIfTransactionIsNested(txn);
+    throwIfNestedInWriteTransaction();
+
+    final Transaction txn = db.getTransaction();
     for (;;)
     {
       txn.begin();
@@ -905,11 +905,13 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public void write(final WriteOperation operation) throws Exception
   {
+    throwIfNestedInWriteTransaction();
+
     final Transaction txn = db.getTransaction();
-    throwIfTransactionIsNested(txn);
     for (;;)
     {
       txn.begin();
+      isInsideWriteTransaction.set(Boolean.TRUE);
       try
       {
         try (final StorageImpl storageImpl = newStorageImpl())
@@ -940,16 +942,25 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       finally
       {
         txn.end();
+        isInsideWriteTransaction.set(Boolean.FALSE);
       }
     }
   }
 
-  private void throwIfTransactionIsNested(final Transaction txn)
+  /**
+   * A nested transaction within a write transaction may cause a self-deadlock where an inner read
+   * attempts to read-lock a record that has been write-locked in an outer write.
+   * <p>
+   * It would also be good to forbid any nested transactions, but it is impractical due to some
+   * transactions being deeply nested into the call hierarchy.
+   *
+   * @see <a href="https://bugster.forgerock.org/jira/browse/OPENDJ-2645">OPENDJ-2645</a>
+   */
+  private void throwIfNestedInWriteTransaction()
   {
-    final int txnDepth = txn.getNestedTransactionDepth();
-    if (txnDepth > 0)
+    if (Boolean.TRUE.equals(isInsideWriteTransaction.get()))
     {
-      throw new IllegalStateException("OpenDJ does not use nested transactions. "
+      throw new IllegalStateException("OpenDJ does not support transactions nested in a write transaction. "
           + "Code is forbidden from opening one.");
     }
   }
