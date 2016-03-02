@@ -138,7 +138,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
   private LDAPConnection connect(SecureConnectionCliArgs args, PrintStream out, PrintStream err)
       throws LDAPConnectionException, ArgumentException
   {
-    throwIfArgumentsConflict(args.getBindPasswordArg(), args.getBindPasswordArg());
+    throwIfArgumentsConflict(args.getBindPasswordArg(), args.getBindPasswordFileArg());
     throwIfArgumentsConflict(args.getKeyStorePasswordArg(), args.getKeyStorePasswordFileArg());
     throwIfArgumentsConflict(args.getTrustStorePasswordArg(), args.getTrustStorePasswordFileArg());
     throwIfArgumentsConflict(args.getUseSSLArg(), args.getUseStartTLSArg());
