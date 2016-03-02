@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.security.auth.callback.TextOutputCallback;
@@ -900,7 +901,7 @@ public final class UpgradeTasks
         final boolean isEnabled;
         final Set<DN> baseDNs;
         final File envDir;
-        final Map<String, String> renamedDbs = new HashMap<>();
+        final Map<String, String> renamedDbs = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         private Backend(Entry config) {
           id = config.parseAttribute("ds-cfg-backend-id").asString();
