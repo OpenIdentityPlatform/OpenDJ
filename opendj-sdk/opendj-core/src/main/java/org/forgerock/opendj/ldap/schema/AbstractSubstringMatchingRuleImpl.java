@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -185,12 +185,13 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
         private <T> void substringMatch(final IndexQueryFactory<T> factory, final ByteString normSubstring,
                 final Collection<T> subqueries) {
-            int substrLength = factory.getIndexingOptions().substringKeySize();
+            final int substrLength = factory.getIndexingOptions().substringKeySize();
+            final String indexId = substringIndexId + ":" + substrLength;
 
             // There are two cases, depending on whether the user-provided
             // substring is smaller than the configured index substring length or not.
             if (normSubstring.length() < substrLength) {
-                subqueries.add(rangeMatch(factory, substringIndexId, normSubstring));
+                subqueries.add(rangeMatch(factory, indexId, normSubstring));
             } else {
                 // Break the value up into fragments of length equal to the
                 // index substring length, and read those keys.
@@ -206,7 +207,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 }
 
                 for (ByteSequence key : substringKeys) {
-                    subqueries.add(factory.createExactMatchQuery(substringIndexId, key));
+                    subqueries.add(factory.createExactMatchQuery(indexId, key));
                 }
             }
         }

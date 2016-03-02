@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -43,6 +43,8 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCase {
+
+    private int subStringLength = 3;
 
     private static class FakeSubstringMatchingRuleImpl extends AbstractSubstringMatchingRuleImpl {
 
@@ -135,8 +137,12 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
     }
 
     static IndexingOptions newIndexingOptions() {
+        return newIndexingOptions(3);
+    }
+
+    static IndexingOptions newIndexingOptions(int subStringLength) {
         final IndexingOptions options = mock(IndexingOptions.class);
-        when(options.substringKeySize()).thenReturn(3);
+        when(options.substringKeySize()).thenReturn(subStringLength);
         return options;
     }
 
@@ -188,6 +194,10 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         return sb.toString();
     }
 
+    private String subStringIndexID(String matchingRule) {
+        return matchingRule + ":" + subStringLength;
+    }
+
     @Test(dataProvider = "validAssertions")
     public void testValidAssertions(String attrValue, String assertionValue, ConditionResult expected)
             throws Exception {
@@ -204,10 +214,10 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             null, null, Collections.EMPTY_LIST, valueOfUtf8("this"));
 
         assertEquals(
-            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
+            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(subStringLength))),
             "intersect["
-                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='his'), "
-                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='thi')"
+                    + "exactMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", value=='his'), "
+                    + "exactMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", value=='thi')"
                     + "]");
     }
 
@@ -217,13 +227,13 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             null, valueOfUtf8("abc"), Arrays.asList(toByteStrings("def", "ghi")), valueOfUtf8("jkl"));
 
         assertEquals(
-            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
+            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(subStringLength))),
             "intersect["
                     + "rangeMatch(" + EMR_CASE_EXACT_OID + ", 'abc' <= value < 'abd'), "
-                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='def'), "
-                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='ghi'), "
-                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='jkl'), "
-                    + "exactMatch(" + SMR_CASE_EXACT_OID + ", value=='abc')"
+                    + "exactMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", value=='def'), "
+                    + "exactMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", value=='ghi'), "
+                    + "exactMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", value=='jkl'), "
+                    + "exactMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", value=='abc')"
                     + "]");
     }
 
@@ -234,10 +244,10 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             null, valueOfUtf8("aa"), Collections.EMPTY_LIST, null);
 
         assertEquals(
-            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
+            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(subStringLength))),
             "intersect["
-                    + "rangeMatch(" + EMR_CASE_EXACT_OID + ", 'aa' <= value < 'ab'), "
-                    + "rangeMatch(" + SMR_CASE_EXACT_OID + ", 'aa' <= value < 'ab')"
+                    + "rangeMatch(" + EMR_CASE_EXACT_OID +  ", 'aa' <= value < 'ab'), "
+                    + "rangeMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", 'aa' <= value < 'ab')"
                     + "]");
     }
 
@@ -249,12 +259,12 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             null, lower, Collections.EMPTY_LIST, null);
 
         assertEquals(
-            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions())),
+            assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(subStringLength))),
             // 0x00 is the nul byte, a.k.a. string terminator
             // so everything after it is not part of the string
             "intersect["
                     + "rangeMatch(" + EMR_CASE_EXACT_OID + ", '" + lower + "' <= value < 'b\u0000'), "
-                    + "rangeMatch(" + SMR_CASE_EXACT_OID + ", '" + lower + "' <= value < 'b\u0000')"
+                    + "rangeMatch(" + subStringIndexID(SMR_CASE_EXACT_OID) + ", '" + lower + "' <= value < 'b\u0000')"
                     + "]");
     }
 

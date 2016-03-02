@@ -145,15 +145,17 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         MatchingRule matchingRule = getRule();
         Assertion assertion = matchingRule.getAssertion(value);
 
-        String indexQuery = assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(), false));
+        int subStringLength = 3;
+        String indexQuery = assertion.createIndexQuery(new FakeIndexQueryFactory(newIndexingOptions(subStringLength),
+            false));
 
         ByteString binit = matchingRule.normalizeAttributeValue(ByteString.valueOfUtf8("a"));
         ByteString bfinal = matchingRule.normalizeAttributeValue(ByteString.valueOfUtf8("c"));
         assertEquals(indexQuery,
             "intersect["
             + "rangeMatch(fr.shared, '" + binit.toHexString() + "' <= value < '0054'), "
-            + "rangeMatch(fr.substring, '" + bfinal.toHexString() + "' <= value < '0056'), "
-            + "rangeMatch(fr.substring, '" + binit.toHexString() + "' <= value < '0054')]"
+            + "rangeMatch(fr.substring:" + subStringLength + ", '" + bfinal.toHexString() + "' <= value < '0056'), "
+            + "rangeMatch(fr.substring:" + subStringLength + ", '" + binit.toHexString() + "' <= value < '0054')]"
         );
     }
 }
