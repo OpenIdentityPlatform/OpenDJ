@@ -11,9 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ *  Copyright 2015-2016 ForgeRock AS.
  */
-package com.forgerock.opendj.ldap.tools;
+package com.forgerock.opendj.cli;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,10 +22,36 @@ import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import com.forgerock.opendj.cli.VersionHandler;
-
 /** Class that prints the version of the SDK to System.out. */
-public class SdkVersionHandler implements VersionHandler {
+public final class ToolVersionHandler implements VersionHandler {
+
+    /**
+     * Returns a {@link VersionHandler} which should be used by OpenDJ SDK tools.
+     * <p>
+     * The printed version and SCM revision will be the one of the opendj-core module.
+     * @return A {@link VersionHandler} which should be used by OpenDJ SDK tools.
+     */
+    public static VersionHandler newSdkVersionHandler() {
+        return newToolVersionHandler("opendj-core");
+    }
+
+    /**
+     * Returns a {@link VersionHandler} which should be used to print version and SCM revision of a module.
+     * <p>
+     * The printed version and SCM revision will be read from the module MANIFEST.MF‌ file.
+     * @param moduleName
+     *       Name of the module which uniquely identify the URL of the MANIFEST‌.MF file.
+     * @return A {@link VersionHandler} which should be used by OpenDJ SDK tools.
+     */
+    public static VersionHandler newToolVersionHandler(final String moduleName) {
+        return new ToolVersionHandler(moduleName);
+    }
+
+    private final String moduleName;
+
+    private ToolVersionHandler(final String moduleName) {
+        this.moduleName = moduleName;
+    }
 
     @Override
     public void printVersion() {
@@ -42,7 +68,7 @@ public class SdkVersionHandler implements VersionHandler {
             final Enumeration<URL> manifests = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
             while (manifests.hasMoreElements()) {
                 final URL manifestUrl = manifests.nextElement();
-                if (manifestUrl.toString().contains("/opendj-core-")) {
+                if (manifestUrl.toString().contains(moduleName)) {
                     try (InputStream manifestStream = manifestUrl.openStream()) {
                         final Attributes attrs = new Manifest(manifestStream).getMainAttributes();
                         return attrs.getValue("Bundle-Version") + " (revision " + attrs.getValue("SCM-Revision") + ")";
@@ -51,7 +77,7 @@ public class SdkVersionHandler implements VersionHandler {
             }
             return null;
         } catch (IOException e) {
-            throw new RuntimeException("IOException while determining SDK version", e);
+            throw new RuntimeException("IOException while determining opendj tool version", e);
         }
     }
 }

@@ -17,6 +17,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
@@ -132,7 +133,7 @@ public final class LDAPCompare extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = new ArgumentParser(
             LDAPCompare.class.getName(), toolDescription, false, true, 1, 0, "attribute:value [DN ...]");
-        argParser.setVersionHandler(new SdkVersionHandler());
+        argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPCOMPARE.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;

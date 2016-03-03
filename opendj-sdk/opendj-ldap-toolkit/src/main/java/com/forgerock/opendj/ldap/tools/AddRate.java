@@ -16,6 +16,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static java.util.concurrent.TimeUnit.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -398,7 +399,7 @@ public class AddRate extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_ADDRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
             new ArgumentParser(AddRate.class.getName(), toolDescription, false, true, 1, 1, "template-file-path");
-        argParser.setVersionHandler(new SdkVersionHandler());
+        argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_ADDRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 

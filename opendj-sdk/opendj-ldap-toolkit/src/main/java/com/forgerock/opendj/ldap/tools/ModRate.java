@@ -36,6 +36,7 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -152,7 +153,7 @@ public final class ModRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(ModRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[(attribute:value format string) ...]");
-        argParser.setVersionHandler(new SdkVersionHandler());
+        argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_MODRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 

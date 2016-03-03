@@ -17,6 +17,7 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static org.forgerock.util.Utils.closeSilently;
@@ -76,7 +77,7 @@ public final class LDIFModify extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_LDIFMODIFY_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = new ArgumentParser(
             LDIFModify.class.getName(), toolDescription, false, true, 1, 2, "source [changes]");
-        argParser.setVersionHandler(new SdkVersionHandler());
+        argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFMODIFY.get());
 
         final BooleanArgument continueOnError;

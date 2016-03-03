@@ -18,6 +18,7 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.MultiColumnPrinter.column;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.*;
@@ -377,7 +378,7 @@ public final class AuthRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(AuthRate.class.getName(), toolDescription, false, true, 0, 0,
                         "[filter format string] [attributes ...]");
-        argParser.setVersionHandler(new SdkVersionHandler());
+        argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_AUTHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 

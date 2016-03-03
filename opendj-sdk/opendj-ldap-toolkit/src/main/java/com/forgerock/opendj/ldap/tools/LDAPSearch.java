@@ -74,6 +74,7 @@ import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static org.forgerock.util.Utils.*;
@@ -222,7 +223,7 @@ public final class LDAPSearch extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(LDAPSearch.class.getName(), toolDescription, false, true, 0, 0,
                         "[filter] [attributes ...]");
-        argParser.setVersionHandler(new SdkVersionHandler());
+        argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPSEARCH.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;
