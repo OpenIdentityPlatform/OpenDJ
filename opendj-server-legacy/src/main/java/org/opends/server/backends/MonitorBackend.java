@@ -51,6 +51,7 @@ import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorBackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
@@ -781,31 +782,34 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final ObjectClass monitorOC = monitorProvider.getMonitorObjectClass();
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, monitorOC.getPrimaryName());
 
-    final List<Attribute> monitorAttrs = monitorProvider.getMonitorData();
-    final HashMap<AttributeType, List<Attribute>> attrMap = new LinkedHashMap<>(monitorAttrs.size() + 1);
+    final MonitorData monitorAttrs = monitorProvider.getMonitorData();
+    final Map<AttributeType, List<Attribute>> attrMap = asMap(monitorAttrs);
 
     // Make sure to include the RDN attribute.
     final AVA ava = entryDN.rdn().getFirstAVA();
     final AttributeType rdnType = ava.getAttributeType();
     final ByteString rdnValue = ava.getAttributeValue();
-
     attrMap.put(rdnType, Attributes.createAsList(rdnType, rdnValue));
 
-    // Take the rest of the information from the monitor data.
+    return newEntry(entryDN, monitorClasses, attrMap, new HashMap<AttributeType, List<Attribute>>(0));
+  }
+
+  private Map<AttributeType, List<Attribute>> asMap(MonitorData monitorAttrs)
+  {
+    final Map<AttributeType, List<Attribute>> results = new LinkedHashMap<>(monitorAttrs.size() + 1);
     for (final Attribute a : monitorAttrs)
     {
       final AttributeType type = a.getAttributeDescription().getAttributeType();
 
-      List<Attribute> attrs = attrMap.get(type);
+      List<Attribute> attrs = results.get(type);
       if (attrs == null)
       {
         attrs = new ArrayList<>();
-        attrMap.put(type, attrs);
+        results.put(type, attrs);
       }
       attrs.add(a);
     }
-
-    return newEntry(entryDN, monitorClasses, attrMap, new HashMap<AttributeType, List<Attribute>>(0));
+    return results;
   }
 
   private HashMap<ObjectClass, String> newObjectClasses(ObjectClass objectClass, String objectClassName)

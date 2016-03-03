@@ -18,17 +18,19 @@ package org.opends.server.monitors;
 
 import static org.opends.server.util.ServerConstants.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.ObjectClass;
 
 /**
  * This class implements a monitor provider that will report generic information
@@ -38,24 +40,6 @@ import org.opends.server.types.*;
 public class ConnectionHandlerMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
-  /** The attribute type that will be used to report the established connections. */
-  private AttributeType connectionsType;
-
-  /** The attribute type that will be used to report the listeners. */
-  private AttributeType listenerType;
-
-  /**
-   * The attribute type that will be used to report the number of established
-   * client connections.
-   */
-  private AttributeType numConnectionsType;
-
-  /** The attribute type that will be used to report the protocol. */
-  private AttributeType protocolType;
-
-  /** The attribute type that will be used to report the config dn . */
-  private AttributeType configDnType;
-
   /** The connection handler with which this monitor is associated. */
   private ConnectionHandler<?> connectionHandler;
 
@@ -80,17 +64,10 @@ public class ConnectionHandlerMonitor
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = connectionHandler.getConnectionHandlerName();
-
-    connectionsType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_CONNECTION);
-    listenerType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_LISTENER);
-    numConnectionsType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS);
-    protocolType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONNHANDLER_PROTOCOL);
-    configDnType = DirectoryServer.getAttributeType(ATTR_MONITOR_CONFIG_DN);
   }
 
 
@@ -119,41 +96,31 @@ public class ConnectionHandlerMonitor
 
 
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    LinkedList<Attribute> attrs = new LinkedList<>();
-
-    // Configuration DN
-    attrs.add(Attributes.create(configDnType, connectionHandler.getComponentEntryDN().toString()));
-
-    int numConnections = 0;
     LinkedList<ClientConnection> conns = new LinkedList<>(connectionHandler.getClientConnections());
     LinkedList<HostPort> listeners = new LinkedList<>(connectionHandler.getListeners());
 
-    attrs.add(Attributes.create(protocolType, connectionHandler.getProtocol()));
+    final MonitorData attrs = new MonitorData(5);
+    attrs.add(ATTR_MONITOR_CONFIG_DN, connectionHandler.getComponentEntryDN());
+    attrs.add(ATTR_MONITOR_CONNHANDLER_PROTOCOL, connectionHandler.getProtocol());
 
     if (!listeners.isEmpty())
     {
-      AttributeBuilder builder = new AttributeBuilder(listenerType);
-      builder.addAllStrings(listeners);
-      attrs.add(builder.toAttribute());
+      attrs.add(ATTR_MONITOR_CONNHANDLER_LISTENER, listeners);
     }
 
+    attrs.add(ATTR_MONITOR_CONNHANDLER_NUMCONNECTIONS, conns.size());
     if (!conns.isEmpty())
     {
-      AttributeBuilder builder = new AttributeBuilder(connectionsType);
+      Collection<String> connectionSummaries = new ArrayList<>();
       for (ClientConnection c : conns)
       {
-        numConnections++;
-        builder.add(c.getMonitorSummary());
+        connectionSummaries.add(c.getMonitorSummary());
       }
-      attrs.add(builder.toAttribute());
+      attrs.add(ATTR_MONITOR_CONNHANDLER_CONNECTION, connectionSummaries);
     }
-
-    attrs.add(Attributes.create(numConnectionsType, String
-        .valueOf(numConnections)));
 
     return attrs;
   }

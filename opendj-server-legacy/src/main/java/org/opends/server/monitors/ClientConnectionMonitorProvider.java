@@ -12,21 +12,21 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.TreeMap;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.ClientConnectionMonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -105,24 +105,20 @@ public class ClientConnectionMonitorProvider extends
     }
   }
 
-
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should
-   * be returned to the client if the corresponding monitor entry is
-   * requested.
-   *
-   * @return A set of attributes containing monitor data that should be
-   *         returned to the client if the corresponding monitor entry
-   *         is requested.
-   */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     // Re-order the connections by connection ID.
     TreeMap<Long, ClientConnection> connMap = new TreeMap<>();
 
-    if (handler == null)
+    if (handler != null)
+    {
+      for (ClientConnection conn : handler.getClientConnections())
+      {
+        connMap.put(conn.getConnectionID(), conn);
+      }
+    }
+    else
     {
       // Get information about all the available connections.
       for (ConnectionHandler<?> hdl : DirectoryServer.getConnectionHandlers())
@@ -134,19 +130,14 @@ public class ClientConnectionMonitorProvider extends
         }
       }
     }
-    else
-    {
-      for (ClientConnection conn : handler.getClientConnections())
-      {
-        connMap.put(conn.getConnectionID(), conn);
-      }
-    }
 
-    AttributeBuilder builder = new AttributeBuilder("connection");
+    Collection<String> connectionSummaries = new ArrayList<>(connMap.values().size());
     for (ClientConnection conn : connMap.values())
     {
-      builder.add(conn.getMonitorSummary());
+      connectionSummaries.add(conn.getMonitorSummary());
     }
-    return builder.toAttributeList();
+    MonitorData result = new MonitorData(1);
+    result.add("connection", connectionSummaries);
+    return result;
   }
 }

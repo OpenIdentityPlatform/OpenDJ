@@ -12,9 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.api;
+
+import static org.opends.server.util.ServerConstants.*;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -26,12 +28,9 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
-
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -197,6 +196,6 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    *          be returned to the client if the corresponding monitor
    *          entry is requested.
    */
-  public abstract List<Attribute> getMonitorData();
+  public abstract MonitorData getMonitorData();
 }
 

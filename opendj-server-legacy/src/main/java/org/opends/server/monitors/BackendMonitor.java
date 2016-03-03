@@ -18,19 +18,18 @@ package org.opends.server.monitors;
 
 import static org.opends.server.util.ServerConstants.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Collection;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.BooleanSyntax;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.ObjectClass;
 
 /**
  * This class implements a monitor provider that will report generic information
@@ -40,19 +39,6 @@ import org.opends.server.types.*;
 public class BackendMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
-  /** The attribute type that will be used to report the backend ID. */
-  private AttributeType backendIDType;
-  /** The attribute type that will be used to report the set of base DNs. */
-  private AttributeType baseDNType;
-  /** The attribute type that will be used to report the number of entries. */
-  private AttributeType entryCountType;
-  /** The attribute type that will be used to report the number of entries per base DN. */
-  private AttributeType baseDNEntryCountType;
-  /** The attribute type that will be used to indicate if a backend is private. */
-  private AttributeType isPrivateType;
-  /** The attribute type that will be used to report the writability mode. */
-  private AttributeType writabilityModeType;
-
   /** The backend with which this monitor is associated. */
   private Backend<?> backend;
 
@@ -76,13 +62,6 @@ public class BackendMonitor
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = backend.getBackendID() + " Backend";
-
-    backendIDType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_ID);
-    baseDNType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_BASE_DN);
-    entryCountType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT);
-    baseDNEntryCountType = DirectoryServer.getAttributeType(ATTR_MONITOR_BASE_DN_ENTRY_COUNT);
-    isPrivateType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_IS_PRIVATE);
-    writabilityModeType = DirectoryServer.getAttributeType(ATTR_MONITOR_BACKEND_WRITABILITY_MODE);
   }
 
   @Override
@@ -105,26 +84,23 @@ public class BackendMonitor
   }
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    LinkedList<Attribute> attrs = new LinkedList<>();
-
-    attrs.add(Attributes.create(backendIDType, backend.getBackendID()));
-
     DN[] baseDNs = backend.getBaseDNs();
 
-    AttributeBuilder builder = new AttributeBuilder(baseDNType);
-    builder.addAllStrings(Arrays.asList(baseDNs));
-    attrs.add(builder.toAttribute());
+    MonitorData attrs = new MonitorData(6);
+    attrs.add(ATTR_MONITOR_BACKEND_ID, backend.getBackendID());
+    attrs.add(ATTR_MONITOR_BACKEND_BASE_DN, Arrays.asList(baseDNs));
+    attrs.add(ATTR_MONITOR_BACKEND_IS_PRIVATE, backend.isPrivateBackend());
+    attrs.add(ATTR_MONITOR_BACKEND_ENTRY_COUNT, backend.getEntryCount());
+    attrs.add(ATTR_MONITOR_BASE_DN_ENTRY_COUNT, getBackendEntryCounts(baseDNs));
+    attrs.add(ATTR_MONITOR_BACKEND_WRITABILITY_MODE, backend.getWritabilityMode());
+    return attrs;
+  }
 
-    attrs.add(Attributes.create(isPrivateType, BooleanSyntax
-        .createBooleanValue(backend.isPrivateBackend())));
-
-    long backendCount = backend.getEntryCount();
-    attrs.add(Attributes.create(entryCountType, String
-        .valueOf(backendCount)));
-
-    builder = new AttributeBuilder(baseDNEntryCountType);
+  private Collection<String> getBackendEntryCounts(DN[] baseDNs)
+  {
+    Collection<String> results = new ArrayList<>();
     if (baseDNs.length != 1)
     {
       for (DN dn : baseDNs)
@@ -138,7 +114,7 @@ public class BackendMonitor
         {
           logger.traceException(ex);
         }
-        builder.add(entryCount + " " + dn);
+        results.add(entryCount + " " + dn);
       }
     }
     else
@@ -146,14 +122,8 @@ public class BackendMonitor
       // This is done to avoid recalculating the number of entries
       // using the numSubordinates method in the case where the
       // backend has a single base DN.
-      builder.add(backendCount + " " + baseDNs[0]);
+      results.add(backend.getEntryCount() + " " + baseDNs[0]);
     }
-    attrs.add(builder.toAttribute());
-
-    attrs.add(Attributes.create(writabilityModeType, String
-        .valueOf(backend.getWritabilityMode())));
-
-    return attrs;
+    return results;
   }
 }
-

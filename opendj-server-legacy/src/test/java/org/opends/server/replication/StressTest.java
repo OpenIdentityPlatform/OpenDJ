@@ -30,6 +30,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -38,34 +39,29 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.*;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * Stress test for the synchronization code using the ReplicationBroker API.
- */
+/** Stress test for the synchronization code using the ReplicationBroker API. */
 @SuppressWarnings("javadoc")
 public class StressTest extends ReplicationTestCase
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  private static final String REPLICATION_STRESS_TEST =
-    "Replication Stress Test";
+  private static final String REPLICATION_STRESS_TEST = "Replication Stress Test";
 
   private BrokerReader reader;
-
   /** A "person" entry. */
   private Entry personEntry;
-
   private int replServerPort;
 
 
-  /**
-   * Stress test from LDAP server to client using the ReplicationBroker API.
-   */
+  /** Stress test from LDAP server to client using the ReplicationBroker API. */
   @Test(enabled=false, groups="slow")
   public void fromServertoBroker() throws Exception
   {
@@ -210,7 +206,6 @@ public class StressTest extends ReplicationTestCase
       this.count = count;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -236,17 +231,14 @@ public class StressTest extends ReplicationTestCase
   {
     private ReplicationBroker broker;
     private int count;
-    private Boolean finished = false;
+    private boolean finished;
 
-    /**
-     * Creates a new Stress Test Reader.
-     */
+    /** Creates a new Stress Test Reader. */
     public BrokerReader(ReplicationBroker broker)
     {
       this.broker = broker;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -307,13 +299,19 @@ public class StressTest extends ReplicationTestCase
   private class Monitor extends MonitorProvider<MonitorProviderCfg>
   {
     @Override
-    public List<Attribute> getMonitorData()
+    public MonitorData getMonitorData()
     {
-      String value = reader != null ? String.valueOf(reader.getCurrentCount()) : "not yet started";
-      List<Attribute> list = new LinkedList<>();
-      list.add(Attributes.create("received-messages", value));
-      list.add(Attributes.create("base-dn", "ou=People," + TEST_ROOT_DN_STRING));
-      return list;
+      MonitorData attrs = new MonitorData(2);
+      if (reader != null)
+      {
+        attrs.add("received-messages", reader.getCurrentCount());
+      }
+      else
+      {
+        attrs.add("received-messages", "not yet started");
+      }
+      attrs.add("base-dn", "ou=People," + TEST_ROOT_DN_STRING);
+      return attrs;
     }
 
     @Override
@@ -327,10 +325,6 @@ public class StressTest extends ReplicationTestCase
     throws ConfigException, InitializationException
     {
       // nothing to do
-
     }
-
-
-
   }
 }

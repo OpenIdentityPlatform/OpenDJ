@@ -16,18 +16,13 @@
  */
 package org.opends.server.monitors;
 
-import static org.opends.server.core.DirectoryServer.*;
-
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.extensions.TraditionalWorkQueue;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -109,8 +104,6 @@ public class TraditionalWorkQueueMonitor
     return "Work Queue";
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void run()
   {
@@ -124,18 +117,8 @@ public class TraditionalWorkQueueMonitor
     }
   }
 
-
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     int backlog = workQueue.size();
     totalBacklog += backlog;
@@ -144,26 +127,14 @@ public class TraditionalWorkQueueMonitor
     {
       maxBacklog = backlog;
     }
-
     long averageBacklog = (long) (1.0 * totalBacklog / numPolls);
 
-    long opsSubmitted = workQueue.getOpsSubmitted();
-    long rejectedQueueFull = workQueue.getOpsRejectedDueToQueueFull();
-
-    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
-    putAttribute(monitorAttrs, ATTR_CURRENT_BACKLOG, backlog);
-    putAttribute(monitorAttrs, ATTR_AVERAGE_BACKLOG, averageBacklog);
-    putAttribute(monitorAttrs, ATTR_MAX_BACKLOG, maxBacklog);
-    // The total number of operations submitted.
-    putAttribute(monitorAttrs, ATTR_OPS_SUBMITTED, opsSubmitted);
-    // The total number of operations rejected due to a full work queue.
-    putAttribute(monitorAttrs, ATTR_OPS_REJECTED_QUEUE_FULL, rejectedQueueFull);
+    final MonitorData monitorAttrs = new MonitorData(5);
+    monitorAttrs.add(ATTR_CURRENT_BACKLOG, backlog);
+    monitorAttrs.add(ATTR_AVERAGE_BACKLOG, averageBacklog);
+    monitorAttrs.add(ATTR_MAX_BACKLOG, maxBacklog);
+    monitorAttrs.add(ATTR_OPS_SUBMITTED, workQueue.getOpsSubmitted());
+    monitorAttrs.add(ATTR_OPS_REJECTED_QUEUE_FULL, workQueue.getOpsRejectedDueToQueueFull());
     return monitorAttrs;
-  }
-
-  private void putAttribute(ArrayList<Attribute> monitorAttrs, String attrName, Object value)
-  {
-    AttributeType attrType = getAttributeType(attrName, getDefaultIntegerSyntax());
-    monitorAttrs.add(Attributes.create(attrType, String.valueOf(value)));
   }
 }

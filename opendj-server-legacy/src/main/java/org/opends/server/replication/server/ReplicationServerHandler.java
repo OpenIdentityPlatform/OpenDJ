@@ -29,12 +29,19 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.MonitorData;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.*;
-import org.opends.server.types.*;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.StopMsg;
+import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -643,30 +650,19 @@ public class ReplicationServerHandler extends ServerHandler
         + ",cn=" + replicationServerDomain.getMonitorInstanceName();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    // Get the generic ones
-    List<Attribute> attributes = super.getMonitorData();
+    MonitorData attributes = super.getMonitorData();
 
-    // Add the specific RS ones
-    attributes.add(Attributes.create("Replication-Server", serverURL));
+    ReplicationDomainMonitorData md = replicationServerDomain.getDomainMonitorData();
+    attributes.add("Replication-Server", serverURL);
+    attributes.add("missing-changes", md.getMissingChangesRS(serverId));
 
-    ReplicationDomainMonitorData md =
-        replicationServerDomain.getDomainMonitorData();
-
-    // Missing changes
-    attributes.add(Attributes.create("missing-changes",
-        String.valueOf(md.getMissingChangesRS(serverId))));
-
-    // get the Server State
     ServerState state = md.getRSStates(serverId);
     if (state != null)
     {
-      AttributeBuilder builder = new AttributeBuilder("server-state");
-      builder.addAllStrings(state.toStringSet());
-      attributes.add(builder.toAttribute());
+      attributes.add("server-state", state.toStringSet());
     }
 
     return attributes;

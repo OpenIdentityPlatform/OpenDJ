@@ -16,14 +16,10 @@
  */
 package org.opends.server.monitors;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.VersionMonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.DynamicConstants;
 
@@ -70,44 +66,39 @@ public class VersionMonitorProvider
   }
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<>(12);
+    MonitorData attrs = new MonitorData(12);
 
-    attrs.add(createAttribute(ATTR_PRODUCT_NAME, DynamicConstants.PRODUCT_NAME));
-    attrs.add(createAttribute(ATTR_SHORT_NAME, DynamicConstants.SHORT_NAME));
-    attrs.add(createAttribute(ATTR_MAJOR_VERSION, DynamicConstants.MAJOR_VERSION));
-    attrs.add(createAttribute(ATTR_MINOR_VERSION, DynamicConstants.MINOR_VERSION));
-    attrs.add(createAttribute(ATTR_POINT_VERSION, DynamicConstants.POINT_VERSION));
+    attrs.add(ATTR_PRODUCT_NAME, DynamicConstants.PRODUCT_NAME);
+    attrs.add(ATTR_SHORT_NAME, DynamicConstants.SHORT_NAME);
+    attrs.add(ATTR_MAJOR_VERSION, DynamicConstants.MAJOR_VERSION);
+    attrs.add(ATTR_MINOR_VERSION, DynamicConstants.MINOR_VERSION);
+    attrs.add(ATTR_POINT_VERSION, DynamicConstants.POINT_VERSION);
 
     String versionQualifier = DynamicConstants.VERSION_QUALIFIER;
     if (versionQualifier != null && versionQualifier.length() > 0)
     {
-      attrs.add(createAttribute(ATTR_VERSION_QUALIFIER, versionQualifier));
+      attrs.add(ATTR_VERSION_QUALIFIER, versionQualifier);
     }
 
     int buildNumber = DynamicConstants.BUILD_NUMBER;
     if (buildNumber > 0)
     {
-      attrs.add(createAttribute(ATTR_BUILD_NUMBER, buildNumber));
+      attrs.add(ATTR_BUILD_NUMBER, buildNumber);
     }
 
     String fixIDs = DynamicConstants.FIX_IDS;
     if (fixIDs != null && fixIDs.length() > 0)
     {
-      attrs.add(createAttribute(ATTR_FIX_IDS, fixIDs));
+      attrs.add(ATTR_FIX_IDS, fixIDs);
     }
 
-    attrs.add(createAttribute(ATTR_REVISION, DynamicConstants.REVISION));
-    attrs.add(createAttribute(ATTR_BUILD_ID, DynamicConstants.BUILD_ID));
-    attrs.add(createAttribute(ATTR_COMPACT_VERSION, DynamicConstants.COMPACT_VERSION_STRING));
-    attrs.add(createAttribute(ATTR_FULL_VERSION, DynamicConstants.FULL_VERSION_STRING));
+    attrs.add(ATTR_REVISION, DynamicConstants.REVISION);
+    attrs.add(ATTR_BUILD_ID, DynamicConstants.BUILD_ID);
+    attrs.add(ATTR_COMPACT_VERSION, DynamicConstants.COMPACT_VERSION_STRING);
+    attrs.add(ATTR_FULL_VERSION, DynamicConstants.FULL_VERSION_STRING);
 
     return attrs;
-  }
-
-  private Attribute createAttribute(String name, Object value)
-  {
-    return Attributes.create(name, String.valueOf(value));
   }
 }

@@ -16,21 +16,20 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -276,9 +275,8 @@ public class DefaultEntryCache
     return new ConfigChangeResult();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     // The sum of cache hits of all active entry cache implementations.
     long entryCacheHits = 0;
@@ -304,7 +302,7 @@ public class DefaultEntryCache
         );
     } catch (Exception e) {
       logger.traceException(e);
-      return Collections.emptyList();
+      return new MonitorData(0);
     }
   }
 

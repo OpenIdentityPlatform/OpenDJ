@@ -22,7 +22,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +30,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -39,10 +39,9 @@ import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.CacheEntry;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -530,13 +529,12 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     try {
       return EntryCacheCommon.getGenericMonitorData(
-        Long.valueOf(cacheHits.longValue()),
+        cacheHits.longValue(),
         // If cache misses is maintained by default cache
         // get it from there and if not point to itself.
         DirectoryServer.getEntryCache().getCacheMisses(),
@@ -547,11 +545,10 @@ public class SoftReferenceEntryCache
         );
     } catch (Exception e) {
       logger.traceException(e);
-      return Collections.emptyList();
+      return new MonitorData(0);
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Long getCacheCount()
   {

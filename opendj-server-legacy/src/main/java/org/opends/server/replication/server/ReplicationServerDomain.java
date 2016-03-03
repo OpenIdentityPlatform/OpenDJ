@@ -38,6 +38,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -61,8 +62,6 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
@@ -2273,27 +2272,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         + ",cn=Replication";
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    // publish the server id and the port number.
-    List<Attribute> attributes = new ArrayList<>();
-    attributes.add(Attributes.create("replication-server-id",
-        String.valueOf(localReplicationServer.getServerId())));
-    attributes.add(Attributes.create("replication-server-port",
-        String.valueOf(localReplicationServer.getReplicationPort())));
-    attributes.add(Attributes.create("domain-name",
-        baseDN.toString()));
-    attributes.add(Attributes.create("generation-id",
-        baseDN + " " + generationId));
+    int serverId = localReplicationServer.getServerId();
 
-    // Missing changes
-    long missingChanges = getDomainMonitorData().getMissingChangesRS(
-        localReplicationServer.getServerId());
-    attributes.add(Attributes.create("missing-changes",
-        String.valueOf(missingChanges)));
-
+    final MonitorData attributes = new MonitorData(5);
+    attributes.add("replication-server-id", serverId);
+    attributes.add("replication-server-port", localReplicationServer.getReplicationPort());
+    attributes.add("domain-name", baseDN);
+    attributes.add("generation-id", baseDN + " " + generationId);
+    attributes.add("missing-changes", getDomainMonitorData().getMissingChangesRS(serverId));
     return attributes;
   }
 

@@ -17,7 +17,6 @@
 package org.opends.server.extensions;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -45,6 +44,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DiskSpaceMonitorHandler;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
@@ -96,13 +96,13 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
         throws ConfigException, InitializationException {
     }
 
-    /** {@inheritDoc} */
     @Override
-    public List<Attribute> getMonitorData() {
-      final List<Attribute> monitorAttrs = new ArrayList<>();
-      monitorAttrs.add(attr("disk-dir", getDefaultStringSyntax(), directory.getPath()));
-      monitorAttrs.add(attr("disk-free", getDefaultIntegerSyntax(), getFreeSpace()));
-      monitorAttrs.add(attr("disk-state", getDefaultStringSyntax(), getState()));
+    public MonitorData getMonitorData()
+    {
+      final MonitorData monitorAttrs = new MonitorData(3);
+      monitorAttrs.add("disk-dir", directory.getPath());
+      monitorAttrs.add("disk-free", getFreeSpace());
+      monitorAttrs.add("disk-state", getState());
       return monitorAttrs;
     }
 
@@ -353,19 +353,17 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     // Not used...
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName() {
     return INSTANCENAME;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData() {
-    return new ArrayList<>();
+  public MonitorData getMonitorData()
+  {
+    return new MonitorData(0);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void run()
   {

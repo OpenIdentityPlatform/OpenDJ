@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
@@ -21,9 +21,7 @@ import static org.opends.server.util.ServerConstants.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,11 +31,9 @@ import javax.net.ssl.SSLParameters;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -65,22 +61,22 @@ public class SystemInfoMonitorProvider
   }
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<>(13);
+    MonitorData attrs = new MonitorData(13);
 
-    attrs.add(createAttribute("javaVersion", System.getProperty("java.version")));
-    attrs.add(createAttribute("javaVendor", System.getProperty("java.vendor")));
-    attrs.add(createAttribute("jvmVersion", System.getProperty("java.vm.version")));
-    attrs.add(createAttribute("jvmVendor", System.getProperty("java.vm.vendor")));
-    attrs.add(createAttribute("javaHome", System.getProperty("java.home")));
-    attrs.add(createAttribute("classPath", System.getProperty("java.class.path")));
-    attrs.add(createAttribute("workingDirectory", System.getProperty("user.dir")));
+    attrs.add("javaVersion", System.getProperty("java.version"));
+    attrs.add("javaVendor", System.getProperty("java.vendor"));
+    attrs.add("jvmVersion", System.getProperty("java.vm.version"));
+    attrs.add("jvmVendor", System.getProperty("java.vm.vendor"));
+    attrs.add("javaHome", System.getProperty("java.home"));
+    attrs.add("classPath", System.getProperty("java.class.path"));
+    attrs.add("workingDirectory", System.getProperty("user.dir"));
 
     String osInfo = System.getProperty("os.name") + " " +
                     System.getProperty("os.version") + " " +
                     System.getProperty("os.arch");
-    attrs.add(createAttribute("operatingSystem", osInfo));
+    attrs.add("operatingSystem", osInfo);
     String sunOsArchDataModel = System.getProperty("sun.arch.data.model");
     if (sunOsArchDataModel != null)
     {
@@ -89,17 +85,16 @@ public class SystemInfoMonitorProvider
       {
         jvmArch += "-bit";
       }
-      attrs.add(createAttribute("jvmArchitecture", jvmArch));
+      attrs.add("jvmArchitecture", jvmArch);
     }
     else
     {
-      attrs.add(createAttribute("jvmArchitecture","unknown"));
+      attrs.add("jvmArchitecture", "unknown");
     }
 
     try
     {
-      attrs.add(createAttribute("systemName",
-                     InetAddress.getLocalHost().getCanonicalHostName()));
+      attrs.add("systemName", InetAddress.getLocalHost().getCanonicalHostName());
     }
     catch (Exception e)
     {
@@ -108,19 +103,19 @@ public class SystemInfoMonitorProvider
 
 
     Runtime runtime = Runtime.getRuntime();
-    attrs.add(createAttribute("availableCPUs", runtime.availableProcessors()));
-    attrs.add(createAttribute("maxMemory", runtime.maxMemory()));
-    attrs.add(createAttribute("usedMemory", runtime.totalMemory()));
-    attrs.add(createAttribute("freeUsedMemory", runtime.freeMemory()));
+    attrs.add("availableCPUs", runtime.availableProcessors());
+    attrs.add("maxMemory", runtime.maxMemory());
+    attrs.add("usedMemory", runtime.totalMemory());
+    attrs.add("freeUsedMemory", runtime.freeMemory());
     String installPath = DirectoryServer.getServerRoot();
     if (installPath != null)
     {
-      attrs.add(createAttribute("installPath", installPath));
+      attrs.add("installPath", installPath);
     }
     String instancePath = DirectoryServer.getInstanceRoot();
     if (instancePath != null)
     {
-      attrs.add(createAttribute("instancePath", instancePath));
+      attrs.add("instancePath", instancePath);
     }
 
     // Get the JVM input arguments.
@@ -141,42 +136,23 @@ public class SystemInfoMonitorProvider
         argList.append("\"");
       }
 
-      attrs.add(createAttribute("jvmArguments", argList.toString()));
+      attrs.add("jvmArguments", argList);
     }
 
-    // Get the list of supported SSL protocols and ciphers.
-    Collection<String> supportedTlsProtocols;
-    Collection<String> supportedTlsCiphers;
     try
     {
       final SSLContext context = SSLContext.getDefault();
       final SSLParameters parameters = context.getSupportedSSLParameters();
-      supportedTlsProtocols = Arrays.asList(parameters.getProtocols());
-      supportedTlsCiphers = Arrays.asList(parameters.getCipherSuites());
+      attrs.add(ATTR_SUPPORTED_TLS_PROTOCOLS, Arrays.asList(parameters.getProtocols()));
+      attrs.add(ATTR_SUPPORTED_TLS_CIPHERS, Arrays.asList(parameters.getCipherSuites()));
     }
     catch (Exception e)
     {
       // A default SSL context should always be available.
-      supportedTlsProtocols = Collections.emptyList();
-      supportedTlsCiphers = Collections.emptyList();
+      attrs.add(ATTR_SUPPORTED_TLS_PROTOCOLS, Collections.emptyList());
+      attrs.add(ATTR_SUPPORTED_TLS_CIPHERS, Collections.emptyList());
     }
-
-    addAttribute(attrs, ATTR_SUPPORTED_TLS_PROTOCOLS, supportedTlsProtocols);
-    addAttribute(attrs, ATTR_SUPPORTED_TLS_CIPHERS, supportedTlsCiphers);
 
     return attrs;
   }
-
-  private void addAttribute(ArrayList<Attribute> attrs, String attrName, Collection<String> values)
-  {
-    AttributeBuilder builder = new AttributeBuilder(attrName);
-    builder.addAllStrings(values);
-    attrs.add(builder.toAttribute());
-  }
-
-  private Attribute createAttribute(String name, Object value)
-  {
-    return Attributes.create(name, String.valueOf(value));
-  }
 }
-

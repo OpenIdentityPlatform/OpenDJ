@@ -16,18 +16,13 @@
  */
 package org.opends.server.monitors;
 
-import static org.opends.server.core.DirectoryServer.*;
-
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.extensions.ParallelWorkQueue;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -105,8 +100,6 @@ public class ParallelWorkQueueMonitor
     return "Work Queue";
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void run()
   {
@@ -120,18 +113,8 @@ public class ParallelWorkQueueMonitor
     }
   }
 
-
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     int backlog = workQueue.size();
     totalBacklog += backlog;
@@ -142,21 +125,12 @@ public class ParallelWorkQueueMonitor
     }
 
     long averageBacklog = (long) (1.0 * totalBacklog / numPolls);
-    long opsSubmitted = workQueue.getOpsSubmitted();
 
-    ArrayList<Attribute> monitorAttrs = new ArrayList<>();
-    putAttribute(monitorAttrs, ATTR_CURRENT_BACKLOG, backlog);
-    putAttribute(monitorAttrs, ATTR_AVERAGE_BACKLOG, averageBacklog);
-    putAttribute(monitorAttrs, ATTR_MAX_BACKLOG, maxBacklog);
-    // The total number of operations submitted.
-    putAttribute(monitorAttrs, ATTR_OPS_SUBMITTED, opsSubmitted);
-
+    final MonitorData monitorAttrs = new MonitorData(4);
+    monitorAttrs.add(ATTR_CURRENT_BACKLOG, backlog);
+    monitorAttrs.add(ATTR_AVERAGE_BACKLOG, averageBacklog);
+    monitorAttrs.add(ATTR_MAX_BACKLOG, maxBacklog);
+    monitorAttrs.add(ATTR_OPS_SUBMITTED, workQueue.getOpsSubmitted());
     return monitorAttrs;
-  }
-
-  private void putAttribute(ArrayList<Attribute> monitorAttrs, String attrName, Object value)
-  {
-    AttributeType attrType = getAttributeType(attrName, getDefaultIntegerSyntax());
-    monitorAttrs.add(Attributes.create(attrType, String.valueOf(value)));
   }
 }

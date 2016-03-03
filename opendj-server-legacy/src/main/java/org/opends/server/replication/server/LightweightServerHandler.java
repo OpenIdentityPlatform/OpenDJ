@@ -12,24 +12,21 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -149,26 +146,16 @@ public class LightweightServerHandler
         + ",cn=" + replServerHandler.getMonitorInstanceName();
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    List<Attribute> attributes = new ArrayList<>();
+    MonitorData attributes = new MonitorData(8);
 
     final int serverId = dsInfo.getDsId();
     final ReplicationServerDomain domain = replServerHandler.getDomain();
-    attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name",
-        domain.getBaseDN().toString()));
-    attributes.add(Attributes.create("connected-to",
-        replServerHandler.getMonitorInstanceName()));
+    attributes.add("server-id", serverId);
+    attributes.add("domain-name", domain.getBaseDN());
+    attributes.add("connected-to", replServerHandler.getMonitorInstanceName());
 
     // Retrieves the topology counters
     final ReplicationDomainMonitorData md = domain.getDomainMonitorData();
@@ -178,36 +165,25 @@ public class LightweightServerHandler
       remoteState = new ServerState();
     }
 
-    // get the Server State
-    AttributeBuilder builder = new AttributeBuilder("server-state");
-    builder.addAllStrings(remoteState.toStringSet());
-    if (builder.size() == 0)
+    Set<String> serverState = remoteState.toStringSet();
+    if (serverState.isEmpty())
     {
-      builder.add("unknown");
+      attributes.add("server-state", "unknown");
     }
-    attributes.add(builder.toAttribute());
+    else
+    {
+      attributes.add("server-state", serverState);
+    }
 
     // Oldest missing update
     long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
     if (approxFirstMissingDate > 0)
     {
-      Date date = new Date(approxFirstMissingDate);
-      attributes.add(Attributes.create(
-          "approx-older-change-not-synchronized", date.toString()));
-      attributes.add(Attributes.create(
-          "approx-older-change-not-synchronized-millis", String
-          .valueOf(approxFirstMissingDate)));
+      attributes.add("approx-older-change-not-synchronized", new Date(approxFirstMissingDate));
+      attributes.add("approx-older-change-not-synchronized-millis", approxFirstMissingDate);
     }
-
-    // Missing changes
-    long missingChanges = md.getMissingChanges(serverId);
-    attributes.add(Attributes.create("missing-changes",
-        String.valueOf(missingChanges)));
-
-    // Replication delay
-    long delay = md.getApproxDelay(serverId);
-    attributes.add(Attributes.create("approximate-delay",
-        String.valueOf(delay)));
+    attributes.add("missing-changes", md.getMissingChanges(serverId));
+    attributes.add("approximate-delay", md.getApproxDelay(serverId));
 
     return attributes;
   }

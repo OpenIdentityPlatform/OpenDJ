@@ -12,11 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -25,10 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;
 
@@ -100,55 +99,47 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     return name;
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return A set of attributes containing monitor data that should be
-   *         returned to the client if the corresponding monitor entry is requested.
-   */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    List<Attribute> monitorAttrs = new ArrayList<>();
+    MonitorData monitorAttrs = new MonitorData(5);
 
-    AttributeBuilder needReindex = createNeedReindex("need-reindex");
-    if (needReindex.size() > 0)
+    Collection<String> needReindexValues = createNeedReindexValues();
+    if (needReindexValues.size() > 0)
     {
-      monitorAttrs.add(needReindex.toAttribute());
+      monitorAttrs.add("need-reindex", needReindexValues);
     }
 
     if (filterUseEnabled)
     {
-      monitorAttrs.add(createAttribute("filter-use-startTime", startTimeStamp));
-      monitorAttrs.add(createFilterUse("filter-use"));
-      monitorAttrs.add(createAttribute("filter-use-indexed", indexedSearchCount));
-      monitorAttrs.add(createAttribute("filter-use-unindexed", unindexedSearchCount));
+      monitorAttrs.add("filter-use-startTime", startTimeStamp);
+      monitorAttrs.add("filter-use", createFilterUseValues());
+      monitorAttrs.add("filter-use-indexed", indexedSearchCount);
+      monitorAttrs.add("filter-use-unindexed", unindexedSearchCount);
     }
 
     return monitorAttrs;
   }
 
-  private AttributeBuilder createNeedReindex(String attrName)
+  private Collection<String> createNeedReindexValues()
   {
-    AttributeBuilder needReindex = new AttributeBuilder(attrName);
+    Collection<String> values = new ArrayList<>();
     for (EntryContainer ec : rootContainer.getEntryContainers())
     {
       for (Tree tree : ec.listTrees())
       {
         if (tree instanceof Index && !((Index) tree).isTrusted())
         {
-          needReindex.add(tree.getName().toString());
+          values.add(tree.getName().toString());
         }
       }
     }
-    return needReindex;
+    return values;
   }
 
-  private Attribute createFilterUse(String attrName)
+  private List<String> createFilterUseValues()
   {
-    AttributeBuilder builder = new AttributeBuilder(attrName);
-
+    List<String> values = new ArrayList<>();
     StringBuilder value = new StringBuilder();
     synchronized (filterToStats)
     {
@@ -158,16 +149,11 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
         value.append(" hits:").append(entry.getValue().hits.get());
         value.append(" maxmatches:").append(entry.getValue().maxMatchingEntries);
         value.append(" message:").append(entry.getValue().failureReason);
-        builder.add(value.toString());
+        values.add(value.toString());
         value.setLength(0);
       }
     }
-    return builder.toAttribute();
-  }
-
-  private Attribute createAttribute(String attrName, Object value)
-  {
-    return Attributes.create(attrName, String.valueOf(value));
+    return values;
   }
 
   /**

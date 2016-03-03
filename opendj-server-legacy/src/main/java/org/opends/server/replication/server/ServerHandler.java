@@ -12,14 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -30,15 +29,29 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.protocol.AckMsg;
+import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
+import org.opends.server.replication.protocol.HeartbeatThread;
+import org.opends.server.replication.protocol.MonitorMsg;
+import org.opends.server.replication.protocol.MonitorRequestMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.ResetGenerationIdMsg;
+import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.StartMsg;
+import org.opends.server.replication.protocol.StartSessionMsg;
+import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -472,58 +485,46 @@ public abstract class ServerHandler extends MessageHandler
     return heartbeatInterval;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     // Get the generic ones
-    List<Attribute> attributes = super.getMonitorData();
+    MonitorData attributes = super.getMonitorData();
 
-    attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name", String.valueOf(getBaseDN())));
+    attributes.add("server-id", serverId);
+    attributes.add("domain-name", getBaseDN());
 
     // Deprecated
-    attributes.add(Attributes.create("max-waiting-changes", String
-        .valueOf(maxQueueSize)));
-    attributes.add(Attributes.create("sent-updates", String
-        .valueOf(getOutCount())));
-    attributes.add(Attributes.create("received-updates", String
-        .valueOf(getInCount())));
+    attributes.add("max-waiting-changes", maxQueueSize);
+    attributes.add("sent-updates", getOutCount());
+    attributes.add("received-updates", getInCount());
 
     // Assured counters
-    attributes.add(Attributes.create("assured-sr-received-updates", String
-        .valueOf(getAssuredSrReceivedUpdates())));
-    attributes.add(Attributes.create("assured-sr-received-updates-timeout",
-        String .valueOf(getAssuredSrReceivedUpdatesTimeout())));
-    attributes.add(Attributes.create("assured-sr-sent-updates", String
-        .valueOf(getAssuredSrSentUpdates())));
-    attributes.add(Attributes.create("assured-sr-sent-updates-timeout", String
-        .valueOf(getAssuredSrSentUpdatesTimeout())));
-    attributes.add(Attributes.create("assured-sd-received-updates", String
-        .valueOf(getAssuredSdReceivedUpdates())));
+    attributes.add("assured-sr-received-updates", getAssuredSrReceivedUpdates());
+    attributes.add("assured-sr-received-updates-timeout", getAssuredSrReceivedUpdatesTimeout());
+    attributes.add("assured-sr-sent-updates", getAssuredSrSentUpdates());
+    attributes.add("assured-sr-sent-updates-timeout", getAssuredSrSentUpdatesTimeout());
+    attributes.add("assured-sd-received-updates", getAssuredSdReceivedUpdates());
     if (!isDataServer())
     {
-      attributes.add(Attributes.create("assured-sd-sent-updates",
-          String.valueOf(getAssuredSdSentUpdates())));
-      attributes.add(Attributes.create("assured-sd-sent-updates-timeout",
-          String.valueOf(getAssuredSdSentUpdatesTimeout())));
+      attributes.add("assured-sd-sent-updates", getAssuredSdSentUpdates());
+      attributes.add("assured-sd-sent-updates-timeout", getAssuredSdSentUpdatesTimeout());
     } else
     {
-      attributes.add(Attributes.create("assured-sd-received-updates-timeout",
-          String.valueOf(getAssuredSdReceivedUpdatesTimeout())));
+      attributes.add("assured-sd-received-updates-timeout", getAssuredSdReceivedUpdatesTimeout());
     }
 
     // Window stats
-    attributes.add(Attributes.create("max-send-window", String.valueOf(sendWindowSize)));
-    attributes.add(Attributes.create("current-send-window", String.valueOf(sendWindow.availablePermits())));
-    attributes.add(Attributes.create("max-rcv-window", String.valueOf(maxRcvWindow)));
-    attributes.add(Attributes.create("current-rcv-window", String.valueOf(rcvWindow)));
+    attributes.add("max-send-window", sendWindowSize);
+    attributes.add("current-send-window", sendWindow.availablePermits());
+    attributes.add("max-rcv-window", maxRcvWindow);
+    attributes.add("current-rcv-window", rcvWindow);
 
     // Encryption
-    attributes.add(Attributes.create("ssl-encryption", String.valueOf(session.isEncrypted())));
+    attributes.add("ssl-encryption", session.isEncrypted());
 
     // Data generation
-    attributes.add(Attributes.create("generation-id", String.valueOf(generationId)));
+    attributes.add("generation-id", generationId);
 
     return attributes;
   }

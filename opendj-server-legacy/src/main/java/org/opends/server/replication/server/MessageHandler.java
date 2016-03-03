@@ -17,10 +17,7 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.types.Attributes.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -28,6 +25,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -35,7 +33,6 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -198,15 +195,14 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     return inCount;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    List<Attribute> attributes = new ArrayList<>();
-    attributes.add(create("handler", getMonitorInstanceName()));
-    attributes.add(create("queue-size", String.valueOf(msgQueue.count())));
-    attributes.add(create("queue-size-bytes", String.valueOf(msgQueue.bytesCount())));
-    attributes.add(create("following", String.valueOf(following)));
+    MonitorData attributes = new MonitorData(4);
+    attributes.add("handler", getMonitorInstanceName());
+    attributes.add("queue-size", msgQueue.count());
+    attributes.add("queue-size-bytes", msgQueue.bytesCount());
+    attributes.add("following", following);
     return attributes;
   }
 

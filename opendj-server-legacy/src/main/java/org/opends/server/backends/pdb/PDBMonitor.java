@@ -11,27 +11,21 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pdb;
 
 import static org.opends.server.util.StaticUtils.*;
 
-import java.lang.reflect.Method;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 
 import com.persistit.Management.BufferPoolInfo;
 import com.persistit.Management.TreeInfo;
 import com.persistit.Management.VolumeInfo;
-import com.persistit.Management.WrappedRemoteException;
 import com.persistit.Persistit;
 
 /** Monitoring class for PDB, populating cn=monitor statistics using reflection on objects methods. */
@@ -53,71 +47,39 @@ class PDBMonitor extends MonitorProvider<MonitorProviderCfg>
   }
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     try
     {
-      List<Attribute> monitorAttrs = new ArrayList<>();
-      monitorAttrs.add(Attributes.create("PDBVersion", db.getManagement().getVersion()));
+      MonitorData monitorAttrs = new MonitorData();
+      monitorAttrs.add("PDBVersion", db.getManagement().getVersion());
 
       for(BufferPoolInfo bufferInfo : db.getManagement().getBufferPoolInfoArray())
       {
-        addAttributesForStatsObject(monitorAttrs, "PDBBuffer", bufferInfo);
+        monitorAttrs.addBean(bufferInfo, "PDBBuffer");
       }
-      addAttributesForStatsObject(monitorAttrs, "PDBJournal", db.getManagement().getJournalInfo());
-      addAttributesForStatsObject(monitorAttrs, "PDBTransaction", db.getManagement().getTransactionInfo());
+      monitorAttrs.addBean(db.getManagement().getJournalInfo(), "PDBJournal");
+      monitorAttrs.addBean(db.getManagement().getTransactionInfo(), "PDBTransaction");
       for (VolumeInfo vol : db.getManagement().getVolumeInfoArray())
       {
-        addAttributesForStatsObject(monitorAttrs, "PDBVolume", vol);
+        monitorAttrs.addBean(vol, "PDBVolume");
         for (TreeInfo tree : db.getManagement().getTreeInfoArray(vol.getName()))
         {
           // For the time being, depth is not reported.
-          monitorAttrs.add(Attributes.create("PDBVolumeTree", vol.getName() + tree.getName()
+          monitorAttrs.add("PDBVolumeTree", vol.getName() + tree.getName()
               + ", traverse=" + tree.getTraverseCounter()
               + ", fetch=" + tree.getFetchCounter()
               + ", store=" + tree.getStoreCounter()
-              + ", remove=" + tree.getRemoveCounter()));
+              + ", remove=" + tree.getRemoveCounter());
         }
       }
       return monitorAttrs;
     }
-    catch (RemoteException e)
+    catch (ReflectiveOperationException | RemoteException e)
     {
-      return Collections.singletonList(Attributes.create("PDBInfo", stackTraceToSingleLineString(e)));
-    }
-  }
-
-  private void addAttributesForStatsObject(List<Attribute> monitorAttrs, String attrPrefix, Object stats)
-    throws RemoteException
-  {
-    for (Method method : stats.getClass().getMethods())
-    {
-      if (method.getName().startsWith("get"))
-      {
-        Class<?> returnType = method.getReturnType();
-        if (returnType.equals(int.class) || returnType.equals(long.class) || returnType.equals(String.class))
-        {
-          addStatAttribute(monitorAttrs, attrPrefix, stats, method, 3);
-        }
-      }
-      else if (method.getName().startsWith("is") && method.getReturnType().equals(boolean.class))
-      {
-        addStatAttribute(monitorAttrs, attrPrefix, stats, method, 2);
-      }
-    }
-  }
-
-  private void addStatAttribute(List<Attribute> monitorAttrs, String attrPrefix, Object stats,
-      Method method, int skipNameLen) throws WrappedRemoteException
-  {
-    try
-    {
-      String attrName = attrPrefix + method.getName().substring(skipNameLen);
-      monitorAttrs.add(Attributes.create(attrName, String.valueOf(method.invoke(stats))));
-    }
-    catch (Exception e)
-    {
-      throw new WrappedRemoteException(e);
+      MonitorData monitorAttrs = new MonitorData(1);
+      monitorAttrs.add("PDBInfo", stackTraceToSingleLineString(e));
+      return monitorAttrs;
     }
   }
 }

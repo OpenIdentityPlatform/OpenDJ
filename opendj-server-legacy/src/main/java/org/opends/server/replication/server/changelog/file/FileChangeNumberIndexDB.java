@@ -17,8 +17,6 @@ package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -29,6 +27,7 @@ import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -36,8 +35,6 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
@@ -288,22 +285,17 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
     @Override
-    public List<Attribute> getMonitorData()
+    public MonitorData getMonitorData()
     {
       long firstCN = readChangeNumber(ChangeNumberType.FIRST);
       long lastCN = readChangeNumber(ChangeNumberType.LAST);
       long numberOfChanges = lastCN == NO_KEY ? 0 : lastCN - firstCN + 1;
 
-      final List<Attribute> attributes = new ArrayList<>();
-      attributes.add(toAttribute(ChangeNumberType.FIRST, firstCN));
-      attributes.add(toAttribute(ChangeNumberType.LAST, lastCN));
-      attributes.add(Attributes.create("count", Long.toString(numberOfChanges)));
+      final MonitorData attributes = new MonitorData(3);
+      attributes.add(ChangeNumberType.FIRST.getAttributeName(), firstCN);
+      attributes.add(ChangeNumberType.LAST.getAttributeName(), lastCN);
+      attributes.add("count", numberOfChanges);
       return attributes;
-    }
-
-    private Attribute toAttribute(final ChangeNumberType cnType, long changeNumber)
-    {
-      return Attributes.create(cnType.getAttributeName(), String.valueOf(changeNumber));
     }
 
     private long readChangeNumber(final ChangeNumberType type)

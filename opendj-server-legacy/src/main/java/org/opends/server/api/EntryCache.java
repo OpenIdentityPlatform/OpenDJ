@@ -26,7 +26,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
-import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -348,7 +347,7 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    *          be returned to the client if the corresponding monitor
    *          entry is requested.
    */
-  public abstract List<Attribute> getMonitorData();
+  public abstract MonitorData getMonitorData();
 
   /**
    * Retrieves the current number of entries stored within the cache.

@@ -42,6 +42,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -54,7 +55,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InvokableMethod;
@@ -413,8 +413,7 @@ public final class JMXMBean
               stringValues.add(value.toString());
             }
 
-            String[] valueArray = new String[stringValues.size()];
-            stringValues.toArray(valueArray);
+            String[] valueArray = stringValues.toArray(new String[stringValues.size()]);
             return new Attribute(name, valueArray);
           }
           else
@@ -568,47 +567,10 @@ public final class JMXMBean
       {
         logger.traceException(e);
       }
-
-      // It's possible that this is a monitor attribute rather than a
-      // configurable one. Check all of those.
-      AttributeType attrType = DirectoryServer.getAttributeType(name);
-
-monitorLoop:
-      for (MonitorProvider<? extends MonitorProviderCfg> monitor :
-           monitorProviders)
+      Attribute attr = getJmxAttribute(name);
+      if (attr != null)
       {
-        for (org.opends.server.types.Attribute a : monitor.getMonitorData())
-        {
-          if (attrType.equals(a.getAttributeDescription().getAttributeType()))
-          {
-            if (a.isEmpty())
-            {
-              continue;
-            }
-
-            Iterator<ByteString> iterator = a.iterator();
-            ByteString value = iterator.next();
-
-            if (iterator.hasNext())
-            {
-              List<String> stringValues = newArrayList(value.toString());
-              while (iterator.hasNext())
-              {
-                value = iterator.next();
-                stringValues.add(value.toString());
-              }
-
-              String[] valueArray = new String[stringValues.size()];
-              stringValues.toArray(valueArray);
-              attrList.add(new Attribute(name, valueArray));
-            }
-            else
-            {
-              attrList.add(new Attribute(name, value.toString()));
-            }
-            break monitorLoop;
-          }
-        }
+        attrList.add(attr);
       }
     }
 

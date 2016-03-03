@@ -17,9 +17,7 @@ package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.jcip.annotations.Immutable;
@@ -27,6 +25,7 @@ import net.jcip.annotations.Immutable;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -39,8 +38,6 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
@@ -250,28 +247,22 @@ class FileReplicaDB
    */
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
-    /** {@inheritDoc} */
     @Override
-    public List<Attribute> getMonitorData()
+    public MonitorData getMonitorData()
     {
-      final List<Attribute> attributes = new ArrayList<>();
-      create(attributes, "replicationServer-database",String.valueOf(serverId));
-      create(attributes, "domain-name", baseDN.toString());
+      final MonitorData attributes = new MonitorData(4);
+      attributes.add("replicationServer-database", serverId);
+      attributes.add("domain-name", baseDN);
       final CSNLimits limits = csnLimits;
       if (limits.oldestCSN != null)
       {
-        create(attributes, "first-change", encode(limits.oldestCSN));
+        attributes.add("first-change", encode(limits.oldestCSN));
       }
       if (limits.newestCSN != null)
       {
-        create(attributes, "last-change", encode(limits.newestCSN));
+        attributes.add("last-change", encode(limits.newestCSN));
       }
       return attributes;
-    }
-
-    private void create(final List<Attribute> attributes, final String name, final String value)
-    {
-      attributes.add(Attributes.create(name, value));
     }
 
     private String encode(final CSN csn)

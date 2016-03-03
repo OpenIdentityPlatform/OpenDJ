@@ -16,11 +16,8 @@
  */
 package org.opends.server.extensions;
 
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,18 +25,14 @@ import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.MonitorData;
 import org.opends.server.types.SearchFilter;
 
-
-
-/**
- * This class provides some common tools to all entry cache implementations.
- */
+/** This class provides some common tools to all entry cache implementations. */
 public class EntryCacheCommon
 {
 
@@ -53,19 +46,11 @@ public class EntryCacheCommon
    */
   public static enum ConfigPhase
   {
-    /**
-     * Indicates that entry cache is in initialization check phase.
-     */
+    /** Indicates that entry cache is in initialization check phase. */
     PHASE_INIT,
-
-    /**
-     * Indicates that entry cache is in configuration check phase.
-     */
+    /** Indicates that entry cache is in configuration check phase. */
     PHASE_ACCEPTABLE,
-
-    /**
-     * Indicates that entry cache is applying its configuration.
-     */
+    /** Indicates that entry cache is applying its configuration. */
     PHASE_APPLY
   }
 
@@ -360,7 +345,7 @@ public class EntryCacheCommon
    *
    * @return  A set of generic attributes containing monitor data.
    */
-  public static List<Attribute> getGenericMonitorData(
+  public static MonitorData getGenericMonitorData(
     Long cacheHits,
     Long cacheMisses,
     Long cacheSize,
@@ -368,54 +353,30 @@ public class EntryCacheCommon
     Long cacheCount,
     Long maxCacheCount)
   {
-    List<Attribute> attrs = new ArrayList<>();
+    MonitorData attrs = new MonitorData();
 
     if (cacheHits != null)
     {
-      attrs
-          .add(Attributes.create("entryCacheHits", cacheHits.toString()));
+      attrs.add("entryCacheHits", cacheHits);
 
       // Cache misses is required to get cache tries and hit ratio.
       if (cacheMisses != null)
       {
         Long cacheTries = cacheHits + cacheMisses;
-        attrs.add(Attributes.create("entryCacheTries", cacheTries
-            .toString()));
+        attrs.add("entryCacheTries", cacheTries);
 
         Double hitRatioRaw = cacheTries > 0 ? cacheHits.doubleValue()
             / cacheTries.doubleValue() : cacheHits.doubleValue() / 1;
         Double hitRatio = hitRatioRaw * 100D;
-        attrs.add(Attributes.create("entryCacheHitRatio", Long
-            .toString(hitRatio.longValue())));
+        attrs.add("entryCacheHitRatio", hitRatio);
       }
     }
 
-    if (cacheSize != null)
-    {
-      attrs.add(Attributes.create("currentEntryCacheSize", cacheSize
-          .toString()));
-    }
-
-    if (maxCacheSize != null)
-    {
-      attrs.add(Attributes.create("maxEntryCacheSize", maxCacheSize
-          .toString()));
-    }
-
-    if (cacheCount != null)
-    {
-      attrs.add(Attributes.create("currentEntryCacheCount", cacheCount
-          .toString()));
-    }
-
-    if (maxCacheCount != null)
-    {
-      attrs.add(Attributes.create("maxEntryCacheCount", maxCacheCount
-          .toString()));
-    }
+    attrs.addIfNotNull("currentEntryCacheSize", cacheSize);
+    attrs.addIfNotNull("maxEntryCacheSize", maxCacheSize);
+    attrs.addIfNotNull("currentEntryCacheCount", cacheCount);
+    attrs.addIfNotNull("maxEntryCacheCount", maxCacheCount);
 
     return attrs;
   }
-
 }
-

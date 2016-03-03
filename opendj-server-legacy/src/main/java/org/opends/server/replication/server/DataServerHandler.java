@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -22,14 +22,33 @@ import static org.opends.server.replication.common.StatusMachine.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.replication.common.*;
-import org.opends.server.replication.protocol.*;
-import org.opends.server.types.*;
+import org.opends.server.api.MonitorData;
+import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.common.StatusMachine;
+import org.opends.server.replication.common.StatusMachineEvent;
+import org.opends.server.replication.protocol.ChangeStatusMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartDSMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.ServerStartMsg;
+import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.StartMsg;
+import org.opends.server.replication.protocol.StartSessionMsg;
+import org.opends.server.replication.protocol.StopMsg;
+import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -213,54 +232,38 @@ public class DataServerHandler extends ServerHandler
     return newStatus;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    // Get the generic ones
-    List<Attribute> attributes = super.getMonitorData();
+    MonitorData attributes = super.getMonitorData();
 
     // Add the specific DS ones
-    attributes.add(Attributes.create("replica", serverURL));
-    attributes.add(Attributes.create("connected-to",
-        this.replicationServer.getMonitorInstanceName()));
+    attributes.add("replica", serverURL);
+    attributes.add("connected-to", replicationServer.getMonitorInstanceName());
 
-    ReplicationDomainMonitorData md =
-        replicationServerDomain.getDomainMonitorData();
+    ReplicationDomainMonitorData md = replicationServerDomain.getDomainMonitorData();
 
     // Oldest missing update
     long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
     if (approxFirstMissingDate > 0)
     {
-      Date date = new Date(approxFirstMissingDate);
-      attributes.add(Attributes.create(
-          "approx-older-change-not-synchronized", date.toString()));
-      attributes.add(Attributes.create(
-          "approx-older-change-not-synchronized-millis", String
-          .valueOf(approxFirstMissingDate)));
+      attributes.add("approx-older-change-not-synchronized", new Date(approxFirstMissingDate));
+      attributes.add("approx-older-change-not-synchronized-millis", approxFirstMissingDate);
     }
 
-    // Missing changes
-    attributes.add(Attributes.create("missing-changes",
-        String.valueOf(md.getMissingChanges(serverId))));
-
+    attributes.add("missing-changes", md.getMissingChanges(serverId));
     // Replication delay
-    attributes.add(Attributes.create("approximate-delay",
-        String.valueOf(md.getApproxDelay(serverId))));
+    attributes.add("approximate-delay", md.getApproxDelay(serverId));
 
-    /* get the Server State */
     ServerState state = md.getLDAPServerState(serverId);
     if (state != null)
     {
-      AttributeBuilder builder = new AttributeBuilder("server-state");
-      builder.addAllStrings(state.toStringSet());
-      attributes.add(builder.toAttribute());
+      attributes.add("server-state", state.toStringSet());
     }
 
     return attributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -278,7 +281,6 @@ public class DataServerHandler extends ServerHandler
     return status;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isDataServer()
   {
@@ -510,7 +512,6 @@ public class DataServerHandler extends ServerHandler
         refUrls, eclIncludes, eclIncludesForDeletes, getProtocolVersion());
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

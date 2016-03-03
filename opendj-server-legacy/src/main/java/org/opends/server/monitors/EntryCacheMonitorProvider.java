@@ -12,25 +12,22 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
-import java.util.Collections;
-import java.util.List;
+import static org.opends.messages.ConfigMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-
-import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines a Directory Server monitor provider that can be used to
@@ -106,16 +103,14 @@ public class EntryCacheMonitorProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
     return monitorName;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     if (entryCache != null &&
         monitorConfiguration != null &&
@@ -123,6 +118,6 @@ public class EntryCacheMonitorProvider
       // Get monitor data from the cache.
       return entryCache.getMonitorData();
     }
-    return Collections.emptyList();
+    return new MonitorData(0);
   }
 }

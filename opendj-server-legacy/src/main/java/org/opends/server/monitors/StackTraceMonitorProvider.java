@@ -12,21 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
-import static org.opends.server.util.CollectionUtils.*;
-
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.StackTraceMonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -52,7 +50,7 @@ public class StackTraceMonitorProvider
   }
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     Map<Thread,StackTraceElement[]> threadStacks = Thread.getAllStackTraces();
 
@@ -63,48 +61,51 @@ public class StackTraceMonitorProvider
       orderedStacks.put(e.getKey().getId(), e);
     }
 
-    AttributeBuilder builder = new AttributeBuilder("jvmThread");
+    Collection<String> jvmThreads = new ArrayList<>();
     for (Map.Entry<Thread,StackTraceElement[]> e : orderedStacks.values())
     {
       Thread t                          = e.getKey();
       StackTraceElement[] stackElements = e.getValue();
 
-      long id = t.getId();
-      builder.add("id=" + id + " ---------- " + t.getName() + " ----------");
+      long tid = t.getId();
+      jvmThreads.add("id=" + tid + " ---------- " + t.getName() + " ----------");
 
       // Create an attribute for the stack trace.
       if (stackElements != null)
       {
-        for (int j=0; j < stackElements.length; j++)
+        for (int j = 0; j < stackElements.length; j++)
         {
-          StringBuilder buffer = new StringBuilder();
-          buffer.append("id=");
-          buffer.append(id);
-          buffer.append(" frame[");
-          buffer.append(j);
-          buffer.append("]=");
-
-          buffer.append(stackElements[j].getClassName());
-          buffer.append(".");
-          buffer.append(stackElements[j].getMethodName());
-          buffer.append("(");
-          buffer.append(stackElements[j].getFileName());
-          buffer.append(":");
-          if (stackElements[j].isNativeMethod())
-          {
-            buffer.append("native");
-          }
-          else
-          {
-            buffer.append(stackElements[j].getLineNumber());
-          }
-          buffer.append(")");
-
-          builder.add(buffer.toString());
+          jvmThreads.add(toString(tid, j, stackElements[j]));
         }
       }
     }
 
-    return newArrayList(builder.toAttribute());
+    MonitorData result = new MonitorData(1);
+    result.add("jvmThread", jvmThreads);
+    return result;
+  }
+
+  private String toString(long tid, int frame, StackTraceElement stackElement)
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append("id=").append(tid);
+    buffer.append(" frame[").append(frame).append("]=");
+
+    buffer.append(stackElement.getClassName());
+    buffer.append(".");
+    buffer.append(stackElement.getMethodName());
+    buffer.append("(");
+    buffer.append(stackElement.getFileName());
+    buffer.append(":");
+    if (stackElement.isNativeMethod())
+    {
+      buffer.append("native");
+    }
+    else
+    {
+      buffer.append(stackElement.getLineNumber());
+    }
+    buffer.append(")");
+    return buffer.toString();
   }
 }

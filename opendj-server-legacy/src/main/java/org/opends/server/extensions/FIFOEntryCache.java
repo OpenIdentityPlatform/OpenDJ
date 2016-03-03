@@ -18,7 +18,13 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -26,18 +32,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
+import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.CacheEntry;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchFilter;
@@ -893,25 +899,24 @@ public class FIFOEntryCache
     return errorHandler.getIsAcceptable();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     try {
       return EntryCacheCommon.getGenericMonitorData(
-        Long.valueOf(cacheHits.longValue()),
+        cacheHits.longValue(),
         // If cache misses is maintained by default cache
         // get it from there and if not point to itself.
         DirectoryServer.getEntryCache().getCacheMisses(),
         null,
-        Long.valueOf(maxAllowedMemory),
+        maxAllowedMemory,
         Long.valueOf(dnMap.size()),
         Long.valueOf(
             (maxEntries != Integer.MAX_VALUE && maxEntries != Long.MAX_VALUE) ? maxEntries : 0)
         );
     } catch (Exception e) {
       logger.traceException(e);
-      return Collections.emptyList();
+      return new MonitorData(0);
     }
   }
 

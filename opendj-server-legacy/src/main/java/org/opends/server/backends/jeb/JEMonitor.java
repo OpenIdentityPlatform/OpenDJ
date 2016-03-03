@@ -18,19 +18,10 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.util.StaticUtils.*;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.JEVersion;
@@ -59,54 +50,25 @@ final class JEMonitor extends MonitorProvider<MonitorProviderCfg>
   }
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
     try
     {
-      List<Attribute> monitorAttrs = new ArrayList<>();
+      final StatsConfig statsConfig = new StatsConfig();
 
-      monitorAttrs.add(Attributes.create("JEVersion", JEVersion.CURRENT_VERSION.getVersionString()));
-
-      StatsConfig statsConfig = new StatsConfig();
-      addAttributesForStatsObject(monitorAttrs, "Environment", env.getStats(statsConfig));
-      addAttributesForStatsObject(monitorAttrs, "Transaction", env.getTransactionStats(statsConfig));
-
+      final MonitorData monitorAttrs = new MonitorData();
+      monitorAttrs.add("JEVersion", JEVersion.CURRENT_VERSION.getVersionString());
+      monitorAttrs.addBean(env.getStats(statsConfig), "Environment");
+      monitorAttrs.addBean(env.getTransactionStats(statsConfig), "Transaction");
       return monitorAttrs;
     }
     catch (Exception e)
     {
       logger.traceException(e);
-      return Collections.singletonList(Attributes.create("JEInfo", stackTraceToSingleLineString(e)));
-    }
-  }
 
-  private void addAttributesForStatsObject(List<Attribute> monitorAttrs, String attrPrefix, Object stats)
-  {
-    for (Method method : stats.getClass().getMethods())
-    {
-      final Class<?> returnType = method.getReturnType();
-      if (method.getName().startsWith("get")
-          && (returnType.equals(int.class) || returnType.equals(long.class)))
-      {
-        addStatAttribute(monitorAttrs, attrPrefix, stats, method);
-      }
-    }
-  }
-
-  private void addStatAttribute(List<Attribute> monitorAttrs, String attrPrefix, Object stats, Method method)
-  {
-    final Syntax integerSyntax = DirectoryServer.getDefaultIntegerSyntax();
-    try
-    {
-      // Remove the 'get' from the method name and add the prefix.
-      String attrName = attrPrefix + method.getName().substring(3);
-
-      AttributeType attrType = DirectoryServer.getAttributeType(attrName, integerSyntax);
-      monitorAttrs.add(Attributes.create(attrType, String.valueOf(method.invoke(stats))));
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
+      MonitorData monitorAttrs = new MonitorData(1);
+      monitorAttrs.add("JEInfo", stackTraceToSingleLineString(e));
+      return monitorAttrs;
     }
   }
 }

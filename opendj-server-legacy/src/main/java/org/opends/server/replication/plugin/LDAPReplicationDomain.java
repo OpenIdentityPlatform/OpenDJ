@@ -23,7 +23,6 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.replication.service.ReplicationMonitor.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -80,6 +79,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
@@ -4282,28 +4282,17 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     return true;
   }
 
-  /**
-   * Monitoring information for the LDAPReplicationDomain.
-   *
-   * @return Monitoring attributes specific to the LDAPReplicationDomain.
-   */
   @Override
-  public Collection<Attribute> getAdditionalMonitoring()
+  public void addAdditionalMonitoring(MonitorData attributes)
   {
-    List<Attribute> attributes = new ArrayList<>();
-
-    // number of updates in the pending list
-    addMonitorData(attributes, "pending-updates", pendingChanges.size());
-
-    addMonitorData(attributes, "replayed-updates-ok", numReplayedPostOpCalled.get());
-    addMonitorData(attributes, "resolved-modify-conflicts", numResolvedModifyConflicts.get());
-    addMonitorData(attributes, "resolved-naming-conflicts", numResolvedNamingConflicts.get());
-    addMonitorData(attributes, "unresolved-naming-conflicts", numUnresolvedNamingConflicts.get());
-    addMonitorData(attributes, "remote-pending-changes-size", remotePendingChanges.getQueueSize());
-    addMonitorData(attributes, "dependent-changes-size", remotePendingChanges.getDependentChangesSize());
-    addMonitorData(attributes, "changes-in-progress-size", remotePendingChanges.changesInProgressSize());
-
-    return attributes;
+    attributes.add("pending-updates", pendingChanges.size());
+    attributes.add("replayed-updates-ok", numReplayedPostOpCalled);
+    attributes.add("resolved-modify-conflicts", numResolvedModifyConflicts);
+    attributes.add("resolved-naming-conflicts", numResolvedNamingConflicts);
+    attributes.add("unresolved-naming-conflicts", numUnresolvedNamingConflicts);
+    attributes.add("remote-pending-changes-size", remotePendingChanges.getQueueSize());
+    attributes.add("dependent-changes-size", remotePendingChanges.getDependentChangesSize());
+    attributes.add("changes-in-progress-size", remotePendingChanges.changesInProgressSize());
   }
 
   /**

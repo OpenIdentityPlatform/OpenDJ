@@ -20,16 +20,13 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OperationType;
@@ -170,150 +167,86 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLERSTATS, true);
   }
 
-
-  /**
-   * Retrieves a set of attributes containing monitor data that should
-   * be returned to the client if the corresponding monitor entry is
-   * requested.
-   *
-   * @return A set of attributes containing monitor data that should be
-   *         returned to the client if the corresponding monitor entry
-   *         is requested.
-   */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-      List<Attribute> attrs = new ArrayList<>();
-
-      long tmpAbandonRequests = abandonRequests.get();
-      long tmpAddRequests = addRequests.get();
-      long tmpAddResponses = addResponses.get();
-      long tmpBindRequests = bindRequests.get();
-      long tmpBindResponses = bindResponses.get();
-      long tmpBytesRead = bytesRead.get();
-      long tmpBytesWritten = bytesWritten.get();
-      long tmpCompareRequests = compareRequests.get();
-      long tmpCompareResponses = compareResponses.get();
-      long tmpConnectionsClosed = connectionsClosed.get();
-      long tmpConnectionsEstablished = connectionsEstablished.get();
-      long tmpDeleteRequests = deleteRequests.get();
-      long tmpDeleteResponses = deleteResponses.get();
-      long tmpExtendedRequests = extendedRequests.get();
-      long tmpExtendedResponses = extendedResponses.get();
-      long tmpMessagesRead = messagesRead.get();
-      long tmpMessagesWritten = messagesWritten.get();
-      long tmpModifyRequests = modifyRequests.get();
-      long tmpModifyResponses = modifyResponses.get();
-      long tmpModifyDNRequests = modifyDNRequests.get();
-      long tmpModifyDNResponses = modifyDNResponses.get();
-      long tmpOperationsAbandoned = operationsAbandoned.get();
-      long tmpOperationsCompleted = operationsCompleted.get();
-      long tmpOperationsInitiated = operationsInitiated.get();
-      long tmpSearchRequests = searchRequests.get();
-      long tmpSearchOneRequests = searchOneRequests.get();
-      long tmpSearchSubRequests = searchSubRequests.get();
-      long tmpSearchEntries = searchResultEntries.get();
-      long tmpSearchReferences = searchResultReferences.get();
-      long tmpSearchResultsDone = searchResultsDone.get();
-      long tmpUnbindRequests = unbindRequests.get();
-      long tmpAddOperationCount = addOperationCount.get();
-      long tmpAddOperationTime = addOperationTime.get();
-      long tmpSearchOperationCount = searchOperationCount.get();
-      long tmpSearchOperationTime = searchOperationTime.get();
-      long tmpDelOperationCount = delOperationCount.get();
-      long tmpDelOperationTime = delOperationTime.get();
-      long tmpBindOperationCount = bindOperationCount.get();
-      long tmpBindOperationTime = bindOperationTime.get();
-      long tmpUnbindOperationCount = unbindOperationCount.get();
-      long tmpUnbindOperationTime = unbindOperationTime.get();
-      long tmpCompOperationCount = compOperationCount.get();
-      long tmpCompOperationTime = compOperationTime.get();
-      long tmpModOperationCount = modOperationCount.get();
-      long tmpModOperationTime = modOperationTime.get();
-      long tmpModdnOperationCount = moddnOperationCount.get();
-      long tmpModdnOperationTime = moddnOperationTime.get();
-      long tmpAbandonOperationCount = abandonOperationCount.get();
-      long tmpAbandonOperationTime = abandonOperationTime.get();
-      long tmpExtOperationCount = extOperationCount.get();
-      long tmpExtOperationTime = extOperationTime.get();
-
-
     // Construct the list of attributes to return.
     /* TODO : the attribute names should be constant (in ServerConstants.java
      *        and associated with their objectclass
      *        OC_MONITOR_CONNHANDLERSTATS
      */
-    attrs.add(createAttribute("connectionsEstablished", tmpConnectionsEstablished));
-    attrs.add(createAttribute("connectionsClosed", tmpConnectionsClosed));
-    attrs.add(createAttribute("bytesRead", tmpBytesRead));
-    attrs.add(createAttribute("bytesWritten", tmpBytesWritten));
-    attrs.add(createAttribute("ldapMessagesRead", tmpMessagesRead));
-    attrs.add(createAttribute("ldapMessagesWritten", tmpMessagesWritten));
-    attrs.add(createAttribute("operationsAbandoned", tmpOperationsAbandoned));
-    attrs.add(createAttribute("operationsInitiated", tmpOperationsInitiated));
-    attrs.add(createAttribute("operationsCompleted", tmpOperationsCompleted));
-    attrs.add(createAttribute("abandonRequests", tmpAbandonRequests));
-    attrs.add(createAttribute("addRequests", tmpAddRequests));
-    attrs.add(createAttribute("addResponses", tmpAddResponses));
-    attrs.add(createAttribute("bindRequests", tmpBindRequests));
-    attrs.add(createAttribute("bindResponses", tmpBindResponses));
-    attrs.add(createAttribute("compareRequests", tmpCompareRequests));
-    attrs.add(createAttribute("compareResponses", tmpCompareResponses));
-    attrs.add(createAttribute("deleteRequests", tmpDeleteRequests));
-    attrs.add(createAttribute("deleteResponses", tmpDeleteResponses));
-    attrs.add(createAttribute("extendedRequests", tmpExtendedRequests));
-    attrs.add(createAttribute("extendedResponses", tmpExtendedResponses));
-    attrs.add(createAttribute("modifyRequests", tmpModifyRequests));
-    attrs.add(createAttribute("modifyResponses", tmpModifyResponses));
-    attrs.add(createAttribute("modifyDNRequests", tmpModifyDNRequests));
-    attrs.add(createAttribute("modifyDNResponses", tmpModifyDNResponses));
-    attrs.add(createAttribute("searchRequests", tmpSearchRequests));
-    attrs.add(createAttribute("searchOneRequests", tmpSearchOneRequests));
-    attrs.add(createAttribute("searchSubRequests", tmpSearchSubRequests));
-    attrs.add(createAttribute("searchResultEntries", tmpSearchEntries));
-    attrs.add(createAttribute("searchResultReferences", tmpSearchReferences));
-    attrs.add(createAttribute("searchResultsDone", tmpSearchResultsDone));
-    attrs.add(createAttribute("unbindRequests", tmpUnbindRequests));
+    final MonitorData attrs = new MonitorData(31 + 10 * 2);
+    attrs.add("connectionsEstablished", connectionsEstablished);
+    attrs.add("connectionsClosed", connectionsClosed);
+    attrs.add("bytesRead", bytesRead);
+    attrs.add("bytesWritten", bytesWritten);
+    attrs.add("ldapMessagesRead", messagesRead);
+    attrs.add("ldapMessagesWritten", messagesWritten);
+    attrs.add("operationsAbandoned", operationsAbandoned);
+    attrs.add("operationsInitiated", operationsInitiated);
+    attrs.add("operationsCompleted", operationsCompleted);
+    attrs.add("abandonRequests", abandonRequests);
+    attrs.add("addRequests", addRequests);
+    attrs.add("addResponses", addResponses);
+    attrs.add("bindRequests", bindRequests);
+    attrs.add("bindResponses", bindResponses);
+    attrs.add("compareRequests", compareRequests);
+    attrs.add("compareResponses", compareResponses);
+    attrs.add("deleteRequests", deleteRequests);
+    attrs.add("deleteResponses", deleteResponses);
+    attrs.add("extendedRequests", extendedRequests);
+    attrs.add("extendedResponses", extendedResponses);
+    attrs.add("modifyRequests", modifyRequests);
+    attrs.add("modifyResponses", modifyResponses);
+    attrs.add("modifyDNRequests", modifyDNRequests);
+    attrs.add("modifyDNResponses", modifyDNResponses);
+    attrs.add("searchRequests", searchRequests);
+    attrs.add("searchOneRequests", searchOneRequests);
+    attrs.add("searchSubRequests", searchSubRequests);
+    attrs.add("searchResultEntries", searchResultEntries);
+    attrs.add("searchResultReferences", searchResultReferences);
+    attrs.add("searchResultsDone", searchResultsDone);
+    attrs.add("unbindRequests", unbindRequests);
 
     // adds
-    attrs.add(createAttribute("ds-mon-add-operations-total-count", tmpAddOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-add-operations-total-time", tmpAddOperationTime));
+    attrs.add("ds-mon-add-operations-total-count", addOperationCount);
+    attrs.add("ds-mon-resident-time-add-operations-total-time", addOperationTime);
 
     // search
-    attrs.add(createAttribute("ds-mon-search-operations-total-count", tmpSearchOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-search-operations-total-time", tmpSearchOperationTime));
+    attrs.add("ds-mon-search-operations-total-count", searchOperationCount);
+    attrs.add("ds-mon-resident-time-search-operations-total-time", searchOperationTime);
 
     // bind
-    attrs.add(createAttribute("ds-mon-bind-operations-total-count", tmpBindOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-bind-operations-total-time", tmpBindOperationTime));
+    attrs.add("ds-mon-bind-operations-total-count", bindOperationCount);
+    attrs.add("ds-mon-resident-time-bind-operations-total-time", bindOperationTime);
 
     // unbind
-    attrs.add(createAttribute("ds-mon-unbind-operations-total-count", tmpUnbindOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-unbind-operations-total-time", tmpUnbindOperationTime));
+    attrs.add("ds-mon-unbind-operations-total-count", unbindOperationCount);
+    attrs.add("ds-mon-resident-time-unbind-operations-total-time", unbindOperationTime);
 
     // compare
-    attrs.add(createAttribute("ds-mon-compare-operations-total-count", tmpCompOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-compare-operations-total-time", tmpCompOperationTime));
+    attrs.add("ds-mon-compare-operations-total-count", compOperationCount);
+    attrs.add("ds-mon-resident-time-compare-operations-total-time", compOperationTime);
 
     // del
-    attrs.add(createAttribute("ds-mon-delete-operations-total-count", tmpDelOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-delete-operations-total-time", tmpDelOperationTime));
+    attrs.add("ds-mon-delete-operations-total-count", delOperationCount);
+    attrs.add("ds-mon-resident-time-delete-operations-total-time", delOperationTime);
 
     // mod
-    attrs.add(createAttribute("ds-mon-mod-operations-total-count", tmpModOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-mod-operations-total-time", tmpModOperationTime));
+    attrs.add("ds-mon-mod-operations-total-count", modOperationCount);
+    attrs.add("ds-mon-resident-time-mod-operations-total-time", modOperationTime);
 
     // moddn
-    attrs.add(createAttribute("ds-mon-moddn-operations-total-count", tmpModdnOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-moddn-operations-total-time", tmpModdnOperationTime));
+    attrs.add("ds-mon-moddn-operations-total-count", moddnOperationCount);
+    attrs.add("ds-mon-resident-time-moddn-operations-total-time", moddnOperationTime);
 
     // abandon
-    attrs.add(createAttribute("ds-mon-abandon-operations-total-count", tmpAbandonOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-abandon-operations-total-time", tmpAbandonOperationTime));
+    attrs.add("ds-mon-abandon-operations-total-count", abandonOperationCount);
+    attrs.add("ds-mon-resident-time-abandon-operations-total-time", abandonOperationTime);
 
     // extended
-    attrs.add(createAttribute("ds-mon-extended-operations-total-count", tmpExtOperationCount));
-    attrs.add(createAttribute("ds-mon-resident-time-extended-operations-total-time", tmpExtOperationTime));
+    attrs.add("ds-mon-extended-operations-total-count", extOperationCount);
+    attrs.add("ds-mon-resident-time-extended-operations-total-time", extOperationTime);
 
     return attrs;
   }
@@ -567,25 +500,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       operationsAbandoned.getAndIncrement();
   }
-
-
-
-  /**
-   * Constructs an attribute using the provided information. It will
-   * use the server's schema definitions.
-   *
-   * @param name
-   *          The name to use for the attribute.
-   * @param value
-   *          The value to use for the attribute.
-   * @return the constructed attribute.
-   */
-  protected Attribute createAttribute(String name, Object value)
-  {
-    return Attributes.create(name, String.valueOf(value));
-  }
-
-
 
   /**
    * Retrieves the number of client connections that have been

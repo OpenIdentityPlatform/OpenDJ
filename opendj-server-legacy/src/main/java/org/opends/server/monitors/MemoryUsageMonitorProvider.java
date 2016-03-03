@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
@@ -22,16 +22,13 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.MemoryUsageMonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -104,9 +101,9 @@ public class MemoryUsageMonitorProvider
 
 
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<>();
+    MonitorData attrs = new MonitorData();
 
     for (GarbageCollectorMXBean gc :
          ManagementFactory.getGarbageCollectorMXBeans())
@@ -134,10 +131,10 @@ public class MemoryUsageMonitorProvider
         gcSafeNames.put(gcName, safeName);
       }
 
-      attrs.add(createAttribute(safeName + "-total-collection-count", gcCount));
-      attrs.add(createAttribute(safeName + "-total-collection-duration", gcTime));
-      attrs.add(createAttribute(safeName + "-average-collection-duration", avgGCDuration));
-      attrs.add(createAttribute(safeName + "-recent-collection-duration", recentGCDuration));
+      attrs.add(safeName + "-total-collection-count", gcCount);
+      attrs.add(safeName + "-total-collection-duration", gcTime);
+      attrs.add(safeName + "-average-collection-duration", avgGCDuration);
+      attrs.add(safeName + "-recent-collection-duration", recentGCDuration);
     }
 
     for (MemoryPoolMXBean mp : ManagementFactory.getMemoryPoolMXBeans())
@@ -154,21 +151,14 @@ public class MemoryUsageMonitorProvider
       }
 
       long currentBytesUsed = currentUsage != null ? currentUsage.getUsed() : 0;
-      attrs.add(createAttribute(safeName + "-current-bytes-used", currentBytesUsed));
+      attrs.add(safeName + "-current-bytes-used", currentBytesUsed);
 
       long collectionBytesUsed = collectionUsage != null ? collectionUsage.getUsed() : 0;
-      attrs.add(createAttribute(safeName + "-bytes-used-after-last-collection", collectionBytesUsed));
+      attrs.add(safeName + "-bytes-used-after-last-collection", collectionBytesUsed);
     }
 
     return attrs;
   }
-
-  private Attribute createAttribute(String name, Object value)
-  {
-    return Attributes.create(name, String.valueOf(value));
-  }
-
-
 
   /**
    * Creates a "safe" version of the provided name, which is acceptable for

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
@@ -23,8 +23,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.opends.server.api.MonitorData;
 import org.opends.server.protocols.ldap.LDAPStatistics;
-import org.opends.server.types.Attribute;
 
 /**
  * Collects statistics for HTTP. This class inherits from {@link LDAPStatistics}
@@ -93,39 +93,24 @@ public class HTTPStatistics extends LDAPStatistics
     super.clearStatistics();
   }
 
-  /** {@inheritDoc} */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    // first take a snapshot of all the data as fast as possible
-    final int totalCount = this.requestsTotalCount.get();
-    final Map<String, Integer> totalCountsSnapshot = new HashMap<>();
-    for (Entry<String, AtomicInteger> entry : requestMethodsTotalCount.entrySet())
-    {
-      totalCountsSnapshot.put(entry.getKey(), entry.getValue().get());
-    }
-    final Map<String, Long> totalTimesSnapshot = new HashMap<>();
-    for (Entry<String, AtomicLong> entry1 : requestMethodsTotalTime.entrySet())
-    {
-      totalTimesSnapshot.put(entry1.getKey(), entry1.getValue().get());
-    }
-
-    // do the same with the underlying data
-    final List<Attribute> results = super.getMonitorData();
-    addAll(results, totalCountsSnapshot, "ds-mon-http-", "-requests-total-count");
-    addAll(results, totalTimesSnapshot, "ds-mon-resident-time-http-", "-requests-total-time");
-    results.add(createAttribute("ds-mon-http-requests-total-count", Integer.toString(totalCount)));
+    final MonitorData results = super.getMonitorData();
+    addAll(results, requestMethodsTotalCount, "ds-mon-http-", "-requests-total-count");
+    addAll(results, requestMethodsTotalTime, "ds-mon-resident-time-http-", "-requests-total-time");
+    results.add("ds-mon-http-requests-total-count", requestsTotalCount.get());
     return results;
   }
 
-  private void addAll(final List<Attribute> results,
+  private void addAll(final MonitorData results,
       final Map<String, ?> toOutput, String prefix, String suffix)
   {
     for (Entry<String, ?> entry : toOutput.entrySet())
     {
       final String httpMethod = entry.getKey();
       final String nb = entry.getValue().toString();
-      results.add(createAttribute(prefix + httpMethod + suffix, nb));
+      results.add(prefix + httpMethod + suffix, nb);
     }
   }
 

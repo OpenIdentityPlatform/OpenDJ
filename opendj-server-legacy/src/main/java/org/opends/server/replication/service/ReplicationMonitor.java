@@ -12,21 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Attributes;
 
 /**
  * Class used to generate monitoring information for the replication.
@@ -66,111 +64,83 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
         + ",cn=Replication";
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
   @Override
-  public List<Attribute> getMonitorData()
+  public MonitorData getMonitorData()
   {
-    List<Attribute> attributes = new ArrayList<>();
+    final MonitorData attributes = new MonitorData(41);
 
-    addMonitorData(attributes, "domain-name", domain.getBaseDN());
-    addMonitorData(attributes, "connected-to", domain.getReplicationServer());
-    addMonitorData(attributes, "lost-connections", domain.getNumLostConnections());
-    addMonitorData(attributes, "received-updates", domain.getNumRcvdUpdates());
-    addMonitorData(attributes, "sent-updates", domain.getNumSentUpdates());
+    attributes.add("domain-name", domain.getBaseDN());
+    attributes.add("server-id", domain.getServerId());
+    attributes.add("connected-to", domain.getReplicationServer());
+    attributes.add("lost-connections", domain.getNumLostConnections());
 
-    // get number of changes replayed
-    addMonitorData(attributes, "replayed-updates", domain.getNumProcessedUpdates());
-
-    addMonitorData(attributes, "server-id", domain.getServerId());
+    attributes.add("received-updates", domain.getNumRcvdUpdates());
+    attributes.add("sent-updates", domain.getNumSentUpdates());
+    attributes.add("replayed-updates", domain.getNumProcessedUpdates());
 
     // get window information
-    addMonitorData(attributes, "max-rcv-window", domain.getMaxRcvWindow());
-    addMonitorData(attributes, "current-rcv-window", domain.getCurrentRcvWindow());
-    addMonitorData(attributes, "max-send-window", domain.getMaxSendWindow());
-    addMonitorData(attributes, "current-send-window", domain.getCurrentSendWindow());
+    attributes.add("max-rcv-window", domain.getMaxRcvWindow());
+    attributes.add("current-rcv-window", domain.getCurrentRcvWindow());
+    attributes.add("max-send-window", domain.getMaxSendWindow());
+    attributes.add("current-send-window", domain.getCurrentSendWindow());
 
-    // get the Server State
-    final String ATTR_SERVER_STATE = "server-state";
-    AttributeBuilder builder = new AttributeBuilder(ATTR_SERVER_STATE);
-    builder.addAllStrings(domain.getServerState().toStringSet());
-    attributes.add(builder.toAttribute());
-
-    addMonitorData(attributes, "ssl-encryption", domain.isSessionEncrypted());
-    addMonitorData(attributes, "generation-id", domain.getGenerationID());
+    attributes.add("server-state", domain.getServerState().toStringSet());
+    attributes.add("ssl-encryption", domain.isSessionEncrypted());
+    attributes.add("generation-id", domain.getGenerationID());
 
     // Add import/export monitoring attributes
     final ImportExportContext ieContext = domain.getImportExportContext();
     if (ieContext != null)
     {
-      addMonitorData(attributes, "total-update", ieContext.importInProgress() ? "import" : "export");
-      addMonitorData(attributes, "total-update-entry-count", ieContext.getTotalEntryCount());
-      addMonitorData(attributes, "total-update-entry-left", ieContext.getLeftEntryCount());
+      attributes.add("total-update", ieContext.importInProgress() ? "import" : "export");
+      attributes.add("total-update-entry-count", ieContext.getTotalEntryCount());
+      attributes.add("total-update-entry-left", ieContext.getLeftEntryCount());
     }
 
 
     // Add the concrete Domain attributes
-    attributes.addAll(domain.getAdditionalMonitoring());
+    domain.addAdditionalMonitoring(attributes);
 
     /*
      * Add assured replication related monitoring fields
      * (see domain.getXXX() method comment for field meaning)
      */
-    addMonitorData(attributes, "assured-sr-sent-updates", domain.getAssuredSrSentUpdates());
-    addMonitorData(attributes, "assured-sr-acknowledged-updates", domain.getAssuredSrAcknowledgedUpdates());
-    addMonitorData(attributes, "assured-sr-not-acknowledged-updates", domain.getAssuredSrNotAcknowledgedUpdates());
-    addMonitorData(attributes, "assured-sr-timeout-updates", domain.getAssuredSrTimeoutUpdates());
-    addMonitorData(attributes, "assured-sr-wrong-status-updates", domain.getAssuredSrWrongStatusUpdates());
-    addMonitorData(attributes, "assured-sr-replay-error-updates", domain.getAssuredSrReplayErrorUpdates());
-    addMonitorData(attributes, "assured-sr-server-not-acknowledged-updates", domain
-        .getAssuredSrServerNotAcknowledgedUpdates());
-    addMonitorData(attributes, "assured-sr-received-updates", domain.getAssuredSrReceivedUpdates());
-    addMonitorData(attributes, "assured-sr-received-updates-acked", domain.getAssuredSrReceivedUpdatesAcked());
-    addMonitorData(attributes, "assured-sr-received-updates-not-acked", domain.getAssuredSrReceivedUpdatesNotAcked());
-    addMonitorData(attributes, "assured-sd-sent-updates", domain.getAssuredSdSentUpdates());
-    addMonitorData(attributes, "assured-sd-acknowledged-updates", domain.getAssuredSdAcknowledgedUpdates());
-    addMonitorData(attributes, "assured-sd-timeout-updates", domain.getAssuredSdTimeoutUpdates());
+    attributes.add("assured-sr-sent-updates", domain.getAssuredSrSentUpdates());
+    attributes.add("assured-sr-acknowledged-updates", domain.getAssuredSrAcknowledgedUpdates());
+    attributes.add("assured-sr-not-acknowledged-updates", domain.getAssuredSrNotAcknowledgedUpdates());
+    attributes.add("assured-sr-timeout-updates", domain.getAssuredSrTimeoutUpdates());
+    attributes.add("assured-sr-wrong-status-updates", domain.getAssuredSrWrongStatusUpdates());
+    attributes.add("assured-sr-replay-error-updates", domain.getAssuredSrReplayErrorUpdates());
+    addMonitorData(attributes,
+        "assured-sr-server-not-acknowledged-updates",
+        domain.getAssuredSrServerNotAcknowledgedUpdates());
+    attributes.add("assured-sr-received-updates", domain.getAssuredSrReceivedUpdates());
+    attributes.add("assured-sr-received-updates-acked", domain.getAssuredSrReceivedUpdatesAcked());
+    attributes.add("assured-sr-received-updates-not-acked", domain.getAssuredSrReceivedUpdatesNotAcked());
+    attributes.add("assured-sd-sent-updates", domain.getAssuredSdSentUpdates());
+    attributes.add("assured-sd-acknowledged-updates", domain.getAssuredSdAcknowledgedUpdates());
+    attributes.add("assured-sd-timeout-updates", domain.getAssuredSdTimeoutUpdates());
     addMonitorData(attributes, "assured-sd-server-timeout-updates", domain.getAssuredSdServerTimeoutUpdates());
 
     // Status related monitoring fields
-    addMonitorData(attributes, "last-status-change-date", domain.getLastStatusChangeDate());
-
-    addMonitorData(attributes, "status", domain.getStatus());
+    attributes.add("last-status-change-date", domain.getLastStatusChangeDate());
+    attributes.add("status", domain.getStatus());
 
     return attributes;
   }
 
-  private void addMonitorData(List<Attribute> attributes, String attrName,
-      Map<Integer, Integer> serverIdToNb)
+  private void addMonitorData(MonitorData attributes, String attrName, Map<Integer, Integer> serverIdToNb)
   {
     if (!serverIdToNb.isEmpty())
     {
-      final AttributeBuilder builder = new AttributeBuilder(attrName);
+      Collection<String> values = new ArrayList<>();
       for (Entry<Integer, Integer> entry : serverIdToNb.entrySet())
       {
         final Integer serverId = entry.getKey();
         final Integer nb = entry.getValue();
-        builder.add(serverId + ":" + nb);
+        values.add(serverId + ":" + nb);
       }
-      attributes.add(builder.toAttribute());
+      attributes.add(attrName, values);
     }
-  }
-
-  /**
-   * Adds an attribute with a value to the list of monitoring attributes.
-   *
-   * @param attributes the list of monitoring attributes
-   * @param attrName the name of the attribute to add.
-   * @param value The value of he attribute to add.
-   */
-  public static void addMonitorData(List<Attribute> attributes, String attrName, Object value)
-  {
-    attributes.add(Attributes.create(attrName, String.valueOf(value)));
   }
 }

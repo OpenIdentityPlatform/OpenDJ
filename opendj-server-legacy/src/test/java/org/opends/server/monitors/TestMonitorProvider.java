@@ -12,38 +12,38 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.server.monitors;
 
-import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.api.MonitorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
+import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Attribute;
-
-import java.util.List;
-import java.util.Collections;
 
 /**
  * This test monitor provider has a DN embedded in its instance name.
  */
 class TestMonitorProvider extends MonitorProvider<MonitorProviderCfg>
 {
+  @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
        throws ConfigException, InitializationException
   {
     // No implementation required.
   }
 
+  @Override
   public String getMonitorInstanceName()
   {
     return "Test monitor for dc=example,dc=com";
   }
 
-  public List<Attribute> getMonitorData()
+  @Override
+  public MonitorData getMonitorData()
   {
-    return Collections.emptyList();
+    return new MonitorData(0);
   }
 }
