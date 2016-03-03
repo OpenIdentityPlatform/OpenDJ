@@ -94,6 +94,19 @@
     </resources>
 
     <plugins>
+      <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <executions>
+          <!-- We do not need build timestamp for this module -->
+          <execution>
+            <id>generate-timestamp</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -150,6 +163,11 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <SCM-Revision>${buildRevision}</SCM-Revision>
+          </instructions>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

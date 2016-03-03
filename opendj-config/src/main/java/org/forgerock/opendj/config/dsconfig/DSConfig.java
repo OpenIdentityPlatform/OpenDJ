@@ -19,6 +19,7 @@ package org.forgerock.opendj.config.dsconfig;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.DocGenerationHelper.*;
+import static com.forgerock.opendj.cli.ToolVersionHandler.newToolVersionHandler;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -37,19 +38,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -115,7 +113,6 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.SubCommandUsageHandler;
-import com.forgerock.opendj.cli.VersionHandler;
 
 /**
  * This class provides a command-line tool which enables administrators to configure the Directory Server.
@@ -862,27 +859,7 @@ public final class DSConfig extends ConsoleApplication {
         this.parser.setShortToolDescription(REF_SHORT_DESC_DSCONFIG.get());
         this.parser.setDocToolDescriptionSupplement(REF_DSCFG_DOC_TOOL_DESCRIPTION.get());
         this.parser.setDocSubcommandsDescriptionSupplement(REF_DSCFG_DOC_SUBCOMMANDS_DESCRIPTION.get());
-        this.parser.setVersionHandler(new VersionHandler() {
-            @Override
-            public void printVersion() {
-                System.out.println(getVersionString());
-            }
-
-            private String getVersionString() {
-                try {
-                    final Enumeration<URL> resources = getClass().getClassLoader().getResources(
-                            "META-INF/maven/org.forgerock.opendj/opendj-config/pom.properties");
-                    while (resources.hasMoreElements()) {
-                        final Properties props = new Properties();
-                        props.load(resources.nextElement().openStream());
-                        return (String) props.get("version");
-                    }
-                } catch (IOException e) {
-                    errPrintln(LocalizableMessage.raw(e.getMessage()));
-                }
-                return "";
-            }
-        });
+        this.parser.setVersionHandler(newToolVersionHandler("opendj-config"));
         if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
             this.parser.setUsageHandler(new DSConfigSubCommandUsageHandler());
         }
