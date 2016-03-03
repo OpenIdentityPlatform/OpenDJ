@@ -349,58 +349,6 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <!-- Unpack configuration files from opendj-maven-plugin -->
-          <!-- This plugin could be removed once the migration to the new config framework will be done -->
-          <execution>
-            <id>unpack-config-files</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.forgerock.opendj</groupId>
-                  <artifactId>opendj-maven-plugin</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${old.config.files.path}</outputDirectory>
-                  <includes>config/xml/**/*.xml</includes>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-
-          <!-- Unpack legacy classes to include them in main jar.
-               This "hacked" approach is needed since using the maven shade plugin
-               is too complex with this multi-artefact maven module. -->
-          <execution>
-            <id>unpack-legacy-classes</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.forgerock.opendj</groupId>
-                  <artifactId>opendj-legacy</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Generate i18n messages -->
       <plugin>
         <groupId>org.forgerock.commons</groupId>
@@ -602,6 +550,7 @@
                 <source>src/admin/generated</source>
                 <source>src/build-tools</source>
                 <source>${project.build.directory}/java-stubs</source>
+                <source>../opendj-legacy/src/main/java</source>
               </sources>
             </configuration>
           </execution>
@@ -1121,10 +1070,9 @@
             <phase>generate-sources</phase>
             <configuration>
               <target>
-                <move todir="${old.config.files.path}">
-                  <fileset dir="${old.config.files.path}/config/xml/org/forgerock/opendj/server/config/" />
-                </move>
-                <delete dir="${old.config.files.path}/config" />
+                <copy todir="${old.config.files.path}">
+                  <fileset dir="../opendj-maven-plugin/src/main/resources/config/xml/org/forgerock/opendj/server/config/" />
+                </copy>
                 <replace dir="${old.config.files.path}" token="org.forgerock.opendj.server.config" value="org.opends.server.admin.std" />
                 <replace dir="${old.config.files.path}" token="http://opendj.forgerock.org/admin" value="http://www.opends.org/admin" />
               </target>

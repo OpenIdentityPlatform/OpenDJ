@@ -430,7 +430,16 @@ public final class GenerateConfigMojo extends AbstractMojo {
         }
 
         final URL url = getClass().getClassLoader().getResource(parentPath);
-        loadXMLDescriptorsFromJar(parentPath, ((JarURLConnection) url.openConnection()).getJarFile());
+        final String protocol = url.getProtocol();
+        if ("file".equals(protocol)) {
+            loadXMLDescriptorsFromFolder(parentPath);
+        } else if ("jar".equals(protocol)) {
+            loadXMLDescriptorsFromJar(parentPath, ((JarURLConnection) url.openConnection()).getJarFile());
+        } else {
+            final String errorMsg = "Impossible to read XML descriptors from path '" + parentPath + "'";
+            getLog().error(errorMsg);
+            throw new MojoExecutionException(errorMsg);
+        }
     }
 
     private void loadXMLDescriptorsFromFolder(final String parentPath) {
