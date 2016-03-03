@@ -96,18 +96,10 @@
                 </executions>
             </plugin>
 
+            <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                     </execution>
-                </executions>
             </plugin>
 
             <!-- Creates opendj-core bundle -->
@@ -123,7 +115,7 @@
                             org.forgerock.opendj.ldif
                         </Export-Package>
                         <Build-Maven>Apache Maven ${maven.version}</Build-Maven>
-                        <SCM-Revision>${buildNumber}</SCM-Revision>
+                        <SCM-Revision>${buildRevision}</SCM-Revision>
                         <SCM-Branch>${scmBranch}</SCM-Branch>
                         <Build-Time>${maven.build.timestamp}</Build-Time>
                         <Build-Java>${java.version}</Build-Java>
