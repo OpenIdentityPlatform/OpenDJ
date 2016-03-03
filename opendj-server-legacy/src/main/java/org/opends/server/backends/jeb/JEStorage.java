@@ -278,7 +278,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
 
     private Database getOrOpenTree(TreeName treeName)
     {
-      return getOrOpenTree0(null, trees, treeName);
+      return getOrOpenTree0(trees, treeName);
     }
 
     @Override
@@ -364,7 +364,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     {
       try
       {
-        return getOrOpenTree0(txn, trees, treeName);
+        return getOrOpenTree0(trees, treeName);
       }
       catch (Exception e)
       {
@@ -627,7 +627,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     cfg.addJEChangeListener(this);
   }
 
-  private Database getOrOpenTree0(Transaction txn, Map<TreeName, Database> trees, TreeName treeName)
+  private Database getOrOpenTree0(Map<TreeName, Database> trees, TreeName treeName)
   {
     Database tree = trees.get(treeName);
     if (tree == null)

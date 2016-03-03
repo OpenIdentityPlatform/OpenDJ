@@ -21,12 +21,9 @@ import org.opends.server.loggers.CommonAudit;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
 
-/**
- * Context for the server, giving access to global properties of the server.
- */
+/** Context for the server, giving access to global properties of the server. */
 public interface ServerContext
 {
-
   /**
    * Returns the directory of server instance.
    *
@@ -86,7 +83,7 @@ public interface ServerContext
    * Configure a directory to be monitored and optionally get alerted when
    * disk space transitions from low to full to back to normal.
    *
-   * @return the Disk Space Monioring service
+   * @return the Disk Space Monitoring service
    */
   DiskSpaceMonitor getDiskSpaceMonitor();
 
