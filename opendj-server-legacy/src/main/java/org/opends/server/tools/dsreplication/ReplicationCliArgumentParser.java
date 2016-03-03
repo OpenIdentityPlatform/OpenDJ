@@ -286,10 +286,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     int returnValue;
     super.validateGlobalOptions(buf);
-    final List<LocalizableMessage> errors = new ArrayList<>();
-    addErrorMessageIfArgumentsConflict(
-        errors, secureArgsList.getBindPasswordArg(), secureArgsList.getBindPasswordFileArg());
 
+    final List<LocalizableMessage> errors = new ArrayList<>();
     // Check that we can write on the provided path where we write the
     // equivalent non-interactive commands.
     if (equivalentCommandFileArgument.isPresent())
