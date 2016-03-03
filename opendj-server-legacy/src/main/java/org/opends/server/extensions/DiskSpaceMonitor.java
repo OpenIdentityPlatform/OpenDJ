@@ -65,9 +65,7 @@ import org.opends.server.types.InitializationException;
 public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implements Runnable, AlertGenerator,
     ServerShutdownListener
 {
-  /**
-   * Helper class for each requestor for use with cn=monitor reporting and users of a spcific mountpoint.
-   */
+  /** Helper class for each requestor for use with cn=monitor reporting and users of a specific mountpoint. */
   private class MonitoredDirectory extends MonitorProvider<MonitorProviderCfg>
   {
     private volatile File directory;
@@ -456,7 +454,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   {
     try
     {
-      return DN.valueOf(INSTANCENAME);
+      return DN.valueOf("cn=" + INSTANCENAME);
     }
     catch (LocalizedIllegalArgumentException ignored)
     {
