@@ -91,38 +91,15 @@
         <artifactId>build-helper-maven-plugin</artifactId>
       </plugin>
 
-      <!-- Retrieve the SVN revision number and the build timestamp -->
+      <!--
+          Retrieve the SCM revision number and store it into the ${buildRevision} property
+          and retrieve the build timestamp and store it into the ${buildDateTime} property
+      -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
-        <version>1.2</version>
-        <executions>
-          <execution>
-            <id>generate-buildnumber</id>
-            <goals>
-              <goal>create</goal>
-            </goals>
-            <configuration>
-              <useLastCommittedRevision>true</useLastCommittedRevision>
-              <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
-              <revisionOnScmFailure>-1</revisionOnScmFailure>
-            </configuration>
-          </execution>
-          <execution>
-            <id>generate-timestamp</id>
-            <goals>
-              <goal>create</goal>
-            </goals>
-            <configuration>
-              <format>{0,date,yyyyMMddHHmmss}</format>
-              <items>
-                <item>timestamp</item>
-              </items>
-              <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
+
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
