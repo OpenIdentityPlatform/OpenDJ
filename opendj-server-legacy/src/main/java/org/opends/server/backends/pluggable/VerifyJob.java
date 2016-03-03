@@ -496,7 +496,7 @@ class VerifyJob
       final ByteString key, final EntryID entryID)
   {
     ChildrenCount currentParent = childrenCounters.peekLast();
-    while (currentParent != null && !DN2ID.isChild(currentParent.baseDN, key))
+    while (currentParent != null && !DnKeyFormat.isChild(currentParent.baseDN, key))
     {
       // This subtree is fully processed, pop the counter of the parent DN from the stack and verify it's value
       verifyID2ChildrenCount(txn, childrenCounters.removeLast());

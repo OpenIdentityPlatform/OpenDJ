@@ -192,37 +192,6 @@ class DN2ID extends AbstractTree
     }
   }
 
-  /**
-   * Check if two DN have a parent-child relationship.
-   *
-   * @param parent
-   *          The potential parent
-   * @param child
-   *          The potential child of parent
-   * @return true if child is a direct children of parent, false otherwise.
-   */
-  static boolean isChild(ByteSequence parent, ByteSequence child)
-  {
-    if (!child.startsWith(parent))
-    {
-      return false;
-    }
-    // Immediate children should only have one RDN separator past the parent length
-    int nbSeparator = 0;
-    for (int i = parent.length() ; i < child.length(); i++)
-    {
-      if (child.byteAt(i) == DnKeyFormat.NORMALIZED_RDN_SEPARATOR)
-      {
-        nbSeparator++;
-        if (nbSeparator > 1)
-        {
-          return false;
-        }
-      }
-    }
-    return nbSeparator == 1;
-  }
-
   @Override
   public String keyToString(ByteString key)
   {
@@ -378,7 +347,7 @@ class DN2ID extends AbstractTree
     private void popCompleteParents(ByteString dn)
     {
       ParentInfo<V> currentParent;
-      while ((currentParent = parentsInfoStack.peek()) != null && !isChild(currentParent.parentDN, dn))
+      while ((currentParent = parentsInfoStack.peek()) != null && !DnKeyFormat.isChild(currentParent.parentDN, dn))
       {
         visitor.endParent(parentsInfoStack.pop().visitorData);
       }

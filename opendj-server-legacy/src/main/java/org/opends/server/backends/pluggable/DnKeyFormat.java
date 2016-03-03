@@ -27,12 +27,13 @@ public class DnKeyFormat
   /** The format version used by this class to encode and decode a ByteString. */
   static final byte FORMAT_VERSION = 0x01;
 
+  // The following fields have been copied from the DN class in the SDK
   /** RDN separator for normalized byte string of a DN. */
-  public static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
+  private static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
   /** AVA separator for normalized byte string of a DN. */
-  static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
+  private static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
   /** Escape byte for normalized byte string of a DN. */
-  static final byte NORMALIZED_ESC_BYTE = 0x02;
+  private static final byte NORMALIZED_ESC_BYTE = 0x02;
 
   /**
    * Find the length of bytes that represents the superior DN of the given DN
@@ -106,5 +107,36 @@ public class DnKeyFormat
     afterKey.appendBytes(key);
     afterKey.appendByte(NORMALIZED_AVA_SEPARATOR);
     return afterKey;
+  }
+
+  /**
+   * Check if two DN have a parent-child relationship.
+   *
+   * @param parent
+   *          The potential parent
+   * @param child
+   *          The potential child of parent
+   * @return true if child is a direct children of parent, false otherwise.
+   */
+  static boolean isChild(ByteSequence parent, ByteSequence child)
+  {
+    if (!child.startsWith(parent))
+    {
+      return false;
+    }
+    // Immediate children should only have one RDN separator past the parent length
+    int nbSeparator = 0;
+    for (int i = parent.length() ; i < child.length(); i++)
+    {
+      if (child.byteAt(i) == NORMALIZED_RDN_SEPARATOR)
+      {
+        nbSeparator++;
+        if (nbSeparator > 1)
+        {
+          return false;
+        }
+      }
+    }
+    return nbSeparator == 1;
   }
 }

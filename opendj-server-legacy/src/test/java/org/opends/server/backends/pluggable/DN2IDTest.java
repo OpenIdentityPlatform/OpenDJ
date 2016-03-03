@@ -150,20 +150,20 @@ public class DN2IDTest extends DirectoryServerTestCase
           cursor.next();
           final ByteString parentDN = cursor.getKey();
           cursor.next();
-          assertThat(DN2ID.isChild(rootDN, parentDN)).isTrue();
+          assertThat(DnKeyFormat.isChild(rootDN, parentDN)).isTrue();
 
           final ByteString childDN = cursor.getKey();
-          assertThat(DN2ID.isChild(parentDN, childDN)).isTrue();
+          assertThat(DnKeyFormat.isChild(parentDN, childDN)).isTrue();
 
           cursor.next();
           final ByteString otherChildDN = cursor.getKey();
-          assertThat(DN2ID.isChild(parentDN, otherChildDN)).isTrue();
-          assertThat(DN2ID.isChild(childDN, otherChildDN)).isFalse();
+          assertThat(DnKeyFormat.isChild(parentDN, otherChildDN)).isTrue();
+          assertThat(DnKeyFormat.isChild(childDN, otherChildDN)).isFalse();
 
           final ByteString lastChildDN = cursor.getKey();
-          assertThat(DN2ID.isChild(parentDN, lastChildDN)).isTrue();
-          assertThat(DN2ID.isChild(otherChildDN, lastChildDN)).isFalse();
-          assertThat(DN2ID.isChild(childDN, lastChildDN)).isFalse();
+          assertThat(DnKeyFormat.isChild(parentDN, lastChildDN)).isTrue();
+          assertThat(DnKeyFormat.isChild(otherChildDN, lastChildDN)).isFalse();
+          assertThat(DnKeyFormat.isChild(childDN, lastChildDN)).isFalse();
         }
         return null;
       }
