@@ -138,13 +138,11 @@
         <executions>
           <execution>
             <id>generate-config</id>
-            <phase>generate-sources</phase>
             <goals>
               <goal>generate-config</goal>
             </goals>
             <configuration>
               <packageName>org.forgerock.opendj.server.config</packageName>
-              <isExtension>false</isExtension>
             </configuration>
           </execution>
         </executions>

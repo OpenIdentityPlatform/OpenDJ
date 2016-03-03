@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven;
 
@@ -99,6 +99,8 @@ import org.apache.maven.project.MavenProject;
 @Mojo(name = "generate-config", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE_PLUS_RUNTIME)
 public final class GenerateConfigMojo extends AbstractMojo {
 
+    private static final String CONFIGURATION_FILE_SUFFIX = "Configuration.xml";
+
     private interface StreamSourceFactory {
         StreamSource newStreamSource() throws IOException;
     }
@@ -119,12 +121,12 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private String packageName;
 
     /**
-     * Package name for which artifacts are generated.
+     * {@code true} if this plugin should be used to generate classes
+     * for extended configuration (e.g OpenDJ plugins).
      * <p>
-     * This relative path is used to locate xml definition files and to locate
-     * generated artifacts.
+     * If not specified, OpenDJ configuration classes will be generated.
      */
-    @Parameter(required = true, defaultValue = "true")
+    @Parameter(required = true, defaultValue = "false")
     private Boolean isExtension;
 
     private final Map<String, StreamSourceFactory> componentDescriptors = new LinkedHashMap<>();
@@ -187,7 +189,9 @@ public final class GenerateConfigMojo extends AbstractMojo {
         // Validate and transform.
         try {
             initializeStylesheets();
+            getLog().info("Loading XML descriptors...");
             loadXMLDescriptors();
+            getLog().info("Found " + componentDescriptors.size() + " XML descriptors");
             executeValidateXMLDefinitions();
             executeTransformXMLDefinitions();
             getLog().info("Adding source directory \"" + getGeneratedSourcesDirectory() + "\" to build path...");
@@ -418,49 +422,54 @@ public final class GenerateConfigMojo extends AbstractMojo {
         return stylesheetFactory.newTemplates(xslt);
     }
 
-    private void loadXMLDescriptors() throws IOException {
-        getLog().info("Loading XML descriptors...");
+    private void loadXMLDescriptors() throws IOException, MojoExecutionException {
         final String parentPath = getXMLPackageDirectory();
-        final String configFileName = "Configuration.xml";
         if (isExtension) {
-            final File dir = new File(parentPath);
-            dir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(final File path) {
-                    final String name = path.getName();
-                    if (path.isFile() && name.endsWith(configFileName)) {
-                        final String key = name.substring(0, name.length() - configFileName.length());
-                        componentDescriptors.put(key, new StreamSourceFactory() {
-                            @Override
-                            public StreamSource newStreamSource() {
-                                return new StreamSource(path);
-                            }
-                        });
-                    }
-                    return true; // Don't care about the result.
-                }
-            });
-        } else {
-            final URL dir = getClass().getClassLoader().getResource(parentPath);
-            final JarURLConnection connection = (JarURLConnection) dir.openConnection();
-            final JarFile jar = connection.getJarFile();
-            final Enumeration<JarEntry> entries = jar.entries();
-            while (entries.hasMoreElements()) {
-                final JarEntry entry = entries.nextElement();
-                final String name = entry.getName();
-                if (name.startsWith(parentPath) && name.endsWith(configFileName)) {
-                    final int startPos = name.lastIndexOf('/') + 1;
-                    final int endPos = name.length() - configFileName.length();
-                    final String key = name.substring(startPos, endPos);
+            loadXMLDescriptorsFromFolder(parentPath);
+            return;
+        }
+
+        final URL url = getClass().getClassLoader().getResource(parentPath);
+        loadXMLDescriptorsFromJar(parentPath, ((JarURLConnection) url.openConnection()).getJarFile());
+    }
+
+    private void loadXMLDescriptorsFromFolder(final String parentPath) {
+        final File folder = new File(parentPath);
+        folder.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(final File path) {
+                final String name = path.getName();
+                if (path.isFile() && name.endsWith(CONFIGURATION_FILE_SUFFIX)) {
+                    final String key = name.substring(0, name.length() - CONFIGURATION_FILE_SUFFIX.length());
                     componentDescriptors.put(key, new StreamSourceFactory() {
                         @Override
-                        public StreamSource newStreamSource() throws IOException {
-                            return new StreamSource(jar.getInputStream(entry));
+                        public StreamSource newStreamSource() {
+                            return new StreamSource(path);
                         }
                     });
                 }
+                return true; // Don't care about the result.
+            }
+        });
+    }
+
+    private void loadXMLDescriptorsFromJar(final String parentPath, final JarFile jar) throws IOException {
+        final Enumeration<JarEntry> entries = jar.entries();
+
+        while (entries.hasMoreElements()) {
+            final JarEntry entry = entries.nextElement();
+            final String name = entry.getName();
+
+            if (name.startsWith(parentPath) && name.endsWith(CONFIGURATION_FILE_SUFFIX)) {
+                final int startPos = name.lastIndexOf('/') + 1;
+                final int endPos = name.length() - CONFIGURATION_FILE_SUFFIX.length();
+                componentDescriptors.put(name.substring(startPos, endPos), new StreamSourceFactory() {
+                    @Override
+                    public StreamSource newStreamSource() throws IOException {
+                        return new StreamSource(jar.getInputStream(entry));
+                    }
+                });
             }
         }
-        getLog().info("Found " + componentDescriptors.size() + " XML descriptors");
     }
 }
