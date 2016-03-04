@@ -612,6 +612,63 @@
               <goal>parse-version</goal>
             </goals>
           </execution>
+
+          <!-- Attach localized jars to this module -->
+          <execution>
+            <id>attach-localized-jars</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${jars.dir}/opendj_ca_ES.jar</file>
+                  <classifier>${localized.jars.classifier}-ca_ES</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_de.jar</file>
+                  <classifier>${localized.jars.classifier}-de</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_es.jar</file>
+                  <classifier>${localized.jars.classifier}-es</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_fr.jar</file>
+                  <classifier>${localized.jars.classifier}-fr</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_ja.jar</file>
+                  <classifier>${localized.jars.classifier}-ja</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_ko.jar</file>
+                  <classifier>${localized.jars.classifier}-ko</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_pl.jar</file>
+                  <classifier>${localized.jars.classifier}-pl</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_zh_CN.jar</file>
+                  <classifier>${localized.jars.classifier}-zh_CN</classifier>
+                </artifact>
+
+                <artifact>
+                  <file>${jars.dir}/opendj_zh_TW.jar</file>
+                  <classifier>${localized.jars.classifier}-zh_TW</classifier>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
@@ -1357,63 +1414,6 @@
                   <sources>
                     <source>src/snmp</source>
                   </sources>
-                </configuration>
-              </execution>
-
-              <!-- Attach localized jars to this module -->
-              <execution>
-                <id>attach-localized-jars</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${jars.dir}/opendj_ca_ES.jar</file>
-                      <classifier>${localized.jars.classifier}-ca_ES</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_de.jar</file>
-                      <classifier>${localized.jars.classifier}-de</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_es.jar</file>
-                      <classifier>${localized.jars.classifier}-es</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_fr.jar</file>
-                      <classifier>${localized.jars.classifier}-fr</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_ja.jar</file>
-                      <classifier>${localized.jars.classifier}-ja</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_ko.jar</file>
-                      <classifier>${localized.jars.classifier}-ko</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_pl.jar</file>
-                      <classifier>${localized.jars.classifier}-pl</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_zh_CN.jar</file>
-                      <classifier>${localized.jars.classifier}-zh_CN</classifier>
-                    </artifact>
-
-                    <artifact>
-                      <file>${jars.dir}/opendj_zh_TW.jar</file>
-                      <classifier>${localized.jars.classifier}-zh_TW</classifier>
-                    </artifact>
-                  </artifacts>
                 </configuration>
               </execution>
             </executions>
