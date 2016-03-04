@@ -66,15 +66,23 @@ import com.forgerock.opendj.util.PackedLong;
 public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 {
   @Test
-  public void testBuffer() throws IOException
+  public void testHeapBuffer() throws IOException
   {
     try(Buffer buffer = new HeapBuffer(1024))
     {
       testBufferImplementation(buffer);
     }
-    try (Buffer buffer = new OffHeapBuffer(1024))
+  }
+
+  @Test
+  public void testOffHeapBuffer() throws IOException
+  {
+    if (BufferPool.SUPPORTS_OFF_HEAP)
     {
-      testBufferImplementation(buffer);
+      try (Buffer buffer = new OffHeapBuffer(1024))
+      {
+        testBufferImplementation(buffer);
+      }
     }
   }
 

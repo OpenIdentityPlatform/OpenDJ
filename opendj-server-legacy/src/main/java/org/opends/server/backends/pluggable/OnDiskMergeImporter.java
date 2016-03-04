@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -466,7 +465,7 @@ final class OnDiskMergeImporter
 
     private int computeBufferSize(int nbBuffer) throws InitializationException
     {
-      if (BufferPool.supportOffHeap())
+      if (BufferPool.SUPPORTS_OFF_HEAP)
       {
         return MAX_BUFFER_SIZE;
       }
@@ -2719,30 +2718,23 @@ final class OnDiskMergeImporter
    */
   static final class BufferPool implements Closeable
   {
-    private final BlockingQueue<Buffer> pool;
-    private final int bufferSize;
-
-    private static final Unsafe unsafe;
-    private static final long BYTE_ARRAY_OFFSET;
+    static final boolean SUPPORTS_OFF_HEAP;
     static
     {
-        try
-        {
-            Field field = Unsafe.class.getDeclaredField("theUnsafe");
-            field.setAccessible(true);
-            unsafe = (Unsafe)field.get(null);
-            BYTE_ARRAY_OFFSET = unsafe.arrayBaseOffset(byte[].class);
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-        }
+      boolean isUnsafeSupported = false;
+      try
+      {
+        isUnsafeSupported = Class.forName("sun.misc.Unsafe") != null;
+      }
+      catch (Throwable e)
+      {
+        // Unsupported.
+      }
+      SUPPORTS_OFF_HEAP = isUnsafeSupported;
     }
 
-    private static boolean supportOffHeap()
-    {
-      return unsafe != null;
-    }
+    private final BlockingQueue<Buffer> pool;
+    private final int bufferSize;
 
     BufferPool(int nbBuffer, int bufferSize)
     {
@@ -2750,7 +2742,7 @@ final class OnDiskMergeImporter
       this.bufferSize = bufferSize;
       for (int i = 0; i < nbBuffer; i++)
       {
-        pool.offer(supportOffHeap() ? new OffHeapBuffer(bufferSize) : new HeapBuffer(bufferSize));
+        pool.offer(SUPPORTS_OFF_HEAP ? new OffHeapBuffer(bufferSize) : new HeapBuffer(bufferSize));
       }
     }
 
@@ -2804,6 +2796,9 @@ final class OnDiskMergeImporter
     /** Off-heap buffer using Unsafe memory access. */
     static final class OffHeapBuffer implements Buffer
     {
+      private static final Unsafe UNSAFE = Unsafe.getUnsafe();
+      private static final long BYTE_ARRAY_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
+
       private final long address;
       private final int size;
       private int position;
@@ -2812,7 +2807,7 @@ final class OnDiskMergeImporter
         @Override
         public int read() throws IOException
         {
-          return unsafe.getByte(address + position++) & 0xFF;
+          return UNSAFE.getByte(address + position++) & 0xFF;
         }
       };
       private final OutputStream asOutputStream = new OutputStream()
@@ -2820,7 +2815,7 @@ final class OnDiskMergeImporter
         @Override
         public void write(int value) throws IOException
         {
-          unsafe.putByte(address + position++, (byte) (value & 0xFF));
+          UNSAFE.putByte(address + position++, (byte) (value & 0xFF));
         }
       };
       private boolean closed;
@@ -2828,19 +2823,19 @@ final class OnDiskMergeImporter
       OffHeapBuffer(int size)
       {
         this.size = size;
-        this.address = unsafe.allocateMemory(size);
+        this.address = UNSAFE.allocateMemory(size);
       }
 
       @Override
       public void writeInt(final int position, final int value)
       {
-        unsafe.putInt(address + position, value);
+        UNSAFE.putInt(address + position, value);
       }
 
       @Override
       public int readInt(final int position)
       {
-        return unsafe.getInt(address + position);
+        return UNSAFE.getInt(address + position);
       }
 
       @Override
@@ -2879,7 +2874,7 @@ final class OnDiskMergeImporter
         long offset = address + position;
         for(int i = 0 ; i < data.length() ; i++)
         {
-          unsafe.putByte(offset++, data.byteAt(i));
+          UNSAFE.putByte(offset++, data.byteAt(i));
         }
       }
 
@@ -2895,7 +2890,7 @@ final class OnDiskMergeImporter
         Reject.ifFalse(position + length <= size);
 
         final byte[] data = new byte[length];
-        unsafe.copyMemory(null, address + position, data, BYTE_ARRAY_OFFSET, length);
+        UNSAFE.copyMemory(null, address + position, data, BYTE_ARRAY_OFFSET, length);
         return ByteString.wrap(data);
       }
 
@@ -2905,8 +2900,8 @@ final class OnDiskMergeImporter
         final int len = Math.min(lengthA, lengthB);
         for(int i = 0 ; i < len ; i++)
         {
-          final int a = unsafe.getByte(address + offsetA + i) & 0xFF;
-          final int b = unsafe.getByte(address + offsetB + i) & 0xFF;
+          final int a = UNSAFE.getByte(address + offsetA + i) & 0xFF;
+          final int b = UNSAFE.getByte(address + offsetB + i) & 0xFF;
           if ( a != b )
           {
             return a - b;
@@ -2920,7 +2915,7 @@ final class OnDiskMergeImporter
       {
         if (!closed)
         {
-          unsafe.freeMemory(address);
+          UNSAFE.freeMemory(address);
         }
         closed = true;
       }
