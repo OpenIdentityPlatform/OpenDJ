@@ -1,7 +1,7 @@
 Package: [[deb.product.name.lowercase]]
 Version: [[parsedVersion.majorVersion]].[[parsedVersion.minorVersion]].[[parsedVersion.incrementalVersion]]
 Section: misc
-Priority: low
+Priority: optional
 Architecture: all
 Depends: default-jre | java6-runtime | java7-runtime
 Homepage: [[deb.doc.homepage.url]]
