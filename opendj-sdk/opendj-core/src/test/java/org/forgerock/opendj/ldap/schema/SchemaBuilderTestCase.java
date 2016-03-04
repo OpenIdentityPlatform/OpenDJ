@@ -27,6 +27,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
@@ -2136,5 +2137,25 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(schemaNoEnum.getMatchingRules())
             .as("Expected the enum ordering matching rule to be removed at the same time as the enum syntax")
             .hasSize(coreSchema.getMatchingRules().size());
+    }
+
+    @Test
+    public void attributeTypesUseNewlyBuiltSyntaxes() throws Exception {
+        final Schema coreSchema = Schema.getCoreSchema();
+        final Schema schema = new SchemaBuilder(coreSchema)
+                .addAttributeType("( 1.2.3.4.5.7 NAME 'associateoid'  "
+                                          + "EQUALITY 2.5.13.2 ORDERING 2.5.13.3 SUBSTR 2.5.13.4 "
+                                          + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications "
+                                          + "X-APPROX '1.3.6.1.4.1.26027.1.4.1' )", false)
+                .toSchema();
+
+        Syntax dnSyntax = schema.getAttributeType("distinguishedName").getSyntax();
+        assertThat(dnSyntax).isSameAs(schema.getSyntax("1.3.6.1.4.1.1466.115.121.1.12"));
+
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+        boolean isValid = dnSyntax.valueIsAcceptable(ByteString.valueOfUtf8("associateoid=test"), invalidReason);
+        assertThat(isValid)
+                .as("Value should have been valid, but it is not: " + invalidReason.toString())
+                .isTrue();
     }
 }

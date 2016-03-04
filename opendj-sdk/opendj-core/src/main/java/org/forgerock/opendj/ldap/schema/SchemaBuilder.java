@@ -1189,13 +1189,7 @@ public final class SchemaBuilder {
      * @return A builder to continue building the MatchingRule.
      */
     public MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule) {
-        return buildMatchingRule(matchingRule, true);
-    }
-
-    private MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule, final boolean initialize) {
-        if (initialize) {
-            lazyInitBuilder();
-        }
+        lazyInitBuilder();
         return new MatchingRule.Builder(matchingRule, this);
     }
 
@@ -1255,13 +1249,7 @@ public final class SchemaBuilder {
      * @return A builder to continue building the Syntax.
      */
     public Syntax.Builder buildSyntax(final Syntax syntax) {
-        return buildSyntax(syntax, true);
-    }
-
-    private Syntax.Builder buildSyntax(final Syntax syntax, final boolean initialize) {
-        if (initialize) {
-            lazyInitBuilder();
-        }
+        lazyInitBuilder();
         return new Syntax.Builder(syntax, this);
     }
 
@@ -2346,35 +2334,35 @@ public final class SchemaBuilder {
         // unlikely, may be different in the new schema.
 
         for (final Syntax syntax : schema.getSyntaxes()) {
-            buildSyntax(syntax, false).addToSchema(overwrite);
+            buildSyntax(syntax).addToSchema(overwrite);
         }
 
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
-            buildMatchingRule(matchingRule, false).addToSchema(overwrite);
+            buildMatchingRule(matchingRule).addToSchema(overwrite);
         }
 
         for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses()) {
-            addMatchingRuleUse(matchingRuleUse, overwrite);
+            buildMatchingRuleUse(matchingRuleUse).addToSchema(overwrite);
         }
 
         for (final AttributeType attributeType : schema.getAttributeTypes()) {
-            addAttributeType(attributeType, overwrite);
+            buildAttributeType(attributeType).addToSchema(overwrite);
         }
 
         for (final ObjectClass objectClass : schema.getObjectClasses()) {
-            addObjectClass(objectClass, overwrite);
+            buildObjectClass(objectClass).addToSchema(overwrite);
         }
 
         for (final NameForm nameForm : schema.getNameForms()) {
-            addNameForm(nameForm, overwrite);
+            buildNameForm(nameForm).addToSchema(overwrite);
         }
 
         for (final DITContentRule contentRule : schema.getDITContentRules()) {
-            addDITContentRule(contentRule, overwrite);
+            buildDITContentRule(contentRule).addToSchema(overwrite);
         }
 
         for (final DITStructureRule structureRule : schema.getDITStuctureRules()) {
-            addDITStructureRule(structureRule, overwrite);
+            buildDITStructureRule(structureRule).addToSchema(overwrite);
         }
     }
 
@@ -2421,13 +2409,13 @@ public final class SchemaBuilder {
             nameForm2StructureRules = new HashMap<>();
             name2OIDs = new HashMap<>();
             warnings = new LinkedList<>();
-        }
 
-        if (copyOnWriteSchema != null) {
-            // Copy the schema.
-            addSchema0(copyOnWriteSchema, true);
-            options = Options.copyOf(copyOnWriteSchema.getOptions());
-            copyOnWriteSchema = null;
+            if (copyOnWriteSchema != null) {
+                // Copy the schema.
+                addSchema0(copyOnWriteSchema, true);
+                options = Options.copyOf(copyOnWriteSchema.getOptions());
+                copyOnWriteSchema = null;
+            }
         }
     }
 
