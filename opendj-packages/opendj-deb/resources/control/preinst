@@ -27,7 +27,7 @@ if [ "$1" = "upgrade" ] ; then
         echo *Stopping OpenDJ server...
         ${deb.prefix}/bin/./stop-ds
     else
-        echo "Instance is not configured. Upgrade aborded."
+        echo "Instance is not configured. Upgrade aborted."
         exit -1
     fi
 fi
