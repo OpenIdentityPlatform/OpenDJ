@@ -586,8 +586,9 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
         <executions>
+          <!-- Run inherited 'parse-version' execution to generate properties (major.version, minor.version, ...) -->
+
           <!-- Take into account several sources directories for the build -->
           <execution>
             <id>main-java-sources</id>
@@ -604,13 +605,6 @@
                 <source>${project.build.directory}/java-stubs</source>
               </sources>
             </configuration>
-          </execution>
-          <!-- Parse version to generate properties (major.version, minor.version, ...) -->
-          <execution>
-            <id>parse-version</id>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
           </execution>
 
           <!-- Attach localized jars to this module -->
@@ -1401,7 +1395,6 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.7</version>
             <executions>
               <!-- Add snmp source directory and snmp generated directory as sources -->
               <execution>

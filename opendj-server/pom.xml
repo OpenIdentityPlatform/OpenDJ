@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2013-2015 ForgeRock AS.
+  Copyright 2013-2016 ForgeRock AS.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -83,20 +83,14 @@
         <filtering>true</filtering>
       </resource>
     </resources>
+
     <plugins>
+      <!-- Parse version to generate properties (major.version, minor.version, ...) -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>parse-version</id>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
+
       <!-- Retrieve the SVN revision number and the build timestamp -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
