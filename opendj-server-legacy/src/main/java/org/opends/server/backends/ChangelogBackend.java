@@ -198,7 +198,7 @@ public class ChangelogBackend extends Backend<Configuration>
   public static final DN CHANGELOG_BASE_DN = DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT);
 
   /** The set of base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
   /** The set of supported controls for this backend. */
   private final Set<String> supportedControls = Collections.singleton(OID_ECL_COOKIE_EXCHANGE_CONTROL);
   /** Whether the base changelog entry has subordinates. */
@@ -257,7 +257,7 @@ public class ChangelogBackend extends Backend<Configuration>
   @Override
   public void openBackend() throws InitializationException
   {
-    baseDNs = new DN[] { CHANGELOG_BASE_DN };
+    baseDNs = Collections.singleton(CHANGELOG_BASE_DN);
 
     try
     {
@@ -284,7 +284,7 @@ public class ChangelogBackend extends Backend<Configuration>
   }
 
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }

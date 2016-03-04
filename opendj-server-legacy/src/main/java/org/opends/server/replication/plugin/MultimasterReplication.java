@@ -691,7 +691,6 @@ public class MultimasterReplication
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       ReplicationDomainCfg configuration)

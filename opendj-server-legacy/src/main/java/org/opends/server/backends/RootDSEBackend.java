@@ -42,16 +42,16 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.Entry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -59,8 +59,22 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
 
@@ -106,7 +120,7 @@ public class RootDSEBackend
   /** The DN for the root DSE. */
   private DN rootDSEDN;
   /** The set of base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
   /**
    * The set of subordinate base DNs and their associated backends that will be
    * used for non-base searches.
@@ -155,7 +169,7 @@ public class RootDSEBackend
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the root DSE.
     rootDSEDN    = DN.rootDN();
-    this.baseDNs = new DN[] { rootDSEDN };
+    baseDNs = Collections.singleton(rootDSEDN);
 
 
     // Create the set of subordinate base DNs.  If this is specified in the
@@ -290,7 +304,7 @@ public class RootDSEBackend
   }
 
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }

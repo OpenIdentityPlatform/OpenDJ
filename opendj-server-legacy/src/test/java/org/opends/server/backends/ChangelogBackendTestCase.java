@@ -1532,7 +1532,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     {
       memoryBackend = new MemoryBackend();
       memoryBackend.setBackendID(backendId);
-      memoryBackend.setBaseDNs(new DN[] {baseDN});
+      memoryBackend.setBaseDNs(baseDN);
       memoryBackend.openBackend();
       DirectoryServer.registerBackend(memoryBackend);
     }

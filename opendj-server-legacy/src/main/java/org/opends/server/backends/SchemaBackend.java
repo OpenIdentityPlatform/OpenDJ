@@ -186,7 +186,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private SchemaBackendCfg currentConfig;
 
   /** The set of base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /** The set of objectclasses that will be used in the schema entry. */
   private HashMap<ObjectClass,String> schemaObjectClasses;
@@ -223,8 +223,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // not be able to complete initialization.
     if (cfg == null)
     {
-      LocalizableMessage message = ERR_SCHEMA_CONFIG_ENTRY_NULL.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_SCHEMA_CONFIG_ENTRY_NULL.get());
     }
 
     Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
@@ -259,13 +258,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
 
     configEntryDN = configEntry.getName();
+    baseDNs = cfg.getBaseDN();
 
-    DN[] newBaseDNs = new DN[cfg.getBaseDN().size()];
-    cfg.getBaseDN().toArray(newBaseDNs);
-    this.baseDNs = newBaseDNs;
-
-    creatorsName  = ByteString.valueOfUtf8(newBaseDNs[0].toString());
-    modifiersName = ByteString.valueOfUtf8(newBaseDNs[0].toString());
+    ByteString newBaseDN = ByteString.valueOfUtf8(baseDNs.iterator().next().toString());
+    creatorsName = newBaseDN;
+    modifiersName = newBaseDN;
 
     long createTime = DirectoryServer.getSchema().getOldestModificationTime();
     createTimestamp =
@@ -308,7 +305,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
-    DirectoryServer.setSchemaDN(baseDNs[0]);
+    DirectoryServer.setSchemaDN(baseDNs.iterator().next());
     for (DN baseDN : baseDNs) {
       try {
         DirectoryServer.registerBaseDN(baseDN, this, true);
@@ -472,7 +469,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   }
 
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
@@ -717,15 +714,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public boolean entryExists(DN entryDN) throws DirectoryException
   {
     // The specified DN must be one of the specified schema DNs.
-    DN[] baseArray = baseDNs;
-    for (DN baseDN : baseArray)
-    {
-      if (entryDN.equals(baseDN))
-      {
-        return true;
-      }
-    }
-    return false;
+    return baseDNs.contains(entryDN);
   }
 
   @Override
@@ -3321,9 +3310,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     DN baseDN = searchOperation.getBaseDN();
 
     boolean found = false;
-    DN[] dnArray = baseDNs;
     DN matchedDN = null;
-    for (DN dn : dnArray)
+    for (DN dn : this.baseDNs)
     {
       if (dn.equals(baseDN))
       {
@@ -3402,7 +3390,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // writer when we're done.
     try
     {
-      ldifWriter.writeEntry(getSchemaEntry(baseDNs[0], true, true));
+      ldifWriter.writeEntry(getSchemaEntry(baseDNs.iterator().next(), true, true));
     }
     catch (Exception e)
     {
@@ -3768,16 +3756,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      // Get an array containing the new base DNs to use.
-      DN[] dnArray = new DN[newBaseDNs.size()];
-      newBaseDNs.toArray(dnArray);
-
-
       // Determine the set of DNs to add and delete.  When this is done, the
       // deleteBaseDNs will contain the set of DNs that should no longer be used
       // and should be deregistered from the server, and the newBaseDNs set will
       // just contain the set of DNs to add.
-      Set<DN> deleteBaseDNs = new HashSet<>(baseDNs.length);
+      Set<DN> deleteBaseDNs = new HashSet<>(baseDNs.size());
       for (DN baseDN : baseDNs)
       {
         if (! newBaseDNs.remove(baseDN))
@@ -3802,8 +3785,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
 
-      baseDNs = dnArray;
-      for (DN dn : newBaseDNs)
+      baseDNs = newBaseDNs;
+      for (DN dn : baseDNs)
       {
         try
         {

@@ -20,6 +20,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -63,9 +64,9 @@ public class GenericBackendTestCase extends BackendTestCase
   @Test(dataProvider = "backends")
   public void testGetBaseDNs(Backend<?> b)
   {
-    DN[] baseDNs = b.getBaseDNs();
+    Set<DN> baseDNs = b.getBaseDNs();
     assertNotNull(baseDNs);
-    assertNotEquals(baseDNs.length, 0);
+    assertNotEquals(baseDNs.size(), 0);
   }
 
   /** Tests the {@link Backend#getSupportedControls} method for the provided backend. */

@@ -24,7 +24,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -284,8 +283,7 @@ public class ExportTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    ArrayList<DN> defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs().length);
-    Collections.addAll(defaultIncludeBranches, backend.getBaseDNs());
+    ArrayList<DN> defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs());
 
     ArrayList<DN> excludeBranches = new ArrayList<>();
     if (excludeBranchStrings != null)

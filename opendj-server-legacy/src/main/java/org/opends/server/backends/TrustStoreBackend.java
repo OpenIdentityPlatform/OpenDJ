@@ -53,6 +53,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -61,9 +62,8 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Reject;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.TrustStoreBackendCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -106,11 +106,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   /** The current configuration state. */
   private TrustStoreBackendCfg configuration;
 
-  /** The DN for the base entry. */
-  private DN baseDN;
-
   /** The set of base DNs for this backend. */
-  private DN[] baseDNs;
+  private SortedSet<DN> baseDNs;
 
   /** The base entry. */
   private Entry baseEntry;
@@ -141,7 +138,11 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // Perform all initialization in initializeBackend.
   }
 
-  /** {@inheritDoc} */
+  private DN getBaseDN()
+  {
+    return baseDNs.first();
+  }
+
   @Override
   public void configureBackend(TrustStoreBackendCfg config, ServerContext serverContext) throws ConfigException
   {
@@ -149,7 +150,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     configuration = config;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void openBackend() throws ConfigException, InitializationException
   {
@@ -162,15 +162,12 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     {
       throw new InitializationException(ERR_TRUSTSTORE_REQUIRES_ONE_BASE_DN.get(configEntryDN));
     }
-    baseDN = baseDNSet.first();
-    baseDNs = new DN[] {baseDN};
+    baseDNs = baseDNSet;
 
     // Get the path to the trust store file.
     trustStoreFile = configuration.getTrustStoreFile();
 
-
-    // Get the trust store type.  If none is specified, then use the default
-    // type.
+    // Get the trust store type. If none is specified, then use the default type.
     trustStoreType = configuration.getTrustStoreType();
     if (trustStoreType == null)
     {
@@ -308,13 +305,13 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     objectClasses.put(branchOC, "ds-cfg-branch");
 
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
-    for (AVA ava : baseDN.rdn())
+    for (AVA ava : getBaseDN().rdn())
     {
       AttributeType attrType = ava.getAttributeType();
       userAttrs.put(attrType, Attributes.createAsList(attrType, ava.getAttributeValue()));
     }
 
-    baseEntry = new Entry(baseDN, objectClasses, userAttrs, null);
+    baseEntry = new Entry(getBaseDN(), objectClasses, userAttrs, null);
 
     // Register this as a change listener.
     configuration.addTrustStoreChangeListener(this);
@@ -323,12 +320,12 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // Register the trust store base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(baseDN, this, true);
+      DirectoryServer.registerBaseDN(getBaseDN(), this, true);
     }
     catch (Exception e)
     {
       logger.traceException(e);
-      throw new InitializationException(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e), e);
+      throw new InitializationException(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(getBaseDN(), e), e);
     }
   }
 
@@ -340,7 +337,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
     try
     {
-      DirectoryServer.deregisterBaseDN(baseDN);
+      DirectoryServer.deregisterBaseDN(getBaseDN());
     }
     catch (Exception e)
     {
@@ -348,14 +345,12 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
@@ -398,7 +393,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
 
     // If the requested entry was the backend base entry, then retrieve it.
-    if (entryDN.equals(baseDN))
+    if (entryDN.equals(getBaseDN()))
     {
       return baseEntry.duplicate(true);
     }
@@ -407,7 +402,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // See if the requested entry was one level below the backend base entry.
     // If so, then it must point to a trust store entry.
     DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
-    if (parentDN != null && parentDN.equals(baseDN))
+    if (parentDN != null && parentDN.equals(getBaseDN()))
     {
       try
       {
@@ -444,7 +439,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     if (v == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(entryDN);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, baseDN, null);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, getBaseDN(), null);
     }
 
     String certAlias = v.toString();
@@ -501,7 +496,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   {
     DN entryDN = entry.getName();
 
-    if (entryDN.equals(baseDN))
+    if (entryDN.equals(getBaseDN()))
     {
       LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(entryDN);
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
@@ -514,7 +509,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
-    if (parentDN.equals(baseDN))
+    if (parentDN.equals(getBaseDN()))
     {
       addCertificate(entry);
     }
@@ -530,14 +525,14 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    if (entryDN.equals(baseDN))
+    if (entryDN.equals(getBaseDN()))
     {
       LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(entryDN);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
-    if (parentDN == null || !parentDN.equals(baseDN))
+    if (parentDN == null || !parentDN.equals(getBaseDN()))
     {
       LocalizableMessage message = ERR_TRUSTSTORE_INVALID_BASE.get(entryDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
@@ -580,7 +575,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // trust store entry DN.
     SearchScope  scope  = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
-    if (this.baseDN.equals(baseDN))
+    if (getBaseDN().equals(baseDN))
     {
       if ((scope == SearchScope.BASE_OBJECT || scope == SearchScope.WHOLE_SUBTREE)
           && filter.matchesEntry(baseEntry))
@@ -608,7 +603,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         AttributeType certAliasType = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
         for (String alias : aliases)
         {
-          DN certDN = makeChildDN(this.baseDN, certAliasType, alias);
+          DN certDN = makeChildDN(this.getBaseDN(), certAliasType, alias);
 
           Entry certEntry;
           try
@@ -628,7 +623,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         }
       }
     }
-    else if (this.baseDN.equals(DirectoryServer.getParentDNInSuffix(baseDN)))
+    else if (this.getBaseDN().equals(DirectoryServer.getParentDNInSuffix(baseDN)))
     {
       Entry certEntry = getCertEntry(baseDN);
 
@@ -1193,7 +1188,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     if (v == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(entryDN);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, baseDN, null);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, getBaseDN(), null);
     }
 
     String certAlias = v.toString();
@@ -1320,7 +1315,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     if (v == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(entryDN);
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, baseDN, null);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, getBaseDN(), null);
     }
 
     String certAlias = v.toString();
@@ -1490,4 +1485,3 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 }
-

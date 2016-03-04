@@ -39,6 +39,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -47,9 +48,8 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Reject;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.MonitorBackendCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
@@ -100,7 +100,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   /** The DN for the base monitor entry. */
   private DN baseMonitorDN;
   /** The set of base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /**
    * Creates a new backend with the provided information. All backend
@@ -216,8 +216,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       throw new ConfigException(message, e);
     }
 
-    // FIXME -- Deal with this more correctly.
-    this.baseDNs = new DN[] { baseMonitorDN };
+    this.baseDNs = Collections.singleton(baseMonitorDN);
 
     currentConfig = cfg;
   }
@@ -330,14 +329,12 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(final DN entryDN) throws DirectoryException
   {

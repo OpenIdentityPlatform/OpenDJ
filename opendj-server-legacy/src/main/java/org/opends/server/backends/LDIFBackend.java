@@ -22,7 +22,6 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -88,13 +87,10 @@ public class LDIFBackend
 
 
   /** The base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /** The mapping between parent DNs and their immediate children. */
   private final Map<DN, Set<DN>> childDNs = new HashMap<>();
-
-  /** The base DNs for this backend, in a hash set. */
-  private Set<DN> baseDNSet;
 
   /** The set of supported controls for this backend. */
   private final Set<String> supportedControls =
@@ -126,11 +122,10 @@ public class LDIFBackend
   public void openBackend()
          throws ConfigException, InitializationException
   {
-    // We won't support anything other than exactly one base DN in this
-    // implementation.  If we were to add such support in the future, we would
-    // likely want to separate the data for each base DN into a separate entry
-    // map.
-    if (baseDNs == null || baseDNs.length != 1)
+    // We won't support anything other than exactly one base DN in this implementation.
+    // If we were to add such support in the future, we would likely want
+    // to separate the data for each base DN into a separate entry map.
+    if (baseDNs == null || baseDNs.size() != 1)
     {
       throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(currentConfig.dn()));
     }
@@ -366,14 +361,12 @@ public class LDIFBackend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
@@ -450,10 +443,10 @@ public class LDIFBackend
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
     checkNotNull(baseDN, "baseDN must not be null");
-    if (!Arrays.asList(baseDNs).contains(baseDN))
+    if (!baseDNs.contains(baseDN))
     {
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY
-          .get(baseDN));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_LDIF_BACKEND_NUM_SUBORDINATES_NO_SUCH_ENTRY.get(baseDN));
     }
     final int baseDNIfExists = childDNs.containsKey(baseDN) ? 1 : 0;
     return getNumberOfSubordinates(baseDN, true) + baseDNIfExists;
@@ -547,7 +540,7 @@ public class LDIFBackend
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, m);
       }
 
-      if (baseDNSet.contains(entryDN))
+      if (baseDNs.contains(entryDN))
       {
         entryMap.put(entryDN, entry.duplicate(false));
         writeLDIF();
@@ -1136,7 +1129,7 @@ public class LDIFBackend
 
 
           // If the entry DN is a base DN, then add it with no more processing.
-          if (baseDNSet.contains(entryDN))
+          if (baseDNs.contains(entryDN))
           {
             entryMap.put(entryDN, e);
             continue;
@@ -1256,15 +1249,11 @@ public class LDIFBackend
       currentConfig = config;
       currentConfig.addLDIFChangeListener(this);
 
-      baseDNs = new DN[currentConfig.getBaseDN().size()];
-      currentConfig.getBaseDN().toArray(baseDNs);
-      if (baseDNs.length != 1)
+      baseDNs = currentConfig.getBaseDN();
+      if (baseDNs.size() != 1)
       {
         throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(currentConfig.dn()));
       }
-
-      baseDNSet = new HashSet<>();
-      Collections.addAll(baseDNSet, baseDNs);
 
       ldifFilePath = currentConfig.getLDIFFile();
     }
@@ -1308,7 +1297,7 @@ public class LDIFBackend
       }
     }
 
-    if (baseDNSet != null && !baseDNSet.equals(configuration.getBaseDN()))
+    if (baseDNs != null && !baseDNs.equals(configuration.getBaseDN()))
     {
       ccr.addMessage(INFO_LDIF_BACKEND_BASE_DN_CHANGED.get());
       ccr.setAdminActionRequired(true);

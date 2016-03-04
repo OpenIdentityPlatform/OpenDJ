@@ -24,7 +24,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -333,8 +332,7 @@ public class ImportTask extends Task
     }
 
     // Make sure the selected backend will handle all the include branches
-    defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs().length);
-    Collections.addAll(defaultIncludeBranches, backend.getBaseDNs());
+    defaultIncludeBranches = new ArrayList<>(backend.getBaseDNs());
 
     for(DN includeBranch : includeBranches)
     {
@@ -486,8 +484,7 @@ public class ImportTask extends Task
     }
 
     // Find backends with subordinate base DNs that should be excluded from the import.
-    defaultIncludeBranches = new HashSet<>(backend.getBaseDNs().length);
-    Collections.addAll(defaultIncludeBranches, backend.getBaseDNs());
+    defaultIncludeBranches = new HashSet<>(backend.getBaseDNs());
 
     if (backend.getSubordinateBackends() != null)
     {
@@ -628,10 +625,6 @@ public class ImportTask extends Task
         return TaskState.STOPPED_BY_ERROR;
       }
     }
-
-    // Get the set of base DNs for the backend as an array.
-    DN[] baseDNs = new DN[defaultIncludeBranches.size()];
-    defaultIncludeBranches.toArray(baseDNs);
 
     // Notify the task listeners that an import is going to start
     // this must be done before disabling the backend to allow

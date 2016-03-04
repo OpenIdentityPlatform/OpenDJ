@@ -42,6 +42,8 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -61,7 +63,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -70,7 +71,6 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 
@@ -97,7 +97,7 @@ public class BackupBackend
   private DN backupBaseDN;
 
   /** The set of base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /** The backup base entry. */
   private Entry backupBaseEntry;
@@ -208,8 +208,7 @@ public class BackupBackend
       throw new InitializationException(message, e);
     }
 
-    // FIXME -- Deal with this more correctly.
-    this.baseDNs = new DN[] { backupBaseDN };
+    this.baseDNs = Collections.singleton(backupBaseDN);
 
 
     // Determine the set of backup directories that we will use by default.
@@ -276,18 +275,12 @@ public class BackupBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {

@@ -19,7 +19,6 @@ package org.opends.server.core;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collection;
@@ -280,7 +279,7 @@ public class BackendConfigManager implements
     Backend<?> backend = registeredBackends.get(backendDN);
     if (backend != null)
     {
-      LinkedHashSet<DN> removedDNs = newLinkedHashSet(backend.getBaseDNs());
+      LinkedHashSet<DN> removedDNs = new LinkedHashSet<>(backend.getBaseDNs());
       LinkedHashSet<DN> addedDNs = new LinkedHashSet<>(baseDNs);
       Iterator<DN> iterator = removedDNs.iterator();
       while (iterator.hasNext())

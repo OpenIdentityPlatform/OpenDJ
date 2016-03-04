@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -58,7 +59,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
-import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.StaticUtils;
 
 /** Back-end responsible for management of configuration entries. */
@@ -79,7 +79,7 @@ public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> imple
     @Override
     public DN dn()
     {
-      return getBaseDNs()[0];
+      return getBaseDNs().iterator().next();
     }
 
     @Override
@@ -97,7 +97,7 @@ public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> imple
     @Override
     public SortedSet<DN> getBaseDN()
     {
-      return Collections.unmodifiableSortedSet(CollectionUtils.newTreeSet(getBaseDNs()));
+      return Collections.unmodifiableSortedSet(new TreeSet<DN>(getBaseDNs()));
     }
 
     @Override
@@ -159,7 +159,7 @@ public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> imple
   private final Entry configRootEntry;
 
   /** The set of base DNs for this config handler backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /**
    * The write lock used to ensure that only one thread can apply a
@@ -182,7 +182,7 @@ public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> imple
   {
     this.configurationHandler = configurationHandler;
     this.configRootEntry = Converters.to(configurationHandler.getRootEntry());
-    baseDNs = new DN[] { configRootEntry.getName() };
+    baseDNs = Collections.singleton(configRootEntry.getName());
 
     setBackendID(CONFIG_BACKEND_ID);
   }
@@ -233,7 +233,7 @@ public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> imple
   }
 
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }

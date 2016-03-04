@@ -22,7 +22,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,8 +29,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.PagedResultsControl;
@@ -42,10 +43,8 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -89,10 +88,7 @@ public class NullBackend extends Backend<BackendCfg>
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The base DNs for this backend. */
-  private DN[] baseDNs;
-
-  /** The base DNs for this backend, in a hash set. */
-  private HashSet<DN> baseDNSet;
+  private Set<DN> baseDNs;
 
   /** The set of supported controls for this backend. */
   private final Set<String> supportedControls = CollectionUtils.newHashSet(
@@ -117,34 +113,18 @@ public class NullBackend extends Backend<BackendCfg>
     // Perform all initialization in initializeBackend.
   }
 
-  /**
-   * Set the base DNs for this backend.  This is used by the unit tests
-   * to set the base DNs without having to provide a configuration
-   * object when initializing the backend.
-   * @param baseDNs The set of base DNs to be served by this memory backend.
-   */
-  public void setBaseDNs(DN[] baseDNs)
-  {
-    this.baseDNs = baseDNs;
-  }
-
   @Override
   public void configureBackend(BackendCfg config, ServerContext serverContext) throws ConfigException
   {
     if (config != null)
     {
-      BackendCfg cfg = config;
-      setBaseDNs(cfg.getBaseDN().toArray(new DN[cfg.getBaseDN().size()]));
+      this.baseDNs = config.getBaseDN();
     }
   }
 
   @Override
   public synchronized void openBackend() throws ConfigException, InitializationException
   {
-    baseDNSet = new HashSet<>();
-    Collections.addAll(baseDNSet, baseDNs);
-
-    // Register base DNs.
     for (DN dn : baseDNs)
     {
       try
@@ -207,7 +187,7 @@ public class NullBackend extends Backend<BackendCfg>
   }
 
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
@@ -293,7 +273,7 @@ public class NullBackend extends Backend<BackendCfg>
     }
 
     if (SearchScope.BASE_OBJECT.equals(searchOperation.getScope())
-        && baseDNSet.contains(searchOperation.getBaseDN()))
+        && baseDNs.contains(searchOperation.getBaseDN()))
     {
       searchOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
     }

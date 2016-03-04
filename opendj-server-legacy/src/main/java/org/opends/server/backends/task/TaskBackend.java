@@ -112,7 +112,7 @@ public class TaskBackend
   private DN taskRootDN;
 
   /** The set of base DNs defined for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /**
    * The length of time in seconds after a task is completed that it should be
@@ -148,37 +148,30 @@ public class TaskBackend
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(TaskBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(cfg);
     this.serverContext = serverContext;
 
-    final DN[] baseDNs = new DN[cfg.getBaseDN().size()];
-    cfg.getBaseDN().toArray(baseDNs);
-
     Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
-
     configEntryDN = configEntry.getName();
-
 
     // Make sure that the provided set of base DNs contains exactly one value.
     // We will only allow one base for task entries.
-    if (baseDNs.length == 0)
+    final Set<DN> baseDNs = cfg.getBaseDN();
+    if (baseDNs.isEmpty())
     {
       throw new ConfigException(ERR_TASKBE_NO_BASE_DNS.get());
     }
-    else if (baseDNs.length > 1)
+    else if (baseDNs.size() > 1)
     {
-      LocalizableMessage message = ERR_TASKBE_MULTIPLE_BASE_DNS.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_TASKBE_MULTIPLE_BASE_DNS.get());
     }
     else
     {
       this.baseDNs = baseDNs;
-
-      taskRootDN = baseDNs[0];
+      taskRootDN = baseDNs.iterator().next();
 
       String recurringTaskBaseString = RECURRING_TASK_BASE_RDN + "," +
                                        taskRootDN;
@@ -311,18 +304,12 @@ public class TaskBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {

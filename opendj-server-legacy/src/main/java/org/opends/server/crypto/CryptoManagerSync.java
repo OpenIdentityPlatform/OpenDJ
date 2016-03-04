@@ -199,15 +199,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   @Override
   public void performBackendPreInitializationProcessing(Backend<?> backend)
   {
-    DN[] baseDNs = backend.getBaseDNs();
-    if (baseDNs != null)
+    for (DN baseDN : backend.getBaseDNs())
     {
-      for (DN baseDN : baseDNs)
+      if (baseDN.equals(adminSuffixDN))
       {
-        if (baseDN.equals(adminSuffixDN))
-        {
-          searchAdminSuffix();
-        }
+        searchAdminSuffix();
       }
     }
   }

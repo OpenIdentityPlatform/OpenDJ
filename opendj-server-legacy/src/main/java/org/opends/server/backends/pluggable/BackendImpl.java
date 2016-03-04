@@ -24,6 +24,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -34,11 +35,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.util.Reject;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
@@ -56,11 +59,9 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -98,7 +99,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   /** A count of the total operation threads currently in the backend. */
   private final AtomicInteger threadTotalCount = new AtomicInteger(0);
   /** The base DNs defined for this backend instance. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   private MonitorProvider<?> rootContainerMonitor;
 
@@ -170,7 +171,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
 
     this.cfg = cfg;
     this.serverContext = serverContext;
-    baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
+    baseDNs = new HashSet<>(cfg.getBaseDN());
     storage = new TracedStorage(configureStorage(cfg, serverContext), cfg.getBackendId());
   }
 
@@ -262,13 +263,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     try
     {
-      EntryContainer ec = rootContainer.getEntryContainer(baseDNs[0]);
+      EntryContainer ec = rootContainer.getEntryContainer(baseDNs.iterator().next());
       AttributeIndex ai = ec.getAttributeIndex(attributeType);
       return ai != null ? ai.isIndexed(indexType) : false;
     }
@@ -309,9 +309,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return supportedControls;
   }
 
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
@@ -891,16 +890,15 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
           public void run(WriteableTransaction txn) throws Exception
           {
             SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
-            DN[] newBaseDNsArray = newBaseDNs.toArray(new DN[newBaseDNs.size()]);
 
             // Check for changes to the base DNs.
             removeDeletedBaseDNs(newBaseDNs, txn);
-            if (!createNewBaseDNs(newBaseDNsArray, ccr, txn))
+            if (!createNewBaseDNs(newBaseDNs, ccr, txn))
             {
               return;
             }
 
-            baseDNs = newBaseDNsArray;
+            baseDNs = new HashSet<>(newBaseDNs);
 
             // Put the new configuration in place.
             cfg = newCfg;
@@ -931,9 +929,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  private boolean createNewBaseDNs(DN[] newBaseDNsArray, ConfigChangeResult ccr, WriteableTransaction txn)
+  private boolean createNewBaseDNs(Set<DN> newBaseDNs, ConfigChangeResult ccr, WriteableTransaction txn)
   {
-    for (DN baseDN : newBaseDNsArray)
+    for (DN baseDN : newBaseDNs)
     {
       if (!rootContainer.getBaseDNs().contains(baseDN))
       {

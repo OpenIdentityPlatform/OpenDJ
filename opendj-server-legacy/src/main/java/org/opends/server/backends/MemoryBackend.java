@@ -58,6 +58,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -97,13 +98,10 @@ public class MemoryBackend
 
 
   /** The base DNs for this backend. */
-  private DN[] baseDNs;
+  private Set<DN> baseDNs;
 
   /** The mapping between parent DNs and their immediate children. */
   private HashMap<DN,HashSet<DN>> childDNs;
-
-  /** The base DNs for this backend, in a hash set. */
-  private HashSet<DN> baseDNSet;
 
   /** The set of supported controls for this backend. */
   private final Set<String> supportedControls =
@@ -133,41 +131,31 @@ public class MemoryBackend
    * object when initializing the backend.
    * @param baseDNs The set of base DNs to be served by this memory backend.
    */
-  public void setBaseDNs(DN[] baseDNs)
+  public void setBaseDNs(DN... baseDNs)
   {
-    this.baseDNs = baseDNs;
+    this.baseDNs = CollectionUtils.newHashSet(baseDNs);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(MemoryBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     if (config != null)
     {
-      MemoryBackendCfg cfg = config;
-      DN[] baseDNs = new DN[cfg.getBaseDN().size()];
-      cfg.getBaseDN().toArray(baseDNs);
-      setBaseDNs(baseDNs);
+      this.baseDNs = config.getBaseDN();
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized void openBackend()
        throws ConfigException, InitializationException
   {
-    // We won't support anything other than exactly one base DN in this
-    // implementation.  If we were to add such support in the future, we would
-    // likely want to separate the data for each base DN into a separate entry
-    // map.
-    if (baseDNs == null || baseDNs.length != 1)
+    // We won't support anything other than exactly one base DN in this implementation.
+    // If we were to add such support in the future, we would likely want
+    // to separate the data for each base DN into a separate entry map.
+    if (baseDNs == null || baseDNs.size() != 1)
     {
-      LocalizableMessage message = ERR_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE.get());
     }
-
-    baseDNSet = new HashSet<>();
-    Collections.addAll(baseDNSet, baseDNs);
 
     entryMap = new LinkedHashMap<>();
     childDNs = new HashMap<>();
@@ -219,14 +207,12 @@ public class MemoryBackend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public DN[] getBaseDNs()
+  public Set<DN> getBaseDNs()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized long getEntryCount()
   {
@@ -337,7 +323,7 @@ public class MemoryBackend
 
 
     // If the entry is one of the base DNs, then add it.
-    if (baseDNSet.contains(entryDN))
+    if (baseDNs.contains(entryDN))
     {
       entryMap.put(entryDN, e);
       return;

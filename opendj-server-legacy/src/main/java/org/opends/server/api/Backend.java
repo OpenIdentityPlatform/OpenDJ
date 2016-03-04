@@ -31,6 +31,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.config.Configuration;
 import org.opends.server.backends.RebuildConfig;
@@ -45,7 +46,6 @@ import org.opends.server.core.PersistentSearch.CancellationCallback;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.monitors.BackendMonitor;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
@@ -198,7 +198,7 @@ public abstract class Backend<C extends Configuration>
    * @return  The set of base-level DNs that may be used within this
    *          backend.
    */
-  public abstract DN[] getBaseDNs();
+  public abstract Set<DN> getBaseDNs();
 
   /**
    * Indicates whether search operations which target the specified

@@ -21,13 +21,14 @@ import static org.opends.server.util.ServerConstants.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
 
@@ -86,7 +87,7 @@ public class BackendMonitor
   @Override
   public MonitorData getMonitorData()
   {
-    DN[] baseDNs = backend.getBaseDNs();
+    Set<DN> baseDNs = backend.getBaseDNs();
 
     MonitorData attrs = new MonitorData(6);
     attrs.add(ATTR_MONITOR_BACKEND_ID, backend.getBackendID());
@@ -98,10 +99,17 @@ public class BackendMonitor
     return attrs;
   }
 
-  private Collection<String> getBackendEntryCounts(DN[] baseDNs)
+  private Collection<String> getBackendEntryCounts(Set<DN> baseDNs)
   {
     Collection<String> results = new ArrayList<>();
-    if (baseDNs.length != 1)
+    if (baseDNs.size() == 1)
+    {
+      // This is done to avoid recalculating the number of entries
+      // using the numSubordinates method in the case where the
+      // backend has a single base DN.
+      results.add(backend.getEntryCount() + " " + baseDNs.iterator().next());
+    }
+    else
     {
       for (DN dn : baseDNs)
       {
@@ -116,13 +124,6 @@ public class BackendMonitor
         }
         results.add(entryCount + " " + dn);
       }
-    }
-    else
-    {
-      // This is done to avoid recalculating the number of entries
-      // using the numSubordinates method in the case where the
-      // backend has a single base DN.
-      results.add(backend.getEntryCount() + " " + baseDNs[0]);
     }
     return results;
   }
