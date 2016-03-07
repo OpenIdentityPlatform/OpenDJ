@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldif;
 
@@ -54,8 +54,6 @@ import org.forgerock.util.Reject;
  */
 public final class EntryGenerator implements EntryReader {
 
-    private static final int DEFAULT_RANDOM_SEED = 1;
-
     /** Template file that contains directives for generation of entries. */
     private TemplateFile templateFile;
 
@@ -69,7 +67,7 @@ public final class EntryGenerator implements EntryReader {
     private boolean isInitialized;
 
     /** Random seed is used to generate random data. */
-    private int randomSeed = DEFAULT_RANDOM_SEED;
+    private Random random = new Random();
 
     /**
      * Path to the directory that may contain additional resource files needed
@@ -171,7 +169,7 @@ public final class EntryGenerator implements EntryReader {
      * @return A reference to this {@code EntryGenerator}.
      */
     public EntryGenerator setRandomSeed(final int seed) {
-        randomSeed = seed;
+        random = new Random(seed);
         return this;
     }
 
@@ -296,7 +294,7 @@ public final class EntryGenerator implements EntryReader {
         if (schema == null) {
             schema = Schema.getDefaultSchema();
         }
-        templateFile = new TemplateFile(schema, constants, resourcePath, new Random(randomSeed), generateBranches);
+        templateFile = new TemplateFile(schema, constants, resourcePath, random, generateBranches);
         try {
             if (templatePath != null) {
                 templateFile.parse(templatePath, warnings);
