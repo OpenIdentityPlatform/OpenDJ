@@ -309,11 +309,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private volatile boolean generationIdSavedStatus;
 
   /**
-   * This object is used to store the list of update currently being
-   * done on the local database.
-   * Is is useful to make sure that the local operations are sent in a
-   * correct order to the replication server and that the ServerState
-   * is not updated too early.
+   * This object is used to store the list of update currently being done on the local database.
+   * It is useful to make sure that the local operations are sent in a correct order to the
+   * replication server and that the ServerState is not updated too early.
    */
   private final PendingChanges pendingChanges;
   private final AtomicReference<RSUpdater> rsUpdater = new AtomicReference<>(null);

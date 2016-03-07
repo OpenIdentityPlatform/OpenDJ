@@ -550,9 +550,9 @@ public class ReferentialIntegrityPlugin
    * background thread is processing changes. If this method is being called
    * by a delete post operation, then setting the "log" value to false will
    * cause the DN to be processed in foreground
-   *
+   * <p>
    * If the DN is to be processed, than each base DN or public naming
-   * context (if the base DN configuration is empty) is is checked to see if
+   * context (if the base DN configuration is empty) is checked to see if
    * entries under it contain references to the deleted entry DN that need
    * to be removed.
    *
