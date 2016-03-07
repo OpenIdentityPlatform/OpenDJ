@@ -28,6 +28,7 @@ import static org.opends.server.util.StaticUtils.isClassAvailable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -604,12 +605,11 @@ public final class UpgradeTasks
    *          A message describing why the index needs to be rebuilt and asking
    *          them whether or not they wish to perform this task after the
    *          upgrade.
-   * @param index
-   *          The index to rebuild.
+   * @param indexNames
+   *          The indexes to rebuild.
    * @return The rebuild index task.
    */
-  public static UpgradeTask rebuildSingleIndex(final LocalizableMessage summary,
-      final String index)
+  public static UpgradeTask rebuildIndexesNamed(final LocalizableMessage summary, final String... indexNames)
   {
     return new AbstractUpgradeTask()
     {
@@ -628,7 +628,7 @@ public final class UpgradeTasks
       {
         if (isATaskToPerform)
         {
-          indexesToRebuild.add(index);
+          Collections.addAll(indexesToRebuild, indexNames);
         }
         else
         {
@@ -641,7 +641,7 @@ public final class UpgradeTasks
       {
         if (!isRebuildAllIndexesIsPresent)
         {
-          context.notify(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(index), TextOutputCallback.WARNING);
+          context.notify(INFO_UPGRADE_REBUILD_INDEXES_DECLINED.get(indexNames), TextOutputCallback.WARNING);
         }
       }
 
@@ -708,7 +708,7 @@ public final class UpgradeTasks
         if (backends.isEmpty())
         {
           logger.debug(INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND);
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED, indexesToRebuild);
+          logger.debug(INFO_UPGRADE_REBUILD_INDEXES_DECLINED, indexesToRebuild);
           context.notifyProgress(pnc.setProgress(100));
           return;
         }

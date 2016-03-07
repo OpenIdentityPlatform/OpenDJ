@@ -27,6 +27,7 @@ import java.util.TreeMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.tools.upgrade.UpgradeTasks.UpgradeCondition;
 import org.opends.server.util.BuildVersion;
 
 import com.forgerock.opendj.cli.ClientException;
@@ -278,7 +279,7 @@ public final class Upgrade
     /** See OPENDJ-992 */
     register("2.6.0",
         regressionInVersion("2.5.0",
-            rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
+            rebuildIndexesNamed(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
                 "ds-sync-hist")));
 
     /** See OPENDJ-1284 */
@@ -632,6 +633,10 @@ public final class Upgrade
 
     /** see OPENDJ-2730 */
     register("4.0.0", removeOldJarFiles());
+
+    register("4.0.0",
+        rebuildIndexesNamed(INFO_UPGRADE_REBUILD_INDEXES_DISTINGUISHED_NAME.get(),
+            "distinguishedName", "member", "owner", "roleOccupant", "seeAlso"));
 
     /**
      * All upgrades will refresh the server configuration schema and generate a new upgrade folder.
