@@ -2314,8 +2314,10 @@ public final class DirectoryServer
    * Deregisters the provided matching rule with the Directory Server.
    *
    * @param  matchingRule  The matching rule to deregister with the server.
+   * @throws DirectoryException
+   *           If the matching rule is referenced by another schema element.
    */
-  public static void deregisterMatchingRule(MatchingRule matchingRule)
+  public static void deregisterMatchingRule(MatchingRule matchingRule) throws DirectoryException
   {
     directoryServer.schema.deregisterMatchingRule(matchingRule);
   }
@@ -2561,8 +2563,10 @@ public final class DirectoryServer
    *
    * @param  attributeType  The attribute type to deregister with the Directory
    *                        Server.
+   * @throws DirectoryException
+   *           If the attribute type is referenced by another schema element.
    */
-  public static void deregisterAttributeType(AttributeType attributeType)
+  public static void deregisterAttributeType(AttributeType attributeType) throws DirectoryException
   {
     directoryServer.schema.deregisterAttributeType(attributeType);
   }

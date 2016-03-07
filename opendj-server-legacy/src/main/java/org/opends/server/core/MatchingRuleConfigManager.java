@@ -289,7 +289,15 @@ public class MatchingRuleConfigManager
     {
       for(MatchingRule matchingRule: factory.getMatchingRules())
       {
-        DirectoryServer.deregisterMatchingRule(matchingRule);
+        try
+        {
+          DirectoryServer.deregisterMatchingRule(matchingRule);
+        }
+        catch (DirectoryException e)
+        {
+          ccr.addMessage(e.getMessageObject());
+          ccr.setResultCodeIfSuccess(e.getResultCode());
+        }
       }
       factory.finalizeMatchingRule();
     }
@@ -401,7 +409,15 @@ public class MatchingRuleConfigManager
       {
         for(MatchingRule existingRule: existingFactory.getMatchingRules())
         {
-          DirectoryServer.deregisterMatchingRule(existingRule);
+          try
+          {
+            DirectoryServer.deregisterMatchingRule(existingRule);
+          }
+          catch (DirectoryException e)
+          {
+            ccr.addMessage(e.getMessageObject());
+            ccr.setResultCodeIfSuccess(e.getResultCode());
+          }
         }
         matchingRuleFactories.remove(configuration.dn());
         existingFactory.finalizeMatchingRule();

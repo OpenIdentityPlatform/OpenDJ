@@ -271,6 +271,17 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
      }
      finally
      {
+       int resultCode = TestCaseUtils.applyModifications(true,
+         "dn: cn=schema",
+         "changetype: modify",
+         "delete: objectclasses",
+         "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-attr)",
+         "-",
+         "delete: attributetypes",
+         "attributetypes: ( test-oid NAME 'test-attr' SYNTAX 9.9.9 )"
+       );
+       assertThat(resultCode).isEqualTo(0);
+
        deleteSubstitutionSyntax();
      }
    }

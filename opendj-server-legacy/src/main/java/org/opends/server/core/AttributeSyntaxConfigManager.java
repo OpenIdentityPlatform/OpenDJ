@@ -271,7 +271,15 @@ public class AttributeSyntaxConfigManager
     if (syntax != null)
     {
       Syntax sdkSyntax = syntax.getSDKSyntax(serverContext.getSchemaNG());
-      serverContext.getSchema().deregisterSyntax(sdkSyntax);
+      try
+      {
+        serverContext.getSchema().deregisterSyntax(sdkSyntax);
+      }
+      catch (DirectoryException e)
+      {
+        ccr.addMessage(e.getMessageObject());
+        ccr.setResultCodeIfSuccess(e.getResultCode());
+      }
       syntax.finalizeSyntax();
     }
 
@@ -346,7 +354,15 @@ public class AttributeSyntaxConfigManager
       if (existingSyntax != null)
       {
         Syntax sdkSyntax = existingSyntax.getSDKSyntax(serverContext.getSchemaNG());
-        serverContext.getSchema().deregisterSyntax(sdkSyntax);
+        try
+        {
+          serverContext.getSchema().deregisterSyntax(sdkSyntax);
+        }
+        catch (DirectoryException e)
+        {
+          ccr.addMessage(e.getMessageObject());
+          ccr.setResultCodeIfSuccess(e.getResultCode());
+        }
         AttributeSyntax<?> syntax = syntaxes.remove(configuration.dn());
         if (syntax != null)
         {

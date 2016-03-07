@@ -512,8 +512,10 @@ public final class Schema
    * Deregisters the provided attribute type definition with this schema.
    *
    * @param  attributeType  The attribute type to deregister with this schema.
+   * @throws DirectoryException
+   *           If the attribute type is referenced by another schema element.
    */
-  public void deregisterAttributeType(final AttributeType attributeType)
+  public void deregisterAttributeType(final AttributeType attributeType) throws DirectoryException
   {
     exclusiveLock.lock();
     try
@@ -526,21 +528,12 @@ public final class Schema
         {
           deregisterSubordinateType(attributeType, superiorType);
         }
-        setSchemaNG(builder.toSchema());
+        switchSchema(builder.toSchema());
       }
     }
     finally
     {
       exclusiveLock.unlock();
-    }
-  }
-
-  private void setSchemaNG(org.forgerock.opendj.ldap.schema.Schema newSchemaNG)
-  {
-    schemaNG = newSchemaNG.asNonStrictSchema();
-    if (DirectoryServer.getSchema() == this)
-    {
-      org.forgerock.opendj.ldap.schema.Schema.setDefaultSchema(schemaNG);
     }
   }
 
@@ -894,15 +887,17 @@ public final class Schema
    * Deregisters the provided attribute syntax definition with this schema.
    *
    * @param  syntax  The attribute syntax to deregister with this schema.
+   * @throws DirectoryException
+   *           If the LDAP syntax is referenced by another schema element.
    */
-  public void deregisterSyntax(final Syntax syntax)
+  public void deregisterSyntax(final Syntax syntax) throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
       builder.removeSyntax(syntax.getOID());
-      setSchemaNG(builder.toSchema());
+      switchSchema(builder.toSchema());
     }
     finally
     {
@@ -994,8 +989,10 @@ public final class Schema
    *
    * @param syntaxDesc
    *          The ldap syntax to deregister with this schema.
+   * @throws DirectoryException
+   *           If the LDAP syntax is referenced by another schema element.
    */
-  public void deregisterLdapSyntaxDescription(LDAPSyntaxDescription syntaxDesc)
+  public void deregisterLdapSyntaxDescription(LDAPSyntaxDescription syntaxDesc) throws DirectoryException
   {
     exclusiveLock.lock();
     try
@@ -1119,15 +1116,17 @@ public final class Schema
    *
    * @param matchingRule
    *          The matching rule to deregister with this schema.
+   * @throws DirectoryException
+   *           If the matching rule is referenced by another schema element.
    */
-  public void deregisterMatchingRule(final MatchingRule matchingRule)
+  public void deregisterMatchingRule(final MatchingRule matchingRule) throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
       builder.removeMatchingRule(matchingRule.getNameOrOID());
-      setSchemaNG(builder.toSchema());
+      switchSchema(builder.toSchema());
     }
     finally
     {
@@ -2651,7 +2650,11 @@ public final class Schema
   private void switchSchema(org.forgerock.opendj.ldap.schema.Schema newSchema) throws DirectoryException
   {
     rejectSchemaWithWarnings(newSchema);
-    setSchemaNG(newSchema);
+    schemaNG = newSchema.asNonStrictSchema();
+    if (DirectoryServer.getSchema() == this)
+    {
+      org.forgerock.opendj.ldap.schema.Schema.setDefaultSchema(schemaNG);
+    }
   }
 
   private void rejectSchemaWithWarnings(org.forgerock.opendj.ldap.schema.Schema newSchema) throws DirectoryException
