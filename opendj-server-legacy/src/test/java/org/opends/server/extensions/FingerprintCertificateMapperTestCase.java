@@ -194,7 +194,7 @@ public class FingerprintCertificateMapperTestCase
         "sn: User",
         "cn: Test User",
         "ds-certificate-fingerprint: " +
-             "07:5A:AB:4B:E1:DD:E3:05:83:C0:FE:5F:A3:E8:1E:EB");
+             "EC:99:7C:FD:C5:1C:D5:5C:28:BE:F7:FE:BF:71:6F:0E");
 
 
 
@@ -256,7 +256,7 @@ public class FingerprintCertificateMapperTestCase
         "sn: User",
         "cn: Test User",
         "ds-certificate-fingerprint: " +
-             "CB:A4:C7:A0:46:1F:44:88:12:23:56:49:F9:54:F4:37:E1:9F:9F:A4");
+             "9C:7B:1B:88:7B:9B:29:2F:A0:20:54:ED:46:1A:4A:9B:1F:AE:9C:AC");
 
 
 
@@ -589,7 +589,7 @@ public class FingerprintCertificateMapperTestCase
         "cn: Test User",
         "ds-privilege-name: config-read",
         "ds-certificate-fingerprint: " +
-             "07:5A:AB:4B:E1:DD:E3:05:83:C0:FE:5F:A3:E8:1E:EB");
+             "EC:99:7C:FD:C5:1C:D5:5C:28:BE:F7:FE:BF:71:6F:0E");
 
 
 
