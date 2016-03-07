@@ -961,7 +961,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         }
         return UUID.nameUUIDFromBytes(normDN.toByteArray());
     }
-    
+
     /**
      * A compact representation of a DN, suitable for equality and comparisons, and providing a natural hierarchical
      * ordering.
