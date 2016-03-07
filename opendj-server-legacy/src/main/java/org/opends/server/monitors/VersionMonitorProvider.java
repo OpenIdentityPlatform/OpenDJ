@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
@@ -47,8 +47,8 @@ public class VersionMonitorProvider
   public static final String ATTR_BUILD_NUMBER = "buildNumber";
   /** The name of the attribute used to provide the list of bugfix IDs. */
   public static final String ATTR_FIX_IDS = "fixIDs";
-  /** The name of the attribute used to provide the Subversion revision number. */
-  public static final String ATTR_REVISION_NUMBER = "revisionNumber";
+  /** The name of the attribute used to provide the revision in the version control system. */
+  public static final String ATTR_REVISION = "revision";
   /** The name of the attribute used to provide the build ID (aka the build timestamp). */
   public static final String ATTR_BUILD_ID = "buildID";
   /** The name of the attribute used to provide the compact version string. */
@@ -98,7 +98,7 @@ public class VersionMonitorProvider
       attrs.add(createAttribute(ATTR_FIX_IDS, fixIDs));
     }
 
-    attrs.add(createAttribute(ATTR_REVISION_NUMBER, DynamicConstants.REVISION));
+    attrs.add(createAttribute(ATTR_REVISION, DynamicConstants.REVISION));
     attrs.add(createAttribute(ATTR_BUILD_ID, DynamicConstants.BUILD_ID));
     attrs.add(createAttribute(ATTR_COMPACT_VERSION, DynamicConstants.COMPACT_VERSION_STRING));
     attrs.add(createAttribute(ATTR_FULL_VERSION, DynamicConstants.FULL_VERSION_STRING));
