@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -2718,19 +2719,24 @@ final class OnDiskMergeImporter
    */
   static final class BufferPool implements Closeable
   {
+    private static final Object UNSAFE_OBJECT;
     static final boolean SUPPORTS_OFF_HEAP;
     static
     {
-      boolean isUnsafeSupported = false;
+      Object unsafeObject = null;
       try
       {
-        isUnsafeSupported = Class.forName("sun.misc.Unsafe") != null;
+        final Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+        final Field theUnsafeField = unsafeClass.getDeclaredField("theUnsafe");
+        theUnsafeField.setAccessible(true);
+        unsafeObject = theUnsafeField.get(null);
       }
       catch (Throwable e)
       {
         // Unsupported.
       }
-      SUPPORTS_OFF_HEAP = isUnsafeSupported;
+      UNSAFE_OBJECT = unsafeObject;
+      SUPPORTS_OFF_HEAP = UNSAFE_OBJECT != null;
     }
 
     private final BlockingQueue<Buffer> pool;
@@ -2796,7 +2802,7 @@ final class OnDiskMergeImporter
     /** Off-heap buffer using Unsafe memory access. */
     static final class OffHeapBuffer implements Buffer
     {
-      private static final Unsafe UNSAFE = Unsafe.getUnsafe();
+      private static final Unsafe UNSAFE = (Unsafe) UNSAFE_OBJECT;
       private static final long BYTE_ARRAY_OFFSET = UNSAFE.arrayBaseOffset(byte[].class);
 
       private final long address;
