@@ -1,0 +1,14 @@
+dn: dc=example,dc=com
+dc: example
+
+dn: coretokenid=tokenId,dc=example,dc=com
+coretokenid: tokenId
+objectClass: top
+objectClass: frCoreToken
+coretokenstring08: /myrealm
+coretokenstring07: Bearer
+coretokenobject: {"redirectURI":["http://fake.com"],"acr":[],"clientID":["client
+ OIDC"],"lineFoldingTest":["This line should have been correctly folded"],"token
+ Name":["refresh_token"],"authModules":["LDAP"],"realm":["/myrealm"],"id":["fake
+ id"],"userName":["johndoe"],"tokenType":["Bearer"]}
+

@@ -20,6 +20,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_MAKELDIF_WRAP_COLUMN_PLACEHOLDER;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedWriter;
@@ -80,6 +81,7 @@ public final class MakeLDIF extends ConsoleApplication {
         StringArgument ldifFile;
         StringArgument resourcePath;
         StringArgument constants;
+        IntegerArgument wrapColumn;
         try {
             resourcePath =
                     StringArgument.builder(OPTION_LONG_RESOURCE_PATH)
@@ -114,6 +116,15 @@ public final class MakeLDIF extends ConsoleApplication {
                             .description(INFO_MAKELDIF_DESCRIPTION_HELP.get())
                             .buildAndAddToParser(argParser);
 
+            wrapColumn =
+                    IntegerArgument.builder("wrapColumn")
+                            .shortIdentifier('w')
+                            .description(INFO_MAKELDIF_DESCRIPTION_WRAP_COLUMN.get())
+                            .lowerBound(0)
+                            .defaultValue(0)
+                            .valuePlaceholder(INFO_MAKELDIF_WRAP_COLUMN_PLACEHOLDER.get())
+                            .buildAndAddToParser(argParser);
+
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (ArgumentException ae) {
             errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
@@ -132,12 +143,12 @@ public final class MakeLDIF extends ConsoleApplication {
             return 0;
         }
         final String templatePath = argParser.getTrailingArguments().get(0);
-        return run(templatePath, resourcePath, ldifFile, randomSeed, constants);
+        return run(templatePath, resourcePath, ldifFile, randomSeed, constants, wrapColumn);
     }
 
     /** Run Make LDIF with provided arguments. */
-    private int run(final String templatePath, final StringArgument resourcePath,
-            final StringArgument ldifFile, final IntegerArgument randomSeedArg, final StringArgument constants) {
+    private int run(final String templatePath, final StringArgument resourcePath, final StringArgument ldifFile,
+            final IntegerArgument randomSeedArg, final StringArgument constants, final IntegerArgument wrapColumn) {
         LDIFEntryWriter writer = null;
         try (EntryGenerator generator = createGenerator(templatePath, resourcePath, randomSeedArg, constants)) {
             if (generator == null) {
@@ -150,15 +161,14 @@ public final class MakeLDIF extends ConsoleApplication {
                 }
             }
 
-            if (ldifFile.isPresent()) {
-                try {
-                    writer = new LDIFEntryWriter(new BufferedWriter(new FileWriter(new File(ldifFile.getValue()))));
-                } catch (IOException e) {
-                    errPrintln(ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), e.getMessage()));
-                    return EXIT_CODE_FAILURE;
-                }
-            } else {
-                writer = new LDIFEntryWriter(getOutputStream());
+            try {
+                writer = createLdifWriter(ldifFile, wrapColumn);
+            } catch (final IOException e) {
+                errPrintln(ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), e.getMessage()));
+                return EXIT_CODE_FAILURE;
+            } catch (final ArgumentException e) {
+                errPrintln(ERR_ERROR_PARSING_ARGS.get(e.getMessageObject()));
+                return EXIT_CODE_FAILURE;
             }
 
             if (!generateEntries(generator, writer, ldifFile)) {
@@ -171,6 +181,17 @@ public final class MakeLDIF extends ConsoleApplication {
         } finally {
             closeSilently(writer);
         }
+    }
+
+    private LDIFEntryWriter createLdifWriter(final StringArgument ldifFile, final IntegerArgument wrapColumn)
+            throws IOException, ArgumentException {
+        final LDIFEntryWriter writer;
+        if (ldifFile.isPresent()) {
+            writer = new LDIFEntryWriter(new BufferedWriter(new FileWriter(ldifFile.getValue())));
+        } else {
+            writer = new LDIFEntryWriter(getOutputStream());
+        }
+        return writer.setWrapColumn(wrapColumn.getIntValue());
     }
 
     static EntryGenerator createGenerator(final String templatePath, final StringArgument resourcePath,

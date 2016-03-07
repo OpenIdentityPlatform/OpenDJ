@@ -134,6 +134,16 @@ public class MakeLDIFITCase extends ToolsITCase {
     }
 
     /** See OPENDJ-2505 and OPENDJ-2754 */
+    @Test
+    public void testMakeLDIFSupportsLineFoldingAndLineWrapping() throws Exception {
+        final Path tempOutputFile = Paths.get(TEST_RESOURCE_PATH, TEMP_OUTPUT_FILE);
+        run(args("-o", tempOutputFile.toString(), "-w", "80", VALID_TEMPLATE_FILE_PATH),
+                SUCCESS, INFO_MAKELDIF_PROCESSING_COMPLETE.get(2));
+        assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output_80_column.ldif");
+        Files.delete(tempOutputFile);
+    }
+
+    private void assertFilesAreEquals(final String outputFile, final String expectedOutputFileName) throws IOException {
         assertThat(Files.readAllBytes(Paths.get(TEST_RESOURCE_PATH, outputFile))).isEqualTo(
                    Files.readAllBytes(Paths.get(TEST_RESOURCE_PATH, expectedOutputFileName)));
     }
