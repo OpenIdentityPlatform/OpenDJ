@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -600,24 +600,6 @@ public class JavaArgumentsDialog extends JDialog
   }
 
   /**
-   * Displays a confirmation dialog and returns <CODE>true</CODE> if the user
-   * accepts the message displayed in the dialog and <CODE>false</CODE>
-   * otherwise.
-   *
-   * @param msg
-   *          the error message.
-   * @param title
-   *          the title for the dialog.
-   * @return <CODE>true</CODE> if the user accepts the message displayed in the
-   * dialog and <CODE>false</CODE> otherwise.
-   */
-  private boolean displayConfirmationDialog(LocalizableMessage msg, LocalizableMessage title)
-  {
-    toFront();
-    return Utilities.displayConfirmation(this, msg, title);
-  }
-
-  /**
    * Updates the widgets on the dialog with the contents of the securityOptions
    * object.
    *
@@ -869,13 +851,11 @@ public class JavaArgumentsDialog extends JDialog
   private void checkOtherArguments(Collection<LocalizableMessage> errorMsgs)
   {
     setValidLater(lOtherArguments, true);
-    ArrayList<JLabel> ls = new ArrayList<>();
     StringBuilder sb = new StringBuilder();
 
     String[] otherArgs = getOtherArguments();
     if (otherArgs.length > 0)
     {
-      ls.add(lOtherArguments);
       for (String arg : otherArgs)
       {
         if (sb.length() > 0)
