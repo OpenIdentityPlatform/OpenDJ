@@ -18,14 +18,15 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolInputStream;
+import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolOutputStream;
+import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
 import static org.forgerock.util.Utils.closeSilently;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,7 +65,14 @@ public final class LDIFModify extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final int retCode = new LDIFModify().run(args);
+        final LDIFModify ldifModify = new LDIFModify();
+        int retCode;
+        try {
+            retCode = ldifModify.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldifModify);
+            retCode = e.getResultCode();
+        }
         System.exit(filterExitCode(retCode));
     }
 
@@ -72,11 +80,13 @@ public final class LDIFModify extends ConsoleApplication {
         // Nothing to do.
     }
 
-    private int run(final String[] args) {
+    private int run(final String[] args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDIFMODIFY_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser = new ArgumentParser(
-            LDIFModify.class.getName(), toolDescription, false, true, 1, 2, "source [changes]");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(LDIFModify.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArguments(1, 2, "source [changes]")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFMODIFY.get());
 
@@ -100,23 +110,12 @@ public final class LDIFModify extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            errPrintln(message);
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+            throw newToolParamException(ae, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
         }
 
-        // Parse the command-line arguments provided to this program.
-        try {
-            argParser.parseArguments(args);
-
-            // If we should just display usage or version information,
-            // then print it and exit.
-            if (argParser.usageOrVersionDisplayed()) {
-                return ResultCode.SUCCESS.intValue();
-            }
-        } catch (final ArgumentException ae) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        parseArguments(argParser, getErrStream(), args);
+        if (argParser.usageOrVersionDisplayed()) {
+            return ResultCode.SUCCESS.intValue();
         }
 
         InputStream sourceInputStream = null;
@@ -127,68 +126,15 @@ public final class LDIFModify extends ConsoleApplication {
         LDIFEntryWriter outputWriter = null;
 
         try {
-            // First source file.
             final List<String> trailingArguments = argParser.getTrailingArguments();
-            if (!"-".equals(trailingArguments.get(0))) {
-                try {
-                    sourceInputStream = new FileInputStream(trailingArguments.get(0));
-                } catch (final FileNotFoundException e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(0), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
+            sourceInputStream = getLDIFToolInputStream(this, trailingArguments.get(0));
+            changesInputStream = getLDIFToolInputStream(this, trailingArguments.get(1));
+            outputStream = getLDIFToolOutputStream(this, outputFilename);
+
+            if (System.in == sourceInputStream && System.in == changesInputStream) {
+                throw newToolParamException(ERR_LDIFMODIFY_MULTIPLE_USES_OF_STDIN.get());
             }
 
-            // Patch file.
-            if (trailingArguments.size() > 1 && !"-".equals(trailingArguments.get(1))) {
-                try {
-                    changesInputStream = new FileInputStream(trailingArguments.get(1));
-                } catch (final FileNotFoundException e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(1), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            // Output file.
-            if (outputFilename.isPresent() && !"-".equals(outputFilename.getValue())) {
-                try {
-                    outputStream = new FileOutputStream(outputFilename.getValue());
-                } catch (final FileNotFoundException e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_WRITE.get(outputFilename.getValue(), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            // Default to stdin/stdout for all streams if not specified.
-            if (sourceInputStream == null) {
-                // Command line parameter was "-".
-                sourceInputStream = System.in;
-            }
-
-            if (changesInputStream == null) {
-                changesInputStream = System.in;
-            }
-
-            if (outputStream == null) {
-                outputStream = System.out;
-            }
-
-            /* Check that we are not attempting to read both the source and changes from stdin. */
-            if (sourceInputStream == changesInputStream) {
-                final LocalizableMessage message = ERR_LDIFMODIFY_MULTIPLE_USES_OF_STDIN.get();
-                errPrintln(message);
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
-
-            // Apply the changes.
             sourceReader = new LDIFEntryReader(sourceInputStream);
             changesReader = new LDIFChangeRecordReader(changesInputStream);
             outputWriter = new LDIFEntryWriter(outputStream);
@@ -198,8 +144,7 @@ public final class LDIFModify extends ConsoleApplication {
                 public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry)
                         throws DecodeException {
                     try {
-                        RejectedChangeRecordListener.FAIL_FAST.handleDuplicateEntry(change,
-                                existingEntry);
+                        RejectedChangeRecordListener.FAIL_FAST.handleDuplicateEntry(change, existingEntry);
                     } catch (final DecodeException e) {
                         logErrorOrFail(e);
                     }
@@ -210,8 +155,8 @@ public final class LDIFModify extends ConsoleApplication {
                 public Entry handleDuplicateEntry(final ModifyDNRequest change,
                         final Entry existingEntry, final Entry renamedEntry) throws DecodeException {
                     try {
-                        RejectedChangeRecordListener.FAIL_FAST.handleDuplicateEntry(change,
-                                existingEntry, renamedEntry);
+                        RejectedChangeRecordListener.FAIL_FAST.handleDuplicateEntry(
+                                change, existingEntry, renamedEntry);
                     } catch (final DecodeException e) {
                         logErrorOrFail(e);
                     }
@@ -219,44 +164,40 @@ public final class LDIFModify extends ConsoleApplication {
                 }
 
                 @Override
-                public void handleRejectedChangeRecord(final AddRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
+                public void handleRejectedChangeRecord(
+                        final AddRequest change, final LocalizableMessage reason) throws DecodeException {
                     try {
-                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change,
-                                reason);
+                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change, reason);
                     } catch (final DecodeException e) {
                         logErrorOrFail(e);
                     }
                 }
 
                 @Override
-                public void handleRejectedChangeRecord(final DeleteRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
+                public void handleRejectedChangeRecord(
+                        final DeleteRequest change, final LocalizableMessage reason) throws DecodeException {
                     try {
-                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change,
-                                reason);
+                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change, reason);
                     } catch (final DecodeException e) {
                         logErrorOrFail(e);
                     }
                 }
 
                 @Override
-                public void handleRejectedChangeRecord(final ModifyDNRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
+                public void handleRejectedChangeRecord(
+                        final ModifyDNRequest change, final LocalizableMessage reason) throws DecodeException {
                     try {
-                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change,
-                                reason);
+                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change, reason);
                     } catch (final DecodeException e) {
                         logErrorOrFail(e);
                     }
                 }
 
                 @Override
-                public void handleRejectedChangeRecord(final ModifyRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
+                public void handleRejectedChangeRecord(
+                        final ModifyRequest change, final LocalizableMessage reason) throws DecodeException {
                     try {
-                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change,
-                                reason);
+                        RejectedChangeRecordListener.FAIL_FAST.handleRejectedChangeRecord(change, reason);
                     } catch (final DecodeException e) {
                         logErrorOrFail(e);
                     }
@@ -274,15 +215,14 @@ public final class LDIFModify extends ConsoleApplication {
             LDIF.copyTo(LDIF.patch(sourceReader, changesReader, listener), outputWriter);
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
-                errPrintln(ERR_LDIFMODIFY_PATCH_FAILED.get(((LocalizableException) e)
-                        .getMessageObject()));
+                errPrintln(ERR_LDIFMODIFY_PATCH_FAILED.get(((LocalizableException) e).getMessageObject()));
             } else {
                 errPrintln(ERR_LDIFMODIFY_PATCH_FAILED.get(e.getLocalizedMessage()));
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeSilently(sourceReader, changesReader, outputWriter);
-            closeSilently(sourceInputStream, changesInputStream, outputStream);
+            closeSilently(sourceReader, changesReader, outputWriter,
+                          sourceInputStream, changesInputStream, outputStream);
         }
 
         return ResultCode.SUCCESS.intValue();

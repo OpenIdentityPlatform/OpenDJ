@@ -375,14 +375,14 @@ public final class ArgumentConstants {
     /** Value for the restart option long form. */
     public static final String OPTION_LONG_RESTART = "restart";
 
-    /** The value for the hidden testonly argument. */
-    public static final String OPTION_LONG_TESTONLY_ARGUMENT = "testOnly";
-
     /** The value for the backend type long option. */
     public static final String OPTION_LONG_BACKEND_TYPE = "backendType";
 
     /** The value for the backend type short option. */
     public static final Character OPTION_SHORT_BACKEND_TYPE = 't';
+
+    /** The value to use to read from stdin or write to stdout. */
+    public static final String USE_SYSTEM_STREAM_TOKEN = "-";
 
     /** Prevent instantiation. */
     private ArgumentConstants() {

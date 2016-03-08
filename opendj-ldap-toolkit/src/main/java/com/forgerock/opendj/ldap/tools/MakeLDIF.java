@@ -17,6 +17,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CommonArguments.showUsageArgument;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
@@ -70,8 +71,10 @@ public final class MakeLDIF extends ConsoleApplication {
     /** Run Make LDIF with provided command-line arguments. */
     int run(final String[] args) {
         final LocalizableMessage toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser = new ArgumentParser(MakeLDIF.class.getName(), toolDescription,
-                false, true, 1, 1, "template-file-path");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(MakeLDIF.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArguments(1, "template-file-path")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_MAKELDIF.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_MAKELDIF.get());
@@ -110,11 +113,9 @@ public final class MakeLDIF extends ConsoleApplication {
                             .multiValued()
                             .valuePlaceholder(INFO_CONSTANT_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
-            showUsage =
-                    BooleanArgument.builder(OPTION_LONG_HELP)
-                            .shortIdentifier(OPTION_SHORT_HELP)
-                            .description(INFO_MAKELDIF_DESCRIPTION_HELP.get())
-                            .buildAndAddToParser(argParser);
+
+            showUsage = showUsageArgument();
+            argParser.addArgument(showUsage);
 
             wrapColumn =
                     IntegerArgument.builder("wrapColumn")

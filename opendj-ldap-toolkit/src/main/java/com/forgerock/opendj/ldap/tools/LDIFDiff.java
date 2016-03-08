@@ -19,15 +19,16 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
+import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolInputStream;
+import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolOutputStream;
+import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
 import static org.forgerock.util.Utils.closeSilently;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,7 +60,14 @@ public final class LDIFDiff extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final int retCode = new LDIFDiff().run(args);
+        final LDIFDiff ldifDiff = new LDIFDiff();
+        int retCode;
+        try {
+            retCode = ldifDiff.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldifDiff);
+            retCode = e.getResultCode();
+        }
         System.exit(filterExitCode(retCode));
     }
 
@@ -67,11 +75,13 @@ public final class LDIFDiff extends ConsoleApplication {
         // Nothing to do.
     }
 
-    private int run(final String[] args) {
+    private int run(final String[] args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser = new ArgumentParser(
-            LDIFDiff.class.getName(), toolDescription, false, true, 2, 2, "source target");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(LDIFDiff.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArguments(2, "source target")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFDIFF.get());
 
@@ -91,22 +101,12 @@ public final class LDIFDiff extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            errPrintln(message);
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+            throw newToolParamException(ae, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
         }
 
-        // Parse the command-line arguments provided to this program.
-        try {
-            argParser.parseArguments(args);
-
-            /* If we should just display usage or version information, then print it and exit. */
-            if (argParser.usageOrVersionDisplayed()) {
-                return ResultCode.SUCCESS.intValue();
-            }
-        } catch (final ArgumentException ae) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        parseArguments(argParser, getErrorStream(), args);
+        if (argParser.usageOrVersionDisplayed()) {
+            return ResultCode.SUCCESS.intValue();
         }
 
         InputStream sourceInputStream = null;
@@ -114,68 +114,15 @@ public final class LDIFDiff extends ConsoleApplication {
         OutputStream outputStream = null;
 
         try {
-            // First source file.
             final List<String> trailingArguments = argParser.getTrailingArguments();
-            if (!"-".equals(trailingArguments.get(0))) {
-                try {
-                    sourceInputStream = new FileInputStream(trailingArguments.get(0));
-                } catch (final FileNotFoundException e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(0), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
+            sourceInputStream = getLDIFToolInputStream(this, trailingArguments.get(0));
+            targetInputStream = getLDIFToolInputStream(this, trailingArguments.get(1));
+            outputStream = getLDIFToolOutputStream(this, outputFilename);
+
+            if (System.in == sourceInputStream && System.in  == targetInputStream) {
+                throw newToolParamException(ERR_LDIFDIFF_MULTIPLE_USES_OF_STDIN.get());
             }
 
-            // Patch file.
-            if (!"-".equals(trailingArguments.get(1))) {
-                try {
-                    targetInputStream = new FileInputStream(trailingArguments.get(1));
-                } catch (final FileNotFoundException e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(1), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            // Output file.
-            if (outputFilename.isPresent() && !"-".equals(outputFilename.getValue())) {
-                try {
-                    outputStream = new FileOutputStream(outputFilename.getValue());
-                } catch (final FileNotFoundException e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_WRITE.get(outputFilename.getValue(), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            // Default to stdin/stdout for all streams if not specified.
-            if (sourceInputStream == null) {
-                // Command line parameter was "-".
-                sourceInputStream = System.in;
-            }
-
-            if (targetInputStream == null) {
-                targetInputStream = System.in;
-            }
-
-            if (outputStream == null) {
-                outputStream = System.out;
-            }
-
-            /* Check that we are not attempting to read both the source and target from stdin. */
-            if (sourceInputStream == targetInputStream) {
-                final LocalizableMessage message = ERR_LDIFDIFF_MULTIPLE_USES_OF_STDIN.get();
-                errPrintln(message);
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
-
-            // Perform the diff.
             try (LDIFEntryReader sourceReader = new LDIFEntryReader(sourceInputStream);
                 LDIFEntryReader targetReader = new LDIFEntryReader(targetInputStream);
                 LDIFChangeRecordWriter outputWriter = new LDIFChangeRecordWriter(outputStream)) {

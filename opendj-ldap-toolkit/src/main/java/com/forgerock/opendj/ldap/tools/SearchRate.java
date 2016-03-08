@@ -196,9 +196,10 @@ public final class SearchRate extends ConsoleApplication {
     private int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_SEARCHRATE_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(SearchRate.class.getName(), toolDescription, false, true, 1, 0,
-                        "[filter format string] [attributes ...]");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(SearchRate.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArgumentsUnbounded(1, "[filter format string] [attributes ...]")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_SEARCHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
@@ -254,11 +255,8 @@ public final class SearchRate extends ConsoleApplication {
             verbose = verboseArgument();
             argParser.addArgument(verbose);
 
-            scriptFriendly =
-                    BooleanArgument.builder("scriptFriendly")
-                            .shortIdentifier('S')
-                            .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
-                            .buildAndAddToParser(argParser);
+            scriptFriendly = scriptFriendlySdkArgument();
+            argParser.addArgument(scriptFriendly);
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
             errPrintln(message);

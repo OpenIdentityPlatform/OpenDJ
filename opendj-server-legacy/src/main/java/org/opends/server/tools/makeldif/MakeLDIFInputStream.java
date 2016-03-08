@@ -65,14 +65,6 @@ public class MakeLDIFInputStream
   /** The queue used to hold generated entries until they can be read. */
   private LinkedBlockingQueue<TemplateEntry> entryQueue;
 
-  /** The background thread being used to actually generate the entries. */
-  private MakeLDIFInputStreamThread generatorThread;
-
-  /** The template file to use to generate the entries. */
-  private TemplateFile templateFile;
-
-
-
   /**
    * Creates a new MakeLDIF input stream that will generate entries based on the
    * provided template file.
@@ -81,8 +73,6 @@ public class MakeLDIFInputStream
    */
   public MakeLDIFInputStream(TemplateFile templateFile)
   {
-    this.templateFile = templateFile;
-
     allGenerated = false;
     closed       = false;
     entryQueue   = new LinkedBlockingQueue<>(10);
@@ -102,8 +92,8 @@ public class MakeLDIFInputStream
       ioException = ioe;
     }
 
-    generatorThread = new MakeLDIFInputStreamThread(this, templateFile);
-    generatorThread.start();
+    /* The background thread being used to actually generate the entries. */
+    new MakeLDIFInputStreamThread(this, templateFile).start();
   }
 
 

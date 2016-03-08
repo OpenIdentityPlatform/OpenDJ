@@ -16,17 +16,47 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.USE_SYSTEM_STREAM_TOKEN;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolExceptionAlreadyPrinted;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.StringArgument;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
+import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
 import org.forgerock.opendj.ldap.controls.PasswordExpiredResponseControl;
@@ -36,116 +66,26 @@ import org.forgerock.opendj.ldap.controls.PasswordPolicyRequestControl;
 import org.forgerock.opendj.ldap.controls.PasswordPolicyResponseControl;
 import org.forgerock.opendj.ldap.controls.PasswordPolicyWarningType;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
-import com.forgerock.opendj.util.StaticUtils;
+import org.forgerock.opendj.ldap.responses.Result;
 
 /**
  * This class provides utility functions for all the client side tools.
  */
 final class Utils {
 
-    /**
-     * Parse the specified command line argument to create the appropriate
-     * LDAPControl. The argument string should be in the format
-     * controloid[:criticality[:value|::b64value|:&lt;fileurl]]
-     *
-     * @param argString
-     *            The argument string containing the encoded control
-     *            information.
-     * @return The control decoded from the provided string, or
-     *         <CODE>null</CODE> if an error occurs while parsing the argument
-     *         value.
-     * @throws org.forgerock.opendj.ldap.DecodeException
-     *             If an error occurs.
-     */
-    static GenericControl getControl(final String argString) throws DecodeException {
-        String controlOID = null;
-        boolean controlCriticality = false;
-        ByteString controlValue = null;
+    static int printErrorMessage(final ConsoleApplication app, final LdapException ldapException) {
+        return printErrorMessage(app, ldapException, null);
+    }
 
-        int idx = argString.indexOf(":");
-
-        if (idx < 0) {
-            controlOID = argString;
-        } else {
-            controlOID = argString.substring(0, idx);
-        }
-
-        final String lowerOID = StaticUtils.toLowerCase(controlOID);
-        if ("accountusable".equals(lowerOID) || "accountusability".equals(lowerOID)) {
-            controlOID = AccountUsabilityRequestControl.OID;
-        } else if ("authzid".equals(lowerOID) || "authorizationidentity".equals(lowerOID)) {
-            controlOID = AuthorizationIdentityRequestControl.OID;
-        } else if ("noop".equals(lowerOID) || "no-op".equals(lowerOID)) {
-            // controlOID = OID_LDAP_NOOP_OPENLDAP_ASSIGNED;
-        } else if ("subentries".equals(lowerOID)) {
-            // controlOID = OID_LDAP_SUBENTRIES;
-        } else if ("managedsait".equals(lowerOID)) {
-            // controlOID = OID_MANAGE_DSAIT_CONTROL;
-        } else if ("pwpolicy".equals(lowerOID) || "passwordpolicy".equals(lowerOID)) {
-            controlOID = PasswordPolicyRequestControl.OID;
-        } else if ("subtreedelete".equals(lowerOID) || "treedelete".equals(lowerOID)) {
-            controlOID = SubtreeDeleteRequestControl.OID;
-        } else if ("realattrsonly".equals(lowerOID) || "realattributesonly".equals(lowerOID)) {
-            // controlOID = OID_REAL_ATTRS_ONLY;
-        } else if ("virtualattrsonly".equals(lowerOID) || "virtualattributesonly".equals(lowerOID)) {
-            // controlOID = OID_VIRTUAL_ATTRS_ONLY;
-        } else if ("effectiverights".equals(lowerOID) || "geteffectiverights".equals(lowerOID)) {
-            controlOID = GetEffectiveRightsRequestControl.OID;
-        }
-
-        if (idx < 0) {
-            return GenericControl.newControl(controlOID);
-        }
-
-        final String remainder = argString.substring(idx + 1, argString.length());
-
-        idx = remainder.indexOf(":");
-        if (idx == -1) {
-            if ("true".equalsIgnoreCase(remainder)) {
-                controlCriticality = true;
-            } else if ("false".equalsIgnoreCase(remainder)) {
-                controlCriticality = false;
-            } else {
-                // TODO: I18N
-                throw DecodeException.error(LocalizableMessage
-                        .raw("Invalid format for criticality value:" + remainder));
-            }
-            return GenericControl.newControl(controlOID, controlCriticality);
-
-        }
-
-        final String critical = remainder.substring(0, idx);
-        if ("true".equalsIgnoreCase(critical)) {
-            controlCriticality = true;
-        } else if ("false".equalsIgnoreCase(critical)) {
-            controlCriticality = false;
-        } else {
-            // TODO: I18N
-            throw DecodeException.error(LocalizableMessage
-                    .raw("Invalid format for criticality value:" + critical));
-        }
-
-        final String valString = remainder.substring(idx + 1, remainder.length());
-        if (valString.charAt(0) == ':') {
-            controlValue = ByteString.valueOfBase64(valString.substring(1, valString.length()));
-        } else if (valString.charAt(0) == '<') {
-            // Read data from the file.
-            final String filePath = valString.substring(1, valString.length());
-            try {
-                final byte[] val = readBytesFromFile(filePath);
-                controlValue = ByteString.wrap(val);
-            } catch (final Exception e) {
-                return null;
-            }
-        } else {
-            controlValue = ByteString.valueOfUtf8(valString);
-        }
-
-        return GenericControl.newControl(controlOID, controlCriticality, controlValue);
+    static int printErrorMessage(final ConsoleApplication app,
+            final LdapException ldapException, final LocalizableMessageDescriptor.Arg2<Number, Object> errorMsg) {
+        return printErrorMessage(app, ldapException.getResult(), errorMsg);
     }
 
     /**
@@ -154,34 +94,41 @@ final class Utils {
      *
      * @param app
      *            The console app to use to write the error message.
-     * @param ere
+     * @param result
      *            The error result.
+     * @param errorMsg
+     *            The error message associated to the application to use to display error result code and label.
      * @return The error code.
      */
-    static int printErrorMessage(final ConsoleApplication app, final LdapException ere) {
-         /* if ((ere.getMessage() != null) && (ere.getMessage().length() > 0)) {
-             app.println(LocalizableMessage.raw(ere.getMessage()));
-         }*/
+    static int printErrorMessage(final ConsoleApplication app,
+            final Result result, final LocalizableMessageDescriptor.Arg2<Number, Object> errorMsg) {
+        final ResultCode resultCode = result.getResultCode();
+        final int rc = resultCode.intValue();
 
-        if (ere.getResult().getResultCode().intValue() >= 0) {
-            app.errPrintln(ERR_TOOL_RESULT_CODE.get(ere.getResult().getResultCode().intValue(), ere
-                    .getResult().getResultCode().toString()));
+        if (rc != ResultCode.UNDEFINED.intValue() && errorMsg != null) {
+            app.errPrintln(errorMsg.get(rc, resultCode.toString()));
+        }
+        printlnTextMsg(app, ERR_TOOL_ERROR_MESSAGE, result.getDiagnosticMessage());
+        printlnTextMsg(app, ERR_TOOL_MATCHED_DN, result.getMatchedDN());
+
+        final Throwable cause = result.getCause();
+        if (app.isVerbose() && cause != null) {
+            cause.printStackTrace(app.getErrorStream());
         }
 
-        if (ere.getResult().getDiagnosticMessage() != null
-                && ere.getResult().getDiagnosticMessage().length() > 0) {
-            app.errPrintln(ERR_TOOL_ERROR_MESSAGE.get(ere.getResult().getDiagnosticMessage()));
-        }
+        return rc;
+    }
 
-        if (ere.getResult().getMatchedDN() != null && ere.getResult().getMatchedDN().length() > 0) {
-            app.errPrintln(ERR_TOOL_MATCHED_DN.get(ere.getResult().getMatchedDN()));
+    static void printSuccessMessage(
+            final ConsoleApplication app, final Result r, final String operationType, final String dn) {
+        app.println(INFO_OPERATION_SUCCESSFUL.get(operationType, dn));
+        printlnTextMsg(app, r.getDiagnosticMessage());
+        final List<String> referralURIs = r.getReferralURIs();
+        if (referralURIs != null) {
+            for (final String uri : referralURIs) {
+                app.println(LocalizableMessage.raw(uri));
+            }
         }
-
-        if (app.isVerbose() && ere.getResult().getCause() != null) {
-            ere.getResult().getCause().printStackTrace(app.getErrorStream());
-        }
-
-        return ere.getResult().getResultCode().intValue();
     }
 
     static void printPasswordPolicyResults(final ConsoleApplication app, final BindResult result) {
@@ -196,8 +143,8 @@ final class Utils {
         }
 
         try {
-            final PasswordExpiredResponseControl control = result.getControl(PasswordExpiredResponseControl.DECODER,
-                                                                             new DecodeOptions());
+            final PasswordExpiredResponseControl control = result.getControl(
+                    PasswordExpiredResponseControl.DECODER, new DecodeOptions());
             if (control != null) {
                 app.println(INFO_BIND_PASSWORD_EXPIRED.get());
             }
@@ -206,40 +153,60 @@ final class Utils {
         }
 
         try {
-            final PasswordExpiringResponseControl control = result.getControl(PasswordExpiringResponseControl.DECODER,
-                                                                              new DecodeOptions());
+            final PasswordExpiringResponseControl control = result.getControl(
+                    PasswordExpiringResponseControl.DECODER, new DecodeOptions());
             if (control != null) {
-                final LocalizableMessage timeString = secondsToTimeString(control.getSecondsUntilExpiration());
-                app.println(INFO_BIND_PASSWORD_EXPIRING.get(timeString));
+                app.println(INFO_BIND_PASSWORD_EXPIRING.get(secondsToTimeString(control.getSecondsUntilExpiration())));
             }
         } catch (final DecodeException e) {
             app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
         }
 
         try {
-            final PasswordPolicyResponseControl control = result.getControl(PasswordPolicyResponseControl.DECODER,
-                                                                            new DecodeOptions());
+            final PasswordPolicyResponseControl control = result.getControl(
+                    PasswordPolicyResponseControl.DECODER, new DecodeOptions());
             if (control != null) {
-                final PasswordPolicyErrorType errorType = control.getErrorType();
-                if (errorType == PasswordPolicyErrorType.PASSWORD_EXPIRED) {
-                    app.println(INFO_BIND_PASSWORD_EXPIRED.get());
-                } else if (errorType == PasswordPolicyErrorType.ACCOUNT_LOCKED) {
-                    app.println(INFO_BIND_ACCOUNT_LOCKED.get());
-                } else if (errorType == PasswordPolicyErrorType.CHANGE_AFTER_RESET) {
-
-                    app.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
-                }
-
-                final PasswordPolicyWarningType warningType = control.getWarningType();
-                if (warningType == PasswordPolicyWarningType.TIME_BEFORE_EXPIRATION) {
-                    final LocalizableMessage timeString = secondsToTimeString(control.getWarningValue());
-                    app.println(INFO_BIND_PASSWORD_EXPIRING.get(timeString));
-                } else if (warningType == PasswordPolicyWarningType.GRACE_LOGINS_REMAINING) {
-                    app.println(INFO_BIND_GRACE_LOGINS_REMAINING.get(control.getWarningValue()));
-                }
+                printPasswordPolicyError(control.getErrorType(), app);
+                printPasswordPolicyWarning(control.getWarningType(), control.getWarningValue(), app);
             }
         } catch (final DecodeException e) {
             app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+        }
+    }
+
+    private static void printPasswordPolicyError(final PasswordPolicyErrorType errorType,
+                                                 final ConsoleApplication app) {
+        if (errorType == null) {
+            return;
+        }
+
+        switch (errorType) {
+        case PASSWORD_EXPIRED:
+            app.println(INFO_BIND_PASSWORD_EXPIRED.get());
+            break;
+        case ACCOUNT_LOCKED:
+            app.println(INFO_BIND_ACCOUNT_LOCKED.get());
+            break;
+        case CHANGE_AFTER_RESET:
+            app.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
+            break;
+        }
+    }
+
+    private static void printPasswordPolicyWarning(final PasswordPolicyWarningType warningType,
+                                                   final int warningValue,
+                                                   final ConsoleApplication app) {
+        if (warningType == null) {
+            return;
+        }
+
+        switch (warningType) {
+        case TIME_BEFORE_EXPIRATION:
+            app.println(INFO_BIND_PASSWORD_EXPIRING.get(secondsToTimeString(warningValue)));
+            break;
+        case GRACE_LOGINS_REMAINING:
+            app.println(INFO_BIND_GRACE_LOGINS_REMAINING.get(warningValue));
+            break;
         }
     }
 
@@ -257,6 +224,230 @@ final class Utils {
          connecting/disconnecting).*/
         if (System.getProperty("org.forgerock.opendj.transport.linger") == null) {
             System.setProperty("org.forgerock.opendj.transport.linger", "0");
+        }
+    }
+
+    static List<Filter> readFiltersFromFile(final String fileName) throws LDAPToolException {
+        final List<Filter> filters = new ArrayList<>();
+        try (final BufferedReader in = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                if ("".equals(line.trim())) {
+                    // ignore empty lines.
+                    continue;
+                }
+                filters.add(Filter.valueOf(line));
+            }
+            return filters;
+        } catch (final IOException e) {
+            throw newToolException(e, ResultCode.CLIENT_SIDE_FILTER_ERROR, LocalizableMessage.raw(e.toString()));
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw newToolException(e, ResultCode.CLIENT_SIDE_FILTER_ERROR, e.getMessageObject());
+        }
+    }
+
+    static Filter readFilterFromString(final String filterStr) throws LDAPToolException {
+        try {
+            return Filter.valueOf(filterStr);
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw newToolException(e, ResultCode.CLIENT_SIDE_FILTER_ERROR, e.getMessageObject());
+        }
+    }
+
+    static void parseArguments(final ArgumentParser argParser, final PrintStream stream, final String[] args)
+            throws LDAPToolException {
+        try {
+            argParser.parseArguments(args);
+        } catch (final ArgumentException e) {
+            argParser.displayMessageAndUsageReference(stream, ERR_ERROR_PARSING_ARGS.get(e.getMessage()));
+            throw newToolExceptionAlreadyPrinted(e, ResultCode.CLIENT_SIDE_PARAM_ERROR);
+        }
+    }
+
+    static InputStream getLDIFToolInputStream(final ConsoleApplication app, final String filePath)
+            throws LDAPToolException {
+        if (!USE_SYSTEM_STREAM_TOKEN.equals(filePath)) {
+            try {
+                return new FileInputStream(filePath);
+            } catch (final FileNotFoundException e) {
+                throw newToolParamException(
+                        e, ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filePath, e.getLocalizedMessage()));
+            }
+        } else {
+            return app.getInputStream();
+        }
+    }
+
+    static OutputStream getLDIFToolOutputStream(final ConsoleApplication app, final StringArgument outputFileArg)
+            throws LDAPToolException {
+        final String filePath = outputFileArg.getValue();
+        if (outputFileArg.isPresent() && !USE_SYSTEM_STREAM_TOKEN.equals(filePath)) {
+            try {
+                return new FileOutputStream(filePath);
+            } catch (final FileNotFoundException e) {
+                throw newToolParamException(
+                        e, ERR_LDIF_FILE_CANNOT_OPEN_FOR_WRITE.get(filePath, e.getLocalizedMessage()));
+            }
+        } else {
+            return app.getOutputStream();
+        }
+    }
+
+    static void ensureLdapProtocolVersionIsSupported(final IntegerArgument version) throws LDAPToolException {
+        try {
+            final int versionNumber = version.getIntValue();
+            if (versionNumber != 2 && versionNumber != 3) {
+                throw newToolParamException(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
+            }
+        } catch (final ArgumentException e) {
+            throw newToolParamException(e, ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+        }
+    }
+
+    static void addControlsToRequest(final Request request, final List<Control> controls) throws LDAPToolException {
+        for (final Control control : controls) {
+            request.addControl(control);
+        }
+    }
+
+    static List<Control> readControls(final StringArgument controlArg) throws LDAPToolException {
+        final List<Control> controls = new LinkedList<>();
+        if (controlArg.isPresent()) {
+            for (final String ctrlString : controlArg.getValues()) {
+                try {
+                    controls.add(getControl(ctrlString));
+                } catch (final DecodeException e) {
+                    throw newToolParamException(e, ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
+                }
+            }
+        }
+        return controls;
+    }
+
+    /**
+     * Parse the specified command line argument to create the appropriate
+     * LDAPControl. The argument string should be in the format
+     * controloid[:criticality[:value|::b64value|:&lt;fileurl]]
+     *
+     * @param argString
+     *            The argument string containing the encoded control
+     *            information.
+     * @return The control decoded from the provided string, or
+     *         <CODE>null</CODE> if an error occurs while parsing the argument
+     *         value.
+     * @throws org.forgerock.opendj.ldap.DecodeException
+     *             If an error occurs.
+     */
+    private static GenericControl getControl(final String argString) throws DecodeException {
+        final String[] control = argString.split(":");
+        final int nbControlElements = control.length;
+
+        final String controlOID = readControlID(control[0]);
+        if (nbControlElements == 1) {
+            return GenericControl.newControl(controlOID);
+        }
+
+        final boolean critic = readControlCriticality(control[1], argString);
+        if (nbControlElements == 2) {
+            return GenericControl.newControl(controlOID, critic);
+        }
+
+        final ByteString controlValue;
+        if (control[2].isEmpty()) {
+            controlValue = ByteString.valueOfBase64(control[3]);
+        } else if (control[2].startsWith("<")) {
+            // Read data from the file.
+            try {
+                controlValue = ByteString.wrap(readBytesFromFile(control[2].substring(1)));
+            } catch (final Exception e) {
+                return null;
+            }
+        } else {
+            controlValue = ByteString.valueOfUtf8(control[2]);
+        }
+
+        return GenericControl.newControl(controlOID, critic, controlValue);
+    }
+
+    private static String readControlID(final String controlOidStr) {
+        switch (controlOidStr.toLowerCase()) {
+        case "accountusable":
+        case "accountusability":
+            return AccountUsabilityRequestControl.OID;
+        case "authzid":
+        case "authorizationidentity":
+            return AuthorizationIdentityRequestControl.OID;
+        case "pwpolicy":
+        case "passwordpolicy":
+            return PasswordPolicyRequestControl.OID;
+        case "treedelete":
+        case "subtreedelete":
+            return SubtreeDeleteRequestControl.OID;
+        case "effectiverights":
+        case "geteffectiverights":
+            return GetEffectiveRightsRequestControl.OID;
+        case "noop":
+        case "no-op":
+        case "subentries":
+        case "managedsait":
+        case "realattributesonly":
+        case "realattrsonly":
+        case "virtualattributesonly":
+        case "virtualattrsonly":
+        default:
+            // TODO‌ Support these request controls once migrated in the sdk
+            return controlOidStr;
+        }
+    }
+
+    private static boolean readControlCriticality(final String criticalityStr, final String controlStr)
+            throws DecodeException {
+        if ("true".equalsIgnoreCase(criticalityStr)) {
+            return true;
+        } else if ("false".equalsIgnoreCase(criticalityStr)) {
+            return false;
+        } else {
+            throw DecodeException.error(ERR_DECODE_CONTROL_CRITICALITY.get(criticalityStr, controlStr));
+        }
+    }
+
+    static Control readAssertionControl(final String assertionFilter)
+            throws LDAPToolException {
+        try {
+            // FIXME -- Change this to the correct OID when the official one is assigned.
+            return AssertionRequestControl.newControl(true, Filter.valueOf(assertionFilter));
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw newToolParamException(e, ERR_LDAP_ASSERTION_INVALID_FILTER.get(e.getMessage()));
+        }
+    }
+
+    static Connection getConnection(final ConnectionFactory connectionFactory, final BindRequest bindRequest,
+            final BooleanArgument dryRunArg, final ConsoleApplication app) throws LDAPToolException {
+        if (!dryRunArg.isPresent()) {
+            try {
+                final Connection connection = connectionFactory.getConnection();
+                if (bindRequest != null) {
+                    printPasswordPolicyResults(app, connection.bind(bindRequest));
+                }
+                return connection;
+            } catch (final LdapException e) {
+                printErrorMessage(app, e, ERR_LDAPP_BIND_FAILED);
+                throw newToolExceptionAlreadyPrinted(e, e.getResult().getResultCode());
+            }
+        }
+        return null;
+    }
+
+    static void printlnTextMsg(final ConsoleApplication app, final String msg) {
+        printlnTextMsg(app, null, msg);
+    }
+
+    static void printlnTextMsg(final ConsoleApplication app,
+                               final LocalizableMessageDescriptor.Arg1<Object> localizableMsg,
+                               final String msg) {
+        if (msg != null && !msg.isEmpty()) {
+            app.errPrintln(localizableMsg == null ? LocalizableMessage.raw(msg)
+                                                  : localizableMsg.get(msg));
         }
     }
 

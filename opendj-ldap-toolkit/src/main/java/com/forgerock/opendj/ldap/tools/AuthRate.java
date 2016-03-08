@@ -375,9 +375,10 @@ public final class AuthRate extends ConsoleApplication {
     int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_AUTHRATE_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(AuthRate.class.getName(), toolDescription, false, true, 0, 0,
-                        "[filter format string] [attributes ...]");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(AuthRate.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArguments("[filter format string] [attributes ...]")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_AUTHRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
@@ -446,11 +447,8 @@ public final class AuthRate extends ConsoleApplication {
             verbose = verboseArgument();
             argParser.addArgument(verbose);
 
-            scriptFriendly =
-                    BooleanArgument.builder("scriptFriendly")
-                            .shortIdentifier('S')
-                            .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
-                            .buildAndAddToParser(argParser);
+            scriptFriendly = scriptFriendlySdkArgument();
+            argParser.addArgument(scriptFriendly);
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
             errPrintln(message);

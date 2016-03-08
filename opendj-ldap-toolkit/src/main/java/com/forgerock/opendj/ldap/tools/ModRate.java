@@ -150,9 +150,10 @@ public final class ModRate extends ConsoleApplication {
     private int run(final String[] args) {
         // Creates the command-line argument parser for use with this program
         final LocalizableMessage toolDescription = INFO_MODRATE_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(ModRate.class.getName(), toolDescription, false, true, 1, 0,
-                        "[(attribute:value format string) ...]");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(ModRate.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArgumentsUnbounded(1, "[(attribute:value format string) ...]")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_MODRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
@@ -194,11 +195,8 @@ public final class ModRate extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
 
-            scriptFriendly =
-                    BooleanArgument.builder("scriptFriendly")
-                            .shortIdentifier('S')
-                            .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
-                            .buildAndAddToParser(argParser);
+            scriptFriendly = scriptFriendlySdkArgument();
+            argParser.addArgument(scriptFriendly);
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
             errPrintln(message);

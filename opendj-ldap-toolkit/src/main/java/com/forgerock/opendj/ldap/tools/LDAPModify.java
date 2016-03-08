@@ -18,10 +18,15 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
+import static com.forgerock.opendj.ldap.tools.Utils.printlnTextMsg;
+import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
+import static com.forgerock.opendj.ldap.tools.Utils.readControls;
+import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
-import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.forgerock.util.Utils.closeSilently;
@@ -34,15 +39,11 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
@@ -50,7 +51,6 @@ import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -63,7 +63,6 @@ import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
@@ -75,7 +74,13 @@ import com.forgerock.opendj.cli.StringArgument;
  * to the Directory Server.
  */
 public final class LDAPModify extends ConsoleApplication {
-    private class VisitorImpl implements ChangeRecordVisitor<Integer, java.lang.Void> {
+    private final class VisitorImpl implements ChangeRecordVisitor<Integer, Void> {
+        private final Connection connection;
+
+        private VisitorImpl(final Connection connection) {
+            this.connection = connection;
+        }
+
         @Override
         public Integer visitChangeRecord(final Void aVoid, final AddRequest change) {
             for (final Control control : controls) {
@@ -83,16 +88,17 @@ public final class LDAPModify extends ConsoleApplication {
             }
             final String opType = "ADD";
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
-            if (connection != null) {
-                try {
-                    Result r = connection.add(change);
-                    printResult(opType, change.getName().toString(), r);
-                    return r.getResultCode().intValue();
-                } catch (final LdapException ere) {
-                    return printErrorMessage(LDAPModify.this, ere);
-                }
+            if (dryRun()) {
+                return ResultCode.SUCCESS.intValue();
             }
-            return ResultCode.SUCCESS.intValue();
+
+            try {
+                Result r = connection.add(change);
+                printResult(opType, change.getName().toString(), r);
+                return r.getResultCode().intValue();
+            } catch (final LdapException ere) {
+                return printErrorMessage(LDAPModify.this, ere, ERR_LDAP_MODIFY_FAILED);
+            }
         }
 
         @Override
@@ -102,16 +108,17 @@ public final class LDAPModify extends ConsoleApplication {
             }
             final String opType = "DELETE";
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
-            if (connection != null) {
-                try {
-                    Result r = connection.delete(change);
-                    printResult(opType, change.getName().toString(), r);
-                    return r.getResultCode().intValue();
-                } catch (final LdapException ere) {
-                    return printErrorMessage(LDAPModify.this, ere);
-                }
+            if (dryRun()) {
+                return ResultCode.SUCCESS.intValue();
             }
-            return ResultCode.SUCCESS.intValue();
+
+            try {
+                Result r = connection.delete(change);
+                printResult(opType, change.getName().toString(), r);
+                return r.getResultCode().intValue();
+            } catch (final LdapException ere) {
+                return printErrorMessage(LDAPModify.this, ere, ERR_LDAP_MODIFY_FAILED);
+            }
         }
 
         @Override
@@ -121,16 +128,17 @@ public final class LDAPModify extends ConsoleApplication {
             }
             final String opType = "MODIFY DN";
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
-            if (connection != null) {
-                try {
-                    Result r = connection.modifyDN(change);
-                    printResult(opType, change.getName().toString(), r);
-                    return r.getResultCode().intValue();
-                } catch (final LdapException ere) {
-                    return printErrorMessage(LDAPModify.this, ere);
-                }
+            if (dryRun()) {
+                return ResultCode.SUCCESS.intValue();
             }
-            return ResultCode.SUCCESS.intValue();
+
+            try {
+                Result r = connection.modifyDN(change);
+                printResult(opType, change.getName().toString(), r);
+                return r.getResultCode().intValue();
+            } catch (final LdapException ere) {
+                return printErrorMessage(LDAPModify.this, ere, ERR_LDAP_MODIFY_FAILED);
+            }
         }
 
         @Override
@@ -140,36 +148,29 @@ public final class LDAPModify extends ConsoleApplication {
             }
             final String opType = "MODIFY";
             println(INFO_PROCESSING_OPERATION.get(opType, change.getName().toString()));
-            if (connection != null) {
-                try {
-                    Result r = connection.modify(change);
-                    printResult(opType, change.getName().toString(), r);
-                    return r.getResultCode().intValue();
-                } catch (final LdapException ere) {
-                    return printErrorMessage(LDAPModify.this, ere);
-                }
+            if (dryRun()) {
+                return ResultCode.SUCCESS.intValue();
             }
-            return ResultCode.SUCCESS.intValue();
+
+            try {
+                Result r = connection.modify(change);
+                printResult(opType, change.getName().toString(), r);
+                return r.getResultCode().intValue();
+            } catch (final LdapException ere) {
+                return printErrorMessage(LDAPModify.this, ere, ERR_LDAP_MODIFY_FAILED);
+            }
         }
 
         private void printResult(final String operationType, final String name, final Result r) {
-            if (r.getResultCode() != ResultCode.SUCCESS && r.getResultCode() != ResultCode.REFERRAL) {
-                final LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
-                errPrintln(msg);
-                errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()));
-                if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
-                    errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
-                }
-                if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0) {
-                    errPrintln(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
-                }
+            final ResultCode rc = r.getResultCode();
+            if (ResultCode.SUCCESS != rc && ResultCode.REFERRAL != rc) {
+                printErrorMessage(LDAPModify.this, r, ERR_LDAP_MODIFY_FAILED);
             } else {
                 println(INFO_OPERATION_SUCCESSFUL.get(operationType, name));
-                if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
-                    errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
-                }
-                if (r.getReferralURIs() != null) {
-                    for (final String uri : r.getReferralURIs()) {
+                printlnTextMsg(LDAPModify.this, r.getDiagnosticMessage());
+                final List<String> referralURIs = r.getReferralURIs();
+                if (referralURIs != null) {
+                    for (final String uri : referralURIs) {
                         println(LocalizableMessage.raw(uri));
                     }
                 }
@@ -200,9 +201,12 @@ public final class LDAPModify extends ConsoleApplication {
             } catch (final IOException ioe) {
                 throw new RuntimeException(ioe);
             }
-
-            // TODO: CSN control
         }
+
+        private boolean dryRun() {
+            return connection == null;
+        }
+        // TODO: CSN control
     }
 
     /**
@@ -212,16 +216,19 @@ public final class LDAPModify extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final int retCode = new LDAPModify().run(args);
+        final LDAPModify ldapModify = new LDAPModify();
+        int retCode;
+        try {
+            retCode = ldapModify.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldapModify);
+            retCode = e.getResultCode();
+        }
         System.exit(filterExitCode(retCode));
     }
 
-    private Connection connection;
-
     private EntryWriter writer;
-
     private Collection<Control> controls;
-
     private BooleanArgument verbose;
 
     private LDAPModify() {
@@ -238,22 +245,21 @@ public final class LDAPModify extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    int run(final String[] args) {
+    int run(final String[] args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDAPModify.class.getName(), toolDescription, false);
+        final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPModify.class.getName())
+                .toolDescription(toolDescription)
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPMODIFY.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;
-        ConnectionFactory connectionFactory;
-        BindRequest bindRequest;
 
         BooleanArgument continueOnError;
         BooleanArgument noop;
         BooleanArgument showUsage;
-        IntegerArgument version;
+        IntegerArgument ldapProtocolVersion;
         StringArgument assertionFilter;
         StringArgument controlStr;
         StringArgument filename;
@@ -274,12 +280,9 @@ public final class LDAPModify extends ConsoleApplication {
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            filename =
-                    StringArgument.builder(OPTION_LONG_FILENAME)
-                            .shortIdentifier(OPTION_SHORT_FILENAME)
-                            .description(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get())
-                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
-                            .buildAndAddToParser(argParser);
+            filename = filenameArgument(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
+            argParser.addArgument(filename);
+
             proxyAuthzID =
                     StringArgument.builder(OPTION_LONG_PROXYAUTHID)
                             .shortIdentifier(OPTION_SHORT_PROXYAUTHID)
@@ -301,16 +304,12 @@ public final class LDAPModify extends ConsoleApplication {
                             .description(INFO_DESCRIPTION_POSTREAD_ATTRS.get())
                             .valuePlaceholder(INFO_ATTRIBUTE_LIST_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
-            controlStr =
-                    StringArgument.builder("control")
-                            .shortIdentifier('J')
-                            .description(INFO_DESCRIPTION_CONTROLS.get())
-                            .multiValued()
-                            .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
-                            .buildAndAddToParser(argParser);
 
-            version = ldapVersionArgument();
-            argParser.addArgument(version);
+            controlStr = controlArgument();
+            argParser.addArgument(controlStr);
+
+            ldapProtocolVersion = ldapVersionArgument();
+            argParser.addArgument(ldapProtocolVersion);
 
             continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
@@ -329,119 +328,42 @@ public final class LDAPModify extends ConsoleApplication {
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        // Parse the command-line arguments provided to this program.
-        try {
-            argParser.parseArguments(args);
-
-            // If we should just display usage or version information, then print it and exit.
-            if (argParser.usageOrVersionDisplayed()) {
-                return 0;
-            }
-
-            connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
-            bindRequest = connectionFactoryProvider.getBindRequest();
-        } catch (final ArgumentException ae) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        argParser.parseArguments(args, getErrStream(), connectionFactoryProvider);
+        if (argParser.usageOrVersionDisplayed()) {
+            return ResultCode.SUCCESS.intValue();
         }
+        ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
 
-        try {
-            final int versionNumber = version.getIntValue();
-            if (versionNumber != 2 && versionNumber != 3) {
-                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
-        } catch (final ArgumentException ae) {
-            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(version.getValue()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
-        controls = new LinkedList<>();
-        if (controlStr.isPresent()) {
-            for (final String ctrlString : controlStr.getValues()) {
-                try {
-                    final Control ctrl = Utils.getControl(ctrlString);
-                    controls.add(ctrl);
-                } catch (final DecodeException de) {
-                    errPrintln(ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-                    ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-        }
-
+        controls = readControls(controlStr);
         if (proxyAuthzID.isPresent()) {
-            final Control proxyControl =
-                    ProxiedAuthV2RequestControl.newControl(proxyAuthzID.getValue());
-            controls.add(proxyControl);
+            controls.add(ProxiedAuthV2RequestControl.newControl(proxyAuthzID.getValue()));
         }
 
         if (assertionFilter.isPresent()) {
-            final String filterString = assertionFilter.getValue();
-            Filter filter;
-            try {
-                filter = Filter.valueOf(filterString);
-
-                // FIXME -- Change this to the correct OID when the official one
-                // is assigned.
-                final Control assertionControl = AssertionRequestControl.newControl(true, filter);
-                controls.add(assertionControl);
-            } catch (final LocalizedIllegalArgumentException le) {
-                errPrintln(ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage()));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
+            controls.add(readAssertionControl(assertionFilter.getValue()));
         }
-
-        if (preReadAttributes.isPresent()) {
-            final String valueStr = preReadAttributes.getValue();
-            final StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-            final List<String> attributes = new LinkedList<>();
-            while (tokenizer.hasMoreTokens()) {
-                attributes.add(tokenizer.nextToken());
-            }
-            controls.add(PreReadRequestControl.newControl(true, attributes));
-        }
-
-        if (postReadAttributes.isPresent()) {
-            final String valueStr = postReadAttributes.getValue();
-            final StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-            final List<String> attributes = new LinkedList<>();
-            while (tokenizer.hasMoreTokens()) {
-                attributes.add(tokenizer.nextToken());
-            }
-            final PostReadRequestControl control =
-                    PostReadRequestControl.newControl(true, attributes);
-            controls.add(control);
-        }
+        addReadAttributesToControl(controls, preReadAttributes, true);
+        addReadAttributesToControl(controls, postReadAttributes, false);
 
         writer = new LDIFEntryWriter(getOutputStream());
-        final VisitorImpl visitor = new VisitorImpl();
         ChangeRecordReader reader = null;
-        try {
-            if (!noop.isPresent()) {
-                try {
-                    connection = connectionFactory.getConnection();
-                    if (bindRequest != null) {
-                        printPasswordPolicyResults(this, connection.bind(bindRequest));
-                    }
-                } catch (final LdapException ere) {
-                    return printErrorMessage(this, ere);
-                }
-            }
-
+        try (final Connection connection = getConnection(argParser.getConnectionFactory(),
+                                                         argParser.getBindRequest(),
+                                                         noop,
+                                                         this)) {
             if (filename.isPresent()) {
+                final String filePath = filename.getValue();
                 try {
-                    reader = new LDIFChangeRecordReader(new FileInputStream(filename.getValue()));
+                    reader = new LDIFChangeRecordReader(new FileInputStream(filePath));
                 } catch (final Exception e) {
-                    final LocalizableMessage message =
-                            ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filename.getValue(), e
-                                    .getLocalizedMessage());
-                    errPrintln(message);
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                    throw newToolParamException(
+                            e, ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filePath, e.getLocalizedMessage()));
                 }
             } else {
                 reader = new LDIFChangeRecordReader(getInputStream());
             }
 
+            final VisitorImpl visitor = new VisitorImpl(connection);
             try {
                 while (reader.hasNext()) {
                     final ChangeRecord cr = reader.readChangeRecord();
@@ -451,13 +373,26 @@ public final class LDAPModify extends ConsoleApplication {
                     }
                 }
             } catch (final IOException ioe) {
-                errPrintln(ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe.getLocalizedMessage()));
-                return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+                throw newToolParamException(
+                        ioe, ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe.getLocalizedMessage()));
             }
         } finally {
-            closeSilently(reader, connection);
+            closeSilently(reader);
         }
 
         return ResultCode.SUCCESS.intValue();
+    }
+
+    private void addReadAttributesToControl(
+            final Collection<Control> controls, final StringArgument attributesArg, final boolean preRead) {
+        if (attributesArg.isPresent()) {
+            final StringTokenizer tokenizer = new StringTokenizer(attributesArg.getValue(), ", ");
+            final List<String> attributes = new LinkedList<>();
+            while (tokenizer.hasMoreTokens()) {
+                attributes.add(tokenizer.nextToken());
+            }
+            controls.add(preRead ? PreReadRequestControl.newControl(true, attributes)
+                                 : PostReadRequestControl.newControl(true, attributes));
+        }
     }
 }

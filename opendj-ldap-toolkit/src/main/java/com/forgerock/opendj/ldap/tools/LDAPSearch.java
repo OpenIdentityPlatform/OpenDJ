@@ -16,8 +16,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -27,10 +25,10 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -40,7 +38,6 @@ import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.EntryChangeNotificationResponseControl;
 import org.forgerock.opendj.ldap.controls.GetEffectiveRightsRequestControl;
@@ -63,7 +60,6 @@ import org.forgerock.opendj.ldif.EntryWriter;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
@@ -75,8 +71,16 @@ import com.forgerock.opendj.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
+import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
+import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
+import static com.forgerock.opendj.ldap.tools.Utils.printlnTextMsg;
+import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
+import static com.forgerock.opendj.ldap.tools.Utils.readControls;
+import static com.forgerock.opendj.ldap.tools.Utils.readFiltersFromFile;
+import static com.forgerock.opendj.ldap.tools.Utils.readFilterFromString;
 import static org.forgerock.util.Utils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -95,11 +99,9 @@ public final class LDAPSearch extends ConsoleApplication {
 
             try {
                 final EntryChangeNotificationResponseControl control =
-                        entry.getControl(EntryChangeNotificationResponseControl.DECODER,
-                                new DecodeOptions());
+                        entry.getControl(EntryChangeNotificationResponseControl.DECODER, new DecodeOptions());
                 if (control != null) {
-                    println(INFO_LDAPSEARCH_PSEARCH_CHANGE_TYPE.get(control.getChangeType()
-                            .toString()));
+                    println(INFO_LDAPSEARCH_PSEARCH_CHANGE_TYPE.get(control.getChangeType().toString()));
                     final DN previousDN = control.getPreviousName();
                     if (previousDN != null) {
                         println(INFO_LDAPSEARCH_PSEARCH_PREVIOUS_DN.get(previousDN.toString()));
@@ -111,20 +113,14 @@ public final class LDAPSearch extends ConsoleApplication {
 
             try {
                 final AccountUsabilityResponseControl control =
-                        entry.getControl(AccountUsabilityResponseControl.DECODER,
-                                new DecodeOptions());
-
+                        entry.getControl(AccountUsabilityResponseControl.DECODER, new DecodeOptions());
                 if (control != null) {
                     println(INFO_LDAPSEARCH_ACCTUSABLE_HEADER.get());
                     if (control.isUsable()) {
                         println(INFO_LDAPSEARCH_ACCTUSABLE_IS_USABLE.get());
                         if (control.getSecondsBeforeExpiration() > 0) {
-                            final int timeToExp = control.getSecondsBeforeExpiration();
-                            final LocalizableMessage timeToExpStr =
-                                    secondsToTimeString(timeToExp);
-
-                            println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION
-                                    .get(timeToExpStr));
+                            println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_EXPIRATION.get(
+                                    secondsToTimeString(control.getSecondsBeforeExpiration())));
                         }
                     } else {
                         println(INFO_LDAPSEARCH_ACCTUSABLE_NOT_USABLE.get());
@@ -136,21 +132,16 @@ public final class LDAPSearch extends ConsoleApplication {
                         }
                         if (control.isExpired()) {
                             println(INFO_LDAPSEARCH_ACCTUSABLE_PW_EXPIRED.get());
-
                             if (control.getRemainingGraceLogins() > 0) {
-                                println(INFO_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE.get(control
-                                        .getRemainingGraceLogins()));
+                                println(INFO_LDAPSEARCH_ACCTUSABLE_REMAINING_GRACE.get(
+                                        control.getRemainingGraceLogins()));
                             }
                         }
                         if (control.isLocked()) {
                             println(INFO_LDAPSEARCH_ACCTUSABLE_LOCKED.get());
                             if (control.getSecondsBeforeUnlock() > 0) {
-                                final int timeToUnlock = control.getSecondsBeforeUnlock();
-                                final LocalizableMessage timeToUnlockStr =
-                                        secondsToTimeString(timeToUnlock);
-
-                                println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK
-                                        .get(timeToUnlockStr));
+                                println(INFO_LDAPSEARCH_ACCTUSABLE_TIME_UNTIL_UNLOCK.get(
+                                        secondsToTimeString(control.getSecondsBeforeUnlock())));
                             }
                         }
                     }
@@ -184,7 +175,17 @@ public final class LDAPSearch extends ConsoleApplication {
      */
 
     public static void main(final String[] args) {
-        final int retCode = new LDAPSearch().run(args);
+        final LDAPSearch ldapSearch = new LDAPSearch();
+        int retCode;
+        try {
+            retCode = ldapSearch.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldapSearch);
+            retCode = e.getResultCode();
+        } catch (final ArgumentException e) {
+            ldapSearch.errPrintln(ERR_ERROR_PARSING_ARGS.get(e.getMessageObject()));
+            retCode = ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        }
         System.exit(filterExitCode(retCode));
     }
 
@@ -217,18 +218,17 @@ public final class LDAPSearch extends ConsoleApplication {
     }
 
     /** Run ldapsearch with provided command-line arguments. */
-    int run(final String[] args) {
+    int run(final String[] args) throws LDAPToolException, ArgumentException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDAPSearch.class.getName(), toolDescription, false, true, 0, 0,
-                        "[filter] [attributes ...]");
+        final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPSearch.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArguments("[filter] [attributes ...]")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPSEARCH.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;
-        ConnectionFactory connectionFactory;
-        BindRequest bindRequest;
 
         BooleanArgument countEntries;
         BooleanArgument dontWrap;
@@ -236,11 +236,11 @@ public final class LDAPSearch extends ConsoleApplication {
         BooleanArgument typesOnly;
         IntegerArgument simplePageSize;
         IntegerArgument timeLimit;
-        IntegerArgument version;
+        IntegerArgument ldapProtocolVersion;
         StringArgument baseDN;
         StringArgument controlStr;
         MultiChoiceArgument<DereferenceAliasesPolicy> dereferencePolicy;
-        StringArgument filename;
+        StringArgument filterFile;
         StringArgument matchedValuesFilter;
         StringArgument pSearchInfo;
         MultiChoiceArgument<SearchScope> searchScope;
@@ -253,8 +253,7 @@ public final class LDAPSearch extends ConsoleApplication {
         IntegerArgument sizeLimit;
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
-            final StringArgument propertiesFileArgument =
-                propertiesFileArgument();
+            final StringArgument propertiesFileArgument = propertiesFileArgument();
             argParser.addArgument(propertiesFileArgument);
             argParser.setFilePropertiesArgument(propertiesFileArgument);
 
@@ -273,12 +272,9 @@ public final class LDAPSearch extends ConsoleApplication {
             searchScope = searchScopeArgument();
             argParser.addArgument(searchScope);
 
-            filename =
-                    StringArgument.builder(OPTION_LONG_FILENAME)
-                            .shortIdentifier(OPTION_SHORT_FILENAME)
-                            .description(INFO_SEARCH_DESCRIPTION_FILENAME.get())
-                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
-                            .buildAndAddToParser(argParser);
+            filterFile = filenameArgument(INFO_SEARCH_DESCRIPTION_FILENAME.get());
+            argParser.addArgument(filterFile);
+
             proxyAuthzID =
                     StringArgument.builder(OPTION_LONG_PROXYAUTHID)
                             .shortIdentifier(OPTION_SHORT_PROXYAUTHID)
@@ -322,14 +318,10 @@ public final class LDAPSearch extends ConsoleApplication {
                             .description(INFO_DESCRIPTION_VLV.get())
                             .valuePlaceholder(INFO_VLV_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
-            controlStr =
-                    StringArgument.builder("control")
-                            .shortIdentifier('J')
-                            .description(INFO_DESCRIPTION_CONTROLS.get())
-                            .docDescriptionSupplement(SUPPLEMENT_DESCRIPTION_CONTROLS.get())
-                            .multiValued()
-                            .valuePlaceholder(INFO_LDAP_CONTROL_PLACEHOLDER.get())
-                            .buildAndAddToParser(argParser);
+
+            controlStr = controlArgument();
+            argParser.addArgument(controlStr);
+
             effectiveRightsUser =
                     StringArgument.builder(OPTION_LONG_EFFECTIVERIGHTSUSER)
                             .shortIdentifier(OPTION_SHORT_EFFECTIVERIGHTSUSER)
@@ -344,8 +336,8 @@ public final class LDAPSearch extends ConsoleApplication {
                             .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
-            version = ldapVersionArgument();
-            argParser.addArgument(version);
+            ldapProtocolVersion = ldapVersionArgument();
+            argParser.addArgument(ldapProtocolVersion);
 
             dereferencePolicy =
                     MultiChoiceArgument.<DereferenceAliasesPolicy>builder("dereferencePolicy")
@@ -397,68 +389,28 @@ public final class LDAPSearch extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
-            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+            throw newToolParamException(ae, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
         }
 
-        // Parse the command-line arguments provided to this program.
-        try {
-            argParser.parseArguments(args);
-
-            // If we should just display usage or version information,
-            // then print it and exit.
-            if (argParser.usageOrVersionDisplayed()) {
-                return 0;
-            }
-
-            connectionFactory = connectionFactoryProvider.getUnauthenticatedConnectionFactory();
-            bindRequest = connectionFactoryProvider.getBindRequest();
-        } catch (final ArgumentException ae) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        argParser.parseArguments(args, getErrStream(), connectionFactoryProvider);
+        if (argParser.usageOrVersionDisplayed()) {
+            return ResultCode.SUCCESS.intValue();
         }
 
         final List<Filter> filters = new LinkedList<>();
         final List<String> attributes = new LinkedList<>();
-        final ArrayList<String> filterAndAttributeStrings = argParser.getTrailingArguments();
+        final List<String> filterAndAttributeStrings = argParser.getTrailingArguments();
         if (!filterAndAttributeStrings.isEmpty()) {
-            /* The list of trailing arguments should be structured as follow:
-             - If a filter file is present, trailing arguments are
-             considered as attributes
-             - If filter file is not present, the first trailing argument is
-             considered the filter, the other as attributes.*/
-            if (!filename.isPresent()) {
-                final String filterString = filterAndAttributeStrings.remove(0);
-
-                try {
-                    filters.add(Filter.valueOf(filterString));
-                } catch (final LocalizedIllegalArgumentException e) {
-                    errPrintln(e.getMessageObject());
-                    return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
-                }
+            // If filter file is not present, the first trailing argument is considered the filter
+            if (!filterFile.isPresent()) {
+                filters.add(readFilterFromString(filterAndAttributeStrings.remove(0)));
             }
-            // The rest are attributes
+            // The rest of trailing argument are attributes
             attributes.addAll(filterAndAttributeStrings);
         }
 
-        if (filename.isPresent()) {
-            // Read the filter strings.
-            try (BufferedReader in = new BufferedReader(new FileReader(filename.getValue()))) {
-                String line = null;
-                while ((line = in.readLine()) != null) {
-                    if ("".equals(line.trim())) {
-                        // ignore empty lines.
-                        continue;
-                    }
-                    filters.add(Filter.valueOf(line));
-                }
-            } catch (final LocalizedIllegalArgumentException e) {
-                errPrintln(e.getMessageObject());
-                return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
-            } catch (final IOException e) {
-                errPrintln(LocalizableMessage.raw(e.toString()));
-                return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
-            }
+        if (filterFile.isPresent()) {
+            filters.addAll(readFiltersFromFile(filterFile.getValue()));
         }
 
         if (filters.isEmpty()) {
@@ -466,182 +418,43 @@ public final class LDAPSearch extends ConsoleApplication {
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        SearchScope scope;
+        final SearchScope scope = searchScope.getTypedValue();
+        final SearchRequest search;
         try {
-            scope = searchScope.getTypedValue();
-        } catch (final ArgumentException ex1) {
-            errPrintln(ex1.getMessageObject());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
-        SearchRequest search;
-        try {
-            search =
-                    Requests.newSearchRequest(DN.valueOf(baseDN.getValue()), scope, filters.get(0),
-                            attributes.toArray(new String[attributes.size()]));
+            search = Requests.newSearchRequest(DN.valueOf(baseDN.getValue()), scope, filters.get(0),
+                                               attributes.toArray(new String[attributes.size()]));
+            ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
         } catch (final LocalizedIllegalArgumentException e) {
             errPrintln(e.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
-        // Read the LDAP version number.
-        try {
-            final int versionNumber = version.getIntValue();
-            if (versionNumber != 2 && versionNumber != 3) {
-                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
-        } catch (final ArgumentException ae) {
-            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(version.getValue()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
         search.setTypesOnly(typesOnly.isPresent());
-        // searchOptions.setShowOperations(noop.isPresent());
-        // searchOptions.setVerbose(verbose.isPresent());
-        // searchOptions.setContinueOnError(continueOnError.isPresent());
-        // searchOptions.setEncoding(encodingStr.getValue());
-        // searchOptions.setCountMatchingEntries(countEntries.isPresent());
-        try {
-            search.setTimeLimit(timeLimit.getIntValue());
-            search.setSizeLimit(sizeLimit.getIntValue());
-        } catch (final ArgumentException ex1) {
-            errPrintln(ex1.getMessageObject());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-        try {
-            search.setDereferenceAliasesPolicy(dereferencePolicy.getTypedValue());
-        } catch (final ArgumentException ex1) {
-            errPrintln(ex1.getMessageObject());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
-        if (controlStr.isPresent()) {
-            for (final String ctrlString : controlStr.getValues()) {
-                try {
-                    final Control ctrl = Utils.getControl(ctrlString);
-                    search.addControl(ctrl);
-                } catch (final DecodeException de) {
-                    errPrintln(ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString));
-                    ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-        }
+        search.setTimeLimit(timeLimit.getIntValue());
+        search.setSizeLimit(sizeLimit.getIntValue());
+        search.setDereferenceAliasesPolicy(dereferencePolicy.getTypedValue());
+        addControlsToRequest(search, readControls(controlStr));
 
         if (effectiveRightsUser.isPresent()) {
             final String authzID = effectiveRightsUser.getValue();
             if (!authzID.startsWith("dn:")) {
-                errPrintln(ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                throw newToolParamException(ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID));
             }
-            final Control effectiveRightsControl =
-                    GetEffectiveRightsRequestControl.newControl(false, authzID.substring(3),
-                            effectiveRightsAttrs.getValues().toArray(
-                                    new String[effectiveRightsAttrs.getValues().size()]));
-            search.addControl(effectiveRightsControl);
+            final List<String> attrValues = effectiveRightsAttrs.getValues();
+            search.addControl(GetEffectiveRightsRequestControl.newControl(
+                            false, authzID.substring(3), attrValues.toArray(new String[attrValues.size()])));
         }
 
         if (proxyAuthzID.isPresent()) {
-            final Control proxyControl =
-                    ProxiedAuthV2RequestControl.newControl(proxyAuthzID.getValue());
-            search.addControl(proxyControl);
+            search.addControl(ProxiedAuthV2RequestControl.newControl(proxyAuthzID.getValue()));
         }
 
         if (pSearchInfo.isPresent()) {
-            final String infoString = StaticUtils.toLowerCase(pSearchInfo.getValue().trim());
-            boolean changesOnly = true;
-            boolean returnECs = true;
-
-            final StringTokenizer tokenizer = new StringTokenizer(infoString, ":");
-
-            if (!tokenizer.hasMoreTokens()) {
-                errPrintln(ERR_PSEARCH_MISSING_DESCRIPTOR.get());
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            } else {
-                final String token = tokenizer.nextToken();
-                if (!"ps".equals(token)) {
-                    errPrintln(ERR_PSEARCH_DOESNT_START_WITH_PS.get(infoString));
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            final ArrayList<PersistentSearchChangeType> ct = new ArrayList<>(4);
-            if (tokenizer.hasMoreTokens()) {
-                final StringTokenizer st = new StringTokenizer(tokenizer.nextToken(), ", ");
-                if (!st.hasMoreTokens()) {
-                    ct.add(PersistentSearchChangeType.ADD);
-                    ct.add(PersistentSearchChangeType.DELETE);
-                    ct.add(PersistentSearchChangeType.MODIFY);
-                    ct.add(PersistentSearchChangeType.MODIFY_DN);
-                } else {
-                    do {
-                        final String token = st.nextToken();
-                        if ("add".equals(token)) {
-                            ct.add(PersistentSearchChangeType.ADD);
-                        } else if ("delete".equals(token) || "del".equals(token)) {
-                            ct.add(PersistentSearchChangeType.DELETE);
-                        } else if ("modify".equals(token) || "mod".equals(token)) {
-                            ct.add(PersistentSearchChangeType.MODIFY);
-                        } else if ("modifydn".equals(token) || "moddn".equals(token)
-                                || "modrdn".equals(token)) {
-                            ct.add(PersistentSearchChangeType.MODIFY_DN);
-                        } else if ("any".equals(token) || "all".equals(token)) {
-                            ct.add(PersistentSearchChangeType.ADD);
-                            ct.add(PersistentSearchChangeType.DELETE);
-                            ct.add(PersistentSearchChangeType.MODIFY);
-                            ct.add(PersistentSearchChangeType.MODIFY_DN);
-                        } else {
-                            errPrintln(ERR_PSEARCH_INVALID_CHANGE_TYPE.get(token));
-                            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                        }
-                    } while (st.hasMoreTokens());
-                }
-            }
-
-            if (tokenizer.hasMoreTokens()) {
-                final String token = tokenizer.nextToken();
-                if ("1".equals(token) || "true".equals(token) || "yes".equals(token)) {
-                    changesOnly = true;
-                } else if ("0".equals(token) || "false".equals(token) || "no".equals(token)) {
-                    changesOnly = false;
-                } else {
-                    errPrintln(ERR_PSEARCH_INVALID_CHANGESONLY.get(token));
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            if (tokenizer.hasMoreTokens()) {
-                final String token = tokenizer.nextToken();
-                if ("1".equals(token) || "true".equals(token) || "yes".equals(token)) {
-                    returnECs = true;
-                } else if ("0".equals(token) || "false".equals(token) || "no".equals(token)) {
-                    returnECs = false;
-                } else {
-                    errPrintln(ERR_PSEARCH_INVALID_RETURN_ECS.get(token));
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            }
-
-            final PersistentSearchRequestControl psearchControl =
-                    PersistentSearchRequestControl.newControl(true, changesOnly, returnECs, ct
-                            .toArray(new PersistentSearchChangeType[ct.size()]));
-            search.addControl(psearchControl);
+            search.addControl(computePSearchControl(pSearchInfo));
         }
 
         if (assertionFilter.isPresent()) {
-            final String filterString = assertionFilter.getValue();
-            Filter filter;
-            try {
-                filter = Filter.valueOf(filterString);
-
-                // FIXME -- Change this to the correct OID when the official one
-                // is assigned.
-                final Control assertionControl = AssertionRequestControl.newControl(true, filter);
-                search.addControl(assertionControl);
-            } catch (final LocalizedIllegalArgumentException le) {
-                errPrintln(ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage()));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
+            search.addControl(readAssertionControl(assertionFilter.getValue()));
         }
 
         if (matchedValuesFilter.isPresent()) {
@@ -649,84 +462,33 @@ public final class LDAPSearch extends ConsoleApplication {
             final List<Filter> mvFilters = new ArrayList<>();
             for (final String s : mvFilterStrings) {
                 try {
-                    final Filter f = Filter.valueOf(s);
-                    mvFilters.add(f);
+                    mvFilters.add(Filter.valueOf(s));
                 } catch (final LocalizedIllegalArgumentException le) {
-                    errPrintln(ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(le.getMessage()));
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                    throw newToolParamException(le, ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(le.getMessage()));
                 }
             }
-
-            final MatchedValuesRequestControl mvc =
-                    MatchedValuesRequestControl.newControl(true, mvFilters);
-            search.addControl(mvc);
+            search.addControl(MatchedValuesRequestControl.newControl(true, mvFilters));
         }
 
         if (sortOrder.isPresent()) {
             try {
-                search.addControl(ServerSideSortRequestControl.newControl(false, sortOrder
-                        .getValue()));
+                search.addControl(ServerSideSortRequestControl.newControl(false, sortOrder.getValue()));
             } catch (final LocalizedIllegalArgumentException le) {
-                errPrintln(ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(le.getMessageObject()));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                throw newToolParamException(le, ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(le.getMessageObject()));
             }
         }
 
         if (vlvDescriptor.isPresent()) {
-            if (!sortOrder.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_LDAPSEARCH_VLV_REQUIRES_SORT.get(vlvDescriptor.getLongIdentifier(),
-                                sortOrder.getLongIdentifier());
-                errPrintln(message);
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
-
-            final StringTokenizer tokenizer = new StringTokenizer(vlvDescriptor.getValue(), ":");
-            final int numTokens = tokenizer.countTokens();
-            if (numTokens == 3) {
-                try {
-                    final int beforeCount = Integer.parseInt(tokenizer.nextToken());
-                    final int afterCount = Integer.parseInt(tokenizer.nextToken());
-                    final ByteString assertionValue = ByteString.valueOfUtf8(tokenizer.nextToken());
-                    search.addControl(VirtualListViewRequestControl.newAssertionControl(true,
-                            assertionValue, beforeCount, afterCount, null));
-                } catch (final Exception e) {
-                    errPrintln(ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get());
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            } else if (numTokens == 4) {
-                try {
-                    final int beforeCount = Integer.parseInt(tokenizer.nextToken());
-                    final int afterCount = Integer.parseInt(tokenizer.nextToken());
-                    final int offset = Integer.parseInt(tokenizer.nextToken());
-                    final int contentCount = Integer.parseInt(tokenizer.nextToken());
-                    search.addControl(VirtualListViewRequestControl.newOffsetControl(true, offset,
-                            contentCount, beforeCount, afterCount, null));
-                } catch (final Exception e) {
-                    errPrintln(ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get());
-                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-                }
-            } else {
-                errPrintln(ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get());
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
+            search.addControl(readVLVControl(vlvDescriptor, sortOrder));
         }
 
         int pageSize = 0;
         if (simplePageSize.isPresent()) {
             if (filters.size() > 1) {
-                errPrintln(ERR_PAGED_RESULTS_REQUIRES_SINGLE_FILTER.get());
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                throw newToolParamException(ERR_PAGED_RESULTS_REQUIRES_SINGLE_FILTER.get());
             }
-
-            try {
-                pageSize = simplePageSize.getIntValue();
-                search.addControl(SimplePagedResultsControl.newControl(true, pageSize, ByteString
-                        .empty()));
-            } catch (final ArgumentException ae) {
-                errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-                return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-            }
+            pageSize = simplePageSize.getIntValue();
+            search.addControl(SimplePagedResultsControl.newControl(true, pageSize, ByteString.empty()));
         }
 
         int wrapColumn = 80;
@@ -740,10 +502,11 @@ public final class LDAPSearch extends ConsoleApplication {
              processing was successful or that there were no matching entries,
              based on countEntries.isPresent() (but in either case the return value
              should be zero).*/
-            return 0;
+            return ResultCode.SUCCESS.intValue();
         }
 
-        try (Connection connection = connectionFactory.getConnection()) {
+        try (Connection connection = argParser.getConnectionFactory().getConnection()) {
+            final BindRequest bindRequest = argParser.getBindRequest();
             if (bindRequest != null) {
                 printPasswordPolicyResults(this, connection.bind(bindRequest));
             }
@@ -755,10 +518,8 @@ public final class LDAPSearch extends ConsoleApplication {
                 Result result = connection.search(search, resultHandler);
                 try {
                     final ServerSideSortResponseControl control =
-                            result.getControl(ServerSideSortResponseControl.DECODER,
-                                    new DecodeOptions());
-                    if (control != null
-                            && control.getResult() != ResultCode.SUCCESS) {
+                            result.getControl(ServerSideSortResponseControl.DECODER, new DecodeOptions());
+                    if (control != null && ResultCode.SUCCESS != control.getResult()) {
                         println(WARN_LDAPSEARCH_SORT_ERROR.get(control.getResult().toString()));
                     }
                 } catch (final DecodeException e) {
@@ -767,21 +528,13 @@ public final class LDAPSearch extends ConsoleApplication {
 
                 try {
                     final VirtualListViewResponseControl control =
-                            result.getControl(VirtualListViewResponseControl.DECODER,
-                                    new DecodeOptions());
+                            result.getControl(VirtualListViewResponseControl.DECODER, new DecodeOptions());
                     if (control != null) {
-                        if (control.getResult() == ResultCode.SUCCESS) {
-                            LocalizableMessage msg =
-                                    INFO_LDAPSEARCH_VLV_TARGET_OFFSET.get(control
-                                            .getTargetPosition());
-                            println(msg);
-
-                            msg = INFO_LDAPSEARCH_VLV_CONTENT_COUNT.get(control.getContentCount());
-                            println(msg);
+                        if (ResultCode.SUCCESS == control.getResult()) {
+                            println(INFO_LDAPSEARCH_VLV_TARGET_OFFSET.get(control.getTargetPosition()));
+                            println(INFO_LDAPSEARCH_VLV_CONTENT_COUNT.get(control.getContentCount()));
                         } else {
-                            final LocalizableMessage msg =
-                                    WARN_LDAPSEARCH_VLV_ERROR.get(control.getResult().toString());
-                            println(msg);
+                            println(WARN_LDAPSEARCH_VLV_ERROR.get(control.getResult().toString()));
                         }
                     }
                 } catch (final DecodeException e) {
@@ -790,9 +543,8 @@ public final class LDAPSearch extends ConsoleApplication {
 
                 try {
                     SimplePagedResultsControl control =
-                            result.getControl(SimplePagedResultsControl.DECODER,
-                                    new DecodeOptions());
-                    if (control != null && control.getCookie().length() > 0) {
+                            result.getControl(SimplePagedResultsControl.DECODER, new DecodeOptions());
+                    if (control != null && !control.getCookie().isEmpty()) {
                         if (!isQuiet()) {
                             pressReturnToContinue();
                         }
@@ -811,15 +563,10 @@ public final class LDAPSearch extends ConsoleApplication {
                 }
 
                 errPrintln();
-                errPrintln(ERR_TOOL_RESULT_CODE.get(result.getResultCode().intValue(), result
-                        .getResultCode().toString()));
-                if (result.getDiagnosticMessage() != null
-                        && result.getDiagnosticMessage().length() > 0) {
-                    errPrintln(LocalizableMessage.raw(result.getDiagnosticMessage()));
-                }
-                if (result.getMatchedDN() != null && result.getMatchedDN().length() > 0) {
-                    errPrintln(ERR_TOOL_MATCHED_DN.get(result.getMatchedDN()));
-                }
+                final ResultCode rc = result.getResultCode();
+                errPrintln(ERR_TOOL_RESULT_CODE.get(rc.intValue(), rc.toString()));
+                printlnTextMsg(this, result.getDiagnosticMessage());
+                printlnTextMsg(this, ERR_TOOL_MATCHED_DN, result.getMatchedDN());
 
                 filterIndex++;
                 if (filterIndex < filters.size()) {
@@ -832,11 +579,133 @@ public final class LDAPSearch extends ConsoleApplication {
                 println(INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT.get(resultHandler.entryCount));
                 println();
             }
-            return 0;
+            return ResultCode.SUCCESS.intValue();
         } catch (final LdapException ere) {
-            return printErrorMessage(this, ere);
+            return printErrorMessage(this, ere, ERR_LDAP_SEARCH_FAILED);
         } finally {
             closeSilently(ldifWriter);
         }
+    }
+
+    private Control readVLVControl(final StringArgument vlvDescriptor, final StringArgument sortOrder)
+            throws LDAPToolException {
+        if (!sortOrder.isPresent()) {
+            throw newToolParamException(ERR_LDAPSEARCH_VLV_REQUIRES_SORT.get(
+                    vlvDescriptor.getLongIdentifier(), sortOrder.getLongIdentifier()));
+        }
+
+        final StringTokenizer tokenizer = new StringTokenizer(vlvDescriptor.getValue(), ":");
+        final int numTokens = tokenizer.countTokens();
+        try {
+            if (numTokens == 3) {
+                final int beforeCount = Integer.parseInt(tokenizer.nextToken());
+                final int afterCount = Integer.parseInt(tokenizer.nextToken());
+                final ByteString assertionValue = ByteString.valueOfUtf8(tokenizer.nextToken());
+                return VirtualListViewRequestControl.newAssertionControl(
+                        true, assertionValue, beforeCount, afterCount, null);
+            } else if (numTokens == 4) {
+                final int beforeCount = Integer.parseInt(tokenizer.nextToken());
+                final int afterCount = Integer.parseInt(tokenizer.nextToken());
+                final int offset = Integer.parseInt(tokenizer.nextToken());
+                final int contentCount = Integer.parseInt(tokenizer.nextToken());
+                return VirtualListViewRequestControl.newOffsetControl(
+                        true, offset, contentCount, beforeCount, afterCount, null);
+            } else {
+                throw newToolParamException(ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get());
+            }
+        } catch (final Exception e) {
+            throw newToolParamException(e, ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get());
+        }
+    }
+
+    private Control computePSearchControl(final StringArgument pSearchInfo) throws LDAPToolException {
+        final String infoString = StaticUtils.toLowerCase(pSearchInfo.getValue().trim());
+        final StringTokenizer tokenizer = new StringTokenizer(infoString, ":");
+
+        if (!tokenizer.hasMoreTokens()) {
+            throw newToolParamException(ERR_PSEARCH_MISSING_DESCRIPTOR.get());
+        }
+
+        final String pSearchToken = tokenizer.nextToken();
+        if (!"ps".equals(pSearchToken)) {
+            throw newToolParamException(ERR_PSEARCH_DOESNT_START_WITH_PS.get(infoString));
+        }
+
+        final List<PersistentSearchChangeType> pSearchChangeTypes = new ArrayList<>(4);
+        if (tokenizer.hasMoreTokens()) {
+            final StringTokenizer st = new StringTokenizer(tokenizer.nextToken(), ", ");
+            if (!st.hasMoreTokens()) {
+                addAllPersistentSearchChangeTypes(pSearchChangeTypes);
+            } else {
+                do {
+                    addPersistentSearchChangeTypes(st.nextToken(), pSearchChangeTypes);
+                } while (st.hasMoreTokens());
+            }
+        }
+
+        boolean changesOnly = true;
+        if (tokenizer.hasMoreTokens()) {
+            changesOnly = readBooleanToken(tokenizer.nextToken(), ERR_PSEARCH_INVALID_CHANGESONLY);
+
+        }
+
+        boolean returnECs = true;
+        if (tokenizer.hasMoreTokens()) {
+            returnECs = readBooleanToken(tokenizer.nextToken(), ERR_PSEARCH_INVALID_RETURN_ECS);
+        }
+
+        return PersistentSearchRequestControl.newControl(true, changesOnly, returnECs,
+                pSearchChangeTypes.toArray(new PersistentSearchChangeType[pSearchChangeTypes.size()]));
+    }
+
+    private boolean readBooleanToken(final String token, final LocalizableMessageDescriptor.Arg1<Object> errorMsg)
+            throws LDAPToolException {
+        switch (token) {
+        case "1":
+        case "true":
+        case "yes":
+            return true;
+        case "0":
+        case "false":
+        case "no":
+            return false;
+        default:
+            throw newToolParamException(errorMsg.get(token));
+        }
+    }
+
+    private void addPersistentSearchChangeTypes(
+            final String token, final List<PersistentSearchChangeType> pSearchChangeTypes) throws LDAPToolException {
+        switch (token) {
+        case "add":
+            pSearchChangeTypes.add(PersistentSearchChangeType.ADD);
+            break;
+        case "del":
+        case "delete":
+            pSearchChangeTypes.add(PersistentSearchChangeType.DELETE);
+            break;
+        case "mod":
+        case "modify":
+            pSearchChangeTypes.add(PersistentSearchChangeType.MODIFY);
+            break;
+        case "moddn":
+        case "modrdn":
+        case "modifydn":
+            pSearchChangeTypes.add(PersistentSearchChangeType.MODIFY_DN);
+            break;
+        case "any":
+        case "all":
+            addAllPersistentSearchChangeTypes(pSearchChangeTypes);
+            break;
+        default:
+            throw newToolParamException(ERR_PSEARCH_INVALID_CHANGE_TYPE.get(token));
+        }
+    }
+
+    private void addAllPersistentSearchChangeTypes(final List<PersistentSearchChangeType> pSearchChangeTypes) {
+        pSearchChangeTypes.add(PersistentSearchChangeType.ADD);
+        pSearchChangeTypes.add(PersistentSearchChangeType.DELETE);
+        pSearchChangeTypes.add(PersistentSearchChangeType.MODIFY);
+        pSearchChangeTypes.add(PersistentSearchChangeType.MODIFY_DN);
     }
 }

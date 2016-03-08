@@ -397,8 +397,10 @@ public class AddRate extends ConsoleApplication {
     int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_ADDRATE_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-            new ArgumentParser(AddRate.class.getName(), toolDescription, false, true, 1, 1, "template-file-path");
+        final ArgumentParser argParser = LDAPToolArgumentParser.builder(AddRate.class.getName())
+                .toolDescription(toolDescription)
+                .trailingArguments(1, "template-file-path")
+                .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_ADDRATE.get());
         argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
@@ -533,10 +535,7 @@ public class AddRate extends ConsoleApplication {
         verbose = verboseArgument();
         argParser.addArgument(verbose);
 
-        scriptFriendly =
-                BooleanArgument.builder("scriptFriendly")
-                        .shortIdentifier('S')
-                        .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
-                        .buildAndAddToParser(argParser);
+        scriptFriendly = scriptFriendlySdkArgument();
+        argParser.addArgument(scriptFriendly);
     }
 }

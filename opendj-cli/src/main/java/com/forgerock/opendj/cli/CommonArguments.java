@@ -632,6 +632,20 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "-S, --scriptFriendly" boolean argument used in the sdk toolkit.
+     *
+     * @return The "-S, --scriptFriendly" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument scriptFriendlySdkArgument() throws ArgumentException {
+        return BooleanArgument.builder("scriptFriendly")
+                .shortIdentifier('S')
+                .description(INFO_DESCRIPTION_SCRIPT_FRIENDLY.get())
+                .buildArgument();
+    }
+
+    /**
      * Returns the "LDAP port" integer argument.
      *
      * @param defaultLdapPort
