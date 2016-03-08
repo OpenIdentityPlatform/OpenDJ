@@ -923,7 +923,7 @@ public class UserData
         "backup.offline", "dsreplication.offline",
         "encode-password", "export-ldif.offline",
         IMPORT_SCRIPT_NAME, "ldif-diff", "ldifmodify", "ldifsearch",
-        "make-ldif", "rebuild-index", "restore.offline", SERVER_SCRIPT_NAME,
+        "makeldif", "rebuild-index", "restore.offline", SERVER_SCRIPT_NAME,
         "upgrade", "verify-index", "backendstat"
     };
   }

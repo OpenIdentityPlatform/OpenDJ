@@ -25,7 +25,6 @@ import java.io.PrintStream;
 
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.tools.dsreplication.ReplicationCliMain;
-import org.opends.server.tools.makeldif.MakeLDIF;
 import org.opends.server.tools.status.StatusCli;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -182,12 +181,6 @@ public class ArgumentParserToolsTestCase extends ToolsTestCase
   public void testListBackends(final String[] args)
   {
     assertToolFailsWithUsage(ListBackends.listBackends(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArgs")
-  public void testMakeLDIF(final String[] args)
-  {
-    assertToolFailsWithUsage(MakeLDIF.main(args, outStream, errStream));
   }
 
   @Test(dataProvider = "invalidArgs")

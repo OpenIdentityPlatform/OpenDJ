@@ -18,6 +18,8 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.ERR_MAKELDIF_CANNOT_WRITE_ENTRY;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -33,6 +35,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -84,8 +87,16 @@ import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.makeldif.MakeLDIF;
+import org.opends.server.tools.makeldif.EntryWriter;
+import org.opends.server.tools.makeldif.MakeLDIFException;
+import org.opends.server.tools.makeldif.TemplateEntry;
+import org.opends.server.tools.makeldif.TemplateFile;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CommandBuilder;
@@ -1153,41 +1164,26 @@ public class NewBaseDNPanel extends StatusGenericPanel
             }
           });
 
-          File f = SetupUtils.createTemplateFile(newBaseDN, Integer.parseInt(nEntries));
+          final File templateFile = SetupUtils.createTemplateFile(newBaseDN, Integer.parseInt(nEntries));
           if (!isLocal())
           {
-            File tempFile = File.createTempFile("opendj-control-panel", ".ldif");
-            tempFile.deleteOnExit();
-            ldifFile = tempFile.getAbsolutePath();
-
-            // Create the LDIF file locally using make-ldif
-            List<String> makeLDIFArgs = new ArrayList<>();
-            makeLDIFArgs.add("--templateFile");
-            makeLDIFArgs.add(f.getAbsolutePath());
-            makeLDIFArgs.add("--ldifFile");
-            makeLDIFArgs.add(ldifFile);
-            makeLDIFArgs.add("--randomSeed");
-            makeLDIFArgs.add("0");
-            makeLDIFArgs.add("--resourcePath");
-
-            File makeLDIFPath = new File(Installation.getLocal().getConfigurationDirectory(), "MakeLDIF");
-            makeLDIFArgs.add(makeLDIFPath.getAbsolutePath());
-            makeLDIFArgs.addAll(getConfigCommandLineArguments());
-
-            MakeLDIF makeLDIF = new MakeLDIF();
-            String[] array = new String[makeLDIFArgs.size()];
-            makeLDIFArgs.toArray(array);
-            returnCode = makeLDIF.makeLDIFMain(array, false, false, outPrintStream, errorPrintStream);
-            f.delete();
-
-            if (returnCode != 0)
+            try
             {
-              throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_CREATING_NEW_DATA_LDIF.get(returnCode), null);
+              ldifFile = generateLdifFile(templateFile);
+            }
+            catch (IOException | OnlineUpdateException | InitializationException | MakeLDIFException e)
+            {
+              throw new OnlineUpdateException(
+                  ERR_CTRL_PANEL_ERROR_CREATING_NEW_DATA_LDIF.get(e.getLocalizedMessage()), null);
+            }
+            finally
+            {
+              templateFile.delete();
             }
           }
           else
           {
-            ldifFile = f.getAbsolutePath();
+            ldifFile = templateFile.getAbsolutePath();
           }
         }
 
@@ -1243,6 +1239,50 @@ public class NewBaseDNPanel extends StatusGenericPanel
           state = State.FINISHED_SUCCESSFULLY;
         }
       }
+    }
+
+    private String generateLdifFile(final File templateFile)
+        throws IOException, OnlineUpdateException, MakeLDIFException, InitializationException
+    {
+      final File resourceDir = new File(Installation.getLocal().getConfigurationDirectory(), "MakeLDIF");
+      final TemplateFile generator = new TemplateFile(resourceDir.getAbsolutePath(), new Random(0));
+      generator.parse(templateFile.getAbsolutePath(), Collections.<LocalizableMessage>emptyList());
+
+      final File tempFile = File.createTempFile("opendj-control-panel", ".ldif");
+      tempFile.deleteOnExit();
+      final String generatedLdifFilePath = tempFile.getAbsolutePath();
+
+
+      try (final LDIFWriter ldifWriter = new LDIFWriter(
+          new LDIFExportConfig(generatedLdifFilePath, ExistingFileBehavior.OVERWRITE));)
+      {
+        generator.generateLDIF(new EntryWriter()
+        {
+          @Override
+          public boolean writeEntry(final TemplateEntry entry) throws IOException, MakeLDIFException
+          {
+            try
+            {
+              if (entry.getDN() != null)
+              {
+                return ldifWriter.writeTemplateEntry(entry);
+              }
+              return true;
+            }
+            catch (final LDIFException e)
+            {
+              throw new MakeLDIFException(
+                  ERR_MAKELDIF_CANNOT_WRITE_ENTRY.get(entry.getDN(), stackTraceToSingleLineString(e)), e);
+            }
+          }
+
+          @Override public void closeEntryWriter()
+          {
+            // Nothing to do in this implementation.
+          }
+        });
+      }
+      return generatedLdifFilePath;
     }
 
     @Override
