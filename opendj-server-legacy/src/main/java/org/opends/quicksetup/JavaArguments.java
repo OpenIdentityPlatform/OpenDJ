@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -280,6 +280,6 @@ public class JavaArguments
    */
   public static String getMaxMemoryGenericArgument()
   {
-    return "-Xms<"+INFO_MEMORY_PLACEHOLDER.get()+">";
+    return "-Xmx<"+INFO_MEMORY_PLACEHOLDER.get()+">";
   }
 }

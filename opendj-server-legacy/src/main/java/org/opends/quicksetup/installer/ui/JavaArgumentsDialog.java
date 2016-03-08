@@ -787,7 +787,7 @@ public class JavaArgumentsDialog extends JDialog
     {
       LocalizableMessage msg = getMemoryErrorMessage(
           ERR_MAX_MEMORY_VALUE_EXTENDED.get(
-              JavaArguments.getInitialMemoryGenericArgument()), maxMemory);
+              JavaArguments.getMaxMemoryGenericArgument()), maxMemory);
       checkOptions(JavaArguments.getMaxMemoryArgument(maxMemory),
           errorMsgs,
           lMaxMemory,
