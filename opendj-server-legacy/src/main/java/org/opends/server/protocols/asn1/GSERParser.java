@@ -12,17 +12,18 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2014 Manuel Gaupp
- * Copyright 2014-2015 ForgeRock AS.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
+
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ProtocolMessages.*;
 
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.forgerock.i18n.LocalizableMessage;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.forgerock.util.Reject.*;
 
 /**
  * This class implements a parser for strings which are encoded using the

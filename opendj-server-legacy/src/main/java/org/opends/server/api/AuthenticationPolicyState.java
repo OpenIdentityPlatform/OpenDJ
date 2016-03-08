@@ -11,8 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2011-2016 ForgeRock AS.
- * Portions Copyright 2014 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 

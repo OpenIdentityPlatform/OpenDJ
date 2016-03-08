@@ -12,30 +12,28 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
- * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-
 import java.util.TreeSet;
-import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.ChangeNumberControlPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.io.ASN1Writer;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;

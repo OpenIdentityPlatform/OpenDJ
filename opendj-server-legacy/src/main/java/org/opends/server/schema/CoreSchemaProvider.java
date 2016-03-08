@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
- * Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -33,9 +32,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Schema.SchemaUpdater;
 
-/**
- * Provides the core schema, which includes core matching rules and syntaxes.
- */
+/** Provides the core schema, which includes core matching rules and syntaxes. */
 public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
   ConfigurationChangeListener<CoreSchemaCfg>
 {
@@ -43,7 +40,6 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
 
   /** The current configuration of core schema. */
   private CoreSchemaCfg currentConfig;
-
   private ServerContext serverContext;
 
   @Override

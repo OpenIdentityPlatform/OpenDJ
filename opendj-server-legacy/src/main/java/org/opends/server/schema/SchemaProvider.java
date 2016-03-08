@@ -12,16 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2014-2016 ForgeRock AS.
- * Portions Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.SchemaProviderCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
 
