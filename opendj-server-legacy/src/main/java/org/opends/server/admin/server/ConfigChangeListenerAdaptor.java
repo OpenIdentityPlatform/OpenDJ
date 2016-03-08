@@ -272,7 +272,6 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
     // finalize this change listener when the monitored configuration
     // entry is removed.
     this.cleanerListener = new ConfigDeleteListener() {
-
       public ConfigChangeResult applyConfigurationDelete(
           ConfigEntry configEntry) {
         // Perform finalization if the deleted entry is the monitored
@@ -283,18 +282,15 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         return new ConfigChangeResult();
       }
 
-
-
       public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
           LocalizableMessageBuilder unacceptableReason) {
         // Always acceptable.
         return true;
       }
-
     };
 
     DN parent = dn.parent();
-    if (parent != null) {
+    if (parent != null && !parent.isRootDN()) {
       ConfigEntry configEntry = getConfigEntry(dn.parent());
       if (configEntry != null) {
         configEntry.registerDeleteListener(cleanerListener);

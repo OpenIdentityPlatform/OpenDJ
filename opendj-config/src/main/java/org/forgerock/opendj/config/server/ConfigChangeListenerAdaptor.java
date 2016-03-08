@@ -24,13 +24,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
@@ -51,6 +47,10 @@ import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * An adaptor class which converts {@link ConfigChangeListener} call-backs to
@@ -73,7 +73,6 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
      *            The type of property.
      */
     private static final class Visitor<T> implements DefaultBehaviorProviderVisitor<T, Void, ManagedObjectPath<?, ?>> {
-
         /**
          * Finds the dependencies associated with the provided property
          * definition.
@@ -101,7 +100,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             this.dependencies = dependencies;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Void visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             ManagedObjectPath<?, ?> next = d.getManagedObjectPath();
             dependencies.add(DNBuilder.create(next));
@@ -116,17 +115,17 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Void visitAlias(AliasDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Void visitDefined(DefinedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Void visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             ManagedObjectPath<?, ?> next = d.getManagedObjectPath(p);
             dependencies.add(DNBuilder.create(next));
@@ -141,7 +140,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Void visitUndefined(UndefinedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             return null;
         }
@@ -150,19 +149,13 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
     /** Cached managed object between accept/apply call-backs. */
     private ServerManagedObject<? extends S> cachedManagedObject;
 
-    /**
-     * The delete listener which is used to remove this listener and any
-     * dependencies.
-     */
+    /** The delete listener which is used to remove this listener and any dependencies. */
     private final ConfigDeleteListener cleanerListener;
 
     /** The names of entries that this change listener depends on. */
     private final Set<DN> dependencies;
 
-    /**
-     * The listener used to notify this listener when dependency entries are
-     * modified.
-     */
+    /** The listener used to notify this listener when dependency entries are modified. */
     private final ConfigChangeListener dependencyListener;
 
     /** The DN associated with this listener. */
@@ -204,6 +197,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         this.dependencies = new HashSet<>();
         this.dependencyListener = new ConfigChangeListener() {
 
+            @Override
             public ConfigChangeResult applyConfigurationChange(Entry configEntry) {
                 Entry dependentConfigEntry = getConfigEntry(dn);
                 if (dependentConfigEntry != null) {
@@ -215,6 +209,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
                 }
             }
 
+            @Override
             public boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
                 Entry dependentConfigEntry = getConfigEntry(dn);
                 if (dependentConfigEntry != null) {
@@ -245,11 +240,10 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             }
         }
 
-        // Register a delete listener against the parent which will
-        // finalize this change listener when the monitored configuration
-        // entry is removed.
+        // Register a delete listener against the parent which will finalize
+        // this change listener when the monitored configuration entry is removed
         this.cleanerListener = new ConfigDeleteListener() {
-
+            @Override
             public ConfigChangeResult applyConfigurationDelete(Entry configEntry) {
                 // Perform finalization if the deleted entry is the monitored
                 // entry.
@@ -259,15 +253,15 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
                 return new ConfigChangeResult();
             }
 
+            @Override
             public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
                 // Always acceptable.
                 return true;
             }
-
         };
 
         DN parent = dn.parent();
-        if (parent != null) {
+        if (parent != null && !parent.isRootDN()) {
             Entry configEntry = getConfigEntry(dn.parent());
             if (configEntry != null) {
                 configRepository.registerDeleteListener(configEntry.getName(), cleanerListener);
@@ -275,7 +269,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationChange(Entry configEntry) {
         // Looking at the ConfigFileHandler implementation reveals
         // that this ConfigEntry will actually be a different object to
@@ -303,7 +297,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         return result;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         return configChangeIsAcceptable(configEntry, unacceptableReason, configEntry);
     }
@@ -371,7 +365,6 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         if (parentConfigEntry != null) {
             configRepository.deregisterDeleteListener(parentConfigEntry.getName(), cleanerListener);
         }
-
     }
 
     /**
@@ -385,10 +378,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         return listener;
     }
 
-    /**
-     * Returns the named configuration entry or null if it could not be
-     * retrieved.
-     */
+    /** Returns the named configuration entry or null if it could not be retrieved. */
     private Entry getConfigEntry(DN dn) {
         try {
             if (configRepository.hasEntry(dn)) {
@@ -403,5 +393,4 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         }
         return null;
     }
-
 }
