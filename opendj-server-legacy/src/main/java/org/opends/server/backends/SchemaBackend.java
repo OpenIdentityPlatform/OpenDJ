@@ -22,7 +22,6 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -65,7 +64,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
@@ -3533,11 +3531,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
     // Get the attributeTypes attribute from the entry.
-    Syntax attrTypeSyntax = schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
-    if (attrTypeSyntax == null)
-    {
-      attrTypeSyntax = CoreSchema.getAttributeTypeDescriptionSyntax();
-    }
     AttributeType attributeAttrType = CoreSchema.getAttributeTypesAttributeType();
 
     // loop on the attribute types in the entry just received
@@ -3608,59 +3601,48 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // loop on the objectClasses from the entry, search if they are
     // already in the current schema, add them if not.
-    Syntax ocSyntax = schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
-    if (ocSyntax == null)
-    {
-      ocSyntax = CoreSchema.getObjectClassDescriptionSyntax();
-    }
-    AttributeType objectclassAttrType = CoreSchema.getObjectClassAttributeType();
+    AttributeType objectclassAttrType = CoreSchema.getObjectClassesAttributeType();
 
     oidList.clear();
-    List<Attribute> ocList = newSchemaEntry.getAttribute(objectclassAttrType);
-    if (ocList != null && !ocList.isEmpty())
+    for (Attribute a : newSchemaEntry.getAttribute(objectclassAttrType))
     {
-      for (Attribute a : ocList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        // It IS important here to allow the unknown elements that could
+        // appear in the new config schema.
+        ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, true);
+        String schemaFile = getSchemaFile(newObjectClass);
+        if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
         {
-          // It IS important here to allow the unknown elements that could
-          // appear in the new config schema.
-          ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, true);
-          String schemaFile = getSchemaFile(newObjectClass);
-          if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
-          {
-            // Don't import the file containing the definitions of the
-            // Schema elements used for configuration because these
-            // definitions may vary between versions of OpenDJ.
-            continue;
-          }
+          // Don't import the file containing the definitions of the
+          // Schema elements used for configuration because these
+          // definitions may vary between versions of OpenDJ.
+          continue;
+        }
 
-          // Now we know we are not in the config schema, let's check
-          // the unknown elements ... sadly but simply by redoing the
-          // whole decoding.
-          newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
-          oidList.add(newObjectClass.getOID());
-          try
+        // Now we know we are not in the config schema, let's check
+        // the unknown elements ... sadly but simply by redoing the
+        // whole decoding.
+        newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
+        oidList.add(newObjectClass.getOID());
+        try
+        {
+          // Register this ObjectClass in the new schema
+          // unless it is already defined with the same syntax.
+          ObjectClass oldObjectClass = schema.getObjectClass(newObjectClass.getOID());
+          if (oldObjectClass == null || !oldObjectClass.toString().equals(newObjectClass.toString()))
           {
-            // Register this ObjectClass in the new schema
-            // unless it is already defined with the same syntax.
-            ObjectClass oldObjectClass =
-              schema.getObjectClass(newObjectClass.getOID());
-            if (oldObjectClass == null ||
-                !oldObjectClass.toString().equals(newObjectClass.toString()))
+            newSchema.registerObjectClass(newObjectClass, true);
+
+            if (schemaFile != null)
             {
-              newSchema.registerObjectClass(newObjectClass, true);
-
-              if (schemaFile != null)
-              {
-                modifiedSchemaFiles.add(schemaFile);
-              }
+              modifiedSchemaFiles.add(schemaFile);
             }
           }
-          catch (Exception e)
-          {
-            logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass, e.getMessage());
-          }
+        }
+        catch (Exception e)
+        {
+          logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass, e.getMessage());
         }
       }
     }

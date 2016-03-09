@@ -20,6 +20,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.ExistingFileBehavior.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -32,6 +33,7 @@ import java.util.Map;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -45,19 +47,19 @@ import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DITContentRule;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
@@ -4385,10 +4387,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     File tempFile = File.createTempFile("schema", "testExportLDIF");
     tempFile.deleteOnExit();
-    LDIFExportConfig exportConfig =
-         new LDIFExportConfig(tempFile.getAbsolutePath(),
-                              ExistingFileBehavior.OVERWRITE);
 
+    LDIFExportConfig exportConfig = new LDIFExportConfig(tempFile.getAbsolutePath(), OVERWRITE);
     schemaBackend.exportLDIF(exportConfig);
 
     assertTrue(tempFile.exists());
@@ -4401,19 +4401,42 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testImportLDIF() throws Exception
+  public void testImportLDIFFails() throws Exception
   {
-    File tempFile = File.createTempFile("schema", "testImportLDIF");
+    File tempFile = File.createTempFile("schema", "testImportLDIFFails");
     tempFile.deleteOnExit();
 
-    LDIFExportConfig exportConfig =
-      new LDIFExportConfig(tempFile.getAbsolutePath(),
-                           ExistingFileBehavior.OVERWRITE);
-
+    LDIFExportConfig exportConfig = new LDIFExportConfig(tempFile.getAbsolutePath(), OVERWRITE);
     schemaBackend.exportLDIF(exportConfig);
 
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
     LDIFImportConfig importConfig = new LDIFImportConfig(tempFile.getAbsolutePath());
-    schemaBackend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
+    LDIFImportResult importResult = schemaBackend.importLDIF(importConfig, serverContext);
+    assertEquals(importResult.getEntriesRead(), 1);
+    assertEquals(importResult.getEntriesImported(), 0);
+    assertEquals(importResult.getEntriesRejected(), 1);
+    assertEquals(importResult.getEntriesSkipped(), 0);
+  }
+
+  @Test
+  public void testImportLDIFSuccess() throws Exception
+  {
+    File tempFile = File.createTempFile("schema", "testImportLDIFSucceeds");
+    tempFile.deleteOnExit();
+
+    LDIFExportConfig exportConfig = new LDIFExportConfig(tempFile.getAbsolutePath(), OVERWRITE);
+    schemaBackend.exportLDIF(exportConfig);
+
+    // replication does not validate schema
+    LDIFImportConfig importConfig = new LDIFImportConfig(tempFile.getAbsolutePath());
+    importConfig.setValidateSchema(false);
+
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    LDIFImportResult importResult = schemaBackend.importLDIF(importConfig, serverContext);
+    assertEquals(importResult.getEntriesRead(), 1);
+    assertEquals(importResult.getEntriesImported(), 1);
+    assertEquals(importResult.getEntriesRejected(), 0);
+    assertEquals(importResult.getEntriesSkipped(), 0);
   }
 
   /**
