@@ -97,7 +97,7 @@ import com.persistit.exception.TreeNotFoundException;
 public final class PDBStorage implements Storage, Backupable, ConfigurationChangeListener<PDBBackendCfg>,
   DiskSpaceMonitorHandler
 {
-  private static final int IMPORT_DB_CACHE_SIZE = 4 * MB;
+  private static final int IMPORT_DB_CACHE_SIZE = 32 * MB;
 
   private static final double MAX_SLEEP_ON_RETRY_MS = 50.0;
   private static final String VOLUME_NAME = "dj";
