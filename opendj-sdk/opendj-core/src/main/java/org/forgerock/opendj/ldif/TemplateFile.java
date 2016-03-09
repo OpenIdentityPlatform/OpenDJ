@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldif;
 
@@ -1240,12 +1240,18 @@ final class TemplateFile {
      */
     private List<String> readLines(final BufferedReader reader) throws IOException {
         final List<String> lines = new ArrayList<>();
-        while (true) {
-            final String line = reader.readLine();
-            if (line == null) {
-                break;
+        String line;
+        for (int lineNumber = 1; (line = reader.readLine()) != null; lineNumber++) {
+            if (line.startsWith(" ")) {
+                final int lastLineIndex = lines.size() - 1;
+                final String previousLine = lines.get(lastLineIndex);
+                if (lines.isEmpty() || previousLine.isEmpty()) {
+                    throw DecodeException.fatalError(ERR_TEMPLATE_FILE_INVALID_LEADING_SPACE.get(lineNumber, line));
+                }
+                lines.set(lastLineIndex, previousLine + line.substring(1));
+            } else {
+                lines.add(line);
             }
-            lines.add(line);
         }
         return lines;
     }

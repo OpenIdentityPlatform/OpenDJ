@@ -11,17 +11,22 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.util.Utils.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_GLOBAL_HELP_REFERENCE;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -32,6 +37,13 @@ import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class MakeLDIFITCase extends ToolsITCase {
+
+    private static final String TEMP_OUTPUT_FILE = ".temp_test_file.ldif";
+    private static final String TEST_RESOURCE_PATH = "src/test/resources";
+    private static final String VALID_TEMPLATE_FILE_PATH =
+            Paths.get(TEST_RESOURCE_PATH, "valid_test_template.ldif").toString();
+    private static final boolean SUCCESS = true;
+    private static final boolean FAILURE = false;
 
     private ByteStringBuilder out;
     private ByteStringBuilder err;
@@ -93,13 +105,37 @@ public class MakeLDIFITCase extends ToolsITCase {
     @Test(dataProvider = "validArguments")
     public void testMakeLDIFValidUseCases(final String[] arguments, final LocalizableMessage expectedOut)
             throws Exception {
-        run(arguments, true, expectedOut);
+        run(arguments, SUCCESS, expectedOut);
     }
 
     @Test(dataProvider = "invalidArguments")
     public void testMakeLDIFInvalidUseCases(final String[] arguments, final LocalizableMessage expectedErr)
             throws Exception {
-        run(arguments, false, expectedErr);
+        run(arguments, FAILURE, expectedErr);
+    }
+
+    /** See OPENDJ-2505 */
+    @Test
+    public void testMakeLDIFInvalidLineFolding() throws Exception {
+        final LocalizableMessage expectedOutput = ERR_LDIF_GEN_TOOL_EXCEPTION_DURING_PARSE.get(
+                ERR_TEMPLATE_FILE_INVALID_LEADING_SPACE.get(
+                        27, " \"lineFoldingTest\":\\[\"This line should not be accepted by the parser\"\\],"));
+        run(args("src/test/resources/invalid_test_template.ldif"), FAILURE, expectedOutput);
+    }
+
+    /** See OPENDJ-2505 */
+    @Test
+    public void testMakeLDIFSupportsLineFolding() throws Exception {
+        final Path tempOutputFile = Paths.get(TEST_RESOURCE_PATH, TEMP_OUTPUT_FILE);
+        run(args("-o", tempOutputFile.toString(), VALID_TEMPLATE_FILE_PATH),
+                SUCCESS, INFO_MAKELDIF_PROCESSING_COMPLETE.get(2));
+        assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output.ldif");
+        Files.delete(tempOutputFile);
+    }
+
+    /** See OPENDJ-2505 and OPENDJ-2754 */
+        assertThat(Files.readAllBytes(Paths.get(TEST_RESOURCE_PATH, outputFile))).isEqualTo(
+                   Files.readAllBytes(Paths.get(TEST_RESOURCE_PATH, expectedOutputFileName)));
     }
 
     private void run(final String[] arguments, final boolean expectsSuccess, final LocalizableMessage expectedOutput)
