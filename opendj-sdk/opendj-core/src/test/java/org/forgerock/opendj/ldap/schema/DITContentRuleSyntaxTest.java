@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,9 +20,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_DIT_CONTEN
 
 import org.testng.annotations.DataProvider;
 
-/**
- * DIT content rule syntax tests.
- */
+/** DIT content rule syntax tests. */
 public class DITContentRuleSyntaxTest extends AbstractSyntaxTestCase {
     @Override
     @DataProvider(name = "acceptableValues")
@@ -60,7 +58,6 @@ public class DITContentRuleSyntaxTest extends AbstractSyntaxTestCase {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);

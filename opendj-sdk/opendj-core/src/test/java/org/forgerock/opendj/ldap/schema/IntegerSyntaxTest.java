@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -21,12 +21,9 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_INTEGER_OI
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Integer syntax tests.
- */
+/** Integer syntax tests. */
 @Test
 public class IntegerSyntaxTest extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -43,10 +40,8 @@ public class IntegerSyntaxTest extends AbstractSyntaxTestCase {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_INTEGER_OID);
     }
-
 }

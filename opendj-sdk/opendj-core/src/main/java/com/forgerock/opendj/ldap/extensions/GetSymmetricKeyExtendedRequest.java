@@ -39,14 +39,11 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.Responses;
 
-/**
- * Get symmetric key extended request.
- */
+/** Get symmetric key extended request. */
 public final class GetSymmetricKeyExtendedRequest extends
         AbstractExtendedRequest<GetSymmetricKeyExtendedRequest, ExtendedResult> {
     private static final class RequestDecoder implements
             ExtendedRequestDecoder<GetSymmetricKeyExtendedRequest, ExtendedResult> {
-
         @Override
         public GetSymmetricKeyExtendedRequest decodeExtendedRequest(
                 final ExtendedRequest<?> request, final DecodeOptions options)
@@ -92,7 +89,6 @@ public final class GetSymmetricKeyExtendedRequest extends
     }
 
     private static final class ResultDecoder extends AbstractExtendedResultDecoder<ExtendedResult> {
-
         @Override
         public ExtendedResult newExtendedErrorResult(final ResultCode resultCode,
                 final String matchedDN, final String diagnosticMessage) {
@@ -109,28 +105,14 @@ public final class GetSymmetricKeyExtendedRequest extends
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * The request OID for the get symmetric key extended operation.
-     */
+    /** The request OID for the get symmetric key extended operation. */
     public static final String OID = "1.3.6.1.4.1.26027.1.6.3";
-
-    /**
-     * The BER type value for the symmetric key element of the operation value.
-     */
+    /** The BER type value for the symmetric key element of the operation value. */
     private static final byte TYPE_SYMMETRIC_KEY_ELEMENT = (byte) 0x80;
-
-    /**
-     * The BER type value for the instance key ID element of the operation
-     * value.
-     */
+    /** The BER type value for the instance key ID element of the operation value. */
     private static final byte TYPE_INSTANCE_KEY_ID_ELEMENT = (byte) 0x81;
-
-    /**
-     * A decoder which can be used to decode get symmetric key extended
-     * operation requests.
-     */
+    /** A decoder which can be used to decode get symmetric key extended operation requests. */
     public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
-
     /** No need to expose this. */
     private static final ResultDecoder RESULT_DECODER = new ResultDecoder();
 
@@ -159,7 +141,6 @@ public final class GetSymmetricKeyExtendedRequest extends
         return instanceKeyID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
@@ -174,13 +155,11 @@ public final class GetSymmetricKeyExtendedRequest extends
         return requestSymmetricKey;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ExtendedResultDecoder<ExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -203,7 +182,6 @@ public final class GetSymmetricKeyExtendedRequest extends
         return buffer.toByteString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
@@ -233,7 +211,6 @@ public final class GetSymmetricKeyExtendedRequest extends
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

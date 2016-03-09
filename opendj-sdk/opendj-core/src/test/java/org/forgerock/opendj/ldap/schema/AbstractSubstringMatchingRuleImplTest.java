@@ -38,30 +38,23 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
-/**
- * Tests all generic code of AbstractSubstringMatchingRuleImpl.
- */
+/** Tests all generic code of AbstractSubstringMatchingRuleImpl. */
 @SuppressWarnings("javadoc")
 public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCase {
-
     private int subStringLength = 3;
 
     private static class FakeSubstringMatchingRuleImpl extends AbstractSubstringMatchingRuleImpl {
-
         FakeSubstringMatchingRuleImpl() {
             super(SMR_CASE_EXACT_OID, EMR_CASE_EXACT_OID);
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
             return value.toByteString();
         }
-
     }
 
     static class FakeIndexQueryFactory implements IndexQueryFactory<String> {
-
         private final IndexingOptions options;
         private final boolean normalizedValuesAreReadable;
 
@@ -129,7 +122,6 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         public IndexingOptions getIndexingOptions() {
             return options;
         }
-
     }
 
     private MatchingRuleImpl getRule() {
@@ -160,7 +152,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         };
     }
 
-    @Test(dataProvider = "invalidAssertions", expectedExceptions = { DecodeException.class })
+    @Test(dataProvider = "invalidAssertions", expectedExceptions = DecodeException.class)
     public void testInvalidAssertion(String assertionValue) throws Exception {
         getRule().getAssertion(null, valueOfUtf8(assertionValue));
     }

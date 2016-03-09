@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -28,15 +28,12 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 @Test
 public class CollationLessThanMatchingRuleTest extends MatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -71,7 +68,6 @@ public class CollationLessThanMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule("fr.lt");

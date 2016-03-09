@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -29,9 +29,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 import com.forgerock.opendj.util.StaticUtils;
 
-/**
- * An ASN1Writer implementation that outputs to an outputstream.
- */
+/** An ASN1Writer implementation that outputs to an outputstream. */
 final class ASN1OutputStreamWriter extends AbstractASN1Writer {
     /** Initial size of internal buffers. */
     private static final int BUFFER_INIT_SIZE = 32;
@@ -60,7 +58,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         this.stackDepth = -1;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         while (stackDepth >= 0) {
@@ -71,13 +68,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         rootStream.close();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void flush() throws IOException {
         rootStream.flush();
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeBoolean(final byte type, final boolean booleanValue) throws IOException {
         out.write(type);
@@ -88,7 +83,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeEndSequence() throws IOException {
         if (stackDepth < 0) {
@@ -116,19 +110,16 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeEndSet() throws IOException {
         return writeEndSequence();
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeEnumerated(final byte type, final int intValue) throws IOException {
         return writeInteger(type, intValue);
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeInteger(final byte type, final int intValue) throws IOException {
         out.write(type);
@@ -161,7 +152,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeInteger(final byte type, final long longValue) throws IOException {
         out.write(type);
@@ -236,7 +226,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeNull(final byte type) throws IOException {
         out.write(type);
@@ -246,7 +235,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeOctetString(final byte type, final byte[] value, final int offset,
             final int length) throws IOException {
@@ -258,7 +246,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeOctetString(final byte type, final ByteSequence value)
             throws IOException {
@@ -270,7 +257,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeOctetString(final byte type, final String value) throws IOException {
         out.write(type);
@@ -288,7 +274,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeStartSequence(final byte type) throws IOException {
         // Write the type in current stream switch to next sub-stream
@@ -310,7 +295,6 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeStartSet(final byte type) throws IOException {
         // From an implementation point of view, a set is equivalent to a

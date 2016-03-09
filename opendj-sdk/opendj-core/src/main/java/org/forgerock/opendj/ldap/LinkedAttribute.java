@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
@@ -44,7 +43,6 @@ import org.forgerock.util.Reject;
 public final class LinkedAttribute extends AbstractAttribute {
 
     private static abstract class Impl {
-
         abstract boolean add(LinkedAttribute attribute, ByteString value);
 
         abstract void clear(LinkedAttribute attribute);
@@ -75,7 +73,6 @@ public final class LinkedAttribute extends AbstractAttribute {
     }
 
     private static final class MultiValueImpl extends Impl {
-
         @Override
         boolean add(final LinkedAttribute attribute, final ByteString value) {
             final ByteString normalizedValue = normalizeValue(attribute, value);
@@ -218,7 +215,6 @@ public final class LinkedAttribute extends AbstractAttribute {
     }
 
     private static final class SingleValueImpl extends Impl {
-
         @Override
         boolean add(final LinkedAttribute attribute, final ByteString value) {
             final ByteString normalizedValue = normalizeValue(attribute, value);
@@ -348,7 +344,6 @@ public final class LinkedAttribute extends AbstractAttribute {
     }
 
     private static final class ZeroValueImpl extends Impl {
-
         @Override
         boolean add(final LinkedAttribute attribute, final ByteString value) {
             attribute.singleValue = value;
@@ -423,12 +418,9 @@ public final class LinkedAttribute extends AbstractAttribute {
         int size(final LinkedAttribute attribute) {
             return 0;
         }
-
     }
 
-    /**
-     * An attribute factory which can be used to create new linked attributes.
-     */
+    /** An attribute factory which can be used to create new linked attributes. */
     public static final AttributeFactory FACTORY = new AttributeFactory() {
         @Override
         public Attribute newAttribute(final AttributeDescription attributeDescription) {
@@ -636,59 +628,50 @@ public final class LinkedAttribute extends AbstractAttribute {
         add(values);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean add(final ByteString value) {
         Reject.ifNull(value);
         return pimpl.add(this, value);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void clear() {
         pimpl.clear(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean contains(final Object value) {
         Reject.ifNull(value);
         return pimpl.contains(this, ByteString.valueOfObject(value));
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean containsAll(final Collection<?> values) {
         Reject.ifNull(values);
         return pimpl.containsAll(this, values);
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString firstValue() {
         return pimpl.firstValue(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public AttributeDescription getAttributeDescription() {
         return attributeDescription;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Iterator<ByteString> iterator() {
         return pimpl.iterator(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean remove(final Object value) {
         Reject.ifNull(value);
         return pimpl.remove(this, ByteString.valueOfObject(value));
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T> boolean retainAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
@@ -696,7 +679,6 @@ public final class LinkedAttribute extends AbstractAttribute {
         return pimpl.retainAll(this, values, missingValues);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int size() {
         return pimpl.size(this);
@@ -709,5 +691,4 @@ public final class LinkedAttribute extends AbstractAttribute {
         }
         return normalizedSingleValue;
     }
-
 }

@@ -82,17 +82,11 @@ import org.forgerock.util.Reject;
  *      - Persistent Search: A Simple LDAP Change Notification Mechanism </a>
  */
 public final class EntryChangeNotificationResponseControl implements Control {
-
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-    /**
-     * The OID for the entry change notification response control.
-     */
+    /** The OID for the entry change notification response control. */
     public static final String OID = "2.16.840.1.113730.3.4.7";
 
-    /**
-     * A decoder which can be used for decoding the entry change notification
-     * response control.
-     */
+    /** A decoder which can be used for decoding the entry change notification response control. */
     public static final ControlDecoder<EntryChangeNotificationResponseControl> DECODER =
             new ControlDecoder<EntryChangeNotificationResponseControl>() {
 
@@ -281,7 +275,6 @@ public final class EntryChangeNotificationResponseControl implements Control {
         return changeType;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
@@ -298,7 +291,6 @@ public final class EntryChangeNotificationResponseControl implements Control {
         return previousName;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -322,19 +314,16 @@ public final class EntryChangeNotificationResponseControl implements Control {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -352,5 +341,4 @@ public final class EntryChangeNotificationResponseControl implements Control {
         builder.append(")");
         return builder.toString();
     }
-
 }

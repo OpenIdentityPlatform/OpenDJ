@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
@@ -50,9 +49,7 @@ import org.forgerock.util.Reject;
  *            The type of wrapped connection.
  */
 public abstract class AbstractConnectionWrapper<C extends Connection> implements Connection {
-    /**
-     * The wrapped connection.
-     */
+    /** The wrapped connection. */
     protected final C connection;
 
     /**

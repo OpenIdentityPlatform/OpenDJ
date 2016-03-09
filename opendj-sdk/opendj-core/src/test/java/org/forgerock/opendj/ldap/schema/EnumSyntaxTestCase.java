@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -25,12 +25,9 @@ import static org.forgerock.opendj.ldap.ConditionResult.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * Enum syntax tests.
- */
+/** Enum syntax tests. */
 @SuppressWarnings("javadoc")
 public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -73,7 +70,6 @@ public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
         builder.toSchema();
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() throws SchemaException, DecodeException {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());

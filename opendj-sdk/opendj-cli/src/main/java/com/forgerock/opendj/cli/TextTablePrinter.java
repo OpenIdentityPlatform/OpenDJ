@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -32,12 +32,8 @@ import java.util.Map;
  * Tables have configurable column widths, padding, and column separators.
  */
 public final class TextTablePrinter extends TablePrinter {
-
-    /**
-     * Table serializer implementation.
-     */
+    /** Table serializer implementation. */
     private final class Serializer extends TableSerializer {
-
         /**The real column widths taking into account size constraints but
          not including padding or separators.*/
         private final List<Integer> columnWidths = new ArrayList<>();
@@ -61,20 +57,17 @@ public final class TextTablePrinter extends TablePrinter {
             this.indentPadding = builder.toString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public void addCell(String s) {
             currentRow.add(s);
         }
 
-        /** {@inheritDoc} */
         @Override
         public void addColumn(int width) {
             columnWidths.add(width);
             totalColumns++;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void addHeading(String s) {
             if (displayHeadings) {
@@ -82,7 +75,6 @@ public final class TextTablePrinter extends TablePrinter {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public void endHeader() {
             if (displayHeadings) {
@@ -123,7 +115,6 @@ public final class TextTablePrinter extends TablePrinter {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public void endRow() {
             boolean isRemainingText;
@@ -148,7 +139,6 @@ public final class TextTablePrinter extends TablePrinter {
                             endIndex = width;
                             head = contents.substring(0, endIndex);
                             tail = contents.substring(endIndex);
-
                         } else {
                             head = contents.substring(0, endIndex);
                             tail = contents.substring(endIndex + 1);
@@ -194,24 +184,20 @@ public final class TextTablePrinter extends TablePrinter {
 
                 // Output the line.
                 writer.println(builder.toString());
-
             } while (isRemainingText);
         }
 
-        /** {@inheritDoc} */
         @Override
         public void endTable() {
             writer.flush();
         }
 
-        /** {@inheritDoc} */
         @Override
         public void startHeader() {
             determineColumnWidths();
             currentRow.clear();
         }
 
-        /** {@inheritDoc} */
         @Override
         public void startRow() {
             currentRow.clear();
@@ -302,10 +288,7 @@ public final class TextTablePrinter extends TablePrinter {
     /** The number of characters the table should be indented. */
     private int indentWidth;
 
-    /**
-     * The character which should be used to separate the table
-     * heading row from the rows beneath.
-     */
+    /** The character which should be used to separate the table heading row from the rows beneath. */
     private char headingSeparator = DEFAULT_HEADING_SEPARATOR;
 
     /** The column where the heading separator should begin. */
@@ -317,10 +300,7 @@ public final class TextTablePrinter extends TablePrinter {
      */
     private int padding = DEFAULT_PADDING;
 
-    /**
-     * Total permitted width for the table which expandable columns
-     * can use up.
-     */
+    /** Total permitted width for the table which expandable columns can use up. */
     private int totalWidth = MAX_LINE_WIDTH;
 
     /** The output destination. */
@@ -462,7 +442,6 @@ public final class TextTablePrinter extends TablePrinter {
         this.totalWidth = totalWidth;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected TableSerializer getSerializer() {
         return new Serializer();

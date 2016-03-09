@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -22,12 +22,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Substitution syntax tests.
- */
+/** Substitution syntax tests. */
 @SuppressWarnings("javadoc")
 public class SubstitutionSyntaxTestCase extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -95,7 +92,6 @@ public class SubstitutionSyntaxTestCase extends AbstractSyntaxTestCase {
         Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         // Use IA5String syntax as our substitute.

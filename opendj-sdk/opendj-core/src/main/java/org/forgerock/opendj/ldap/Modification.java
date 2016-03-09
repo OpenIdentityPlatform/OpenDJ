@@ -12,15 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import org.forgerock.util.Reject;
 
-/**
- * A modification to be performed on an entry during a Modify operation.
- */
+/** A modification to be performed on an entry during a Modify operation. */
 public final class Modification {
     private final ModificationType modificationType;
     private final Attribute attribute;
@@ -66,7 +64,6 @@ public final class Modification {
         return modificationType;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -86,5 +83,4 @@ public final class Modification {
         builder.append("})");
         return builder.toString();
     }
-
 }

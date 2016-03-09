@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,18 +21,14 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_IGNORE_O
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the CaseIgnoreEqualityMatchingRule.
- */
+/** Test the CaseIgnoreEqualityMatchingRule. */
 public class CaseIgnoreEqualityMatchingRuleTest extends MatchingRuleTest {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] {};
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -52,12 +49,9 @@ public class CaseIgnoreEqualityMatchingRuleTest extends MatchingRuleTest {
             { "foo\u0149bar", "foo\u02BC\u006Ebar", ConditionResult.TRUE },
             { "foo\u017Bbar", "foo\u017Cbar", ConditionResult.TRUE },
             { "foo\u017BBAR", "foo\u017Cbar", ConditionResult.TRUE },
-
-
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_CASE_IGNORE_OID);

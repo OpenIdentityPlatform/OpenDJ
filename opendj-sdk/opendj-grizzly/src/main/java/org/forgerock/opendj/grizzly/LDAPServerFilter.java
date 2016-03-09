@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.grizzly;
 
 import java.io.IOException;
@@ -84,17 +83,13 @@ import static org.forgerock.opendj.grizzly.GrizzlyUtils.*;
  */
 final class LDAPServerFilter extends LDAPBaseFilter {
 
-    /**
-     * Provides an arbitrary write operation on a LDAP writer.
-     */
+    /** Provides an arbitrary write operation on a LDAP writer. */
     private interface LDAPWrite<T> {
         void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, T message)
                 throws IOException;
     }
 
-    /**
-     * Write operation for intermediate responses.
-     */
+    /** Write operation for intermediate responses. */
     private static final LDAPWrite<IntermediateResponse> INTERMEDIATE =
             new LDAPWrite<IntermediateResponse>() {
                 @Override
@@ -333,7 +328,6 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
@@ -463,7 +457,6 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, CompareResult result)
                 throws IOException {
             writer.writeCompareResult(messageID, result);
-
         }
     }
 
@@ -628,9 +621,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     };
 
     // @formatter:on
-    /**
-     * Default maximum request size for incoming requests.
-     */
+    /** Default maximum request size for incoming requests. */
     private static final int DEFAULT_MAX_REQUEST_SIZE = 5 * 1024 * 1024;
 
     private static final Attribute<ClientContextImpl> LDAP_CONNECTION_ATTR =
@@ -662,7 +653,6 @@ final class LDAPServerFilter extends LDAPBaseFilter {
 
     private static final class ServerRequestHandler extends AbstractLDAPMessageHandler implements
             LDAPBaseHandler {
-
         private final Connection<?> connection;
         private final LDAPReader<ASN1BufferReader> reader;
 

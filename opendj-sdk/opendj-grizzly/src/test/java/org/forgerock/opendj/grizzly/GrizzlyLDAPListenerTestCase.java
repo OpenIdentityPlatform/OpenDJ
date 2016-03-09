@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -72,9 +72,7 @@ import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.mockito.Mockito.*;
 
-/**
- * Tests the LDAPListener class.
- */
+/** Tests the LDAPListener class. */
 @SuppressWarnings("javadoc")
 public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
@@ -87,14 +85,12 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleAbandon(final Integer requestContext, final AbandonRequest request)
                 throws UnsupportedOperationException {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleAdd(final Integer requestContext, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -102,7 +98,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleBind(final Integer requestContext, final int version,
                 final BindRequest request,
@@ -111,7 +106,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleCompare(final Integer requestContext, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -120,25 +114,21 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             resultHandler.handleResult(Responses.newCompareResult(ResultCode.SUCCESS));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleConnectionClosed(final Integer requestContext, final UnbindRequest request) {
             isClosed.countDown();
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleConnectionDisconnected(final ResultCode resultCode, final String message) {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleConnectionError(final Throwable error) {
             connectionError.handleResult(error);
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleDelete(final Integer requestContext, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -146,7 +136,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
-        /** {@inheritDoc} */
         @Override
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer requestContext,
                 final ExtendedRequest<R> request,
@@ -157,7 +146,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             "Extended operation " + request.getOID() + " not supported")));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleModify(final Integer requestContext, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -165,7 +153,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleModifyDN(final Integer requestContext, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -173,26 +160,22 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void handleSearch(final Integer requestContext, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
             final LdapResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
-
     }
 
     private static class MockServerConnectionFactory implements
             ServerConnectionFactory<LDAPClientContext, Integer> {
-
         private final MockServerConnection serverConnection;
 
         private MockServerConnectionFactory(final MockServerConnection serverConnection) {
             this.serverConnection = serverConnection;
         }
 
-        /** {@inheritDoc} */
         @Override
         public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext) throws LdapException {
             serverConnection.context.handleResult(clientContext);
@@ -200,25 +183,19 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         }
     }
 
-    /**
-     * Disables logging before the tests.
-     */
+    /** Disables logging before the tests. */
     @BeforeClass
     public void disableLogging() {
         TestCaseUtils.setDefaultLogLevel(Level.SEVERE);
     }
 
-    /**
-     * Re-enable logging after the tests.
-     */
+    /** Re-enable logging after the tests. */
     @AfterClass
     public void enableLogging() {
         TestCaseUtils.setDefaultLogLevel(Level.INFO);
     }
 
-    /**
-     * Test creation of LDAP listener with default transport provider.
-     */
+    /** Test creation of LDAP listener with default transport provider. */
     @SuppressWarnings("unchecked")
     @Test
     public void testCreateLDAPListener() throws Exception {
@@ -228,9 +205,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         listener.close();
     }
 
-    /**
-     * Test creation of LDAP listener with default transport provider and custom class loader.
-     */
+    /** Test creation of LDAP listener with default transport provider and custom class loader. */
     @SuppressWarnings("unchecked")
     @Test
     public void testCreateLDAPListenerWithCustomClassLoader() throws Exception {
@@ -242,11 +217,9 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         listener.close();
     }
 
-    /**
-     * Test creation of LDAP listener with unknown transport provider.
-     */
+    /** Test creation of LDAP listener with unknown transport provider. */
     @SuppressWarnings({ "unchecked" })
-    @Test(expectedExceptions = { ProviderNotFoundException.class },
+    @Test(expectedExceptions = ProviderNotFoundException.class,
         expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPListenerFailureProviderNotFound() throws Exception {
         Options options = defaultOptions().set(TRANSPORT_PROVIDER, "unknown");
@@ -403,7 +376,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
             final MockServerConnection proxyServerConnection = new MockServerConnection() {
 
-                /** {@inheritDoc} */
                 @Override
                 public void handleBind(final Integer requestContext, final int version,
                         final BindRequest request,
@@ -555,7 +527,6 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         try {
             final MockServerConnection proxyServerConnection = new MockServerConnection() {
 
-                /** {@inheritDoc} */
                 @Override
                 public void handleBind(final Integer requestContext, final int version,
                         final BindRequest request,

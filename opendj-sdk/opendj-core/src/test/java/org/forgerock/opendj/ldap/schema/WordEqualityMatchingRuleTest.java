@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,12 +20,8 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_WORD_OID;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the WordEqualityMatchingRule.
- */
+/** Test the WordEqualityMatchingRule. */
 public class WordEqualityMatchingRuleTest extends MatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
@@ -34,7 +30,6 @@ public class WordEqualityMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -55,10 +50,8 @@ public class WordEqualityMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_WORD_OID);
     }
-
 }

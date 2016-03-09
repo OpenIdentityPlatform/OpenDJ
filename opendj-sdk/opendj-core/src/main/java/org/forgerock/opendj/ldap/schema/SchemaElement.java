@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfExtraProperties;
@@ -187,9 +186,7 @@ abstract class SchemaElement {
         }
     }
 
-    /**
-     * Lazily created string representation.
-     */
+    /** Lazily created string representation. */
     private String definition;
 
     /** The description for this definition. */
@@ -218,7 +215,6 @@ abstract class SchemaElement {
         this.definition = definition;
     }
 
-    /** {@inheritDoc} */
     @Override
     public abstract boolean equals(Object obj);
 
@@ -244,7 +240,6 @@ abstract class SchemaElement {
         return extraProperties;
     }
 
-    /** {@inheritDoc} */
     @Override
     public abstract int hashCode();
 

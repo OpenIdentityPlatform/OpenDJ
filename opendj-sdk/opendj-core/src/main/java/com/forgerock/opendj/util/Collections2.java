@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.util;
 
@@ -25,13 +25,10 @@ import java.util.ListIterator;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
-/**
- * Additional {@code Collection} based utility methods.
- */
+/** Additional {@code Collection} based utility methods. */
 public final class Collections2 {
     private static class TransformedCollection<M, N, C extends Collection<M>> extends
             AbstractCollection<N> implements Collection<N> {
-
         protected final C collection;
 
         protected final Function<? super M, ? extends N, NeverThrowsException> funcMtoN;
@@ -46,68 +43,57 @@ public final class Collections2 {
             this.funcNtoM = funcNtoM;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean add(final N e) {
             return collection.add(funcNtoM.apply(e));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void clear() {
             collection.clear();
         }
 
-        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public boolean contains(final Object o) {
             return collection.contains(funcNtoM.apply((N) o));
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isEmpty() {
             return collection.isEmpty();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Iterator<N> iterator() {
             return Iterators.transformedIterator(collection.iterator(), funcMtoN);
         }
 
-        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public boolean remove(final Object o) {
             return collection.remove(funcNtoM.apply((N) o));
         }
 
-        /** {@inheritDoc} */
         @Override
         public int size() {
             return collection.size();
         }
-
     }
 
     private static final class TransformedList<M, N> extends
             TransformedCollection<M, N, List<M>> implements List<N> {
-
         private TransformedList(final List<M> list,
                 final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
                 final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
             super(list, funcMtoN, funcNtoM);
         }
 
-        /** {@inheritDoc} */
         @Override
         public void add(final int index, final N element) {
             collection.add(index, funcNtoM.apply(element));
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean addAll(final int index, final Collection<? extends N> c) {
             // We cannot transform c here due to type-safety.
@@ -118,33 +104,28 @@ public final class Collections2 {
             return result;
         }
 
-        /** {@inheritDoc} */
         @Override
         public N get(final int index) {
             return funcMtoN.apply(collection.get(index));
         }
 
-        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public int indexOf(final Object o) {
             return collection.indexOf(funcNtoM.apply((N) o));
         }
 
-        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public int lastIndexOf(final Object o) {
             return collection.lastIndexOf(funcNtoM.apply((N) o));
         }
 
-        /** {@inheritDoc} */
         @Override
         public ListIterator<N> listIterator() {
             return listIterator(0);
         }
 
-        /** {@inheritDoc} */
         @Override
         public ListIterator<N> listIterator(final int index) {
             final ListIterator<M> iterator = collection.listIterator(index);
@@ -198,26 +179,22 @@ public final class Collections2 {
             };
         }
 
-        /** {@inheritDoc} */
         @Override
         public N remove(final int index) {
             return funcMtoN.apply(collection.remove(index));
         }
 
-        /** {@inheritDoc} */
         @Override
         public N set(final int index, final N element) {
             final M result = collection.set(index, funcNtoM.apply(element));
             return funcMtoN.apply(result);
         }
 
-        /** {@inheritDoc} */
         @Override
         public List<N> subList(final int fromIndex, final int toIndex) {
             final List<M> subList = collection.subList(fromIndex, toIndex);
             return new TransformedList<>(subList, funcMtoN, funcNtoM);
         }
-
     }
 
     /**
@@ -280,5 +257,4 @@ public final class Collections2 {
     private Collections2() {
         // Do nothing.
     }
-
 }

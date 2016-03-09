@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -22,13 +22,9 @@ import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Telephone number syntax tests.
- */
+/** Telephone number syntax tests. */
 @Test
 public class TelephoneNumberSyntaxTest extends AbstractSyntaxTestCase {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -43,12 +39,10 @@ public class TelephoneNumberSyntaxTest extends AbstractSyntaxTestCase {
             { "", false } };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS,
                 false);
         return builder.toSchema().getSyntax(SYNTAX_TELEPHONE_OID);
     }
-
 }

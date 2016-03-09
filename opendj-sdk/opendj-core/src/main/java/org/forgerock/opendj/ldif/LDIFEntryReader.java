@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldif;
 
@@ -146,7 +146,6 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
         super(Arrays.asList(ldifLines));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();
@@ -360,10 +359,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
             }
 
             try {
-                /*
-                 * Read the DN of the entry and see if it is one that should be
-                 * included in the import.
-                 */
+                /* Read the DN of the entry and see if it is one that should be included in the import. */
                 final DN entryDN = readLDIFRecordDN(record);
                 if (entryDN == null) {
                     // Skip version record.
@@ -421,5 +417,4 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
 
         return nextEntry;
     }
-
 }

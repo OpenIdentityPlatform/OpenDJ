@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -26,19 +26,14 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-/**
- * Unit tests for the console application class.
- */
+/** Unit tests for the console application class. */
 @SuppressWarnings("javadoc")
 public class ConsoleApplicationTestCase extends CliTestCase {
-
     final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
     final LocalizableMessage msg2 = LocalizableMessage
             .raw("If somebody wants a sheep, that is a proof that one exists.");
 
-    /**
-     * For test purposes only.
-     */
+    /** For test purposes only. */
     private static class MockConsoleApplication extends ConsoleApplication {
         private static ByteArrayOutputStream out;
         private static ByteArrayOutputStream err;
@@ -66,19 +61,16 @@ public class ConsoleApplicationTestCase extends CliTestCase {
             return err.toString("UTF-8");
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isVerbose() {
             return verbose;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isInteractive() {
             return interactive;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isQuiet() {
             return quiet;

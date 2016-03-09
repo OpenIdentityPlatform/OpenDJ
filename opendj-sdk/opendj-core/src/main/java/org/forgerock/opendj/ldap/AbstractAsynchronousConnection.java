@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -37,58 +36,47 @@ import static org.forgerock.opendj.ldap.LdapException.*;
  * asynchronous methods.
  */
 public abstract class AbstractAsynchronousConnection extends AbstractConnection {
-
-    /**
-     * Creates a new abstract asynchronous connection.
-     */
+    /** Creates a new abstract asynchronous connection. */
     protected AbstractAsynchronousConnection() {
         // No implementation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public Result add(final AddRequest request) throws LdapException {
         return blockingGetOrThrow(addAsync(request));
     }
 
-    /** {@inheritDoc} */
     @Override
     public BindResult bind(final BindRequest request) throws LdapException {
         return blockingGetOrThrow(bindAsync(request));
     }
 
-    /** {@inheritDoc} */
     @Override
     public CompareResult compare(final CompareRequest request) throws LdapException {
         return blockingGetOrThrow(compareAsync(request));
     }
 
-    /** {@inheritDoc} */
     @Override
     public Result delete(final DeleteRequest request) throws LdapException {
         return blockingGetOrThrow(deleteAsync(request));
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
             final IntermediateResponseHandler handler) throws LdapException {
         return blockingGetOrThrow(extendedRequestAsync(request, handler));
     }
 
-    /** {@inheritDoc} */
     @Override
     public Result modify(final ModifyRequest request) throws LdapException {
         return blockingGetOrThrow(modifyAsync(request));
     }
 
-    /** {@inheritDoc} */
     @Override
     public Result modifyDN(final ModifyDNRequest request) throws LdapException {
         return blockingGetOrThrow(modifyDNAsync(request));
     }
 
-    /** {@inheritDoc} */
     @Override
     public Result search(final SearchRequest request, final SearchResultHandler handler) throws LdapException {
         return blockingGetOrThrow(searchAsync(request, handler));

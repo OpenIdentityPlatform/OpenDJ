@@ -47,27 +47,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * Generates an XML file of log messages found in properties files.
- */
+/** Generates an XML file of log messages found in properties files. */
 @Mojo(name = "generate-xml-messages-doc", defaultPhase = PRE_SITE)
 public class GenerateMessageFileMojo extends AbstractMojo {
-
-    /**
-     * The Maven Project.
-     */
+    /** The Maven Project. */
     @Parameter(property = "project", readonly = true, required = true)
     private MavenProject project;
-
-    /**
-     * The tag of the locale for which to generate the documentation.
-     */
+    /** The tag of the locale for which to generate the documentation. */
     @Parameter(defaultValue = "en")
     private String locale;
-
-    /**
-     * The path to the directory containing the message properties files.
-     */
+    /** The path to the directory containing the message properties files. */
     @Parameter(required = true)
     private String messagesDirectory;
 
@@ -78,16 +67,11 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     @Parameter(required = true)
     private String outputDirectory;
 
-    /**
-     * A list which contains all file names, the extension is not needed.
-     */
+    /** A list which contains all file names, the extension is not needed. */
     @Parameter(required = true)
     private List<String> messageFileNames;
-
-    /**
-     * One-line descriptions for log reference categories.
-     */
-    private static final HashMap<String, LocalizableMessage> CATEGORY_DESCRIPTIONS = new HashMap<>();
+    /** One-line descriptions for log reference categories. */
+    private static final Map<String, LocalizableMessage> CATEGORY_DESCRIPTIONS = new HashMap<>();
     static {
         CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", CATEGORY_ACCESS_CONTROL.get());
         CATEGORY_DESCRIPTIONS.put("ADMIN", CATEGORY_ADMIN.get());
@@ -116,7 +100,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     /** Message giving formatting rules for string keys. */
     public static final String KEY_FORM_MSG = ".\n\nOpenDJ message property keys must be of the form\n\n"
             + "\t\'[CATEGORY]_[SEVERITY]_[DESCRIPTION]_[ORDINAL]\'\n\n";
-
     private static final String ERROR_SEVERITY_IDENTIFIER_STRING = "ERR_";
 
     /** FreeMarker template configuration. */
@@ -151,17 +134,13 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
     }
 
-    /**
-     * Represents a log reference entry for an individual message.
-     */
+    /** Represents a log reference entry for an individual message. */
     private static class MessageRefEntry implements Comparable<MessageRefEntry> {
         private Integer ordinal;
         private String xmlId;
         private String formatString;
 
-        /**
-         * Build log reference entry for an log message.
-         */
+        /** Build log reference entry for an log message. */
         public MessageRefEntry(final String msgPropKey, final Integer ordinal, final String formatString) {
             this.formatString = formatString;
             this.ordinal = ordinal;
@@ -283,7 +262,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             return this.ordinal;
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             if (ordinal != null) {
@@ -292,7 +270,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             return description;
         }
 
-        /** {@inheritDoc} */
         @Override
         public int compareTo(MessagePropertyKey k) {
             if (ordinal == k.ordinal) {

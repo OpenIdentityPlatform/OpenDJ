@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -28,27 +28,13 @@ package org.forgerock.opendj.ldap.controls;
  *      - Persistent Search: A Simple LDAP Change Notification Mechanism </a>
  */
 public enum PersistentSearchChangeType {
-    /**
-     * Indicates that an Add operation triggered the entry change notification.
-     */
+    /** Indicates that an Add operation triggered the entry change notification. */
     ADD(1, "add"),
-
-    /**
-     * Indicates that an Delete operation triggered the entry change
-     * notification.
-     */
+    /** Indicates that an Delete operation triggered the entry change notification. */
     DELETE(2, "delete"),
-
-    /**
-     * Indicates that an Modify operation triggered the entry change
-     * notification.
-     */
+    /** Indicates that an Modify operation triggered the entry change notification. */
     MODIFY(4, "modify"),
-
-    /**
-     * Indicates that an Modify DN operation triggered the entry change
-     * notification.
-     */
+    /** Indicates that an Modify DN operation triggered the entry change notification. */
     MODIFY_DN(8, "modifyDN");
 
     private final String name;
@@ -59,7 +45,6 @@ public enum PersistentSearchChangeType {
         this.intValue = intValue;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return name;

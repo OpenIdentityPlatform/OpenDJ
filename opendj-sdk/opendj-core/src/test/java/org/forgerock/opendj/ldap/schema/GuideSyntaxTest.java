@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,11 +20,8 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_GUIDE_OID;
 
 import org.testng.annotations.DataProvider;
 
-/**
- * Guide syntax tests.
- */
+/** Guide syntax tests. */
 public class GuideSyntaxTest extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -36,7 +33,6 @@ public class GuideSyntaxTest extends AbstractSyntaxTestCase {
             { "sn$EQ|(cn$APPROX&?false)", true }, { "sn$EQ|(cn$APPROX&|?false)", false }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_GUIDE_OID);

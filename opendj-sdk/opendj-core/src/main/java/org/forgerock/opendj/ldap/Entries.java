@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -63,10 +63,7 @@ public final class Entries {
      * @see Entries#diffEntries(Entry, Entry, DiffOptions)
      */
     public static final class DiffOptions {
-        /**
-         * Selects which attributes will be compared. By default all user
-         * attributes will be compared.
-         */
+        /** Selects which attributes will be compared. By default all user attributes will be compared. */
         private AttributeFilter attributeFilter = USER_ATTRIBUTES_ONLY_FILTER;
 
         /**
@@ -188,7 +185,6 @@ public final class Entries {
         private Entry filter(final Entry entry) {
             return attributeFilter.filteredViewOf(entry);
         }
-
     }
 
     private static final class UnmodifiableEntry implements Entry {
@@ -198,20 +194,17 @@ public final class Entries {
             this.entry = entry;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean addAttribute(final Attribute attribute) {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean addAttribute(final Attribute attribute,
                 final Collection<? super ByteString> duplicateValues) {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Entry addAttribute(final String attributeDescription, final Object... values) {
             throw new UnsupportedOperationException();
@@ -233,7 +226,6 @@ public final class Entries {
             return entry.containsAttribute(attributeDescription, values);
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean equals(final Object object) {
             return object == this || entry.equals(object);
@@ -251,7 +243,6 @@ public final class Entries {
                     .getAllAttributes(attributeDescription), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
         }
 
-        /** {@inheritDoc} */
         @Override
         public Iterable<Attribute> getAllAttributes(final String attributeDescription) {
             return Iterables.unmodifiableIterable(Iterables.transformedIterable(entry
@@ -268,7 +259,6 @@ public final class Entries {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public Attribute getAttribute(final String attributeDescription) {
             final Attribute attribute = entry.getAttribute(attributeDescription);
@@ -284,31 +274,26 @@ public final class Entries {
             return entry.getAttributeCount();
         }
 
-        /** {@inheritDoc} */
         @Override
         public DN getName() {
             return entry.getName();
         }
 
-        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             return entry.hashCode();
         }
 
-        /** {@inheritDoc} */
         @Override
         public AttributeParser parseAttribute(final AttributeDescription attributeDescription) {
             return entry.parseAttribute(attributeDescription);
         }
 
-        /** {@inheritDoc} */
         @Override
         public AttributeParser parseAttribute(final String attributeDescription) {
             return entry.parseAttribute(attributeDescription);
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean removeAttribute(final Attribute attribute,
                 final Collection<? super ByteString> missingValues) {
@@ -320,19 +305,16 @@ public final class Entries {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Entry removeAttribute(final String attributeDescription, final Object... values) {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean replaceAttribute(final Attribute attribute) {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Entry replaceAttribute(final String attributeDescription, final Object... values) {
             throw new UnsupportedOperationException();
@@ -343,18 +325,15 @@ public final class Entries {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Entry setName(final String dn) {
             throw new UnsupportedOperationException();
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             return entry.toString();
         }
-
     }
 
     private static final Comparator<Entry> COMPARATOR = new Comparator<Entry>() {
@@ -591,10 +570,7 @@ public final class Entries {
 
             final int cmp = adfrom.compareTo(adto);
             if (cmp == 0) {
-                /*
-                 * Attribute is in both entries so compute the differences
-                 * between the old and new.
-                 */
+                /* Attribute is in both entries so compute the differences between the old and new. */
                 if (options.useReplaceMaxValues > ato.size()) {
                     // This attribute is a candidate for replacing.
                     if (diffAttributeNeedsReplacing(afrom, ato, options)) {

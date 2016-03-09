@@ -34,8 +34,6 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 @SuppressWarnings("javadoc")
 @Test
 public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
@@ -98,7 +96,6 @@ public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -167,7 +164,6 @@ public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return CoreSchema.getInstance().getMatchingRule(SchemaConstants.MR_PARTIAL_DATE_AND_TIME_OID);

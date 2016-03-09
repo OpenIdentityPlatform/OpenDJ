@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -91,114 +91,70 @@ public final class LDAPUrl {
      */
     private final boolean isSecured;
 
-    /**
-     * The host name corresponding to an LDAP URL.
-     */
+    /** The host name corresponding to an LDAP URL. */
     private final String host;
 
-    /**
-     * The port number corresponding to an LDAP URL.
-     */
+    /** The port number corresponding to an LDAP URL. */
     private final int port;
 
-    /**
-     * The distinguished name corresponding to an LDAP URL.
-     */
+    /** The distinguished name corresponding to an LDAP URL. */
     private final DN name;
 
-    /**
-     * The search scope corresponding to an LDAP URL.
-     */
+    /** The search scope corresponding to an LDAP URL. */
     private final SearchScope scope;
 
-    /**
-     * The search filter corresponding to an LDAP URL.
-     */
+    /** The search filter corresponding to an LDAP URL. */
     private final Filter filter;
 
-    /**
-     * The attributes that need to be searched.
-     */
+    /** The attributes that need to be searched. */
     private final List<String> attributes;
 
-    /**
-     * The String value of LDAP URL.
-     */
+    /** The String value of LDAP URL. */
     private final String urlString;
 
-    /**
-     * Normalized ldap URL.
-     */
+    /** Normalized ldap URL. */
     private String normalizedURL;
 
-    /**
-     * The default scheme to be used with LDAP URL.
-     */
+    /** The default scheme to be used with LDAP URL. */
     private static final String DEFAULT_URL_SCHEME = "ldap";
 
-    /**
-     * The SSL-based scheme allowed to be used with LDAP URL.
-     */
+    /** The SSL-based scheme allowed to be used with LDAP URL. */
     private static final String SSL_URL_SCHEME = "ldaps";
 
-    /**
-     * The default host.
-     */
+    /** The default host. */
     private static final String DEFAULT_HOST = "localhost";
 
-    /**
-     * The default non-SSL port.
-     */
+    /** The default non-SSL port. */
     private static final int DEFAULT_PORT = 389;
 
-    /**
-     * The default SSL port.
-     */
+    /** The default SSL port. */
     private static final int DEFAULT_SSL_PORT = 636;
 
-    /**
-     * The default filter.
-     */
+    /** The default filter. */
     private static final Filter DEFAULT_FILTER = Filter.objectClassPresent();
 
-    /**
-     * The default search scope.
-     */
+    /** The default search scope. */
     private static final SearchScope DEFAULT_SCOPE = SearchScope.BASE_OBJECT;
 
-    /**
-     * The default distinguished name.
-     */
+    /** The default distinguished name. */
     private static final DN DEFAULT_DN = DN.rootDN();
 
-    /**
-     * The % encoding character.
-     */
+    /** The % encoding character. */
     private static final char PERCENT_ENCODING_CHAR = '%';
 
-    /**
-     * The ? character.
-     */
+    /** The ? character. */
     private static final char QUESTION_CHAR = '?';
 
-    /**
-     * The slash (/) character.
-     */
+    /** The slash (/) character. */
     private static final char SLASH_CHAR = '/';
 
-    /**
-     * The comma (,) character.
-     */
+    /** The comma (,) character. */
     private static final char COMMA_CHAR = ',';
 
-    /**
-     * The colon (:) character.
-     */
+    /** The colon (:) character. */
     private static final char COLON_CHAR = ':';
 
-    /**
-     * Set containing characters that do not need to be encoded.
-     */
+    /** Set containing characters that do not need to be encoded. */
     private static final Set<Character> VALID_CHARS = new HashSet<>();
 
     static {
@@ -617,7 +573,6 @@ public final class LDAPUrl {
         return request;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object o) {
         if (o == this) {
@@ -694,7 +649,6 @@ public final class LDAPUrl {
         return scope;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         final String s = toNormalizedString();
@@ -712,7 +666,6 @@ public final class LDAPUrl {
         return isSecured;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return urlString;

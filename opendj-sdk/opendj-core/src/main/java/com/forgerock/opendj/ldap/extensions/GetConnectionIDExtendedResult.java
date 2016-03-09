@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2013 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package com.forgerock.opendj.ldap.extensions;
 
 import java.io.IOException;
@@ -65,13 +64,11 @@ public final class GetConnectionIDExtendedResult extends
         return connectionID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return GetConnectionIDExtendedRequest.OID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder(6);
@@ -87,7 +84,6 @@ public final class GetConnectionIDExtendedResult extends
         return buffer.toByteString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
@@ -105,7 +101,6 @@ public final class GetConnectionIDExtendedResult extends
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

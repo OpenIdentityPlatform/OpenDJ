@@ -13,7 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2012 Manuel Gaupp
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -22,9 +22,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_COUNTRY_ST
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Country String syntax tests.
- */
+/** Country String syntax tests. */
 @Test
 public class CountryStringSyntaxTest extends AbstractSyntaxTestCase {
     @Override
@@ -42,7 +40,6 @@ public class CountryStringSyntaxTest extends AbstractSyntaxTestCase {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_COUNTRY_STRING_OID);

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldif;
 
@@ -185,7 +185,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
         super(Arrays.asList(ldifLines));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();
@@ -373,10 +372,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
             }
 
             try {
-                /*
-                 * Read the DN of the entry and see if it is one that should be
-                 * included in the import.
-                 */
+                /* Read the DN of the entry and see if it is one that should be included in the import. */
                 final DN entryDN = readLDIFRecordDN(record);
                 if (entryDN == null) {
                     // Skip version record.
@@ -559,10 +555,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
                     schemaErrors.add(message);
                     continue;
                 default: // Ignore
-                    /*
-                     * This should not happen: we should be using a non-strict
-                     * schema for this policy.
-                     */
+                    /* This should not happen: we should be using a non-strict schema for this policy. */
                     throw new IllegalStateException("Schema is not consistent with policy", e);
                 }
             } catch (final LocalizedIllegalArgumentException e) {
@@ -597,10 +590,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
                 attributeDescription = attributeDescription.withOption("binary");
             }
 
-            /*
-             * Now go through the rest of the attributes until the "-" line is
-             * reached.
-             */
+            /* Now go through the rest of the attributes until the "-" line is reached. */
             attributeValues.clear();
             while (record.iterator.hasNext()) {
                 ldifLine = record.iterator.next();
@@ -747,5 +737,4 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
 
         return modifyDNRequest;
     }
-
 }

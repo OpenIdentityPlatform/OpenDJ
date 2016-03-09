@@ -13,8 +13,8 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014 Manuel Gaupp
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import java.io.IOException;
@@ -38,44 +38,36 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
-
-
 /**
  * This class implements the certificate attribute syntax. It is restricted to
  * accept only X.509 certificates.
  */
 final class CertificateSyntaxImpl extends AbstractSyntaxImpl {
-    /** {@inheritDoc} */
     @Override
     public String getEqualityMatchingRule() {
         return EMR_CERTIFICATE_EXACT_OID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getName() {
         return SYNTAX_CERTIFICATE_NAME;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOrderingMatchingRule() {
         return OMR_OCTET_STRING_OID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isBEREncodingRequired() {
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isHumanReadable() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {

@@ -33,11 +33,8 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import com.forgerock.opendj.util.StaticUtils;
 
-/**
- * An immutable sequence of bytes backed by a byte array.
- */
+/** An immutable sequence of bytes backed by a byte array. */
 public final class ByteString implements ByteSequence {
-
     /** Singleton empty byte string. */
     private static final ByteString EMPTY = wrap(new byte[0]);
 
@@ -626,7 +623,6 @@ public final class ByteString implements ByteSequence {
         return new ByteSequenceReader(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte byteAt(final int index) {
         if (index >= length || index < 0) {
@@ -635,14 +631,12 @@ public final class ByteString implements ByteSequence {
         return buffer[offset + index];
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
         return compareTo(this.buffer, this.offset, this.length, bytes, offset, length);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final ByteSequence o) {
         if (this == o) {
@@ -651,14 +645,12 @@ public final class ByteString implements ByteSequence {
         return -o.compareTo(buffer, offset, length);
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] copyTo(final byte[] bytes) {
         copyTo(bytes, 0);
         return bytes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] copyTo(final byte[] bytes, final int offset) {
         if (offset < 0) {
@@ -680,7 +672,6 @@ public final class ByteString implements ByteSequence {
         return builder;
     }
 
-
     @Override
     public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
         return copyTo(ByteBuffer.wrap(buffer, offset, length), charBuffer, decoder);
@@ -698,14 +689,12 @@ public final class ByteString implements ByteSequence {
         return !result.isError() && !result.isOverflow();
     }
 
-    /** {@inheritDoc} */
     @Override
     public OutputStream copyTo(final OutputStream stream) throws IOException {
         stream.write(buffer, offset, length);
         return stream;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
@@ -751,13 +740,11 @@ public final class ByteString implements ByteSequence {
         return length == 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int length() {
         return length;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString subSequence(final int start, final int end) {
         if (start < 0 || start > end || end > length) {
@@ -766,16 +753,11 @@ public final class ByteString implements ByteSequence {
         return new ByteString(buffer, offset + start, end - start);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean startsWith(ByteSequence prefix) {
-        if (prefix == null || prefix.length() > length) {
-            return false;
-        }
-        return prefix.equals(buffer, 0, prefix.length());
+        return prefix != null && prefix.length() <= length && prefix.equals(buffer, 0, prefix.length());
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toBase64String() {
         return Base64.encode(this);
@@ -900,13 +882,11 @@ public final class ByteString implements ByteSequence {
         return builder.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] toByteArray() {
         return copyTo(new byte[length]);
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString toByteString() {
         return this;
@@ -971,7 +951,6 @@ public final class ByteString implements ByteSequence {
         return v;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return toString(buffer, offset, length);

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -50,7 +50,6 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
         this.priority = priority;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final ArgumentGroup o) {
         // Groups with higher priority numbers appear before
@@ -92,7 +91,7 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
      * @return boolean where true means this group contains members
      */
     boolean containsArguments() {
-        return this.args.size() > 0;
+        return !args.isEmpty();
     }
 
     /**
@@ -148,7 +147,6 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
         this.description = description;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(description=" + description + ")";

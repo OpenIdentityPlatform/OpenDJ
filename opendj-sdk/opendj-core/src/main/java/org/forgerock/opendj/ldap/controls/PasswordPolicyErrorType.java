@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -27,15 +28,10 @@ package org.forgerock.opendj.ldap.controls;
  *      </a>
  */
 public enum PasswordPolicyErrorType {
-
-    /**
-     * Indicates that the password has expired and must be reset.
-     */
+    /** Indicates that the password has expired and must be reset. */
     PASSWORD_EXPIRED(0, "passwordExpired"),
 
-    /**
-     * Indicates that the user's account has been locked.
-     */
+    /** Indicates that the user's account has been locked. */
     ACCOUNT_LOCKED(1, "accountLocked"),
 
     /**
@@ -44,37 +40,22 @@ public enum PasswordPolicyErrorType {
      */
     CHANGE_AFTER_RESET(2, "changeAfterReset"),
 
-    /**
-     * Indicates that a user is restricted from changing her password.
-     */
+    /** Indicates that a user is restricted from changing her password. */
     PASSWORD_MOD_NOT_ALLOWED(3, "passwordModNotAllowed"),
 
-    /**
-     * Indicates that the old password must be supplied in order to modify the
-     * password.
-     */
+    /** Indicates that the old password must be supplied in order to modify the password. */
     MUST_SUPPLY_OLD_PASSWORD(4, "mustSupplyOldPassword"),
 
-    /**
-     * Indicates that a password doesn't pass quality checking.
-     */
+    /** Indicates that a password doesn't pass quality checking. */
     INSUFFICIENT_PASSWORD_QUALITY(5, "insufficientPasswordQuality"),
 
-    /**
-     * Indicates that a password is not long enough.
-     */
+    /** Indicates that a password is not long enough. */
     PASSWORD_TOO_SHORT(6, "passwordTooShort"),
 
-    /**
-     * Indicates that the age of the password to be modified is not yet old
-     * enough.
-     */
+    /** Indicates that the age of the password to be modified is not yet old enough. */
     PASSWORD_TOO_YOUNG(7, "passwordTooYoung"),
 
-    /**
-     * Indicates that a password has already been used and the user must choose
-     * a different one.
-     */
+    /** Indicates that a password has already been used and the user must choose a different one. */
     PASSWORD_IN_HISTORY(8, "passwordInHistory");
 
     private final int intValue;
@@ -86,7 +67,6 @@ public enum PasswordPolicyErrorType {
         this.name = name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return name;
@@ -100,5 +80,4 @@ public enum PasswordPolicyErrorType {
     int intValue() {
         return intValue;
     }
-
 }

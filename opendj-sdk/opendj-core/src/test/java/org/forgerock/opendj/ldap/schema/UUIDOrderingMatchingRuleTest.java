@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -19,12 +20,8 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_UUID_OID;
 
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the UUIDOrderingMatchingRule.
- */
+/** Test the UUIDOrderingMatchingRule. */
 public class UUIDOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
@@ -36,7 +33,6 @@ public class UUIDOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
@@ -48,7 +44,6 @@ public class UUIDOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(OMR_UUID_OID);

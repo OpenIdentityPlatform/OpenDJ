@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,9 +20,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_GENERALIZE
 
 import org.testng.annotations.DataProvider;
 
-/**
- * Generalized time syntax tests.
- */
+/** Generalized time syntax tests. */
 public class GeneralizedTimeSyntaxTest extends AbstractSyntaxTestCase {
     @Override
     @DataProvider(name = "acceptableValues")
@@ -39,10 +37,8 @@ public class GeneralizedTimeSyntaxTest extends AbstractSyntaxTestCase {
             { "2006", false }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_GENERALIZED_TIME_OID);
     }
-
 }

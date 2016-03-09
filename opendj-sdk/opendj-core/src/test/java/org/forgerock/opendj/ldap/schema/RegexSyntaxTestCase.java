@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -22,12 +22,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Regex syntax tests.
- */
+/** Regex syntax tests. */
 @SuppressWarnings("javadoc")
 public class RegexSyntaxTestCase extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -52,7 +49,6 @@ public class RegexSyntaxTestCase extends AbstractSyntaxTestCase {
         Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
@@ -60,5 +56,4 @@ public class RegexSyntaxTestCase extends AbstractSyntaxTestCase {
                 .compile("^[a-z-A-Z]+:[0-9.]+\\d$"), false);
         return builder.toSchema().getSyntax("1.1.1");
     }
-
 }

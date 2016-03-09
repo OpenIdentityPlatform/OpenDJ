@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -30,9 +29,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.util.promise.PromiseImpl;
 
-/**
- * Search result promise implementation.
- */
+/** Search result promise implementation. */
 public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<SearchRequest, Result> implements
         SearchResultHandler {
     private SearchResultHandler searchResultHandler;
@@ -50,7 +47,6 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
                 || request.containsControl(ADNotificationRequestControl.OID);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean handleEntry(final SearchResultEntry entry) {
         // FIXME: there's a potential race condition here - the promise could
@@ -66,7 +62,6 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
         return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean handleReference(final SearchResultReference reference) {
         // FIXME: there's a potential race condition here - the promise could
@@ -92,5 +87,4 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
         // Persistent searches should not time out.
         return !isPersistentSearch;
     }
-
 }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -21,19 +21,15 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_OTHER_MAIL
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Other mailbox syntax tests.
- */
+/** Other mailbox syntax tests. */
 @Test
 public class OtherMailboxSyntaxTest extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
         return new Object[][] { { "MyMail$Mymailbox", true }, { "MyMailMymailbox", false }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_OTHER_MAILBOX_OID);

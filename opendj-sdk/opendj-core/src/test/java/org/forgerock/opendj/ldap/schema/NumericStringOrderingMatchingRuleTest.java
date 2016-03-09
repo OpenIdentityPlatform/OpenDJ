@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,13 +21,9 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_NUMERIC_STRIN
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test the NumericStringOrderingMatchingRule.
- */
+/** Test the NumericStringOrderingMatchingRule. */
 @Test
 public class NumericStringOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
@@ -34,7 +31,6 @@ public class NumericStringOrderingMatchingRuleTest extends OrderingMatchingRuleT
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
@@ -52,7 +48,6 @@ public class NumericStringOrderingMatchingRuleTest extends OrderingMatchingRuleT
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(OMR_NUMERIC_STRING_OID);

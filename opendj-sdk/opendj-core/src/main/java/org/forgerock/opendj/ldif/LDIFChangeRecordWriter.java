@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldif;
 
 import java.io.IOException;
@@ -62,7 +61,6 @@ import org.forgerock.util.Reject;
  *      Interchange Format (LDIF) - Technical Specification </a>
  */
 public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements ChangeRecordWriter {
-
     /**
      * Returns the LDIF string representation of the provided change record.
      *
@@ -114,13 +112,11 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         super(writer);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void flush() throws IOException {
         flush0();
@@ -246,7 +242,6 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final AddRequest change) throws IOException {
         Reject.ifNull(change);
@@ -277,7 +272,6 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ChangeRecord change) throws IOException {
         Reject.ifNull(change);
@@ -294,7 +288,6 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final DeleteRequest change) throws IOException {
         Reject.ifNull(change);
@@ -314,7 +307,6 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
             throws IOException {
@@ -351,7 +343,6 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyRequest change) throws IOException {
         Reject.ifNull(change);
@@ -393,11 +384,9 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeComment(final CharSequence comment) throws IOException {
         writeComment0(comment);
         return this;
     }
-
 }

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -23,10 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
-/**
- * A connection event listener which records events and signals when it has been
- * notified.
- */
+/** A connection event listener which records events and signals when it has been notified. */
 @SuppressWarnings("javadoc")
 public final class MockConnectionEventListener implements ConnectionEventListener {
     private final CountDownLatch closedLatch = new CountDownLatch(1);
@@ -37,14 +34,12 @@ public final class MockConnectionEventListener implements ConnectionEventListene
     private ExtendedResult notification;
     private final AtomicInteger invocationCount = new AtomicInteger();
 
-    /** {@inheritDoc} */
     @Override
     public void handleConnectionClosed() {
         invocationCount.incrementAndGet();
         closedLatch.countDown();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleConnectionError(boolean isDisconnectNotification, LdapException error) {
         this.isDisconnectNotification = isDisconnectNotification;
@@ -53,7 +48,6 @@ public final class MockConnectionEventListener implements ConnectionEventListene
         errorLatch.countDown();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleUnsolicitedNotification(ExtendedResult notification) {
         this.notification = notification;

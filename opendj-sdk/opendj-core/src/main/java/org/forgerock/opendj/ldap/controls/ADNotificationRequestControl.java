@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -125,31 +125,26 @@ public final class ADNotificationRequestControl implements Control {
         return new ADNotificationRequestControl(isCritical);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isCritical() {
         return isCritical;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

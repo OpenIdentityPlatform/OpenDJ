@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,12 +20,8 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_GENERALIZED_T
 
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the GeneralizedTimeOrderingMatchingRule.
- */
+/** Test the GeneralizedTimeOrderingMatchingRule. */
 public class GeneralizedTimeOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
@@ -51,7 +47,6 @@ public class GeneralizedTimeOrderingMatchingRuleTest extends OrderingMatchingRul
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
@@ -70,7 +65,6 @@ public class GeneralizedTimeOrderingMatchingRuleTest extends OrderingMatchingRul
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(OMR_GENERALIZED_TIME_OID);

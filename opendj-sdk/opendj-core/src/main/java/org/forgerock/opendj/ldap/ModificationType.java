@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -29,7 +30,6 @@ import java.util.List;
  *      Directory Access Protocol (LDAP) Modify-Increment Extension </a>
  */
 public final class ModificationType {
-
     /**
      * Contains equivalent values for the ModificationType values.
      * This allows easily using ModificationType values with switch statements.
@@ -145,7 +145,6 @@ public final class ModificationType {
         this.modificationTypeEnum = modificationTypeEnum;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -157,7 +156,6 @@ public final class ModificationType {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;

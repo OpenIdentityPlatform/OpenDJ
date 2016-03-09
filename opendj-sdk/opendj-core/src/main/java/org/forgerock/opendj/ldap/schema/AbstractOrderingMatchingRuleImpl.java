@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -44,7 +44,6 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         this.indexer = new DefaultIndexer(indexId);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
@@ -63,7 +62,6 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
@@ -82,7 +80,6 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
@@ -101,10 +98,8 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
         return Collections.singleton(indexer);
     }
-
 }

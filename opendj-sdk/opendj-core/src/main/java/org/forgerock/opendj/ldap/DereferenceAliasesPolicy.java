@@ -12,8 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
@@ -61,10 +61,7 @@ public final class DereferenceAliasesPolicy {
      */
     public static final DereferenceAliasesPolicy FINDING_BASE = register(2, "find");
 
-    /**
-     * Dereference aliases both in searching and in locating the base object of
-     * a Search operation.
-     */
+    /** Dereference aliases both in searching and in locating the base object of a Search operation. */
     public static final DereferenceAliasesPolicy ALWAYS = register(3, "always");
 
     /**
@@ -122,7 +119,6 @@ public final class DereferenceAliasesPolicy {
         this.name = name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -134,7 +130,6 @@ public final class DereferenceAliasesPolicy {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;

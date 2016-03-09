@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -44,7 +44,6 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
  * ordering rules) and a substring one (for substring rule).
  */
 final class CollationMatchingRulesImpl {
-
     private static final String INDEX_ID_SHARED = "shared";
     private static final String INDEX_ID_SUBSTRING = "substring";
 
@@ -118,9 +117,7 @@ final class CollationMatchingRulesImpl {
         return new CollationGreaterThanOrEqualToMatchingRuleImpl(locale);
     }
 
-    /**
-     * Defines the base for collation matching rules.
-     */
+    /** Defines the base for collation matching rules. */
     private static abstract class AbstractCollationMatchingRuleImpl extends AbstractMatchingRuleImpl {
         private final Locale locale;
         final Collator collator;
@@ -172,13 +169,11 @@ final class CollationMatchingRulesImpl {
             return builder.toString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             return Collections.singletonList(indexer);
         }
 
-        /** {@inheritDoc} */
         @Override
         public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
                 throws DecodeException {
@@ -192,11 +187,8 @@ final class CollationMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the collation equality matching rule.
-     */
+    /** Defines the collation equality matching rule. */
     private static final class CollationEqualityMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
-
         /**
          * Creates the matching rule with the provided locale.
          *
@@ -212,14 +204,10 @@ final class CollationMatchingRulesImpl {
                 throws DecodeException {
             return named(indexName, normalizeAttributeValue(schema, assertionValue));
         }
-
     }
 
-    /**
-     * Defines the collation substring matching rule.
-     */
+    /** Defines the collation substring matching rule. */
     private static final class CollationSubstringMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
-
         private final AbstractSubstringMatchingRuleImpl substringMatchingRule;
 
         /**
@@ -245,14 +233,12 @@ final class CollationMatchingRulesImpl {
             return substringMatchingRule.getAssertion(schema, assertionValue);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
                 List<? extends ByteSequence> subAnyElements, ByteSequence subFinal) throws DecodeException {
             return substringMatchingRule.getSubstringAssertion(schema, subInitial, subAnyElements, subFinal);
         }
 
-        /** {@inheritDoc} */
         @Override
         public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
             final Collection<Indexer> indexers = new ArrayList<>(substringMatchingRule.createIndexers(options));
@@ -261,11 +247,8 @@ final class CollationMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the collation ordering matching rule.
-     */
+    /** Defines the collation ordering matching rule. */
     private static abstract class CollationOrderingMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
-
         final AbstractOrderingMatchingRuleImpl orderingMatchingRule;
 
         /**
@@ -286,48 +269,36 @@ final class CollationMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the collation less than matching rule.
-     */
+    /** Defines the collation less than matching rule. */
     private static final class CollationLessThanMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
-
         CollationLessThanMatchingRuleImpl(Locale locale) {
             super(locale);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException {
             return orderingMatchingRule.getAssertion(schema, assertionValue);
         }
     }
 
-    /**
-     * Defines the collation less than or equal matching rule.
-     */
+    /** Defines the collation less than or equal matching rule. */
     private static final class CollationLessThanOrEqualToMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
-
         CollationLessThanOrEqualToMatchingRuleImpl(Locale locale) {
             super(locale);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException {
             return orderingMatchingRule.getLessOrEqualAssertion(schema, assertionValue);
         }
     }
 
-    /**
-     * Defines the collation greater than matching rule.
-     */
+    /** Defines the collation greater than matching rule. */
     private static final class CollationGreaterThanMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
-
         CollationGreaterThanMatchingRuleImpl(Locale locale) {
             super(locale);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(Schema schema, ByteSequence assertionValue)
                 throws DecodeException {
@@ -347,17 +318,13 @@ final class CollationMatchingRulesImpl {
         }
     }
 
-    /**
-     * Defines the collation greater than or equal matching rule.
-     */
+    /** Defines the collation greater than or equal matching rule. */
     private static final class CollationGreaterThanOrEqualToMatchingRuleImpl
         extends CollationOrderingMatchingRuleImpl {
-
         CollationGreaterThanOrEqualToMatchingRuleImpl(Locale locale) {
             super(locale);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Assertion getAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException {
             return orderingMatchingRule.getGreaterOrEqualAssertion(schema, assertionValue);

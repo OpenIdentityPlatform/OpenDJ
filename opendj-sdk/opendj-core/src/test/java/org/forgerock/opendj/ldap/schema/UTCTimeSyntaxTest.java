@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2012-2014 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -27,9 +27,7 @@ import java.util.TimeZone;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * UTC time syntax tests.
- */
+/** UTC time syntax tests. */
 public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
     @Override
     @DataProvider(name = "acceptableValues")
@@ -167,7 +165,6 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_UTC_TIME_OID);

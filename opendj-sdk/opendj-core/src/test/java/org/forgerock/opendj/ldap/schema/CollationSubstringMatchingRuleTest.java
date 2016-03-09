@@ -28,7 +28,6 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 @Test
 public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTest {
-
     @Override
     @DataProvider(name = "substringInvalidAssertionValues")
     public Object[][] createMatchingRuleInvalidAssertionValues() {
@@ -41,7 +40,6 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         return new Object[][] { };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringFinalMatchData")
     public Object[][] createSubstringFinalMatchData() {
@@ -72,7 +70,6 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringInitialMatchData")
     public Object[][] createSubstringInitialMatchData() {
@@ -99,7 +96,6 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringMiddleMatchData")
     public Object[][] createSubstringMiddleMatchData() {
@@ -133,7 +129,6 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule("fr.sub");

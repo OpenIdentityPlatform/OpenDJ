@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.examples;
 
@@ -51,7 +51,6 @@ import org.forgerock.util.promise.ResultHandler;
 public final class SearchAsync {
     // --- JCite search result handler ---
     private static final class SearchResultHandlerImpl implements SearchResultHandler {
-        /** {@inheritDoc} */
         @Override
         public synchronized boolean handleEntry(final SearchResultEntry entry) {
             try {
@@ -91,7 +90,6 @@ public final class SearchAsync {
             return true;
         }
 
-        /** {@inheritDoc} */
         @Override
         public synchronized boolean handleReference(final SearchResultReference reference) {
             try {

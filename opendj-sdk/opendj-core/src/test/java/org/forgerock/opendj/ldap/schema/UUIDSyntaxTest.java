@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -21,12 +21,9 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_UUID_OID;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * UUID syntax tests.
- */
+/** UUID syntax tests. */
 @Test
 public class UUIDSyntaxTest extends AbstractSyntaxTestCase {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -44,7 +41,6 @@ public class UUIDSyntaxTest extends AbstractSyntaxTestCase {
             { "12345678-9abc-def0-1234-1234567890a", false }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_UUID_OID);

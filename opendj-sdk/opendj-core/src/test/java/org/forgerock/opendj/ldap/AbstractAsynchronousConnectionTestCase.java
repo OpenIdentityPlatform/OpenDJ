@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.LinkedList;
@@ -56,7 +55,6 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings("javadoc")
 public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
-
     public final class MockConnection extends AbstractAsynchronousConnection {
         private final ResultCode resultCode;
         private final SearchResultEntry[] entries;
@@ -66,7 +64,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
             this.entries = entries;
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<Void> abandonAsync(AbandonRequest request) {
             if (!resultCode.isExceptional()) {
@@ -76,86 +73,73 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<Result> addAsync(AddRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(newResult(resultCode));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void addConnectionEventListener(ConnectionEventListener listener) {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<BindResult> bindAsync(BindRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(newBindResult(resultCode));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void close(UnbindRequest request, String reason) {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<CompareResult> compareAsync(CompareRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(newCompareResult(resultCode));
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<Result> deleteAsync(DeleteRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(newResult(resultCode));
         }
 
-        /** {@inheritDoc} */
         @Override
         public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(request.getResultDecoder().newExtendedErrorResult(resultCode, "", ""));
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isClosed() {
             return false;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isValid() {
             return true;
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<Result> modifyAsync(ModifyRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(newResult(resultCode));
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
             return getPromiseFromResultCode(newResult(resultCode));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void removeConnectionEventListener(ConnectionEventListener listener) {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public LdapPromise<Result> searchAsync(SearchRequest request,
                 IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler) {
@@ -174,12 +158,10 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             return "MockConnection";
         }
-
     }
 
     @Test
@@ -477,5 +459,4 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
             verify(exceptionHandler).handleException(any(LdapException.class));
         }
     }
-
 }

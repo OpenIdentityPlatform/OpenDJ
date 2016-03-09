@@ -89,7 +89,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         this.bindFactory = bindFactory;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
         final IntermediateResponseHandler intermediateResponseHandler, final LdapResultHandler<Result> resultHandler) {
@@ -105,7 +104,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         }).thenOnResult(resultHandler).thenOnException(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleBind(final RequestContext requestContext, final int version, final BindRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
@@ -135,10 +133,8 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
                         }
                     }).thenOnException(resultHandler).thenAlways(close(connectionHolder));
         }
-
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleCompare(final RequestContext requestContext, final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -155,7 +151,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         }).thenOnResult(resultHandler).thenOnException(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -172,7 +167,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         }).thenOnResult(resultHandler).thenOnException(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R extends ExtendedResult> void handleExtendedRequest(final RequestContext requestContext,
         final ExtendedRequest<R> request, final IntermediateResponseHandler intermediateResponseHandler,
@@ -201,7 +195,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleModify(final RequestContext requestContext, final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -218,7 +211,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         }).thenOnResult(resultHandler).thenOnException(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleModifyDN(final RequestContext requestContext, final ModifyDNRequest request,
         final IntermediateResponseHandler intermediateResponseHandler, final LdapResultHandler<Result> resultHandler) {
@@ -234,7 +226,6 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         }).thenOnResult(resultHandler).thenOnException(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void handleSearch(final RequestContext requestContext, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,

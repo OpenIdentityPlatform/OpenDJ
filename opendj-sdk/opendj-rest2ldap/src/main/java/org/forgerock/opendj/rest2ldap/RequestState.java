@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -73,7 +73,7 @@ final class RequestState implements Closeable {
     private static final class CachedRead implements SearchResultHandler, LdapResultHandler<Result> {
         private SearchResultEntry cachedEntry;
         private final String cachedFilterString;
-        /**  Guarded by cachedPromiseLatch.*/
+        /** Guarded by cachedPromiseLatch. */
         private LdapPromise<Result> cachedPromise;
         private final CountDownLatch cachedPromiseLatch = new CountDownLatch(1);
         private final SearchRequest cachedRequest;
@@ -164,7 +164,6 @@ final class RequestState implements Closeable {
                 searchResultHandler.handleEntry(cachedEntry);
             }
         }
-
     }
 
     /**
@@ -191,10 +190,7 @@ final class RequestState implements Closeable {
         this.config = config;
         this.context = context;
 
-        /*
-         * Re-use the pre-authenticated connection if available and the
-         * authorization policy allows.
-         */
+        /* Re-use the pre-authenticated connection if available and the authorization policy allows. */
         if (config.getAuthorizationPolicy() != AuthorizationPolicy.NONE
                 && context.containsContext(AuthenticatedConnectionContext.class)) {
             this.connection = wrap(context.asContext(AuthenticatedConnectionContext.class).getConnection());
@@ -203,7 +199,6 @@ final class RequestState implements Closeable {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() {
         connection.close();
@@ -283,9 +278,7 @@ final class RequestState implements Closeable {
      * if needed.
      */
     private Connection wrap(final Connection connection) {
-        /*
-         * We only use async methods so no need to wrap sync methods.
-         */
+        /* We only use async methods so no need to wrap sync methods. */
         return new AbstractAsynchronousConnection() {
             @Override
             public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
@@ -439,5 +432,4 @@ final class RequestState implements Closeable {
             }
         };
     }
-
 }

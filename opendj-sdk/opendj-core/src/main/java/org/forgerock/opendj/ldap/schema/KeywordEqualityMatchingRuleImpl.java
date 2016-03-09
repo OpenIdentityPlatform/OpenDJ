@@ -118,7 +118,6 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     public Collection<? extends Indexer> createIndexers(IndexingOptions options) {
         return Collections.emptySet();

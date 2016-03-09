@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -29,7 +29,6 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
  * values in byte order.
  */
 abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
-
     private final Indexer indexer;
 
     AbstractApproximateMatchingRuleImpl(String indexID) {
@@ -42,7 +41,6 @@ abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleI
         return named(indexer.getIndexID(), normalizeAttributeValue(schema, assertionValue));
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Collection<? extends Indexer> createIndexers(IndexingOptions options) {
         return Collections.singleton(indexer);

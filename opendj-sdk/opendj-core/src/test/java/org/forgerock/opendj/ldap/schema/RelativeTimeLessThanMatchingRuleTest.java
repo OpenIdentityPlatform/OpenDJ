@@ -34,8 +34,6 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 @SuppressWarnings("javadoc")
 @Test
 public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
@@ -68,7 +66,6 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -104,7 +101,6 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return CoreSchema.getInstance().getMatchingRule(SchemaConstants.OMR_RELATIVE_TIME_LESS_THAN_OID);

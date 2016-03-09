@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -30,9 +31,7 @@ package org.forgerock.opendj.ldap.controls;
  *      </a>
  */
 public enum PasswordPolicyWarningType {
-    /**
-     * Indicates the number of seconds before a password will expire.
-     */
+    /** Indicates the number of seconds before a password will expire. */
     TIME_BEFORE_EXPIRATION(0, "timeBeforeExpiration"),
 
     /**
@@ -50,7 +49,6 @@ public enum PasswordPolicyWarningType {
         this.name = name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return name;

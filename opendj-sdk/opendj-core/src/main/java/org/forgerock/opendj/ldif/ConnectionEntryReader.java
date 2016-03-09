@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldif;
 
 import java.util.NoSuchElementException;
@@ -96,13 +95,9 @@ import static org.forgerock.opendj.ldap.LdapException.*;
  * interface which is not mockable.
  */
 public class ConnectionEntryReader implements EntryReader {
-    /*
-     * See OPENDJ-1124 for more discussion about why this class is non-final.
-     */
+    /* See OPENDJ-1124 for more discussion about why this class is non-final. */
 
-    /**
-     * Result handler that places all responses in a queue.
-     */
+    /** Result handler that places all responses in a queue. */
     private static final class BufferHandler implements SearchResultHandler, LdapResultHandler<Result> {
         private final BlockingQueue<Response> responses;
         private volatile boolean isInterrupted;
@@ -204,17 +199,13 @@ public class ConnectionEntryReader implements EntryReader {
         promise = connection.searchAsync(searchRequest, buffer).thenOnResult(buffer).thenOnException(buffer);
     }
 
-    /**
-     * Closes this connection entry reader, canceling the search request if it
-     * is still active.
-     */
+    /** Closes this connection entry reader, canceling the search request if it is still active. */
     @Override
     public void close() {
         // Cancel the search if it is still running.
         promise.cancel(true);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasNext() throws LdapException {
         // Poll for the next response if needed.

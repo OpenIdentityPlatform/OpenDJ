@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -19,19 +20,14 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_CASE_EXACT_OI
 
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the CaseExactOrderingMatchingRule.
- */
+/** Test the CaseExactOrderingMatchingRule. */
 public class CaseExactOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
         return new Object[][] {};
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
@@ -41,7 +37,6 @@ public class CaseExactOrderingMatchingRuleTest extends OrderingMatchingRuleTest 
             { "abcdef", "abcdef", 0 }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(OMR_CASE_EXACT_OID);

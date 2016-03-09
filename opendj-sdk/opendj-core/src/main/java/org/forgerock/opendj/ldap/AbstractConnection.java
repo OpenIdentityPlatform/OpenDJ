@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
@@ -53,7 +52,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
  * interface, to minimize the effort required to implement this interface.
  */
 public abstract class AbstractConnection implements Connection {
-
     private static final class SingleEntryHandler implements SearchResultHandler {
         private volatile SearchResultEntry firstEntry;
         private volatile SearchResultReference firstReference;
@@ -166,9 +164,7 @@ public abstract class AbstractConnection implements Connection {
                 }
             };
 
-    /**
-     * Creates a new abstract connection.
-     */
+    /** Creates a new abstract connection. */
     protected AbstractConnection() {
         // No implementation required.
     }
@@ -441,5 +437,4 @@ public abstract class AbstractConnection implements Connection {
      */
     @Override
     public abstract String toString();
-
 }

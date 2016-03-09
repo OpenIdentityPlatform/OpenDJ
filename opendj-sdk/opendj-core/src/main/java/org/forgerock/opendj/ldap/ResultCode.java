@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -38,7 +38,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
  *      Lightweight Directory Access Protocol (LDAP): The Protocol </a>
  */
 public final class ResultCode {
-
     /**
      * Contains equivalent values for the ResultCode values.
      * This allows easily using ResultCode values with switch statements.
@@ -923,7 +922,6 @@ public final class ResultCode {
         this.resultCodeEnum = resultCodeEnum;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -944,7 +942,6 @@ public final class ResultCode {
         return name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;
@@ -1000,5 +997,4 @@ public final class ResultCode {
     public String toString() {
         return name.toString();
     }
-
 }

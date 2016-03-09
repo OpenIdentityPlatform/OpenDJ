@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -29,10 +29,7 @@ import java.io.Writer;
  * a single space.
  */
 public final class TabSeparatedTablePrinter extends TablePrinter {
-
-    /**
-     * Table serializer implementation.
-     */
+    /** Table serializer implementation. */
     private final class Serializer extends TableSerializer {
         /**
          * Counts the number of separators that should be output the next time a non-empty cell is displayed. The tab
@@ -45,7 +42,6 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             // No implementation required.
         }
 
-        /** {@inheritDoc} */
         @Override
         public void addCell(String s) {
             // Avoid printing tab separators for trailing empty cells.
@@ -62,7 +58,6 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             writer.print(s.replaceAll("[\\t\\n\\r]", " "));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void addHeading(String s) {
             if (displayHeadings) {
@@ -70,7 +65,6 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public void endHeader() {
             if (displayHeadings) {
@@ -78,25 +72,21 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public void endRow() {
             writer.println();
         }
 
-        /** {@inheritDoc} */
         @Override
         public void endTable() {
             writer.flush();
         }
 
-        /** {@inheritDoc} */
         @Override
         public void startHeader() {
             requiredSeparators = 0;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void startRow() {
             requiredSeparators = 0;
@@ -140,10 +130,8 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
         this.displayHeadings = displayHeadings;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected TableSerializer getSerializer() {
         return new Serializer();
     }
-
 }

@@ -11,9 +11,8 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2014 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -41,10 +40,7 @@ import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
  * the equivalent synchronous methods.
  */
 public abstract class AbstractSynchronousConnection extends AbstractConnection {
-
-    /**
-     * Creates a new abstract synchronous connection.
-     */
+    /** Creates a new abstract synchronous connection. */
     protected AbstractSynchronousConnection() {
         // No implementation required.
     }
@@ -154,5 +150,4 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     private <R extends Result> LdapPromise<R> thenOnResult(final R result) {
         return newSuccessfulLdapPromise(result);
     }
-
 }

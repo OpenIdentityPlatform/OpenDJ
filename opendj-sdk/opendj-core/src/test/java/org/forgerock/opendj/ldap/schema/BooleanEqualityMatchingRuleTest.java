@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,19 +21,14 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_BOOLEAN_OID;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the BooleanEqualityMatchingRule.
- */
+/** Test the BooleanEqualityMatchingRule. */
 public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { { "garbage" }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -48,10 +44,8 @@ public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest {
             { "TRUE", "false", ConditionResult.FALSE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_BOOLEAN_OID);
     }
-
 }

@@ -206,7 +206,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     /** Thread local copies of the data sources. */
     private final ThreadLocal<DataSource[]> dataSources = new ThreadLocal<DataSource[]>() {
-        /** {@inheritDoc} */
         @Override
         protected DataSource[] initialValue() {
             final DataSource[] prototypes = getDataSources();
@@ -226,9 +225,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     private int targetThroughput;
     private int maxIterations;
-    /** Warm-up duration time in ms. **/
+    /** Warm-up duration time in ms. */
     private long warmUpDurationMs;
-    /** Max duration time in ms, 0 for unlimited. **/
+    /** Max duration time in ms, 0 for unlimited. */
     private long maxDurationTimeMs;
     private boolean noRebind;
     private BindRequest bindRequest;

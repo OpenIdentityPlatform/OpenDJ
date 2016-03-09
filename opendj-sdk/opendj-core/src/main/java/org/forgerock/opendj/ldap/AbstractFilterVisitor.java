@@ -14,7 +14,6 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.List;
@@ -35,10 +34,7 @@ import java.util.List;
  *            additional parameter.
  */
 public abstract class AbstractFilterVisitor<R, P> implements FilterVisitor<R, P> {
-
-    /**
-     * Default constructor.
-     */
+    /** Default constructor. */
     protected AbstractFilterVisitor() {
         // Nothing to do.
     }

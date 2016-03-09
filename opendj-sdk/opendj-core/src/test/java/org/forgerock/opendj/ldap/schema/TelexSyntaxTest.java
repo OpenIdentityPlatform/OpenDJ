@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -21,13 +21,9 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_TELEX_OID;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Telex syntax tests.
- */
+/** Telex syntax tests. */
 @Test
 public class TelexSyntaxTest extends AbstractSyntaxTestCase {
-
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -37,10 +33,8 @@ public class TelexSyntaxTest extends AbstractSyntaxTestCase {
             { "12345$67890$()+,-./:? ", true }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_TELEX_OID);
     }
-
 }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -21,9 +21,7 @@ import java.util.Map;
 
 import org.forgerock.util.Reject;
 
-/**
- * Abstract implementation for {@code Map} based entries.
- */
+/** Abstract implementation for {@code Map} based entries. */
 abstract class AbstractMapEntry extends AbstractEntry {
     private final Map<AttributeDescription, Attribute> attributes;
     private DN name;
@@ -42,7 +40,6 @@ abstract class AbstractMapEntry extends AbstractEntry {
         this.attributes = attributes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final boolean addAttribute(final Attribute attribute,
             final Collection<? super ByteString> duplicateValues) {
@@ -56,20 +53,17 @@ abstract class AbstractMapEntry extends AbstractEntry {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Entry clearAttributes() {
         attributes.clear();
         return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Iterable<Attribute> getAllAttributes() {
         return attributes.values();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Attribute getAttribute(final AttributeDescription attributeDescription) {
         final Attribute attribute = attributes.get(attributeDescription);
@@ -81,19 +75,16 @@ abstract class AbstractMapEntry extends AbstractEntry {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final int getAttributeCount() {
         return attributes.size();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final DN getName() {
         return name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final boolean removeAttribute(final Attribute attribute,
             final Collection<? super ByteString> missingValues) {
@@ -123,12 +114,10 @@ abstract class AbstractMapEntry extends AbstractEntry {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Entry setName(final DN dn) {
         Reject.ifNull(dn);
         this.name = dn;
         return this;
     }
-
 }

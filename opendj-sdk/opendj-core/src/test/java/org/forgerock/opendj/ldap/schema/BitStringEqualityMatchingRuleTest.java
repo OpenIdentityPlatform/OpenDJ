@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -20,11 +21,8 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_BIT_STRING_OI
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
-/**
- * Test the BitStringEqualityMatchingRule.
- */
+/** Test the BitStringEqualityMatchingRule. */
 public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
@@ -36,7 +34,6 @@ public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
             { "\'1010\'A" }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -46,7 +43,6 @@ public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
             { "\'0\'B", "\'1\'B", ConditionResult.FALSE }, };
     }
 
-    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_BIT_STRING_OID);

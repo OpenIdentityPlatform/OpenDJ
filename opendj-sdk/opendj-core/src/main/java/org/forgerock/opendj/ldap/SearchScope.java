@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -32,7 +32,6 @@ import java.util.List;
  *      Scope for LDAP </a>
  */
 public final class SearchScope {
-
     /**
      * Contains equivalent values for the SearchScope values.
      * This allows easily using SearchScope values with switch statements.
@@ -57,21 +56,13 @@ public final class SearchScope {
     private static final List<SearchScope> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(Arrays
             .asList(ELEMENTS));
 
-    /**
-     * The scope is constrained to the search base entry.
-     */
+    /** The scope is constrained to the search base entry. */
     public static final SearchScope BASE_OBJECT = register(0, "base", Enum.BASE_OBJECT);
 
-    /**
-     * The scope is constrained to the immediate subordinates of the search base
-     * entry.
-     */
+    /** The scope is constrained to the immediate subordinates of the search base entry. */
     public static final SearchScope SINGLE_LEVEL = register(1, "one", Enum.SINGLE_LEVEL);
 
-    /**
-     * The scope is constrained to the search base entry and to all its
-     * subordinates.
-     */
+    /** The scope is constrained to the search base entry and to all its subordinates. */
     public static final SearchScope WHOLE_SUBTREE = register(2, "sub", Enum.WHOLE_SUBTREE);
 
     /**
@@ -164,7 +155,6 @@ public final class SearchScope {
         this.searchScopeEnum = searchScopeEnum;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -176,7 +166,6 @@ public final class SearchScope {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;
