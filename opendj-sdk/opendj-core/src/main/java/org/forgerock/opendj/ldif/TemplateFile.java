@@ -425,8 +425,13 @@ final class TemplateFile {
         TemplateData templateData = new TemplateData();
 
         for (int lineNumber = 0; lineNumber < lines.length; lineNumber++) {
-            final String line = replaceConstants(lines[lineNumber], lineNumber, constants, warnings);
+            final String currentRawLine = lines[lineNumber];
+            if (currentRawLine.isEmpty() || currentRawLine.startsWith("#")) {
+                // This is a comment or a blank line, so we'll ignore it.
+                continue;
+            }
 
+            final String line = replaceConstants(currentRawLine, lineNumber, constants, warnings);
             final String lowerLine = line.toLowerCase();
             if (line.length() == 0 || line.startsWith("#")) {
                 // This is a comment or a blank line, so we'll ignore it.
@@ -441,7 +446,7 @@ final class TemplateFile {
                 lineNumber = parseTemplate(lineNumber, line, lines, templateData, warnings);
             } else {
                 throw DecodeException.fatalError(
-                        ERR_ENTRY_GENERATOR_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber));
+                        ERR_ENTRY_GENERATOR_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber + 1));
             }
         }
 
@@ -506,17 +511,17 @@ final class TemplateFile {
         // an equal sign, and the constant value.
         final int equalPos = line.indexOf('=', DEFINE_LABEL.length());
         if (equalPos < 0) {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_DEFINE_MISSING_EQUALS.get(lineNumber));
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_DEFINE_MISSING_EQUALS.get(lineNumber + 1));
         }
 
         final String name = line.substring(DEFINE_LABEL.length(), equalPos).trim();
         if (name.length() == 0) {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_DEFINE_NAME_EMPTY.get(lineNumber));
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_DEFINE_NAME_EMPTY.get(lineNumber + 1));
         }
 
         final String value = line.substring(equalPos + 1);
         if (value.length() == 0) {
-            warnings.add(ERR_ENTRY_GENERATOR_WARNING_DEFINE_VALUE_EMPTY.get(name, lineNumber));
+            warnings.add(ERR_ENTRY_GENERATOR_WARNING_DEFINE_VALUE_EMPTY.get(name, lineNumber + 1));
         }
 
         final String lowerName = name.toLowerCase();
@@ -537,7 +542,7 @@ final class TemplateFile {
         final DN branchDN = branch.getBranchDN();
         if (templateData.branches.containsKey(branchDN)) {
             throw DecodeException.fatalError(
-                    ERR_ENTRY_GENERATOR_CONFLICTING_BRANCH_DN.get(String.valueOf(branchDN), startLineNumber));
+                    ERR_ENTRY_GENERATOR_CONFLICTING_BRANCH_DN.get(String.valueOf(branchDN), startLineNumber + 1));
         }
         templateData.branches.put(branchDN, branch);
         // position to next line after end of branch
@@ -557,7 +562,7 @@ final class TemplateFile {
         final String lowerName = template.getName().toLowerCase();
         if (templateData.templates.containsKey(lowerName)) {
             throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CONFLICTING_TEMPLATE_NAME.get(
-                    String.valueOf(template.getName()), startLineNumber));
+                    String.valueOf(template.getName()), startLineNumber + 1));
         }
         templateData.templates.put(lowerName, template);
         // position to next line after end of template
@@ -635,7 +640,7 @@ final class TemplateFile {
                     if (constantValue != null) {
                         lineBuffer.replace(openPos, closePos + 1, constantValue);
                     } else {
-                        warnings.add(WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName, lineNumber));
+                        warnings.add(WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName, lineNumber + 1));
                     }
                 }
                 if (openPos >= 0) {
@@ -676,8 +681,8 @@ final class TemplateFile {
         try {
             branchDN = DN.valueOf(dnString, schema);
         } catch (Exception e) {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CANNOT_DECODE_BRANCH_DN.get(
-                    dnString, startLineNumber));
+            throw DecodeException.fatalError(
+                    ERR_ENTRY_GENERATOR_CANNOT_DECODE_BRANCH_DN.get(dnString, startLineNumber + 1));
         }
 
         final Branch branch = new Branch(this, branchDN, schema);
@@ -751,7 +756,7 @@ final class TemplateFile {
                 parentTemplate = definedTemplates.get(parentTemplateName.toLowerCase());
                 if (parentTemplate == null) {
                     throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TEMPLATE_INVALID_PARENT_TEMPLATE.get(
-                            parentTemplateName, lineNumber, templateName));
+                            parentTemplateName, lineNumber + 1, templateName));
                 }
             } else if (lowerLine.startsWith(RDNATTR_LABEL)) {
                 // This is the set of RDN attributes. If there are multiple,
@@ -833,11 +838,11 @@ final class TemplateFile {
                 numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
                 if (numEntries == 0) {
                     warnings.add(WARN_ENTRY_GENERATOR_SUBORDINATE_ZERO_ENTRIES.get(
-                            lineNumber, element.getLabel(), elementName, templateName));
+                            lineNumber + 1, element.getLabel(), elementName, templateName));
                 }
             } catch (NumberFormatException nfe) {
                 throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
-                        templateName, lineNumber, element.getLabel(), elementName));
+                        templateName, lineNumber + 1, element.getLabel(), elementName));
             }
         }
 
@@ -882,10 +887,10 @@ final class TemplateFile {
         final int colonPos = lowerLine.indexOf(':');
         if (colonPos < 0) {
             throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_COLON_IN_TEMPLATE_LINE.get(
-                    lineNumber, element.getLabel(), elementName));
+                    lineNumber + 1, element.getLabel(), elementName));
         } else if (colonPos == 0) {
             throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_ATTR_IN_TEMPLATE_LINE.get(
-                    lineNumber, element.getLabel(), elementName));
+                    lineNumber + 1, element.getLabel(), elementName));
         }
 
         final AttributeType attributeType = schema.getAttributeType(lowerLine.substring(0, colonPos));
@@ -913,7 +918,7 @@ final class TemplateFile {
             // We've hit the end of the line with no value.
             // We'll allow it, but add a warning.
             warnings.add(WARN_ENTRY_GENERATOR_NO_VALUE_IN_TEMPLATE_LINE.get(
-                    lineNumber, element.getLabel(), elementName));
+                    lineNumber + 1, element.getLabel(), elementName));
         }
 
         int phase = PARSING_STATIC_TEXT;
@@ -1011,7 +1016,7 @@ final class TemplateFile {
                 tagList.add(t);
             }
         } else {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_INCOMPLETE_TAG.get(lineNumber));
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_INCOMPLETE_TAG.get(lineNumber + 1));
         }
 
         return new TemplateLine(attributeType, lineNumber, tagList, valueIsURL, valueIsBase64);
@@ -1053,7 +1058,7 @@ final class TemplateFile {
         if (tag == null) {
             tag = tags.get(lowerTagName);
             if (tag == null) {
-                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_SUCH_TAG.get(tagName, lineNumber));
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_SUCH_TAG.get(tagName, lineNumber + 1));
             }
         }
 
@@ -1068,7 +1073,7 @@ final class TemplateFile {
             newTag = tag.getClass().newInstance();
         } catch (Exception e) {
             throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_NEW_TAG.get(
-                    tagName, lineNumber, String.valueOf(e)), e);
+                    tagName, lineNumber + 1, String.valueOf(e)), e);
         }
 
         if (branch == null) {
@@ -1076,8 +1081,8 @@ final class TemplateFile {
         } else if (newTag.allowedInBranch()) {
             newTag.initializeForBranch(schema, this, branch, arguments, lineNumber, warnings);
         } else {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(),
-                    lineNumber));
+            throw DecodeException.fatalError(
+                    ERR_ENTRY_GENERATOR_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(), lineNumber + 1));
         }
         return newTag;
     }
