@@ -650,10 +650,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
   {
-    if (importConfig.appendToExistingData() || importConfig.replaceExistingEntries())
-    {
-      throw new UnsupportedOperationException("append/replace mode is not supported by this backend.");
-    }
     RuntimeInformation.logInfo();
 
     // If the rootContainer is open, the backend is initialized by something else.

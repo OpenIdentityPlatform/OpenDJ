@@ -3545,7 +3545,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       importConfig = new LDIFImportConfig(input);
       importConfig.setIncludeBranches(newLinkedHashSet(getBaseDN()));
-      importConfig.setAppendToExistingData(false);
       importConfig.setSkipDNValidation(true);
       // We should not validate schema for replication
       importConfig.setValidateSchema(false);

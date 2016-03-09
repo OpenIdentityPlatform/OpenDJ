@@ -48,12 +48,6 @@ public final class LDIFImportConfig extends OperationConfig
   private static final int DEFAULT_BUFFER_SIZE = 8192;
 
   /**
-   * Indicates whether to append to the existing data set rather than
-   * replacing it.
-   */
-  private boolean appendToExistingData;
-
-  /**
    * Indicates whether to include the objectclasses in the entries
    * read from the import.
    */
@@ -67,8 +61,6 @@ public final class LDIFImportConfig extends OperationConfig
   private boolean isEncrypted;
   /** Indicates whether to clear all base DNs in a backend. */
   private boolean clearBackend;
-  /** Indicates whether to replace existing entries when appending data. */
-  private boolean replaceExistingEntries;
   /** Indicates whether to perform schema validation on the entries read. */
   private boolean validateSchema = true;
 
@@ -446,66 +438,6 @@ public final class LDIFImportConfig extends OperationConfig
     }
     skipWriter =
          new BufferedWriter(new OutputStreamWriter(outputStream));
-  }
-
-  /**
-   * Indicates whether to append to an existing data set or completely
-   * replace it.
-   *
-   * @return  <CODE>true</CODE> if the import should append to an
-   *          existing data set, or <CODE>false</CODE> if not.
-   */
-  public boolean appendToExistingData()
-  {
-    return appendToExistingData;
-  }
-
-
-
-  /**
-   * Specifies whether to append to an existing data set or completely
-   * replace it.
-   *
-   * @param  appendToExistingData  Indicates whether to append to an
-   *                               existing data set or completely
-   *                               replace it.
-   */
-  public void setAppendToExistingData(boolean appendToExistingData)
-  {
-    this.appendToExistingData = appendToExistingData;
-  }
-
-
-
-  /**
-   * Indicates whether to replace the existing entry if a duplicate is
-   * found or to reject the new entry.  This only applies when
-   * appending to an existing data set.
-   *
-   * @return  <CODE>true</CODE> if an existing entry should be
-   *          replaced with the new entry from the provided data set,
-   *          or <CODE>false</CODE> if the new entry should be
-   *          rejected.
-   */
-  public boolean replaceExistingEntries()
-  {
-    return replaceExistingEntries;
-  }
-
-
-
-  /**
-   * Specifies whether to replace the existing entry if a duplicate is
-   * found or to reject the new entry.  This only applies when
-   * appending to an existing data set.
-   *
-   * @param  replaceExistingEntries  Indicates whether to replace the
-   *                                 existing entry if a duplicate is
-   *                                 found or to reject the new entry.
-   */
-  public void setReplaceExistingEntries(boolean replaceExistingEntries)
-  {
-    this.replaceExistingEntries = replaceExistingEntries;
   }
 
 
