@@ -37,9 +37,7 @@ import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-/**
- * Class used to parse the arguments of the control panel command-line.
- */
+/** Class used to parse the arguments of the control panel command-line. */
 public class ControlPanelArgumentParser extends ArgumentParser
 {
   /** The 'hostName' global argument. */
@@ -132,7 +130,6 @@ public class ControlPanelArgumentParser extends ArgumentParser
     setUsageArgument(showUsageArg);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
@@ -157,16 +154,11 @@ public class ControlPanelArgumentParser extends ArgumentParser
   /**
    * Returns the host name explicitly provided in the command-line.
    * @return the host name bind DN explicitly provided in the command-line.
-   * Returns <CODE>null</CODE> if no bind DN was explicitly provided.
+   * Returns {@code null} if no bind DN was explicitly provided.
    */
   public String getExplicitHostName()
   {
-    String hostName = null;
-    if (hostNameArg.isPresent())
-    {
-      hostName = hostNameArg.getValue();
-    }
-    return hostName;
+    return hostNameArg.isPresent() ? hostNameArg.getValue() : null;
   }
 
   /**
@@ -176,42 +168,36 @@ public class ControlPanelArgumentParser extends ArgumentParser
    */
   public int getExplicitPort()
   {
-    int port = -1;
     if (portArg.isPresent())
     {
       try
       {
-        port = portArg.getIntValue();
+        return portArg.getIntValue();
       }
       catch (ArgumentException ae)
       {
         throw new IllegalStateException("Error parsing data: "+ae, ae);
       }
     }
-    return port;
+    return -1;
   }
 
   /**
    * Returns the bind DN explicitly provided in the command-line.
    * @return the bind DN explicitly provided in the command-line.
-   * Returns <CODE>null</CODE> if no bind DN was explicitly provided.
+   * Returns {@code null} if no bind DN was explicitly provided.
    */
   public String getExplicitBindDn()
   {
-    String dn = null;
-    if (bindDnArg.isPresent())
-    {
-      dn = bindDnArg.getValue();
-    }
-    return dn;
+    return bindDnArg.isPresent() ? bindDnArg.getValue() : null;
   }
 
   /**
    * Get the password which has to be used for the command without prompting
-   * the user.  If no password was specified, return <CODE>null</CODE>.
+   * the user.  If no password was specified, return {@code null}.
    *
    * @return The password stored into the specified file on by the
-   *         command line argument, or <CODE>null</CODE> it if not specified.
+   *         command line argument, or {@code null} if not specified.
    */
   public String getBindPassword()
   {
