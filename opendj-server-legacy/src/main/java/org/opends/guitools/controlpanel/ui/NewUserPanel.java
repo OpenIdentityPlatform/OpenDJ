@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -25,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -34,10 +34,10 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /** The panel used to create a new user. */
@@ -81,10 +81,10 @@ public class NewUserPanel extends AbstractNewEntryPanel
   private JTextField eMail = Utilities.createLongTextField();
   private JTextField telephoneNumber = Utilities.createLongTextField();
   private JTextField faxNumber = Utilities.createLongTextField();
-  private JComboBox namingAttribute = Utilities.createComboBox();
+  private JComboBox<String> namingAttribute = Utilities.createComboBox();
   private JLabel dn = Utilities.createDefaultLabel();
 
-  Component[] comps = {firstName, lastName, commonName, userID,
+  private Component[] comps = { firstName, lastName, commonName, userID,
       password, confirmPassword, eMail, telephoneNumber, faxNumber,
       namingAttribute, dn};
 
@@ -92,17 +92,14 @@ public class NewUserPanel extends AbstractNewEntryPanel
   {commonName, firstName, lastName, userID};
   private final String[] NAMING_ATTRIBUTES = {"cn", "givenName", "sn", "uid"};
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public NewUserPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -116,25 +113,25 @@ public class NewUserPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_USER_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return firstName;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_USER_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
@@ -158,18 +155,11 @@ public class NewUserPanel extends AbstractNewEntryPanel
     String attr = (String)namingAttribute.getSelectedItem();
     for (int i=0 ; i<NAMING_ATTRIBUTE_TEXTFIELDS.length; i++)
     {
-      boolean isRequired = false;
-      for (JTextField tf : requiredFields)
-      {
-        if (tf == NAMING_ATTRIBUTE_TEXTFIELDS[i])
-        {
-          isRequired = true;
-          break;
-        }
-      }
+      JTextField namingAttrTextField = NAMING_ATTRIBUTE_TEXTFIELDS[i];
+      boolean isRequired = contains(requiredFields, namingAttrTextField);
       if (!isRequired && attr.equalsIgnoreCase(NAMING_ATTRIBUTES[i]))
       {
-        String value = NAMING_ATTRIBUTE_TEXTFIELDS[i].getText().trim();
+        String value = namingAttrTextField.getText().trim();
         if (value.length() == 0)
         {
           errors.add(ERR_CTRL_PANEL_USER_NAMING_ATTRIBUTE_REQUIRED.get(attr));
@@ -180,9 +170,7 @@ public class NewUserPanel extends AbstractNewEntryPanel
 
     char[] pwd1 = password.getPassword();
     char[] pwd2 = confirmPassword.getPassword();
-    String sPwd1 = new String(pwd1);
-    String sPwd2 = new String(pwd2);
-    if (!sPwd1.equals(sPwd2))
+    if (!Arrays.equals(pwd1, pwd2))
     {
       errors.add(ERR_CTRL_PANEL_PASSWORD_DO_NOT_MATCH.get());
     }
@@ -205,10 +193,19 @@ public class NewUserPanel extends AbstractNewEntryPanel
     }
   }
 
+  private boolean contains(JTextField[] requiredFields, JTextField toFind)
+  {
+    for (JTextField tf : requiredFields)
+    {
+      if (tf == toFind)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -269,19 +266,19 @@ public class NewUserPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -293,12 +290,12 @@ public class NewUserPanel extends AbstractNewEntryPanel
       tf.getDocument().addDocumentListener(listener);
     }
 
-    DefaultComboBoxModel model = new DefaultComboBoxModel(NAMING_ATTRIBUTES);
+    DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(NAMING_ATTRIBUTES);
     namingAttribute.setModel(model);
     namingAttribute.setSelectedItem(NAMING_ATTRIBUTES[0]);
     namingAttribute.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         updateDNValue();
@@ -306,11 +303,7 @@ public class NewUserPanel extends AbstractNewEntryPanel
     });
   }
 
-  /**
-   * Updates the contents of DN value to reflect the data that the user
-   * is providing.
-   *
-   */
+  /** Updates the contents of DN value to reflect the data that the user is providing. */
   private void updateDNValue()
   {
     String attr = (String)namingAttribute.getSelectedItem();

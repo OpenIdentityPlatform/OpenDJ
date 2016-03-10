@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -101,9 +100,7 @@ import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CommandBuilder;
 
-/**
- * The class that appears when the user clicks on 'New Base DN'.
- */
+/** The class that appears when the user clicks on 'New Base DN'. */
 public class NewBaseDNPanel extends StatusGenericPanel
 {
   private static final int MAX_ENTRIES_NUMBER_GENERATED = 1000;

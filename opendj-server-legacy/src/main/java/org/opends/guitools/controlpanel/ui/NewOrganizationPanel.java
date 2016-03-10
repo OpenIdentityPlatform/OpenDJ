@@ -14,7 +14,6 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -22,67 +21,49 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.util.ArrayList;
+
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** The panel used to create a new organization. */
-public class NewOrganizationPanel extends AbstractNewEntryPanel
+class NewOrganizationPanel extends AbstractNewEntryPanel
 {
   private static final long serialVersionUID = 6560126551083160773L;
-  /**
-   * The label for the name.
-   */
-  protected final JLabel lName = Utilities.createPrimaryLabel();
-  /**
-   * The label for the description.
-   */
-  protected final JLabel lDescription = Utilities.createPrimaryLabel();
-  /**
-   * The label for the DN.
-   */
-  protected final JLabel lDn = Utilities.createPrimaryLabel();
+  /** The label for the name. */
+  private final JLabel lName = Utilities.createPrimaryLabel();
+  /** The label for the description. */
+  private final JLabel lDescription = Utilities.createPrimaryLabel();
+  /** The label for the DN. */
+  private final JLabel lDn = Utilities.createPrimaryLabel();
 
-  /**
-   * An array containing all the labels.
-   */
+  /** An array containing all the labels. */
   protected final JLabel[] labels = {lName, lDescription, lDn};
 
-  /**
-   * The field containing the name.
-   */
+  /** The field containing the name. */
   protected final JTextField name = Utilities.createLongTextField();
-  /**
-   * The field containing the description.
-   */
+  /** The field containing the description. */
   protected final JTextField description = Utilities.createLongTextField();
-  /**
-   * The label containing the DN value.
-   */
+  /** The label containing the DN value. */
   protected final JLabel dn = Utilities.createDefaultLabel();
 
-  /**
-   * An array containing all the components.
-   */
-  protected final Component[] comps = {name, description, dn};
+  /** An array containing all the components. */
+  private final Component[] comps = { name, description, dn };
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public NewOrganizationPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -96,13 +77,13 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_NEW_ORGANIZATION_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
@@ -112,12 +93,13 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
    * Returns the title of the progress dialog.
    * @return the title of the progress dialog.
    */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_NEW_ORGANIZATION_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
@@ -137,10 +119,7 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
     }
   }
 
-
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -200,19 +179,19 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -225,11 +204,7 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * Updates the contents of DN value to reflect the data that the user
-   * is providing.
-   *
-   */
+  /** Updates the contents of DN value to reflect the data that the user is providing. */
   protected void updateDNValue()
   {
     String value = name.getText().trim();
@@ -263,4 +238,3 @@ public class NewOrganizationPanel extends AbstractNewEntryPanel
     return sb.toString();
   }
 }
-

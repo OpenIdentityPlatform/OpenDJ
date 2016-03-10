@@ -14,12 +14,12 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
+
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
@@ -30,19 +30,19 @@ public class NewDomainPanel extends NewOrganizationPanel
 {
   private static final long serialVersionUID = -595396547491445219L;
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_NEW_DOMAIN_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_NEW_DOMAIN_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)

@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -34,16 +33,13 @@ import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.LDIFException;
 
-/**
- * The panel used to create a new entry using an LDIF representation.
- *
- */
+/** The panel used to create a new entry using an LDIF representation. */
 public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
 {
   private static final long serialVersionUID = -3923907357481784964L;
@@ -51,29 +47,26 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
   private JButton checkSyntax;
   private JLabel lSyntaxCorrect;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public NewEntryFromLDIFPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return ldif;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -89,21 +82,19 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     ldif.setCaretPosition(emptyDn.length());
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_FROM_LDIF_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_FROM_LDIF_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -135,19 +126,19 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     ldif = Utilities.createTextArea(LocalizableMessage.EMPTY, 20, 50);
     ldif.getDocument().addDocumentListener(new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         lSyntaxCorrect.setVisible(false);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         removeUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
        removeUpdate(ev);
@@ -168,7 +159,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     checkSyntax.setOpaque(false);
     checkSyntax.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         ArrayList<LocalizableMessage> errors = new ArrayList<>();
@@ -201,13 +192,13 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     add(checkSyntax, gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     lSyntaxCorrect.setVisible(false);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     try
@@ -224,7 +215,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getLDIF()
   {
     return ldif.getText();

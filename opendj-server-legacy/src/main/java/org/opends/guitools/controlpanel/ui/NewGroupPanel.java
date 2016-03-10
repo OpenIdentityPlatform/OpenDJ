@@ -14,7 +14,6 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -48,22 +47,19 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The panel to create a group.
- *
- */
+/** The panel to create a group. */
 public class NewGroupPanel extends AbstractNewEntryPanel
 {
   private static final long serialVersionUID = -8173120152617813282L;
@@ -75,7 +71,6 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   private JLabel lMemberDNs;
   private JLabel lLDAPURL;
   private JLabel lReferenceGroup;
-
 
   private JLabel[] labels = {lName, lDescription, lMembers, lDn};
 
@@ -99,24 +94,18 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
   private JLabel dn = Utilities.createDefaultLabel();
 
-
-  /**
-   * An array containing the fields of this panel.
-   */
+  /** An array containing the fields of this panel. */
   protected final JTextField[] fields = {name, description, filter,
       referenceGroup};
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public NewGroupPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -129,36 +118,36 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     filter.setText("ldap:///"+parentNode.getDN()+"??sub?(<your filter>)");
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_GROUP_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_GROUP_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean checkSyntaxBackground()
   {
     return staticGroup.isSelected();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     Runnable runnable = new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         for (JLabel label : labels)
@@ -229,6 +218,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
       {
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             setSecondaryInvalid(lMemberDNs);
@@ -294,10 +284,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     }
   }
 
-
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -348,7 +335,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     staticGroup.setSelected(true);
     ActionListener actionListener = new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         checkEnabling();
@@ -414,7 +401,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
     addMembers.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         addMembersClicked();
@@ -488,7 +475,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
       Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
     browseReferenceGroup.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         browseReferenceGroupClicked();
@@ -496,22 +483,21 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     });
     p.add(browseReferenceGroup, gbc2);
 
-
     DocumentListener listener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -525,27 +511,27 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
     DropTargetListener dropTargetlistener = new DropTargetListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void dragEnter(DropTargetDragEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dragExit(DropTargetEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dragOver(DropTargetDragEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dropActionChanged(DropTargetDragEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void drop(DropTargetDropEvent e)
       {
         try {
@@ -670,7 +656,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
@@ -739,4 +725,3 @@ public class NewGroupPanel extends AbstractNewEntryPanel
     lReferenceGroup.setEnabled(virtualGroup.isSelected());
   }
 }
-

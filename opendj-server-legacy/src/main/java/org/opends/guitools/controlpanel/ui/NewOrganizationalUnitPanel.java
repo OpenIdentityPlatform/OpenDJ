@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -22,15 +21,17 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.io.IOException;
-import java.util.ArrayList;import javax.swing.JLabel;
+import java.util.ArrayList;
+
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /** The panel used to create a new organizational unit. */
@@ -64,17 +65,14 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
   private Component[] comps = {name, description, address,
       telephoneNumber, faxNumber, dn};
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public NewOrganizationalUnitPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     super.setParent(parentNode, controller);
@@ -88,25 +86,25 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_OU_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getProgressDialogTitle()
   {
     return INFO_CTRL_PANEL_NEW_OU_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     for (JLabel label : labels)
@@ -143,10 +141,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     }
   }
 
-
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -197,19 +192,19 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -222,11 +217,7 @@ public class NewOrganizationalUnitPanel extends AbstractNewEntryPanel
     }
   }
 
-  /**
-   * Updates the contents of DN value to reflect the data that the user
-   * is providing.
-   *
-   */
+  /** Updates the contents of DN value to reflect the data that the user is providing. */
   private void updateDNValue()
   {
     String value = name.getText().trim();

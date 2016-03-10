@@ -66,10 +66,7 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-/**
- * The panel displayed when the user wants to define a new attribute in the
- * schema.
- */
+/** The panel displayed when the user wants to define a new attribute in the schema. */
 public class NewAttributePanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2340170241535771321L;
@@ -227,10 +224,10 @@ public class NewAttributePanel extends StatusGenericPanel
         availableMatchingRules.add(matchingRuleNameMap.get(key));
       }
 
-      final JComboBox[] combos = { approximate, equality, ordering, substring };
-      for (JComboBox combo : combos)
+      final JComboBox<?>[] combos = { approximate, equality, ordering, substring };
+      for (JComboBox<?> combo : combos)
       {
-        final DefaultComboBoxModel model = (DefaultComboBoxModel) combo.getModel();
+        final DefaultComboBoxModel<?> model = (DefaultComboBoxModel<?>) combo.getModel();
         final List<Object> el = new ArrayList<Object>(availableMatchingRules);
         el.add(0, model.getSize() == 0 ? NO_MATCHING_RULE : model.getElementAt(0));
         updateComboBoxModel(el, model);

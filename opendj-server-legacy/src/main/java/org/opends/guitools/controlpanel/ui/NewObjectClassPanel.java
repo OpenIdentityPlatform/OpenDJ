@@ -14,7 +14,6 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -49,6 +48,7 @@ import javax.swing.event.ChangeListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -63,7 +63,6 @@ import org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEdito
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -103,7 +102,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
   private JTextField name = Utilities.createMediumTextField();
   private SuperiorObjectClassesEditor superiors = new
   SuperiorObjectClassesEditor();
-  private JComboBox type = Utilities.createComboBox();
+  private JComboBox<ObjectClassType> type = Utilities.createComboBox();
   private JTextField oid = Utilities.createMediumTextField();
   private JTextField description = Utilities.createLongTextField();
   private JTextField origin = Utilities.createLongTextField();
@@ -128,19 +127,19 @@ public class NewObjectClassPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_OBJECTCLASS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -182,6 +181,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         setEnabledOK(!error[0]);
@@ -212,7 +212,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     ArrayList<LocalizableMessage> errors = new ArrayList<>();
@@ -220,7 +220,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     {
       setPrimaryValid(label);
     }
-    String n = getObjectClassName();
+    String n = getText(name);
     LocalizableMessageBuilder err = new LocalizableMessageBuilder();
     if (n.length() == 0)
     {
@@ -240,7 +240,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       }
     }
 
-    n = oid.getText().trim();
+    n = getText(oid);
     if (n.length() > 0)
     {
       if (!StaticUtils.isValidSchemaElement(n, 0, n.length(), err))
@@ -258,7 +258,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       }
     }
 
-    if (aliases.getText().trim().length() > 0)
+    if (getText(aliases).length() > 0)
     {
       String[] al = aliases.getText().split(",");
       if (al.length > 0)
@@ -308,7 +308,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
     if (errors.isEmpty())
     {
-      String ocName = getObjectClassName();
+      String ocName = getText(name);
       launchOperation(newTask,
           INFO_CTRL_PANEL_CREATING_OBJECTCLASS_SUMMARY.get(ocName),
           INFO_CTRL_PANEL_CREATING_OBJECTCLASS_COMPLETE.get(),
@@ -347,7 +347,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       attributes.getSelectedList1().getSelectedIndices(),
       attributes.getSelectedList2().getSelectedIndices()
     };
-    JList[] lists =
+    JList<?>[] lists =
     {
         attributes.getAvailableList(),
         attributes.getSelectedList1(),
@@ -356,7 +356,6 @@ public class NewObjectClassPanel extends StatusGenericPanel
     attributes.getAvailableListModel().clear();
     Collection<AttributeType> allAttrs = schema.getAttributeTypes();
     attributes.getAvailableListModel().addAll(allAttrs);
-
 
     HashSet<AttributeType> toDelete = new HashSet<>();
     for (AttributeType attr : attributes.getSelectedListModel1().getData())
@@ -416,9 +415,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -447,7 +444,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     SuperiorObjectClassesChangedListener listener =
       new SuperiorObjectClassesChangedListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void parentObjectClassesChanged(
           SuperiorObjectClassesChangedEvent ev)
       {
@@ -508,7 +505,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     };
     superiors.addParentObjectClassesChangedListener(listener);
 
-    DefaultComboBoxModel model = new DefaultComboBoxModel();
+    DefaultComboBoxModel<ObjectClassType> model = new DefaultComboBoxModel<>();
     for (ObjectClassType t : ObjectClassType.values())
     {
       model.addElement(t);
@@ -522,7 +519,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     attributes = new DoubleAddRemovePanel<>(0, AttributeType.class);
     Comparator<AttributeType> comparator = new Comparator<AttributeType>()
     {
-      /** {@inheritDoc} */
+      @Override
       public int compare(AttributeType attr1, AttributeType attr2)
       {
         return attr1.getNameOrOID().toLowerCase().compareTo(
@@ -603,7 +600,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     add(labels, comps, inlineHelps, p, gbc1);
     ChangeListener changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         p.setVisible(expander.isSelected());
@@ -616,17 +613,17 @@ public class NewObjectClassPanel extends StatusGenericPanel
     file.setText(ConfigConstants.FILE_USER_SCHEMA_ELEMENTS);
   }
 
-  private String getObjectClassName()
+  private String getText(JTextField textField)
   {
-    return name.getText().trim();
+    return textField.getText().trim();
   }
 
   private String getOID()
   {
-    String o = oid.getText().trim();
+    String o = getText(oid);
     if (o.length() == 0)
     {
-      o = getObjectClassName()+"-oid";
+      o = getText(name) + "-oid";
     }
     return o;
   }
@@ -639,12 +636,12 @@ public class NewObjectClassPanel extends StatusGenericPanel
   private Map<String, List<String>> getExtraProperties()
   {
     Map<String, List<String>> map = new HashMap<>();
-    String f = file.getText().trim();
+    String f = getText(file);
     if (f.length() > 0)
     {
       map.put(ServerConstants.SCHEMA_PROPERTY_FILENAME, newArrayList(f));
     }
-    String or = origin.getText().trim();
+    String or = getText(origin);
     if (or.length() > 0)
     {
       map.put(ServerConstants.SCHEMA_PROPERTY_ORIGIN, newArrayList(or));
@@ -652,14 +649,13 @@ public class NewObjectClassPanel extends StatusGenericPanel
     return map;
   }
 
-  private ArrayList<String> getAliases()
+  private List<String> getAliases()
   {
-    ArrayList<String> al = new ArrayList<>();
-    String s = aliases.getText().trim();
+    List<String> al = new ArrayList<>();
+    String s = getText(aliases);
     if (s.length() > 0)
     {
-      String[] a = s.split(",");
-      for (String alias : a)
+      for (String alias : s.split(","))
       {
         al.add(alias.trim());
       }
@@ -670,19 +666,19 @@ public class NewObjectClassPanel extends StatusGenericPanel
   private ArrayList<String> getAllNames()
   {
     ArrayList<String> al = new ArrayList<>();
-    al.add(getObjectClassName());
+    al.add(getText(name));
     al.addAll(getAliases());
     return al;
   }
 
   private String getDescription()
   {
-    return description.getText().trim();
+    return getText(description);
   }
 
   private ObjectClass getObjectClass()
   {
-    return new ObjectClass("", getObjectClassName(), getAllNames(),
+    return new ObjectClass("", getText(name), getAllNames(),
         getOID(),
         getDescription(),
         getObjectClassSuperiors(),
@@ -723,16 +719,13 @@ public class NewObjectClassPanel extends StatusGenericPanel
   {
     private ListCellRenderer defaultRenderer;
 
-    /**
-     * Renderer constructor.
-     *
-     */
+    /** Renderer constructor. */
     public AttributeTypeCellRenderer()
     {
       defaultRenderer = attributes.getAvailableList().getCellRenderer();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)
     {
