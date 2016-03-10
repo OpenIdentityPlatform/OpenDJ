@@ -481,7 +481,7 @@ final class OnDiskMergeImporter
 
     private int computeBufferSize(int nbBuffer) throws InitializationException
     {
-      final long availableMemory = calculateAvailableMemory();
+      final long availableMemory = calculateAvailableHeapMemoryForBuffers();
       logger.info(NOTE_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, nbBuffer);
 
       final int bufferSize = Math.min((int) (availableMemory / nbBuffer), MAX_BUFFER_SIZE);
@@ -489,7 +489,7 @@ final class OnDiskMergeImporter
       {
         // Not enough memory.
         throw new InitializationException(ERR_IMPORT_LDIF_LACK_MEM.get(availableMemory, nbBuffer * MIN_BUFFER_SIZE
-            + REQUIRED_FREE_MEMORY));
+            + DB_CACHE_SIZE + REQUIRED_FREE_MEMORY));
       }
       return bufferSize;
     }
@@ -498,7 +498,7 @@ final class OnDiskMergeImporter
      * Calculates the amount of available memory which can be used by this import, taking into account whether or not
      * the import is running offline or online as a task.
      */
-    private long calculateAvailableMemory()
+    private long calculateAvailableHeapMemoryForBuffers()
     {
       final Runtime runtime = Runtime.getRuntime();
       // call twice gc to ensure finalizers are called
@@ -526,9 +526,7 @@ final class OnDiskMergeImporter
         // Be pessimistic when memory is low.
         importMemPct -= 25;
       }
-
-      final long usedMemory = runtime.totalMemory() - runtime.freeMemory() + DB_CACHE_SIZE + REQUIRED_FREE_MEMORY;
-      return (totalAvailableMemory * importMemPct / 100) - usedMemory;
+      return (totalAvailableMemory * importMemPct / 100) - (DB_CACHE_SIZE + REQUIRED_FREE_MEMORY);
     }
   }
 
