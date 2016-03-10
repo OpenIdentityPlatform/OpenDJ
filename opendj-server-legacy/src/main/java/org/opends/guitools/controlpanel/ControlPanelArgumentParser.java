@@ -145,7 +145,7 @@ public class ControlPanelArgumentParser extends ArgumentParser
     {
       errorMessages.add(ae.getMessageObject());
     }
-    addErrorMessageIfArgumentsConflict(errorMessages, bindPasswordArg, bindPasswordArg);
+    addErrorMessageIfArgumentsConflict(errorMessages, bindPasswordArg, bindPasswordFileArg);
 
     if (!errorMessages.isEmpty())
     {
