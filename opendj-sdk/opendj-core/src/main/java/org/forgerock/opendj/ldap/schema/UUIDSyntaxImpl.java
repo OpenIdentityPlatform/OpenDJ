@@ -14,12 +14,14 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_UUID_OID;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_UUID_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_UUID_NAME;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -38,6 +40,16 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl {
     @Override
     public boolean isHumanReadable() {
         return true;
+    }
+
+    @Override
+    public String getEqualityMatchingRule() {
+        return EMR_UUID_OID;
+    }
+
+    @Override
+    public String getOrderingMatchingRule() {
+        return OMR_UUID_OID;
     }
 
     @Override
