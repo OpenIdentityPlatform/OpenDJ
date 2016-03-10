@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attribute.RemoveOnceSwitchingAttributes;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.PublicAPI;
@@ -159,6 +160,8 @@ public final class MonitorData implements Iterable<Attribute>
    * @param attrValues
    *          the attribute values
    */
+  @RemoveOnceSwitchingAttributes(comment = "once using the non immutable SDK's Attribute class, "
+      + "we can incrementally build an attribute by using the add(String attrName, Object attrValue) method")
   public void add(String attrName, Collection<?> attrValues)
   {
     AttributeBuilder builder = new AttributeBuilder(attrName);

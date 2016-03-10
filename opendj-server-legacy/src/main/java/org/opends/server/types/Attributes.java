@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.types.Attribute.RemoveOnceSwitchingAttributes;
 
 /**
  * This class contains various methods for manipulating
@@ -49,6 +50,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * {@link AttributeBuilder} should be used in order to incrementally
  * construct multi-valued attributes.
  */
+@RemoveOnceSwitchingAttributes
 public final class Attributes
 {
 

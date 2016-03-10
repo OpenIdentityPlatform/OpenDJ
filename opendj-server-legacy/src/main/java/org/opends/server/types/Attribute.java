@@ -45,6 +45,13 @@ import org.forgerock.opendj.ldap.ConditionResult;
     mayInvoke = true)
 public interface Attribute extends Iterable<ByteString>
 {
+  /** Marks code that can be removed once we are switching from server's to SDK's {@code Attribute}. */
+  public @interface RemoveOnceSwitchingAttributes
+  {
+    /** Free-form comment. */
+    String comment() default "";
+  }
+
   /**
    * Indicates whether this attribute has any value(s) that are
    * approximately equal to the provided value.

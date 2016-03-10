@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute.RemoveOnceSwitchingAttributes;
 import org.opends.server.util.CollectionUtils;
 
 /**
@@ -97,6 +98,7 @@ import org.opends.server.util.CollectionUtils;
     mayInstantiate = true,
     mayExtend = false,
     mayInvoke = true)
+@RemoveOnceSwitchingAttributes
 public final class AttributeBuilder implements Iterable<ByteString>
 {
 
