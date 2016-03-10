@@ -46,9 +46,11 @@ import javax.swing.event.ChangeListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
@@ -58,9 +60,7 @@ import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -430,15 +430,15 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       return INFO_CTRL_PANEL_TYPE_ATTRIBUTE.get();
     }
-    else if (schema.getObjectClass(lowerCase) != null)
+    else if (schema.hasObjectClass(lowerCase))
     {
       return INFO_CTRL_PANEL_TYPE_OBJECT_CLASS.get();
     }
-    else if (schema.getSyntax(lowerCase) != null)
+    else if (schema.hasSyntax(lowerCase))
     {
       return INFO_CTRL_PANEL_TYPE_ATTRIBUTE_SYNTAX.get();
     }
-    else if (schema.getMatchingRule(lowerCase) != null)
+    else if (schema.hasMatchingRule(lowerCase))
     {
       return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
     }
