@@ -33,17 +33,6 @@
         This group module provides a complete LDAP SDK for developing LDAP Directory client and server applications.
     </description>
 
-
-    <modules>
-        <module>../opendj-doc-maven-plugin</module>
-        <module>../opendj-core</module>
-        <module>../opendj-grizzly</module>
-        <module>../opendj-cli</module>
-        <module>../opendj-ldap-toolkit</module>
-        <module>../opendj-ldap-sdk-examples</module>
-        <module>../opendj-rest2ldap</module>
-    </modules>
-
     <properties>
         <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
         <forgerock-doc-plugin.version>3.1.0</forgerock-doc-plugin.version>

@@ -135,6 +135,13 @@
 
     <modules>
         <module>opendj-sdk-parent</module>
+        <module>opendj-doc-maven-plugin</module>
+        <module>opendj-core</module>
+        <module>opendj-grizzly</module>
+        <module>opendj-cli</module>
+        <module>opendj-ldap-toolkit</module>
+        <module>opendj-ldap-sdk-examples</module>
+        <module>opendj-rest2ldap</module>
     </modules>
 
     <properties>
