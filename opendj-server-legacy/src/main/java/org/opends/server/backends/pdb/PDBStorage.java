@@ -39,9 +39,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -106,7 +104,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private static final int BUFFER_SIZE = 16 * 1024;
 
   /** PersistIt implementation of the {@link Cursor} interface. */
-  private static final class CursorImpl implements Cursor<ByteString, ByteString>
+  private final class CursorImpl implements Cursor<ByteString, ByteString>
   {
     private ByteString currentKey;
     private ByteString currentValue;
@@ -121,7 +119,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     public void close()
     {
       // Release immediately because this exchange did not come from the txn cache
-      exchange.getPersistitInstance().releaseExchange(exchange);
+      releaseExchange(exchange);
     }
 
     @Override
@@ -268,29 +266,18 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   /** PersistIt implementation of the {@link Importer} interface. */
   private final class ImporterImpl implements Importer
   {
-    private final Queue<Map<TreeName, Exchange>> allExchanges = new ConcurrentLinkedDeque<>();
     private final ThreadLocal<Map<TreeName, Exchange>> exchanges = new ThreadLocal<Map<TreeName, Exchange>>()
     {
       @Override
       protected Map<TreeName, Exchange> initialValue()
       {
-        final Map<TreeName, Exchange> value = new HashMap<>();
-        allExchanges.add(value);
-        return value;
+        return new HashMap<>();
       }
     };
 
     @Override
     public void close()
     {
-      for (Map<TreeName, Exchange> map : allExchanges)
-      {
-        for (Exchange exchange : map.values())
-        {
-          db.releaseExchange(exchange);
-        }
-        map.clear();
-      }
       PDBStorage.this.close();
     }
 
@@ -304,11 +291,10 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
     private void createTree(final Transaction txn, final TreeName treeName)
     {
-      Exchange ex = null;
       try
       {
         txn.begin();
-        ex = getNewExchange(treeName, true);
+        getNewExchange(treeName, true);
         txn.commit();
       }
       catch (PersistitException e)
@@ -318,7 +304,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       finally
       {
         txn.end();
-        releaseExchangeSilenty(ex);
       }
     }
 
@@ -339,15 +324,6 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       finally
       {
         txn.end();
-        releaseExchangeSilenty(ex);
-      }
-    }
-
-    private void releaseExchangeSilenty(Exchange ex)
-    {
-      if ( ex != null)
-      {
-        db.releaseExchange(ex);
       }
     }
 
@@ -466,7 +442,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       finally
       {
         exchanges.values().remove(ex);
-        db.releaseExchange(ex);
+        releaseExchange(ex);
       }
     }
 
@@ -588,7 +564,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
       finally
       {
-        db.releaseExchange(ex);
+        releaseExchange(ex);
       }
     }
 
@@ -608,7 +584,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     {
       for (final Exchange ex : exchanges.values())
       {
-        db.releaseExchange(ex);
+        releaseExchange(ex);
       }
       exchanges.clear();
     }
@@ -663,7 +639,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
       finally
       {
-        db.releaseExchange(ex);
+        releaseExchange(ex);
       }
     }
 
@@ -698,9 +674,21 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
   }
 
-  private Exchange getNewExchange(final TreeName treeName, final boolean create) throws PersistitException
+  Exchange getNewExchange(final TreeName treeName, final boolean create) throws PersistitException
   {
-    return db.getExchange(volume, treeName.toString(), create);
+    final Exchange ex = db.getExchange(volume, treeName.toString(), create);
+    ex.setMaximumValueSize(Value.MAXIMUM_SIZE);
+    return ex;
+  }
+
+  void releaseExchange(Exchange ex)
+  {
+    // Don't keep exchanges with enlarged value - let them be GC'd.
+    // This is also done internally by Persistit in TransactionPlayer line 197.
+    if (ex.getValue().getEncodedBytes().length < Value.DEFAULT_MAXIMUM_SIZE)
+    {
+      db.releaseExchange(ex);
+    }
   }
 
   private StorageImpl newStorageImpl() {
