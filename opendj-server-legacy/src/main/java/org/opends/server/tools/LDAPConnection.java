@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 import java.io.IOException;
@@ -24,7 +24,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.AuthorizationIdentityResponseControl;
@@ -174,7 +173,7 @@ public class LDAPConnection
 
     if (connectionOptions.isVerbose())
     {
-      JDKLogging.enableConsoleLoggingForOpenDJ(Level.ALL);
+      JDKLogging.enableVerboseConsoleLoggingForOpenDJ();
     }
     else
     {

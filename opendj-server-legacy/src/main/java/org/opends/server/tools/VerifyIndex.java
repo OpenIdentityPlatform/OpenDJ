@@ -27,7 +27,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -92,7 +91,7 @@ public class VerifyIndex
                                     OutputStream errStream)
   {
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-    JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
+    JDKLogging.enableConsoleLoggingForOpenDJTool();
 
     // Define the command-line arguments that may be used with this program.
     StringArgument  configClass             = null;

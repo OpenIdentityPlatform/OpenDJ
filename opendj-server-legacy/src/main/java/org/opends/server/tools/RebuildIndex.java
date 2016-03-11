@@ -28,7 +28,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
@@ -134,7 +133,7 @@ public class RebuildIndex extends TaskTool
   {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-    JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
+    JDKLogging.enableConsoleLoggingForOpenDJTool();
 
     // Initialize all the command-line argument types and register them with the
     // parser.
@@ -648,6 +647,7 @@ public class RebuildIndex extends TaskTool
   public int rebuildIndexesWithinMultipleBackends(
       final boolean initializeServer, final PrintStream out, final Collection<String> args)
   {
+    JDKLogging.enableLoggingForOpenDJTool(out);
     try
     {
       setErrorAndDebugLogPublisher(out, out);

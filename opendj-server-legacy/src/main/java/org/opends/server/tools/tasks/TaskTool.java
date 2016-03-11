@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -178,7 +177,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
     else
     {
       // server is offline => output logs to the console
-      JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
+      JDKLogging.enableConsoleLoggingForOpenDJTool();
       taskScheduleArgs.validateArgsIfOffline();
     }
   }

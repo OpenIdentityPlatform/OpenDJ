@@ -11,10 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
+import java.io.PrintStream;
 import java.util.logging.ErrorManager;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
@@ -43,14 +44,53 @@ public class JDKLogging
 
   /**
    * Enable JDK logging to stderr at provided level for OpenDJ classes.
+   * <p>
+   * Error and warning messages will be printed on stderr, other messages will be printed on stdout.
+   */
+  public static void enableVerboseConsoleLoggingForOpenDJ()
+  {
+    enableConsoleLoggingForOpenDJ(Level.ALL, System.out, System.err);
+  }
+
+  /**
+   * Enable JDK logging for OpenDJ tool.
+   * <p>
+   * Error and warning messages will be printed on stderr, other messages will be printed on stdout.
+   * This method should only be used by external tool classes.
+   */
+  public static void enableConsoleLoggingForOpenDJTool()
+  {
+    enableConsoleLoggingForOpenDJ(Level.FINE, System.out, System.err);
+  }
+
+  /**
+   * Enable JDK logging in provided {@link PrintStream} for OpenDJ tool.
+   * <p>
+   * All messages will be printed on the provided {@link PrintStream}.
+   * This method should only be used by external tool classes.
+   *
+   * @param stream
+   *          The stream to use to print messages.
+   */
+  public static void enableLoggingForOpenDJTool(final PrintStream stream)
+  {
+    enableConsoleLoggingForOpenDJ(Level.FINE, stream, stream);
+  }
+
+  /**
+   * Enable JDK logging at provided {@link Level} in provided {@link PrintStream} for OpenDJ classes.
    *
    * @param level
    *          The level to log.
+   * @param out
+   *          The stream to use to print messages from {@link Level#FINEST} and {@link Level#INFO} included.
+   * @param err
+   *          The stream to use to print {@link Level#SEVERE} and {@link Level#WARNING} messages.
    */
-  public static void enableConsoleLoggingForOpenDJ(Level level)
+  private static void enableConsoleLoggingForOpenDJ(final Level level, final PrintStream out, final PrintStream err)
   {
     LogManager.getLogManager().reset();
-    Handler handler = new OpenDJHandler();
+    Handler handler = new OpenDJHandler(out, err);
     handler.setFormatter(getFormatter());
     handler.setLevel(level);
     for (String loggingRoot : LOGGING_ROOTS)
@@ -66,6 +106,15 @@ public class JDKLogging
    */
   private static final class OpenDJHandler extends Handler
   {
+    private final PrintStream out;
+    private final PrintStream err;
+
+    private OpenDJHandler(final PrintStream out, final PrintStream err)
+    {
+      this.out = out;
+      this.err = err;
+    }
+
     @Override
     public void publish(LogRecord record)
     {
@@ -79,11 +128,11 @@ public class JDKLogging
         String message = getFormatter().format(record);
         if (record.getLevel().intValue() >= Level.WARNING.intValue())
         {
-          System.err.write(message.getBytes());
+          err.write(message.getBytes());
         }
         else
         {
-          System.out.write(message.getBytes());
+          out.write(message.getBytes());
         }
       }
       catch (Exception exception)
