@@ -17,7 +17,7 @@
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 
 
 /** Class of the nodes that represent a standard object class in the 'Manage Schema' tree. */

@@ -33,7 +33,7 @@ import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;

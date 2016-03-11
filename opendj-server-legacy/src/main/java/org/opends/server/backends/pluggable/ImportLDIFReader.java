@@ -37,7 +37,7 @@ import org.opends.server.types.AttributeBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 

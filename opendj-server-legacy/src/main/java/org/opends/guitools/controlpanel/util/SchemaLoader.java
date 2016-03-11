@@ -38,7 +38,7 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;

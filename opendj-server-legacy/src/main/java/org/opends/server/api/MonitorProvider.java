@@ -30,7 +30,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 
 /**
  * This class defines the set of methods and structures that must be

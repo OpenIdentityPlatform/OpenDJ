@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.CommonSchemaElements;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.opends.server.util.ServerConstants;
 

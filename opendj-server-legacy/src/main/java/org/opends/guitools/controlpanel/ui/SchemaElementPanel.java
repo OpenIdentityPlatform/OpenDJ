@@ -29,7 +29,7 @@ import javax.swing.border.EmptyBorder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionEvent;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /**

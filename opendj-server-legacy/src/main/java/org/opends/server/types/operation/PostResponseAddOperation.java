@@ -17,14 +17,16 @@
 package org.opends.server.types.operation;
 
 
-
 import java.util.List;
 import java.util.Map;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Entry;
+import org.opends.server.types.RawAttribute;
 
 
 /**

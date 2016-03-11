@@ -35,7 +35,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.Entry;
 import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;

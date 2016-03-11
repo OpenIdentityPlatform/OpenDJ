@@ -35,6 +35,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 

@@ -31,7 +31,7 @@ import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 

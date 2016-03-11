@@ -50,7 +50,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.BuildVersion;

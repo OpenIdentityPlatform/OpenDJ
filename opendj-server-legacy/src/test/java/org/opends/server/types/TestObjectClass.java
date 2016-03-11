@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
@@ -37,7 +38,7 @@ import org.testng.annotations.Test;
 
 /**
  * This class defines a set of tests for the
- * {@link org.opends.server.types.ObjectClass} class.
+ * {@link org.forgerock.opendj.ldap.schema.ObjectClass} class.
  */
 public final class TestObjectClass extends TestCommonSchemaElements {
   /**
