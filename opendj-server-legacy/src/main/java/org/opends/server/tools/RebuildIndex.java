@@ -26,6 +26,7 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -645,8 +646,7 @@ public class RebuildIndex extends TaskTool
    * @return An integer indicating the result of this action.
    */
   public int rebuildIndexesWithinMultipleBackends(
-      final boolean initializeServer, final PrintStream out,
-      final String... args)
+      final boolean initializeServer, final PrintStream out, final Collection<String> args)
   {
     try
     {
@@ -664,7 +664,7 @@ public class RebuildIndex extends TaskTool
 
       try
       {
-        argParser.parseArguments(args);
+        argParser.parseArguments(args.toArray(new String[args.size()]));
       }
       catch (ArgumentException ae)
       {

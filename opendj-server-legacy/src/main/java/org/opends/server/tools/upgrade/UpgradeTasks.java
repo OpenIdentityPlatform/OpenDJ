@@ -26,6 +26,7 @@ import static org.opends.server.util.StaticUtils.isClassAvailable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -666,80 +667,72 @@ public final class UpgradeTasks
       @Override
       public void postUpgrade(final UpgradeContext context) throws ClientException
       {
-        LocalizableMessage message;
-        final List<String> args = new LinkedList<>();
+        if (!isRebuildAllIndexesIsPresent && indexesToRebuild.isEmpty())
+        {
+          return;
+        }
 
+        final Map<String, Set<String>> baseDNsForBackends = UpgradeUtils.getBaseDNsPerBackendsFromConfig();
         if (isRebuildAllIndexesTaskAccepted)
         {
-          args.add("--rebuildAll");
-          message = INFO_UPGRADE_REBUILD_ALL.get();
-        }
-        else if (!indexesToRebuild.isEmpty())
-        {
-          message = INFO_UPGRADE_REBUILD_INDEX_STARTS.get(indexesToRebuild);
-
-          // Adding all requested indexes.
-          for (final String indexToRebuild : indexesToRebuild)
+          final Set<String> allBaseDNs = new HashSet<>();
+          for (final Set<String> baseDNsForBackend : baseDNsForBackends.values())
           {
-            args.add("-i");
-            args.add(indexToRebuild);
+            allBaseDNs.addAll(baseDNsForBackend);
+          }
+          rebuildIndex(INFO_UPGRADE_REBUILD_ALL.get(), context, allBaseDNs, Collections.singletonList("--rebuildAll"));
+        }
+        else
+        {
+          for (final Map.Entry<String, Set<String>> backendEntry : baseDNsForBackends.entrySet())
+          {
+            final String backend = backendEntry.getKey();
+            final List<String> filteredIndexes = filterExistingIndexes(indexesToRebuild, backend);
+            if (filteredIndexes.isEmpty())
+            {
+              logger.debug(INFO_UPGRADE_NO_INDEX_TO_REBUILD_FOR_BACKEND.get(backend));
+              continue;
+            }
+
+            final List<String> args = new ArrayList<>();
+            for (final String indexToRebuild : filteredIndexes)
+            {
+              args.add("--index");
+              args.add(indexToRebuild);
+            }
+            final Set<String> baseDNs = backendEntry.getValue();
+            rebuildIndex(INFO_UPGRADE_REBUILD_INDEX_STARTS.get(filteredIndexes, baseDNs), context, baseDNs, args);
           }
         }
-        else
-        {
-          return;
-        }
-        // Startup message.
-        ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, message, 25);
-        logger.debug(message);
+      }
+
+      private void rebuildIndex(final LocalizableMessage infoMsg, final UpgradeContext context,
+          final Set<String> baseDNs, final List<String> args) throws ClientException
+      {
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, infoMsg, 25);
+        logger.debug(infoMsg);
         context.notifyProgress(pnc);
 
-        // Sets the arguments like the rebuild index command line.
-        args.addAll(Arrays.asList("-f", CONFIG_FILE_PATH));
-
-        /*
-         * Index(es) could be contained in several backends or none, If none,
-         * the post upgrade tasks succeed and a message is printed in the
-         * upgrade log file.
-         */
-        final List<String> backends = UpgradeUtils.getIndexedBackendsFromConfig();
-        if (backends.isEmpty())
+        args.add("--configFile");
+        args.add(CONFIG_FILE_PATH);
+        for (final String be : baseDNs)
         {
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND);
-          logger.debug(INFO_UPGRADE_REBUILD_INDEXES_DECLINED, indexesToRebuild);
-          context.notifyProgress(pnc.setProgress(100));
-          return;
-        }
-
-        for (final String be : backends)
-        {
-          args.add("-b");
+          args.add("--baseDN");
           args.add(be);
         }
-
-        // Displays info about command line args for log only.
         logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
 
-        /*
-         * The rebuild-index process just display a status ok / fails. The
-         * logger stream contains all the log linked to this process. The
-         * complete process is not displayed in the upgrade console.
-         */
-        final String[] commandLineArgs = args.toArray(new String[args.size()]);
         final int result = new RebuildIndex().rebuildIndexesWithinMultipleBackends(
-            true, UpgradeLog.getPrintStream(), commandLineArgs);
-
-        if (result == 0)
-        {
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS);
-          context.notifyProgress(pnc.setProgress(100));
-        }
-        else
+            true, UpgradeLog.getPrintStream(), args);
+        if (result != 0)
         {
           final LocalizableMessage msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
           context.notifyProgress(pnc.setProgress(-100));
           throw new ClientException(ReturnCode.ERROR_UNEXPECTED, msg);
         }
+
+        logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS);
+        context.notifyProgress(pnc.setProgress(100));
       }
 
       @Override

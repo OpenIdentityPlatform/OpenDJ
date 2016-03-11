@@ -24,9 +24,11 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -336,31 +338,32 @@ final class UpgradeUtils
   }
 
   /**
-   * Retrieves the backends from the current configuration file. The backends
-   * must be enabled to be listed. No operations should be done within a
-   * disabled backend.
+   * Return a {@link Map} with backend id as key and associated baseDNs as values.
+   * <p>
+   * Disabled backends are not filtered out.
    *
-   * @return A backend list.
+   * @return A {@link Map} of all enabled backends of the server with their baseDNs.
    */
-  static List<String> getIndexedBackendsFromConfig()
+  static Map<String, Set<String>> getBaseDNsPerBackendsFromConfig()
   {
     final SearchRequest sr = Requests.newSearchRequest("", SearchScope.WHOLE_SUBTREE,
             "(&(objectclass=ds-cfg-pluggable-backend)(ds-cfg-enabled=true))",
-            "ds-cfg-base-dn");
-    final List<String> listBackends = new LinkedList<>();
+            "ds-cfg-base-dn", "ds-cfg-backend-id");
+    final Map<String, Set<String>> baseDNs = new HashMap<>();
     try (final EntryReader entryReader = searchConfigFile(sr))
     {
       while (entryReader.hasNext())
       {
         final Entry entry = entryReader.readEntry();
-        listBackends.addAll(entry.parseAttribute("ds-cfg-base-dn").asSetOfString());
+        baseDNs.put(entry.parseAttribute("ds-cfg-backend-id").asString(),
+                    entry.parseAttribute("ds-cfg-base-dn").asSetOfString());
       }
     }
     catch (Exception ex)
     {
       logger.error(LocalizableMessage.raw(ex.getMessage()));
     }
-    return listBackends;
+    return baseDNs;
   }
 
   static EntryReader searchConfigFile(final SearchRequest sr) throws FileNotFoundException
@@ -794,6 +797,36 @@ final class UpgradeUtils
     }
     System.arraycopy(lines, 0, modifiedLines, 2, lines.length);
     return modifiedLines;
+  }
+
+  /** Filter provided list of indexes name to return indexes which are present in the provided backend. */
+  static List<String> filterExistingIndexes(final Set<String> candidateIndexes, final String backendID)
+  {
+    final List<String> indexesToRebuild = new ArrayList<>();
+    try (final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(CONFIG_FILE_PATH)))
+    {
+      while (entryReader.hasNext())
+      {
+        final Entry entry = entryReader.readEntry();
+        if (entry.containsAttribute("objectClass", "ds-cfg-backend-index")
+            && entry.getName().toString().contains("ds-cfg-backend-id=" + backendID))
+        {
+          for (final String indexName : candidateIndexes)
+          {
+            if (entry.containsAttribute("ds-cfg-attribute", indexName))
+            {
+              indexesToRebuild.add(indexName);
+            }
+          }
+        }
+      }
+    }
+    catch (final IOException unlikely)
+    {
+      logger.error(ERR_UPGRADE_READING_CONF_FILE.get(unlikely.getMessage()));
+    }
+
+    return indexesToRebuild;
   }
 
   /** Prevent instantiation. */
