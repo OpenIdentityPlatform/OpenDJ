@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,6 +94,9 @@ final class UpgradeUtils
   static final File binDirectory = new File(getInstallationPath(), UNIX_BINARIES_PATH_RELATIVE);
   /** The bat folder of the current installation. */
   static final File batDirectory = new File(getInstallationPath(), WINDOWS_BINARIES_PATH_RELATIVE);
+  /** The server configuration file path */
+  static final String CONFIG_FILE_PATH =
+      Paths.get(configDirectory.getAbsolutePath(), CURRENT_CONFIG_FILE_NAME).toString();
 
   /**
    * Returns the path of the installation of the directory server. Note that

@@ -21,7 +21,6 @@ import static javax.security.auth.callback.TextOutputCallback.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copy;
-import static org.opends.server.tools.upgrade.Installation.CURRENT_CONFIG_FILE_NAME;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
 import static org.opends.server.util.StaticUtils.isClassAvailable;
 
@@ -667,16 +666,15 @@ public final class UpgradeTasks
       @Override
       public void postUpgrade(final UpgradeContext context) throws ClientException
       {
-        LocalizableMessage message = null;
+        LocalizableMessage message;
         final List<String> args = new LinkedList<>();
 
-        if (isRebuildAllIndexesIsPresent && isRebuildAllIndexesTaskAccepted)
+        if (isRebuildAllIndexesTaskAccepted)
         {
           args.add("--rebuildAll");
           message = INFO_UPGRADE_REBUILD_ALL.get();
         }
-        else if (!indexesToRebuild.isEmpty()
-            && !isRebuildAllIndexesTaskAccepted)
+        else if (!indexesToRebuild.isEmpty())
         {
           message = INFO_UPGRADE_REBUILD_INDEX_STARTS.get(indexesToRebuild);
 
@@ -697,7 +695,7 @@ public final class UpgradeTasks
         context.notifyProgress(pnc);
 
         // Sets the arguments like the rebuild index command line.
-        args.addAll(Arrays.asList("-f", getConfigLdifFile().getAbsolutePath()));
+        args.addAll(Arrays.asList("-f", CONFIG_FILE_PATH));
 
         /*
          * Index(es) could be contained in several backends or none, If none,
@@ -1222,13 +1220,9 @@ public final class UpgradeTasks
 
     try
     {
-      final File configFile = getConfigLdifFile();
-
       final Filter filterVal = filter != null ? Filter.valueOf(filter) : null;
-      final int changeCount = updateConfigFile(
-          configFile.getPath(), filterVal, changeOperationType, ldif);
-
-      displayChangeCount(configFile.getPath(), changeCount);
+      final int changeCount = updateConfigFile(CONFIG_FILE_PATH, filterVal, changeOperationType, ldif);
+      displayChangeCount(CONFIG_FILE_PATH, changeCount);
 
       context.notifyProgress(pnc.setProgress(100));
     }
@@ -1236,11 +1230,6 @@ public final class UpgradeTasks
     {
       manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
     }
-  }
-
-  private static File getConfigLdifFile()
-  {
-    return new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
   }
 
   static UpgradeTask clearReplicationDbDirectory()
