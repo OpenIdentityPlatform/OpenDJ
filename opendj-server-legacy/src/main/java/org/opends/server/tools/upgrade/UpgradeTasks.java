@@ -563,7 +563,7 @@ public final class UpgradeTasks
       @Override
       public void prepare(UpgradeContext context) throws ClientException
       {
-        Upgrade.setHasPostUpgradeTask(true);
+        Upgrade.needToRunPostUpgradePhase();
         // Requires answer from the user.
         isATaskToPerform = context.confirmYN(summary, NO) == YES;
         isRebuildAllIndexesIsPresent = true;
@@ -618,7 +618,7 @@ public final class UpgradeTasks
       @Override
       public void prepare(UpgradeContext context) throws ClientException
       {
-        Upgrade.setHasPostUpgradeTask(true);
+        Upgrade.needToRunPostUpgradePhase();
         // Requires answer from the user.
         isATaskToPerform = context.confirmYN(summary, NO) == YES;
       }
@@ -1059,7 +1059,7 @@ public final class UpgradeTasks
           {
             while (jeBackends.hasNext())
             {
-              Upgrade.setHasPostUpgradeTask(true);
+              Upgrade.needToRunPostUpgradePhase();
               reimportRequired = true;
 
               Entry jeBackend = jeBackends.readEntry();
@@ -1322,6 +1322,7 @@ public final class UpgradeTasks
   {
     return new AbstractUpgradeTask()
     {
+
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
@@ -1329,19 +1330,30 @@ public final class UpgradeTasks
             INFORMATION, INFO_UPGRADE_TASK_REMOVE_OLD_JARS.get(), 0);
         context.notifyProgress(pnc);
 
+        final boolean fileSystemIsCaseSensitive = fileSystemIsCaseSensitive(context);
+
+        deleteJarFilesIfFileSystemIsCaseSensitive(fileSystemIsCaseSensitive, "OpenDJ");
         for (final String locale : SUPPORTED_LOCALES_FOR_3_0_0)
         {
-          deleteJarFileIfExists("OpenDJ_" + locale);
-          deleteJarFileIfExists("OpenDJ-" + locale);
+          deleteJarFiles("OpenDJ-" + locale);
+          deleteJarFilesIfFileSystemIsCaseSensitive(fileSystemIsCaseSensitive, "OpenDJ_" + locale);
         }
-        deleteJarFileIfExists("OpenDJ",
-            // Jar files from 2.6.x
-            "jackson-core-asl", "jackson-mapper-asl", "json-fluent", "json-resource-servlet",
+        // Jar files from 2.6.x
+        deleteJarFiles("jackson-core-asl", "jackson-mapper-asl", "json-fluent", "json-resource-servlet",
             "mail", "opendj-ldap-sdk", "opendj-rest2ldap-servlet", "opendj-server2x-adapter");
         context.notifyProgress(pnc.setProgress(100));
       }
 
-      private void deleteJarFileIfExists(final String... jarFileNames)
+      private void deleteJarFilesIfFileSystemIsCaseSensitive(
+          final boolean fileSystemIsCaseSensitive, final String... jarFileNames)
+      {
+        if (fileSystemIsCaseSensitive)
+        {
+          deleteJarFiles(jarFileNames);
+        }
+      }
+
+      private void deleteJarFiles(final String... jarFileNames)
       {
         for (final String jarFileName : jarFileNames)
         {
@@ -1350,6 +1362,24 @@ public final class UpgradeTasks
           {
             f.delete();
           }
+        }
+      }
+
+      /** Used to know if we have to remove old "camel case" OpenDJ[_]*.jar(see OPENDJ-2692). */
+      private boolean fileSystemIsCaseSensitive(final UpgradeContext context) throws ClientException
+      {
+        final File openDJCamelCaseJar = new File(libDirectory, "OpenDJ.jar");
+        try
+        {
+          // getCanonicalPath() will return the new "opendj.jar" on case insensitive file systems
+          return openDJCamelCaseJar.getCanonicalPath().equals(openDJCamelCaseJar.getAbsolutePath());
+        }
+        catch (final IOException unlikely)
+        {
+          // Warn the user that he may have some old camel case jars to remove
+          context.notify(INFO_UPGRADE_TASK_UNABLE_TO_REMOVE_OLD_JARS.get());
+          Upgrade.needToExitWithErrorCode();
+          return false;
         }
       }
     };

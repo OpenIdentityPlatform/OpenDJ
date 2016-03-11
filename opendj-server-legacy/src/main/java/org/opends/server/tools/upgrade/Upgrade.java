@@ -56,21 +56,18 @@ public final class Upgrade
   private static LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Upgrade supports version from 2.4.5. */
-  private static BuildVersion UPGRADESUPPORTSVERSIONFROM = BuildVersion.valueOf("2.4.5.0000");
+  private static BuildVersion UPGRADE_SUPPORTS_VERSION_FROM = BuildVersion.valueOf("2.4.5.0000");
 
   /** The success exit code value. */
   static final int EXIT_CODE_SUCCESS = 0;
   /** The error exit code value. */
   static final int EXIT_CODE_ERROR = 1;
 
-  /**
-   * The exit code value that will be used if upgrade requires manual
-   * intervention.
-   */
-  static final int EXIT_CODE_MANUAL_INTERVENTION = 2;
-
   /** If the upgrade contains some post upgrade tasks to do. */
-  static boolean hasPostUpgradeTask;
+  private static boolean hasPostUpgradeTask;
+
+  /** If the upgrade script should exit with error code (useful for warnings) */
+  private static boolean exitWithErrorCode;
 
   /** Developers should register upgrade tasks below. */
   private static final NavigableMap<BuildVersion, List<UpgradeTask>> TASKS = new TreeMap<>();
@@ -863,10 +860,10 @@ public final class Upgrade
     }
 
     // The upgrade only supports version >= 2.4.5.
-    if (context.getFromVersion().compareTo(UPGRADESUPPORTSVERSIONFROM) < 0)
+    if (context.getFromVersion().compareTo(UPGRADE_SUPPORTS_VERSION_FROM) < 0)
     {
       final LocalizableMessage message =
-          INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(UPGRADESUPPORTSVERSIONFROM, UPGRADESUPPORTSVERSIONFROM);
+          INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(UPGRADE_SUPPORTS_VERSION_FROM, UPGRADE_SUPPORTS_VERSION_FROM);
       context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
@@ -970,25 +967,25 @@ public final class Upgrade
     }
   }
 
-  /**
-   * Returns {@code true} if the current upgrade contains post upgrade tasks.
-   *
-   * @return {@code true} if the current upgrade contains post upgrade tasks.
-   */
-  static boolean hasPostUpgradeTask()
+  static void needToRunPostUpgradePhase()
   {
-    return hasPostUpgradeTask;
+    Upgrade.hasPostUpgradeTask = true;
+  }
+
+  /** This method should be used when the upgrade tool has issued a warning. */
+  static void needToExitWithErrorCode()
+  {
+    Upgrade.exitWithErrorCode = true;
   }
 
   /**
-   * Sets {@code true} if the current upgrade contains post upgrade tasks.
+   * {@code true} if the upgrade succeeded.
    *
-   * @param hasPostUpgradeTask
-   *          {@code true} if the current upgrade contains post upgrade tasks.
+   * @return {@code true} if the upgrade succeeded.
    */
-  static void setHasPostUpgradeTask(boolean hasPostUpgradeTask)
+  static boolean isSuccess()
   {
-    Upgrade.hasPostUpgradeTask = hasPostUpgradeTask;
+    return !exitWithErrorCode;
   }
 
   /** Prevent instantiation. */

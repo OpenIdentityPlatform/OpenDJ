@@ -330,7 +330,7 @@ public final class UpgradeCli extends ConsoleApplication implements
 
       return EXIT_CODE_ERROR;
     }
-    return EXIT_CODE_SUCCESS;
+    return Upgrade.isSuccess() ? EXIT_CODE_SUCCESS : EXIT_CODE_ERROR;
   }
 
   /** {@inheritDoc} */
