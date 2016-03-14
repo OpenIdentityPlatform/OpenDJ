@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2016 ForgeRock AS.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.forgerock</groupId>
+        <artifactId>forgerock-parent</artifactId>
+        <version>2.0.3</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>org.forgerock.opendj</groupId>
+    <artifactId>opendj-sdk-bom</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <name>OpenDJ SDK BOM</name>
+    <description>
+        Provides a list of OpenDJ SDK dependencies which are known to be compatible with each other.
+    </description>
+
+    <properties>
+        <opendj.sdk.version>4.0.0-SNAPSHOT</opendj.sdk.version>
+        <i18n-framework.version>1.4.2</i18n-framework.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ForgeRock BOM -->
+            <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>forgerock-bom</artifactId>
+                <version>4.1.1</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+            <!-- I18N framework -->
+            <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-core</artifactId>
+                <version>${i18n-framework.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-slf4j</artifactId>
+                <version>${i18n-framework.version}</version>
+            </dependency>
+
+
+            <!-- OpenDJ SDK -->
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-core</artifactId>
+                <version>${opendj.sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-cli</artifactId>
+                <version>${opendj.sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-grizzly</artifactId>
+                <version>${opendj.sdk.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-rest2ldap</artifactId>
+                <version>${opendj.sdk.version}</version>
+            </dependency>
+
+            <!-- Other -->
+            <dependency>
+                <groupId>com.github.stephenc.jcip</groupId>
+                <artifactId>jcip-annotations</artifactId>
+                <version>1.0-1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
