@@ -172,11 +172,9 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
   }
 
   /**
-   * Returns a set of stored objects
-   * subordinate to subtree DN.
+   * Returns a set of stored objects subordinate to subtree DN.
    * @param key subtree DN.
-   * @return collection of stored objects
-   *         subordinate to subtree DN.
+   * @return collection of stored objects subordinate to subtree DN.
    */
   public Collection<T> getSubtree(DN key)
   {
@@ -654,7 +652,6 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         node = rootNode;
       }
 
-      /** {@inheritDoc} */
       @Override
       public boolean hasNext()
       {
@@ -687,7 +684,6 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         return false;
       }
 
-      /** {@inheritDoc} */
       @Override
       public T next()
       {
@@ -727,7 +723,6 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         throw new NoSuchElementException();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void remove()
       {
@@ -735,14 +730,12 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public Iterator<T> iterator()
     {
       return new SubtreeSetIterator();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int size()
     {

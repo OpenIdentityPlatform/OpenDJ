@@ -154,8 +154,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * @param  changeListener  The change notification listener to register
    *                         with this manager.
    */
-  public void registerChangeListener(
-                          SubentryChangeListener changeListener)
+  public void registerChangeListener(SubentryChangeListener changeListener)
   {
     changeListeners.add(changeListener);
   }
@@ -168,8 +167,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * @param  changeListener  The change notification listener to deregister
    *                         with this manager.
    */
-  public void deregisterChangeListener(
-                          SubentryChangeListener changeListener)
+  public void deregisterChangeListener(SubentryChangeListener changeListener)
   {
     changeListeners.remove(changeListener);
   }
@@ -319,34 +317,63 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
       for (SearchResultEntry entry : internalSearch.getSearchEntries())
       {
-        if (entry.isSubentry() || entry.isLDAPSubentry())
+        if (isSubEntry(entry))
         {
           try
           {
             addSubentry(entry);
-
-            // Notify change listeners.
-            for (SubentryChangeListener changeListener :
-              changeListeners)
-            {
-              try
-              {
-                changeListener.handleSubentryAdd(entry);
-              }
-              catch (Exception e)
-              {
-                logger.traceException(e);
-              }
-            }
+            notifySubentryAdded(entry);
           }
           catch (Exception e)
           {
             logger.traceException(e);
-
-            // FIXME -- Handle this.
-            continue;
           }
         }
+      }
+    }
+  }
+
+  private void notifySubentryAdded(final Entry entry)
+  {
+    for (SubentryChangeListener changeListener : changeListeners)
+    {
+      try
+      {
+        changeListener.handleSubentryAdd(entry);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
+    }
+  }
+
+  private void notifySubentryDeleted(final Entry entry)
+  {
+    for (SubentryChangeListener changeListener : changeListeners)
+    {
+      try
+      {
+        changeListener.handleSubentryDelete(entry);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
+    }
+  }
+
+  private void notifySubentryModified(final Entry oldEntry, final Entry newEntry)
+  {
+    for (SubentryChangeListener changeListener : changeListeners)
+    {
+      try
+      {
+        changeListener.handleSubentryModify(oldEntry, newEntry);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
       }
     }
   }
@@ -534,19 +561,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           dit2SubEntry.remove(subEntry.getDN());
           subEntriesIt.remove();
-
-          // Notify change listeners.
-          for (SubentryChangeListener changeListener : changeListeners)
-          {
-            try
-            {
-              changeListener.handleSubentryDelete(subEntry.getEntry());
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-            }
-          }
+          notifySubentryDeleted(subEntry.getEntry());
         }
       }
       if (subEntryList.isEmpty())
@@ -568,7 +583,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
   private void doPostAdd(Entry entry)
   {
-    if (entry.isSubentry() || entry.isLDAPSubentry())
+    if (isSubEntry(entry))
     {
       lock.writeLock().lock();
       try
@@ -576,26 +591,11 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         try
         {
           addSubentry(entry);
-
-          // Notify change listeners.
-          for (SubentryChangeListener changeListener :
-            changeListeners)
-          {
-            try
-            {
-              changeListener.handleSubentryAdd(entry);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-            }
-          }
+          notifySubentryAdded(entry);
         }
         catch (Exception e)
         {
           logger.traceException(e);
-
-          // FIXME -- Handle this.
         }
       }
       finally
@@ -613,20 +613,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getName()))
       {
         removeSubentry(subEntry.getEntry());
-
-        // Notify change listeners.
-        for (SubentryChangeListener changeListener :
-                changeListeners)
-        {
-          try
-          {
-            changeListener.handleSubentryDelete(subEntry.getEntry());
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-          }
-        }
+        notifySubentryDeleted(subEntry.getEntry());
       }
     }
     finally
@@ -637,17 +624,18 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
   private void doPostModify(Entry oldEntry, Entry newEntry)
   {
+    final boolean oldEntryIsSubentry = isSubEntry(oldEntry);
+    final boolean newEntryIsSubentry = isSubEntry(newEntry);
     boolean notify = false;
-
     lock.writeLock().lock();
     try
     {
-      if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+      if (oldEntryIsSubentry)
       {
         removeSubentry(oldEntry);
         notify = true;
       }
-      if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
+      if (newEntryIsSubentry)
       {
         try
         {
@@ -664,26 +652,18 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
       if (notify)
       {
-        // Notify change listeners.
-        for (SubentryChangeListener changeListener :
-          changeListeners)
-        {
-          try
-          {
-            changeListener.handleSubentryModify(
-                    oldEntry, newEntry);
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-          }
-        }
+        notifySubentryModified(oldEntry, newEntry);
       }
     }
     finally
     {
       lock.writeLock().unlock();
     }
+  }
+
+  private boolean isSubEntry(final Entry e)
+  {
+    return e.isSubentry() || e.isLDAPSubentry();
   }
 
   private void doPostModifyDN(final Entry oldEntry, final Entry newEntry)
@@ -711,19 +691,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           logger.traceException(e);
         }
 
-        // Notify change listeners.
-        for (SubentryChangeListener changeListener :
-          changeListeners)
-        {
-          try
-          {
-            changeListener.handleSubentryModify(currentSubentry, renamedSubentry);
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-          }
-        }
+        notifySubentryModified(currentSubentry, renamedSubentry);
       }
     }
     finally
@@ -733,24 +701,20 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PreOperation doPreOperation(
-          PreOperationAddOperation addOperation)
+  public PreOperation doPreOperation(PreOperationAddOperation addOperation)
   {
     Entry entry = addOperation.getEntryToAdd();
 
-    if (entry.isSubentry() || entry.isLDAPSubentry())
+    if (isSubEntry(entry))
     {
       ClientConnection conn = addOperation.getClientConnection();
-      if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
-           conn.getOperationInProgress(
-             addOperation.getMessageID())))
+      if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE, conn.getOperationInProgress(addOperation.getMessageID())))
       {
         return PluginResult.PreOperation.stopProcessing(
                 ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                 ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
       }
-      for (SubentryChangeListener changeListener :
-              changeListeners)
+      for (SubentryChangeListener changeListener : changeListeners)
       {
         try
         {
@@ -759,9 +723,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         catch (DirectoryException de)
         {
           logger.traceException(de);
-
-          return PluginResult.PreOperation.stopProcessing(
-                  de.getResultCode(), de.getMessageObject());
+          return PluginResult.PreOperation.stopProcessing(de.getResultCode(), de.getMessageObject());
         }
       }
     }
@@ -770,8 +732,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PreOperation doPreOperation(
-          PreOperationDeleteOperation deleteOperation)
+  public PreOperation doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     Entry entry = deleteOperation.getEntryToDelete();
     boolean hasSubentryWritePrivilege = false;
@@ -785,8 +746,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           ClientConnection conn = deleteOperation.getClientConnection();
           if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
-               conn.getOperationInProgress(
-                 deleteOperation.getMessageID())))
+                                 conn.getOperationInProgress(deleteOperation.getMessageID())))
           {
             return PluginResult.PreOperation.stopProcessing(
                     ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -794,20 +754,16 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
           hasSubentryWritePrivilege = true;
         }
-        for (SubentryChangeListener changeListener :
-                changeListeners)
+        for (SubentryChangeListener changeListener : changeListeners)
         {
           try
           {
-            changeListener.checkSubentryDeleteAcceptable(
-                    subEntry.getEntry());
+            changeListener.checkSubentryDeleteAcceptable(subEntry.getEntry());
           }
           catch (DirectoryException de)
           {
             logger.traceException(de);
-
-            return PluginResult.PreOperation.stopProcessing(
-                    de.getResultCode(), de.getMessageObject());
+            return PluginResult.PreOperation.stopProcessing(de.getResultCode(), de.getMessageObject());
           }
         }
       }
@@ -821,38 +777,31 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PreOperation doPreOperation(
-          PreOperationModifyOperation modifyOperation)
+  public PreOperation doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     Entry oldEntry = modifyOperation.getCurrentEntry();
     Entry newEntry = modifyOperation.getModifiedEntry();
 
-    if (newEntry.isSubentry() || newEntry.isLDAPSubentry() ||
-        oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    if (isSubEntry(newEntry) || isSubEntry(oldEntry))
     {
       ClientConnection conn = modifyOperation.getClientConnection();
       if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
-           conn.getOperationInProgress(
-             modifyOperation.getMessageID())))
+                             conn.getOperationInProgress(modifyOperation.getMessageID())))
       {
         return PluginResult.PreOperation.stopProcessing(
                 ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                 ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
       }
-      for (SubentryChangeListener changeListener :
-              changeListeners)
+      for (SubentryChangeListener changeListener : changeListeners)
       {
         try
         {
-          changeListener.checkSubentryModifyAcceptable(
-                  oldEntry, newEntry);
+          changeListener.checkSubentryModifyAcceptable(oldEntry, newEntry);
         }
         catch (DirectoryException de)
         {
           logger.traceException(de);
-
-          return PluginResult.PreOperation.stopProcessing(
-                  de.getResultCode(), de.getMessageObject());
+          return PluginResult.PreOperation.stopProcessing(de.getResultCode(), de.getMessageObject());
         }
       }
     }
@@ -869,16 +818,14 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     try
     {
       final Entry oldEntry = modifyDNOperation.getOriginalEntry();
-      Collection<SubEntry> setToDelete =
-              dit2SubEntry.getSubtree(oldEntry.getName());
+      Collection<SubEntry> setToDelete = dit2SubEntry.getSubtree(oldEntry.getName());
       for (SubEntry subentry : setToDelete)
       {
         if (!hasSubentryWritePrivilege)
         {
           ClientConnection conn = modifyDNOperation.getClientConnection();
           if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
-               conn.getOperationInProgress(
-                 modifyDNOperation.getMessageID())))
+                                 conn.getOperationInProgress(modifyDNOperation.getMessageID())))
           {
             return PluginResult.PreOperation.stopProcessing(
                     ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -902,9 +849,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           catch (DirectoryException de)
           {
             logger.traceException(de);
-
-            return PluginResult.PreOperation.stopProcessing(
-                    de.getResultCode(), de.getMessageObject());
+            return PluginResult.PreOperation.stopProcessing(de.getResultCode(), de.getMessageObject());
           }
         }
       }
@@ -918,8 +863,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PostOperation doPostOperation(
-          PostOperationAddOperation addOperation)
+  public PostOperation doPostOperation(PostOperationAddOperation addOperation)
   {
     // Only do something if the operation is successful, meaning there
     // has been a change.
@@ -933,8 +877,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PostOperation doPostOperation(
-          PostOperationDeleteOperation deleteOperation)
+  public PostOperation doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     // Only do something if the operation is successful, meaning there
     // has been a change.
@@ -948,15 +891,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PostOperation doPostOperation(
-          PostOperationModifyOperation modifyOperation)
+  public PostOperation doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     // Only do something if the operation is successful, meaning there
     // has been a change.
     if (modifyOperation.getResultCode() == ResultCode.SUCCESS)
     {
-      doPostModify(modifyOperation.getCurrentEntry(),
-            modifyOperation.getModifiedEntry());
+      doPostModify(modifyOperation.getCurrentEntry(), modifyOperation.getModifiedEntry());
     }
 
     // If we've gotten here, then everything is acceptable.
@@ -964,15 +905,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public PostOperation doPostOperation(
-          PostOperationModifyDNOperation modifyDNOperation)
+  public PostOperation doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
     // Only do something if the operation is successful, meaning there
     // has been a change.
     if (modifyDNOperation.getResultCode() == ResultCode.SUCCESS)
     {
-      doPostModifyDN(modifyDNOperation.getOriginalEntry(),
-            modifyDNOperation.getUpdatedEntry());
+      doPostModifyDN(modifyDNOperation.getOriginalEntry(), modifyDNOperation.getUpdatedEntry());
     }
 
     // If we've gotten here, then everything is acceptable.
@@ -980,8 +919,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void doPostSynchronization(
-      PostSynchronizationAddOperation addOperation)
+  public void doPostSynchronization(PostSynchronizationAddOperation addOperation)
   {
     Entry entry = addOperation.getEntryToAdd();
     if (entry != null)
@@ -991,8 +929,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void doPostSynchronization(
-      PostSynchronizationDeleteOperation deleteOperation)
+  public void doPostSynchronization(PostSynchronizationDeleteOperation deleteOperation)
   {
     Entry entry = deleteOperation.getEntryToDelete();
     if (entry != null)
@@ -1002,8 +939,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void doPostSynchronization(
-      PostSynchronizationModifyOperation modifyOperation)
+  public void doPostSynchronization(PostSynchronizationModifyOperation modifyOperation)
   {
     Entry entry = modifyOperation.getCurrentEntry();
     Entry modEntry = modifyOperation.getModifiedEntry();
@@ -1014,8 +950,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void doPostSynchronization(
-      PostSynchronizationModifyDNOperation modifyDNOperation)
+  public void doPostSynchronization(PostSynchronizationModifyDNOperation modifyDNOperation)
   {
     Entry oldEntry = modifyDNOperation.getOriginalEntry();
     Entry newEntry = modifyDNOperation.getUpdatedEntry();

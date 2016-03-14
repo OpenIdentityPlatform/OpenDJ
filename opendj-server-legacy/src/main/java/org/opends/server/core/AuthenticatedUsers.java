@@ -169,7 +169,6 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
@@ -202,7 +201,6 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     return PostResponse.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostResponse doPostResponse(PostResponseModifyOperation op)
   {
@@ -241,7 +239,6 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
     return PostResponse.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostResponse doPostResponse(PostResponseModifyDNOperation op)
   {
