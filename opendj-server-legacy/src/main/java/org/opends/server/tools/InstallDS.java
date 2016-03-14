@@ -285,12 +285,7 @@ public class InstallDS extends ConsoleApplication
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     final InstallDS install = new InstallDS(out, err, inStream, tempLogFile);
 
-    int retCode = install.execute(args);
-    if (retCode == 0)
-    {
-      tempLogFile.deleteLogFileAfterSuccess();
-    }
-    return retCode;
+    return install.execute(args);
   }
 
   /**

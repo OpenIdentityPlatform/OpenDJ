@@ -210,7 +210,7 @@ public class OfflineInstaller extends Installer
       updateSummaryWithServerState(hmSummary, true);
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
-
+      tempLogFile.deleteLogFileAfterSuccess();
     } catch (ApplicationException ex)
     {
       logger.error(LocalizableMessage.raw("Caught exception: "+ex, ex));
