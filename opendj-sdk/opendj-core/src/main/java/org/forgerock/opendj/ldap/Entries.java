@@ -571,7 +571,7 @@ public final class Entries {
             final int cmp = adfrom.compareTo(adto);
             if (cmp == 0) {
                 /* Attribute is in both entries so compute the differences between the old and new. */
-                if (options.useReplaceMaxValues > ato.size()) {
+                if (options.useReplaceMaxValues >= ato.size()) {
                     // This attribute is a candidate for replacing.
                     if (diffAttributeNeedsReplacing(afrom, ato, options)) {
                         request.addModification(new Modification(ModificationType.REPLACE, ato));
