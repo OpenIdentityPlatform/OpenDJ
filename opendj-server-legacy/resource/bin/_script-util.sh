@@ -167,13 +167,13 @@ test_java_args() {
 test_java() {
   if test -z "${OPENDJ_JAVA_ARGS}"
   then
-    "${OPENDJ_JAVA_BIN}" org.opends.server.tools.InstallDS --testonly 2> /dev/null
+    "${OPENDJ_JAVA_BIN}" org.opends.server.tools.CheckJVMVersion 2> /dev/null
     RESULT_CODE=${?}
     if test ${RESULT_CODE} -eq 13
     then
       # This is a particular error code that means that the Java version is 6
-      # but not supported.  Let InstallDS to display the localized error message
-      "${OPENDJ_JAVA_BIN}" org.opends.server.tools.InstallDS --testonly
+      # but not supported.  Let TestJVM to display the localized error message
+      "${OPENDJ_JAVA_BIN}" org.opends.server.tools.CheckJVMVersion
       exit 1
     elif test ${RESULT_CODE} -ne 0
     then
@@ -194,13 +194,13 @@ test_java() {
       exit 1
     fi
   else
-    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.server.tools.InstallDS --testonly 2> /dev/null
+    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.server.tools.CheckJVMVersion 2> /dev/null
     RESULT_CODE=${?}
     if test ${RESULT_CODE} -eq 13
     then
       # This is a particular error code that means that the Java version is 7
-      # but not supported.  Let InstallDS to display the localized error message
-      "${OPENDJ_JAVA_BIN}" org.opends.server.tools.InstallDS --testonly
+      # but not supported.  Let TestJVM to display the localized error message
+      "${OPENDJ_JAVA_BIN}" org.opends.server.tools.CheckJVMVersion
       exit 1
     elif test ${RESULT_CODE} -ne 0
     then

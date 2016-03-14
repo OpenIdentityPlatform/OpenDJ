@@ -140,10 +140,7 @@ public class InstallDS extends ConsoleApplication
     ERROR_USER_CANCELLED(6),
 
     /** The user doesn't accept the license. */
-    ERROR_LICENSE_NOT_ACCEPTED(7),
-
-    /** Incompatible java version. */
-    JAVA_VERSION_INCOMPATIBLE(8);
+    ERROR_LICENSE_NOT_ACCEPTED(7);
 
     private int returnCode;
     private InstallReturnCode(int returnCode)
@@ -243,19 +240,6 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * The main method for the InstallDS CLI tool.
-   *
-   * @param args
-   *          the command-line arguments provided to this program.
-   */
-  public static void main(String[] args)
-  {
-    final int retCode = mainCLI(args, System.out, System.err, System.in);
-
-    System.exit(retCode);
-  }
-
-  /**
    * Parses the provided command-line arguments and uses that information to run
    * the setup tool.
    *
@@ -349,12 +333,7 @@ public class InstallDS extends ConsoleApplication
       return InstallReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-    if (argParser.testOnlyArg.isPresent() && !testJVM())
-    {
-        return InstallReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
-    }
-
-    if (argParser.usageOrVersionDisplayed() || argParser.testOnlyArg.isPresent())
+    if (argParser.usageOrVersionDisplayed())
     {
       return InstallReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
@@ -476,32 +455,6 @@ public class InstallDS extends ConsoleApplication
     }
 
     return InstallReturnCode.SUCCESSFUL;
-  }
-
-  private boolean testJVM()
-  {
-    // Delete the log file that does not contain any information.  The test only
-    // mode is called several times by the setup script and if we do not remove
-    // it we have a lot of empty log files.
-    try
-    {
-      QuickSetupLog.getLogFile().deleteOnExit();
-    }
-    catch (final Throwable t)
-    {
-      logger.warn(LocalizableMessage.raw("Error while trying to update the contents of "
-          + "the set-java-home file in test only mode: " + t, t));
-    }
-    try
-    {
-      Utils.checkJavaVersion();
-      return true;
-    }
-    catch (final IncompatibleVersionException ive)
-    {
-      println(ive.getMessageObject());
-      return false;
-    }
   }
 
   private boolean checkLicense()

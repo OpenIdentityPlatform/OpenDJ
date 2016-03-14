@@ -63,7 +63,6 @@ public class InstallDSArgumentParser extends ArgumentParser
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  BooleanArgument   testOnlyArg;
   BooleanArgument   cliArg;
   BooleanArgument   addBaseEntryArg;
   BooleanArgument   showUsageArg;
@@ -121,13 +120,6 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    testOnlyArg =
-            BooleanArgument.builder(OPTION_LONG_TESTONLY_ARGUMENT)
-                    .description(INFO_ARGUMENT_DESCRIPTION_TESTONLY.get())
-                    .hidden()
-                    .buildArgument();
-    addArgument(testOnlyArg);
-
     cliArg = cliArgument();
     addArgument(cliArg);
 

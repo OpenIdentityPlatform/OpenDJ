@@ -170,7 +170,7 @@ goto scriptBegin
 :testJava
 if "%OPENDJ_JAVA_ARGS%" == "" goto checkLegacyArgs
 :continueTestJava
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS --testonly > NUL 2>&1
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.CheckJVMVersion > NUL 2>&1
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 13 goto notSupportedJavaHome
 if not %RESULT_CODE% == 0 goto noValidJavaHome
