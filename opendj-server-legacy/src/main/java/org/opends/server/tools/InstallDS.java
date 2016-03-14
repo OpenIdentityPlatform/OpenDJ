@@ -57,7 +57,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.LicenseFile;
-import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.TempLogFile;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
@@ -65,7 +65,6 @@ import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
-import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.InitializationException;
@@ -220,6 +219,7 @@ public class InstallDS extends ConsoleApplication
   private Integer lastResetAdminConnectorPort;
   private Integer lastResetJmxPort;
 
+  private final TempLogFile tempLogFile;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -233,10 +233,13 @@ public class InstallDS extends ConsoleApplication
    *          the print stream to use for standard error.
    * @param in
    *          the input stream to use for standard input.
+   * @param tempLogFile
+   *          the temporary log file where messages will be logged.
    */
-  public InstallDS(PrintStream out, PrintStream err, InputStream in)
+  public InstallDS(PrintStream out, PrintStream err, InputStream in, TempLogFile tempLogFile)
   {
     super(out, err);
+    this.tempLogFile = tempLogFile;
   }
 
   /**
@@ -245,11 +248,13 @@ public class InstallDS extends ConsoleApplication
    *
    * @param args
    *          the command-line arguments provided to this program.
+   * @param tempLogFile
+   *          the temporary log file where messages will be logged.
    * @return The error code.
    */
-  public static int mainCLI(String[] args)
+  public static int mainCLI(String[] args, final TempLogFile tempLogFile)
   {
-    return mainCLI(args, System.out, System.err, System.in);
+    return mainCLI(args, System.out, System.err, System.in, tempLogFile);
   }
 
   /**
@@ -266,31 +271,24 @@ public class InstallDS extends ConsoleApplication
    *          if standard error is not needed.
    * @param inStream
    *          The input stream to use for standard input.
+   * @param tempLogFile
+   *          the temporary log file where messages will be logged.
    * @return The error code.
    */
-  public static int mainCLI(String[] args, OutputStream outStream, OutputStream errStream, InputStream inStream)
+  public static int mainCLI(
+      String[] args, OutputStream outStream, OutputStream errStream, InputStream inStream, TempLogFile tempLogFile)
   {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-
-    try {
-      QuickSetupLog.initLogFileHandler(
-              QuickSetupLog.isInitialized() ? null :
-                File.createTempFile(TMP_FILE_PREFIX, LOG_FILE_SUFFIX));
-    } catch (final Throwable t) {
-      System.err.println("Unable to initialize log");
-      t.printStackTrace();
-    }
-
-    final InstallDS install = new InstallDS(out, err, inStream);
+    final InstallDS install = new InstallDS(out, err, inStream, tempLogFile);
 
     int retCode = install.execute(args);
     if (retCode == 0)
     {
-      QuickSetupLog.closeAndDeleteLogFile();
+      tempLogFile.deleteLogFileAfterSuccess();
     }
     return retCode;
   }
@@ -371,6 +369,7 @@ public class InstallDS extends ConsoleApplication
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     final OfflineInstaller installer = new OfflineInstaller();
+    installer.setTempLogFile(tempLogFile);
     installer.setUserData(uData);
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(

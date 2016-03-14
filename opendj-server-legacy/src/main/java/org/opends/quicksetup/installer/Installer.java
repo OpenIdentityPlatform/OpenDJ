@@ -86,7 +86,6 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.JavaArguments;
 import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ProgressStep;
-import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.Step;
@@ -227,17 +226,6 @@ public abstract class Installer extends GuiApplication
   public Installer()
   {
     addStepsInOrder(lstSteps, LicenseFile.exists());
-    try
-    {
-      if (!QuickSetupLog.isInitialized())
-      {
-        QuickSetupLog.initLogFileHandler(File.createTempFile(Constants.LOG_FILE_PREFIX, Constants.LOG_FILE_SUFFIX));
-      }
-    }
-    catch (IOException e)
-    {
-      System.err.println("Failed to initialize log");
-    }
   }
 
   @Override

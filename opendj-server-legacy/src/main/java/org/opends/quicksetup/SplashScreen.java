@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -50,6 +50,7 @@ public class SplashScreen extends Window
   private Object quickSetup;
 
   private Class<?> quickSetupClass;
+  private TempLogFile tempLogFile;
 
   /** Constant for the display of the splash screen. */
   private static final int MIN_SPLASH_DISPLAY = 3000;
@@ -57,11 +58,16 @@ public class SplashScreen extends Window
   /**
    * The main method for this class.
    * It can be called from the event thread and outside the event thread.
-   * @param args arguments to be passed to the method QuickSetup.initialize
+   *
+   * @param tempLogFile
+   *        temporary log file where messages will be logged
+   * @param args
+   *        arguments to be passed to the method QuickSetup.initialize
    */
-  public static void main(String[] args)
+  public static void main(final TempLogFile tempLogFile, String[] args)
   {
     SplashScreen screen = new SplashScreen();
+    screen.tempLogFile = tempLogFile;
     screen.display(args);
   }
 
@@ -187,9 +193,8 @@ public class SplashScreen extends Window
     {
       quickSetupClass = Class.forName("org.opends.quicksetup.ui.QuickSetup");
       quickSetup = quickSetupClass.newInstance();
-      quickSetupClass.getMethod("initialize", new Class[]
-        { String[].class }).invoke(quickSetup, new Object[]
-        { args });
+      quickSetupClass.getMethod("initialize", new Class[] { TempLogFile.class, String[].class })
+                     .invoke(quickSetup, tempLogFile, args);
     } catch (Exception e)
     {
       InternalError error =

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -26,7 +26,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import org.opends.quicksetup.util.Utils;
 
 import java.io.PrintStream;
-import java.io.File;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
@@ -41,16 +40,23 @@ public abstract class Launcher {
   /** Arguments with which this launcher was invoked. */
   protected String[] args;
 
+  /** The temporary log file which will be kept if an error occurs. */
+  protected final TempLogFile tempLogFile;
+
   /**
    * Creates a Launcher.
-   * @param args String[] of argument passes from the command line
+   *
+   * @param args
+   *          String[] of argument passes from the command line
+   * @param tempLogFilePrefix
+   *          temporary log file path where messages will be logged
    */
-  public Launcher(String[] args) {
+  public Launcher(final String[] args, final String tempLogFilePrefix) {
     if (args == null) {
       throw new IllegalArgumentException("args cannot be null");
     }
     this.args = args;
-
+    this.tempLogFile = TempLogFile.newTempLogFile(tempLogFilePrefix);
   }
 
   /**
@@ -189,12 +195,12 @@ public abstract class Launcher {
       {
         try
         {
-          SplashScreen.main(args);
+          SplashScreen.main(tempLogFile, args);
           returnValue[0] = 0;
         }
         catch (Throwable t)
         {
-          if (QuickSetupLog.isInitialized())
+          if (tempLogFile.isEnabled())
           {
             logger.warn(LocalizableMessage.raw("Error launching GUI: "+t));
             StringBuilder buf = new StringBuilder();
@@ -315,14 +321,8 @@ public abstract class Launcher {
    */
   protected abstract void willLaunchGui();
 
-  /**
-   * Called if launching of the GUI failed.  Here
-   * subclasses can so application specific things
-   * like print a message.
-   * @param logFileName the log file containing more information about why
-   * the launch failed.
-   */
-  protected abstract void guiLaunchFailed(String logFileName);
+  /** Called if launching of the GUI failed. */
+  protected abstract void guiLaunchFailed();
 
   /**
    * The main method which is called by the command lines.
@@ -350,15 +350,7 @@ public abstract class Launcher {
       willLaunchGui();
       int exitCode = launchGui(args);
       if (exitCode != 0) {
-        File logFile = QuickSetupLog.getLogFile();
-        if (logFile != null)
-        {
-          guiLaunchFailed(logFile.toString());
-        }
-        else
-        {
-          guiLaunchFailed(null);
-        }
+        guiLaunchFailed();
         CliApplication cliApp = createCliApplication();
         exitCode = launchCli(cliApp);
         preExit(cliApp);
@@ -374,11 +366,8 @@ public abstract class Launcher {
 
         // Add an extra space systematically
         System.out.println();
-
-        File logFile = QuickSetupLog.getLogFile();
-        if (logFile != null) {
-          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(
-                  QuickSetupLog.getLogFile().getPath()));
+        if (tempLogFile.isEnabled()) {
+          System.out.println(INFO_GENERAL_SEE_FOR_DETAILS.get(tempLogFile.getPath()));
         }
       }
     }

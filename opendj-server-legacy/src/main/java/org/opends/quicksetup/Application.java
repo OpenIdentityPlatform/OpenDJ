@@ -21,7 +21,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.PrintStream;
 import java.util.Map;
 import java.util.Set;
@@ -72,6 +71,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   private ErrorPrintStream err = new ErrorPrintStream();
   private OutputPrintStream out = new OutputPrintStream();
+
+  /** Temporary log file where messages will be logged. */
+  protected TempLogFile tempLogFile;
 
   /**
    * Creates an application by instantiating the Application class
@@ -574,32 +576,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Conditionally notifies listeners of the log file if it
-   * has been initialized.
-   */
-  protected void notifyListenersOfLog() {
-    File logFile = QuickSetupLog.getLogFile();
-    if (logFile != null) {
-      notifyListeners(getFormattedProgress(
-          INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath())));
-      notifyListeners(getLineBreak());
-    }
-  }
-
-  /**
-   * Conditionally notifies listeners of the log file if it
-   * has been initialized.
-   */
-  protected void notifyListenersOfLogAfterError() {
-    File logFile = QuickSetupLog.getLogFile();
-    if (logFile != null) {
-      notifyListeners(getFormattedProgress(
-          INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(logFile.getPath())));
-      notifyListeners(getLineBreak());
-    }
-  }
-
-  /**
    * Returns a localized representation of a TopologyCacheException object.
    * @param e the exception we want to obtain the representation from.
    * @return a localized representation of a TopologyCacheException object.
@@ -716,6 +692,17 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   protected void applicationPrintStreamReceived(String message)
   {
+  }
+
+  /**
+   * Sets the temporary log file where messages will be logged.
+   *
+   * @param tempLogFile
+   *            temporary log file where messages will be logged.
+   */
+  public void setTempLogFile(final TempLogFile tempLogFile)
+  {
+    this.tempLogFile = tempLogFile;
   }
 
   /**

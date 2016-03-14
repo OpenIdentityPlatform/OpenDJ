@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.offline;
 
@@ -37,8 +37,8 @@ import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.SecurityOptions;
-import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
+import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
@@ -89,7 +89,7 @@ public class OfflineInstaller extends Installer
 
       setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
 
-      notifyListenersOfLog();
+      notifyListenersOfLog(false);
       notifyListeners(getLineBreak());
 
       configureServer();
@@ -244,7 +244,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(html);
         logger.error(LocalizableMessage.raw("Error installing.", ex));
         notifyListeners(getLineBreak());
-        notifyListenersOfLogAfterError();
+        notifyListenersOfLog(true);
       }
       runError = ex;
     }
@@ -278,7 +278,7 @@ public class OfflineInstaller extends Installer
       notifyListeners(msg);
       logger.error(LocalizableMessage.raw("Error installing.", t));
       notifyListeners(getLineBreak());
-      notifyListenersOfLogAfterError();
+      notifyListenersOfLog(true);
       runError = ex;
     }
     finally
@@ -545,4 +545,14 @@ public class OfflineInstaller extends Installer
     return Utils.getInstancePathFromInstallPath(installPath);
   }
 
+  private void notifyListenersOfLog(final boolean isError)
+  {
+    if (tempLogFile.isEnabled())
+    {
+      final String tempLogFilePath = tempLogFile.getPath();
+      notifyListeners(getFormattedProgress(isError ? INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)
+                                                   : INFO_GENERAL_SEE_FOR_DETAILS.get(tempLogFilePath)));
+      notifyListeners(getLineBreak());
+    }
+  }
 }

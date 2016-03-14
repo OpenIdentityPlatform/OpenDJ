@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.uninstaller;
@@ -25,11 +25,9 @@ import static com.forgerock.opendj.cli.Utils.wrapText;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
 
-import java.io.File;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
-import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
@@ -48,9 +46,6 @@ public class UninstallLauncher extends Launcher {
   /** Prefix for log files. */
   public static final String LOG_FILE_PREFIX = "opendj-uninstall-";
 
-  /** Suffix for log files. */
-  public static final String LOG_FILE_SUFFIX = ".log";
-
   /**
    * The main method which is called by the uninstall command lines.
    *
@@ -59,14 +54,6 @@ public class UninstallLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
-    try {
-      QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
-
-    } catch (Throwable t) {
-      System.err.println("Unable to initialize log");
-      t.printStackTrace();
-    }
     new UninstallLauncher(args).launch();
   }
 
@@ -78,7 +65,7 @@ public class UninstallLauncher extends Launcher {
    * @param args the arguments passed by the command lines.
    */
   public UninstallLauncher(String[] args) {
-    super(args);
+    super(args, LOG_FILE_PREFIX);
 
     String scriptName;
     if (isWindows()) {
@@ -142,17 +129,11 @@ public class UninstallLauncher extends Launcher {
     }
   }
 
-  /** {@inheritDoc} */
-  protected void guiLaunchFailed(String logFilePath) {
-    if (logFilePath != null)
-    {
-      System.err.println(ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS
-              .get(logFilePath));
-    }
-    else
-    {
-      System.err.println(ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
-    }
+  @Override
+  protected void guiLaunchFailed() {
+      System.err.println(
+          tempLogFile.isEnabled() ? ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(tempLogFile.getPath())
+                                  : ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
   /** {@inheritDoc} */

@@ -20,14 +20,10 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import java.io.File;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.CliApplication;
-import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.Launcher;
-import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.IncompatibleVersionException;
@@ -46,6 +42,9 @@ import com.forgerock.opendj.cli.ArgumentParser;
  * based setup much be launched.
  */
 public class SetupLauncher extends Launcher {
+
+  private static final String LOG_FILE_PREFIX = "opendj-setup-";
+
   /**
    * The main method which is called by the setup command lines.
    *
@@ -54,14 +53,6 @@ public class SetupLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
-    try {
-      QuickSetupLog.initLogFileHandler(
-              File.createTempFile(Constants.LOG_FILE_PREFIX,
-                  Constants.LOG_FILE_SUFFIX));
-    } catch (Throwable t) {
-      System.err.println("Unable to initialize log");
-      t.printStackTrace();
-    }
     new SetupLauncher(args).launch();
   }
 
@@ -73,7 +64,7 @@ public class SetupLauncher extends Launcher {
    * @param args the arguments passed by the command lines.
    */
   public SetupLauncher(String[] args) {
-    super(args);
+    super(args, LOG_FILE_PREFIX);
     if (System.getProperty(PROPERTY_SCRIPT_NAME) == null)
     {
       System.setProperty(PROPERTY_SCRIPT_NAME, Installation.getSetupFileName());
@@ -115,7 +106,7 @@ public class SetupLauncher extends Launcher {
       else if (isCli())
       {
         Utils.checkJavaVersion();
-        System.exit(InstallDS.mainCLI(args));
+        System.exit(InstallDS.mainCLI(args, tempLogFile));
       }
       else
       {
@@ -125,17 +116,9 @@ public class SetupLauncher extends Launcher {
         // (if possible) is displayed graphically.
         int exitCode = launchGui(args);
         if (exitCode != 0) {
-          File logFile = QuickSetupLog.getLogFile();
-          if (logFile != null)
-          {
-            guiLaunchFailed(logFile.toString());
-          }
-          else
-          {
-            guiLaunchFailed(null);
-          }
+          guiLaunchFailed();
           Utils.checkJavaVersion();
-          System.exit(InstallDS.mainCLI(args));
+          System.exit(InstallDS.mainCLI(args, tempLogFile));
         }
       }
     }
@@ -157,16 +140,10 @@ public class SetupLauncher extends Launcher {
   }
 
   @Override
-  protected void guiLaunchFailed(String logFileName) {
-    if (logFileName != null)
-    {
-      System.err.println(INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(
-              logFileName));
-    }
-    else
-    {
-      System.err.println(INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
-    }
+  protected void guiLaunchFailed() {
+      System.err.println(
+          tempLogFile.isEnabled() ? INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED_DETAILS.get(tempLogFile.getPath())
+                                  : INFO_SETUP_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
   @Override

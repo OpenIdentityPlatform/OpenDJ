@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
@@ -87,11 +87,13 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * it can perform long operations which can make the user think that the UI is
    * blocked.
    *
+   * @param tempLogFile
+   *          temporary log file where messages will be logged.
    * @param args
    *          for the moment this parameter is not used but we keep it in order
    *          to (in case of need) pass parameters through the command line.
    */
-  public void initialize(String[] args)
+  public void initialize(final TempLogFile tempLogFile, String[] args)
   {
     ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
 
@@ -100,6 +102,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     application = Application.create();
     application.setProgressMessageFormatter(formatter);
     application.setCurrentInstallStatus(installStatus);
+    application.setTempLogFile(tempLogFile);
     if (args != null)
     {
       application.setUserArguments(args);
