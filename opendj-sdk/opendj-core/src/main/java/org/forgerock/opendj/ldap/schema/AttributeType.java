@@ -14,7 +14,6 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Arrays.*;
@@ -590,7 +589,10 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * If it does not have any names, then the lower case OID will be returned.
      *
      * @return The normalized name or OID for this schema definition.
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-1632 Migrate AttributeType in one shot
      */
+    @Deprecated
     public String getNormalizedNameOrOID() {
         return normalizedName;
     }
