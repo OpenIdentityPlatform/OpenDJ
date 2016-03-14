@@ -25,7 +25,6 @@ import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.ReturnCode;
-import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.InstallDS;
@@ -149,8 +148,7 @@ public class SetupLauncher extends Launcher {
   @Override
   protected void willLaunchGui() {
     System.out.println(INFO_SETUP_LAUNCHER_LAUNCHING_GUI.get());
-    System.setProperty("org.opends.quicksetup.Application.class",
-            OfflineInstaller.class.getName());
+    System.setProperty("org.opends.quicksetup.Application.class", Installer.class.getName());
   }
 
   @Override

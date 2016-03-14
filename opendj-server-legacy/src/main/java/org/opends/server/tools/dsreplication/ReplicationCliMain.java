@@ -109,7 +109,6 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
-import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
@@ -7211,7 +7210,7 @@ public class ReplicationCliMain extends ConsoleApplication
           REPLICATIONID_NOT_FOUND, null);
     }
 
-    OfflineInstaller installer = new OfflineInstaller();
+    final Installer installer = new Installer();
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(new ProgressUpdateListener()
     {

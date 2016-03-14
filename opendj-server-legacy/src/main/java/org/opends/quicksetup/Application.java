@@ -707,7 +707,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   /**
    * This class is used to notify the ProgressUpdateListeners of events
-   * that are written to the standard error.  It is used in OfflineInstaller.
+   * that are written to the standard error.  It is used in Installer.
    * These classes just create a ErrorPrintStream and
    * then they do a call to System.err with it.
    *
@@ -737,7 +737,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard output. It is used in WebStartInstaller
-   * and in OfflineInstaller. These classes just create a OutputPrintStream and
+   * and in Installer. These classes just create a OutputPrintStream and
    * then they do a call to System.out with it.
    *
    * The class just reads what is written to the standard output, obtains an

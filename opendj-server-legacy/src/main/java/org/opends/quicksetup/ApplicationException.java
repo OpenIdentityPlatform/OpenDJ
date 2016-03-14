@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 import org.forgerock.i18n.LocalizableMessage;
@@ -24,7 +24,6 @@ import org.opends.server.types.OpenDsException;
  * during the installation.
  *
  * @see org.opends.quicksetup.installer.Installer
- * @see org.opends.quicksetup.installer.offline.OfflineInstaller
  */
 public class ApplicationException extends OpenDsException {
 

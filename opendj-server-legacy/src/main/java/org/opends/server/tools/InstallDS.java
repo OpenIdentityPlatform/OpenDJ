@@ -63,8 +63,8 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.NewSuffixOptions;
-import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.InitializationException;
@@ -363,7 +363,7 @@ public class InstallDS extends ConsoleApplication
 
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
-    final OfflineInstaller installer = new OfflineInstaller();
+    final Installer installer = new Installer();
     installer.setTempLogFile(tempLogFile);
     installer.setUserData(uData);
     installer.setProgressMessageFormatter(formatter);
