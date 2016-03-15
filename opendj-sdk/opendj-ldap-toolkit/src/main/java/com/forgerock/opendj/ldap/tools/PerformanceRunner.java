@@ -453,10 +453,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         return 0;
     }
 
+    // detects wrong bind parameters, server unreachable (server down, network problem?), etc.
     private void validateCanConnectToServer(ConnectionFactory connectionFactory) throws LdapException {
-        try (Connection c = connectionFactory.getConnection()) {
-            // detects wrong bind parameters, server unreachable (server down, network problem?), etc.
-        }
+        connectionFactory.getConnection().close();
     }
 
     synchronized void stopTool() {

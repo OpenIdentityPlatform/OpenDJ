@@ -313,9 +313,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     private final RDN rdn;
-
     private DN parent;
-
     private final int size;
 
     /**
@@ -881,8 +879,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     public String toString() {
         // We don't care about potential race conditions here.
         if (stringValue == null) {
-            final StringBuilder builder = new StringBuilder();
-            rdn.toString(builder);
+            final StringBuilder builder = rdn.toString(new StringBuilder());
             if (!parent.isRootDN()) {
                 builder.append(RDN_CHAR_SEPARATOR);
                 builder.append(parent);
@@ -976,8 +973,9 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *   <li>lazily: the normalized value is computed only the first time it is needed.</li>
      * </ul>
      *
-     * @Deprecated This class will eventually be replaced by a compact implementation of a DN.
+     * @deprecated This class will eventually be replaced by a compact implementation of a DN.
      */
+    @Deprecated
     public static final class CompactDn implements Comparable<CompactDn> {
         /** Original string corresponding to the DN. */
         private final byte[] originalValue;

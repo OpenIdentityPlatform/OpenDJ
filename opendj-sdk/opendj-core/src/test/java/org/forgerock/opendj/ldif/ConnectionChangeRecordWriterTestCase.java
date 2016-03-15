@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -370,9 +370,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testConnectionChangeRecordWriterDoesntAllowNull() throws Exception {
-        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(null)) {
-            // nothing more to do
-        }
+        new ConnectionChangeRecordWriter(null);
     }
 
     /**
@@ -384,10 +382,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testConnectionChangeRecordWriterClose() throws Exception {
         Connection connection = mock(Connection.class);
-        try (ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(connection)) {
-            // nothing more to do
-        } finally {
-            verify(connection, times(1)).close();
-        }
+        new ConnectionChangeRecordWriter(connection).close();
+        verify(connection, times(1)).close();
     }
 }

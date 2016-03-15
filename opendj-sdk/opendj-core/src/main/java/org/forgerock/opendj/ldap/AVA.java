@@ -144,7 +144,6 @@ public final class AVA implements Comparable<AVA> {
 
         // Parse the value for this RDN component.
         final ByteString value = readAttributeValue(reader);
-
         return new AVA(attribute, nameOrOid, value);
     }
 
@@ -177,180 +176,29 @@ public final class AVA implements Comparable<AVA> {
         }
     }
 
-    private static void appendHexChars(final SubstringReader reader,
-            final StringBuilder valueBuffer, final StringBuilder hexBuffer) throws DecodeException {
-        final int length = hexBuffer.length();
-        if (length == 0) {
-            return;
-        }
-
-        if (length % 2 != 0) {
-            final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexBuffer);
-            throw DecodeException.error(message);
-        }
-
-        int pos = 0;
-        final int arrayLength = length / 2;
-        final byte[] hexArray = new byte[arrayLength];
-        for (int i = 0; i < arrayLength; i++) {
-            switch (hexBuffer.charAt(pos++)) {
-            case '0':
-                hexArray[i] = 0x00;
-                break;
-            case '1':
-                hexArray[i] = 0x10;
-                break;
-            case '2':
-                hexArray[i] = 0x20;
-                break;
-            case '3':
-                hexArray[i] = 0x30;
-                break;
-            case '4':
-                hexArray[i] = 0x40;
-                break;
-            case '5':
-                hexArray[i] = 0x50;
-                break;
-            case '6':
-                hexArray[i] = 0x60;
-                break;
-            case '7':
-                hexArray[i] = 0x70;
-                break;
-            case '8':
-                hexArray[i] = (byte) 0x80;
-                break;
-            case '9':
-                hexArray[i] = (byte) 0x90;
-                break;
-            case 'A':
-            case 'a':
-                hexArray[i] = (byte) 0xA0;
-                break;
-            case 'B':
-            case 'b':
-                hexArray[i] = (byte) 0xB0;
-                break;
-            case 'C':
-            case 'c':
-                hexArray[i] = (byte) 0xC0;
-                break;
-            case 'D':
-            case 'd':
-                hexArray[i] = (byte) 0xD0;
-                break;
-            case 'E':
-            case 'e':
-                hexArray[i] = (byte) 0xE0;
-                break;
-            case 'F':
-            case 'f':
-                hexArray[i] = (byte) 0xF0;
-                break;
-            default:
-                final LocalizableMessage message =
-                        ERR_HEX_DECODE_INVALID_CHARACTER.get(hexBuffer, hexBuffer.charAt(pos - 1));
-                throw DecodeException.error(message);
-            }
-
-            switch (hexBuffer.charAt(pos++)) {
-            case '0':
-                // No action required.
-                break;
-            case '1':
-                hexArray[i] |= 0x01;
-                break;
-            case '2':
-                hexArray[i] |= 0x02;
-                break;
-            case '3':
-                hexArray[i] |= 0x03;
-                break;
-            case '4':
-                hexArray[i] |= 0x04;
-                break;
-            case '5':
-                hexArray[i] |= 0x05;
-                break;
-            case '6':
-                hexArray[i] |= 0x06;
-                break;
-            case '7':
-                hexArray[i] |= 0x07;
-                break;
-            case '8':
-                hexArray[i] |= 0x08;
-                break;
-            case '9':
-                hexArray[i] |= 0x09;
-                break;
-            case 'A':
-            case 'a':
-                hexArray[i] |= 0x0A;
-                break;
-            case 'B':
-            case 'b':
-                hexArray[i] |= 0x0B;
-                break;
-            case 'C':
-            case 'c':
-                hexArray[i] |= 0x0C;
-                break;
-            case 'D':
-            case 'd':
-                hexArray[i] |= 0x0D;
-                break;
-            case 'E':
-            case 'e':
-                hexArray[i] |= 0x0E;
-                break;
-            case 'F':
-            case 'f':
-                hexArray[i] |= 0x0F;
-                break;
-            default:
-                final LocalizableMessage message =
-                        ERR_HEX_DECODE_INVALID_CHARACTER.get(hexBuffer, hexBuffer.charAt(pos - 1));
-                throw DecodeException.error(message);
-            }
-        }
-        try {
-            valueBuffer.append(new String(hexArray, "UTF-8"));
-        } catch (final Exception e) {
-            final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), String
-                            .valueOf(e));
-            throw DecodeException.error(message);
-        }
-        // Clean up the hex buffer.
-        hexBuffer.setLength(0);
-    }
-
-    private static ByteString delimitAndEvaluateEscape(final SubstringReader reader)
-            throws DecodeException {
-        char c = '\u0000';
+    private static ByteString delimitAndEvaluateEscape(final SubstringReader reader) {
         final StringBuilder valueBuffer = new StringBuilder();
-        final StringBuilder hexBuffer = new StringBuilder();
+        StringBuilder hexBuffer = null;
         reader.skipWhitespaces();
 
         boolean escaped = false;
         while (reader.remaining() > 0) {
-            c = reader.read();
+            final char c = reader.read();
             if (escaped) {
                 // This character is escaped.
                 if (isHexDigit(c)) {
                     // Unicode characters.
                     if (reader.remaining() <= 0) {
-                        final LocalizableMessage msg =
-                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID
-                                        .get(reader.getString());
-                        throw DecodeException.error(msg);
+                        throw new LocalizedIllegalArgumentException(
+                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(reader.getString()));
                     }
 
                     // Check the next byte for hex.
                     final char c2 = reader.read();
                     if (isHexDigit(c2)) {
+                        if (hexBuffer == null) {
+                            hexBuffer = new StringBuilder();
+                        }
                         hexBuffer.append(c);
                         hexBuffer.append(c2);
                         // We may be at the end.
@@ -358,24 +206,20 @@ public final class AVA implements Comparable<AVA> {
                             appendHexChars(reader, valueBuffer, hexBuffer);
                         }
                     } else {
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID
-                                        .get(reader.getString());
-                        throw DecodeException.error(message);
+                        throw new LocalizedIllegalArgumentException(
+                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(reader.getString()));
                     }
                 } else {
                     appendHexChars(reader, valueBuffer, hexBuffer);
                     valueBuffer.append(c);
                 }
                 escaped = false;
-            } else if (c == 0x5C /* The backslash character */) {
-                // We found an escape.
+            } else if (c == '\\') {
                 escaped = true;
             } else {
                 // Check for delimited chars.
                 if (c == '+' || c == ',' || c == ';') {
                     reader.reset();
-                    // Return what we have got here so far.
                     appendHexChars(reader, valueBuffer, hexBuffer);
                     return ByteString.valueOfUtf8(valueBuffer);
                 }
@@ -388,6 +232,23 @@ public final class AVA implements Comparable<AVA> {
 
         reader.reset();
         return ByteString.valueOfUtf8(valueBuffer);
+    }
+
+    private static void appendHexChars(final SubstringReader reader,
+                                       final StringBuilder valueBuffer,
+                                       final StringBuilder hexBuffer) {
+        if (hexBuffer == null) {
+            return;
+        }
+        final ByteString bytes = ByteString.valueOfHex(hexBuffer.toString());
+        try {
+            valueBuffer.append(new String(bytes.toByteArray(), "UTF-8"));
+        } catch (final Exception e) {
+            throw new LocalizedIllegalArgumentException(
+                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), String.valueOf(e)));
+        }
+        // Clean up the hex buffer.
+        hexBuffer.setLength(0);
     }
 
     private static String readAttributeName(final SubstringReader reader) {
@@ -456,120 +317,114 @@ public final class AVA implements Comparable<AVA> {
             return ByteString.empty();
         }
 
+        // Decide how to parse based on the first character.
         reader.mark();
-
-        // Look at the first character. If it is an octothorpe (#), then
-        // that means that the value should be a hex string.
         char c = reader.read();
-        int length = 0;
         if (c == '+') {
-            // Value is empty and followed by another AVA
+            // Value is empty and followed by another AVA.
             reader.reset();
             return ByteString.empty();
         } else if (c == '#') {
-            // The first two characters must be hex characters.
-            reader.mark();
-            if (reader.remaining() < 2) {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString());
-                throw new LocalizedIllegalArgumentException(message);
-            }
-
-            for (int i = 0; i < 2; i++) {
-                c = reader.read();
-                if (isHexDigit(c)) {
-                    length++;
-                } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c);
-                    throw new LocalizedIllegalArgumentException(message);
-                }
-            }
-
-            // The rest of the value must be a multiple of two hex
-            // characters. The end of the value may be designated by the
-            // end of the DN, a comma or semicolon, or a space.
-            while (reader.remaining() > 0) {
-                c = reader.read();
-                if (isHexDigit(c)) {
-                    length++;
-
-                    if (reader.remaining() > 0) {
-                        c = reader.read();
-                        if (isHexDigit(c)) {
-                            length++;
-                        } else {
-                            final LocalizableMessage message =
-                                    ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c);
-                            throw new LocalizedIllegalArgumentException(message);
-                        }
-                    } else {
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString());
-                        throw new LocalizedIllegalArgumentException(message);
-                    }
-                } else if (c == ' ' || c == ',' || c == ';') {
-                    // This denotes the end of the value.
-                    break;
-                } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c);
-                    throw new LocalizedIllegalArgumentException(message);
-                }
-            }
-
-            // At this point, we should have a valid hex string. Convert it
-            // to a byte array and set that as the value of the provided
-            // octet string.
-            try {
-                reader.reset();
-                return ByteString.valueOfHex(reader.read(length));
-            } catch (final LocalizedIllegalArgumentException e) {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), e
-                                .getMessageObject());
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            // Value is HEX encoded BER.
+            return readAttributeValueAsBER(reader);
         } else if (c == '"') {
-            // If the first character is a quotation mark, then the value
-            // should continue until the corresponding closing quotation mark.
-            reader.mark();
-            while (true) {
-                if (reader.remaining() <= 0) {
-                    // We hit the end of the AVA before the closing quote.
-                    // That's an error.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString());
-                    throw new LocalizedIllegalArgumentException(message);
-                }
-
-                if (reader.read() == '"') {
-                    // This is the end of the value.
-                    break;
-                }
-                length++;
-            }
-            reader.reset();
-            final ByteString retString = ByteString.valueOfUtf8(reader.read(length));
-            reader.read();
-            return retString;
+            // The value should continue until the corresponding closing quotation mark.
+            return readAttributeValueWithinQuotes(reader);
         } else {
             // Otherwise, use general parsing to find the end of the value.
+            return readAttributeValueUnescaped(reader);
+        }
+    }
+
+    private static ByteString readAttributeValueUnescaped(final SubstringReader reader) {
+        reader.reset();
+        final ByteString bytes = delimitAndEvaluateEscape(reader);
+        if (bytes.length() == 0) {
+            // We don't allow an empty attribute value.
+            final LocalizableMessage message =
+                    ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader.getString(), reader.pos());
+            throw new LocalizedIllegalArgumentException(message);
+        }
+        return bytes;
+    }
+
+    private static ByteString readAttributeValueWithinQuotes(final SubstringReader reader) {
+        int length = 0;
+        reader.mark();
+        while (true) {
+            if (reader.remaining() <= 0) {
+                // We hit the end of the AVA before the closing quote. That's an error.
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString()));
+            }
+
+            if (reader.read() == '"') {
+                // This is the end of the value.
+                break;
+            }
+            length++;
+        }
+        reader.reset();
+        final ByteString retString = ByteString.valueOfUtf8(reader.read(length));
+        reader.read();
+        return retString;
+    }
+
+    private static ByteString readAttributeValueAsBER(final SubstringReader reader) {
+        // The first two characters must be hex characters.
+        reader.mark();
+        if (reader.remaining() < 2) {
+            throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString()));
+        }
+
+        int length = 0;
+        for (int i = 0; i < 2; i++) {
+            final char c = reader.read();
+            if (isHexDigit(c)) {
+                length++;
+            } else {
+                throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c));
+            }
+        }
+
+        // The rest of the value must be a multiple of two hex
+        // characters. The end of the value may be designated by the
+        // end of the DN, a comma or semicolon, or a space.
+        while (reader.remaining() > 0) {
+            char c = reader.read();
+            if (isHexDigit(c)) {
+                length++;
+
+                if (reader.remaining() > 0) {
+                    c = reader.read();
+                    if (isHexDigit(c)) {
+                        length++;
+                    } else {
+                        throw new LocalizedIllegalArgumentException(
+                                ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c));
+                    }
+                } else {
+                    throw new LocalizedIllegalArgumentException(
+                            ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString()));
+                }
+            } else if (c == ' ' || c == ',' || c == ';') {
+                // This denotes the end of the value.
+                break;
+            } else {
+                throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_DN_INVALID_HEX_DIGIT.get(reader.getString(), c));
+            }
+        }
+
+        // At this point, we should have a valid hex string. Convert it
+        // to a byte array and set that as the value of the provided
+        // octet string.
+        try {
             reader.reset();
-            ByteString bytes;
-            try {
-                bytes = delimitAndEvaluateEscape(reader);
-            } catch (final DecodeException e) {
-                throw new LocalizedIllegalArgumentException(e.getMessageObject());
-            }
-            if (bytes.length() == 0) {
-                // We don't allow an empty attribute value.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader.getString(),
-                                reader.pos());
-                throw new LocalizedIllegalArgumentException(message);
-            }
-            return bytes;
+            return ByteString.valueOfHex(reader.read(length));
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw new LocalizedIllegalArgumentException(
+                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), e.getMessageObject()));
         }
     }
 

@@ -92,9 +92,7 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testConnectionEntryWriterDoesntAllowNull() throws Exception {
-        try (ConnectionEntryWriter writer = new ConnectionEntryWriter(null)) {
-            // nothing to do
-        }
+        new ConnectionEntryWriter(null);
     }
 
     /**
@@ -106,10 +104,7 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public final void testConnectionEntryWriterClose() throws Exception {
         Connection connection = mock(Connection.class);
-        try (ConnectionEntryWriter writer = new ConnectionEntryWriter(connection)) {
-            // nothing to do
-        } finally {
-            verify(connection, times(1)).close();
-        }
+        new ConnectionEntryWriter(connection).close();
+        verify(connection, times(1)).close();
     }
 }
