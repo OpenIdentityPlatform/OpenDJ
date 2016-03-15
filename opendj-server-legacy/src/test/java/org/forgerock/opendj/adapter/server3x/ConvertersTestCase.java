@@ -20,6 +20,7 @@ import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.mockito.Mockito.*;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -64,6 +65,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -132,6 +134,20 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         org.opends.server.types.Entry result = to(entry);
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
         assertThat(result.getAttributes()).hasSize(2);
+    }
+
+    @Test
+    public final void testToEntryDoesNotMixObjectClassAndAttributeTypeOIDs() throws Exception {
+        org.forgerock.opendj.ldap.Entry entry =
+            new LinkedHashMapEntry(DN.valueOf("uid=scarter,ou=People,dc=example,dc=com"));
+        entry.addAttribute(new LinkedAttribute("objectClass", "ds-cfg-backend", "ds-cfg-create-placeholder-for-me"));
+        org.opends.server.types.Entry result = to(entry);
+
+        assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
+        List<ObjectClass> ocs = new ArrayList<>(result.getObjectClasses().keySet());
+        assertThat(ocs).hasSize(2);
+        assertThat(ocs.get(0).getOID()).isEqualTo(DirectoryServer.getObjectClass("ds-cfg-backend").getOID());
+        assertThat(ocs.get(1).getOID()).as("This should be a placeholder").endsWith("-oid");
     }
 
     /**

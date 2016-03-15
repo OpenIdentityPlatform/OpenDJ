@@ -50,6 +50,7 @@ import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
 import org.forgerock.util.Reject;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -58,6 +59,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
@@ -85,7 +87,22 @@ public final class Converters {
                 new org.opends.server.types.Entry(sdkEntry.getName(), null, null, null);
             List<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
-                entry.addAttribute(attribute, duplicateValues);
+                if (attribute.getAttributeDescription().getAttributeType().isObjectClass()) {
+                    for (ByteString attrName : attribute) {
+                        try {
+                            final String ocName = attrName.toString();
+                            ObjectClass oc = DirectoryServer.getObjectClass(ocName);
+                            if (oc == null) {
+                                oc = DirectoryServer.getDefaultObjectClass(ocName);
+                            }
+                            entry.addObjectClass(oc);
+                        } catch (DirectoryException e) {
+                            throw new IllegalStateException(e.getMessage(), e);
+                        }
+                    }
+                } else {
+                    entry.addAttribute(attribute, duplicateValues);
+                }
             }
             return entry;
         }
@@ -125,13 +142,11 @@ public final class Converters {
      * @return the converted value
      */
     public static org.opends.server.types.RawFilter to(final org.forgerock.opendj.ldap.Filter filter) {
-        org.opends.server.protocols.ldap.LDAPFilter ldapFilter = null;
         try {
-            ldapFilter = LDAPFilter.decode(filter.toString());
+            return LDAPFilter.decode(filter.toString());
         } catch (LDAPException e) {
             throw new IllegalStateException(e);
         }
-        return ldapFilter;
     }
 
     /**
@@ -143,13 +158,11 @@ public final class Converters {
      * @return the converted value
      */
     public static SearchFilter toSearchFilter(final org.forgerock.opendj.ldap.Filter filter) {
-        SearchFilter ldapFilter = null;
         try {
-            ldapFilter = SearchFilter.createFilterFromString(filter.toString());
+            return SearchFilter.createFilterFromString(filter.toString());
         } catch (DirectoryException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
-        return ldapFilter;
     }
 
     /**
@@ -633,17 +646,15 @@ public final class Converters {
      */
     public static ByteString getCredentials(final byte[] authenticationValue) {
         final ASN1Reader reader = ASN1.getReader(authenticationValue);
-        ByteString saslCred = ByteString.empty();
         try {
             reader.readOctetStringAsString(); // Reads SASL Mechanism - RFC 4511 4.2
             if (reader.hasNextElement()) {
-                saslCred = reader.readOctetString(); // Reads credentials.
+                return reader.readOctetString().toByteString();
             }
         } catch (IOException e) {
             // Nothing to do.
         }
-
-        return saslCred.toByteString();
+        return ByteString.empty();
     }
 
     /**
