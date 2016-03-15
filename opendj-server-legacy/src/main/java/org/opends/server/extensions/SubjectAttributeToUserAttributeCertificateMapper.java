@@ -77,15 +77,12 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The DN of the configuration entry for this certificate mapper. */
-  private DN configEntryDN;
   /** The mappings between certificate attribute names and user attribute types. */
   private LinkedHashMap<String,AttributeType> attributeMap;
   /** The current configuration for this certificate mapper. */
   private SubjectAttributeToUserAttributeCertificateMapperCfg currentConfig;
   /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
-
 
   /**
    * Creates a new instance of this certificate mapper.  Note that all actual
@@ -97,9 +94,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
       SubjectAttributeToUserAttributeCertificateMapperCfg configuration)
@@ -108,11 +102,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     configuration.addSubjectAttributeToUserAttributeChangeListener(this);
 
     currentConfig = configuration;
-    configEntryDN = configuration.dn();
 
     // Get and validate the subject attribute to user attribute mappings.
     ConfigChangeResult ccr = new ConfigChangeResult();
-    attributeMap = buildAttributeMap(configuration, configEntryDN, ccr);
+    attributeMap = buildAttributeMap(configuration, ccr);
     List<LocalizableMessage> messages = ccr.getMessages();
     if (!messages.isEmpty())
     {
@@ -140,23 +133,18 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     requestedAttributes = newLinkedHashSet("*", "+");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
     currentConfig.removeSubjectAttributeToUserAttributeChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
   {
     SubjectAttributeToUserAttributeCertificateMapperCfg config = currentConfig;
     LinkedHashMap<String,AttributeType> theAttributeMap = this.attributeMap;
-
 
     // Make sure that a peer certificate was provided.
     if (certificateChain == null || certificateChain.length == 0)
@@ -165,14 +153,13 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
     // Get the first certificate in the chain.  It must be an X.509 certificate.
     X509Certificate peerCertificate;
     try
     {
       peerCertificate = (X509Certificate) certificateChain[0];
     }
-    catch (Exception e)
+    catch (ClassCastException e)
     {
       logger.traceException(e);
 
@@ -180,9 +167,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
-    // Get the subject from the peer certificate and use it to create a search
-    // filter.
+    // Get the subject from the peer certificate and use it to create a search filter
     DN peerDN;
     X500Principal peerPrincipal = peerCertificate.getSubjectX500Principal();
     String peerName = peerPrincipal.getName(X500Principal.RFC2253);
@@ -202,11 +187,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AVA ava : rdn)
       {
-        String lowerName = toLowerCase(ava.getAttributeName());
-
-        // Try to normalize lowerName
-        lowerName = normalizeAttributeName(lowerName);
-
+        String lowerName = normalizeAttributeName(ava.getAttributeName());
         AttributeType attrType = theAttributeMap.get(lowerName);
         if (attrType != null)
         {
@@ -278,13 +259,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       }
     }
 
-
-    // If we've gotten here, then we either found exactly one user entry or we
-    // didn't find any.  Either way, return the entry or null to the caller.
+    // We either found exactly one user entry or we did not find any.
     return userEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -294,26 +272,22 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
               SubjectAttributeToUserAttributeCertificateMapperCfg configuration,
               List<LocalizableMessage> unacceptableReasons)
   {
     ConfigChangeResult ccr = new ConfigChangeResult();
-    buildAttributeMap(configuration, configuration.dn(), ccr);
+    buildAttributeMap(configuration, ccr);
     unacceptableReasons.addAll(ccr.getMessages());
     return ResultCode.SUCCESS.equals(ccr.getResultCode());
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(SubjectAttributeToUserAttributeCertificateMapperCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    LinkedHashMap<String, AttributeType> newAttributeMap = buildAttributeMap(configuration, configEntryDN, ccr);
+    LinkedHashMap<String, AttributeType> newAttributeMap = buildAttributeMap(configuration, ccr);
 
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
@@ -358,17 +332,17 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
   /** Get and validate the subject attribute to user attribute mappings. */
   private LinkedHashMap<String, AttributeType> buildAttributeMap(
-      SubjectAttributeToUserAttributeCertificateMapperCfg configuration, DN cfgEntryDN, ConfigChangeResult ccr)
+      SubjectAttributeToUserAttributeCertificateMapperCfg cfg, ConfigChangeResult ccr)
   {
     LinkedHashMap<String, AttributeType> results = new LinkedHashMap<>();
-    for (String mapStr : configuration.getSubjectAttributeMapping())
+    for (String mapStr : cfg.getSubjectAttributeMapping())
     {
       String lowerMap = toLowerCase(mapStr);
       int colonPos = lowerMap.indexOf(':');
       if (colonPos <= 0)
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
+        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfg.dn(), mapStr));
         return null;
       }
 
@@ -377,7 +351,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       if (certAttrName.length() == 0 || userAttrName.length() == 0)
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfgEntryDN, mapStr));
+        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(cfg.dn(), mapStr));
         return null;
       }
 
@@ -386,7 +360,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       if (results.containsKey(certAttrName))
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(cfgEntryDN, certAttrName));
+        ccr.addMessage(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(cfg.dn(), certAttrName));
         return null;
       }
 
@@ -394,13 +368,13 @@ public class SubjectAttributeToUserAttributeCertificateMapper
       if (userAttrType.isPlaceHolder())
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, cfgEntryDN, userAttrName));
+        ccr.addMessage(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, cfg.dn(), userAttrName));
         return null;
       }
       if (results.values().contains(userAttrType))
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_SATUACM_DUPLICATE_USER_ATTR.get(cfgEntryDN, userAttrType.getNameOrOID()));
+        ccr.addMessage(ERR_SATUACM_DUPLICATE_USER_ATTR.get(cfg.dn(), userAttrType.getNameOrOID()));
         return null;
       }
 
@@ -409,18 +383,8 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     return results;
   }
 
-
-
-  /**
-   * Normalizes the given attribute name; if normalization is not
-   * possible the original String value is returned.
-   *
-   * @param   attrName  The attribute name which should be normalized.
-   * @return  The normalized attribute name.
-   */
   private static String normalizeAttributeName(String attrName)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-    return attrType.isPlaceHolder() ? attrName : attrType.getNormalizedNameOrOID();
+    return toLowerCase(DirectoryServer.getAttributeType(attrName).getNameOrOID());
   }
 }

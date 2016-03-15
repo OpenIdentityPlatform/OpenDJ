@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -2818,20 +2817,20 @@ public class Entry
     // Get collective attribute exclusions.
     AttributeType exclusionsType = DirectoryServer.getAttributeType(ATTR_COLLECTIVE_EXCLUSIONS_LC);
     List<Attribute> exclusionsAttrList = operationalAttributes.get(exclusionsType);
-    Set<String> exclusionsNameSet = new HashSet<>();
+    List<String> excludedAttrNames = new ArrayList<>();
     if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())
     {
       for (Attribute attr : exclusionsAttrList)
       {
         for (ByteString attrValue : attr)
         {
-          String exclusionsName = attrValue.toString().toLowerCase();
-          if (VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC.equals(exclusionsName)
-              || OID_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL.equals(exclusionsName))
+          String excludedAttrName = attrValue.toString().toLowerCase();
+          if (VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC.equals(excludedAttrName)
+              || OID_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL.equals(excludedAttrName))
           {
             return;
           }
-          exclusionsNameSet.add(exclusionsName);
+          excludedAttrNames.add(excludedAttrName);
         }
       }
     }
@@ -2914,7 +2913,7 @@ public class Entry
         for (Attribute collectiveAttr : collectiveAttrList)
         {
           AttributeType attributeType = collectiveAttr.getAttributeDescription().getAttributeType();
-          if (exclusionsNameSet.contains(attributeType.getNormalizedNameOrOID()))
+          if (hasAnyNameOrOID(attributeType, excludedAttrNames))
           {
             continue;
           }
@@ -2959,6 +2958,18 @@ public class Entry
         }
       }
     }
+  }
+
+  private boolean hasAnyNameOrOID(AttributeType attributeType, Collection<String> attrNames)
+  {
+    for (String attrName : attrNames)
+    {
+      if (attributeType.hasNameOrOID(attrName))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private ByteString normalize(MatchingRule matchingRule, ByteString value)

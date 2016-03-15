@@ -340,7 +340,7 @@ public class HistoricalTest extends ReplicationTestCase
   private static void publishModify(ReplicationBroker broker, CSN changeNum,
       DN dn, String entryuuid, AttributeType attrType, String newValue)
   {
-    Attribute attr = Attributes.create(attrType.getNormalizedNameOrOID(), newValue);
+    Attribute attr = Attributes.create(attrType, newValue);
     List<Modification> mods = newArrayList(new Modification(ModificationType.ADD, attr));
     broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }

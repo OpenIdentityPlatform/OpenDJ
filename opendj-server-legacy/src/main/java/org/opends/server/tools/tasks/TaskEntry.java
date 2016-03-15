@@ -16,31 +16,31 @@
  */
 package org.opends.server.tools.tasks;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.backends.task.FailedDependencyAction;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.Entry;
+import static org.opends.server.util.ServerConstants.*;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
-import java.lang.reflect.Method;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
-import static org.opends.server.util.ServerConstants.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.backends.task.FailedDependencyAction;
+import org.opends.server.backends.task.Task;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Processes information from a task entry from the directory and
@@ -53,27 +53,6 @@ public class TaskEntry {
   private static Map<String, LocalizableMessage> mapAttrToDisplayName = new HashMap<>();
 
   private int hashCode;
-
-  /**
-   * These attributes associated with the ds-task object
-   * class are all handled explicitly below in the constructor.
-   */
-  private static Set<String> supAttrNames = new HashSet<>();
-  static {
-    supAttrNames.add("ds-task-id");
-    supAttrNames.add("ds-task-class-name");
-    supAttrNames.add("ds-task-state");
-    supAttrNames.add("ds-task-scheduled-start-time");
-    supAttrNames.add("ds-task-actual-start-time");
-    supAttrNames.add("ds-task-completion-time");
-    supAttrNames.add("ds-task-dependency-id");
-    supAttrNames.add("ds-task-failed-dependency-action");
-    supAttrNames.add("ds-task-log-message");
-    supAttrNames.add("ds-task-notify-on-completion");
-    supAttrNames.add("ds-task-notify-on-error");
-    supAttrNames.add("ds-recurring-task-id");
-    supAttrNames.add("ds-recurring-task-schedule");
-  }
 
   private String id;
   private String className;
@@ -119,17 +98,12 @@ public class TaskEntry {
     notifyComp = getMultiStringValue(entry,  p + "notify-on-completion");
     schedTab =   getSingleStringValue(entry, "ds-recurring-task-schedule");
 
-
-    // Build a map of non-superior attribute value pairs for display
-    Map<AttributeType, List<Attribute>> attrMap = entry.getUserAttributes();
-    for (AttributeType type : attrMap.keySet()) {
-      String typeName = type.getNormalizedNameOrOID();
-
-      // See if we've handled it already above
-      if (!supAttrNames.contains(typeName)) {
-        LocalizableMessage attrTypeName = getAttributeDisplayName(typeName);
-        List<Attribute> attrList = entry.getUserAttribute(type);
-        for (Attribute attr : attrList) {
+    final ObjectClass dsTask = DirectoryServer.getObjectClass("ds-task");
+    final ObjectClass dsRecurringTask = DirectoryServer.getObjectClass("ds-recurring-task");
+    for (AttributeType attrType : entry.getUserAttributes().keySet()) {
+      if (!dsTask.isRequiredOrOptional(attrType) && !dsRecurringTask.isRequiredOrOptional(attrType)) {
+        LocalizableMessage attrTypeName = getAttributeDisplayName(attrType);
+        for (Attribute attr : entry.getUserAttribute(attrType)) {
           for (ByteString av : attr) {
             List<String> valueList = taskSpecificAttrValues.get(attrTypeName);
             if (valueList == null) {
@@ -156,18 +130,12 @@ public class TaskEntry {
     hashCode += taskSpecificAttrValues.hashCode();
   }
 
-  /**
-   * Retrieves a hash code for this task entry.
-   *
-   * @return  The hash code for this task entry.
-   */
   @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {
@@ -175,12 +143,6 @@ public class TaskEntry {
     {
       return true;
     }
-
-    if (o == null)
-    {
-      return false;
-    }
-
     if (! (o instanceof TaskEntry))
     {
       return false;
@@ -440,16 +402,15 @@ public class TaskEntry {
     return valuesList;
   }
 
-  private LocalizableMessage getAttributeDisplayName(String attrName) {
+  private LocalizableMessage getAttributeDisplayName(AttributeType attrType) {
+    final String attrName = StaticUtils.toLowerCase(attrType.getNameOrOID());
     LocalizableMessage name = mapAttrToDisplayName.get(attrName);
     if (name == null) {
       Task task = getTask();
       if (task != null) {
         try {
-          Method m = Task.class.getMethod(
-                  "getAttributeDisplayName", String.class);
-          Object o = m.invoke(task, attrName);
-          if (o != null && LocalizableMessage.class.isAssignableFrom(o.getClass())) {
+          Object o = task.getAttributeDisplayName(attrName);
+          if (o instanceof LocalizableMessage) {
             name= (LocalizableMessage)o;
             mapAttrToDisplayName.put(attrName, name);
           }
@@ -507,5 +468,4 @@ public class TaskEntry {
     }
     return task;
   }
-
 }
