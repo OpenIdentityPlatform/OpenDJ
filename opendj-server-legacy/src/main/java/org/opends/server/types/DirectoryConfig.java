@@ -16,8 +16,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +25,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.config.ConfigEntry;
@@ -621,36 +619,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getNameForm(lowerName);
   }
-
-
-
-  /**
-   * Registers the provided invokable component with the Directory
-   * Server.
-   *
-   * @param  component  The invokable component to register.
-   */
-  public static void registerInvokableComponent(
-                                InvokableComponent component)
-  {
-    DirectoryServer.registerInvokableComponent(component);
-  }
-
-
-
-  /**
-   * Deregisters the provided invokable component with the Directory
-   * Server.
-   *
-   * @param  component  The invokable component to deregister.
-   */
-  public static void deregisterInvokableComponent(
-                                InvokableComponent component)
-  {
-    DirectoryServer.deregisterInvokableComponent(component);
-  }
-
-
 
   /**
    * Registers the provided alert generator with the Directory Server.

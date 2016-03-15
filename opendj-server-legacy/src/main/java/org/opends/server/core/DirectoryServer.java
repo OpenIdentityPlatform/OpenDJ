@@ -61,6 +61,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
@@ -103,7 +104,6 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
-import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.PasswordGenerator;
@@ -147,7 +147,6 @@ import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -3019,42 +3018,6 @@ public final class DirectoryServer
   public static JMXMBean getJMXMBean(DN configEntryDN)
   {
     return directoryServer.mBeans.get(configEntryDN);
-  }
-
-  /**
-   * Registers the provided invokable component with the Directory Server.
-   *
-   * @param  component  The invokable component to register.
-   */
-  public static void registerInvokableComponent(InvokableComponent component)
-  {
-    DN componentDN = component.getInvokableComponentEntryDN();
-    JMXMBean mBean = directoryServer.mBeans.get(componentDN);
-    if (mBean == null)
-    {
-      mBean = new JMXMBean(componentDN);
-      mBean.addInvokableComponent(component);
-      directoryServer.mBeans.put(componentDN, mBean);
-    }
-    else
-    {
-      mBean.addInvokableComponent(component);
-    }
-  }
-
-  /**
-   * Deregisters the provided invokable component with the Directory Server.
-   *
-   * @param  component  The invokable component to deregister.
-   */
-  public static void deregisterInvokableComponent(InvokableComponent component)
-  {
-    DN componentDN = component.getInvokableComponentEntryDN();
-    JMXMBean mBean = directoryServer.mBeans.get(componentDN);
-    if (mBean != null)
-    {
-      mBean.removeInvokableComponent(component);
-    }
   }
 
   /**

@@ -40,14 +40,15 @@ import javax.management.ObjectName;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DirectoryServerMBean;
-import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -55,9 +56,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InvokableMethod;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -91,9 +90,6 @@ public final class JMXMBean
   /** The set of alert generators for this MBean. */
   private List<AlertGenerator> alertGenerators;
 
-  /** The set of invokable components for this MBean. */
-  private List<InvokableComponent> invokableComponents;
-
   /** The set of monitor providers for this MBean. */
   private List<MonitorProvider<? extends MonitorProviderCfg>> monitorProviders;
 
@@ -115,10 +111,9 @@ public final class JMXMBean
    */
   public static String getJmxName (DN configEntryDN)
   {
-      String typeStr = null;
-      String nameStr = null ;
       try
       {
+          String typeStr = null;
           String dnString = configEntryDN.toString();
           if (dnString != null && dnString.length() != 0)
           {
@@ -151,13 +146,13 @@ public final class JMXMBean
               typeStr = buffer.toString();
           }
 
-          nameStr = MBEAN_BASE_DOMAIN + ":" + "Name=rootDSE" + typeStr;
+          return MBEAN_BASE_DOMAIN + ":" + "Name=rootDSE" + typeStr;
       } catch (Exception e)
       {
         logger.traceException(e);
         logger.error(ERR_CONFIG_JMX_CANNOT_REGISTER_MBEAN, configEntryDN, e);
+        return null;
       }
-      return nameStr ;
   }
 
   /**
@@ -171,7 +166,6 @@ public final class JMXMBean
         this.configEntryDN = configEntryDN;
 
         alertGenerators = new CopyOnWriteArrayList<>();
-        invokableComponents = new CopyOnWriteArrayList<>();
         monitorProviders = new CopyOnWriteArrayList<>();
 
         MBeanServer mBeanServer = DirectoryServer.getJMXMBeanServer();
@@ -268,60 +262,6 @@ public final class JMXMBean
       return alertGenerators.remove(generator);
     }
   }
-
-
-
-  /**
-   * Retrieves the set of invokable components associated with this JMX MBean.
-   *
-   * @return  The set of invokable components associated with this JMX MBean.
-   */
-  public List<InvokableComponent> getInvokableComponents()
-  {
-    return invokableComponents;
-  }
-
-
-
-  /**
-   * Adds the provided invokable component to the set of components associated
-   * with this JMX MBean.
-   *
-   * @param  component  The component to add to the set of invokable components
-   *                    for this JMX MBean.
-   */
-  public void addInvokableComponent(InvokableComponent component)
-  {
-    synchronized (invokableComponents)
-    {
-      if (! invokableComponents.contains(component))
-      {
-        invokableComponents.add(component);
-      }
-    }
-  }
-
-
-
-  /**
-   * Removes the provided invokable component from the set of components
-   * associated with this JMX MBean.
-   *
-   * @param  component  The component to remove from the set of invokable
-   *                    components for this JMX MBean.
-   *
-   * @return  <CODE>true</CODE> if the specified component was successfully
-   *          removed, or <CODE>false</CODE> if not.
-   */
-  public boolean removeInvokableComponent(InvokableComponent component)
-  {
-    synchronized (invokableComponents)
-    {
-      return invokableComponents.remove(component);
-    }
-  }
-
-
 
   /**
    * Retrieves the set of monitor providers associated with this JMX MBean.
@@ -451,20 +391,12 @@ public final class JMXMBean
     }
 
     // prepare the ldap search
-
     try
     {
       // Perform the Ldap operation for
       //  - ACI Check
       //  - Loggin purpose
-      SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
-      InternalSearchOperation op = null;
-      if (clientConnection instanceof JmxClientConnection) {
-        op = ((JmxClientConnection) clientConnection).processSearch(request);
-      }
-      else if (clientConnection instanceof InternalClientConnection) {
-        op = ((InternalClientConnection) clientConnection).processSearch(request);
-      }
+      InternalSearchOperation op = searchMBeanConfigEntry(clientConnection);
       // BUG : op may be null
       ResultCode rc = op.getResultCode();
       if (rc != ResultCode.SUCCESS) {
@@ -530,15 +462,7 @@ public final class JMXMBean
     // Perform the Ldap operation for
     //  - ACI Check
     //  - Loggin purpose
-    SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
-    InternalSearchOperation op = null;
-    if (clientConnection instanceof JmxClientConnection) {
-      op = ((JmxClientConnection) clientConnection).processSearch(request);
-    }
-    else if (clientConnection instanceof InternalClientConnection) {
-      op = ((InternalClientConnection) clientConnection).processSearch(request);
-    }
-
+    InternalSearchOperation op = searchMBeanConfigEntry(clientConnection);
     if (op == null)
     {
       return null;
@@ -575,6 +499,18 @@ public final class JMXMBean
     }
 
     return attrList;
+  }
+
+  private InternalSearchOperation searchMBeanConfigEntry(ClientConnection clientConnection)
+  {
+    SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
+    if (clientConnection instanceof JmxClientConnection) {
+      return ((JmxClientConnection) clientConnection).processSearch(request);
+    }
+    else if (clientConnection instanceof InternalClientConnection) {
+      return ((InternalClientConnection) clientConnection).processSearch(request);
+    }
+    return null;
   }
 
   /**
@@ -617,49 +553,11 @@ public final class JMXMBean
   public Object invoke(String actionName, Object[] params, String[] signature)
          throws MBeanException
   {
-    for (InvokableComponent component : invokableComponents)
-    {
-      for (InvokableMethod method : component.getOperationSignatures())
-      {
-        if (method.hasSignature(actionName, signature))
-        {
-          try
-          {
-            method.invoke(component, params);
-          }
-          catch (MBeanException me)
-          {
-            logger.traceException(me);
-
-            throw me;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            throw new MBeanException(e);
-          }
-        }
-      }
-    }
-
-
     // If we've gotten here, then there is no such method so throw an exception.
     StringBuilder buffer = new StringBuilder();
     buffer.append(actionName);
     buffer.append("(");
-
-    if (signature.length > 0)
-    {
-      buffer.append(signature[0]);
-
-      for (int i=1; i < signature.length; i++)
-      {
-        buffer.append(", ");
-        buffer.append(signature[i]);
-      }
-    }
-
+    Utils.joinAsString(", ", (Object[]) signature);
     buffer.append(")");
 
     LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(buffer, configEntryDN);
@@ -711,25 +609,12 @@ public final class JMXMBean
       }
     }
 
+    MBeanConstructorInfo[] mBeanConstructors = new MBeanConstructorInfo[0];
+    MBeanOperationInfo[] mBeanOperations = new MBeanOperationInfo[0];
 
     MBeanNotificationInfo[] mBeanNotifications = new MBeanNotificationInfo[notifications.size()];
     notifications.toArray(mBeanNotifications);
 
-
-    List<MBeanOperationInfo> ops = new ArrayList<>();
-    for (InvokableComponent component : invokableComponents)
-    {
-      for (InvokableMethod method : component.getOperationSignatures())
-      {
-        ops.add(method.toOperationInfo());
-      }
-    }
-
-    MBeanOperationInfo[] mBeanOperations = new MBeanOperationInfo[ops.size()];
-    ops.toArray(mBeanOperations);
-
-
-    MBeanConstructorInfo[]  mBeanConstructors  = new MBeanConstructorInfo[0];
     return new MBeanInfo(CLASS_NAME,
                          "Configurable Attributes for " + configEntryDN,
                          mBeanAttributes, mBeanConstructors, mBeanOperations,
