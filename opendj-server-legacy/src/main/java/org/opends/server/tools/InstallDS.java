@@ -382,7 +382,7 @@ public class InstallDS extends ConsoleApplication
     installer.run();
     printStatusCommand();
 
-    final ApplicationException ue = installer.getRunError();
+    final ApplicationException ue = installer.getApplicationException();
     if (ue != null)
     {
       return ue.getType().getReturnCode();

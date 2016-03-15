@@ -231,15 +231,13 @@ public class Installer extends GuiApplication
   /** This map contains the summary associated with each step. */
   private final Map<ProgressStep, LocalizableMessage> hmSummary = new HashMap<>();
 
-  private ApplicationException runError;
+  private ApplicationException applicationException;
 
-  /**
-   * Actually performs the install in this thread.  The thread is blocked.
-   */
+  /** Actually performs the install in this thread.  The thread is blocked. */
   @Override
   public void run()
   {
-    runError = null;
+    applicationException = null;
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
     try
@@ -263,69 +261,26 @@ public class Installer extends GuiApplication
 
       if (isWindows() && getUserData().getEnableWindowsService())
       {
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
-        setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
+        showStepStarted(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
         enableWindowsService();
         checkAbort();
       }
 
       if (mustStart())
       {
-        if (isStartVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
-        setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
-        PointAdder pointAdder = new PointAdder();
-        if (!isStartVerbose())
-        {
-          notifyListeners(getFormattedProgress(
-              INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
-          pointAdder.start();
-        }
-        try
-        {
-          new ServerController(this).startServer(!isStartVerbose());
-        }
-        finally
-        {
-          if (!isStartVerbose())
-          {
-            pointAdder.stop();
-          }
-        }
-        if (!isStartVerbose())
-        {
-          notifyListeners(getFormattedDoneWithLineBreak());
-        }
-        else
-        {
-          notifyListeners(getLineBreak());
-        }
-        checkAbort();
+        startServer();
       }
 
       if (mustCreateAds())
       {
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
-        setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
+        showStepStarted(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
         checkAbort();
       }
 
       if (mustConfigureReplication())
       {
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
-        setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
+        showStepStarted(InstallProgressStep.CONFIGURING_REPLICATION);
         createReplicatedBackendsIfRequired();
         configureReplication();
         checkAbort();
@@ -333,33 +288,15 @@ public class Installer extends GuiApplication
 
       if (mustInitializeSuffixes())
       {
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
-        setCurrentProgressStep(
-            InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
+        showStepStarted(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
         checkAbort();
       }
 
       if (mustStop())
       {
-        if (isVerbose())
-        {
-          notifyListeners(getTaskSeparator());
-        }
-        setCurrentProgressStep(InstallProgressStep.STOPPING_SERVER);
-        if (!isVerbose())
-        {
-          notifyListeners(getFormattedWithPoints(
-              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
-        }
-        new ServerController(this).stopServer(!isVerbose());
-        if (!isVerbose())
-        {
-          notifyListeners(getFormattedDoneWithLineBreak());
-        }
+        showStepStarted(InstallProgressStep.STOPPING_SERVER);
+        stopServer(new ServerController(this));
       }
 
       checkAbort();
@@ -367,7 +304,8 @@ public class Installer extends GuiApplication
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
       tempLogFile.deleteLogFileAfterSuccess();
-    } catch (ApplicationException ex)
+    }
+    catch (final ApplicationException ex)
     {
       logger.error(LocalizableMessage.raw("Caught exception: "+ex, ex));
       if (ReturnCode.CANCELED.equals(ex.getType())) {
@@ -375,67 +313,16 @@ public class Installer extends GuiApplication
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
       } else {
-        // Stop the server if necessary
-        Installation installation = getInstallation();
-        if (installation.getStatus().isServerRunning()) {
-          try {
-            if (!isVerbose())
-            {
-              notifyListeners(getFormattedWithPoints(
-                  INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
-            }
-            new ServerController(installation).stopServer(!isVerbose());
-            if (!isVerbose())
-            {
-              notifyListeners(getFormattedDoneWithLineBreak());
-            }
-          } catch (Throwable t) {
-            logger.info(LocalizableMessage.raw("error stopping server", t));
-          }
-        }
-        notifyListeners(getLineBreak());
-        updateSummaryWithServerState(hmSummary, true);
-        setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
-        LocalizableMessage html = getFormattedError(ex, true);
-        notifyListeners(html);
-        logger.error(LocalizableMessage.raw("Error installing.", ex));
-        notifyListeners(getLineBreak());
-        notifyListenersOfLog(true);
+        handleInstallationError(ex);
       }
-      runError = ex;
+      applicationException = ex;
     }
-    catch (Throwable t)
+    catch (final Throwable t)
     {
-      // Stop the server if necessary
-      Installation installation = getInstallation();
-      if (installation.getStatus().isServerRunning()) {
-        try {
-          if (!isVerbose())
-          {
-            notifyListeners(getFormattedWithPoints(
-                INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
-          }
-          new ServerController(installation).stopServer(!isVerbose());
-          if (!isVerbose())
-          {
-            notifyListeners(getFormattedDoneWithLineBreak());
-          }
-        } catch (Throwable t2) {
-          logger.info(LocalizableMessage.raw("error stopping server", t2));
-        }
-      }
-      notifyListeners(getLineBreak());
-      updateSummaryWithServerState(hmSummary, true);
-      setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
-      ApplicationException ex = new ApplicationException(
-          ReturnCode.BUG,
-          getThrowableMsg(INFO_BUG_MSG.get(), t), t);
-      LocalizableMessage msg = getFormattedError(ex, true);
-      notifyListeners(msg);
-      logger.error(LocalizableMessage.raw("Error installing.", t));
-      notifyListeners(getLineBreak());
-      notifyListenersOfLog(true);
-      runError = ex;
+      final ApplicationException ex =
+          new ApplicationException(ReturnCode.BUG, getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+      handleInstallationError(ex);
+      applicationException = ex;
     }
     finally
     {
@@ -444,14 +331,92 @@ public class Installer extends GuiApplication
     }
   }
 
-  /** {@inheritDoc} */
+  private void showStepStarted(final InstallProgressStep step)
+  {
+    if (isVerbose())
+    {
+      notifyListeners(getTaskSeparator());
+    }
+    setCurrentProgressStep(step);
+  }
+
+  private void startServer() throws ApplicationException
+  {
+    final boolean verbose = isStartVerbose();
+    if (verbose)
+    {
+      notifyListeners(getTaskSeparator());
+    }
+    setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
+    final PointAdder pointAdder = new PointAdder();
+    if (!verbose)
+    {
+      notifyListeners(getFormattedProgress(INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
+      pointAdder.start();
+    }
+    try
+    {
+      new ServerController(this).startServer(!verbose);
+    }
+    finally
+    {
+      if (!verbose)
+      {
+        pointAdder.stop();
+      }
+    }
+    notifyListeners(verbose ? getLineBreak() : getFormattedDoneWithLineBreak());
+    checkAbort();
+  }
+
+  private void handleInstallationError(final ApplicationException exception)
+  {
+    stopServerIfNeeded();
+    notifyListeners(getLineBreak());
+    updateSummaryWithServerState(hmSummary, true);
+    setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
+    notifyListeners(getFormattedError(exception, true));
+    logger.error(LocalizableMessage.raw("Error installing.", exception));
+    notifyListeners(getLineBreak());
+    notifyListenersOfLog(true);
+  }
+
+  private void stopServerIfNeeded()
+  {
+    final Installation installation = getInstallation();
+    if (installation.getStatus().isServerRunning())
+    {
+      try
+      {
+        stopServer(new ServerController(installation));
+      }
+      catch (final ApplicationException t)
+      {
+        logger.info(LocalizableMessage.raw("error stopping server", t));
+      }
+    }
+  }
+
+  private void stopServer(final ServerController serverController) throws ApplicationException
+  {
+    if (isVerbose())
+    {
+      serverController.stopServer(false);
+    }
+    else
+    {
+      notifyListeners(getFormattedWithPoints(INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+      serverController.stopServer(true);
+      notifyListeners(getFormattedDoneWithLineBreak());
+    }
+  }
+
   @Override
   public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getSummary(ProgressStep status)
   {
@@ -463,16 +428,12 @@ public class Installer extends GuiApplication
    * @return the ApplicationException raised during the run() method, if any.
    *         null otherwise.
    */
-  public ApplicationException getRunError()
+  public ApplicationException getApplicationException()
   {
-    return runError;
+    return applicationException;
   }
 
-  /**
-   * Called when the user elects to cancel this operation.
-   */
-  protected void uninstall() {
-
+  private void uninstall() {
     notifyListeners(getTaskSeparator());
     if (!isVerbose())
     {
@@ -486,89 +447,10 @@ public class Installer extends GuiApplication
     Installation installation = getInstallation();
     FileManager fm = new FileManager(this);
 
-    // Stop the server if necessary
-    if (installation.getStatus().isServerRunning()) {
-      try {
-        if (!isVerbose())
-        {
-          notifyListeners(getFormattedWithPoints(
-              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
-        }
-        new ServerController(installation).stopServer(!isVerbose());
-        if (!isVerbose())
-        {
-          notifyListeners(getFormattedDoneWithLineBreak());
-        }
-      } catch (ApplicationException e) {
-        logger.info(LocalizableMessage.raw("error stopping server", e));
-      }
-    }
-
+    stopServerIfNeeded();
     uninstallServices();
-
-    // Revert to the base configuration
-    try {
-      File newConfig = fm.copy(installation.getBaseConfigurationFile(),
-          installation.getConfigurationDirectory(),
-                               /*overwrite=*/true);
-      fm.rename(newConfig, installation.getCurrentConfigurationFile());
-
-    } catch (ApplicationException ae) {
-      logger.info(LocalizableMessage.raw("failed to restore base configuration", ae));
-    }
-
-    // Cleanup SSL if necessary
-    SecurityOptions sec = getUserData().getSecurityOptions();
-    if (sec.getEnableSSL() || sec.getEnableStartTLS()) {
-      if (SecurityOptions.CertificateType.SELF_SIGNED_CERTIFICATE.equals(
-          sec.getCertificateType())) {
-        CertificateManager cm = new CertificateManager(
-            getSelfSignedKeystorePath(),
-            CertificateManager.KEY_STORE_TYPE_JKS,
-            getSelfSignedCertificatePwd());
-        try {
-          for (String alias : SELF_SIGNED_CERT_ALIASES)
-          {
-            if (cm.aliasInUse(alias))
-            {
-              cm.removeCertificate(alias);
-            }
-          }
-        } catch (KeyStoreException e) {
-          logger.info(LocalizableMessage.raw("Error deleting self signed certification", e));
-        }
-      }
-
-      File keystore = new File(installation.getConfigurationDirectory(),
-          "keystore");
-      if (keystore.exists()) {
-        try {
-          fm.delete(keystore);
-        } catch (ApplicationException e) {
-          logger.info(LocalizableMessage.raw("Failed to delete keystore", e));
-        }
-      }
-
-      File keystorePin = new File(installation.getConfigurationDirectory(),
-          "keystore.pin");
-      if (keystorePin.exists()) {
-        try {
-          fm.delete(keystorePin);
-        } catch (ApplicationException e) {
-          logger.info(LocalizableMessage.raw("Failed to delete keystore.pin", e));
-        }
-      }
-
-      File truststore = new File(installation.getConfigurationDirectory(),
-          "truststore");
-      if (truststore.exists()) {
-        try {
-          fm.delete(truststore);
-        } catch (ApplicationException e) {
-          logger.info(LocalizableMessage.raw("Failed to delete truststore", e));
-        }
-      }
-    }
+    revertToBaseConfiguration(installation, fm);
+    cleanupSSLIfNeeded(installation, fm);
 
     // Remove the databases
     try {
@@ -583,31 +465,73 @@ public class Installer extends GuiApplication
     }
   }
 
+  private void revertToBaseConfiguration(final Installation installation, final FileManager fm)
+  {
+    try
+    {
+      File newConfig = fm.copy(installation.getBaseConfigurationFile(),
+          installation.getConfigurationDirectory(), /*overwrite=*/ true);
+      fm.rename(newConfig, installation.getCurrentConfigurationFile());
+    }
+    catch (ApplicationException ae)
+    {
+      logger.info(LocalizableMessage.raw("failed to restore base configuration", ae));
+    }
+  }
+
+  private void cleanupSSLIfNeeded(final Installation installation, final FileManager fm)
+  {
+    final SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getEnableSSL() || sec.getEnableStartTLS())
+    {
+      if (SecurityOptions.CertificateType.SELF_SIGNED_CERTIFICATE.equals(sec.getCertificateType()))
+      {
+        final CertificateManager cm = new CertificateManager(
+            getSelfSignedKeystorePath(), CertificateManager.KEY_STORE_TYPE_JKS, getSelfSignedCertificatePwd());
+        try
+        {
+          for (final String alias : SELF_SIGNED_CERT_ALIASES)
+          {
+            if (cm.aliasInUse(alias))
+            {
+              cm.removeCertificate(alias);
+            }
+          }
+        }
+        catch (KeyStoreException e)
+        {
+          logger.info(LocalizableMessage.raw("Error deleting self signed certification", e));
+        }
+      }
+
+      final File configDir = installation.getConfigurationDirectory();
+      removeFileIfExists(fm, configDir, "keystore");
+      removeFileIfExists(fm, configDir, "keystore.pin");
+      removeFileIfExists(fm, configDir, "truststore");
+    }
+  }
+
+  private void removeFileIfExists(final FileManager fileManager, final File configDir, final String fileName)
+  {
+    final File file = new File(configDir, fileName);
+    if (file.exists())
+    {
+      try
+      {
+        fileManager.delete(file);
+      }
+      catch (ApplicationException e)
+      {
+        logger.info(LocalizableMessage.raw("Failed to delete " + fileName, e));
+      }
+    }
+  }
+
   private void initMaps()
   {
     initSummaryMap(hmSummary, true);
 
-    /*
-     * hmTime contains the relative time that takes for each task to be
-     * accomplished. For instance if downloading takes twice the time of
-     * extracting, the value for downloading will be the double of the value for
-     * extracting.
-     */
-    Map<ProgressStep, Integer> hmTime = new HashMap<>();
-    hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
-    hmTime.put(InstallProgressStep.CREATING_BASE_ENTRY, 10);
-    hmTime.put(InstallProgressStep.IMPORTING_LDIF, 20);
-    hmTime.put(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED, 20);
-    hmTime.put(InstallProgressStep.CONFIGURING_REPLICATION, 10);
-    hmTime.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE, 5);
-    hmTime.put(InstallProgressStep.STARTING_SERVER, 10);
-    hmTime.put(InstallProgressStep.STOPPING_SERVER, 5);
-    hmTime.put(InstallProgressStep.CONFIGURING_ADS, 5);
-    hmTime.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES, 25);
-
-    int totalTime = 0;
-    List<InstallProgressStep> steps = new ArrayList<>();
-    totalTime += hmTime.get(InstallProgressStep.CONFIGURING_SERVER);
+    final List<InstallProgressStep> steps = new ArrayList<>();
     steps.add(InstallProgressStep.CONFIGURING_SERVER);
     if (createNotReplicatedSuffix())
     {
@@ -615,80 +539,69 @@ public class Installer extends GuiApplication
       {
       case CREATE_BASE_ENTRY:
         steps.add(InstallProgressStep.CREATING_BASE_ENTRY);
-        totalTime += hmTime.get(InstallProgressStep.CREATING_BASE_ENTRY);
         break;
       case IMPORT_FROM_LDIF_FILE:
         steps.add(InstallProgressStep.IMPORTING_LDIF);
-        totalTime += hmTime.get(InstallProgressStep.IMPORTING_LDIF);
         break;
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         steps.add(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
-        totalTime += hmTime.get(
-            InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
         break;
       }
     }
 
     if (isWindows() && getUserData().getEnableWindowsService())
     {
-      totalTime += hmTime.get(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
       steps.add(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
     }
 
     if (mustStart())
     {
-      totalTime += hmTime.get(InstallProgressStep.STARTING_SERVER);
       steps.add(InstallProgressStep.STARTING_SERVER);
     }
 
     if (mustCreateAds())
     {
-      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_ADS);
       steps.add(InstallProgressStep.CONFIGURING_ADS);
     }
 
     if (mustConfigureReplication())
     {
       steps.add(InstallProgressStep.CONFIGURING_REPLICATION);
-      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_REPLICATION);
     }
 
     if (mustInitializeSuffixes())
     {
-      totalTime += hmTime.get(
-          InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
       steps.add(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
     }
 
     if (mustStop())
     {
-      totalTime += hmTime.get(InstallProgressStep.STOPPING_SERVER);
       steps.add(InstallProgressStep.STOPPING_SERVER);
+    }
+
+    int totalTime = 0;
+    for (final InstallProgressStep step : steps) {
+      totalTime += step.getRelativeDuration();
     }
 
     int cumulatedTime = 0;
     for (InstallProgressStep s : steps)
     {
-      Integer statusTime = hmTime.get(s);
+      Integer statusTime = s.getRelativeDuration();
       hmRatio.put(s, (100 * cumulatedTime) / totalTime);
-      if (statusTime != null)
-      {
-        cumulatedTime += statusTime;
-      }
+      cumulatedTime += statusTime;
     }
     hmRatio.put(InstallProgressStep.FINISHED_SUCCESSFULLY, 100);
     hmRatio.put(InstallProgressStep.FINISHED_WITH_ERROR, 100);
     hmRatio.put(InstallProgressStep.FINISHED_CANCELED, 100);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getInstallationPath()
   {
     return Utils.getInstallPathFromClasspath();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getInstancePath()
   {

@@ -12,70 +12,46 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer;
 
 import org.opends.quicksetup.ProgressStep;
 
-/**
- * Enumeration of installation steps.
- */
+/** Enumeration of installation steps. */
 public enum InstallProgressStep implements ProgressStep {
 
-  /**
-   * Install not started.
-   */
+  /** Install not started. */
   NOT_STARTED,
 
-  /**
-   * Configuring server.
-   */
-  CONFIGURING_SERVER,
+  /** Configuring server. */
+  CONFIGURING_SERVER(5),
 
-  /**
-   * Creating base entry for the suffix.
-   */
-  CREATING_BASE_ENTRY,
+  /** Creating base entry for the suffix. */
+  CREATING_BASE_ENTRY(10),
 
-  /**
-   * Importing the contents of an LDIF file into the suffix.
-   */
-  IMPORTING_LDIF,
+  /** Importing the contents of an LDIF file into the suffix. */
+  IMPORTING_LDIF(20),
 
-  /**
-   * Importing generated data into the suffix.
-   */
-  IMPORTING_AUTOMATICALLY_GENERATED,
+  /** Importing generated data into the suffix. */
+  IMPORTING_AUTOMATICALLY_GENERATED(20),
 
-  /**
-   * Configuring replication.
-   */
-  CONFIGURING_REPLICATION,
+  /** Configuring replication. */
+  CONFIGURING_REPLICATION(10),
 
-  /**
-   * Starting Open DS server.
-   */
-  STARTING_SERVER,
+  /** Starting Open DS server. */
+  STARTING_SERVER(10),
 
-  /**
-   * Stopping Open DS server.
-   */
-  STOPPING_SERVER,
+  /** Stopping Open DS server. */
+  STOPPING_SERVER(5),
 
-  /**
-   * Initialize Replicated Suffixes.
-   */
-  INITIALIZE_REPLICATED_SUFFIXES,
+  /** Initialize Replicated Suffixes. */
+  INITIALIZE_REPLICATED_SUFFIXES(25),
 
-  /**
-   * Configuring ADS.
-   */
-  CONFIGURING_ADS,
+  /** Configuring ADS. */
+  CONFIGURING_ADS(5),
 
-  /**
-   * Enabling Windows service.
-   */
+  /** Enabling Windows service. */
   ENABLING_WINDOWS_SERVICE,
 
   /**
@@ -84,35 +60,55 @@ public enum InstallProgressStep implements ProgressStep {
    */
   WAITING_TO_CANCEL,
 
-  /**
-   * Canceling install.
-   */
+  /** Canceling install. */
   CANCELING,
 
-  /**
-   * Installation finished successfully.
-   */
+  /** Installation finished successfully. */
   FINISHED_SUCCESSFULLY,
 
-  /**
-   * User canceled installation.
-   */
+  /** User canceled installation. */
   FINISHED_CANCELED,
 
-  /**
-   * Installation finished with an error.
-   */
+  /** Installation finished with an error. */
   FINISHED_WITH_ERROR;
 
-  /** {@inheritDoc} */
-  public boolean isLast() {
-    return this == FINISHED_SUCCESSFULLY ||
-            this == FINISHED_CANCELED ||
-    this == FINISHED_WITH_ERROR;
+  /**
+   * Contains the relative time that takes for the task to be
+   * accomplished.
+   * For instance if downloading takes twice the time of
+   * extracting, the value for downloading will be the double of the value for
+   * extracting.
+   */
+  private final int relativeDuration;
+
+  InstallProgressStep() {
+    this(0);
   }
 
-  /** {@inheritDoc} */
+  InstallProgressStep(final int relativeDuration) {
+    this.relativeDuration = relativeDuration;
+  }
+
+  int getRelativeDuration()
+  {
+    return relativeDuration;
+  }
+
+  @Override
+  public boolean isLast() {
+    switch (this)
+    {
+    case FINISHED_CANCELED:
+    case FINISHED_SUCCESSFULLY:
+    case FINISHED_WITH_ERROR:
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  @Override
   public boolean isError() {
-    return this.equals(FINISHED_WITH_ERROR);
+    return FINISHED_WITH_ERROR.equals(this);
   }
 }
