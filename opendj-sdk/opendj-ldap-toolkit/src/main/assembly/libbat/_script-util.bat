@@ -12,7 +12,7 @@ rem Header, with the fields enclosed by brackets [] replaced by your own identif
 rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2008-2009 Sun Microsystems, Inc.
-rem Portions copyright 2013-2015 ForgeRock AS.
+rem Portions copyright 2013-2016 ForgeRock AS.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -63,7 +63,6 @@ if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "false" goto setJavaHomeAndArgs
 if "%SET_CLASSPATH_DONE%" == "false" goto setClassPath
 if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
 goto testJava
-
 
 :setJavaHomeAndArgs
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
@@ -125,51 +124,6 @@ set PATH=%SystemRoot%;%PATH%
 set SCRIPT_NAME_ARG=-Dcom.forgerock.opendj.ldap.tools.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
 goto scriptBegin
-
-:noValidJavaHome
-if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
-echo ERROR:  The detected Java version could not be used.  The detected
-echo Java binary is:
-echo %OPENDJ_JAVA_BIN%
-echo You must specify the path to a valid Java 5.0 or higher version.
-echo The procedure to follow is:
-echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
-echo Java 5.0 installation.
-echo If you want to have specific Java settings for each command line you must
-echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the Java binary and the Java arguments
-echo for each command line.  The Java properties file is located in:
-echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
-pause
-exit /B 1
-
-:notSupportedJavaHome
-rem We get here when the java version is 5 (or up) but not supported.  We run
-rem InstallDS again to see a localized message.
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opendj.server.tools.InstallDS --testonly
-pause
-exit /B 1
-
-:noValidHomeWithArgs
-echo ERROR:  The detected Java version could not be used with the set of Java
-echo arguments %OPENDJ_JAVA_ARGS%.
-echo The detected Java binary is:
-echo %OPENDJ_JAVA_BIN%
-echo You must specify the path to a valid Java 5.0 or higher version.
-echo The procedure to follow is:
-echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
-echo Java 5.0 installation.
-echo If you want to have specific Java settings for each command line you must
-echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the Java binary and the Java arguments
-echo for each command line.  The Java properties file is located in:
-echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
-pause
-exit /B 1
 
 :isVersionOrHelp
 if [%1] == [] goto end
