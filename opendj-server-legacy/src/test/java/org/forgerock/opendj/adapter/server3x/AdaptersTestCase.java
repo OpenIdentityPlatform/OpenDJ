@@ -408,7 +408,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         // No differences expected.
         assertThat(Entries.diffEntries(original, expectedEntry).getModifications()).isEmpty();
 
-        assertThat((Object) srEntry.getName()).isEqualTo(DN.valueOf("uid=user.1,o=test"));
+        assertThat(srEntry.getName().toString()).isEqualTo("uid=user.1,o=test");
         assertThat(srEntry.getAttributeCount()).isEqualTo(7);
         assertThat(srEntry.getAttribute("description").firstValueAsString()).isEqualTo(
                 "This is the description for Aaren Atp.");
@@ -552,7 +552,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                 connection.searchSingleEntry(Requests.newSearchRequest(
                         "uid=user.1, o=test", SearchScope.BASE_OBJECT, "(uid=user.1)"));
         assertThat(srEntry).isNotNull();
-        assertThat((Object) srEntry.getName()).isEqualTo(DN.valueOf("uid=user.1,o=test"));
+        assertThat(srEntry.getName().toString()).isEqualTo("uid=user.1,o=test");
 
         connection.close();
     }
@@ -863,7 +863,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         assertThat(reader.isEntry()).isTrue();
         final SearchResultEntry entry = reader.readEntry();
         assertThat(entry).isNotNull();
-        assertThat((Object) entry.getName()).isEqualTo(DN.valueOf("uid=user.1,o=test"));
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,o=test");
         assertThat(reader.hasNext()).isFalse();
     }
 

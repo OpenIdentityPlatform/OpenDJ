@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -293,7 +293,7 @@ public class AggregationClientTest extends AdminTestCase {
                 "ds-cfg-enabled: true",
                 "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
                 "ds-cfg-attribute-type: description",
-                "ds-cfg-rotation-policy: cn=LDAP Connection Handler,cn=connection handlers, cn=config"));
+                "ds-cfg-rotation-policy: cn=LDAP Connection Handler,cn=connection handlers,cn=config"));
     }
 
     /**
@@ -317,8 +317,8 @@ public class AggregationClientTest extends AdminTestCase {
 
         String dn = "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config";
         assertThat(backend.get(dn).parseAttribute("ds-cfg-rotation-policy").asSetOfString())
-                .containsOnly("cn=HTTP Connection Handler,cn=connection handlers, cn=config",
-                        "cn=JMX Connection Handler,cn=connection handlers, cn=config");
+                .containsOnly("cn=HTTP Connection Handler,cn=connection handlers,cn=config",
+                        "cn=JMX Connection Handler,cn=connection handlers,cn=config");
     }
 
     /** Retrieve the named test parent managed object. */

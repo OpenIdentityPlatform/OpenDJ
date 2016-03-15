@@ -27,21 +27,24 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public final class TestSubtreeSpecification extends SubtreeSpecificationTestCase {
 
+  /** Cached root DN. */
+  private DN rootDN = DN.rootDN();
+
   @DataProvider
   public Object[][] valueOfData() {
     return new Object[][] {
       { "{}", "{ }" },
       { "  {    }    ", "{ }" },
       { "{ base \"dc=sun, dc=com\" }",
-        "{ base \"dc=sun, dc=com\" }" },
+        "{ base \"dc=sun,dc=com\" }" },
       { "{base \"dc=sun, dc=com\"}",
-        "{ base \"dc=sun, dc=com\" }" },
-      { "{ base \"dc=sun, dc=com\", specificationFilter item:ds-config-rootDN }",
-        "{ base \"dc=sun, dc=com\", specificationFilter item:ds-config-rootDN }" },
+        "{ base \"dc=sun,dc=com\" }" },
+      { "{ base \"dc=sun, dc=com\", " + "specificationFilter item:ds-config-rootDN }",
+        "{ base \"dc=sun,dc=com\", " + "specificationFilter item:ds-config-rootDN }" },
       { "{ base \"dc=sun, dc=com\", minimum 0 , maximum 10, "
           + "specificExclusions {chopBefore:\"o=abc\", "
           + "chopAfter:\"o=xyz\"} , specificationFilter not:not:item:foo }",
-        "{ base \"dc=sun, dc=com\", "
+        "{ base \"dc=sun,dc=com\", "
           + "specificExclusions { chopBefore:\"o=abc\", "
           + "chopAfter:\"o=xyz\" }, maximum 10, specificationFilter "
           + "not:not:item:foo }" },
@@ -58,13 +61,13 @@ public final class TestSubtreeSpecification extends SubtreeSpecificationTestCase
       { "{ specificationFilter or:{item:top, item:foo, and:{item:one, item:two}} }",
         "{ specificationFilter or:{item:top, item:foo, and:{item:one, item:two}} }" },
       { "{ base \"dc=sun, dc=com\", specificationFilter \"(objectClass=*)\" }",
-        "{ base \"dc=sun, dc=com\", specificationFilter \"(objectClass=*)\" }" },
+        "{ base \"dc=sun,dc=com\", specificationFilter \"(objectClass=*)\" }" },
     };
   }
 
   @Test(dataProvider = "valueOfData")
   public void testValueOf(String specification, String expected) throws Exception {
-    SubtreeSpecification ss = SubtreeSpecification.valueOf(DN.rootDN(), specification);
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN, specification);
     assertEquals(ss.toString(), expected);
   }
 
@@ -114,7 +117,7 @@ public final class TestSubtreeSpecification extends SubtreeSpecificationTestCase
   @Test(dataProvider = "isWithinScopeData")
   public void testIsWithinScope(String dnString, String value, boolean expected) throws Exception {
     DN dn = DN.valueOf(dnString);
-    SubtreeSpecification ss = SubtreeSpecification.valueOf(DN.rootDN(), value);
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN, value);
     assertEquals(ss.isWithinScope(createEntry(dn, getObjectClasses())), expected);
   }
 }
