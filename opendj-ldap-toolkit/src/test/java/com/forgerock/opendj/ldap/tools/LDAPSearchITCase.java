@@ -79,8 +79,7 @@ public class LDAPSearchITCase extends ToolsITCase {
 
         try (PrintStream outStream = new PrintStream(out.asOutputStream());
              PrintStream errStream = new PrintStream(err.asOutputStream())) {
-            LDAPSearch ldapSearch = new LDAPSearch(outStream, errStream);
-            ldapSearch.run(arguments);
+            LDAPSearch.run(outStream, errStream, arguments);
             checkOuputStreams(out, err, expectedOut, expectedErr);
         } catch (final LDAPToolException e) {
             checkOuputStreams(out, err, expectedOut, expectedErr);

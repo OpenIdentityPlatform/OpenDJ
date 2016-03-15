@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -60,6 +60,8 @@ public final class CliConstants {
     /** Default Administration UID. */
     public static final String GLOBAL_ADMIN_UID = "admin";
 
+    /** Default maximum number of columns before starting to wrap tools output. */
+    public static final int NO_WRAPPING_BY_DEFAULT = 0;
 
     /** Prevent instantiation. */
     private CliConstants() {

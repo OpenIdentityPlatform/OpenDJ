@@ -17,6 +17,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.USE_SYSTEM_STREAM_TOKEN;
+import static com.forgerock.opendj.cli.CliConstants.NO_WRAPPING_BY_DEFAULT;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
@@ -42,6 +43,7 @@ import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -117,18 +119,6 @@ final class Utils {
         }
 
         return rc;
-    }
-
-    static void printSuccessMessage(
-            final ConsoleApplication app, final Result r, final String operationType, final String dn) {
-        app.println(INFO_OPERATION_SUCCESSFUL.get(operationType, dn));
-        printlnTextMsg(app, r.getDiagnosticMessage());
-        final List<String> referralURIs = r.getReferralURIs();
-        if (referralURIs != null) {
-            for (final String uri : referralURIs) {
-                app.println(LocalizableMessage.raw(uri));
-            }
-        }
     }
 
     static void printPasswordPolicyResults(final ConsoleApplication app, final BindResult result) {
@@ -227,25 +217,6 @@ final class Utils {
         }
     }
 
-    static List<Filter> readFiltersFromFile(final String fileName) throws LDAPToolException {
-        final List<Filter> filters = new ArrayList<>();
-        try (final BufferedReader in = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                if ("".equals(line.trim())) {
-                    // ignore empty lines.
-                    continue;
-                }
-                filters.add(Filter.valueOf(line));
-            }
-            return filters;
-        } catch (final IOException e) {
-            throw newToolException(e, ResultCode.CLIENT_SIDE_FILTER_ERROR, LocalizableMessage.raw(e.toString()));
-        } catch (final LocalizedIllegalArgumentException e) {
-            throw newToolException(e, ResultCode.CLIENT_SIDE_FILTER_ERROR, e.getMessageObject());
-        }
-    }
-
     static Filter readFilterFromString(final String filterStr) throws LDAPToolException {
         try {
             return Filter.valueOf(filterStr);
@@ -291,6 +262,30 @@ final class Utils {
         } else {
             return app.getOutputStream();
         }
+    }
+
+    /**
+     * Return the content of all file which path are provided in the {@link List<String>}.
+     *
+     * @param filePaths
+     *         The list of the paths of the files to get content from.
+     * @return The aggregated content of the files in a {@link List<String>}.
+     */
+    static List<String> getLinesFromFiles(final List<String> filePaths) throws LDAPToolException {
+        final List<String> filesLines = new ArrayList<>();
+
+        for (final String filePath : filePaths) {
+            try (final BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    filesLines.add(line);
+                }
+            } catch (final IOException e) {
+                throw newToolParamException(
+                        e, ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filePath, e.getLocalizedMessage()));
+            }
+        }
+        return filesLines;
     }
 
     static void ensureLdapProtocolVersionIsSupported(final IntegerArgument version) throws LDAPToolException {
@@ -449,6 +444,20 @@ final class Utils {
             app.errPrintln(localizableMsg == null ? LocalizableMessage.raw(msg)
                                                   : localizableMsg.get(msg));
         }
+    }
+
+    /**
+     * Return the maximum line length before wrapping or {@code 0} if no wrap should be done.
+     *
+     * @param wrapColumn
+     *         {@link IntegerArgument} which could be provided on the command line.
+     * @return The maximum line length before wrapping or {@code 0} if no wrap should be done.
+     */
+    static int computeWrapColumn(final IntegerArgument wrapColumn) throws ArgumentException {
+        if (wrapColumn.isPresent()) {
+            return wrapColumn.getIntValue();
+        }
+        return NO_WRAPPING_BY_DEFAULT;
     }
 
     /** Prevent instantiation. */

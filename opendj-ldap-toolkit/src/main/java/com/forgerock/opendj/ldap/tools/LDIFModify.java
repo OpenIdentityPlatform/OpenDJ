@@ -17,10 +17,12 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.ArgumentConstants.USE_SYSTEM_STREAM_TOKEN;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolInputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolOutputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
@@ -30,8 +32,10 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.List;
 
+import com.forgerock.opendj.cli.IntegerArgument;
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -58,34 +62,55 @@ import com.forgerock.opendj.cli.StringArgument;
  * to a set of entries contained in an LDIF file.
  */
 public final class LDIFModify extends ConsoleApplication {
+
     /**
-     * The main method for LDIFModify tool.
+     * The main method for ldifmodify tool.
      *
      * @param args
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final LDIFModify ldifModify = new LDIFModify();
-        int retCode;
-        try {
-            retCode = ldifModify.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldifModify);
-            retCode = e.getResultCode();
-        }
-        System.exit(filterExitCode(retCode));
+        System.exit(filterExitCode(run(System.out, System.err, args)));
     }
 
-    private LDIFModify() {
-        // Nothing to do.
+    /**
+     * Run {@link LDIFModify} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final LDIFModify ldifModify = new LDIFModify(out, err);
+        try {
+            return ldifModify.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldifModify);
+            return e.getResultCode();
+        }
+    }
+
+    private LDIFModify(final PrintStream out, final PrintStream err) {
+        super(out, err);
+    }
+
+    @Override
+    public boolean isInteractive() {
+        return false;
     }
 
     private int run(final String[] args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
-        final LocalizableMessage toolDescription = INFO_LDIFMODIFY_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = LDAPToolArgumentParser.builder(LDIFModify.class.getName())
-                .toolDescription(toolDescription)
-                .trailingArguments(1, 2, "source [changes]")
+                .toolDescription(INFO_LDIFMODIFY_TOOL_DESCRIPTION.get())
+                .trailingArgumentsUnbounded(1, "source_file [changes_files...]")
                 .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFMODIFY.get());
@@ -93,6 +118,7 @@ public final class LDIFModify extends ConsoleApplication {
         final BooleanArgument continueOnError;
         final BooleanArgument showUsage;
         final StringArgument outputFilename;
+        final IntegerArgument wrapColumn;
         try {
             outputFilename =
                     StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
@@ -105,6 +131,9 @@ public final class LDIFModify extends ConsoleApplication {
 
             continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
+
+            wrapColumn = wrapColumnArgument();
+            argParser.addArgument(wrapColumn);
 
             showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
@@ -119,7 +148,6 @@ public final class LDIFModify extends ConsoleApplication {
         }
 
         InputStream sourceInputStream = null;
-        InputStream changesInputStream = null;
         OutputStream outputStream = null;
         LDIFEntryReader sourceReader = null;
         LDIFChangeRecordReader changesReader = null;
@@ -128,16 +156,23 @@ public final class LDIFModify extends ConsoleApplication {
         try {
             final List<String> trailingArguments = argParser.getTrailingArguments();
             sourceInputStream = getLDIFToolInputStream(this, trailingArguments.get(0));
-            changesInputStream = getLDIFToolInputStream(this, trailingArguments.get(1));
             outputStream = getLDIFToolOutputStream(this, outputFilename);
 
-            if (System.in == sourceInputStream && System.in == changesInputStream) {
+            final int nbTrailingArgs = trailingArguments.size();
+            final boolean readChangesFromStdin = nbTrailingArgs == 1
+                    || (nbTrailingArgs == 2 && USE_SYSTEM_STREAM_TOKEN.equals(trailingArguments.get(1)));
+            if (getInputStream() == sourceInputStream && readChangesFromStdin) {
                 throw newToolParamException(ERR_LDIFMODIFY_MULTIPLE_USES_OF_STDIN.get());
             }
 
             sourceReader = new LDIFEntryReader(sourceInputStream);
-            changesReader = new LDIFChangeRecordReader(changesInputStream);
-            outputWriter = new LDIFEntryWriter(outputStream);
+            if (readChangesFromStdin) {
+                changesReader = new LDIFChangeRecordReader(getInputStream());
+            } else {
+                changesReader = new LDIFChangeRecordReader(
+                        Utils.getLinesFromFiles(trailingArguments.subList(1, nbTrailingArgs)));
+            }
+            outputWriter = new LDIFEntryWriter(outputStream).setWrapColumn(computeWrapColumn(wrapColumn));
 
             final RejectedChangeRecordListener listener = new RejectedChangeRecordListener() {
                 @Override
@@ -220,9 +255,11 @@ public final class LDIFModify extends ConsoleApplication {
                 errPrintln(ERR_LDIFMODIFY_PATCH_FAILED.get(e.getLocalizedMessage()));
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+        } catch (final ArgumentException ae) {
+            throw newToolParamException(ae, ae.getMessageObject());
         } finally {
             closeSilently(sourceReader, changesReader, outputWriter,
-                          sourceInputStream, changesInputStream, outputStream);
+                          sourceInputStream, outputStream);
         }
 
         return ResultCode.SUCCESS.intValue();

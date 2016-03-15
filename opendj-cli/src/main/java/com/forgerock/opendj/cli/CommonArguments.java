@@ -15,6 +15,7 @@
  */
 package com.forgerock.opendj.cli;
 
+import static com.forgerock.opendj.cli.CliConstants.NO_WRAPPING_BY_DEFAULT;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
@@ -305,17 +306,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns a "connectTimeout" hidden integer argument.
-     *
-     * @return A "connectTimeout" hidden integer argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static IntegerArgument connectTimeOutHiddenArgument() throws ArgumentException {
-        return connectTimeOutArgument(true);
-    }
-
-    /**
      * Returns a "connectTimeout" integer argument.
      *
      * @return A "connectTimeout" integer argument.
@@ -323,19 +313,12 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static IntegerArgument connectTimeOutArgument() throws ArgumentException {
-        return connectTimeOutArgument(false);
-    }
-
-    private static IntegerArgument connectTimeOutArgument(final boolean hidden) throws ArgumentException {
-        final IntegerArgument.Builder builder = IntegerArgument.builder(OPTION_LONG_CONNECT_TIMEOUT)
+        return IntegerArgument.builder(OPTION_LONG_CONNECT_TIMEOUT)
                 .description(INFO_DESCRIPTION_CONNECTION_TIMEOUT.get())
                 .lowerBound(0)
                 .defaultValue(DEFAULT_LDAP_CONNECT_TIMEOUT)
-                .valuePlaceholder(INFO_TIMEOUT_PLACEHOLDER.get());
-        if (hidden) {
-            builder.hidden();
-        }
-        return builder.buildArgument();
+                .valuePlaceholder(INFO_TIMEOUT_PLACEHOLDER.get())
+                .buildArgument();
     }
 
     /**
@@ -804,22 +787,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "encoding" string argument. <br>
-     * <i> N.B : the 'i' short option is also used by cli</i>
-     *
-     * @return The "encoding" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument encodingArgument() throws ArgumentException {
-        return StringArgument.builder("encoding")
-                .shortIdentifier('i')
-                .description(INFO_DESCRIPTION_ENCODING.get())
-                .valuePlaceholder(INFO_ENCODING_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
      * Returns the "do not start" boolean argument.
      *
      * @return The "doNotStart" argument.
@@ -860,23 +827,6 @@ public final class CommonArguments {
         return StringArgument.builder(OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH)
                 .description(description)
                 .valuePlaceholder(INFO_PATH_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
-     * Returns the "filename" string argument.
-     * <i> N.B : the 'f' short option is also used by configfile</i>
-     * @param description
-     *            The description of this argument.
-     * @return The "filename" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument filenameArgument(final LocalizableMessage description) throws ArgumentException {
-        return StringArgument.builder(OPTION_LONG_FILENAME)
-                .shortIdentifier(OPTION_SHORT_FILENAME)
-                .description(description)
-                .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
                 .buildArgument();
     }
 
@@ -1148,5 +1098,22 @@ public final class CommonArguments {
             builder.hidden();
         }
         return builder.buildArgument();
+    }
+
+    /**
+     * Returns the "-t, --wrapColumn" integer argument.
+     *
+     * @return The "-t, --wrapColumn" integer argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static IntegerArgument wrapColumnArgument() throws ArgumentException {
+        return IntegerArgument.builder(OPTION_LONG_WRAP_COLUMN)
+                .shortIdentifier(OPTION_SHORT_WRAP_COLUMN)
+                .lowerBound(0)
+                .defaultValue(NO_WRAPPING_BY_DEFAULT)
+                .description(INFO_DESCRIPTION_WRAP_COLUMN.get())
+                .valuePlaceholder(INFO_WRAP_COLUMN_PLACEHOLDER.get())
+                .buildArgument();
     }
 }

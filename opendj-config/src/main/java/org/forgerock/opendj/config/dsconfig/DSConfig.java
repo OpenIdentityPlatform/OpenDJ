@@ -1063,7 +1063,7 @@ public final class DSConfig extends ConsoleApplication {
         ConnectionFactoryProvider cfp = null;
         try {
             cfp = new ConnectionFactoryProvider(parser, this, CliConstants.DEFAULT_ROOT_USER_DN,
-                    CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT, true);
+                CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT, true);
             cfp.setIsAnAdminConnection();
 
             // Parse the command-line arguments provided to this program.

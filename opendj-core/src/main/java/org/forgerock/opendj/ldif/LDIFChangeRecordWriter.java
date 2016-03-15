@@ -79,6 +79,8 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return writer.toString();
     }
 
+    private boolean hasChanged;
+
     /**
      * Creates a new LDIF change record writer which will append lines of LDIF
      * to the provided list.
@@ -250,6 +252,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         if (isBranchExcluded(change.getName())) {
             return this;
         }
+        this.hasChanged = true;
 
         writeKeyAndValue("dn", change.getName().toString());
         writeControls(change.getControls());
@@ -296,6 +299,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         if (isBranchExcluded(change.getName())) {
             return this;
         }
+        this.hasChanged = true;
 
         writeKeyAndValue("dn", change.getName().toString());
         writeControls(change.getControls());
@@ -316,6 +320,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         if (isBranchExcluded(change.getName())) {
             return this;
         }
+        this.hasChanged = true;
 
         writeKeyAndValue("dn", change.getName().toString());
         writeControls(change.getControls());
@@ -356,6 +361,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         if (isBranchExcluded(change.getName())) {
             return this;
         }
+        this.hasChanged = true;
 
         writeKeyAndValue("dn", change.getName().toString());
         writeControls(change.getControls());
@@ -388,5 +394,14 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     public LDIFChangeRecordWriter writeComment(final CharSequence comment) throws IOException {
         writeComment0(comment);
         return this;
+    }
+
+    /**
+     * Returns {@code true} if changes has already been written in this {@link LDIFChangeRecordWriter}.
+     *
+     * @return {@code true} if changes has already been written in this {@link LDIFChangeRecordWriter}
+     */
+    public boolean containsChanges() {
+        return hasChanged;
     }
 }

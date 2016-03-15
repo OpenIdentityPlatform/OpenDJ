@@ -30,15 +30,8 @@ import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
-import static org.forgerock.util.Utils.closeSilently;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -50,7 +43,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.responses.Result;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -61,37 +53,44 @@ import com.forgerock.opendj.cli.StringArgument;
 
 /** A tool that can be used to issue Compare requests to the Directory Server. */
 public final class LDAPCompare extends ConsoleApplication {
+
     /**
-     * The main method for LDAPModify tool.
+     * The main method for ldapcompare tool.
      *
      * @param args
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final LDAPCompare ldapCompare = new LDAPCompare();
-        int retCode;
+        System.exit(filterExitCode(run(System.out, System.err, args)));
+    }
+
+    /**
+     * Run {@link LDAPCompare} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final LDAPCompare ldapCompare = new LDAPCompare(out, err);
         try {
-            retCode = ldapCompare.run(args);
+            return ldapCompare.run(args);
         } catch (final LDAPToolException e) {
             e.printErrorMessage(ldapCompare);
-            retCode = e.getResultCode();
+            return e.getResultCode();
         }
-        System.exit(filterExitCode(retCode));
     }
 
     private BooleanArgument verbose;
 
-    private LDAPCompare() {
-        // Nothing to do.
-    }
-
-    /**
-     * Constructor to allow tests.
-     *
-     * @param out output stream of console application
-     * @param err error stream of console application
-     */
-    LDAPCompare(PrintStream out, PrintStream err) {
+    private LDAPCompare(final PrintStream out, final PrintStream err) {
       super(out, err);
     }
 
@@ -105,48 +104,29 @@ public final class LDAPCompare extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int executeCompare(final CompareRequest request, final Connection connection) {
-        final String dnStr = request.getName().toString();
-        println(INFO_PROCESSING_COMPARE_OPERATION.get(
-            request.getAttributeDescription().toString(), request.getAssertionValueAsString(), dnStr));
-        if (connection != null) {
-            try {
-                Result result = connection.compare(request);
-                if (ResultCode.COMPARE_FALSE == result.getResultCode()) {
-                    println(INFO_COMPARE_OPERATION_RESULT_FALSE.get(dnStr));
-                } else {
-                    println(INFO_COMPARE_OPERATION_RESULT_TRUE.get(dnStr));
-                }
-            } catch (final LdapException e) {
-                return printErrorMessage(this, e, ERR_LDAP_COMPARE_FAILED);
-            }
-        }
-        return ResultCode.SUCCESS.intValue();
-    }
-
-    int run(final String[] args) throws LDAPToolException {
+    private int run(final String[] args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
         final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPCompare.class.getName())
                 .toolDescription(toolDescription)
-                .trailingArguments(1, "attribute:value [DN ...]")
+                .trailingArguments(2, 2, "attribute:value DN")
                 .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPCOMPARE.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;
 
-        BooleanArgument continueOnError;
         BooleanArgument dryRun;
         BooleanArgument showUsage;
         IntegerArgument ldapProtocolVersion;
         StringArgument assertionFilter;
         StringArgument controlStr;
-        StringArgument encodingStr;
-        StringArgument filename;
         StringArgument proxyAuthzID;
         StringArgument propertiesFileArgument;
+        BooleanArgument useCompareResultCode;
         BooleanArgument noPropertiesFileArgument;
+        BooleanArgument scriptFriendly;
+
         try {
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
@@ -158,17 +138,18 @@ public final class LDAPCompare extends ConsoleApplication {
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            filename = filenameArgument(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
-            argParser.addArgument(filename);
-
             proxyAuthzID = proxyAuthIdArgument();
             argParser.addArgument(proxyAuthzID);
 
-            assertionFilter =
-                    StringArgument.builder(OPTION_LONG_ASSERTION_FILE)
-                            .description(INFO_DESCRIPTION_ASSERTION_FILTER.get())
-                            .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
-                            .buildAndAddToParser(argParser);
+            assertionFilter = StringArgument.builder(OPTION_LONG_ASSERTION_FILE)
+                                            .description(INFO_DESCRIPTION_ASSERTION_FILTER.get())
+                                            .valuePlaceholder(INFO_ASSERTION_FILTER_PLACEHOLDER.get())
+                                            .buildAndAddToParser(argParser);
+
+            useCompareResultCode = BooleanArgument.builder("useCompareResultCode")
+                                                  .shortIdentifier('m')
+                                                  .description(INFO_LDAPCOMPARE_DESCRIPTION_USE_COMPARE_RESULT.get())
+                                                  .buildAndAddToParser(argParser);
 
             controlStr = controlArgument();
             argParser.addArgument(controlStr);
@@ -176,17 +157,14 @@ public final class LDAPCompare extends ConsoleApplication {
             ldapProtocolVersion = ldapVersionArgument();
             argParser.addArgument(ldapProtocolVersion);
 
-            encodingStr = encodingArgument();
-            argParser.addArgument(encodingStr);
-
-            continueOnError = continueOnErrorArgument();
-            argParser.addArgument(continueOnError);
-
             dryRun = noOpArgument();
             argParser.addArgument(dryRun);
 
             verbose = verboseArgument();
             argParser.addArgument(verbose);
+
+            scriptFriendly = scriptFriendlySdkArgument();
+            argParser.addArgument(scriptFriendly);
 
             showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
@@ -201,42 +179,20 @@ public final class LDAPCompare extends ConsoleApplication {
         }
         ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
 
-        final List<String> dnStrings = new ArrayList<>();
-        final List<String> attrAndDNStrings = argParser.getTrailingArguments();
+        final List<String> trailingArguments = argParser.getTrailingArguments();
+        final String attribute = trailingArguments.get(0);
+        final String dn = trailingArguments.get(1);
 
-        if (attrAndDNStrings.isEmpty()) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_LDAPCOMPARE_NO_ATTR.get());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
-        // First element should be an attribute string.
-        final String attributeString = attrAndDNStrings.remove(0);
-        // Rest are DN strings
-        dnStrings.addAll(attrAndDNStrings);
-
-        // If no DNs were provided, then exit with an error.
-        if (dnStrings.isEmpty() && !filename.isPresent()) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_LDAPCOMPARE_NO_DNS.get());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
-        /* If trailing DNs were provided and the filename argument was also
-         provided, exit with an error.*/
-        if (!dnStrings.isEmpty() && filename.isPresent()) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
-
-        // parse the attribute string
-        final int idx = attributeString.indexOf(":");
+        // Parse the attribute string
+        final int idx = attribute.indexOf(":");
         if (idx == -1) {
             argParser.displayMessageAndUsageReference(
-                getErrStream(), ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString));
+                    getErrStream(), ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attribute));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
-        final String attributeType = attributeString.substring(0, idx);
+        final String attributeType = attribute.substring(0, idx);
         ByteString attributeVal;
-        final String remainder = attributeString.substring(idx + 1, attributeString.length());
+        final String remainder = attribute.substring(idx + 1, attribute.length());
         if (remainder.length() > 0) {
             final char nextChar = remainder.charAt(0);
             if (nextChar == ':') {
@@ -272,51 +228,40 @@ public final class LDAPCompare extends ConsoleApplication {
             compare.addControl(readAssertionControl(assertionFilter.getValue()));
         }
 
-        BufferedReader rdr = null;
-        if (!filename.isPresent() && dnStrings.isEmpty()) {
-            // Read from stdin.
-            rdr = new BufferedReader(new InputStreamReader(System.in));
-        } else if (filename.isPresent()) {
-            try {
-                rdr = new BufferedReader(new FileReader(filename.getValue()));
-            } catch (final FileNotFoundException t) {
-                throw newToolParamException(
-                        t, ERR_LDAPCOMPARE_ERROR_READING_FILE.get(filename.getValue(), t.toString()));
-            }
-        }
-
         try (final Connection connection = getConnection(argParser.getConnectionFactory(),
                                                          argParser.getBindRequest(),
                                                          dryRun,
                                                          this)) {
-            int result;
-            if (rdr == null) {
-                for (final String dn : dnStrings) {
-                    compare.setName(dn);
-                    result = executeCompare(compare, connection);
-                    if (result != 0 && !continueOnError.isPresent()) {
-                        return result;
-                    }
-                }
-            } else {
-                String dn;
-                try {
-                    while ((dn = rdr.readLine()) != null) {
-                        compare.setName(dn);
-                        result = executeCompare(compare, connection);
-                        if (result != 0 && !continueOnError.isPresent()) {
-                            return result;
-                        }
-                    }
-                } catch (final IOException ioe) {
-                    throw newToolParamException(
-                            ioe, ERR_LDAPCOMPARE_ERROR_READING_FILE.get(filename.getValue(), ioe.toString()));
-                }
-            }
-        } finally {
-            closeSilently(rdr);
+            compare.setName(dn);
+            final int compareResultCode = executeCompare(compare, connection, scriptFriendly.isPresent());
+            final boolean compareTrue = compareResultCode == ResultCode.COMPARE_TRUE.intValue();
+            return !useCompareResultCode.isPresent() && compareTrue ? ResultCode.SUCCESS.intValue()
+                                                                    : compareResultCode;
+        }
+    }
+
+    private int executeCompare(
+            final CompareRequest request, final Connection connection, final boolean isScriptFriendly) {
+        final String dnStr = request.getName().toString();
+        if (!isScriptFriendly) {
+            println(INFO_PROCESSING_COMPARE_OPERATION.get(
+                    request.getAttributeDescription().toString(), request.getAssertionValueAsString(), dnStr));
         }
 
-        return ResultCode.SUCCESS.intValue();
+        if (connection == null) {
+            // Dry run. There nothing more to check on client side.
+            return ResultCode.COMPARE_TRUE.intValue();
+        }
+
+        try {
+            final ResultCode resultCode = connection.compare(request).getResultCode();
+            if (!isScriptFriendly) {
+                println(ResultCode.COMPARE_FALSE == resultCode ? INFO_COMPARE_OPERATION_RESULT_FALSE.get(dnStr)
+                                                               : INFO_COMPARE_OPERATION_RESULT_TRUE.get(dnStr));
+            }
+            return resultCode.intValue();
+        } catch (final LdapException e) {
+            return printErrorMessage(this, e, ERR_LDAP_COMPARE_FAILED);
+        }
     }
 }

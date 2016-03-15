@@ -147,8 +147,8 @@ public final class ConnectionFactoryProvider {
      * @throws ArgumentException
      *             If an error occurs during parsing the arguments.
      */
-    public ConnectionFactoryProvider(final ArgumentParser argumentParser,
-            final ConsoleApplication app) throws ArgumentException {
+    public ConnectionFactoryProvider(final ArgumentParser argumentParser, final ConsoleApplication app)
+            throws ArgumentException {
         this(argumentParser, app, "", DEFAULT_LDAP_PORT, false);
     }
 
@@ -243,7 +243,7 @@ public final class ConnectionFactoryProvider {
         reportAuthzIDArg = reportAuthzIdArgument();
         argumentParser.addArgument(reportAuthzIDArg);
 
-        connectTimeOut = connectTimeOutHiddenArgument();
+        connectTimeOut = connectTimeOutArgument();
         argumentParser.addArgument(connectTimeOut);
 
         usePasswordPolicyControlArg =

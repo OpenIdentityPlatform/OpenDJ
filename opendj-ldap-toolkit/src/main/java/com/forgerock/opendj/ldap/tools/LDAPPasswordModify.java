@@ -28,6 +28,8 @@ import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsS
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
 
+import java.io.PrintStream;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
@@ -58,30 +60,45 @@ import com.forgerock.opendj.cli.StringArgument;
  * request.
  */
 public final class LDAPPasswordModify extends ConsoleApplication {
+
     /**
-     * Parses the command-line arguments, establishes a connection to the
-     * Directory Server, sends the password modify request, and reads the
-     * response.
+     * The main method for ldappasswordmodify tool.
      *
      * @param args
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final LDAPPasswordModify ldapPasswordModify = new LDAPPasswordModify();
-        int retCode;
+        System.exit(filterExitCode(run(System.out, System.err, args)));
+    }
+
+    /**
+     * Run {@link LDAPPasswordModify} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final LDAPPasswordModify ldapPasswordModify = new LDAPPasswordModify(out, err);
         try {
-            retCode = ldapPasswordModify.run(args);
+            return ldapPasswordModify.run(args);
         } catch (final LDAPToolException e) {
             e.printErrorMessage(ldapPasswordModify);
-            retCode = e.getResultCode();
+            return e.getResultCode();
         }
-        System.exit(filterExitCode(retCode));
     }
 
     private BooleanArgument verbose;
 
-    private LDAPPasswordModify() {
-        // Nothing to do.
+    private LDAPPasswordModify(final PrintStream out, final PrintStream err) {
+        super(out, err);
     }
 
     @Override

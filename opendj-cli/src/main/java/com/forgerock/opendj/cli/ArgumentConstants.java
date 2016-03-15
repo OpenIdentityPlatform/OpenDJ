@@ -265,9 +265,6 @@ public final class ArgumentConstants {
     /** Long form of option for the command-line encoding option. */
     public static final String OPTION_LONG_ENCODING = "encoding";
 
-    /** Long form of option specifying no wrapping of the command-line. */
-    public static final String OPTION_LONG_DONT_WRAP = "dontWrap";
-
     /** The value for the long option targetDN. */
     public static final String OPTION_LONG_TARGETDN = "targetDN";
 
@@ -383,6 +380,11 @@ public final class ArgumentConstants {
 
     /** The value to use to read from stdin or write to stdout. */
     public static final String USE_SYSTEM_STREAM_TOKEN = "-";
+
+    /** The value for the wrap column long option. */
+    public static final String OPTION_LONG_WRAP_COLUMN = "wrapColumn";
+    /** The value for the wrap column short option. */
+    public static final char OPTION_SHORT_WRAP_COLUMN = 't';
 
     /** Prevent instantiation. */
     private ArgumentConstants() {

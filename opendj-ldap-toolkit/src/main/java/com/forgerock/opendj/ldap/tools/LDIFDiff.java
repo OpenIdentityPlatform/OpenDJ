@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
- * Portions Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -24,6 +23,7 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
+import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolInputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolOutputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
@@ -32,11 +32,13 @@ import static org.forgerock.util.Utils.closeSilently;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.List;
 
+import com.forgerock.opendj.cli.IntegerArgument;
 import org.forgerock.i18n.LocalizableException;
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldif.ChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFChangeRecordWriter;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
@@ -53,33 +55,55 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public final class LDIFDiff extends ConsoleApplication {
 
+    static final int NO_DIFFERENCES_FOUND = 0;
+    static final int DIFFERENCES_FOUND = 1;
+
     /**
-     * The main method for LDIFDiff tool.
+     * The main method for ldifdiff tool.
      *
      * @param args
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final LDIFDiff ldifDiff = new LDIFDiff();
-        int retCode;
-        try {
-            retCode = ldifDiff.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldifDiff);
-            retCode = e.getResultCode();
-        }
-        System.exit(filterExitCode(retCode));
+        System.exit(filterExitCode(run(System.out, System.err, args)));
     }
 
-    private LDIFDiff() {
-        // Nothing to do.
+    /**
+     * Run {@link LDIFDiff} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final LDIFDiff ldifDiff = new LDIFDiff(out, err);
+        try {
+            return ldifDiff.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldifDiff);
+            return e.getResultCode();
+        }
+    }
+
+    private LDIFDiff(final PrintStream out, final PrintStream err) {
+        super(out, err);
+    }
+
+    @Override
+    public boolean isInteractive() {
+        return false;
     }
 
     private int run(final String[] args) throws LDAPToolException {
-        // Create the command-line argument parser for use with this program.
-        final LocalizableMessage toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = LDAPToolArgumentParser.builder(LDIFDiff.class.getName())
-                .toolDescription(toolDescription)
+                .toolDescription(INFO_LDIFDIFF_TOOL_DESCRIPTION.get())
                 .trailingArguments(2, "source target")
                 .build();
         argParser.setVersionHandler(newSdkVersionHandler());
@@ -87,6 +111,7 @@ public final class LDIFDiff extends ConsoleApplication {
 
         final BooleanArgument showUsage;
         final StringArgument outputFilename;
+        final IntegerArgument wrapColumn;
         try {
             outputFilename =
                     StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
@@ -96,6 +121,8 @@ public final class LDIFDiff extends ConsoleApplication {
                             .defaultValue("stdout")
                             .valuePlaceholder(INFO_OUTPUT_LDIF_FILE_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
+            wrapColumn = wrapColumnArgument();
+            argParser.addArgument(wrapColumn);
 
             showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
@@ -119,14 +146,22 @@ public final class LDIFDiff extends ConsoleApplication {
             targetInputStream = getLDIFToolInputStream(this, trailingArguments.get(1));
             outputStream = getLDIFToolOutputStream(this, outputFilename);
 
-            if (System.in == sourceInputStream && System.in  == targetInputStream) {
+            if (System.in == sourceInputStream && System.in == targetInputStream) {
                 throw newToolParamException(ERR_LDIFDIFF_MULTIPLE_USES_OF_STDIN.get());
             }
 
             try (LDIFEntryReader sourceReader = new LDIFEntryReader(sourceInputStream);
-                LDIFEntryReader targetReader = new LDIFEntryReader(targetInputStream);
-                LDIFChangeRecordWriter outputWriter = new LDIFChangeRecordWriter(outputStream)) {
-                LDIF.copyTo(LDIF.diff(sourceReader, targetReader), outputWriter);
+                 LDIFEntryReader targetReader = new LDIFEntryReader(targetInputStream);
+                 LDIFChangeRecordWriter outputWriter = new LDIFChangeRecordWriter(outputStream)) {
+                outputWriter.setWrapColumn(computeWrapColumn(wrapColumn));
+                final ChangeRecordReader changes = LDIF.diff(sourceReader, targetReader);
+                LDIF.copyTo(changes, outputWriter);
+                if (outputWriter.containsChanges()) {
+                    return DIFFERENCES_FOUND;
+                } else {
+                    outputWriter.writeComment(INFO_LDIFDIFF_NO_DIFFERENCES.get().toString());
+                    return NO_DIFFERENCES_FOUND;
+                }
             }
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
@@ -135,10 +170,10 @@ public final class LDIFDiff extends ConsoleApplication {
                 errPrintln(ERR_LDIFDIFF_DIFF_FAILED.get(e.getLocalizedMessage()));
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+        } catch (final ArgumentException ae) {
+            throw newToolParamException(ae, ae.getMessageObject());
         } finally {
             closeSilently(sourceInputStream, targetInputStream, outputStream);
         }
-
-        return ResultCode.SUCCESS.intValue();
     }
 }

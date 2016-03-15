@@ -85,9 +85,7 @@ public class LDAPCompareITCase extends ToolsITCase {
 
         try (PrintStream outStream = new PrintStream(out.asOutputStream());
              PrintStream errStream = new PrintStream(err.asOutputStream())) {
-            LDAPCompare ldapCompare = new LDAPCompare(outStream, errStream);
-
-            ldapCompare.run(arguments);
+            LDAPCompare.run(outStream, errStream, arguments);
             checkOuputStreams(out, err, expectedOut, expectedErr);
         } catch (final LDAPToolException ae) {
             checkOuputStreams(out, err, expectedOut, expectedErr);

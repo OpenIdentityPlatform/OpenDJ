@@ -17,6 +17,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
@@ -31,8 +32,9 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.forgerock.util.Utils.closeSilently;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,6 +76,41 @@ import com.forgerock.opendj.cli.StringArgument;
  * to the Directory Server.
  */
 public final class LDAPModify extends ConsoleApplication {
+
+    /**
+     * The main method for ldapmodify tool.
+     *
+     * @param args
+     *            The command-line arguments provided to this program.
+     */
+    public static void main(final String[] args) {
+        System.exit(filterExitCode(run(System.out, System.err, args)));
+    }
+
+    /**
+     * Run {@link LDAPModify} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final LDAPModify ldapModify = new LDAPModify(out, err);
+        try {
+            return ldapModify.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldapModify);
+            return e.getResultCode();
+        }
+    }
+
     private final class VisitorImpl implements ChangeRecordVisitor<Integer, Void> {
         private final Connection connection;
 
@@ -209,30 +246,12 @@ public final class LDAPModify extends ConsoleApplication {
         // TODO: CSN control
     }
 
-    /**
-     * The main method for LDAPModify tool.
-     *
-     * @param args
-     *            The command-line arguments provided to this program.
-     */
-    public static void main(final String[] args) {
-        final LDAPModify ldapModify = new LDAPModify();
-        int retCode;
-        try {
-            retCode = ldapModify.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldapModify);
-            retCode = e.getResultCode();
-        }
-        System.exit(filterExitCode(retCode));
-    }
-
     private EntryWriter writer;
     private Collection<Control> controls;
     private BooleanArgument verbose;
 
-    private LDAPModify() {
-        // Nothing to do.
+    private LDAPModify(final PrintStream out, final PrintStream err) {
+        super(out, err);
     }
 
     @Override
@@ -245,11 +264,11 @@ public final class LDAPModify extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    int run(final String[] args) throws LDAPToolException {
+    private int run(final String[] args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
-        final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
         final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPModify.class.getName())
-                .toolDescription(toolDescription)
+                .toolDescription(INFO_LDAPMODIFY_TOOL_DESCRIPTION.get())
+                .trailingArguments("[changes_files ...]")
                 .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDAPMODIFY.get());
@@ -280,8 +299,13 @@ public final class LDAPModify extends ConsoleApplication {
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            filename = filenameArgument(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
-            argParser.addArgument(filename);
+            filename =
+                    StringArgument.builder(OPTION_LONG_FILENAME)
+                            .shortIdentifier(OPTION_SHORT_FILENAME)
+                            .description(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get())
+                            .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
+                            .hidden()
+                            .buildAndAddToParser(argParser);
 
             proxyAuthzID =
                     StringArgument.builder(OPTION_LONG_PROXYAUTHID)
@@ -351,17 +375,7 @@ public final class LDAPModify extends ConsoleApplication {
                                                          argParser.getBindRequest(),
                                                          noop,
                                                          this)) {
-            if (filename.isPresent()) {
-                final String filePath = filename.getValue();
-                try {
-                    reader = new LDIFChangeRecordReader(new FileInputStream(filePath));
-                } catch (final Exception e) {
-                    throw newToolParamException(
-                            e, ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filePath, e.getLocalizedMessage()));
-                }
-            } else {
-                reader = new LDIFChangeRecordReader(getInputStream());
-            }
+            reader = createLDIFChangeRecordReader(filename, argParser.getTrailingArguments());
 
             final VisitorImpl visitor = new VisitorImpl(connection);
             try {
@@ -381,6 +395,25 @@ public final class LDAPModify extends ConsoleApplication {
         }
 
         return ResultCode.SUCCESS.intValue();
+    }
+
+    private ChangeRecordReader createLDIFChangeRecordReader(final StringArgument fileNameArg,
+                                                            final List<String> trailingArgs)
+            throws LDAPToolException {
+        final boolean fileNameArgUsed = fileNameArg.isPresent();
+        final boolean readFromStdinTokenUsed = trailingArgs.size() == 1
+                                            && USE_SYSTEM_STREAM_TOKEN.equals(trailingArgs.get(0));
+        final boolean readChangesFromStdin = readFromStdinTokenUsed || !fileNameArgUsed && trailingArgs.isEmpty();
+        if (readChangesFromStdin) {
+            return new LDIFChangeRecordReader(getInputStream());
+        }
+
+        final List<String> filesToRead = new ArrayList<>();
+        if (fileNameArgUsed) {
+            filesToRead.add(fileNameArg.getValue());
+        }
+        filesToRead.addAll(trailingArgs);
+        return new LDIFChangeRecordReader(Utils.getLinesFromFiles(filesToRead));
     }
 
     private void addReadAttributesToControl(

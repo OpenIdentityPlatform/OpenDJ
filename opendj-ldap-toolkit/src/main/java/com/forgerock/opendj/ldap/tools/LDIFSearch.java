@@ -22,13 +22,14 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
+import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolInputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolOutputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
-import static com.forgerock.opendj.ldap.tools.Utils.readFiltersFromFile;
 import static com.forgerock.opendj.ldap.tools.Utils.readFilterFromString;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,34 +56,54 @@ import com.forgerock.opendj.cli.StringArgument;
 
 /** This utility can be used to perform search operations against data in an LDIF file. */
 public final class LDIFSearch extends ConsoleApplication {
+
     /**
-     * The main method for LDIFSearch tool.
+     * The main method for ldifsearch tool.
      *
      * @param args
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final LDIFSearch ldifSearch = new LDIFSearch();
-        int retCode;
-        try {
-            retCode = ldifSearch.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldifSearch);
-            retCode = e.getResultCode();
-        }
-        System.exit(filterExitCode(retCode));
+        System.exit(filterExitCode(run(System.out, System.err, args)));
     }
 
-    private LDIFSearch() {
-        // Nothing to do.
+    /**
+     * Run {@link LDIFSearch} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final LDIFSearch ldifSearch = new LDIFSearch(out, err);
+        try {
+            return ldifSearch.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(ldifSearch);
+            return e.getResultCode();
+        }
+    }
+
+    private LDIFSearch(final PrintStream out, final PrintStream err) {
+        super(out, err);
+    }
+
+    @Override
+    public boolean isInteractive() {
+        return false;
     }
 
     private int run(final String[] args) throws LDAPToolException {
-        /* Create the command-line argument parser for use with this program. */
-        final LocalizableMessage toolDescription = INFO_LDIFSEARCH_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = LDAPToolArgumentParser.builder(LDIFSearch.class.getName())
-                .toolDescription(toolDescription)
-                .trailingArgumentsUnbounded(1, "source [filter] [attributes ...]")
+                .toolDescription(INFO_LDIFSEARCH_TOOL_DESCRIPTION.get())
+                .trailingArgumentsUnbounded(2, "source filter [attributes ...]")
                 .build();
         argParser.setVersionHandler(newSdkVersionHandler());
         argParser.setShortToolDescription(REF_SHORT_DESC_LDIFSEARCH.get());
@@ -91,10 +112,10 @@ public final class LDIFSearch extends ConsoleApplication {
         final StringArgument outputFilename;
         final BooleanArgument typesOnly;
         final IntegerArgument timeLimit;
-        final StringArgument filterFile;
         final StringArgument baseDN;
         final MultiChoiceArgument<SearchScope> searchScope;
         final IntegerArgument sizeLimit;
+        final IntegerArgument wrapColumn;
         try {
             outputFilename =
                     StringArgument.builder(OPTION_LONG_OUTPUT_LDIF_FILENAME)
@@ -107,16 +128,13 @@ public final class LDIFSearch extends ConsoleApplication {
             baseDN =
                     StringArgument.builder(OPTION_LONG_BASEDN)
                             .shortIdentifier(OPTION_SHORT_BASEDN)
-                            .description(INFO_SEARCH_DESCRIPTION_BASEDN.get())
-                            .required()
+                            .description(INFO_LDIFSEARCH_DESCRIPTION_BASEDN.get())
+                            .defaultValue("") // Search for rootDSE if no base DN is provided
                             .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
             searchScope = searchScopeArgument();
             argParser.addArgument(searchScope);
-
-            filterFile = filenameArgument(INFO_SEARCH_DESCRIPTION_FILENAME.get());
-            argParser.addArgument(filterFile);
 
             typesOnly =
                     BooleanArgument.builder("typesOnly")
@@ -138,6 +156,9 @@ public final class LDIFSearch extends ConsoleApplication {
                             .valuePlaceholder(INFO_TIME_LIMIT_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
 
+            wrapColumn = wrapColumnArgument();
+            argParser.addArgument(wrapColumn);
+
             showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
@@ -150,33 +171,18 @@ public final class LDIFSearch extends ConsoleApplication {
             return ResultCode.SUCCESS.intValue();
         }
 
-        final List<Filter> filters = new LinkedList<>();
-        final List<String> attributes = new LinkedList<>();
         final List<String> trailingArguments = argParser.getTrailingArguments();
-        if (trailingArguments.size() > 1) {
-            final List<String> filterAndAttributeStrings = trailingArguments.subList(1, trailingArguments.size());
-            // If filter file is not present, the first trailing argument is considered the filter
-            if (!filterFile.isPresent()) {
-                filters.add(readFilterFromString(filterAndAttributeStrings.remove(0)));
-            }
-            // The rest of trailing argument are attributes
-            attributes.addAll(filterAndAttributeStrings);
-        }
-
-        if (filterFile.isPresent()) {
-            filters.addAll(readFiltersFromFile(filterFile.getValue()));
-        }
-
-        if (filters.isEmpty()) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_SEARCH_NO_FILTERS.get());
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+        final Filter filter = readFilterFromString(trailingArguments.get(1));
+        final List<String> attributes = new LinkedList<>();
+        if (trailingArguments.size() > 2) {
+            attributes.addAll(trailingArguments.subList(2, trailingArguments.size()));
         }
 
         final SearchRequest search;
         try {
             final SearchScope scope = searchScope.getTypedValue();
             search =
-                    Requests.newSearchRequest(DN.valueOf(baseDN.getValue()), scope, filters.get(0),
+                    Requests.newSearchRequest(DN.valueOf(baseDN.getValue()), scope, filter,
                             attributes.toArray(new String[attributes.size()])).setTypesOnly(
                             typesOnly.isPresent()).setTimeLimit(timeLimit.getIntValue())
                             .setSizeLimit(sizeLimit.getIntValue());
@@ -187,6 +193,7 @@ public final class LDIFSearch extends ConsoleApplication {
         try (final LDIFEntryReader sourceReader =
                      new LDIFEntryReader(getLDIFToolInputStream(this, trailingArguments.get(0)));
              final LDIFEntryWriter outputWriter = new LDIFEntryWriter(getLDIFToolOutputStream(this, outputFilename))) {
+            outputWriter.setWrapColumn(computeWrapColumn(wrapColumn));
             LDIF.copyTo(LDIF.search(sourceReader, search), outputWriter);
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
@@ -195,6 +202,8 @@ public final class LDIFSearch extends ConsoleApplication {
                 errPrintln(ERR_LDIFSEARCH_FAILED.get(e.getLocalizedMessage()));
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+        } catch (final ArgumentException ae) {
+            throw newToolParamException(ae, ae.getMessageObject());
         }
 
         return ResultCode.SUCCESS.intValue();

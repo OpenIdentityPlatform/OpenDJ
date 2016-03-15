@@ -18,10 +18,15 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CommonArguments.showUsageArgument;
+import static com.forgerock.opendj.cli.CommonArguments.wrapColumnArgument;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolExceptionAlreadyPrinted;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_MAKELDIF_WRAP_COLUMN_PLACEHOLDER;
+import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
+import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedWriter;
@@ -40,6 +45,7 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldif.EntryGenerator;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
@@ -51,25 +57,53 @@ public final class MakeLDIF extends ConsoleApplication {
     /** The value for the path to look for LDIF resources (e.g data files). */
     public static final String OPTION_LONG_RESOURCE_PATH = "resourcePath";
 
-    private static final int EXIT_CODE_SUCCESS = 0;
-    private static final int EXIT_CODE_FAILURE = 1;
-
-    /** The total number of entries that have been written. */
-    private long numberOfEntriesWritten;
-
     /**
-     * Main method for MakeLDIF tool.
+     * The main method for makeldif tool.
      *
      * @param args
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        final int retCode = new MakeLDIF().run(args);
-        System.exit(filterExitCode(retCode));
+        System.exit(filterExitCode(run(System.out, System.err, args)));
     }
 
-    /** Run Make LDIF with provided command-line arguments. */
-    int run(final String[] args) {
+    /**
+     * Run {@link MakeLDIF} tool with the provided arguments.
+     * Output and errors will be written on the provided streams.
+     * This method can be used to run the tool programmatically.
+     *
+     * @param out
+     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     * @param err
+     *      {@link PrintStream} which will be used by the tool to write errors.
+     * @param args
+     *      Arguments set to pass to the tool.
+     * @return
+     *      An integer which represents the result code of the tool.
+     */
+    public static int run(final PrintStream out, final PrintStream err, final String... args) {
+        final MakeLDIF makeLDIF = new MakeLDIF(out, err);
+        try {
+            return makeLDIF.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(makeLDIF);
+            return e.getResultCode();
+        }
+    }
+
+    private MakeLDIF(final PrintStream out, final PrintStream err) {
+        super(out, err);
+    }
+
+    @Override
+    public boolean isInteractive() {
+        return false;
+    }
+
+    /** The total number of entries that have been written. */
+    private long numberOfEntriesWritten;
+
+    private int run(final String[] args) throws LDAPToolException {
         final LocalizableMessage toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = LDAPToolArgumentParser.builder(MakeLDIF.class.getName())
                 .toolDescription(toolDescription)
@@ -117,43 +151,35 @@ public final class MakeLDIF extends ConsoleApplication {
             showUsage = showUsageArgument();
             argParser.addArgument(showUsage);
 
-            wrapColumn =
-                    IntegerArgument.builder("wrapColumn")
-                            .shortIdentifier('w')
-                            .description(INFO_MAKELDIF_DESCRIPTION_WRAP_COLUMN.get())
-                            .lowerBound(0)
-                            .defaultValue(0)
-                            .valuePlaceholder(INFO_MAKELDIF_WRAP_COLUMN_PLACEHOLDER.get())
-                            .buildAndAddToParser(argParser);
+            wrapColumn = wrapColumnArgument();
+            argParser.addArgument(wrapColumn);
 
             argParser.setUsageArgument(showUsage, getOutputStream());
-        } catch (ArgumentException ae) {
-            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
-            return EXIT_CODE_FAILURE;
+        } catch (final ArgumentException ae) {
+            throw newToolParamException(ae, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
         }
 
-        // Parse the command-line arguments provided to the program.
-        try {
-            argParser.parseArguments(args);
-        } catch (ArgumentException ae) {
-            argParser.displayMessageAndUsageReference(getErrStream(), ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            return EXIT_CODE_FAILURE;
-        }
 
+        parseArguments(argParser, getErrStream(), args);
         if (argParser.usageOrVersionDisplayed()) {
-            return 0;
+            return ResultCode.SUCCESS.intValue();
         }
         final String templatePath = argParser.getTrailingArguments().get(0);
         return run(templatePath, resourcePath, ldifFile, randomSeed, constants, wrapColumn);
     }
 
     /** Run Make LDIF with provided arguments. */
-    private int run(final String templatePath, final StringArgument resourcePath, final StringArgument ldifFile,
-            final IntegerArgument randomSeedArg, final StringArgument constants, final IntegerArgument wrapColumn) {
+    private int run(final String templatePath,
+                    final StringArgument resourcePath,
+                    final StringArgument ldifFile,
+                    final IntegerArgument randomSeedArg,
+                    final StringArgument constants,
+                    final IntegerArgument wrapColumn)  throws LDAPToolException {
         LDIFEntryWriter writer = null;
         try (EntryGenerator generator = createGenerator(templatePath, resourcePath, randomSeedArg, constants)) {
             if (generator == null) {
-                return EXIT_CODE_FAILURE;
+                // Root exception has already been printed
+                throw newToolExceptionAlreadyPrinted(null, ResultCode.UNDEFINED);
             }
 
             if (generator.hasWarnings()) {
@@ -163,28 +189,25 @@ public final class MakeLDIF extends ConsoleApplication {
             }
 
             try {
-                writer = createLdifWriter(ldifFile, wrapColumn);
+                writer = createLdifWriter(ldifFile, computeWrapColumn(wrapColumn));
             } catch (final IOException e) {
-                errPrintln(ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), e.getMessage()));
-                return EXIT_CODE_FAILURE;
+                throw newToolParamException(
+                        e, ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), e.getMessage()));
             } catch (final ArgumentException e) {
-                errPrintln(ERR_ERROR_PARSING_ARGS.get(e.getMessageObject()));
-                return EXIT_CODE_FAILURE;
+                throw newToolParamException(
+                        e, ERR_ERROR_PARSING_ARGS.get(e.getMessageObject()));
             }
 
-            if (!generateEntries(generator, writer, ldifFile)) {
-                return EXIT_CODE_FAILURE;
-            }
+            generateEntries(generator, writer, ldifFile);
 
-            errPrintln(INFO_MAKELDIF_PROCESSING_COMPLETE.get(numberOfEntriesWritten));
-
-            return EXIT_CODE_SUCCESS;
+            println(INFO_MAKELDIF_PROCESSING_COMPLETE.get(numberOfEntriesWritten));
+            return ResultCode.SUCCESS.intValue();
         } finally {
             closeSilently(writer);
         }
     }
 
-    private LDIFEntryWriter createLdifWriter(final StringArgument ldifFile, final IntegerArgument wrapColumn)
+    private LDIFEntryWriter createLdifWriter(final StringArgument ldifFile, final int wrapColumn)
             throws IOException, ArgumentException {
         final LDIFEntryWriter writer;
         if (ldifFile.isPresent()) {
@@ -192,7 +215,7 @@ public final class MakeLDIF extends ConsoleApplication {
         } else {
             writer = new LDIFEntryWriter(getOutputStream());
         }
-        return writer.setWrapColumn(wrapColumn.getIntValue());
+        return writer.setWrapColumn(wrapColumn);
     }
 
     static EntryGenerator createGenerator(final String templatePath, final StringArgument resourcePath,
@@ -258,34 +281,25 @@ public final class MakeLDIF extends ConsoleApplication {
     }
 
     /** Returns true if generation is successful, false otherwise. */
-    private boolean generateEntries(final EntryGenerator generator, final LDIFEntryWriter writer,
-            final StringArgument ldifFile) {
+    private void generateEntries(final EntryGenerator generator,
+                                    final LDIFEntryWriter writer,
+                                    final StringArgument ldifFile) throws LDAPToolException {
         try {
             while (generator.hasNext()) {
                 final Entry entry = generator.readEntry();
                 try {
                     writer.writeEntry(entry);
-                } catch (IOException e) {
-                    errPrintln(ERR_MAKELDIF_ERROR_WRITING_LDIF.get(ldifFile.getValue(), e.getMessage()));
-                    return false;
+                } catch (final IOException e) {
+                    throw newToolParamException(
+                            e, ERR_MAKELDIF_ERROR_WRITING_LDIF.get(ldifFile.getValue(), e.getMessage()));
                 }
                 if ((++numberOfEntriesWritten % 1000) == 0) {
                     errPrintln(INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(numberOfEntriesWritten));
                 }
             }
-        } catch (Exception e) {
-            errPrintln(ERR_MAKELDIF_EXCEPTION_DURING_PROCESSING.get(e.getMessage()));
-            return false;
+        } catch (final Exception e) {
+            throw newToolException(
+                    e, ResultCode.UNDEFINED, ERR_MAKELDIF_EXCEPTION_DURING_PROCESSING.get(e.getMessage()));
         }
-        return true;
-    }
-
-    private MakeLDIF() {
-        // nothing to do
-    }
-
-    /** To allow tests. */
-    MakeLDIF(PrintStream out, PrintStream err) {
-        super(out, err);
     }
 }

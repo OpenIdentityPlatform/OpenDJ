@@ -1443,7 +1443,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                             || OPTION_LONG_PROP_FILE_PATH.equals(longId)
                             || OPTION_LONG_NO_PROP_FILE.equals(longId)
                             || OPTION_LONG_SCRIPT_FRIENDLY.equals(longId)
-                            || OPTION_LONG_DONT_WRAP.equals(longId)
+                            || OPTION_LONG_WRAP_COLUMN.equals(longId)
                             || OPTION_LONG_ENCODING.equals(longId)
                             || OPTION_LONG_BATCH_FILE_PATH.equals(longId);
         }

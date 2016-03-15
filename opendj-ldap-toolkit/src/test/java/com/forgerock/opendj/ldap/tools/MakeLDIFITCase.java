@@ -127,9 +127,11 @@ public class MakeLDIFITCase extends ToolsITCase {
     @Test
     public void testMakeLDIFSupportsLineFolding() throws Exception {
         final Path tempOutputFile = Paths.get(TEST_RESOURCE_PATH, TEMP_OUTPUT_FILE);
-        run(args("-o", tempOutputFile.toString(), VALID_TEMPLATE_FILE_PATH),
+        run(args("-o", tempOutputFile.toString(),
+                 "-t", "80",
+                 VALID_TEMPLATE_FILE_PATH),
                 SUCCESS, INFO_MAKELDIF_PROCESSING_COMPLETE.get(2));
-        assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output.ldif");
+        assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output_80_column.ldif");
         Files.delete(tempOutputFile);
     }
 
@@ -137,9 +139,9 @@ public class MakeLDIFITCase extends ToolsITCase {
     @Test
     public void testMakeLDIFSupportsLineFoldingAndLineWrapping() throws Exception {
         final Path tempOutputFile = Paths.get(TEST_RESOURCE_PATH, TEMP_OUTPUT_FILE);
-        run(args("-o", tempOutputFile.toString(), "-w", "80", VALID_TEMPLATE_FILE_PATH),
+        run(args("-o", tempOutputFile.toString(), "-t", "0", VALID_TEMPLATE_FILE_PATH),
                 SUCCESS, INFO_MAKELDIF_PROCESSING_COMPLETE.get(2));
-        assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output_80_column.ldif");
+        assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output.ldif");
         Files.delete(tempOutputFile);
     }
 
@@ -150,8 +152,7 @@ public class MakeLDIFITCase extends ToolsITCase {
 
     private void run(final String[] arguments, final boolean expectsSuccess, final LocalizableMessage expectedOutput)
             throws Exception {
-        final MakeLDIF makeLDIF = new MakeLDIF(outStream, errStream);
-        int retCode = makeLDIF.run(arguments);
+        final int retCode = MakeLDIF.run(outStream, errStream, arguments);
         checkOuputStreams(out, err, expectedOutput, "");
         if (expectsSuccess) {
             assertThat(retCode).isEqualTo(0);

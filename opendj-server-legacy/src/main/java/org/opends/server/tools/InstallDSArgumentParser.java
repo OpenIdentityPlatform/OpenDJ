@@ -388,7 +388,7 @@ public class InstallDSArgumentParser extends ArgumentParser
                     .buildArgument();
     addDefaultArgument(certNicknameArg);
 
-    connectTimeoutArg = connectTimeOutHiddenArgument();
+    connectTimeoutArg = connectTimeOutArgument();
     addArgument(connectTimeoutArg);
 
     acceptLicense = acceptLicenseArgument();
