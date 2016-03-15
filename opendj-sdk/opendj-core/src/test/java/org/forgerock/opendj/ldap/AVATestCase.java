@@ -52,4 +52,32 @@ public class AVATestCase extends SdkTestCase {
         final String roundtrippedValue = AVA.valueOf(avaString).toString();
         assertThat(AVA.valueOf(roundtrippedValue).toString()).isEqualTo(avaString);
     }
+
+    @DataProvider
+    public Object[][] toStringShouldStripOutIllegalWhitespaceDataProvider() {
+        // @formatter:off
+        return new Object[][] {
+            { " dc = hello  world ", "dc=hello  world" },
+            { " dc =\\  hello  world\\  ", "dc=\\  hello  world\\ " },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "toStringShouldStripOutIllegalWhitespaceDataProvider")
+    public void toStringShouldStripOutIllegalWhitespace(String withWhiteSpace, String withoutWhiteSpace) {
+        assertThat(AVA.valueOf(withWhiteSpace).toString()).isEqualTo(withoutWhiteSpace);
+        assertThat(AVA.valueOf(withWhiteSpace).toNormalizedByteString(new ByteStringBuilder()))
+                .isEqualTo(AVA.valueOf(withoutWhiteSpace).toNormalizedByteString(new ByteStringBuilder()));
+    }
+
+    @Test
+    public void avaConstructedWithValueContainingLeadingAndTrailingSpacesShouldBeEscaped() {
+        AVA ava = new AVA("dc", " hello  world ");
+        assertThat(ava.toString()).isEqualTo("dc=\\ hello  world\\ ");
+    }
+
+    @Test
+    public void valueOfDecodesTrailingEscapedChars() {
+        assertThat(AVA.valueOf("dc=\\41\\42\\43").toString()).isEqualTo("dc=ABC");
+    }
 }

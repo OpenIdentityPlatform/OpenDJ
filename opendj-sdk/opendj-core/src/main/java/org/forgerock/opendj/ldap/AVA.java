@@ -182,6 +182,7 @@ public final class AVA implements Comparable<AVA> {
         reader.skipWhitespaces();
 
         boolean escaped = false;
+        int trailingSpaces = 0;
         while (reader.remaining() > 0) {
             final char c = reader.read();
             if (escaped) {
@@ -216,21 +217,25 @@ public final class AVA implements Comparable<AVA> {
                 escaped = false;
             } else if (c == '\\') {
                 escaped = true;
+                trailingSpaces = 0;
             } else {
                 // Check for delimited chars.
                 if (c == '+' || c == ',' || c == ';') {
                     reader.reset();
                     appendHexChars(reader, valueBuffer, hexBuffer);
+                    valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
                     return ByteString.valueOfUtf8(valueBuffer);
                 }
                 // It is definitely not a delimiter at this point.
                 appendHexChars(reader, valueBuffer, hexBuffer);
                 valueBuffer.append(c);
+                trailingSpaces = c != ' ' ? 0 : trailingSpaces + 1;
             }
             reader.mark();
         }
 
         reader.reset();
+        valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
         return ByteString.valueOfUtf8(valueBuffer);
     }
 

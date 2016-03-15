@@ -12,12 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -448,5 +448,23 @@ public final class RDNTestCase extends SdkTestCase {
                     .as("Hash codes for <" + first + "> and <" + second + "> should NOT be the same.")
                     .isNotEqualTo(h2);
         }
+    }
+
+    @DataProvider
+    public Object[][] toStringShouldStripOutIllegalWhitespaceDataProvider() {
+        // @formatter:off
+        return new Object[][] {
+            { " dc = hello  world ", "dc=hello  world" },
+            { " dc =\\  hello  world\\  ", "dc=\\  hello  world\\ " },
+            { " uid = cpfc + dc = example ", "uid=cpfc+dc=example" },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "toStringShouldStripOutIllegalWhitespaceDataProvider")
+    public void toStringShouldStripOutIllegalWhitespace(String withWhiteSpace, String withoutWhiteSpace) {
+        assertThat(RDN.valueOf(withWhiteSpace).toString()).isEqualTo(withoutWhiteSpace);
+        assertThat(RDN.valueOf(withWhiteSpace).toNormalizedByteString(new ByteStringBuilder()))
+                .isEqualTo(RDN.valueOf(withoutWhiteSpace).toNormalizedByteString(new ByteStringBuilder()));
     }
 }
