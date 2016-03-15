@@ -785,6 +785,7 @@ public final class Upgrade
         catch (ClientException e)
         {
           context.notify(e.getMessageObject(), WARNING);
+          needToExitWithErrorCode();
           isOk = false;
         }
       }
