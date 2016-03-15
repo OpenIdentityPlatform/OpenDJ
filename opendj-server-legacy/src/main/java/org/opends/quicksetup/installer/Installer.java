@@ -248,8 +248,6 @@ public class Installer extends GuiApplication
       checkAbort();
 
       setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
-      notifyListenersOfLog(false);
-      notifyListeners(getLineBreak());
       configureServer();
       checkAbort();
 
@@ -378,7 +376,7 @@ public class Installer extends GuiApplication
     notifyListeners(getFormattedError(exception, true));
     logger.error(LocalizableMessage.raw("Error installing.", exception));
     notifyListeners(getLineBreak());
-    notifyListenersOfLog(true);
+    notifyListenersOfExistingLogFile();
   }
 
   private void stopServerIfNeeded()
@@ -609,13 +607,12 @@ public class Installer extends GuiApplication
     return Utils.getInstancePathFromInstallPath(installPath);
   }
 
-  private void notifyListenersOfLog(final boolean isError)
+  private void notifyListenersOfExistingLogFile()
   {
     if (tempLogFile.isEnabled())
     {
       final String tempLogFilePath = tempLogFile.getPath();
-      notifyListeners(getFormattedProgress(isError ? INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)
-          : INFO_GENERAL_SEE_FOR_DETAILS.get(tempLogFilePath)));
+      notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
       notifyListeners(getLineBreak());
     }
   }
