@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2011-2015 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2012 ForgeRock AS.
  */
 
@@ -823,8 +823,7 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
         writer.writeChangeRecord(changeRequest);
         writer.close();
 
-        assertThat(actual.get(0))
-                .isEqualTo("dn: cn=Robert Jensen, ou=Marketing, dc=airius, dc=com");
+        assertThat(actual.get(0)).isEqualTo("dn: cn=Robert Jensen,ou=Marketing,dc=airius,dc=com");
         assertThat(actual.get(1)).isEqualTo("changetype: delete");
     }
 

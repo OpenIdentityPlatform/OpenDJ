@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2011 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  * Portions copyright 2012 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
  */
@@ -1122,8 +1122,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(DeleteRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.2.840.113556.1.4.805");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
@@ -1154,8 +1153,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
@@ -1213,8 +1211,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
@@ -1245,8 +1242,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("sn");
@@ -1389,8 +1385,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
         assertThat(record.getControls().get(0).getValue()).isNull();
@@ -1421,8 +1416,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // Read the record
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("description");
@@ -1500,24 +1494,21 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
         // 1st
         ChangeRecord record = reader.readChangeRecord();
-        assertThat(record.getName().toString()).isEqualTo(
-                "ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.1");
         assertThat(record.getControls().get(0).getValue()).isNull();
         //2nd
         record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "cn=Paul Jensen, ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("cn=Paul Jensen,ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.13");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("cn");
         //3rd
         record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(AddRequest.class);
-        assertThat(record.getName().toString()).isEqualTo(
-                "cn=Paula Jensen, ou=Product Development, dc=airius, dc=com");
+        assertThat(record.getName().toString()).isEqualTo("cn=Paula Jensen,ou=Product Development,dc=airius,dc=com");
         assertThat(record.getControls()).isNotEmpty();
         assertThat(record.getControls().get(0).getOID()).isEqualTo("1.3.6.1.1.13.13.16");
         assertThat(record.getControls().get(0).getValue().toString()).isEqualTo("sn");
@@ -1525,8 +1516,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test to read an record containing an invalid control. (pair.value is
-     * null) Must throw a DecodeException.
+     * Test to read an record containing an invalid control. (pair.value is null) Must throw a DecodeException.
      *
      * @throws Exception
      */

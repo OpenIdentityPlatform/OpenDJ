@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -1105,33 +1105,27 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         // @formatter:on
         final String path = TestCaseUtils.createTempFile(strEntry);
         final FileInputStream in = new FileInputStream(path);
-        final LDIFEntryReader reader = new LDIFEntryReader(in);
 
-        Entry entry = null;
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(in)) {
             assertThat(reader.hasNext());
             // 1st entry
-            entry = reader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "cn=Barbara Jensen, ou=Product Development, dc=airius, dc=com");
+            Entry entry = reader.readEntry();
+            assertThat(entry.getName()
+                            .toString()).isEqualTo("cn=Barbara Jensen,ou=Product Development,dc=airius,dc=com");
             assertThat(entry.getAttributeCount()).isEqualTo(6);
             // 2nd
             entry = reader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "cn=Bjorn Jensen, ou=Accounting, dc=airius, dc=com");
+            assertThat(entry.getName().toString()).isEqualTo("cn=Bjorn Jensen,ou=Accounting,dc=airius,dc=com");
             assertThat(entry.getAttributeCount()).isEqualTo(4);
 
             assertThat(reader.hasNext()).isFalse();
-        } finally {
-            reader.close();
         }
     }
 
 
     /**
-     * Tries to read an entry composed by multi-valued attributes. The
-     * multi-valued attributes contains an interesting case where two of them
-     * represents the same value, one in uppercase and the other in lower case.
+     * Tries to read an entry composed by multi-valued attributes. The multi-valued attributes contains an interesting
+     * case where two of them represents the same value, one in uppercase and the other in lower case.
      *
      * @throws Exception
      */

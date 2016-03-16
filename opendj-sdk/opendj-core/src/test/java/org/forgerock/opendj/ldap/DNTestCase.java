@@ -1246,4 +1246,24 @@ public class DNTestCase extends SdkTestCase {
         UUID uuid2 = DN.valueOf("cn=test+dc=example,dc=com").toUUID();
         assertEquals(uuid1, uuid2);
     }
+
+    @DataProvider
+    public Object[][] toStringShouldStripOutIllegalWhitespaceDataProvider() {
+        // @formatter:off
+        return new Object[][] {
+            { " ", "" },
+            { " dc = hello  world ", "dc=hello  world" },
+            { " dc =\\  hello  world\\  ", "dc=\\  hello  world\\ " },
+            { " dc = example , dc = com ", "dc=example,dc=com" },
+            { " uid = crystal + dc = example , uid = palace + dc = com ", "uid=crystal+dc=example,uid=palace+dc=com" },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "toStringShouldStripOutIllegalWhitespaceDataProvider")
+    public void toStringShouldStripOutIllegalWhitespace(String withWhiteSpace, String withoutWhiteSpace) {
+        assertThat(DN.valueOf(withWhiteSpace).toString()).isEqualTo(withoutWhiteSpace);
+        assertThat(DN.valueOf(withWhiteSpace).toNormalizedByteString())
+                .isEqualTo(DN.valueOf(withoutWhiteSpace).toNormalizedByteString());
+    }
 }

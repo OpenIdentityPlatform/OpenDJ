@@ -60,7 +60,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     static final char RDN_CHAR_SEPARATOR = ',';
     static final char AVA_CHAR_SEPARATOR = '+';
 
-    private static final DN ROOT_DN = new DN(CoreSchema.getInstance(), null, null, "");
+    private static final DN ROOT_DN = new DN(CoreSchema.getInstance(), null, null);
 
     /**
      * This is the size of the per-thread per-schema DN cache. We should
@@ -238,8 +238,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         }
 
         // Not in cache so decode.
-        final SubstringReader reader = new SubstringReader(dn);
-        return decode(dn, reader, schema, cache);
+        return decode(new SubstringReader(dn), schema, cache);
     }
 
     /**
@@ -258,8 +257,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /** Decodes a DN using the provided reader and schema. */
-    private static DN decode(final String dnString, final SubstringReader reader,
-            final Schema schema, final Map<String, DN> cache) {
+    private static DN decode(final SubstringReader reader, final Schema schema, final Map<String, DN> cache) {
         reader.skipWhitespaces();
         if (reader.remaining() == 0) {
             return ROOT_DN;
@@ -282,7 +280,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             parent = cache.get(parentString);
             if (parent == null) {
                 reader.reset();
-                parent = decode(parentString, reader, schema, cache);
+                parent = decode(reader, schema, cache);
 
                 // Only cache parent DNs since leaf DNs are likely to make the
                 // cache to volatile.
@@ -292,7 +290,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             parent = ROOT_DN;
         }
 
-        return new DN(schema, parent, rdn, dnString);
+        return new DN(schema, parent, rdn);
     }
 
     @SuppressWarnings("serial")
@@ -322,27 +320,24 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     private ByteString normalizedDN;
 
-    /**
-     * We need to store the original string value if provided in order to
-     * preserve the original whitespace.
-     */
+    /** The RFC 4514 string representation of this DN. */
     private String stringValue;
 
     /** The schema used to create this DN. */
     private final Schema schema;
 
     /** Private constructor. */
-    private DN(final Schema schema, final DN parent, final RDN rdn, final String stringValue) {
-        this(schema, parent, rdn, stringValue, parent != null ? parent.size + 1 : 0);
+    private DN(final Schema schema, final DN parent, final RDN rdn) {
+        this(schema, parent, rdn, parent != null ? parent.size + 1 : 0);
     }
 
     /** Private constructor. */
-    private DN(final Schema schema, final DN parent, final RDN rdn, final String stringValue, final int size) {
+    private DN(final Schema schema, final DN parent, final RDN rdn, final int size) {
         this.schema = schema;
         this.parent = parent;
         this.rdn = rdn;
-        this.stringValue = stringValue;
         this.size = size;
+        this.stringValue = rdn == null ? "" : null; // Compute lazily.
     }
 
     /**
@@ -370,7 +365,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             }
             DN newDN = this;
             for (i = 0; i < rdns.length; i++) {
-                newDN = new DN(this.schema, newDN, rdns[i], null);
+                newDN = new DN(this.schema, newDN, rdns[i]);
             }
             return newDN;
         }
@@ -394,7 +389,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     public DN child(final RDN rdn) {
         Reject.ifNull(rdn);
-        return new DN(this.schema, this, rdn, null);
+        return new DN(this.schema, this, rdn);
     }
 
     /**
@@ -741,11 +736,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         } else if (index >= size) {
             return this;
         } else {
-            final DN localName = new DN(this.schema, null, rdn, null, index);
+            final DN localName = new DN(this.schema, null, rdn, index);
             DN nextLocalName = localName;
             DN lastDN = parent;
             for (int i = index - 1; i > 0; i--) {
-                nextLocalName.parent = new DN(this.schema, null, lastDN.rdn, null, i);
+                nextLocalName.parent = new DN(this.schema, null, lastDN.rdn, i);
                 nextLocalName = nextLocalName.parent;
                 lastDN = lastDN.parent;
             }
@@ -989,7 +984,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         private final Schema schema;
 
         private CompactDn(final DN dn) {
-            this.originalValue = dn.stringValue != null ? getBytes(dn.stringValue) : new byte[0];
+            this.originalValue = getBytes(dn.toString());
             this.schema = dn.schema;
         }
 
