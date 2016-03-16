@@ -1916,7 +1916,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
             "dn: ou=People,dc=example,dc=com",
             "changetype: modrdn",
-            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "newrdn: ou=Human Resources",
             "deleteoldrdn: 1"
         );
         // @formatter:on
@@ -2012,7 +2012,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
             "dn: ou=People,dc=example,dc=com",
             "changetype: modrdn",
-            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "newrdn: ou=Human Resources",
             "deleteoldrdn: 0"
         );
         // @formatter:on
@@ -2582,7 +2582,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
             "dn: ou=WRONGscarter, dc=example,dc=com",
             "changetype: modrdn",
-            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "newrdn: ou=Human Resources",
             "deleteoldrdn: 1"
         );
         // @formatter:on
@@ -2684,7 +2684,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
             "dn: uid=scarter,ou=People,dc=example,dc=com",
             "changetype: moddn",
-            "newrdn: uid=user.2,ou=People,dc=example,dc=com",
+            "newrdn: uid=user.2",
             "deleteoldrdn: 0"
         );
         // @formatter:on

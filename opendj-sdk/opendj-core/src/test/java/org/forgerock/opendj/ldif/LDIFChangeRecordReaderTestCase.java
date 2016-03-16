@@ -12,7 +12,6 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2011-2016 ForgeRock AS.
- * Portions copyright 2012 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
  */
 
@@ -1516,12 +1515,10 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test to read an record containing an invalid control. (pair.value is null) Must throw a DecodeException.
-     *
-     * @throws Exception
+     * Tests that change records containing an empty control are rejected.
      */
     @Test(expectedExceptions = DecodeException.class)
-    public void testParseChangeRecordEntryWithAddControlPairKeyNull() throws Exception {
+    public void testParseChangeRecordEntryRejectedWhenControlIsEmpty() throws Exception {
 
         // @formatter:off
         final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1963,7 +1960,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
                 "dn::ZGM9cGVvcGxlLGRjPWV4YW1wbGUsZGM9b3Jn",
                 "changetype: modrdn",
-                "newrdn::ZGM9cGVvcGxlLGRjPWV4YW1wbGUsZGM9Y29t",
+                "newrdn::ZGM9cGVvcGxl",
                 "deleteoldrdn: 1"
         );
         // @formatter:on
@@ -1972,10 +1969,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         ChangeRecord record = reader.readChangeRecord();
         assertThat(record).isInstanceOf(ModifyDNRequest.class);
         ModifyDNRequest modifyDNRequest = (ModifyDNRequest) record;
-        assertThat((Object) modifyDNRequest.getName()).isEqualTo(
-                DN.valueOf("dc=people,dc=example,dc=org"));
-        assertThat((Object) modifyDNRequest.getNewRDN()).isEqualTo(
-                RDN.valueOf("dc=people,dc=example,dc=com"));
+        assertThat((Object) modifyDNRequest.getName()).isEqualTo(DN.valueOf("dc=people,dc=example,dc=org"));
+        assertThat((Object) modifyDNRequest.getNewRDN()).isEqualTo(RDN.valueOf("dc=people"));
         assertThat(modifyDNRequest.isDeleteOldRDN()).isTrue();
         reader.close();
     }

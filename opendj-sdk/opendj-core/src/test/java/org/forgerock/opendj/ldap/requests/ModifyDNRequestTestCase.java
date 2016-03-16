@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2013 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 public class ModifyDNRequestTestCase extends RequestsTestCase {
 
     private static final ModifyDNRequest NEW_MODIFY_DN_REQUEST = Requests.newModifyDNRequest(
-            "uid=user.100,ou=people,o=test", "uid=100.user,ou=people,o=testl");
+            "uid=user.100,ou=people,o=test", "uid=100.user");
     private static final ModifyDNRequest NEW_MODIFY_DN_REQUEST2 = Requests.newModifyDNRequest(
             "cn=ModifyDNrequesttestcase", "cn=xyz");
 
@@ -102,13 +102,13 @@ public class ModifyDNRequestTestCase extends RequestsTestCase {
     @Test(dataProvider = "ModifyDNRequests", expectedExceptions = UnsupportedOperationException.class)
     public void testUnmodifiableSetNewRDN(final ModifyDNRequest original) {
         final ModifyDNRequest unmodifiable = (ModifyDNRequest) unmodifiableOf(original);
-        unmodifiable.setNewRDN("dc=example,dc=org");
+        unmodifiable.setNewRDN("dc=org");
     }
 
     @Test(dataProvider = "ModifyDNRequests", expectedExceptions = UnsupportedOperationException.class)
     public void testUnmodifiableSetNewRDN2(final ModifyDNRequest original) {
         final ModifyDNRequest unmodifiable = (ModifyDNRequest) unmodifiableOf(original);
-        unmodifiable.setNewRDN(RDN.valueOf("dc=example,dc=org"));
+        unmodifiable.setNewRDN(RDN.valueOf("dc=org"));
     }
 
     @Test(dataProvider = "ModifyDNRequests", expectedExceptions = UnsupportedOperationException.class)
