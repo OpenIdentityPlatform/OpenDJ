@@ -167,7 +167,7 @@ public final class AVA implements Comparable<AVA> {
                 } else {
                     if ((c == ' ' && si == length - 1)
                             || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
-                            || c == '=' || c == '>' || c == '\\' || c == '\u0000')) {
+                            || c == '>' || c == '\\' || c == '\u0000')) {
                         builder.append('\\');
                     }
                     builder.append(c);

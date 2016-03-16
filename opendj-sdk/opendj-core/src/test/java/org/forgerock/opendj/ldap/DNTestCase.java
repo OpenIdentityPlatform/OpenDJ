@@ -93,7 +93,7 @@ public class DNTestCase extends SdkTestCase {
                 "cn=doe+givenname=john,ou=people,dc=example,dc=com",
                 "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
             { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
-                "givenname=john\\+cn\\=doe,ou=people,dc=example,dc=com",
+                "givenname=john\\+cn=doe,ou=people,dc=example,dc=com",
                 "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
             { "cn=Doe\\, John,ou=People,dc=example,dc=com",
                 "cn=doe\\, john,ou=people,dc=example,dc=com",
@@ -115,7 +115,7 @@ public class DNTestCase extends SdkTestCase {
                 "cn=before after,dc=example,dc=net", "CN=Before\\0dAfter,DC=example,DC=net" },
             { "2.5.4.3=#04024869",
                 // Unicode codepoints from 0000-0008 are mapped to nothing.
-                "cn=hi", "2.5.4.3=\\04\\02Hi" },
+                "cn=hi", "2.5.4.3=#04024869" },
             { "1.1.1=", "1.1.1=", "1.1.1=" },
             { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107", "CN=Lu\u010di\u0107" },
             { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius", "ou=\u55b6\u696d\u90e8,o=airius",
@@ -807,8 +807,8 @@ public class DNTestCase extends SdkTestCase {
     @Test(dataProvider = "testDNs")
     public void testToString(final String rawDN, final String normDN, final String stringDN)
             throws Exception {
-        // DN dn = DN.valueOf(rawDN);
-        // assertEquals(dn.toString(), stringDN);
+        DN dn = DN.valueOf(rawDN);
+        assertThat(dn.toString()).isEqualTo(stringDN);
     }
 
     /**
@@ -1004,14 +1004,14 @@ public class DNTestCase extends SdkTestCase {
         DN actual = DN.format("uid=%s,dc=test", "#cn=foo+sn=bar");
         DN expected = DN.valueOf("dc=test").child("uid", "#cn=foo+sn=bar");
         assertEquals(actual, expected);
-        assertEquals(actual.toString(), "uid=\\#cn\\=foo\\+sn\\=bar,dc=test");
+        assertEquals(actual.toString(), "uid=\\#cn=foo\\+sn=bar,dc=test");
     }
 
     /** Tests the {@link DN#escapeAttributeValue(Object)} method. */
     @Test
     public void testEscapeAttributeValue() {
         String actual = DN.escapeAttributeValue("#cn=foo+sn=bar");
-        assertEquals(actual, "\\#cn\\=foo\\+sn\\=bar");
+        assertEquals(actual, "\\#cn=foo\\+sn=bar");
     }
 
     /** Tests the {@link DN#toNormalizedByteString()} method. */

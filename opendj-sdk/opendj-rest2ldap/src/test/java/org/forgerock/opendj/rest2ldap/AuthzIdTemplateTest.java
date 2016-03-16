@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -45,7 +45,7 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
             {
                 // Should perform DN quoting.
                 "dn:uid={uid},ou={realm},dc=example,dc=com",
-                "dn:uid=test.user,ou=test\\+cn\\=quoting,dc=example,dc=com",
+                "dn:uid=test.user,ou=test\\+cn=quoting,dc=example,dc=com",
                 map("uid", "test.user", "realm", "test+cn=quoting")
             },
             {
