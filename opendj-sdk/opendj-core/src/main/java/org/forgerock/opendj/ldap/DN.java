@@ -24,7 +24,6 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -263,34 +262,33 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             return ROOT_DN;
         }
 
-        RDN rdn;
+        final RDN rdn;
         try {
             rdn = RDN.decode(reader, schema);
         } catch (final UnknownSchemaElementException e) {
-            final LocalizableMessage message =
-                    ERR_DN_TYPE_NOT_FOUND.get(reader.getString(), e.getMessageObject());
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(
+                    ERR_DN_TYPE_NOT_FOUND.get(reader.getString(), e.getMessageObject()));
         }
 
-        DN parent;
         if (reader.remaining() > 0 && reader.read() == ',') {
+            reader.skipWhitespaces();
+            if (reader.remaining() == 0) {
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(reader.getString()));
+            }
             reader.mark();
             final String parentString = reader.read(reader.remaining());
-
-            parent = cache.get(parentString);
+            DN parent = cache.get(parentString);
             if (parent == null) {
                 reader.reset();
                 parent = decode(reader, schema, cache);
 
-                // Only cache parent DNs since leaf DNs are likely to make the
-                // cache to volatile.
+                // Only cache parent DNs since leaf DNs are likely to make the cache to volatile.
                 cache.put(parentString, parent);
             }
+            return new DN(schema, parent, rdn);
         } else {
-            parent = ROOT_DN;
+            return new DN(schema, ROOT_DN, rdn);
         }
-
-        return new DN(schema, parent, rdn);
     }
 
     @SuppressWarnings("serial")
@@ -320,7 +318,10 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     private ByteString normalizedDN;
 
-    /** The RFC 4514 string representation of this DN. */
+    /**
+     * The RFC 4514 string representation of this DN. A value of {@code null}
+     * indicates that the value needs to be computed lazily.
+     */
     private String stringValue;
 
     /** The schema used to create this DN. */
@@ -337,7 +338,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         this.parent = parent;
         this.rdn = rdn;
         this.size = size;
-        this.stringValue = rdn == null ? "" : null; // Compute lazily.
+        this.stringValue = rdn == null ? "" : null;
     }
 
     /**

@@ -16,11 +16,12 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static java.lang.Integer.*;
-
+import static java.lang.Integer.signum;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.*;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -45,13 +46,19 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createChildDNTestData")
     public Object[][] createChildDNTestData() {
-        return new Object[][] { { "", "", "" }, { "", "dc=org", "dc=org" },
-            { "", "dc=opendj,dc=org", "dc=opendj,dc=org" }, { "dc=org", "", "dc=org" },
+        // @formatter:off
+        return new Object[][] {
+            { "", "", "" },
+            { "", "dc=org", "dc=org" },
+            { "", "dc=opendj,dc=org", "dc=opendj,dc=org" },
+            { "dc=org", "", "dc=org" },
             { "dc=org", "dc=opendj", "dc=opendj,dc=org" },
             { "dc=org", "dc=foo,dc=opendj", "dc=foo,dc=opendj,dc=org" },
             { "dc=opendj,dc=org", "", "dc=opendj,dc=org" },
             { "dc=opendj,dc=org", "dc=foo", "dc=foo,dc=opendj,dc=org" },
-            { "dc=opendj,dc=org", "dc=bar,dc=foo", "dc=bar,dc=foo,dc=opendj,dc=org" }, };
+            { "dc=opendj,dc=org", "dc=bar,dc=foo", "dc=bar,dc=foo,dc=opendj,dc=org" },
+        };
+        // @formatter:on
     }
 
     /**
@@ -61,9 +68,14 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createChildRDNTestData")
     public Object[][] createChildRDNTestData() {
-        return new Object[][] { { "", "dc=org", "dc=org" },
+        // @formatter:off
+        return new Object[][] {
+            { "", "dc=org", "dc=org" },
             { "dc=org", "dc=opendj", "dc=opendj,dc=org" },
-            { "dc=opendj,dc=org", "dc=foo", "dc=foo,dc=opendj,dc=org" }, };
+            { "dc=opendj,dc=org", "dc=foo", "dc=foo,dc=opendj,dc=org" },
+        };
+        // @formatter:on
+
     }
 
     /**
@@ -73,6 +85,7 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "testDNs")
     public Object[][] createData() {
+        // @formatter:off
         return new Object[][] {
             { "", "", "" },
             { "   ", "", "" },
@@ -125,8 +138,12 @@ public class DNTestCase extends SdkTestCase {
             { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
                 "cn=j. smith+ou=sales,dc=example,dc=net", "OU=Sales+CN=J. Smith,DC=example,DC=net" },
             { "cn=John+dc=", "dc=+cn=john", "cn=John+dc=" },
-            { "O=\"Sue, Grabbit and Runn\",C=US", "o=sue\\, grabbit and runn,c=us",
-                "O=Sue\\, Grabbit and Runn,C=US" }, };
+            { "O=\"Sue, Grabbit + Runn\",C=US", "o=sue\\, grabbit \\+ runn,c=us",
+                "O=Sue\\, Grabbit \\+ Runn,C=US" },
+            { "O=\"John \\\"Tiger\\\" Smith\",C=US", "o=john \\\"tiger\\\" smith,c=us",
+                "O=John \\\"Tiger\\\" Smith,C=US" },
+        };
+        // @formatter:on
     }
 
     /**
@@ -136,22 +153,19 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createDNComparisonData")
     public Object[][] createDNComparisonData() {
-        return new Object[][] { { "cn=hello world,dc=com", "cn=hello world,dc=com", 0 },
+        // @formatter:off
+        return new Object[][] {
+            { "cn=hello world,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=hello world,dc=com", "CN=hello world,dc=com", 0 },
             { "cn=hello   world,dc=com", "cn=hello world,dc=com", 0 },
             { "  cn =  hello world  ,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=hello world\\ ,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=HELLO WORLD,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=HELLO+sn=WORLD,dc=com", "sn=world+cn=hello,dc=com", 0 },
-            /*
-             * { "x-test-integer-type=10,dc=com",
-             * "x-test-integer-type=9,dc=com", 1 }, {
-             * "x-test-integer-type=999,dc=com",
-             * "x-test-integer-type=1000,dc=com", -1 }, {
-             * "x-test-integer-type=-1,dc=com", "x-test-integer-type=0,dc=com",
-             * -1 }, { "x-test-integer-type=0,dc=com",
-             * "x-test-integer-type=-1,dc=com", 1 },
-             **/
+            { "governingStructureRule=10,dc=com", "governingStructureRule=9,dc=com", 1 },
+            { "governingStructureRule=999,dc=com", "governingStructureRule=1000,dc=com", -1 },
+            { "governingStructureRule=-1,dc=com", "governingStructureRule=0,dc=com", -1 },
+            { "governingStructureRule=0,dc=com", "governingStructureRule=-1,dc=com", 1 },
             { "cn=aaa,dc=com", "cn=aaaa,dc=com", -1 }, { "cn=AAA,dc=com", "cn=aaaa,dc=com", -1 },
             { "cn=aaa,dc=com", "cn=AAAA,dc=com", -1 }, { "cn=aaaa,dc=com", "cn=aaa,dc=com", 1 },
             { "cn=AAAA,dc=com", "cn=aaa,dc=com", 1 }, { "cn=aaaa,dc=com", "cn=AAA,dc=com", 1 },
@@ -160,7 +174,9 @@ public class DNTestCase extends SdkTestCase {
             { "dc=ccc,dc=aaa", "dc=bbb", -1 }, { "dc=aaa,dc=bbb", "dc=bbb", 1 },
             { "dc=bbb,dc=bbb", "dc=bbb", 1 }, { "dc=ccc,dc=bbb", "dc=bbb", 1 },
             { "dc=aaa,dc=ccc", "dc=bbb", 1 }, { "dc=bbb,dc=ccc", "dc=bbb", 1 },
-            { "dc=ccc,dc=ccc", "dc=bbb", 1 }, { "", "dc=bbb", -1 }, { "dc=bbb", "", 1 } };
+            { "dc=ccc,dc=ccc", "dc=bbb", 1 }, { "", "dc=bbb", -1 }, { "dc=bbb", "", 1 }
+        };
+        // @formatter:on
     }
 
     /**
@@ -170,26 +186,40 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createDNEqualityData")
     public Object[][] createDNEqualityData() {
-        return new Object[][] { { "cn=hello world,dc=com", "cn=hello world,dc=com", 0 },
+        // @formatter:off
+        return new Object[][] {
+            { "cn=hello world,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=hello world,dc=com", "CN=hello world,dc=com", 0 },
             { "cn=hello   world,dc=com", "cn=hello world,dc=com", 0 },
             { "  cn =  hello world  ,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=hello world\\ ,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=HELLO WORLD,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=HELLO+sn=WORLD,dc=com", "sn=world+cn=hello,dc=com", 0 },
-            { "x-test-integer-type=10,dc=com", "x-test-integer-type=9,dc=com", 1 },
-            { "x-test-integer-type=999,dc=com", "x-test-integer-type=1000,dc=com", -1 },
-            { "x-test-integer-type=-1,dc=com", "x-test-integer-type=0,dc=com", -1 },
-            { "x-test-integer-type=0,dc=com", "x-test-integer-type=-1,dc=com", 1 },
-            { "cn=aaa,dc=com", "cn=aaaa,dc=com", -1 }, { "cn=AAA,dc=com", "cn=aaaa,dc=com", -1 },
-            { "cn=aaa,dc=com", "cn=AAAA,dc=com", -1 }, { "cn=aaaa,dc=com", "cn=aaa,dc=com", 1 },
-            { "cn=AAAA,dc=com", "cn=aaa,dc=com", 1 }, { "cn=aaaa,dc=com", "cn=AAA,dc=com", 1 },
-            { "cn=aaab,dc=com", "cn=aaaa,dc=com", 1 }, { "cn=aaaa,dc=com", "cn=aaab,dc=com", -1 },
-            { "dc=aaa,dc=aaa", "dc=bbb", -1 }, { "dc=bbb,dc=aaa", "dc=bbb", -1 },
-            { "dc=ccc,dc=aaa", "dc=bbb", -1 }, { "dc=aaa,dc=bbb", "dc=bbb", 1 },
-            { "dc=bbb,dc=bbb", "dc=bbb", 1 }, { "dc=ccc,dc=bbb", "dc=bbb", 1 },
-            { "dc=aaa,dc=ccc", "dc=bbb", 1 }, { "dc=bbb,dc=ccc", "dc=bbb", 1 },
-            { "dc=ccc,dc=ccc", "dc=bbb", 1 }, { "", "dc=bbb", -1 }, { "dc=bbb", "", 1 } };
+            { "governingStructureRule=10,dc=com", "governingStructureRule=9,dc=com", 1 },
+            { "governingStructureRule=999,dc=com", "governingStructureRule=1000,dc=com", -1 },
+            { "governingStructureRule=-1,dc=com", "governingStructureRule=0,dc=com", -1 },
+            { "governingStructureRule=0,dc=com", "governingStructureRule=-1,dc=com", 1 },
+            { "cn=aaa,dc=com", "cn=aaaa,dc=com", -1 },
+            { "cn=AAA,dc=com", "cn=aaaa,dc=com", -1 },
+            { "cn=aaa,dc=com", "cn=AAAA,dc=com", -1 },
+            { "cn=aaaa,dc=com", "cn=aaa,dc=com", 1 },
+            { "cn=AAAA,dc=com", "cn=aaa,dc=com", 1 },
+            { "cn=aaaa,dc=com", "cn=AAA,dc=com", 1 },
+            { "cn=aaab,dc=com", "cn=aaaa,dc=com", 1 },
+            { "cn=aaaa,dc=com", "cn=aaab,dc=com", -1 },
+            { "dc=aaa,dc=aaa", "dc=bbb", -1 },
+            { "dc=bbb,dc=aaa", "dc=bbb", -1 },
+            { "dc=ccc,dc=aaa", "dc=bbb", -1 },
+            { "dc=aaa,dc=bbb", "dc=bbb", 1 },
+            { "dc=bbb,dc=bbb", "dc=bbb", 1 },
+            { "dc=ccc,dc=bbb", "dc=bbb", 1 },
+            { "dc=aaa,dc=ccc", "dc=bbb", 1 },
+            { "dc=bbb,dc=ccc", "dc=bbb", 1 },
+            { "dc=ccc,dc=ccc", "dc=bbb", 1 },
+            { "", "dc=bbb", -1 },
+            { "dc=bbb", "", 1 }
+        };
+        // @formatter:on
     }
 
     /**
@@ -199,7 +229,10 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "illegalDNs")
     public Object[][] createIllegalData() {
-        return new Object[][] { { "manager" }, { "manager " },
+        // @formatter:off
+        return new Object[][] {
+            { "manager" },
+            { "manager " },
             { "=Jim" },
             { " =Jim" },
             { "= Jim" },
@@ -209,18 +242,41 @@ public class DNTestCase extends SdkTestCase {
             { "cn=Jim+" },
             { "cn=Jim+manager" },
             { "cn=Jim+manager " },
-            { "cn=Jim+manager," }, // { "cn=Jim," }, { "cn=Jim,  " }, {
-                                   // "c[n]=Jim" },
-            { "_cn=Jim" }, { "c_n=Jim" }, { "cn\"=Jim" }, { "c\"n=Jim" }, { "1cn=Jim" },
-            { "cn+uid=Jim" }, { "-cn=Jim" }, { "/tmp=a" }, { "\\tmp=a" }, { "cn;lang-en=Jim" },
-            { "@cn=Jim" }, { "_name_=Jim" },
+            { "cn=Jim+manager," },
+            { "cn=Jim," },
+            { "cn=Jim,  " },
+            { "c[n]=Jim" },
+            { "_cn=Jim" },
+            { "c_n=Jim" },
+            { "cn\"=Jim" },
+            { "c\"n=Jim" },
+            { "1cn=Jim" },
+            { "cn+uid=Jim" },
+            { "-cn=Jim" },
+            { "/tmp=a" },
+            { "\\tmp=a" },
+            { "cn;lang-en=Jim" },
+            { "@cn=Jim" },
+            { "_name_=Jim" },
             { "\u03c0=pi" },
-            { "v1.0=buggy" }, // { "1.=buggy" }, { ".1=buggy" },
-            { "oid.1." }, { "1.3.6.1.4.1.1466..0=#04024869" }, { "cn=#a" }, { "cn=#ag" },
-            { "cn=#ga" }, { "cn=#abcdefgh" },
-            { "cn=a\\b" }, // { "cn=a\\bg" }, { "cn=\"hello" },
-            { "cn=+mail=,dc=example,dc=com" }, { "cn=xyz+sn=,dc=example,dc=com" },
-            { "cn=,dc=example,dc=com" } };
+            { "v1.0=buggy" },
+            { "1.=buggy" },
+            { ".1=buggy" },
+            { "oid.1." },
+            { "1.3.6.1.4.1.1466..0=#04024869" },
+            { "cn=#a" },
+            { "cn=#ag" },
+            { "cn=#ga" },
+            { "cn=#abcdefgh" },
+            { "cn=a\\b" },
+            { "cn=a\\bg" },
+            { "cn=\"hello" },
+            { "cn=+mail=,dc=example,dc=com" },
+            { "cn=xyz+sn=,dc=example,dc=com" },
+            { "cn=,dc=example,dc=com" },
+            { "cn=a+cn=b,dc=example,dc=com" }
+        };
+        // @formatter:on
     }
 
     /**
@@ -230,11 +286,17 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createIsChildOfTestData")
     public Object[][] createIsChildOfTestData() {
-        return new Object[][] { { "", "", false }, { "", "dc=org", false },
-            { "", "dc=opendj,dc=org", false }, { "", "dc=foo,dc=opendj,dc=org", false },
-            { "dc=org", "", true }, { "dc=org", "dc=org", false },
+        // @formatter:off
+        return new Object[][] {
+            { "", "", false },
+            { "", "dc=org", false },
+            { "", "dc=opendj,dc=org", false },
+            { "", "dc=foo,dc=opendj,dc=org", false },
+            { "dc=org", "", true },
+            { "dc=org", "dc=org", false },
             { "dc=org", "dc=opendj,dc=org", false },
-            { "dc=org", "dc=foo,dc=opendj,dc=org", false }, { "dc=opendj,dc=org", "", false },
+            { "dc=org", "dc=foo,dc=opendj,dc=org", false },
+            { "dc=opendj,dc=org", "", false },
             { "dc=opendj,dc=org", "dc=org", true },
             { "dc=opendj,dc=org", "dc=opendj,dc=org", false },
             { "dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", false },
@@ -242,8 +304,11 @@ public class DNTestCase extends SdkTestCase {
             { "dc=foo,dc=opendj,dc=org", "dc=org", false },
             { "dc=foo,dc=opendj,dc=org", "dc=opendj,dc=org", true },
             { "dc=foo,dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", false },
-            { "dc=org", "dc=com", false }, { "dc=opendj,dc=org", "dc=foo,dc=org", false },
-            { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
+            { "dc=org", "dc=com", false },
+            { "dc=opendj,dc=org", "dc=foo,dc=org", false },
+            { "dc=opendj,dc=org", "dc=opendj,dc=com", false },
+        };
+        // @formatter:on
     }
 
     /**
@@ -253,8 +318,15 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createNumComponentsTestData")
     public Object[][] createNumComponentsTestData() {
-        return new Object[][] { { "", 0 }, { "dc=com", 1 }, { "dc=opendj,dc=com", 2 },
-            { "dc=world,dc=opendj,dc=com", 3 }, { "dc=hello,dc=world,dc=opendj,dc=com", 4 }, };
+        // @formatter:off
+        return new Object[][] {
+            { "", 0 },
+            { "dc=com", 1 },
+            { "dc=opendj,dc=com", 2 },
+            { "dc=world,dc=opendj,dc=com", 3 },
+            { "dc=hello,dc=world,dc=opendj,dc=com", 4 },
+        };
+        // @formatter:on
     }
 
     /**
@@ -264,10 +336,15 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createParentAndRDNTestData")
     public Object[][] createParentAndRDNTestData() {
-        return new Object[][] { { "", null, null }, { "dc=com", "", "dc=com" },
+        // @formatter:off
+        return new Object[][] {
+            { "", null, null },
+            { "dc=com", "", "dc=com" },
             { "dc=opendj,dc=com", "dc=com", "dc=opendj" },
             { "dc=world,dc=opendj,dc=com", "dc=opendj,dc=com", "dc=world" },
-            { "dc=hello,dc=world,dc=opendj,dc=com", "dc=world,dc=opendj,dc=com", "dc=hello" }, };
+            { "dc=hello,dc=world,dc=opendj,dc=com", "dc=world,dc=opendj,dc=com", "dc=hello" },
+        };
+        // @formatter:on
     }
 
     /**
@@ -277,12 +354,17 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createRDNTestData")
     public Object[][] createRDNTestData() {
-        return new Object[][] { { "dc=com", 0, "dc=com" }, { "dc=opendj,dc=com", 0, "dc=opendj" },
+        // @formatter:off
+        return new Object[][] {
+            { "dc=com", 0, "dc=com" },
+            { "dc=opendj,dc=com", 0, "dc=opendj" },
             { "dc=opendj,dc=com", 1, "dc=com" },
             { "dc=hello,dc=world,dc=opendj,dc=com", 0, "dc=hello" },
             { "dc=hello,dc=world,dc=opendj,dc=com", 1, "dc=world" },
             { "dc=hello,dc=world,dc=opendj,dc=com", 2, "dc=opendj" },
-            { "dc=hello,dc=world,dc=opendj,dc=com", 3, "dc=com" }, };
+            { "dc=hello,dc=world,dc=opendj,dc=com", 3, "dc=com" },
+        };
+        // @formatter:on
     }
 
     /**
@@ -292,19 +374,29 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createSubordinateTestData")
     public Object[][] createSubordinateTestData() {
-        return new Object[][] { { "", "", true }, { "", "dc=org", false },
-            { "", "dc=opendj,dc=org", false }, { "", "dc=foo,dc=opendj,dc=org", false },
-            { "dc=org", "", true }, { "dc=org", "dc=org", true },
+        // @formatter:off
+        return new Object[][] {
+            { "", "", true },
+            { "", "dc=org", false },
+            { "", "dc=opendj,dc=org", false },
+            { "", "dc=foo,dc=opendj,dc=org", false },
+            { "dc=org", "", true },
+            { "dc=org", "dc=org", true },
             { "dc=org", "dc=opendj,dc=org", false },
-            { "dc=org", "dc=foo,dc=opendj,dc=org", false }, { "dc=opendj,dc=org", "", true },
+            { "dc=org", "dc=foo,dc=opendj,dc=org", false },
+            { "dc=opendj,dc=org", "", true },
             { "dc=opendj,dc=org", "dc=org", true },
             { "dc=opendj,dc=org", "dc=opendj,dc=org", true },
             { "dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", false },
-            { "dc=foo,dc=opendj,dc=org", "", true }, { "dc=foo,dc=opendj,dc=org", "dc=org", true },
+            { "dc=foo,dc=opendj,dc=org", "", true },
+            { "dc=foo,dc=opendj,dc=org", "dc=org", true },
             { "dc=foo,dc=opendj,dc=org", "dc=opendj,dc=org", true },
             { "dc=foo,dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", true },
-            { "dc=org", "dc=com", false }, { "dc=opendj,dc=org", "dc=foo,dc=org", false },
-            { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
+            { "dc=org", "dc=com", false },
+            { "dc=opendj,dc=org", "dc=foo,dc=org", false },
+            { "dc=opendj,dc=org", "dc=opendj,dc=com", false },
+        };
+        // @formatter:on
     }
 
     /**
@@ -314,19 +406,29 @@ public class DNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "createSuperiorTestData")
     public Object[][] createSuperiorTestData() {
-        return new Object[][] { { "", "", true }, { "", "dc=org", true },
-            { "", "dc=opendj,dc=org", true }, { "", "dc=foo,dc=opendj,dc=org", true },
-            { "dc=org", "", false }, { "dc=org", "dc=org", true },
-            { "dc=org", "dc=opendj,dc=org", true }, { "dc=org", "dc=foo,dc=opendj,dc=org", true },
-            { "dc=opendj,dc=org", "", false }, { "dc=opendj,dc=org", "dc=org", false },
+        // @formatter:off
+        return new Object[][] {
+            { "", "", true },
+            { "", "dc=org", true },
+            { "", "dc=opendj,dc=org", true },
+            { "", "dc=foo,dc=opendj,dc=org", true },
+            { "dc=org", "", false },
+            { "dc=org", "dc=org", true },
+            { "dc=org", "dc=opendj,dc=org", true },
+            { "dc=org", "dc=foo,dc=opendj,dc=org", true },
+            { "dc=opendj,dc=org", "", false },
+            { "dc=opendj,dc=org", "dc=org", false },
             { "dc=opendj,dc=org", "dc=opendj,dc=org", true },
             { "dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", true },
             { "dc=foo,dc=opendj,dc=org", "", false },
             { "dc=foo,dc=opendj,dc=org", "dc=org", false },
             { "dc=foo,dc=opendj,dc=org", "dc=opendj,dc=org", false },
             { "dc=foo,dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", true },
-            { "dc=org", "dc=com", false }, { "dc=opendj,dc=org", "dc=foo,dc=org", false },
-            { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
+            { "dc=org", "dc=com", false },
+            { "dc=opendj,dc=org", "dc=foo,dc=org", false },
+            { "dc=opendj,dc=org", "dc=opendj,dc=com", false },
+        };
+        // @formatter:on
     }
 
     @Test
@@ -561,10 +663,14 @@ public class DNTestCase extends SdkTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test(dataProvider = "illegalDNs", expectedExceptions = {
-            LocalizedIllegalArgumentException.class, NullPointerException.class })
+    @Test(dataProvider = "illegalDNs", expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testIllegalStringDNs(final String dn) throws Exception {
         DN.valueOf(dn);
+    }
+
+    @Test(dataProvider = "illegalDNs", expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testIllegalByteStringDNs(final String dn) throws Exception {
+        DN.valueOf(ByteString.valueOfUtf8(dn));
     }
 
     /**
@@ -731,8 +837,8 @@ public class DNTestCase extends SdkTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test(expectedExceptions = { NullPointerException.class, AssertionError.class })
-    public void testValueOfString() throws Exception {
+    @Test(expectedExceptions = NullPointerException.class)
+    public void valueOfStringShouldThrowNPEForNullParameter() {
         DN.valueOf((String) null);
     }
 
@@ -742,8 +848,8 @@ public class DNTestCase extends SdkTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test(expectedExceptions = { NullPointerException.class, AssertionError.class })
-    public void testValueOfByteString() throws Exception {
+    @Test(expectedExceptions = NullPointerException.class)
+    public void valueOfByteStringShouldThrowNPEForNullParameter() throws Exception {
         DN.valueOf((ByteString) null);
     }
 
@@ -1265,5 +1371,26 @@ public class DNTestCase extends SdkTestCase {
         assertThat(DN.valueOf(withWhiteSpace).toString()).isEqualTo(withoutWhiteSpace);
         assertThat(DN.valueOf(withWhiteSpace).toNormalizedByteString())
                 .isEqualTo(DN.valueOf(withoutWhiteSpace).toNormalizedByteString());
+    }
+
+    @DataProvider
+    public Object[][] rdnShouldReturnNullWhenIndexIsOutOfRangeData() {
+        return new Object[][] {
+            { "", 0 },
+            { "", 1 },
+            { "dc=com", 1 },
+            { "dc=opends,dc=com", 2 },
+            { "dc=hello,dc=world,dc=opends,dc=com", 4 },
+        };
+    }
+
+    @Test(dataProvider = "rdnShouldReturnNullWhenIndexIsOutOfRangeData")
+    public void rdnShouldReturnNullWhenIndexIsOutOfRange(String rdn, int i) {
+        assertThat((Object) DN.valueOf(rdn).rdn(i)).isNull();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void rdnShouldThrowIAEForNegativeIndexes() throws Exception {
+        DN.valueOf("dc=example,dc=com").rdn(-1);
     }
 }

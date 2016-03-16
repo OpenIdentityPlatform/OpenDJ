@@ -104,19 +104,42 @@ public final class RDNTestCase extends SdkTestCase {
      */
     @DataProvider(name = "illegalRDNs")
     public Object[][] createIllegalData() {
-        return new Object[][] { { null }, { "" }, { " " }, { "=" }, { "manager" }, { "manager " },
-            { "cn+" }, { "cn+Jim" },
+        // @formatter:off
+        return new Object[][] {
+            { null },
+            { "" },
+            { " " },
+            { "=" },
+            { "manager" },
+            { "manager " },
+            { "cn+" },
+            { "cn+Jim" },
             { "cn=Jim+" },
             { "cn=Jim +" },
             { "cn=Jim+ " },
+            { "cn=Jim+cn=John" },
             { "cn=Jim+sn" },
             { "cn=Jim+sn " },
-            { "cn=Jim+sn equals" }, // { "cn=Jim," }, { "cn=Jim;" }, {
-                                    // "cn=Jim,  " },
-            // { "cn=Jim+sn=a," }, { "cn=Jim, sn=Jam " }, { "cn+uid=Jim" },
-            { "-cn=Jim" }, { "/tmp=a" }, { "\\tmp=a" }, { "cn;lang-en=Jim" }, { "@cn=Jim" },
-            { "_name_=Jim" }, { "\u03c0=pi" }, { "v1.0=buggy" }, { "cn=Jim+sn=Bob++" },
-            { "cn=Jim+sn=Bob+," }, { "1.3.6.1.4.1.1466..0=#04024869" }, };
+            { "cn=Jim+sn equals" },
+            { "cn=Jim," },
+            { "cn=Jim;" },
+            { "cn=Jim,  " },
+            { "cn=Jim+sn=a," },
+            { "cn=Jim, sn=Jam " },
+            { "cn+uid=Jim" },
+            { "-cn=Jim" },
+            { "/tmp=a" },
+            { "\\tmp=a" },
+            { "cn;lang-en=Jim" },
+            { "@cn=Jim" },
+            { "_name_=Jim" },
+            { "\u03c0=pi" },
+            { "v1.0=buggy" },
+            { "cn=Jim+sn=Bob++" },
+            { "cn=Jim+sn=Bob+," },
+            { "1.3.6.1.4.1.1466..0=#04024869" },
+        };
+        // @formatter:on
     }
 
     /**
@@ -142,10 +165,10 @@ public final class RDNTestCase extends SdkTestCase {
             { "cn=hello+sn=world", "cn=hello+description=world", 1 },
             { "cn=hello", "sn=world", -1 },
             { "sn=hello", "cn=world", 1 },
-            // { "x-test-integer-type=10", "x-test-integer-type=9", 1 },
-            // { "x-test-integer-type=999", "x-test-integer-type=1000", -1 },
-            // { "x-test-integer-type=-1", "x-test-integer-type=0", -1 },
-            // { "x-test-integer-type=0", "x-test-integer-type=-1", 1 },
+            { "governingStructureRule=10", "governingStructureRule=9", 1 },
+            { "governingStructureRule=999", "governingStructureRule=1000", -1 },
+            { "governingStructureRule=-1", "governingStructureRule=0", -1 },
+            { "governingStructureRule=0", "governingStructureRule=-1", 1 },
             { "cn=aaa", "cn=aaaa", -1 },
             { "cn=AAA", "cn=aaaa", -1 },
             { "cn=aaa", "cn=AAAA", -1 },
@@ -195,6 +218,11 @@ public final class RDNTestCase extends SdkTestCase {
         return (value instanceof RDN) ? ((RDN) value) : RDN.valueOf(value.toString());
     }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void ensureRDNIsCreatedWithNonEmptyArguments() {
+        new RDN();
+    }
+
     /**
      * Test RDN construction with single AVA.
      *
@@ -238,9 +266,9 @@ public final class RDNTestCase extends SdkTestCase {
     @Test
     public void testConstructorWithMultipleAVAs() throws Exception {
         AVA example = new AVA("dc", "example");
-        AVA org = new AVA("dc", "org");
+        AVA user = new AVA("cn", "bjensen");
 
-        final RDN rdn = new RDN(example, org);
+        final RDN rdn = new RDN(example, user);
         assertEquals(rdn.size(), 2);
         Iterator<AVA> rdnIt = rdn.iterator();
         AVA firstAva = rdnIt.next();
@@ -248,16 +276,23 @@ public final class RDNTestCase extends SdkTestCase {
         assertEquals(firstAva, example);
 
         AVA secondAva = rdnIt.next();
-        assertEquals(secondAva.getAttributeType(), ATTR_TYPE_DC);
-        assertEquals(secondAva, org);
+        assertEquals(secondAva.getAttributeType(), ATTR_TYPE_CN);
+        assertEquals(secondAva, user);
+    }
+
+    @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testConstructorWithDuplicateAVAs() {
+        AVA example = new AVA("dc", "example");
+        AVA org = new AVA("dc", "org");
+        new RDN(example, org);
     }
 
     @Test
     public void testConstructorWithCollectionOfAVAs() throws Exception {
         AVA example = new AVA("dc", "example");
-        AVA org = new AVA("dc", "org");
+        AVA user = new AVA("cn", "bjensen");
 
-        final RDN rdn = new RDN(Arrays.asList(example, org));
+        final RDN rdn = new RDN(Arrays.asList(example, user));
         assertEquals(rdn.size(), 2);
         Iterator<AVA> rdnIt = rdn.iterator();
         AVA firstAva = rdnIt.next();
@@ -265,8 +300,15 @@ public final class RDNTestCase extends SdkTestCase {
         assertEquals(firstAva, example);
 
         AVA secondAva = rdnIt.next();
-        assertEquals(secondAva.getAttributeType(), ATTR_TYPE_DC);
-        assertEquals(secondAva, org);
+        assertEquals(secondAva.getAttributeType(), ATTR_TYPE_CN);
+        assertEquals(secondAva, user);
+    }
+
+    @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testConstructorWithCollectionOfDuplicateAVAs() {
+        AVA example = new AVA("dc", "example");
+        AVA org = new AVA("dc", "org");
+        new RDN(Arrays.asList(example, org));
     }
 
     /**

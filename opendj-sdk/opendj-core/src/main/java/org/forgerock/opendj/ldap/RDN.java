@@ -16,12 +16,14 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_DUPLICATE_AVA_TYPES;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_NO_AVAS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TRAILING_GARBAGE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
 import static org.forgerock.opendj.ldap.DN.AVA_CHAR_SEPARATOR;
-import static org.forgerock.opendj.ldap.DN.RDN_CHAR_SEPARATOR;
 import static org.forgerock.opendj.ldap.DN.NORMALIZED_AVA_SEPARATOR;
 import static org.forgerock.opendj.ldap.DN.NORMALIZED_RDN_SEPARATOR;
-
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
+import static org.forgerock.opendj.ldap.DN.RDN_CHAR_SEPARATOR;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,12 +74,12 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      * A constant holding a special RDN having zero AVAs
      * and which sorts before any RDN other than itself.
      */
-    private static final RDN MIN_VALUE = new RDN(new AVA[0], "");
+    private static final RDN MIN_VALUE = new RDN();
     /**
      * A constant holding a special RDN having zero AVAs
      * and which sorts after any RDN other than itself.
      */
-    private static final RDN MAX_VALUE = new RDN(new AVA[0], "");
+    private static final RDN MAX_VALUE = new RDN();
 
     /**
      * Returns a constant containing a special RDN which sorts before any
@@ -160,14 +162,19 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      */
     public static RDN valueOf(final String rdn, final Schema schema) {
         final SubstringReader reader = new SubstringReader(rdn);
+        final RDN parsedRdn;
         try {
-            return decode(reader, schema);
+            parsedRdn = decode(reader, schema);
         } catch (final UnknownSchemaElementException e) {
             throw new LocalizedIllegalArgumentException(ERR_RDN_TYPE_NOT_FOUND.get(rdn, e.getMessageObject()));
         }
+        if (reader.remaining() > 0) {
+            throw new LocalizedIllegalArgumentException(
+                    ERR_RDN_TRAILING_GARBAGE.get(rdn, reader.read(reader.remaining())));
+        }
+        return parsedRdn;
     }
 
-    /** FIXME: ensure that the decoded RDN does not contain multiple AVAs with the same type. */
     static RDN decode(final SubstringReader reader, final Schema schema) {
         final AVA firstAVA = AVA.decode(reader, schema);
 
@@ -189,10 +196,10 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
             } while (reader.remaining() > 0 && reader.read() == '+');
 
             reader.reset();
-            return new RDN(avas.toArray(new AVA[avas.size()]), null);
+            return new RDN(avas);
         } else {
             reader.reset();
-            return new RDN(new AVA[] { firstAVA }, null);
+            return new RDN(firstAVA);
         }
     }
 
@@ -251,9 +258,40 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      *            The attribute-value assertions used to build this RDN.
      * @throws NullPointerException
      *             If {@code avas} is {@code null} or contains a null ava.
+     * @throws IllegalArgumentException
+     *             If {@code avas} is empty.
      */
     public RDN(final AVA... avas) {
-        this(avas, null);
+        Reject.ifNull(avas);
+        this.avas = validateAvas(avas);
+    }
+
+    private AVA[] validateAvas(final AVA[] avas) {
+        switch (avas.length) {
+        case 0:
+            throw new LocalizedIllegalArgumentException(ERR_RDN_NO_AVAS.get());
+        case 1:
+            // Guaranteed to be valid.
+            break;
+        case 2:
+            if (avas[0].getAttributeType().equals(avas[1].getAttributeType())) {
+                throw new LocalizedIllegalArgumentException(
+                        ERR_RDN_DUPLICATE_AVA_TYPES.get(avas[0].getAttributeName()));
+            }
+            break;
+        default:
+            final AVA[] sortedAVAs = Arrays.copyOf(avas, avas.length);
+            Arrays.sort(sortedAVAs);
+            AttributeType previousAttributeType = null;
+            for (AVA ava : sortedAVAs) {
+                if (ava.getAttributeType().equals(previousAttributeType)) {
+                    throw new LocalizedIllegalArgumentException(
+                            ERR_RDN_DUPLICATE_AVA_TYPES.get(ava.getAttributeName()));
+                }
+                previousAttributeType = ava.getAttributeType();
+            }
+        }
+        return avas;
     }
 
     /**
@@ -263,15 +301,18 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
      *            The attribute-value assertions used to build this RDN.
      * @throws NullPointerException
      *             If {@code ava} is {@code null} or contains null ava.
+     * @throws IllegalArgumentException
+     *             If {@code avas} is empty.
      */
     public RDN(Collection<AVA> avas) {
-        this(avas.toArray(new AVA[avas.size()]), null);
+        Reject.ifNull(avas);
+        this.avas = validateAvas(avas.toArray(new AVA[avas.size()]));
     }
 
-    private RDN(final AVA[] avas, final String stringValue) {
-        Reject.ifNull(avas);
-        this.avas = avas;
-        this.stringValue = stringValue;
+    // Special constructor for min/max RDN values.
+    private RDN() {
+        this.avas = new AVA[0];
+        this.stringValue = "";
     }
 
     @Override

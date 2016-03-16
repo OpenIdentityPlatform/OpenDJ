@@ -176,86 +176,6 @@ public final class AVA implements Comparable<AVA> {
         }
     }
 
-    private static ByteString delimitAndEvaluateEscape(final SubstringReader reader) {
-        final StringBuilder valueBuffer = new StringBuilder();
-        StringBuilder hexBuffer = null;
-        reader.skipWhitespaces();
-
-        boolean escaped = false;
-        int trailingSpaces = 0;
-        while (reader.remaining() > 0) {
-            final char c = reader.read();
-            if (escaped) {
-                // This character is escaped.
-                if (isHexDigit(c)) {
-                    // Unicode characters.
-                    if (reader.remaining() <= 0) {
-                        throw new LocalizedIllegalArgumentException(
-                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(reader.getString()));
-                    }
-
-                    // Check the next byte for hex.
-                    final char c2 = reader.read();
-                    if (isHexDigit(c2)) {
-                        if (hexBuffer == null) {
-                            hexBuffer = new StringBuilder();
-                        }
-                        hexBuffer.append(c);
-                        hexBuffer.append(c2);
-                        // We may be at the end.
-                        if (reader.remaining() == 0) {
-                            appendHexChars(reader, valueBuffer, hexBuffer);
-                        }
-                    } else {
-                        throw new LocalizedIllegalArgumentException(
-                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(reader.getString()));
-                    }
-                } else {
-                    appendHexChars(reader, valueBuffer, hexBuffer);
-                    valueBuffer.append(c);
-                }
-                escaped = false;
-            } else if (c == '\\') {
-                escaped = true;
-                trailingSpaces = 0;
-            } else {
-                // Check for delimited chars.
-                if (c == '+' || c == ',' || c == ';') {
-                    reader.reset();
-                    appendHexChars(reader, valueBuffer, hexBuffer);
-                    valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
-                    return ByteString.valueOfUtf8(valueBuffer);
-                }
-                // It is definitely not a delimiter at this point.
-                appendHexChars(reader, valueBuffer, hexBuffer);
-                valueBuffer.append(c);
-                trailingSpaces = c != ' ' ? 0 : trailingSpaces + 1;
-            }
-            reader.mark();
-        }
-
-        reader.reset();
-        valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
-        return ByteString.valueOfUtf8(valueBuffer);
-    }
-
-    private static void appendHexChars(final SubstringReader reader,
-                                       final StringBuilder valueBuffer,
-                                       final StringBuilder hexBuffer) {
-        if (hexBuffer == null) {
-            return;
-        }
-        final ByteString bytes = ByteString.valueOfHex(hexBuffer.toString());
-        try {
-            valueBuffer.append(new String(bytes.toByteArray(), "UTF-8"));
-        } catch (final Exception e) {
-            throw new LocalizedIllegalArgumentException(
-                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), String.valueOf(e)));
-        }
-        // Clean up the hex buffer.
-        hexBuffer.setLength(0);
-    }
-
     private static String readAttributeName(final SubstringReader reader) {
         int length = 1;
         reader.mark();
@@ -267,7 +187,6 @@ public final class AVA implements Comparable<AVA> {
             boolean lastWasPeriod = false;
             while (reader.remaining() > 0) {
                 c = reader.read();
-
                 if (c == '=' || c == ' ') {
                     // This signals the end of the OID.
                     break;
@@ -283,29 +202,28 @@ public final class AVA implements Comparable<AVA> {
                 }
                 length++;
             }
+            if (lastWasPeriod) {
+                throw illegalCharacter(reader, '.');
+            }
         } else if (isAlpha(c)) {
             // This must be an attribute description. In this case, we will
             // only accept alphabetic characters, numeric digits, and the
             // hyphen.
             while (reader.remaining() > 0) {
                 c = reader.read();
-
                 if (c == '=' || c == ' ') {
                     // This signals the end of the OID.
                     break;
                 } else if (!isAlpha(c) && !isDigit(c) && c != '-') {
                     throw illegalCharacter(reader, c);
                 }
-
                 length++;
             }
         } else {
             throw illegalCharacter(reader, c);
         }
-
-        reader.reset();
-
         // Return the position of the first non-space character after the token
+        reader.reset();
         return reader.read(length);
     }
 
@@ -333,45 +251,16 @@ public final class AVA implements Comparable<AVA> {
             // Value is HEX encoded BER.
             return readAttributeValueAsBER(reader);
         } else if (c == '"') {
-            // The value should continue until the corresponding closing quotation mark.
-            return readAttributeValueWithinQuotes(reader);
+            // Legacy support for RFC 2253. The value should continue until the
+            // corresponding closing quotation mark and has the same format as
+            // RFC 4514 attribute values, except that special characters,
+            // excluding double quote and back-slash, do not need escaping.
+            reader.mark();
+            return readAttributeValue(reader, true);
         } else {
             // Otherwise, use general parsing to find the end of the value.
-            return readAttributeValueUnescaped(reader);
+            return readAttributeValue(reader, false);
         }
-    }
-
-    private static ByteString readAttributeValueUnescaped(final SubstringReader reader) {
-        reader.reset();
-        final ByteString bytes = delimitAndEvaluateEscape(reader);
-        if (bytes.length() == 0) {
-            // We don't allow an empty attribute value.
-            final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader.getString(), reader.pos());
-            throw new LocalizedIllegalArgumentException(message);
-        }
-        return bytes;
-    }
-
-    private static ByteString readAttributeValueWithinQuotes(final SubstringReader reader) {
-        int length = 0;
-        reader.mark();
-        while (true) {
-            if (reader.remaining() <= 0) {
-                // We hit the end of the AVA before the closing quote. That's an error.
-                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString()));
-            }
-
-            if (reader.read() == '"') {
-                // This is the end of the value.
-                break;
-            }
-            length++;
-        }
-        reader.reset();
-        final ByteString retString = ByteString.valueOfUtf8(reader.read(length));
-        reader.read();
-        return retString;
     }
 
     private static ByteString readAttributeValueAsBER(final SubstringReader reader) {
@@ -431,6 +320,101 @@ public final class AVA implements Comparable<AVA> {
             throw new LocalizedIllegalArgumentException(
                     ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), e.getMessageObject()));
         }
+    }
+
+    private static ByteString readAttributeValue(final SubstringReader reader, final boolean isQuoted) {
+        reader.reset();
+        final ByteString bytes = delimitAndEvaluateEscape(reader, isQuoted);
+        if (bytes.length() == 0) {
+            // We don't allow an empty attribute value.
+            final LocalizableMessage message =
+                    ERR_ATTR_SYNTAX_DN_INVALID_REQUIRES_ESCAPE_CHAR.get(reader.getString(), reader.pos());
+            throw new LocalizedIllegalArgumentException(message);
+        }
+        return bytes;
+    }
+
+    private static ByteString delimitAndEvaluateEscape(final SubstringReader reader, final boolean isQuoted) {
+        final StringBuilder valueBuffer = new StringBuilder();
+        StringBuilder hexBuffer = null;
+        boolean escaped = false;
+        int trailingSpaces = 0;
+        while (reader.remaining() > 0) {
+            final char c = reader.read();
+            if (escaped) {
+                // This character is escaped.
+                if (isHexDigit(c)) {
+                    // Unicode characters.
+                    if (reader.remaining() <= 0) {
+                        throw new LocalizedIllegalArgumentException(
+                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(reader.getString()));
+                    }
+
+                    // Check the next byte for hex.
+                    final char c2 = reader.read();
+                    if (isHexDigit(c2)) {
+                        if (hexBuffer == null) {
+                            hexBuffer = new StringBuilder();
+                        }
+                        hexBuffer.append(c);
+                        hexBuffer.append(c2);
+                        // We may be at the end.
+                        if (reader.remaining() == 0) {
+                            appendHexChars(reader, valueBuffer, hexBuffer);
+                        }
+                    } else {
+                        throw new LocalizedIllegalArgumentException(
+                                ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID.get(reader.getString()));
+                    }
+                } else {
+                    appendHexChars(reader, valueBuffer, hexBuffer);
+                    valueBuffer.append(c);
+                }
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+                trailingSpaces = 0;
+            } else if (isQuoted && c == '"') {
+                appendHexChars(reader, valueBuffer, hexBuffer);
+                reader.skipWhitespaces();
+                return ByteString.valueOfUtf8(valueBuffer);
+            } else if (!isQuoted && (c == '+' || c == ',' || c == ';')) {
+                reader.reset();
+                appendHexChars(reader, valueBuffer, hexBuffer);
+                valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
+                return ByteString.valueOfUtf8(valueBuffer);
+            } else {
+                // It is definitely not a delimiter at this point.
+                appendHexChars(reader, valueBuffer, hexBuffer);
+                valueBuffer.append(c);
+                trailingSpaces = c != ' ' ? 0 : trailingSpaces + 1;
+            }
+            reader.mark();
+        }
+        if (isQuoted) {
+            // We hit the end of the AVA before the closing quote. That's an error.
+            throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_UNMATCHED_QUOTE.get(reader.getString()));
+        }
+        reader.reset();
+        valueBuffer.setLength(valueBuffer.length() - trailingSpaces);
+        return ByteString.valueOfUtf8(valueBuffer);
+    }
+
+    private static void appendHexChars(final SubstringReader reader,
+                                       final StringBuilder valueBuffer,
+                                       final StringBuilder hexBuffer) {
+        if (hexBuffer == null) {
+            return;
+        }
+        final ByteString bytes = ByteString.valueOfHex(hexBuffer.toString());
+        try {
+            valueBuffer.append(new String(bytes.toByteArray(), "UTF-8"));
+        } catch (final Exception e) {
+            throw new LocalizedIllegalArgumentException(
+                    ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(reader.getString(), String.valueOf(e)));
+        }
+        // Clean up the hex buffer.
+        hexBuffer.setLength(0);
     }
 
     private final AttributeType attributeType;
