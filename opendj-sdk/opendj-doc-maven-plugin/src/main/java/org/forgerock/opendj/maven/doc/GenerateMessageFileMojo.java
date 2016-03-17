@@ -274,8 +274,10 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         public int compareTo(MessagePropertyKey k) {
             if (ordinal == k.ordinal) {
                 return description.compareTo(k.description);
-            } else {
+            } else if (ordinal != null && k.ordinal != null) {
                 return ordinal.compareTo(k.ordinal);
+            } else {
+                return 0;
             }
         }
     }
