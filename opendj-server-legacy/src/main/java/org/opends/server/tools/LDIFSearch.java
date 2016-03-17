@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -128,7 +127,6 @@ public class LDIFSearch
     IntegerArgument     timeLimit;
     MultiChoiceArgument<String> scopeString;
     StringArgument      baseDNString;
-    StringArgument      configClass;
     StringArgument      configFile;
     StringArgument      ldifFile;
     StringArgument      outputFile;
@@ -172,14 +170,6 @@ public class LDIFSearch
                       .description(INFO_DESCRIPTION_CONFIG_FILE.get())
                       .hidden()
                       .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       filterFile =
               StringArgument.builder("filterFile")
@@ -412,7 +402,7 @@ public class LDIFSearch
 
         try
         {
-          directoryServer.initializeConfiguration(configClass.getValue(), configFile.getValue());
+          directoryServer.initializeConfiguration(configFile.getValue());
         }
         catch (Exception e)
         {

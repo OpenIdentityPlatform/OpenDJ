@@ -38,7 +38,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -132,7 +131,6 @@ public class RestoreDB extends TaskTool {
   private BooleanArgument listBackups;
   private BooleanArgument verifyOnly;
   private StringArgument  backupIDString;
-  private StringArgument  configClass;
   private StringArgument  configFile;
   private StringArgument  backupDirectory;
 
@@ -156,15 +154,6 @@ public class RestoreDB extends TaskTool {
     {
       argParser.setShortToolDescription(REF_SHORT_DESC_RESTORE.get());
 
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -311,8 +300,7 @@ public class RestoreDB extends TaskTool {
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (InitializationException ie)
       {

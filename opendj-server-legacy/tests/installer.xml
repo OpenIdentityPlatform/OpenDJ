@@ -12,6 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2006-2008 Sun Microsystems, Inc.
+  Portions Copyright 2016 ForgeRock AS.
  ! -->
 
 <project name="opends-tests-installer" basedir="." default="usage">
@@ -105,8 +106,6 @@ subtargets=
         
         <!-- provide the arguments here -->
         <jvmarg value="-Dorg.opends.server.scriptName=configure-ds"/>
-        <arg value="--configClass"/>
-        <arg value="org.opends.server.extensions.ConfigFileHandler"/>
         <arg value="--configFile"/>
         <arg value="${full.install.dir}/config/config.ldif"/>
         <arg line="-p ${port.ldap}"/>

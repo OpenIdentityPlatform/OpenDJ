@@ -230,8 +230,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
-        DirectoryServer.getInstance().initializeConfiguration(ConfigurationHandler.class.getName(),
-            ConfigReader.configFile);
+        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
       }
       boolean isFirst = true;
@@ -396,8 +395,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     {
       if (configHandlerUpdated)
       {
-        DirectoryServer.getInstance().initializeConfiguration(
-            ConfigReader.configClassName, ConfigReader.configFile);
+        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
         getInfo().startPooling();
       }
     }

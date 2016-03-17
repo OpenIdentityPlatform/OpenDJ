@@ -37,7 +37,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -72,7 +71,6 @@ public class RebuildIndex extends TaskTool
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private StringArgument configClass;
   private StringArgument configFile;
   private StringArgument baseDNString;
   private StringArgument indexList;
@@ -230,15 +228,6 @@ public class RebuildIndex extends TaskTool
   {
     argParser.setShortToolDescription(REF_SHORT_DESC_REBUILD_INDEX.get());
 
-    configClass =
-            StringArgument.builder("configClass")
-                    .shortIdentifier('C')
-                    .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                    .hidden()
-                    .required()
-                    .defaultValue(ConfigurationHandler.class.getName())
-                    .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                    .buildAndAddToParser(argParser);
     configFile =
             StringArgument.builder("configFile")
                     .shortIdentifier('f')
@@ -418,8 +407,7 @@ public class RebuildIndex extends TaskTool
 
     try
     {
-      directoryServer.initializeConfiguration(configClass.getValue(),
-          configFile.getValue());
+      directoryServer.initializeConfiguration(configFile.getValue());
     }
     catch (Exception ex)
     {

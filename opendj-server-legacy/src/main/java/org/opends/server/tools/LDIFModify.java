@@ -36,7 +36,6 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -411,7 +410,6 @@ public class LDIFModify
     // Prepare the argument parser.
     BooleanArgument showUsage;
     StringArgument  changesFile;
-    StringArgument  configClass;
     StringArgument  configFile;
     StringArgument  sourceFile;
     StringArgument  targetFile;
@@ -431,14 +429,6 @@ public class LDIFModify
                       .hidden()
                       .required()
                       .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       sourceFile =
               StringArgument.builder("sourceLDIF")
@@ -527,8 +517,7 @@ public class LDIFModify
 
         try
         {
-          directoryServer.initializeConfiguration(configClass.getValue(),
-                                                  configFile.getValue());
+          directoryServer.initializeConfiguration(configFile.getValue());
         }
         catch (Exception e)
         {

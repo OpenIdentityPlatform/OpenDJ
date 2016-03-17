@@ -51,5 +51,4 @@ fi
 
 # Launch the appropriate server utility.
 "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" \
-     --configClass org.opends.server.extensions.ConfigFileHandler \
      --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"

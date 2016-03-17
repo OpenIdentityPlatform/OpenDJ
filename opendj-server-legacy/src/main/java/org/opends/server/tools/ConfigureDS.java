@@ -264,7 +264,6 @@ public class ConfigureDS
   private IntegerArgument ldapsPort;
   private IntegerArgument jmxPort;
   private StringArgument baseDNString;
-  private StringArgument configClass;
   private StringArgument configFile;
   private StringArgument rootDNString;
   private StringArgument rootPassword;
@@ -366,14 +365,6 @@ public class ConfigureDS
                       .hidden()
                       .required()
                       .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       String defaultHostName;
       try
@@ -585,7 +576,7 @@ public class ConfigureDS
 
     try
     {
-      directoryServer.initializeConfiguration(configClass.getValue(), configFile.getValue());
+      directoryServer.initializeConfiguration(configFile.getValue());
     }
     catch (final Exception e)
     {
@@ -964,10 +955,11 @@ public class ConfigureDS
 
     if (certNickNames.isPresent())
     {
-      updateCertNicknameEntry(ldapPort, DN_LDAP_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, certNickNames.getValues());
-      updateCertNicknameEntry(ldapsPort, DN_LDAPS_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, certNickNames.getValues());
-      updateCertNicknameEntry(certNickNames, DN_HTTP_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, certNickNames.getValues());
-      updateCertNicknameEntry(jmxPort, DN_JMX_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, certNickNames.getValues());
+      final List<String> attrValues = certNickNames.getValues();
+      updateCertNicknameEntry(ldapPort, DN_LDAP_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, attrValues);
+      updateCertNicknameEntry(ldapsPort, DN_LDAPS_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, attrValues);
+      updateCertNicknameEntry(certNickNames, DN_HTTP_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, attrValues);
+      updateCertNicknameEntry(jmxPort, DN_JMX_CONNECTION_HANDLER, ATTR_SSL_CERT_NICKNAME, attrValues);
     }
     else
     {

@@ -40,7 +40,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
@@ -141,8 +140,7 @@ public class DeleteIndexTask extends Task
         {
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
-        DirectoryServer.getInstance().initializeConfiguration(
-            ConfigurationHandler.class.getName(), ConfigReader.configFile);
+        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
       }
       boolean isFirst = true;
@@ -220,7 +218,7 @@ public class DeleteIndexTask extends Task
     {
       if (configHandlerUpdated)
       {
-        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
+        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
         getInfo().startPooling();
       }
     }

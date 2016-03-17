@@ -85,7 +85,6 @@ import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.BackendCreationHelper;
 import org.opends.server.tools.BackendCreationHelper.DefaultIndex;
@@ -884,8 +883,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
         {
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
-        DirectoryServer.getInstance().initializeConfiguration(
-            ConfigurationHandler.class.getName(), ConfigReader.configFile);
+        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
         configHandlerUpdated = true;
 
@@ -897,7 +895,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
           getInfo().startPooling();
         }
       }

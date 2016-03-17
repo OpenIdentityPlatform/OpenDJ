@@ -17,7 +17,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -48,7 +47,6 @@ import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
@@ -279,8 +277,6 @@ public class BackendStat
   private final SubCommandArgumentParser parser;
   /** The argument which should be used to request usage information. */
   private BooleanArgument showUsageArgument;
-  /** The argument which should be used to specify the config class. */
-  private StringArgument configClass;
   /** The argument which should be used to specify the config file. */
   private StringArgument configFile;
 
@@ -351,15 +347,6 @@ public class BackendStat
   {
     if (!globalArgumentsInitialized)
     {
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildArgument();
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -374,7 +361,6 @@ public class BackendStat
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
       parser.setUsageArgument(showUsageArgument, out);
-      parser.addGlobalArgument(configClass);
       parser.addGlobalArgument(configFile);
 
       globalArgumentsInitialized = true;
@@ -606,7 +592,7 @@ public class BackendStat
 
     try
     {
-      directoryServer.initializeConfiguration(configClass.getValue(), configFile.getValue());
+      directoryServer.initializeConfiguration(configFile.getValue());
     }
     catch (Exception e)
     {

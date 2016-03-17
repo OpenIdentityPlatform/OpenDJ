@@ -16,7 +16,6 @@
  */
 package org.opends.server.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -46,7 +45,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.Entry;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
@@ -137,7 +135,6 @@ public class EncodePassword
     FileBasedArgument clearPasswordFile    = null;
     StringArgument    encodedPassword      = null;
     FileBasedArgument encodedPasswordFile  = null;
-    StringArgument    configClass          = null;
     StringArgument    configFile           = null;
     StringArgument    schemeName           = null;
 
@@ -186,15 +183,6 @@ public class EncodePassword
                       .shortIdentifier('E')
                       .description(INFO_ENCPW_DESCRIPTION_ENCODED_PW_FILE.get())
                       .valuePlaceholder(INFO_FILE_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
@@ -328,8 +316,7 @@ public class EncodePassword
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (InitializationException ie)
       {

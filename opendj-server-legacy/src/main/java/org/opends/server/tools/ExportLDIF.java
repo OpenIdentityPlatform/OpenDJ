@@ -36,7 +36,6 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -135,7 +134,6 @@ public class ExportLDIF extends TaskTool {
   private BooleanArgument signHash;
   private IntegerArgument wrapColumn;
   private StringArgument  backendID;
-  private StringArgument  configClass;
   private StringArgument  configFile;
   private StringArgument  excludeAttributeStrings;
   private StringArgument  excludeBranchStrings;
@@ -159,19 +157,9 @@ public class ExportLDIF extends TaskTool {
     argParser.setShortToolDescription(REF_SHORT_DESC_EXPORT_LDIF.get());
 
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser.
     try
     {
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -405,8 +393,7 @@ public class ExportLDIF extends TaskTool {
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (InitializationException ie)
       {

@@ -1027,9 +1027,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       printPurgeProgressMessage(uData);
       LocalPurgeHistorical localPurgeHistorical =
-        new LocalPurgeHistorical(uData, this, formatter,
-            argParser.getConfigFile(),
-            argParser.getConfigClass());
+        new LocalPurgeHistorical(uData, this, formatter, argParser.getConfigFile());
       returnCode = localPurgeHistorical.execute();
 
       if (returnCode == SUCCESSFUL)

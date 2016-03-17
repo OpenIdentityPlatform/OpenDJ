@@ -35,7 +35,6 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.VerifyConfig;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
@@ -94,7 +93,6 @@ public class VerifyIndex
     JDKLogging.enableConsoleLoggingForOpenDJTool();
 
     // Define the command-line arguments that may be used with this program.
-    StringArgument  configClass             = null;
     StringArgument  configFile              = null;
     StringArgument  baseDNString            = null;
     StringArgument  indexList               = null;
@@ -111,19 +109,9 @@ public class VerifyIndex
     argParser.setShortToolDescription(REF_SHORT_DESC_VERIFY_INDEX.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser.
     try
     {
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -222,8 +210,7 @@ public class VerifyIndex
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (InitializationException ie)
       {

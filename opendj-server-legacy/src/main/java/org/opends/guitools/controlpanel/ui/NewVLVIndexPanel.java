@@ -48,7 +48,6 @@ import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 
 /**
@@ -227,8 +226,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
           {
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigurationHandler.class.getName(), ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
@@ -277,7 +275,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
           getInfo().startPooling();
         }
       }

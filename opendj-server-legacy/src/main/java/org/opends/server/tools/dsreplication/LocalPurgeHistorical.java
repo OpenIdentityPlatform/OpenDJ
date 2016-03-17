@@ -17,7 +17,6 @@
 package org.opends.server.tools.dsreplication;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.CoreMessages.*;
 
 import java.io.File;
 
@@ -32,7 +31,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EmbeddedUtils;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.PointAdder;
@@ -51,7 +49,6 @@ public class LocalPurgeHistorical
   private final ConsoleApplication app;
   private final ProgressMessageFormatter formatter;
   private final String configFile;
-  private final String configClass;
 
   /**
    * The default constructor.
@@ -61,19 +58,15 @@ public class LocalPurgeHistorical
    * @param formatter the formatter to be used to generated the messages.
    * @param configFile the file that contains the configuration.  This is
    * required to initialize properly the server.
-   * @param configClass the class to be used to read the configuration.  This is
-   * required to initialize properly the server.
    */
   public LocalPurgeHistorical(PurgeHistoricalUserData uData,
       ConsoleApplication app,
-      ProgressMessageFormatter formatter, String configFile,
-      String configClass)
+      ProgressMessageFormatter formatter, String configFile)
   {
     this.uData = uData;
     this.app = app;
     this.formatter = formatter;
     this.configFile = configFile;
-    this.configClass = configClass;
   }
 
   /**
@@ -95,30 +88,11 @@ public class LocalPurgeHistorical
     PointAdder pointAdder = new PointAdder(app);
     pointAdder.start();
 
-    Class<?> cfgClass;
-
-    try
-    {
-      cfgClass = Class.forName(configClass);
-    }
-    catch (Exception e)
-    {
-      pointAdder.stop();
-      LocalizableMessage message =
-        ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
-            configClass, StaticUtils.stackTraceToSingleLineString(e));
-      app.println(message);
-      logger.error(LocalizableMessage.raw("Error loading configuration class "+configClass+
-          ": "+e, e));
-      return ReplicationCliReturnCode.ERROR_LOCAL_PURGE_HISTORICAL_CLASS_LOAD;
-    }
-
     try
     {
       // Create a configuration for the server.
       DirectoryEnvironmentConfig environmentConfig =
         new DirectoryEnvironmentConfig();
-      environmentConfig.setConfigClass(cfgClass);
       environmentConfig.setConfigFile(new File(configFile));
       environmentConfig.setDisableConnectionHandlers(true);
       EmbeddedUtils.startServer(environmentConfig);
@@ -126,10 +100,7 @@ public class LocalPurgeHistorical
     catch (OpenDsException ode)
     {
       pointAdder.stop();
-      LocalizableMessage message = ode.getMessageObject();
-        ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
-            configClass, StaticUtils.stackTraceToSingleLineString(ode));
-      app.println(message);
+      app.println(ode.getMessageObject());
       logger.error(LocalizableMessage.raw("Error starting server with file "+configFile+
           ": "+ode, ode));
       return ReplicationCliReturnCode.ERROR_LOCAL_PURGE_HISTORICAL_SERVER_START;

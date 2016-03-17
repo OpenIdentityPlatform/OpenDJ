@@ -83,7 +83,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
         configFile(configFile).
         build();
 
-    return ConfigurationHandler.bootstrapConfiguration(context, ConfigurationHandler.class);
+    return ConfigurationHandler.bootstrapConfiguration(context);
   }
 
   @Test

@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.guitools.controlpanel.util.Utilities.*;
@@ -67,7 +66,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 
 /**
@@ -613,8 +611,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
           {
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
-          DirectoryServer.getInstance().initializeConfiguration(
-              ConfigurationHandler.class.getName(), ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
@@ -665,7 +662,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configClassName, ConfigReader.configFile);
+          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
           getInfo().startPooling();
         }
       }

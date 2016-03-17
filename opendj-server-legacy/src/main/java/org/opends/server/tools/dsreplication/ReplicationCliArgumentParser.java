@@ -38,7 +38,6 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.config.AdministrationConnector;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 
@@ -124,7 +123,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /** No-prompt argument. */
   BooleanArgument noPromptArg;
-  private String defaultLocalHostValue;
 
   /** Arguments for the first server. */
   ServerArgs server1 = new ServerArgs();
@@ -171,12 +169,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   StringArgument equivalentCommandFileArgument;
   /** The argument that the user must set to have advanced options in interactive mode. */
   BooleanArgument advancedArg;
-
-  /**
-   * The argument set by the user to specify the configuration class
-   * (useful when dsreplication purge-historical runs locally).
-   */
-  private StringArgument  configClassArg;
 
   /**
    * The argument set by the user to specify the configuration file
@@ -446,10 +438,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     advancedArg = advancedModeArgument();
     defaultArgs.add(index++, advancedArg);
-
-    configClassArg =
-        configClassArgument(ConfigurationHandler.class.getName());
-    defaultArgs.add(index++, configClassArg);
 
     configFileArg = configFileArgument();
     defaultArgs.add(index++, configFileArg);
@@ -1191,17 +1179,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public List<String> getBaseDNs()
   {
     return baseDNsArg.getValues();
-  }
-
-  /**
-   * Returns the config class value provided in the hidden argument of the
-   * command-line.
-   * @return the config class value provided in the hidden argument of the
-   * command-line.
-   */
-  public String getConfigClass()
-  {
-    return getValue(configClassArg);
   }
 
   /**

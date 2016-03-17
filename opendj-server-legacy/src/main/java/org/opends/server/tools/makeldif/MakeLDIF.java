@@ -149,7 +149,6 @@ public class MakeLDIF
 
     BooleanArgument showUsage;
     IntegerArgument randomSeed;
-    StringArgument  configClass;
     StringArgument  configFile;
     StringArgument  templatePath;
     StringArgument  ldifFile;
@@ -164,13 +163,6 @@ public class MakeLDIF
                       .hidden()
                       .required()
                       .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       resourcePath =
               StringArgument.builder("resourcePath")
@@ -262,8 +254,7 @@ public class MakeLDIF
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-            configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (Exception e)
       {

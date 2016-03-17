@@ -174,19 +174,17 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * Bootstraps the server configuration.
    * <p>
    * The returned ConfigurationHandler is initialized with a partial schema and must be later
-   * re-itinialized with the full schema by calling {@code reInitializeWithFullSchema()} method
+   * re-initialized with the full schema by calling {@code reInitializeWithFullSchema()} method
    * once the schema has been fully loaded.
    *
    * @param serverContext
    *            The server context.
-   * @param configClass
-   *            The actual configuration class to use.
    * @return the configuration handler
    * @throws InitializationException
    *            If an error occurs during bootstrapping.
    */
-  public static ConfigurationHandler bootstrapConfiguration(ServerContext serverContext,
-      Class<ConfigurationHandler> configClass) throws InitializationException {
+  public static ConfigurationHandler bootstrapConfiguration(ServerContext serverContext)
+      throws InitializationException {
     final ConfigurationFramework configFramework = ConfigurationFramework.getInstance();
     try
     {

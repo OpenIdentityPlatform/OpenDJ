@@ -40,7 +40,6 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -146,7 +145,6 @@ public class ImportLDIF extends TaskTool {
   private BooleanArgument clearBackend;
   private IntegerArgument randomSeed;
   private StringArgument  backendID;
-  private StringArgument  configClass;
   private StringArgument  configFile;
   private StringArgument  excludeAttributeStrings;
   private StringArgument  excludeBranchStrings;
@@ -275,15 +273,6 @@ public class ImportLDIF extends TaskTool {
 
   private void createArguments(LDAPConnectionArgumentParser argParser) throws ArgumentException
   {
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -523,8 +512,7 @@ public class ImportLDIF extends TaskTool {
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (InitializationException ie)
       {

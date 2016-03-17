@@ -81,8 +81,7 @@ public class ServerContextBuilder
   public ServerContextBuilder withConfigurationBootstrapped()
       throws InitializationException
   {
-    final ConfigurationHandler configHandler =
-        ConfigurationHandler.bootstrapConfiguration(serverContext, ConfigurationHandler.class);
+    final ConfigurationHandler configHandler = ConfigurationHandler.bootstrapConfiguration(serverContext);
     final ServerManagementContext serverManagementContext = new ServerManagementContext(configHandler);
     when(serverContext.getServerManagementContext()).thenReturn(serverManagementContext);
     return this;

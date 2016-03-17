@@ -47,7 +47,6 @@ import org.opends.server.backends.pluggable.BackendImpl;
 import org.opends.server.backends.pluggable.EntryContainer;
 import org.opends.server.backends.pluggable.RootContainer;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.*;
@@ -417,7 +416,6 @@ public final class TestCaseUtils {
       config.setInstanceRoot(testInstanceRoot);
 
       config.setForceDaemonThreads(true);
-      config.setConfigClass(ConfigurationHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
       ConfigurationFramework configurationFramework = ConfigurationFramework.getInstance();

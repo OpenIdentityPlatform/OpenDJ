@@ -80,7 +80,6 @@ STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
 "${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
-            --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
 if test ${EC} -eq 99 -o ${EC} -eq 103
@@ -91,7 +90,6 @@ then
   touch "${STARTING_FILE}"
   nohup "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
-       --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
   echo $! > "${PID_FILE}"
   if test ${EC} -eq 99
@@ -107,7 +105,6 @@ then
   then
     # An exit code of 98 means that the server is already running.
   	"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
-            --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
     EC=${?}
     if test ${EC} -eq 98
@@ -129,7 +126,6 @@ else
     rm -f "${LOG_FILE}"
     exec "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
       org.opends.server.core.DirectoryServer \
-      --configClass org.opends.server.extensions.ConfigFileHandler \
       --configFile "${CONFIG_FILE}" "${@}"
   elif test ${EC} -eq 104
   then
@@ -140,7 +136,6 @@ else
     rm -f "${LOG_FILE}"
     exec "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
       org.opends.server.core.DirectoryServer \
-      --configClass org.opends.server.extensions.ConfigFileHandler \
       --configFile "${CONFIG_FILE}" "${@}" > /dev/null
   else
     #

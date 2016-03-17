@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.server.tools.dsreplication;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -94,7 +93,10 @@ public enum ReplicationCliReturnCode
   HISTORICAL_CANNOT_BE_PURGED_ON_BASEDN(27, ERR_REPLICATION_NO_MESSAGE.get()),
   /** Error launching purge historical. */
   ERROR_LAUNCHING_PURGE_HISTORICAL(28, ERR_REPLICATION_NO_MESSAGE.get()),
-  /** Error loading configuration class in local purge historical. */
+  /**
+   * Error loading configuration class in local purge historical.
+   * @deprecated unused now
+   */
   ERROR_LOCAL_PURGE_HISTORICAL_CLASS_LOAD(29, ERR_REPLICATION_NO_MESSAGE.get()),
   /** Error starting server in local purge historical. */
    ERROR_LOCAL_PURGE_HISTORICAL_SERVER_START(30, ERR_REPLICATION_NO_MESSAGE.get()),

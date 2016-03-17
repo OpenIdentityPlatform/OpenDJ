@@ -30,7 +30,6 @@ import java.util.Properties;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 
 /**
@@ -499,89 +498,6 @@ public final class DirectoryEnvironmentConfig
 
     return setPathProperty(PROPERTY_CONFIG_FILE, configFile);
   }
-
-
-
-  /**
-   * Retrieves the class that provides the Directory Server
-   * configuration handler implementation.  If no config handler class
-   * is defined, or if a problem occurs while attempting to determine
-   * the config handler class, then a default class of
-   * org.opends.server.extensions.ConfigFileHandler will be returned.
-   *
-   * @return  The class that provides the Directory Server
-   *          configuration handler implementation.
-   */
-  public Class getConfigClass()
-  {
-    String className = getProperty(PROPERTY_CONFIG_CLASS);
-    if (className == null)
-    {
-      return ConfigurationHandler.class;
-    }
-    else
-    {
-      try
-      {
-        return Class.forName(className);
-      }
-      catch (Exception e)
-      {
-        return ConfigurationHandler.class;
-      }
-    }
-  }
-
-
-
-  /**
-   * Specifies the class that provides the Directory Server
-   * configuration handler implementation.  The class must be a
-   * subclass of the org.opends.server.api.ConfigHandler superclass.
-   *
-   * @param  configClass  The class that proviedes the Directory
-   *                      Server configuration handler implementation.
-   *
-   * @return  The class that was previously configured to provide the
-   *          Directory Server configuration handler implementation,
-   *          or {@code null} if none was defined.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running or there is a
-   *                                   problem with the provided
-   *                                   config handler class.
-   */
-  public Class setConfigClass(Class configClass)
-         throws InitializationException
-  {
-    checkServerIsRunning();
-
-    if (!ConfigurationHandler.class.isAssignableFrom(configClass))
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_INVALID_CONFIG_CLASS.get(
-                      configClass.getName()));
-    }
-
-    String oldClassName = setProperty(PROPERTY_CONFIG_CLASS, configClass.getName());
-    if (oldClassName == null)
-    {
-      return null;
-    }
-    else
-    {
-      try
-      {
-        return Class.forName(oldClassName);
-      }
-      catch (Exception e)
-      {
-        return null;
-      }
-    }
-  }
-
-
 
   /**
    * Indicates whether the Directory Server should attempt to start

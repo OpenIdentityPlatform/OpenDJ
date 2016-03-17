@@ -47,7 +47,7 @@ set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 :end
 

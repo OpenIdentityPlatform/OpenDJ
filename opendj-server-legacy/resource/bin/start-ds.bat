@@ -57,7 +57,7 @@ echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
 echo %SCRIPT%: PATH=%PATH% >> %LOG%
 
-"%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability %*
+"%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability %*
 
 if %errorlevel% == 98 goto serverAlreadyStarted
 if %errorlevel% == 99 goto runDetach
@@ -79,7 +79,7 @@ echo %SCRIPT%: Run no detach >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat %SCRIPT%" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
@@ -88,7 +88,7 @@ echo %SCRIPT%: Run no detach quiet >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat %SCRIPT%" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %* >> %LOG%
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" %* >> %LOG%
 set ERROR_CODE=%errorlevel%
 goto exitErrorCode
 
@@ -97,7 +97,7 @@ echo %SCRIPT%: Run detach >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
-"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.starting" to be deleted >> %LOG%
 "%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.starting" --logFile "%INSTANCE_ROOT%\logs\server.out" %*
 goto checkStarted
@@ -107,7 +107,7 @@ echo %SCRIPT%: Run detach quiet >> %LOG%
 echo. > "%INSTANCE_ROOT%\logs\server.out"
 echo. > "%INSTANCE_ROOT%\logs\server.starting"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
-"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.starting" to be deleted >> %LOG%
 "%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.starting" --logFile "%INSTANCE_ROOT%\logs\server.out" %* >> %LOG%
 goto checkStarted
@@ -120,7 +120,7 @@ echo. > "%INSTANCE_ROOT%\logs\server.starting"
 echo. > "%INSTANCE_ROOT%\logs\server.startingservice"
 echo. > "%INSTANCE_ROOT%\logs\winservice.out"
 if exist "%INSTANCE_ROOT%\lib\set-java-args.bat" DO call "%INSTANCE_ROOT%\lib\set-java-args.bat"
-"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDJ_JAVA_BIN%" -Xrs %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%INSTALL_ROOT%\lib\winlauncher.exe" start "%INSTANCE_ROOT%" "%OPENDJ_JAVA_BIN%" -Xrs %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%INSTANCE_ROOT%\logs\server.starting" to be deleted >> %LOG%
 "%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.starting" --logFile "%INSTANCE_ROOT%\logs\server.out" --outputFile "%INSTANCE_ROOT%\logs\winservice.out" %*
 erase "%INSTANCE_ROOT%\logs\server.startingservice"
@@ -138,7 +138,7 @@ goto end
 
 :checkStarted
 echo %SCRIPT%: check started >> %LOG%
-"%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability > NUL 2>&1
+"%OPENDJ_JAVA_BIN%" -client %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configFile "%INSTANCE_ROOT%\config\config.ldif" --checkStartability > NUL 2>&1
 if %errorlevel% == 98 goto serverStarted
 if %errorlevel% == 101 goto serverStarted
 goto serverNotStarted

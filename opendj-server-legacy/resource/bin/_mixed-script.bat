@@ -51,7 +51,7 @@ if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
 rem Check whether is local or remote
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --testIfOffline %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configFile "%INSTANCE_ROOT%\config\config.ldif" --testIfOffline %*
 if %errorlevel% == 51 goto launchoffline
 if %errorlevel% == 52 goto launchonline
 exit /B %errorlevel%
@@ -63,7 +63,7 @@ goto end
 
 :launchonline
 
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 goto end
 
@@ -82,7 +82,7 @@ call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
-"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 goto end
 

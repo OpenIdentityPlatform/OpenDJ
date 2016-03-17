@@ -286,9 +286,6 @@ public final class DirectoryServer
   /** The configuration manager that will handle the certificate mapper. */
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
-  /** The class used to provide the config handler implementation. */
-  private Class<ConfigurationHandler> configClass;
-
   /** The configuration handler for the Directory Server. */
   private ConfigurationHandler configurationHandler;
 
@@ -1036,9 +1033,6 @@ public final class DirectoryServer
    * Instantiates the configuration handler and loads the Directory Server
    * configuration.
    *
-   * @param  configClass  The fully-qualified name of the Java class that will
-   *                      serve as the configuration handler for the Directory
-   *                      Server.
    * @param  configFile   The path to the file that will hold either the entire
    *                      server configuration or enough information to allow
    *                      the server to access the configuration in some other
@@ -1047,29 +1041,9 @@ public final class DirectoryServer
    * @throws  InitializationException  If a problem occurs while trying to
    *                                   initialize the config handler.
    */
-  public void initializeConfiguration(String configClass, String configFile)
-         throws InitializationException
+  public void initializeConfiguration(String configFile) throws InitializationException
   {
-    Class<?> cfgClass;
-    try
-    {
-      cfgClass = Class.forName(configClass);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message =
-          ERR_CANNOT_LOAD_CONFIG_HANDLER_CLASS.get(
-                  configClass, stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
-    }
-
-    File cfgFile = new File(configFile);
-
-    environmentConfig.setConfigClass(cfgClass);
-    environmentConfig.setConfigFile(cfgFile);
-
+    environmentConfig.setConfigFile(new File(configFile));
     initializeConfiguration();
   }
 
@@ -1100,8 +1074,7 @@ public final class DirectoryServer
   public void initializeConfiguration() throws InitializationException
   {
     configFile = environmentConfig.getConfigFile();
-    configClass = environmentConfig.getConfigClass();
-    configurationHandler = ConfigurationHandler.bootstrapConfiguration(serverContext, configClass);
+    configurationHandler = ConfigurationHandler.bootstrapConfiguration(serverContext);
     serverManagementContext = new ServerManagementContext(configurationHandler);
 
     final ConfigurationBackend configBackend = new ConfigurationBackend(serverContext, configurationHandler);
@@ -6012,7 +5985,6 @@ public final class DirectoryServer
     rejectUnauthenticatedRequests = true;
     shuttingDown                  = true;
 
-    configClass              = null;
     configFile               = null;
     configurationHandler     = null;
     coreConfigManager        = null;
@@ -6655,7 +6627,6 @@ public final class DirectoryServer
     BooleanArgument noDetach               = null;
     BooleanArgument systemInfo             = null;
     BooleanArgument useLastKnownGoodConfig = null;
-    StringArgument  configClass            = null;
     StringArgument  configFile             = null;
 
     // Create the command-line argument parser for use with this program.
@@ -6672,15 +6643,6 @@ public final class DirectoryServer
               .description(INFO_DSCORE_DESCRIPTION_WINDOWS_NET_START.get())
               .hidden()
               .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder("configClass")
-                      .shortIdentifier('C')
-                      .description(INFO_DSCORE_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -6850,7 +6812,6 @@ public final class DirectoryServer
     DirectoryEnvironmentConfig environmentConfig = new DirectoryEnvironmentConfig();
     try
     {
-      environmentConfig.setProperty(PROPERTY_CONFIG_CLASS, configClass.getValue());
       environmentConfig.setProperty(PROPERTY_CONFIG_FILE, configFile.getValue());
       environmentConfig.setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
           String.valueOf(useLastKnownGoodConfig.isPresent()));
@@ -6980,7 +6941,6 @@ public final class DirectoryServer
     {
       theDirectoryServer.setEnvironmentConfig(environmentConfig);
       theDirectoryServer.bootstrapServer();
-      theDirectoryServer.initializeConfiguration(configClass.getValue(), configFile.getValue());
     }
     catch (InitializationException ie)
     {

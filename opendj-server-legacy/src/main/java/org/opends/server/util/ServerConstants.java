@@ -2793,18 +2793,6 @@ public final class ServerConstants
    */
   public static final String TIME_UNIT_WEEKS_FULL = "weeks";
 
-
-
-  /**
-   * The name of the system property that can be used to specify the
-   * fully-qualified name of theclass that provides the Director Server config
-   * handler implementation.
-   */
-  public static final String PROPERTY_CONFIG_CLASS =
-       "org.opends.server.ConfigClass";
-
-
-
   /**
    * The name of the system property that can be used to specify the path to the
    * configuration file that should be used to initialize the config handler.

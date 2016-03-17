@@ -121,7 +121,6 @@ public class ListBackends
     BooleanArgument displayUsage = null;
     StringArgument  backendID    = null;
     StringArgument  baseDN       = null;
-    StringArgument  configClass  = null;
     StringArgument  configFile   = null;
 
 
@@ -133,19 +132,9 @@ public class ListBackends
     argParser.setShortToolDescription(REF_SHORT_DESC_LIST_BACKENDS.get());
     argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser.
     try
     {
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .required()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
       configFile =
               StringArgument.builder("configFile")
                       .shortIdentifier('f')
@@ -238,8 +227,7 @@ public class ListBackends
 
       try
       {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-                                                configFile.getValue());
+        directoryServer.initializeConfiguration(configFile.getValue());
       }
       catch (InitializationException ie)
       {

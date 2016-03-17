@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -58,7 +57,6 @@ import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -148,7 +146,6 @@ public class LDIFDiff
     BooleanArgument useCompareResultCode;
     BooleanArgument singleValueChanges;
     BooleanArgument doCheckSchema;
-    StringArgument  configClass;
     StringArgument  configFile;
     StringArgument  outputLDIF;
     StringArgument  sourceLDIF;
@@ -217,16 +214,8 @@ public class LDIFDiff
                       .hidden()
                       .valuePlaceholder(INFO_CONFIGFILE_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
-      configClass =
-              StringArgument.builder(OPTION_LONG_CONFIG_CLASS)
-                      .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
-                      .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
-                      .hidden()
-                      .defaultValue(ConfigurationHandler.class.getName())
-                      .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
-                      .buildAndAddToParser(argParser);
 
-      showUsage =  showUsageArgument();
+      showUsage = showUsageArgument();
       argParser.addArgument(showUsage);
 
       useCompareResultCode =
@@ -299,8 +288,7 @@ public class LDIFDiff
 
         try
         {
-          directoryServer.initializeConfiguration(configClass.getValue(),
-                                                  configFile.getValue());
+          directoryServer.initializeConfiguration(configFile.getValue());
         }
         catch (Exception e)
         {

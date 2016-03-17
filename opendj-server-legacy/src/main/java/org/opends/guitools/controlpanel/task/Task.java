@@ -22,6 +22,7 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
@@ -728,12 +728,7 @@ public abstract class Task
    */
   protected List<String> getConfigCommandLineArguments()
   {
-    List<String> args = new ArrayList<>();
-    args.add("--configClass");
-    args.add(ConfigurationHandler.class.getName());
-    args.add("--configFile");
-    args.add(ConfigReader.configFile);
-    return args;
+    return Arrays.asList("--configFile", ConfigReader.configFile);
   }
 
   /**

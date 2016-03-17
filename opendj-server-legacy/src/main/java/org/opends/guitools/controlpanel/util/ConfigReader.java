@@ -32,7 +32,6 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
-import org.opends.server.core.ConfigurationBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.forgerock.opendj.ldap.DN;
@@ -51,10 +50,6 @@ import static org.opends.messages.AdminToolMessages.*;
 public abstract class ConfigReader
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  /**
-   * The class used to read the configuration from a file.
-   */
-  public static String configClassName;
   /**
    * The configuration file full path (-INSTANCE_ROOT-/config/config.ldif).
    * of the installation of the control panel.
@@ -79,7 +74,6 @@ public abstract class ConfigReader
       Utilities.getInstanceRootDirectory(installRoot).getAbsolutePath();
     configFile = instanceRoot + File.separator + "config" + File.separator +
     "config.ldif";
-    configClassName = ConfigurationBackend.class.getName();
     try
     {
       DirectoryEnvironmentConfig env = DirectoryServer.getEnvironmentConfig();
@@ -87,7 +81,7 @@ public abstract class ConfigReader
       DirectoryServer instance = DirectoryServer.getInstance();
       DirectoryServer.bootstrapClient();
       DirectoryServer.initializeJMX();
-      instance.initializeConfiguration(configClassName, configFile);
+      instance.initializeConfiguration(configFile);
       instance.initializeSchema();
     }
     catch (Throwable t)
