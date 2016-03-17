@@ -61,9 +61,8 @@ public class RandomPasswordGeneratorTestCase
   public void testDefaultConfiguration()
          throws Exception
   {
-    DN dn = DN.valueOf("cn=Random Password Generator,cn=Password Generators," +
-                      "cn=config");
-    Entry configEntry = DirectoryServer.getConfigEntry(dn);
+    Entry configEntry = DirectoryServer.getEntry(
+        DN.valueOf("cn=Random Password Generator,cn=Password Generators,cn=config"));
     assertNotNull(configEntry);
 
     RandomPasswordGenerator generator = InitializationUtils.initializePasswordGenerator(

@@ -54,14 +54,11 @@ public abstract class GenericMonitorTestCase
   protected GenericMonitorTestCase(String dnString)
             throws Exception
   {
-    super();
-
     TestCaseUtils.startServer();
 
     if (dnString != null)
     {
-      DN dn = DN.valueOf(dnString);
-      configEntry = DirectoryServer.getConfigEntry(dn);
+      configEntry = DirectoryServer.getEntry(DN.valueOf(dnString));
       assertNotNull(configEntry);
     }
   }

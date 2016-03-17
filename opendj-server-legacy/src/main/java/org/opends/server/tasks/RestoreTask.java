@@ -29,7 +29,6 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
@@ -251,20 +250,17 @@ public class RestoreTask extends Task
     Entry configEntry;
     try
     {
-      // Get the backend configuration entry.
-      configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+      configEntry = DirectoryServer.getEntry(configEntryDN);
     }
-    catch (ConfigException e)
+    catch (DirectoryException e)
     {
       logger.traceException(e);
       logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, backupDirectory, configEntryDN);
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    // Get the backend ID from the configuration entry.
     String backendID = TaskUtils.getBackendID(configEntry);
 
-    // Get the backend.
     Backend<?> backend = DirectoryServer.getBackend(backendID);
     if (!backend.supports(BackendOperation.RESTORE))
     {

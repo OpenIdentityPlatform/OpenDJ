@@ -84,7 +84,7 @@ public abstract class PasswordStorageSchemeTestCase
 
     if (configDNString != null)
     {
-      configEntry = DirectoryServer.getConfigEntry(DN.valueOf(configDNString));
+      configEntry = DirectoryServer.getEntry(DN.valueOf(configDNString));
     }
   }
 

@@ -55,8 +55,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
   {
     ByteString bytePassword = ByteString.valueOfUtf8(password);
 
-    Entry configEntry =
-       DirectoryServer.getConfigEntry(
+    Entry configEntry = DirectoryServer.getEntry(
            DN.valueOf("cn=Salted MD5,cn=Password Storage Schemes,cn=config"));
 
     SaltedMD5PasswordStorageScheme scheme = InitializationUtils.initializePasswordStorageScheme(

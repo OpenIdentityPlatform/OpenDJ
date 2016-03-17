@@ -219,7 +219,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     // Add the config entry to create the replicated domain
     DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
-    assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getName()),
+    assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
     return domainCfgEntry;
@@ -247,7 +247,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     // Add the config entry to create the replicated domain
     DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
-    assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getName()),
+    assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
     return domainCfgEntry;

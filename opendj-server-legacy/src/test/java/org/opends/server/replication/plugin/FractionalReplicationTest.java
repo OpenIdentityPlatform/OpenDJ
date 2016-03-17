@@ -507,7 +507,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Add the config entry to create the replicated domain
       DirectoryServer.getConfigurationHandler().addEntry(Converters.from(fractionalDomainCfgEntry));
-      assertNotNull(DirectoryServer.getConfigEntry(fractionalDomainCfgEntry.getName()),
+      assertNotNull(DirectoryServer.getEntry(fractionalDomainCfgEntry.getName()),
         "Unable to add the domain config entry: " + configEntryLdif);
     }
   }

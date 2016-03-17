@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -76,26 +75,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getOperatingSystem();
   }
-
-  /**
-   * Retrieves the requested entry from the Directory Server
-   * configuration.
-   *
-   * @param  entryDN  The DN of the configuration entry to retrieve.
-   *
-   * @return  The requested entry from the Directory Server
-   *          configuration.
-   *
-   * @throws  ConfigException  If a problem occurs while trying to
-   *                           retrieve the requested entry.
-   */
-  public static Entry getConfigEntry(DN entryDN)
-         throws ConfigException
-  {
-    return DirectoryServer.getConfigEntry(entryDN);
-  }
-
-
 
   /**
    * Retrieves the path to the root directory for this instance of the
