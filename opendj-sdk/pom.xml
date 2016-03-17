@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-sdk-bom</artifactId>
-        <version>4.0.0-M1</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>opendj-sdk-bom/pom.xml</relativePath>
     </parent>
 
@@ -62,7 +62,7 @@
         <url>https://stash.forgerock.org/projects/OPENDJ/repos/opendj-sdk/browse</url>
         <connection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</connection>
         <developerConnection>scm:git:ssh://git@stash.forgerock.org:7999/opendj/opendj-sdk.git</developerConnection>
-        <tag>4.0.0-M1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <ciManagement>

@@ -26,7 +26,7 @@
 
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-sdk-bom</artifactId>
-    <version>4.0.0-M1</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -36,7 +36,7 @@
     </description>
 
     <properties>
-        <opendj.sdk.version>4.0.0-M1</opendj.sdk.version>
+        <opendj.sdk.version>4.0.0-SNAPSHOT</opendj.sdk.version>
         <i18n-framework.version>1.4.2</i18n-framework.version>
     </properties>
 
@@ -98,8 +98,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-  <scm>
-    <tag>4.0.0-M1</tag>
-  </scm>
 </project>
