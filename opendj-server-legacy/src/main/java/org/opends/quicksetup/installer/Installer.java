@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer;
 
@@ -25,7 +25,6 @@ import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
 import static org.opends.quicksetup.installer.InstallProgressStep.*;
 import static org.opends.quicksetup.util.Utils.*;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
@@ -78,6 +77,7 @@ import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ButtonName;
@@ -1414,7 +1414,7 @@ public abstract class Installer extends GuiApplication
    */
   private void unconfigureRemote()
   {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper connectionWrapper = null;
     if (registeredNewServerOnRemote || createdAdministrator || createdRemoteAds)
     {
       // Try to connect
@@ -1426,9 +1426,9 @@ public abstract class Installer extends GuiApplication
       }
       try
       {
-        ctx = createInitialLdapContext(auth);
+        connectionWrapper = createConnection(auth);
 
-        ADSContext adsContext = new ADSContext(ctx);
+        ADSContext adsContext = new ADSContext(connectionWrapper);
         if (createdRemoteAds)
         {
           adsContext.removeAdminData(true);
@@ -1468,7 +1468,7 @@ public abstract class Installer extends GuiApplication
       }
       finally
       {
-        StaticUtils.close(ctx);
+        StaticUtils.close(connectionWrapper);
       }
     }
     InstallerHelper helper = new InstallerHelper();
@@ -1477,8 +1477,9 @@ public abstract class Installer extends GuiApplication
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_REPLICATION_REMOTE.get(getHostPort(server))));
       try
       {
-        ctx = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
-        helper.unconfigureReplication(ctx, hmConfiguredRemoteReplication.get(server), ConnectionUtils.getHostPort(ctx));
+        connectionWrapper = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
+        helper.unconfigureReplication(connectionWrapper, hmConfiguredRemoteReplication.get(server),
+            ConnectionUtils.getHostPort(connectionWrapper.getLdapContext()));
       }
       catch (ApplicationException ae)
       {
@@ -1486,7 +1487,7 @@ public abstract class Installer extends GuiApplication
       }
       finally
       {
-        StaticUtils.close(ctx);
+        StaticUtils.close(connectionWrapper);
       }
       notifyListeners(getFormattedDoneWithLineBreak());
     }
@@ -1582,15 +1583,16 @@ public abstract class Installer extends GuiApplication
   private void createReplicatedBackends(final Map<String, Set<String>> hmBackendSuffix,
       final Map<String, BackendTypeUIAdapter> backendTypes) throws ApplicationException
   {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper connection = null;
     try
     {
-      ctx = createLocalContext();
+      connection = createLocalConnection();
       final InstallerHelper helper = new InstallerHelper();
       for (String backendName : hmBackendSuffix.keySet())
       {
-        helper.createBackend(ctx, backendName, hmBackendSuffix.get(backendName), ConnectionUtils.getHostPort(ctx),
-            backendTypes.get(backendName).getLegacyConfigurationFrameworkBackend());
+        helper.createBackend(connection, backendName, hmBackendSuffix.get(backendName),
+            ConnectionUtils.getHostPort(connection.getLdapContext()),
+            backendTypes.get(backendName).getBackend());
       }
     }
     catch (NamingException ne)
@@ -1600,7 +1602,7 @@ public abstract class Installer extends GuiApplication
     }
     finally
     {
-      StaticUtils.close(ctx);
+      StaticUtils.close(connection);
     }
   }
 
@@ -1700,21 +1702,21 @@ public abstract class Installer extends GuiApplication
     replicationServers.put(ADSContext.getAdministrationSuffixDN(), adsServers);
     replicationServers.put(Constants.SCHEMA_DN, new HashSet<String>(adsServers));
 
-    InitialLdapContext ctx = null;
+    ConnectionWrapper connWrapper = null;
     long localTime = -1;
     long localTimeMeasureTime = -1;
     String localServerDisplay = null;
     try
     {
-      ctx = createLocalContext();
-      helper.configureReplication(ctx, replicationServers,
+      connWrapper = createLocalConnection();
+      helper.configureReplication(connWrapper, replicationServers,
           getUserData().getReplicationOptions().getReplicationPort(),
           getUserData().getReplicationOptions().useSecureReplication(),
           getLocalHostPort(),
           knownReplicationServerIds, knownServerIds);
       localTimeMeasureTime = System.currentTimeMillis();
-      localTime = Utils.getServerClock(ctx);
-      localServerDisplay = ConnectionUtils.getHostPort(ctx);
+      localTime = Utils.getServerClock(connWrapper.getLdapContext());
+      localServerDisplay = ConnectionUtils.getHostPort(connWrapper.getLdapContext());
     }
     catch (NamingException ne)
     {
@@ -1723,7 +1725,7 @@ public abstract class Installer extends GuiApplication
     }
     finally
     {
-      StaticUtils.close(ctx);
+      StaticUtils.close(connWrapper);
     }
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
@@ -1804,9 +1806,10 @@ public abstract class Installer extends GuiApplication
           }
         }
 
-        ctx = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
+        connWrapper = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
+        InitialLdapContext ctx = connWrapper.getLdapContext();
         ConfiguredReplication repl =
-            helper.configureReplication(ctx, remoteReplicationServers, replicationPort, enableSecureReplication,
+            helper.configureReplication(connWrapper, remoteReplicationServers, replicationPort, enableSecureReplication,
                 ConnectionUtils.getHostPort(ctx), knownReplicationServerIds, knownServerIds);
         long remoteTimeMeasureTime = System.currentTimeMillis();
         long remoteTime = Utils.getServerClock(ctx);
@@ -1821,7 +1824,7 @@ public abstract class Installer extends GuiApplication
 
         hmConfiguredRemoteReplication.put(server, repl);
 
-        StaticUtils.close(ctx);
+        StaticUtils.close(connWrapper);
         notifyListeners(getFormattedDoneWithLineBreak());
         checkAbort();
       }
@@ -2110,15 +2113,15 @@ public abstract class Installer extends GuiApplication
    */
   protected void initializeSuffixes() throws ApplicationException
   {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper conn = null;
     try
     {
-      ctx = createLocalContext();
+      conn = createLocalConnection();
     }
     catch (Throwable t)
     {
       LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t);
-      StaticUtils.close(ctx);
+      StaticUtils.close(conn);
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
     }
 
@@ -2127,15 +2130,15 @@ public abstract class Installer extends GuiApplication
     /* Initialize local ADS and schema contents using any replica. */
     {
       ServerDescriptor server = suffixes.iterator().next().getReplicas().iterator().next().getServer();
-      InitialLdapContext rCtx = null;
+      ConnectionWrapper remoteConn = null;
       try
       {
-        rCtx = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
+        remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
         TopologyCacheFilter filter = new TopologyCacheFilter();
         filter.setSearchMonitoringInformation(false);
         filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
         filter.addBaseDNToSearch(Constants.SCHEMA_DN);
-        ServerDescriptor s = createStandalone(rCtx, filter);
+        ServerDescriptor s = createStandalone(remoteConn.getLdapContext(), filter);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
           String dn = replica.getSuffix().getDN();
@@ -2164,7 +2167,7 @@ public abstract class Installer extends GuiApplication
       }
       finally
       {
-        StaticUtils.close(rCtx);
+        StaticUtils.close(remoteConn);
       }
     }
 
@@ -2203,14 +2206,14 @@ public abstract class Installer extends GuiApplication
         if (replicationId == -1)
         {
           // This occurs if the remote server had not replication configured.
-          InitialLdapContext rCtx = null;
+          ConnectionWrapper remoteConn = null;
           try
           {
-            rCtx = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
+            remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
             filter.addBaseDNToSearch(dn);
-            ServerDescriptor s = createStandalone(rCtx, filter);
+            ServerDescriptor s = createStandalone(remoteConn.getLdapContext(), filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {
               if (areDnsEqual(r.getSuffix().getDN(), dn))
@@ -2234,7 +2237,7 @@ public abstract class Installer extends GuiApplication
           }
           finally
           {
-            StaticUtils.close(rCtx);
+            StaticUtils.close(remoteConn);
           }
         }
         if (replicationId == -1)
@@ -2251,7 +2254,7 @@ public abstract class Installer extends GuiApplication
             logger.info(LocalizableMessage.raw("Calling initializeSuffix with base DN: " + dn));
             logger.info(LocalizableMessage.raw("Try number: " + (6 - nTries)));
             logger.info(LocalizableMessage.raw("replicationId of source replica: " + replicationId));
-            initializeSuffix(ctx, replicationId, dn, !isADS && !isSchema, hostPort);
+            initializeSuffix(conn.getLdapContext(), replicationId, dn, !isADS && !isSchema, hostPort);
             initDone = true;
           }
           catch (PeerNotFoundException pnfe)
@@ -2268,7 +2271,7 @@ public abstract class Installer extends GuiApplication
       }
       catch (ApplicationException ae)
       {
-        StaticUtils.close(ctx);
+        StaticUtils.close(conn);
         throw ae;
       }
       if ((isADS || isSchema) && isVerbose())
@@ -2297,8 +2300,8 @@ public abstract class Installer extends GuiApplication
     DataReplicationOptions repl = getUserData().getReplicationOptions();
     boolean isRemoteServer = repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
     AuthenticationData auth = isRemoteServer ? repl.getAuthenticationData() : null;
-    InitialLdapContext remoteCtx = null; // Bound to remote ADS host (if any).
-    InitialLdapContext localCtx = null; // Bound to local server.
+    ConnectionWrapper remoteConn = null; // Bound to remote ADS host (if any).
+    ConnectionWrapper localConn = null; // Bound to local server.
     ADSContext adsContext = null; // Bound to ADS host (via one of above).
 
     /*
@@ -2309,8 +2312,8 @@ public abstract class Installer extends GuiApplication
     {
       if (isRemoteServer)
       {
-        remoteCtx = createInitialLdapContext(auth);
-        adsContext = new ADSContext(remoteCtx); // adsContext owns remoteCtx
+        remoteConn = createConnection(auth);
+        adsContext = new ADSContext(remoteConn); // adsContext owns remoteCtx
 
         /*
          * Check the remote server for ADS. If it does not exist, create the
@@ -2327,7 +2330,7 @@ public abstract class Installer extends GuiApplication
           TopologyCacheFilter filter = new TopologyCacheFilter();
           filter.setSearchMonitoringInformation(false);
           filter.setSearchBaseDNInformation(false);
-          ServerDescriptor server = createStandalone(remoteCtx, filter);
+          ServerDescriptor server = createStandalone(remoteConn.getLdapContext(), filter);
           server.updateAdsPropertiesWithServerProperties();
           adsContext.registerServer(server.getAdsProperties());
           createdRemoteAds = true;
@@ -2344,7 +2347,7 @@ public abstract class Installer extends GuiApplication
       {
         notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
       }
-      localCtx = createLocalContext();
+      localConn = createLocalConnection();
       //      if (isRemoteServer)
       //      {
       //        /* Create an empty ADS suffix on the local server. */
@@ -2354,14 +2357,14 @@ public abstract class Installer extends GuiApplication
       if (!isRemoteServer)
       {
         /* Configure local server to have an ADS */
-        adsContext = new ADSContext(localCtx); // adsContext owns localCtx
+        adsContext = new ADSContext(localConn); // adsContext owns localCtx
         adsContext.createAdminData(null);
       }
       /* Register new server in ADS. */
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
       filter.setSearchBaseDNInformation(false);
-      ServerDescriptor server = createStandalone(localCtx, filter);
+      ServerDescriptor server = createStandalone(localConn.getLdapContext(), filter);
       server.updateAdsPropertiesWithServerProperties();
       if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties()))
       {
@@ -2376,7 +2379,7 @@ public abstract class Installer extends GuiApplication
       }
       if (isRemoteServer)
       {
-        seedAdsTrustStore(localCtx, adsContext.getTrustedCertificates());
+        seedAdsTrustStore(localConn.getLdapContext(), adsContext.getTrustedCertificates());
       }
       if (isVerbose())
       {
@@ -2439,23 +2442,29 @@ public abstract class Installer extends GuiApplication
     }
     finally
     {
-      StaticUtils.close(remoteCtx, localCtx);
+      StaticUtils.close(remoteConn, localConn);
     }
   }
 
-  private InitialLdapContext createInitialLdapContext(AuthenticationData auth) throws NamingException
+  private ConnectionWrapper createConnection(AuthenticationData auth) throws NamingException
   {
     String ldapUrl = getLdapUrl(auth);
     String dn = auth.getDn();
     String pwd = auth.getPwd();
 
+    InitialLdapContext context = null;
+
     if (auth.useSecureConnection())
     {
       ApplicationTrustManager trustManager = getTrustManager();
       trustManager.setHost(auth.getHostName());
-      return createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, trustManager, null);
+      context = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, trustManager, null);
     }
-    return createLdapContext(ldapUrl, dn, pwd, getConnectTimeout(), null);
+    else
+    {
+      context = createLdapContext(ldapUrl, dn, pwd, getConnectTimeout(), null);
+    }
+    return new ConnectionWrapper(context, getConnectTimeout(), getTrustManager());
   }
 
   /**
@@ -3106,6 +3115,7 @@ public abstract class Installer extends GuiApplication
     host = getHostNameForLdapUrl(host);
     String ldapUrl = "ldaps://" + host + ":" + port;
     InitialLdapContext ctx = null;
+    ConnectionWrapper conn = null;
 
     ApplicationTrustManager trustManager = getTrustManager();
     trustManager.setHost(host);
@@ -3131,8 +3141,8 @@ public abstract class Installer extends GuiApplication
           throw t;
         }
       }
-
-      ADSContext adsContext = new ADSContext(ctx);
+      conn = new ConnectionWrapper(ctx, getConnectTimeout(), trustManager);
+      ADSContext adsContext = new ADSContext(conn);
       if (adsContext.hasAdminData())
       {
         /* Check if there are already global administrators */
@@ -3271,6 +3281,7 @@ public abstract class Installer extends GuiApplication
     finally
     {
       StaticUtils.close(ctx);
+      StaticUtils.close(conn);
     }
   }
 
@@ -3829,17 +3840,18 @@ public abstract class Installer extends GuiApplication
     return servers;
   }
 
-  private InitialLdapContext createLocalContext() throws NamingException
+  private ConnectionWrapper createLocalConnection() throws NamingException
   {
     String ldapUrl =
         "ldaps://" + getHostNameForLdapUrl(getUserData().getHostName()) + ":" + getUserData().getAdminConnectorPort();
     String dn = getUserData().getDirectoryManagerDn();
     String pwd = getUserData().getDirectoryManagerPwd();
-    return createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, null, null);
+    InitialLdapContext context = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, null, null);
+    return new ConnectionWrapper(context, getConnectTimeout(), null);
   }
 
   /**
-   * Gets an InitialLdapContext based on the information that appears on the
+   * Gets a connection based on the information that appears on the
    * provided ServerDescriptor.
    *
    * @param server
@@ -3853,7 +3865,7 @@ public abstract class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  private InitialLdapContext getRemoteConnection(ServerDescriptor server, ApplicationTrustManager trustManager,
+  private ConnectionWrapper getRemoteConnection(ServerDescriptor server, ApplicationTrustManager trustManager,
       Set<PreferredConnection> cnx) throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties;

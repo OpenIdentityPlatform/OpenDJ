@@ -27,7 +27,6 @@ import java.util.*;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -42,6 +41,7 @@ import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.guitools.uninstaller.ui.ConfirmUninstallPanel;
 import org.opends.guitools.uninstaller.ui.LoginDialog;
@@ -51,13 +51,8 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.config.AttributeTypePropertyDefinition;
 import org.forgerock.opendj.config.ConfigurationFramework;
-import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
@@ -71,7 +66,6 @@ import com.forgerock.opendj.cli.ClientException;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -118,25 +112,20 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     //  Bootstrap definition classes.
     try
     {
-      if (!ClassLoaderProvider.getInstance().isEnabled())
+      ConfigurationFramework configFramework = ConfigurationFramework.getInstance();
+      if (!configFramework.isInitialized())
       {
-        ClassLoaderProvider.getInstance().enable();
+        configFramework.initialize();
       }
+      configFramework.setIsClient(true);
     }
     catch (Throwable t)
     {
-      logger.warn(LocalizableMessage.raw("Error enabling admin framework class loader: "+t,
-          t));
+      logger.warn(LocalizableMessage.raw("Error enabling admin framework class loader: "+t, t));
     }
-
-    // Switch off class name validation in client.
-    ClassPropertyDefinition.setAllowClassValidation(false);
-
-    // Switch off attribute type name validation in client.
-    AttributeTypePropertyDefinition.setCheckSchema(false);
-
     logger.info(LocalizableMessage.raw("Uninstaller is created."));
   }
+
   /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFrameTitle() {
@@ -1522,11 +1511,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
       getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());
-      final InitialLdapContext ctx = loginDialog.getContext();
+      final ConnectionWrapper connWrapper = loginDialog.getConnection();
       try
       {
         getUninstallUserData().setLocalServerUrl(
-            (String)ctx.getEnvironment().get(Context.PROVIDER_URL));
+            (String)connWrapper.getLdapContext().getEnvironment().get(Context.PROVIDER_URL));
       }
       catch (NamingException ne)
       {
@@ -1544,7 +1533,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         public TopologyCache processBackgroundTask() throws Throwable
         {
           logger.info(LocalizableMessage.raw("Loading Topology Cache in askForAuthentication"));
-          ADSContext adsContext = new ADSContext(ctx);
+          ADSContext adsContext = new ADSContext(connWrapper);
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager(), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
@@ -1925,19 +1914,19 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       logger.info(LocalizableMessage.raw("Updating references in: "+ server.getHostPort(true)));
       notifyListeners(getFormattedWithPoints(
           INFO_PROGRESS_REMOVING_REFERENCES.get(server.getHostPort(true))));
-      InitialLdapContext ctx = null;
+      ConnectionWrapper connWrapper = null;
       try
       {
         String dn = ADSContext.getAdministratorDN(
             getUninstallUserData().getAdminUID());
         String pwd = getUninstallUserData().getAdminPwd();
-        ctx = getRemoteConnection(server, dn, pwd, getTrustManager(),
+        connWrapper = getRemoteConnection(server, dn, pwd, getTrustManager(),
             getConnectTimeout(),
             new LinkedHashSet<PreferredConnection>());
 
         // Update replication servers and domains.  If the domain
         // is an ADS, then remove it from there.
-        removeReferences(ctx, server.getHostPort(true), serverADSProperties);
+        removeReferences(connWrapper, server.getHostPort(true), serverADSProperties);
 
         notifyListeners(getFormattedDoneWithLineBreak());
       }
@@ -1966,7 +1955,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       finally
       {
-        StaticUtils.close(ctx);
+        StaticUtils.close(connWrapper);
       }
     }
   }
@@ -1976,7 +1965,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * provided InitialLdapContext.
    * It also tries to delete the server registration entry from the remote ADS
    * servers if the serverADSProperties object passed is not null.
-   * @param ctx the connection to the remote server where we want to remove
+   * @param connWrapper the connection to the remote server where we want to remove
    * references to the server that we are trying to uninstall.
    * @param serverDisplay an String representation that is used to identify
    * the remote server in the log messages we present to the user.
@@ -1985,15 +1974,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @throws ApplicationException if an error occurs while updating the remote
    * OpenDS server configuration.
    */
-  private void removeReferences(InitialLdapContext ctx, String serverDisplay,
+  private void removeReferences(ConnectionWrapper connWrapper, String serverDisplay,
       Map<ADSContext.ServerProperty, Object> serverADSProperties)
   throws ApplicationException
   {
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
+      RootCfgClient root = connWrapper.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync =
         (ReplicationSynchronizationProviderCfgClient)
         root.getSynchronizationProvider("Multimaster Synchronization");
@@ -2004,16 +1991,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         Set<String> replServers = replicationServer.getReplicationServer();
         if (replServers != null)
         {
-          String replServer = null;
-          for (String o : replServers)
-          {
-            if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(
-                o))
-            {
-              replServer = o;
-              break;
-            }
-          }
+          String replServer = findReplicationServer(replServers);
           if (replServer != null)
           {
             logger.info(LocalizableMessage.raw("Updating references in replication server on "+
@@ -2042,16 +2020,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           Set<String> replServers = domain.getReplicationServer();
           if (replServers != null)
           {
-            String replServer = null;
-            for (String o : replServers)
-            {
-              if (getUninstallUserData().getReplicationServer().
-                  equalsIgnoreCase(o))
-              {
-                replServer = o;
-                break;
-              }
-            }
+            String replServer = findReplicationServer(replServers);
             if (replServer != null)
             {
               logger.info(LocalizableMessage.raw("Updating references in domain " +
@@ -2088,14 +2057,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage, t);
     }
-    ADSContext adsContext = new ADSContext(ctx);
+    ADSContext adsContext = new ADSContext(connWrapper);
 
     try
     {
       if (adsContext.hasAdminData() && serverADSProperties != null)
       {
         logger.info(LocalizableMessage.raw("Unregistering server on ADS of server "+
-            ConnectionUtils.getHostPort(ctx)+".  Properties: "+
+            ConnectionUtils.getHostPort(connWrapper.getLdapContext())+".  Properties: "+
             serverADSProperties));
         adsContext.unregisterServer(serverADSProperties);
       }
@@ -2117,6 +2086,18 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         // been already propagated by replication.
       }
     }
+  }
+
+  private String findReplicationServer(Set<String> replServers)
+  {
+    for (String s : replServers)
+    {
+      if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(s))
+      {
+        return s;
+      }
+    }
+    return null;
   }
 
   /**

@@ -65,11 +65,16 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.*;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
@@ -86,10 +91,6 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
-import org.opends.server.admin.*;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.*;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
@@ -136,7 +137,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static java.util.Collections.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
@@ -431,17 +431,14 @@ public class ReplicationCliMain extends ConsoleApplication
       // Bootstrap definition classes.
       try
       {
-        if (!ClassLoaderProvider.getInstance().isEnabled())
+        ConfigurationFramework configFramework = ConfigurationFramework.getInstance();
+        if (!configFramework.isInitialized())
         {
-          ClassLoaderProvider.getInstance().enable();
+          configFramework.initialize();
         }
-        // Switch off class name validation in client.
-        ClassPropertyDefinition.setAllowClassValidation(false);
-
-        // Switch off attribute type name validation in client.
-        AttributeTypePropertyDefinition.setCheckSchema(false);
+        configFramework.setIsClient(true);
       }
-      catch (InitializationException ie)
+      catch (ConfigException ie)
       {
         errPrintln(ie.getMessageObject());
         return ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK;
@@ -1111,6 +1108,12 @@ public class ReplicationCliMain extends ConsoleApplication
     return createInitialLdapContextInteracting(ci, isInteractive() && ci.isTrustStoreInMemory());
   }
 
+  private ConnectionWrapper createConnectionInteracting(LDAPConnectionConsoleInteraction ci)
+      throws ClientException
+  {
+    return createConnectionInteracting(ci, isInteractive() && ci.isTrustStoreInMemory());
+  }
+
   private OpendsCertificateException getCertificateRootException(Throwable t)
   {
     while (t != null)
@@ -1122,6 +1125,22 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return null;
+  }
+
+  private ConnectionWrapper createConnectionInteracting(LDAPConnectionConsoleInteraction ci,
+      boolean promptForCertificate) throws ClientException
+  {
+    try
+    {
+      InitialLdapContext ctx= createInitialLdapContextInteracting(ci, promptForCertificate);
+      return new ConnectionWrapper(ctx, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, ci.getTrustManager());
+    }
+    catch (NamingException e)
+    {
+      String hostName = getHostNameForLdapUrl(ci.getHostName());
+      Integer portNumber = ci.getPortNumber();
+      throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, ERR_FAILED_TO_CONNECT.get(hostName, portNumber));
+    }
   }
 
   /**
@@ -1561,6 +1580,27 @@ public class ReplicationCliMain extends ConsoleApplication
     return createAdministrativeContext(uData, bindDn);
   }
 
+  private ConnectionWrapper createAdministrativeConnection(MonoServerReplicationUserData uData)
+  {
+    final String bindDn = getAdministratorDN(uData.getAdminUid());
+    return createAdministrativeConnection(uData, bindDn);
+  }
+
+  private ConnectionWrapper createAdministrativeConnection(MonoServerReplicationUserData uData, final String bindDn)
+  {
+    try
+    {
+      return new ConnectionWrapper(createAdministrativeContext(uData, bindDn),
+          getConnectTimeout(), getTrustManager(sourceServerCI));
+    }
+    catch (NamingException e)
+    {
+      String hostPort = getServerRepresentation(uData.getHostName(), uData.getPort());
+      logger.error(LocalizableMessage.raw("Error when creating connection for:" + hostPort));
+      return null;
+    }
+  }
+
   private InitialLdapContext createAdministrativeContext(MonoServerReplicationUserData uData, final String bindDn)
   {
     try
@@ -1965,11 +2005,11 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(PurgeHistoricalUserData uData)
   {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper connWrapper = null;
     try
     {
-      ctx = getInitialLdapContext(uData);
-      if (ctx == null)
+      connWrapper = getConnection(uData);
+      if (connWrapper == null)
       {
         return false;
       }
@@ -1987,7 +2027,7 @@ public class ReplicationCliMain extends ConsoleApplication
       List<String> suffixes = argParser.getBaseDNs();
       if (uData.isOnline())
       {
-        checkSuffixesForPurgeHistorical(suffixes, ctx, true);
+        checkSuffixesForPurgeHistorical(suffixes, connWrapper.getLdapContext(), true);
       }
       else
       {
@@ -2001,7 +2041,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (uData.isOnline())
       {
-        List<? extends TaskEntry> taskEntries = getAvailableTaskEntries(ctx);
+        List<? extends TaskEntry> taskEntries = getAvailableTaskEntries(connWrapper.getLdapContext());
 
         TaskScheduleInteraction interaction =
             new TaskScheduleInteraction(uData.getTaskSchedule(), argParser.taskArgs, this,
@@ -2022,7 +2062,21 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     finally
     {
-      close(ctx);
+      close(connWrapper);
+    }
+  }
+
+  private ConnectionWrapper getConnection(PurgeHistoricalUserData uData)
+  {
+    try
+    {
+      InitialLdapContext ctx = getInitialLdapContext(uData);
+      return new ConnectionWrapper(ctx, sourceServerCI.getConnectTimeout(), sourceServerCI.getTrustManager());
+    }
+    catch (NamingException ce)
+    {
+      logger.warn(LocalizableMessage.raw("An error occured " + ce));
+      return null;
     }
   }
 
@@ -2099,10 +2153,10 @@ public class ReplicationCliMain extends ConsoleApplication
       InitialLdapContext ctx)
   {
     List<TaskEntry> taskEntries = new ArrayList<>();
-    List<OpenDsException> exceptions = new ArrayList<>();
+    List<Exception> exceptions = new ArrayList<>();
     ConfigFromDirContext cfg = new ConfigFromDirContext();
     cfg.updateTaskInformation(ctx, exceptions, taskEntries);
-    for (OpenDsException ode : exceptions)
+    for (Exception ode : exceptions)
     {
       logger.warn(LocalizableMessage.raw("Error retrieving task entries: "+ode, ode));
     }
@@ -2163,7 +2217,7 @@ public class ReplicationCliMain extends ConsoleApplication
      */
     sourceServerCI.initializeGlobalArguments(host1, port1, adminUid, bindDn1, pwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
-    InitialLdapContext ctx1 = null;
+    ConnectionWrapper ctx1 = null;
 
     while (ctx1 == null && !cancelled)
     {
@@ -2187,7 +2241,7 @@ public class ReplicationCliMain extends ConsoleApplication
         bindDn1 = sourceServerCI.getBindDN();
         pwd1 = sourceServerCI.getBindPassword();
 
-        ctx1 = createInitialLdapContextInteracting(sourceServerCI);
+        ctx1 = createConnectionInteracting(sourceServerCI);
         if (ctx1 == null)
         {
           cancelled = true;
@@ -2227,7 +2281,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (replicationServer1Configured && !configureReplicationServer1)
       {
         final LocalizableMessage msg =
-            INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(getHostPort(ctx1), repPort1);
+            INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(getHostPort(ctx1.getLdapContext()), repPort1);
         if (!askConfirmation(msg, false))
         {
           cancelled = true;
@@ -2335,7 +2389,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // eventually admin authentication data.
       if (!cancelled)
       {
-        AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx1);
+        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(ctx1);
         cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, true);
         ctx1 = aux.get();
       }
@@ -2405,7 +2459,7 @@ public class ReplicationCliMain extends ConsoleApplication
           pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
       destinationServerCI.setUseAdminOrBindDn(true);
     }
-    InitialLdapContext ctx2 = null;
+    ConnectionWrapper ctx2 = null;
 
     while (ctx2 == null && !cancelled)
     {
@@ -2441,7 +2495,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!error)
         {
-          ctx2 = createInitialLdapContextInteracting(destinationServerCI, true);
+          ctx2 = createConnectionInteracting(destinationServerCI, true);
           if (ctx2 == null)
           {
             cancelled = true;
@@ -2496,7 +2550,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (replicationServer2Configured && !configureReplicationServer2)
       {
         final LocalizableMessage prompt =
-            INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(getHostPort(ctx2), repPort2);
+            INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(getHostPort(ctx2.getLdapContext()), repPort2);
         if (!askConfirmation(prompt, false))
         {
           cancelled = true;
@@ -2613,7 +2667,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // to load the ADS to ask the user to accept the certificates.
       if (!cancelled)
       {
-        AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx2);
+        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(ctx2);
         cancelled = !loadADSAndAcceptCertificates(destinationServerCI, aux, uData, false);
         ctx2 = aux.get();
       }
@@ -2744,7 +2798,7 @@ public class ReplicationCliMain extends ConsoleApplication
     int port = argParser.getPortToDisable();
 
     /* Try to connect to the server. */
-    InitialLdapContext ctx = null;
+    ConnectionWrapper ctx = null;
 
     while (ctx == null && !cancelled)
     {
@@ -2758,7 +2812,7 @@ public class ReplicationCliMain extends ConsoleApplication
         adminUid = sourceServerCI.getProvidedAdminUID();
         adminPwd = sourceServerCI.getBindPassword();
 
-        ctx = createInitialLdapContextInteracting(sourceServerCI);
+        ctx = createConnectionInteracting(sourceServerCI);
         if (ctx == null)
         {
           cancelled = true;
@@ -2795,7 +2849,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // disableReplication(DisableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx);
+      AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(ctx);
       cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false);
       ctx = aux.get();
     }
@@ -2840,7 +2894,8 @@ public class ReplicationCliMain extends ConsoleApplication
     if (disableReplicationServer && repPort < 0)
     {
       disableReplicationServer = false;
-      final LocalizableMessage msg = INFO_REPLICATION_PROMPT_NO_REPLICATION_SERVER_TO_DISABLE.get(getHostPort(ctx));
+      final LocalizableMessage msg = INFO_REPLICATION_PROMPT_NO_REPLICATION_SERVER_TO_DISABLE.get(
+          getHostPort(ctx.getLdapContext()));
       try
       {
         cancelled = askConfirmation(msg, false, logger);
@@ -2860,18 +2915,19 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled && !disableAll)
     {
       List<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForDisableReplication(suffixes, ctx, true, !disableReplicationServer);
+      checkSuffixesForDisableReplication(suffixes, ctx.getLdapContext(), true, !disableReplicationServer);
       cancelled = suffixes.isEmpty() && !disableReplicationServer;
 
       uData.setBaseDNs(suffixes);
 
       if (!uData.disableReplicationServer() && repPort > 0 &&
-          disableAllBaseDns(ctx, uData) && !argParser.advancedArg.isPresent())
+          disableAllBaseDns(ctx.getLdapContext(), uData) && !argParser.advancedArg.isPresent())
       {
         try
         {
           uData.setDisableReplicationServer(askConfirmation(
-              INFO_REPLICATION_DISABLE_ALL_SUFFIXES_DISABLE_REPLICATION_SERVER.get(getHostPort(ctx), repPort), true,
+              INFO_REPLICATION_DISABLE_ALL_SUFFIXES_DISABLE_REPLICATION_SERVER.get(
+                  getHostPort(ctx.getLdapContext()), repPort), true,
               logger));
         }
         catch (ClientException ce)
@@ -3005,22 +3061,36 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequiredForPreOrPost(MonoServerReplicationUserData uData)
   {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper ctx = null;
     try
     {
-      ctx = getInitialLdapContext(uData);
+      ctx = getConnection(uData);
       if (ctx == null)
       {
         return false;
       }
       List<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForInitializeReplication(suffixes, ctx, true);
+      checkSuffixesForInitializeReplication(suffixes, ctx.getLdapContext(), true);
       uData.setBaseDNs(suffixes);
       return !suffixes.isEmpty();
     }
     finally
     {
       close(ctx);
+    }
+  }
+
+  private ConnectionWrapper getConnection(MonoServerReplicationUserData uData)
+  {
+    try
+    {
+      InitialLdapContext ctx = getInitialLdapContext(uData);
+      return new ConnectionWrapper(ctx, sourceServerCI.getConnectTimeout(), getTrustManager(sourceServerCI));
+    }
+    catch (NamingException ce)
+    {
+      logger.warn(LocalizableMessage.raw("An error occured " + ce));
+      return null;
     }
   }
 
@@ -3082,10 +3152,10 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean promptIfRequired(StatusReplicationUserData uData)
   throws ReplicationCliException
   {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper ctx = null;
     try
     {
-      ctx = getInitialLdapContext(uData);
+      ctx = getConnection(uData);
       if (ctx == null)
       {
         return false;
@@ -3096,7 +3166,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // statusReplication(StatusReplicationUserData) method. Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      AtomicReference<InitialLdapContext> aux = new AtomicReference<>(ctx);
+      AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(ctx);
       boolean cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false);
       ctx = aux.get();
       if (cancelled)
@@ -3150,7 +3220,7 @@ public class ReplicationCliMain extends ConsoleApplication
     sourceServerCI.initializeGlobalArguments(hostSource, portSource, adminUid, null, adminPwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     /* Try to connect to the source server. */
-    InitialLdapContext ctxSource = null;
+    ConnectionWrapper ctxSource = null;
 
     while (ctxSource == null && !cancelled)
     {
@@ -3163,7 +3233,7 @@ public class ReplicationCliMain extends ConsoleApplication
         adminUid = sourceServerCI.getAdministratorUID();
         adminPwd = sourceServerCI.getBindPassword();
 
-        ctxSource = createInitialLdapContextInteracting(sourceServerCI);
+        ctxSource = createConnectionInteracting(sourceServerCI);
 
         if (ctxSource == null)
         {
@@ -3212,7 +3282,7 @@ public class ReplicationCliMain extends ConsoleApplication
     destinationServerCI.initializeGlobalArguments(hostDestination, portDestination, adminUid, null, adminPwd,
         pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     /* Try to connect to the destination server. */
-    InitialLdapContext ctxDestination = null;
+    ConnectionWrapper ctxDestination = null;
 
     destinationServerCI.resetHeadingDisplayed();
     while (ctxDestination == null && !cancelled)
@@ -3237,7 +3307,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!error)
         {
-          ctxDestination = createInitialLdapContextInteracting(destinationServerCI, true);
+          ctxDestination = createConnectionInteracting(destinationServerCI, true);
 
           if (ctxDestination == null)
           {
@@ -3269,14 +3339,16 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled)
     {
       List<String> suffixes = argParser.getBaseDNs();
-      cancelled = serversOperations.continueAfterUserInput(suffixes, ctxSource, ctxDestination, true);
+      cancelled = serversOperations.continueAfterUserInput(
+          suffixes, ctxSource.getLdapContext(), ctxDestination.getLdapContext(), true);
       uData.setBaseDNs(suffixes);
     }
 
     if (!cancelled)
     {
       println();
-      cancelled = serversOperations.confirmOperation(uData, ctxSource, ctxDestination, true);
+      cancelled = serversOperations.confirmOperation(
+          uData, ctxSource.getLdapContext(), ctxDestination.getLdapContext(), true);
       println();
     }
 
@@ -3463,30 +3535,28 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * Tells whether the server to which the LdapContext is connected has a
    * replication port or not.
-   * @param ctx the InitialLdapContext to be used.
+   * @param connWrapper the InitialLdapContext to be used.
    * @return <CODE>true</CODE> if the replication port for the server could
    * be found and <CODE>false</CODE> otherwise.
    */
-  private boolean hasReplicationPort(InitialLdapContext ctx)
+  private boolean hasReplicationPort(ConnectionWrapper connWrapper)
   {
-    return getReplicationPort(ctx) != -1;
+    return getReplicationPort(connWrapper) != -1;
   }
 
   /**
    * Returns the replication port of server to which the LdapContext is
    * connected and -1 if the replication port could not be found.
-   * @param ctx the InitialLdapContext to be used.
+   * @param connWrapper the InitialLdapContext to be used.
    * @return the replication port of server to which the LdapContext is
    * connected and -1 if the replication port could not be found.
    */
-  private int getReplicationPort(InitialLdapContext ctx)
+  private int getReplicationPort(ConnectionWrapper connWrapper)
   {
     int replicationPort = -1;
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
+      RootCfgClient root = connWrapper.getRootConfiguration();
 
       ReplicationSynchronizationProviderCfgClient sync =
           (ReplicationSynchronizationProviderCfgClient)
@@ -3514,7 +3584,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * accordingly.
    *
    * @param ci the LDAP connection to the server
-   * @param ctx the Ldap context to be used in an array: note the context
+   * @param connWrapper the Ldap context to be used in an array: note the context
    * may be modified with the new credentials provided by the user.
    * @param uData the ReplicationUserData to be updated.
    * @param isFirstOrSourceServer whether this is the first server in the
@@ -3527,12 +3597,13 @@ public class ReplicationCliMain extends ConsoleApplication
    * messages.
    */
   private boolean loadADSAndAcceptCertificates(LDAPConnectionConsoleInteraction ci,
-      AtomicReference<InitialLdapContext> ctx, ReplicationUserData uData, boolean isFirstOrSourceServer)
+      AtomicReference<ConnectionWrapper> connWrapper, ReplicationUserData uData, boolean isFirstOrSourceServer)
   throws ReplicationCliException
   {
     boolean cancelled = false;
     boolean triedWithUserProvidedAdmin = false;
-    final InitialLdapContext ctx1 = ctx.get();
+    final ConnectionWrapper connWrapper1 = connWrapper.get();
+    final InitialLdapContext ctx1 = connWrapper1.getLdapContext();
     String host = getHostName(ctx1);
     int port = getPort(ctx1);
     boolean isSSL = isSSL(ctx1);
@@ -3546,7 +3617,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     try
     {
-      ADSContext adsContext = new ADSContext(ctx1);
+      ADSContext adsContext = new ADSContext(connWrapper1);
       if (adsContext.hasAdminData())
       {
         boolean reloadTopology = true;
@@ -3629,8 +3700,10 @@ public class ReplicationCliMain extends ConsoleApplication
                     final InitialLdapContext ctx2 = createAdministrativeContext(host, port, isSSL,
                         isStartTLS, getAdministratorDN(adminUid),
                         adminPwd, getConnectTimeout(), getTrustManager(ci));
-                    ctx.set(ctx2);
-                    adsContext = new ADSContext(ctx2);
+                    final ConnectionWrapper connWrapper2 =
+                        new ConnectionWrapper(ctx2, getConnectTimeout(), getTrustManager(ci));
+                    connWrapper.set(connWrapper2);
+                    adsContext = new ADSContext(connWrapper2);
                     cache = new TopologyCache(adsContext, getTrustManager(ci),
                         getConnectTimeout());
                     cache.getFilter().setSearchMonitoringInformation(false);
@@ -3716,15 +3789,15 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * Tells whether there is a Global Administrator defined in the server
    * to which the InitialLdapContext is connected.
-   * @param ctx the InitialLdapContext.
+   * @param connWrapper the InitialLdapContext.
    * @return <CODE>true</CODE> if we could find an administrator and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean hasAdministrator(InitialLdapContext ctx)
+  private boolean hasAdministrator(ConnectionWrapper connWrapper)
   {
     try
     {
-      ADSContext adsContext = new ADSContext(ctx);
+      ADSContext adsContext = new ADSContext(connWrapper);
       if (adsContext.hasAdminData())
       {
         Set<?> administrators = adsContext.readAdministratorRegistry();
@@ -3743,18 +3816,18 @@ public class ReplicationCliMain extends ConsoleApplication
    * Tells whether there is a Global Administrator corresponding to the provided
    * ReplicationUserData defined in the server to which the InitialLdapContext
    * is connected.
-   * @param ctx the InitialLdapContext.
+   * @param connWrapper the InitialLdapContext.
    * @param uData the user data
    * @return <CODE>true</CODE> if we could find an administrator and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean hasAdministrator(InitialLdapContext ctx,
+  private boolean hasAdministrator(ConnectionWrapper connWrapper,
       ReplicationUserData uData)
   {
     String adminUid = uData.getAdminUid();
     try
     {
-      ADSContext adsContext = new ADSContext(ctx);
+      ADSContext adsContext = new ADSContext(connWrapper);
       Set<Map<AdministratorProperty, Object>> administrators =
         adsContext.readAdministratorRegistry();
       for (Map<AdministratorProperty, Object> admin : administrators)
@@ -3943,16 +4016,16 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode enableReplication(EnableReplicationUserData uData)
   {
-    InitialLdapContext ctx1 = null;
-    InitialLdapContext ctx2 = null;
+    ConnectionWrapper ctx1 = null;
+    ConnectionWrapper ctx2 = null;
     try
     {
       println();
       print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
 
       LinkedList<LocalizableMessage> errorMessages = new LinkedList<>();
-      ctx1 = createAdministrativeContext(uData, true, errorMessages);
-      ctx2 = createAdministrativeContext(uData, false, errorMessages);
+      ctx1 = createAdministrativeConnection(uData, true, errorMessages);
+      ctx2 = createAdministrativeConnection(uData, false, errorMessages);
 
       if (!errorMessages.isEmpty())
       {
@@ -3998,7 +4071,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         updateConfiguration(ctx1, ctx2, uData);
-        printSuccessfullyEnabled(ctx1, ctx2);
+        printSuccessfullyEnabled(ctx1.getLdapContext(), ctx2.getLdapContext());
         return SUCCESSFUL;
       }
       catch (ReplicationCliException rce)
@@ -4015,26 +4088,27 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void checkReplicationServerAlreadyConfigured(InitialLdapContext ctx, EnableReplicationServerData server)
+  private void checkReplicationServerAlreadyConfigured(
+      ConnectionWrapper connWrapper, EnableReplicationServerData server)
   {
-    int repPort = getReplicationPort(ctx);
+    int repPort = getReplicationPort(connWrapper);
     if (!server.configureReplicationServer() && repPort > 0)
     {
-      println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(getHostPort(ctx), repPort));
+      println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(getHostPort(connWrapper.getLdapContext()), repPort));
       println();
     }
   }
 
   private void checksForNonInteractiveMode(EnableReplicationUserData uData,
-      InitialLdapContext ctx1, InitialLdapContext ctx2, LinkedList<LocalizableMessage> errorMessages)
+      ConnectionWrapper connWrapper1, ConnectionWrapper connWrapper2, LinkedList<LocalizableMessage> errorMessages)
   {
     EnableReplicationServerData server1 = uData.getServer1();
     EnableReplicationServerData server2 = uData.getServer2();
     String host1 = server1.getHostName();
     String host2 = server2.getHostName();
 
-    int replPort1 = checkReplicationPort(ctx1, server1, errorMessages);
-    int replPort2 = checkReplicationPort(ctx2, server2, errorMessages);
+    int replPort1 = checkReplicationPort(connWrapper1, server1, errorMessages);
+    int replPort2 = checkReplicationPort(connWrapper2, server2, errorMessages);
     if (replPort1 > 0 && replPort1 == replPort2 && host1.equalsIgnoreCase(host2))
     {
       errorMessages.add(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replPort1, host1));
@@ -4050,9 +4124,9 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private int checkReplicationPort(
-      InitialLdapContext ctx, EnableReplicationServerData server, LinkedList<LocalizableMessage> errorMessages)
+      ConnectionWrapper connWrapper, EnableReplicationServerData server, LinkedList<LocalizableMessage> errorMessages)
   {
-    int replPort = getReplicationPort(ctx);
+    int replPort = getReplicationPort(connWrapper);
     boolean hasReplicationPort = replPort > 0;
     if (replPort < 0 && server.configureReplicationServer())
     {
@@ -4105,6 +4179,23 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  private ConnectionWrapper createAdministrativeConnection(EnableReplicationUserData uData, boolean isFirstSetOfValues,
+      LinkedList<LocalizableMessage> errorMessages)
+  {
+    EnableReplicationServerData server = isFirstSetOfValues ? uData.getServer1() : uData.getServer2();
+    try
+    {
+      return new ConnectionWrapper(createAdministrativeContext(uData, isFirstSetOfValues, errorMessages),
+          getConnectTimeout(), getTrustManager(sourceServerCI));
+    }
+    catch (NamingException e)
+    {
+      String hostPort = getServerRepresentation(server.getHostName(), server.getPort());
+      logger.error(LocalizableMessage.raw("Error when creating connection for:" + hostPort));
+      return null;
+    }
+  }
+
   private InitialLdapContext createAdministrativeContext(EnableReplicationUserData uData, boolean isFirstSetOfValues,
       LinkedList<LocalizableMessage> errorMessages)
   {
@@ -4139,8 +4230,8 @@ public class ReplicationCliMain extends ConsoleApplication
         ? getAdministratorDN(uData.getAdminUid())
         : uData.getBindDn();
 
-    InitialLdapContext ctx = createAdministrativeContext(uData, bindDn);
-    if (ctx == null)
+    ConnectionWrapper connWrapper = createAdministrativeConnection(uData, bindDn);
+    if (connWrapper == null)
     {
       return ERROR_CONNECTING;
     }
@@ -4152,7 +4243,8 @@ public class ReplicationCliMain extends ConsoleApplication
       println();
 
       List<String> suffixes = uData.getBaseDNs();
-      checkSuffixesForDisableReplication(suffixes, ctx, false, !uData.disableReplicationServer());
+      checkSuffixesForDisableReplication(
+          suffixes, connWrapper.getLdapContext(), false, !uData.disableReplicationServer());
       if (suffixes.isEmpty() && !uData.disableReplicationServer() && !uData.disableAll())
       {
         return REPLICATION_CANNOT_BE_DISABLED_ON_BASEDN;
@@ -4161,7 +4253,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (!isInteractive())
       {
-        boolean hasReplicationPort = hasReplicationPort(ctx);
+        boolean hasReplicationPort = hasReplicationPort(connWrapper);
         if (uData.disableAll() && hasReplicationPort)
         {
           uData.setDisableReplicationServer(true);
@@ -4169,7 +4261,8 @@ public class ReplicationCliMain extends ConsoleApplication
         else if (uData.disableReplicationServer() && !hasReplicationPort && !uData.disableAll())
         {
           uData.setDisableReplicationServer(false);
-          println(INFO_REPLICATION_WARNING_NO_REPLICATION_SERVER_TO_DISABLE.get(getHostPort(ctx)));
+          println(
+              INFO_REPLICATION_WARNING_NO_REPLICATION_SERVER_TO_DISABLE.get(getHostPort(connWrapper.getLdapContext())));
           println();
         }
       }
@@ -4179,17 +4272,19 @@ public class ReplicationCliMain extends ConsoleApplication
         printNewCommandBuilder(DISABLE_REPLICATION_SUBCMD_NAME, uData);
       }
 
-      if (!isInteractive() && !uData.disableReplicationServer() && !uData.disableAll() && disableAllBaseDns(ctx, uData)
-          && hasReplicationPort(ctx))
+      if (!isInteractive() && !uData.disableReplicationServer() && !uData.disableAll()
+          && disableAllBaseDns(connWrapper.getLdapContext(), uData) && hasReplicationPort(connWrapper))
       {
         // Inform the user that the replication server will not be disabled.
         // Inform also of the user of the disableReplicationServerArg
-        println(INFO_REPLICATION_DISABLE_ALL_SUFFIXES_KEEP_REPLICATION_SERVER.get(getHostPort(ctx),
-            argParser.disableReplicationServerArg.getLongIdentifier(), argParser.disableAllArg.getLongIdentifier()));
+        println(INFO_REPLICATION_DISABLE_ALL_SUFFIXES_KEEP_REPLICATION_SERVER.get(
+            getHostPort(connWrapper.getLdapContext()),
+            argParser.disableReplicationServerArg.getLongIdentifier(),
+            argParser.disableAllArg.getLongIdentifier()));
       }
       try
       {
-        updateConfiguration(ctx, uData);
+        updateConfiguration(connWrapper, uData);
         return SUCCESSFUL;
       }
       catch (ReplicationCliException rce)
@@ -4202,7 +4297,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     finally
     {
-      close(ctx);
+      close(connWrapper);
     }
   }
 
@@ -4217,7 +4312,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode statusReplication(
       StatusReplicationUserData uData)
   {
-    final InitialLdapContext ctx = createAdministrativeContext(uData);
+    final ConnectionWrapper ctx = createAdministrativeConnection(uData);
     if (ctx == null)
     {
       return ERROR_CONNECTING;
@@ -4521,7 +4616,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * replication domains must be configured or not.
    */
   private void checkSuffixesForEnableReplication(Collection<String> suffixes,
-      InitialLdapContext ctx1, InitialLdapContext ctx2,
+      ConnectionWrapper ctx1, ConnectionWrapper ctx2,
       boolean interactive, EnableReplicationUserData uData)
   {
     EnableReplicationServerData server1 = uData.getServer1();
@@ -4531,9 +4626,9 @@ public class ReplicationCliMain extends ConsoleApplication
     if (server1.configureReplicationDomain() &&
         server2.configureReplicationDomain())
     {
-      availableSuffixes.addAll(getCommonSuffixes(ctx1, ctx2,
+      availableSuffixes.addAll(getCommonSuffixes(ctx1.getLdapContext(), ctx2.getLdapContext(),
             SuffixRelationType.NOT_FULLY_REPLICATED));
-      alreadyReplicatedSuffixes.addAll(getCommonSuffixes(ctx1, ctx2,
+      alreadyReplicatedSuffixes.addAll(getCommonSuffixes(ctx1.getLdapContext(), ctx2.getLdapContext(),
             SuffixRelationType.FULLY_REPLICATED));
     }
     else if (server1.configureReplicationDomain())
@@ -5018,8 +5113,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * parameters to update the configuration.
    * @throws ReplicationCliException if there is an error.
    */
-  private void updateConfiguration(InitialLdapContext ctx1,
-      InitialLdapContext ctx2, EnableReplicationUserData uData)
+  private void updateConfiguration(ConnectionWrapper ctx1,
+      ConnectionWrapper ctx2, EnableReplicationUserData uData)
   throws ReplicationCliException
   {
     final Set<String> twoReplServers = new LinkedHashSet<>();
@@ -5033,8 +5128,8 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
     filter.addBaseDNToSearch(Constants.SCHEMA_DN);
     addBaseDNs(filter, uData.getBaseDNs());
-    ServerDescriptor serverDesc1 = createStandalone(ctx1, filter);
-    ServerDescriptor serverDesc2 = createStandalone(ctx2, filter);
+    ServerDescriptor serverDesc1 = createStandalone(ctx1.getLdapContext(), filter);
+    ServerDescriptor serverDesc2 = createStandalone(ctx2.getLdapContext(), filter);
 
     ADSContext adsCtx1 = new ADSContext(ctx1);
     ADSContext adsCtx2 = new ADSContext(ctx2);
@@ -5047,8 +5142,8 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         final Set<PreferredConnection> cnx = new LinkedHashSet<>();
-        cnx.addAll(getPreferredConnections(ctx1));
-        cnx.addAll(getPreferredConnections(ctx2));
+        cnx.addAll(getPreferredConnections(ctx1.getLdapContext()));
+        cnx.addAll(getPreferredConnections(ctx2.getLdapContext()));
         TopologyCache cache1 = createTopologyCache(adsCtx1, cnx, uData);
         if (cache1 != null)
         {
@@ -5121,8 +5216,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
     // These are used to identify which server we use to initialize
     // the contents of the other server (if any).
-    InitialLdapContext ctxSource = null;
-    InitialLdapContext ctxDestination = null;
+    ConnectionWrapper ctxSource = null;
+    ConnectionWrapper ctxDestination = null;
     ADSContext adsCtxSource = null;
 
     boolean adsAlreadyReplicated = false;
@@ -5138,7 +5233,7 @@ public class ReplicationCliMain extends ConsoleApplication
         Set<Map<ServerProperty, Object>> registry2 = adsCtx2.readServerRegistry();
         if (registry2.size() <= 1)
         {
-          if (!hasAdministrator(adsCtx1.getDirContext(), uData))
+          if (!hasAdministrator(adsCtx1.getConnection(), uData))
           {
             adsCtx1.createAdministrator(getAdministratorProperties(uData));
           }
@@ -5156,7 +5251,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else if (registry1.size() <= 1)
         {
-          if (!hasAdministrator(adsCtx2.getDirContext(), uData))
+          if (!hasAdministrator(adsCtx2.getConnection(), uData))
           {
             adsCtx2.createAdministrator(getAdministratorProperties(uData));
           }
@@ -5207,7 +5302,7 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               // The case where only the first ADS is replicated or none
               // is replicated.
-              if (!hasAdministrator(adsCtx1.getDirContext(), uData))
+              if (!hasAdministrator(adsCtx1.getConnection(), uData))
               {
                 adsCtx1.createAdministrator(getAdministratorProperties(uData));
               }
@@ -5225,7 +5320,7 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             else if (isADS2Replicated)
             {
-              if (!hasAdministrator(adsCtx2.getDirContext(), uData))
+              if (!hasAdministrator(adsCtx2.getConnection(), uData))
               {
                 adsCtx2.createAdministrator(getAdministratorProperties(uData));
               }
@@ -5246,7 +5341,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
-        if (!hasAdministrator(adsCtx2.getDirContext(), uData))
+        if (!hasAdministrator(adsCtx2.getConnection(), uData))
         {
           adsCtx2.createAdministrator(getAdministratorProperties(uData));
         }
@@ -5265,7 +5360,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (adsCtx1.hasAdminData() && !adsCtx2.hasAdminData())
       {
-        if (!hasAdministrator(adsCtx1.getDirContext(), uData))
+        if (!hasAdministrator(adsCtx1.getConnection(), uData))
         {
           adsCtx1.createAdministrator(getAdministratorProperties(uData));
         }
@@ -5311,14 +5406,13 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ServerDescriptor.seedAdsTrustStore(ctxDestination,
-            adsCtxSource.getTrustedCertificates());
+        ServerDescriptor.seedAdsTrustStore(ctxDestination.getLdapContext(), adsCtxSource.getTrustedCertificates());
       }
       catch (Throwable t)
       {
         logger.error(LocalizableMessage.raw("Error seeding truststores: "+t, t));
         throw new ReplicationCliException(
-            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(getHostPort(ctxDestination),
+            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(getHostPort(ctxDestination.getLdapContext()),
             getHostPort(adsCtxSource.getDirContext()), toString(t)),
             ERROR_SEEDING_TRUSTORE, t);
       }
@@ -5348,8 +5442,8 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       Set<PreferredConnection> cnx = new LinkedHashSet<>();
-      cnx.addAll(getPreferredConnections(ctx1));
-      cnx.addAll(getPreferredConnections(ctx2));
+      cnx.addAll(getPreferredConnections(ctx1.getLdapContext()));
+      cnx.addAll(getPreferredConnections(ctx2.getLdapContext()));
       cache1 = createTopologyCache(adsCtx1, cnx, uData);
       if (cache1 != null)
       {
@@ -5374,8 +5468,8 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
 
-    addToSets(serverDesc1, uData.getServer1(), ctx1, twoReplServers, usedReplicationServerIds);
-    addToSets(serverDesc2, uData.getServer2(), ctx2, twoReplServers, usedReplicationServerIds);
+    addToSets(serverDesc1, uData.getServer1(), ctx1.getLdapContext(), twoReplServers, usedReplicationServerIds);
+    addToSets(serverDesc2, uData.getServer2(), ctx2.getLdapContext(), twoReplServers, usedReplicationServerIds);
 
     for (String baseDN : uData.getBaseDNs())
     {
@@ -5436,11 +5530,11 @@ public class ReplicationCliMain extends ConsoleApplication
     if (adsMergeDone)
     {
       PointAdder pointAdder = new PointAdder(this);
-      print(INFO_ENABLE_REPLICATION_INITIALIZING_ADS_ALL.get(getHostPort(ctxSource)));
+      print(INFO_ENABLE_REPLICATION_INITIALIZING_ADS_ALL.get(getHostPort(ctxSource.getLdapContext())));
       pointAdder.start();
       try
       {
-        initializeAllSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource, false);
+        initializeAllSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource.getLdapContext(), false);
       }
       finally
       {
@@ -5454,9 +5548,10 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       print(formatter.getFormattedWithPoints(
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
-              getHostPort(ctxDestination), getHostPort(ctxSource))));
+              getHostPort(ctxDestination.getLdapContext()), getHostPort(ctxSource.getLdapContext()))));
 
-      initializeSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource, ctxDestination, false);
+      initializeSuffix(
+          ADSContext.getAdministrationSuffixDN(), ctxSource.getLdapContext(), ctxDestination.getLdapContext(), false);
       print(formatter.getFormattedDone());
       println();
     }
@@ -5478,11 +5573,11 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         PointAdder pointAdder = new PointAdder(this);
         println(INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-            getHostPort(ctxDestination), getHostPort(ctxSource)));
+            getHostPort(ctxDestination.getLdapContext()), getHostPort(ctxSource.getLdapContext())));
         pointAdder.start();
         try
         {
-          initializeAllSuffix(Constants.SCHEMA_DN, ctxSource, false);
+          initializeAllSuffix(Constants.SCHEMA_DN, ctxSource.getLdapContext(), false);
         }
         finally
         {
@@ -5493,8 +5588,8 @@ public class ReplicationCliMain extends ConsoleApplication
       else
       {
         print(formatter.getFormattedWithPoints(INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-            getHostPort(ctxDestination), getHostPort(ctxSource))));
-        initializeSuffix(Constants.SCHEMA_DN, ctxSource, ctxDestination, false);
+            getHostPort(ctxDestination.getLdapContext()), getHostPort(ctxSource.getLdapContext()))));
+        initializeSuffix(Constants.SCHEMA_DN, ctxSource.getLdapContext(), ctxDestination.getLdapContext(), false);
       }
       print(formatter.getFormattedDone());
       println();
@@ -5515,7 +5610,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void configureToReplicateBaseDN(EnableReplicationServerData server, InitialLdapContext ctx,
+  private void configureToReplicateBaseDN(EnableReplicationServerData server, ConnectionWrapper ctx,
       ServerDescriptor serverDesc, TopologyCache cache, String baseDN, Set<Integer> usedIds,
       Set<String> alreadyConfiguredServers, Set<String> repServers, final Set<String> allRepServers,
       Set<String> alreadyConfiguredReplicationServers) throws ReplicationCliException
@@ -5527,9 +5622,9 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
       }
-      catch (OpenDsException ode)
+      catch (Exception ode)
       {
-        LocalizableMessage msg = getMessageForEnableException(getHostPort(ctx), baseDN);
+        LocalizableMessage msg = getMessageForEnableException(getHostPort(ctx.getLdapContext()), baseDN);
         throw new ReplicationCliException(msg, ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
       }
     }
@@ -5542,7 +5637,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void configureServer(InitialLdapContext ctx, ServerDescriptor serverDesc,
+  private void configureServer(ConnectionWrapper ctx, ServerDescriptor serverDesc,
       EnableReplicationServerData enableServer, IntegerArgument replicationPortArg,
       Set<Integer> usedReplicationServerIds, Set<String> allRepServers,
       Set<String> alreadyConfiguredReplicationServers, Arg2<Number, Number> replicationServerAlreadyConfiguredMsg)
@@ -5555,9 +5650,9 @@ public class ReplicationCliMain extends ConsoleApplication
         configureAsReplicationServer(ctx, enableServer.getReplicationPort(), enableServer.isSecureReplication(),
             allRepServers, usedReplicationServerIds);
       }
-      catch (OpenDsException ode)
+      catch (Exception ode)
       {
-        throw errorConfiguringReplicationServer(ctx, ode);
+        throw errorConfiguringReplicationServer(ctx.getLdapContext(), ode);
       }
     }
     else if (serverDesc.isReplicationServer())
@@ -5566,9 +5661,9 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         updateReplicationServer(ctx, allRepServers);
       }
-      catch (OpenDsException ode)
+      catch (Exception ode)
       {
-        throw errorConfiguringReplicationServer(ctx, ode);
+        throw errorConfiguringReplicationServer(ctx.getLdapContext(), ode);
       }
       if (replicationPortArg.isPresent() && enableServer.getReplicationPort() != serverDesc.getReplicationServerPort())
       {
@@ -5581,7 +5676,7 @@ public class ReplicationCliMain extends ConsoleApplication
     alreadyConfiguredReplicationServers.add(serverDesc.getId());
   }
 
-  private ReplicationCliException errorConfiguringReplicationServer(InitialLdapContext ctx, OpenDsException ode)
+  private ReplicationCliException errorConfiguringReplicationServer(InitialLdapContext ctx, Exception ode)
   {
     return new ReplicationCliException(
         ERR_REPLICATION_CONFIGURING_REPLICATIONSERVER.get(getHostPort(ctx)),
@@ -5626,7 +5721,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * parameters to update the configuration.
    * @throws ReplicationCliException if there is an error.
    */
-  private void updateConfiguration(InitialLdapContext ctx,
+  private void updateConfiguration(ConnectionWrapper ctx,
       DisableReplicationUserData uData) throws ReplicationCliException
   {
     TopologyCacheFilter filter = new TopologyCacheFilter();
@@ -5636,7 +5731,7 @@ public class ReplicationCliMain extends ConsoleApplication
       filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
       addBaseDNs(filter, uData.getBaseDNs());
     }
-    ServerDescriptor server = createStandalone(ctx, filter);
+    ServerDescriptor server = createStandalone(ctx.getLdapContext(), filter);
 
     ADSContext adsCtx = new ADSContext(ctx);
 
@@ -5649,7 +5744,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsCtx.hasAdminData() && tryToUpdateRemote)
       {
         cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
-        cache.setPreferredConnections(getPreferredConnections(ctx));
+        cache.setPreferredConnections(getPreferredConnections(ctx.getLdapContext()));
         cache.getFilter().setSearchMonitoringInformation(false);
         if (!uData.disableAll())
         {
@@ -5820,9 +5915,9 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean forceDisableADS = false;
     boolean schemaReplicated = false;
     boolean adsReplicated = false;
-    boolean disableAllBaseDns = disableAllBaseDns(ctx, uData);
+    boolean disableAllBaseDns = disableAllBaseDns(ctx.getLdapContext(), uData);
 
-    Collection<ReplicaDescriptor> replicas = getReplicas(ctx);
+    Collection<ReplicaDescriptor> replicas = getReplicas(ctx.getLdapContext());
     for (ReplicaDescriptor rep : replicas)
     {
       String dn = rep.getSuffix().getDN();
@@ -5920,7 +6015,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (OpenDsException ode)
       {
-        LocalizableMessage msg = getMessageForDisableException(getHostPort(ctx), baseDN);
+        LocalizableMessage msg = getMessageForDisableException(getHostPort(ctx.getLdapContext()), baseDN);
         throw new ReplicationCliException(msg,
             ERROR_DISABLING_REPLICATION_ON_BASEDN, ode);
       }
@@ -5957,13 +6052,13 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      String bindDn = getBindDN(ctx);
-      String pwd = getBindPassword(ctx);
+      String bindDn = getBindDN(ctx.getLdapContext());
+      String pwd = getBindPassword(ctx.getLdapContext());
       for (ServerDescriptor s : serversToUpdate)
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
             baseDNsToUpdate, disableReplicationServer,
-            getPreferredConnections(ctx));
+            getPreferredConnections(ctx.getLdapContext()));
       }
 
       if (disableReplicationServer)
@@ -6041,7 +6136,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * parameters to update the configuration.
    * @throws ReplicationCliException if there is an error.
    */
-  private void displayStatus(InitialLdapContext ctx,
+  private void displayStatus(ConnectionWrapper ctx,
       StatusReplicationUserData uData) throws ReplicationCliException
   {
     ADSContext adsCtx = new ADSContext(ctx);
@@ -6051,7 +6146,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
-      cache.setPreferredConnections(getPreferredConnections(ctx));
+      cache.setPreferredConnections(getPreferredConnections(ctx.getLdapContext()));
       addBaseDNs(cache.getFilter(), uData.getBaseDNs());
       cache.reloadTopology();
     }
@@ -6132,7 +6227,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (!rServers.isEmpty())
       {
-        displayStatus(rServers, uData.isScriptFriendly(), getPreferredConnections(ctx));
+        displayStatus(rServers, uData.isScriptFriendly(), getPreferredConnections(ctx.getLdapContext()));
         somethingDisplayed = true;
       }
     }
@@ -6162,7 +6257,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<ReplicaDescriptor> replicasWithNoReplicationServer = new HashSet<>();
       Set<ServerDescriptor> serversWithNoReplica = new HashSet<>();
       displayStatus(orderedReplicaLists, uData.isScriptFriendly(),
-            getPreferredConnections(ctx),
+            getPreferredConnections(ctx.getLdapContext()),
             cache.getServers(),
             replicasWithNoReplicationServer, serversWithNoReplica);
       somethingDisplayed = true;
@@ -6721,17 +6816,15 @@ public class ReplicationCliMain extends ConsoleApplication
    * that will be used by the newly configured replication server.
    * @throws OpenDsException if there is an error updating the configuration.
    */
-  private void configureAsReplicationServer(InitialLdapContext ctx,
+  private void configureAsReplicationServer(ConnectionWrapper ctx,
       int replicationPort, boolean useSecureReplication,
       Set<String> replicationServers,
-      Set<Integer> usedReplicationServerIds) throws OpenDsException
+      Set<Integer> usedReplicationServerIds) throws Exception
   {
     print(formatter.getFormattedWithPoints(
-        INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(getHostPort(ctx))));
+        INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(getHostPort(ctx.getLdapContext()))));
 
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(ctx));
-    RootCfgClient root = mCtx.getRootConfiguration();
+    RootCfgClient root = ctx.getRootConfiguration();
 
     /* Configure Synchronization plugin. */
     ReplicationSynchronizationProviderCfgClient sync = null;
@@ -6742,7 +6835,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ManagedObjectNotFoundException monfe)
     {
-      logger.info(LocalizableMessage.raw("Synchronization server does not exist in " + getHostPort(ctx)));
+      logger.info(LocalizableMessage.raw(
+          "Synchronization server does not exist in " + getHostPort(ctx.getLdapContext())));
     }
     if (sync == null)
     {
@@ -6820,15 +6914,13 @@ public class ReplicationCliMain extends ConsoleApplication
    * replication server will communicate with.
    * @throws OpenDsException if there is an error updating the configuration.
    */
-  private void updateReplicationServer(InitialLdapContext ctx,
-      Set<String> replicationServers) throws OpenDsException
+  private void updateReplicationServer(ConnectionWrapper ctx,
+      Set<String> replicationServers) throws Exception
   {
     print(formatter.getFormattedWithPoints(
-        INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(getHostPort(ctx))));
+        INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(getHostPort(ctx.getLdapContext()))));
 
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(ctx));
-    RootCfgClient root = mCtx.getRootConfiguration();
+    RootCfgClient root = ctx.getRootConfiguration();
 
     ReplicationSynchronizationProviderCfgClient sync =
       (ReplicationSynchronizationProviderCfgClient)
@@ -6889,10 +6981,10 @@ public class ReplicationCliMain extends ConsoleApplication
    * that will be used by the newly configured replication server.
    * @throws OpenDsException if there is an error updating the configuration.
    */
-  private void configureToReplicateBaseDN(InitialLdapContext ctx,
+  private void configureToReplicateBaseDN(ConnectionWrapper ctx,
       String baseDN,
       Set<String> replicationServers,
-      Set<Integer> usedReplicationDomainIds) throws OpenDsException
+      Set<Integer> usedReplicationDomainIds) throws Exception
   {
     boolean userSpecifiedAdminBaseDN = false;
     List<String> l = argParser.getBaseDNs();
@@ -6904,16 +6996,14 @@ public class ReplicationCliMain extends ConsoleApplication
         && areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
     {
       print(formatter.getFormattedWithPoints(
-          INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(getHostPort(ctx))));
+          INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(getHostPort(ctx.getLdapContext()))));
     }
     else
     {
       print(formatter.getFormattedWithPoints(
-          INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN, getHostPort(ctx))));
+          INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN, getHostPort(ctx.getLdapContext()))));
     }
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(ctx));
-    RootCfgClient root = mCtx.getRootConfiguration();
+    RootCfgClient root = ctx.getRootConfiguration();
 
     ReplicationSynchronizationProviderCfgClient sync =
       (ReplicationSynchronizationProviderCfgClient)
@@ -7039,16 +7129,18 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       logger.info(LocalizableMessage.raw("Configuring server "+server.getHostPort(true)));
       InitialLdapContext ctx = null;
+      ConnectionWrapper conn = null;
       try
       {
         ctx = getDirContextForServer(cache, s);
+        conn = new ConnectionWrapper(ctx, getConnectTimeout(), getTrustManager(sourceServerCI));
         if (serversToConfigureDomain.contains(s))
         {
-          configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
+          configureToReplicateBaseDN(conn, baseDN, repServers, usedIds);
         }
         if (replicationServersToConfigure.contains(s))
         {
-          updateReplicationServer(ctx, allRepServers);
+          updateReplicationServer(conn, allRepServers);
         }
       }
       catch (NamingException ne)
@@ -7057,7 +7149,7 @@ public class ReplicationCliMain extends ConsoleApplication
         LocalizableMessage msg = getMessageForException(ne, hostPort);
         throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
       }
-      catch (OpenDsException ode)
+      catch (Exception ode)
       {
         String hostPort = getHostPort2(s, cache.getPreferredConnections());
         LocalizableMessage msg = getMessageForEnableException(hostPort, baseDN);
@@ -7067,6 +7159,7 @@ public class ReplicationCliMain extends ConsoleApplication
       finally
       {
         close(ctx);
+        close(conn);
       }
       alreadyConfiguredServers.add(s.getId());
       alreadyConfiguredReplicationServers.add(s.getId());
@@ -7659,17 +7752,15 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
         pwd, getTrustManager(sourceServerCI), getConnectTimeout(), cnx, filter);
-    InitialLdapContext ctx = null;
+    ConnectionWrapper ctx = null;
     String lastBaseDN = null;
     String hostPort = null;
 
     try
     {
-      ctx = loader.createContext();
-      hostPort = getHostPort(ctx);
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
+      ctx = loader.createConnectionWrapper();
+      hostPort = getHostPort(ctx.getLdapContext());
+      RootCfgClient root = ctx.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
@@ -7756,7 +7847,7 @@ public class ReplicationCliMain extends ConsoleApplication
       LocalizableMessage msg = getMessageForException(ne, hostPort);
       throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
     }
-    catch (OpenDsException ode)
+    catch (Exception ode)
     {
       if (lastBaseDN != null)
       {
@@ -7786,15 +7877,12 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if there is an error updating the
    * configuration of the server.
    */
-  private void deleteReplicationDomain(InitialLdapContext ctx,
-      String baseDN) throws ReplicationCliException
+  private void deleteReplicationDomain(ConnectionWrapper ctx, String baseDN) throws ReplicationCliException
   {
-    String hostPort = getHostPort(ctx);
+    String hostPort = getHostPort(ctx.getLdapContext());
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
+      RootCfgClient root = ctx.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
@@ -7830,7 +7918,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
-    catch (OpenDsException ode)
+    catch (Exception ode)
     {
       LocalizableMessage msg = getMessageForDisableException(hostPort, baseDN);
         throw new ReplicationCliException(msg,
@@ -7840,19 +7928,17 @@ public class ReplicationCliMain extends ConsoleApplication
 
   /**
    * Disables the replication server for a given server.
-   * @param ctx the connection to the server.
+   * @param connWrapper the connection to the server.
    * @throws ReplicationCliException if there is an error updating the
    * configuration of the server.
    */
-  private void disableReplicationServer(InitialLdapContext ctx)
+  private void disableReplicationServer(ConnectionWrapper connWrapper)
   throws ReplicationCliException
   {
-    String hostPort = getHostPort(ctx);
+    String hostPort = getHostPort(connWrapper.getLdapContext());
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
+      RootCfgClient root = connWrapper.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync = null;
       ReplicationServerCfgClient replicationServer = null;
       try
@@ -7883,7 +7969,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
       }
     }
-    catch (OpenDsException ode)
+    catch (Exception ode)
     {
       throw new ReplicationCliException(
           ERR_REPLICATION_DISABLING_REPLICATIONSERVER.get(hostPort),
@@ -9124,13 +9210,13 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void updateAvailableAndReplicatedSuffixesForOneDomain(
-      InitialLdapContext ctxDomain, InitialLdapContext ctxOther,
+      ConnectionWrapper ctxDomain, ConnectionWrapper ctxOther,
       Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
   {
-    Collection<ReplicaDescriptor> replicas = getReplicas(ctxDomain);
+    Collection<ReplicaDescriptor> replicas = getReplicas(ctxDomain.getLdapContext());
     int replicationPort = getReplicationPort(ctxOther);
     boolean isReplicationServerConfigured = replicationPort != -1;
-    String replicationServer = getReplicationServer(getHostName(ctxOther), replicationPort);
+    String replicationServer = getReplicationServer(getHostName(ctxOther.getLdapContext()), replicationPort);
     for (ReplicaDescriptor replica : replicas)
     {
       if (!isReplicationServerConfigured)
@@ -9162,16 +9248,16 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void updateAvailableAndReplicatedSuffixesForNoDomain(
-      InitialLdapContext ctx1, InitialLdapContext ctx2,
+      ConnectionWrapper ctx1, ConnectionWrapper ctx2,
       Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
   {
     int replicationPort1 = getReplicationPort(ctx1);
     boolean isReplicationServer1Configured = replicationPort1 != -1;
-    String replicationServer1 = getReplicationServer(getHostName(ctx1), replicationPort1);
+    String replicationServer1 = getReplicationServer(getHostName(ctx1.getLdapContext()), replicationPort1);
 
     int replicationPort2 = getReplicationPort(ctx2);
     boolean isReplicationServer2Configured = replicationPort2 != -1;
-    String replicationServer2 = getReplicationServer(getHostName(ctx2), replicationPort2);
+    String replicationServer2 = getReplicationServer(getHostName(ctx2.getLdapContext()), replicationPort2);
 
     TopologyCache cache1 = isReplicationServer1Configured ? createTopologyCache(ctx1) : null;
     TopologyCache cache2 = isReplicationServer2Configured ? createTopologyCache(ctx2) : null;
@@ -9194,7 +9280,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private TopologyCache createTopologyCache(InitialLdapContext ctx)
+  private TopologyCache createTopologyCache(ConnectionWrapper ctx)
   {
     try
     {
@@ -9203,14 +9289,15 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         TopologyCache cache = new TopologyCache(adsContext, getTrustManager(sourceServerCI), getConnectTimeout());
         cache.getFilter().setSearchMonitoringInformation(false);
-        cache.setPreferredConnections(getPreferredConnections(ctx));
+        cache.setPreferredConnections(getPreferredConnections(ctx.getLdapContext()));
         cache.reloadTopology();
         return cache;
       }
     }
     catch (Throwable t)
     {
-      logger.warn(LocalizableMessage.raw("Error loading topology cache in " + getLdapUrl(ctx) + ": " + t, t));
+      logger.warn(LocalizableMessage.raw("Error loading topology cache in "
+          + getLdapUrl(ctx.getLdapContext()) + ": " + t, t));
     }
     return null;
   }
@@ -9298,9 +9385,9 @@ public class ReplicationCliMain extends ConsoleApplication
     createTopologyCache(adsCtx1, uData, suffixes);
     createTopologyCache(adsCtx2, uData, suffixes);
 
-    int repPort1 = getReplicationPort(adsCtx1.getDirContext());
+    int repPort1 = getReplicationPort(adsCtx1.getConnection());
     String repServer1 =  getReplicationServer(server1.getHostName(), repPort1);
-    int repPort2 = getReplicationPort(adsCtx2.getDirContext());
+    int repPort2 = getReplicationPort(adsCtx2.getConnection());
     String repServer2 =  getReplicationServer(server2.getHostName(), repPort2);
     for (String baseDN : uData.getBaseDNs())
     {

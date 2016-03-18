@@ -48,6 +48,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanelArgumentParser;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -68,7 +69,6 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
@@ -582,7 +582,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             });
             closeInfoConnections();
             getInfo().setIsLocal(isLocal);
-            getInfo().setDirContext(ctx);
+            getInfo().setConnection(
+                new ConnectionWrapper(ctx, getInfo().getConnectTimeout(), getInfo().getTrustManager()));
             getInfo().setUserDataDirContext(null);
             getInfo().regenerateDescriptor();
             return ctx;
@@ -972,6 +973,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
   private void closeInfoConnections()
   {
-    StaticUtils.close(getInfo().getDirContext(), getInfo().getUserDataDirContext());
+    StaticUtils.close(getInfo().getConnection());
+    StaticUtils.close(getInfo().getUserDataDirContext());
   }
 }

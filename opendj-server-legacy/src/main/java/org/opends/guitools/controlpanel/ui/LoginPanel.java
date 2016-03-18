@@ -34,6 +34,7 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
@@ -46,7 +47,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -204,11 +204,11 @@ public class LoginPanel extends StatusGenericPanel
             ctx = Utilities.getAdminDirContext(getInfo(), dn.getText(),
                 String.valueOf(pwd.getPassword()));
 
-            if (getInfo().getDirContext() != null)
+            if (getInfo().getConnection() != null)
             {
               try
               {
-                getInfo().getDirContext().close();
+                getInfo().getConnection().close();
               }
               catch (Throwable t)
               {
@@ -240,7 +240,8 @@ public class LoginPanel extends StatusGenericPanel
                     INFO_CTRL_PANEL_READING_CONFIGURATION_SUMMARY.get());
               }
             });
-            getInfo().setDirContext(ctx);
+            getInfo().setConnection(
+                new ConnectionWrapper(ctx, getInfo().getConnectTimeout(), getInfo().getTrustManager()));
             getInfo().setUserDataDirContext(null);
             getInfo().regenerateDescriptor();
             return ctx;

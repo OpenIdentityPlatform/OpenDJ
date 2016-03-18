@@ -48,6 +48,7 @@ import javax.net.ssl.TrustManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.AdminException;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
@@ -61,6 +62,7 @@ import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.util.Options;
 import org.forgerock.util.time.Duration;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNTableModel;
@@ -76,7 +78,6 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
@@ -330,7 +331,8 @@ public class StatusCli extends ConsoleApplication
         InitialLdapContext ctx = null;
         try {
           ctx = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd);
-          controlInfo.setDirContext(ctx);
+          controlInfo.setConnection(
+              new ConnectionWrapper(ctx, controlInfo.getConnectTimeout(), controlInfo.getTrustManager()));
           controlInfo.regenerateDescriptor();
           writeStatus(controlInfo);
 
@@ -782,9 +784,10 @@ public class StatusCli extends ConsoleApplication
    */
   private void writeErrorContents(ServerDescriptor desc)
   {
-    for (OpenDsException ex : desc.getExceptions())
+    for (Exception ex : desc.getExceptions())
     {
-      LocalizableMessage errorMsg = ex.getMessageObject();
+      LocalizableMessage errorMsg = ex instanceof AdminException ?
+          ((AdminException) ex).getMessageObject() : LocalizableMessage.raw(ex.getMessage());
       if (errorMsg != null)
       {
         println();

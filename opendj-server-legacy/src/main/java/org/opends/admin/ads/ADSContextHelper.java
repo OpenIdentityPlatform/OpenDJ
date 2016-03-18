@@ -32,10 +32,8 @@ import javax.naming.ldap.Rdn;
 
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.LDIFBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
@@ -69,14 +67,12 @@ class ADSContextHelper
    * @throws ADSContextException if the administration suffix could not be
    * created.
    */
-  void createAdministrationSuffix(InitialLdapContext ctx, String backendName)
+  void createAdministrationSuffix(ConnectionWrapper conn, String backendName)
   throws ADSContextException
   {
     try
     {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
+      RootCfgClient root = conn.getRootConfiguration();
       LDIFBackendCfgClient backend = null;
       try
       {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -2010,7 +2010,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       ctls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
       String filter = BrowserController.ALL_OBJECTS_FILTER;
       NamingEnumeration<SearchResult> result =
-          getInfo().getDirContext().search(Utilities.getJNDIName(dn), filter, ctls);
+          getInfo().getConnection().getLdapContext().search(Utilities.getJNDIName(dn), filter, ctls);
 
       try
       {
@@ -2051,7 +2051,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       ctls.setReturningAttributes(new String[] { ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME });
       String filter = BrowserController.ALL_OBJECTS_FILTER;
       NamingEnumeration<SearchResult> result =
-          getInfo().getDirContext().search(Utilities.getJNDIName(dn), filter, ctls);
+          getInfo().getConnection().getLdapContext().search(Utilities.getJNDIName(dn), filter, ctls);
 
       try
       {

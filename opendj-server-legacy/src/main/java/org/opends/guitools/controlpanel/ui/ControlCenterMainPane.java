@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -88,6 +88,7 @@ public class ControlCenterMainPane extends JPanel
     {
       private boolean lastStatusStopped;
       /** {@inheritDoc} */
+      @Override
       public void configurationChanged(final ConfigurationChangeEvent ev)
       {
         final boolean displayLogin;
@@ -109,6 +110,7 @@ public class ControlCenterMainPane extends JPanel
         SwingUtilities.invokeLater(new Runnable()
         {
           /** {@inheritDoc} */
+          @Override
           public void run()
           {
             updateAuthenticationLabel(ev.getNewDescriptor());
@@ -179,7 +181,7 @@ public class ControlCenterMainPane extends JPanel
         try
         {
          String bindDN = ConnectionUtils.getBindDN(
-             statusPane.getInfo().getDirContext());
+             statusPane.getInfo().getConnection().getLdapContext());
          lAuthenticatedAs.setText(
              INFO_CTRL_PANEL_AUTHENTICATED_AS.get(bindDN).toString());
         }

@@ -20,7 +20,6 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
@@ -48,6 +47,7 @@ import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.quicksetup.Application;
@@ -1194,8 +1194,9 @@ public class UninstallCliHelper extends ConsoleApplication {
       ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
           pwd, getConnectTimeout(),
           userData.getTrustManager());
+      ConnectionWrapper connWrapper = new ConnectionWrapper(ctx, getConnectTimeout(), userData.getTrustManager());
 
-      ADSContext adsContext = new ADSContext(ctx);
+      ADSContext adsContext = new ADSContext(connWrapper);
       if (interactive && userData.getTrustManager() == null)
       {
         // This is required when the user did  connect to the server using SSL

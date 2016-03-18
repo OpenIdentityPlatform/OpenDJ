@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -50,9 +49,9 @@ import javax.swing.event.ListDataListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -65,14 +64,11 @@ import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.OpenDsException;
 
 /**
  * The panel that displays an existing VLV index (it appears on the right of the
@@ -604,7 +600,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       return canLaunch;
     }
 
-    private void updateConfiguration() throws OpenDsException, ConfigException
+    private void updateConfiguration() throws Exception
     {
       boolean configHandlerUpdated = false;
       try
@@ -618,7 +614,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
+              ConfigurationHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
@@ -648,7 +644,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
 
         if (isServerRunning())
         {
-          modifyVLVIndexOnline(getInfo().getDirContext());
+          modifyVLVIndexOnline(getInfo().getConnection());
         }
         else
         {
@@ -683,14 +679,13 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
      * @throws OpenDsException
      *           if there is an error updating the server.
      */
-    private void modifyVLVIndexOnline(InitialLdapContext ctx) throws OpenDsException
+    private void modifyVLVIndexOnline(ConnectionWrapper connWrapper) throws Exception
     {
-      final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
-      final RootCfgClient root = mCtx.getRootConfiguration();
+      final RootCfgClient root = connWrapper.getRootConfiguration();
       modifyBackendVLVIndexOnline((PluggableBackendCfgClient) root.getBackend(backendID));
     }
 
-    private void modifyBackendVLVIndexOnline(final PluggableBackendCfgClient backend) throws OpenDsException
+    private void modifyBackendVLVIndexOnline(final PluggableBackendCfgClient backend) throws Exception
     {
       final BackendVLVIndexCfgClient index = backend.getBackendVLVIndex(indexName);
       final DN b = DN.valueOf(baseDN);

@@ -17,7 +17,7 @@
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,11 +31,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -43,10 +43,9 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
@@ -54,11 +53,14 @@ import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
-import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.Entry;
-import org.opends.server.config.DNConfigAttribute;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
 
 /** The task used to delete a set of base DNs or backends. */
@@ -213,7 +215,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    * Update the configuration in the server.
    * @throws OpenDsException if an error occurs.
    */
-  private void updateConfiguration() throws OpenDsException, ConfigException
+  private void updateConfiguration() throws Exception
   {
     boolean configHandlerUpdated = false;
     final int totalNumber = baseDNsToDelete.size() + backendsToDelete.size();
@@ -228,8 +230,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         {
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
-        DirectoryServer.getInstance().initializeConfiguration(
-            org.opends.server.extensions.ConfigFileHandler.class.getName(),
+        DirectoryServer.getInstance().initializeConfiguration(ConfigurationHandler.class.getName(),
             ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
       }
@@ -300,7 +301,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         });
         if (isServerRunning())
         {
-          deleteBaseDNs(getInfo().getDirContext(), baseDNs);
+          deleteBaseDNs(getInfo().getConnection(), baseDNs);
         }
         else
         {
@@ -369,7 +370,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         });
         if (isServerRunning())
         {
-          deleteBackend(getInfo().getDirContext(), backend);
+          deleteBackend(getInfo().getConnection(), backend);
         }
         else
         {
@@ -427,31 +428,34 @@ public class DeleteBaseDNAndBackendTask extends Task
     newBaseDNs.removeAll(dnsToRemove);
 
     String backendName = backend.getBackendID();
-    DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backendName + ",cn=Backends,cn=config");
-    Entry configEntry = DirectoryServer.getConfigurationHandler().getConfigEntry(dn);
+    DN dn = DN.valueOf("ds-cfg-backend-id=" + backendName + ",cn=Backends,cn=config");
+    updateConfigEntryWithAttribute(dn, ATTR_BACKEND_BASE_DN, newBaseDNs);
+  }
 
-    DNConfigAttribute baseDNAttr =
-      new DNConfigAttribute(
-          ConfigConstants.ATTR_BACKEND_BASE_DN,
-          INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
-          true, true, false, newBaseDNs);
-    configEntry.putConfigAttribute(baseDNAttr);
-    DirectoryServer.getConfigurationHandler().writeUpdatedConfig();
+  /** Update a config entry with the provided attribute parameters. */
+  private void updateConfigEntryWithAttribute(DN entryDn, String attrName, List<DN> newBaseDNs)
+      throws DirectoryException, ConfigException
+  {
+    ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+    final Entry configEntry = configHandler.getEntry(entryDn);
+    final Entry newEntry = new LinkedHashMapEntry(configEntry);
+    AttributeType attrType = Schema.getDefaultSchema().getAttributeType(
+        attrName, CoreSchema.getDirectoryStringSyntax());
+    newEntry.replaceAttribute(new LinkedAttribute(AttributeDescription.create(attrType), newBaseDNs));
+    configHandler.replaceEntry(configEntry, newEntry);
   }
 
   /**
    * Deletes a set of base DNs.  The code assumes that the server is running
    * and that the provided connection is active.
    * @param baseDNs the list of base DNs.
-   * @param ctx the connection to the server.
+   * @param connWrapper the connection to the server.
    * @throws OpenDsException if an error occurs.
    */
-  private void deleteBaseDNs(InitialLdapContext ctx,
-      Set<BaseDNDescriptor> baseDNs) throws OpenDsException
+  private void deleteBaseDNs(ConnectionWrapper connWrapper,
+      Set<BaseDNDescriptor> baseDNs) throws Exception
   {
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(ctx));
-    RootCfgClient root = mCtx.getRootConfiguration();
+    RootCfgClient root = connWrapper.getRootConfiguration();
     PluggableBackendCfgClient backend =
       (PluggableBackendCfgClient)root.getBackend(
           baseDNs.iterator().next().getBackend().getBackendID());
@@ -483,15 +487,13 @@ public class DeleteBaseDNAndBackendTask extends Task
    * Deletes a backend.  The code assumes that the server is running
    * and that the provided connection is active.
    * @param backend the backend to be deleted.
-   * @param ctx the connection to the server.
+   * @param connWrapper the connection to the server.
    * @throws OpenDsException if an error occurs.
    */
-  private void deleteBackend(InitialLdapContext ctx,
-      BackendDescriptor backend) throws OpenDsException
+  private void deleteBackend(ConnectionWrapper connWrapper,
+      BackendDescriptor backend) throws Exception
   {
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(
-        JNDIDirContextAdaptor.adapt(ctx));
-    RootCfgClient root = mCtx.getRootConfiguration();
+    RootCfgClient root = connWrapper.getRootConfiguration();
     root.removeBackend(backend.getBackendID());
     root.commit();
   }
@@ -590,7 +592,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    * @throws OpenDsException if an error occurs.
    */
   private void disableReplicationIfRequired(final BaseDNDescriptor baseDN)
-  throws OpenDsException, ConfigException
+  throws Exception
   {
     if (baseDN.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
@@ -600,17 +602,15 @@ public class DeleteBaseDNAndBackendTask extends Task
       {
         if (isServerRunning())
         {
-          InitialLdapContext ctx = getInfo().getDirContext();
-          ManagementContext mCtx = LDAPManagementContext.createFromContext(
-              JNDIDirContextAdaptor.adapt(ctx));
-          RootCfgClient root = mCtx.getRootConfiguration();
+          ConnectionWrapper connWrapper = getInfo().getConnection();
+          RootCfgClient root = connWrapper.getRootConfiguration();
           ReplicationSynchronizationProviderCfgClient sync = null;
           try
           {
             sync = (ReplicationSynchronizationProviderCfgClient)
             root.getSynchronizationProvider("Multimaster Synchronization");
           }
-          catch (OpenDsException oe)
+          catch (Exception oe)
           {
             // Ignore this one
           }
@@ -636,7 +636,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         else
         {
           RootCfg root =
-            ServerManagementContext.getInstance().getRootConfiguration();
+              DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
           ReplicationSynchronizationProviderCfg sync = null;
           try
           {

@@ -12,13 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
 import static org.opends.messages.QuickSetupMessages.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.ByteArrayOutputStream;
@@ -28,8 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -38,6 +35,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
@@ -612,7 +610,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
-   * Gets an InitialLdapContext based on the information that appears on the
+   * Gets a connection based on the information that appears on the
    * provided ServerDescriptor object.  Note that the server is assumed to be
    * registered and that contains a Map with ADSContext.ServerProperty keys.
    * @param server the object describing the server.
@@ -627,7 +625,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException if something goes wrong.
    */
-  protected InitialLdapContext getRemoteConnection(ServerDescriptor server,
+  protected ConnectionWrapper getRemoteConnection(ServerDescriptor server,
       String dn, String pwd, ApplicationTrustManager trustManager,
       int timeout,
       Set<PreferredConnection> cnx)
@@ -641,10 +639,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
     ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
         trustManager, timeout, cnx, filter);
 
-    InitialLdapContext ctx;
+    ConnectionWrapper connection;
     try
     {
-      ctx = loader.createContext();
+      connection = loader.createConnectionWrapper();
     }
     catch (NamingException ne)
     {
@@ -662,7 +660,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
           ne);
     }
-    return ctx;
+    return connection;
   }
 
   /**

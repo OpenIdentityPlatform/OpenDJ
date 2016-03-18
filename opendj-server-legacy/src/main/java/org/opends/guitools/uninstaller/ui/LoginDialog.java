@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -42,6 +42,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
@@ -61,7 +62,6 @@ import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 
 import static com.forgerock.opendj.cli.Utils.*;
-
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -93,6 +93,8 @@ public class LoginDialog extends JDialog
   private int timeout;
 
   private InitialLdapContext ctx;
+
+  private ConnectionWrapper connWrapper;
 
   private String usedUrl;
 
@@ -194,6 +196,16 @@ public class LoginDialog extends JDialog
   public InitialLdapContext getContext()
   {
     return ctx;
+  }
+
+  /**
+   * Returns the connection we got with the provided authentication.
+   *
+   * @return the connection
+   */
+  public ConnectionWrapper getConnection()
+  {
+    return connWrapper;
   }
 
   /**
@@ -397,10 +409,8 @@ public class LoginDialog extends JDialog
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
                 ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
           }
-          ctx =
-            org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(
-              info, dn, pwd);
-
+          ctx = org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(info, dn, pwd);
+          connWrapper = new ConnectionWrapper(ctx, info.getConnectTimeout(), info.getTrustManager());
 
         } catch (NamingException ne)
         {

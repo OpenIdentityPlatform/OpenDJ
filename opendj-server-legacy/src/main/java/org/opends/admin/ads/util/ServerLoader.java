@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.admin.ads.util;
 
@@ -159,51 +159,32 @@ public class ServerLoader extends Thread
       serverDescriptor.setAdsProperties(serverProperties);
       serverDescriptor.updateAdsPropertiesWithServerProperties();
     }
-    catch (NoPermissionException npe)
+    catch (NoPermissionException e)
     {
       logger.warn(LocalizableMessage.raw(
-          "Permissions error reading server: "+getLastLdapUrl(), npe));
-      if (!isAdministratorDn())
-      {
-        lastException = new TopologyCacheException(
-                TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR, npe,
-                trustManager, getLastLdapUrl());
-      }
-      else
-      {
-        lastException =
-          new TopologyCacheException(
-              TopologyCacheException.Type.NO_PERMISSIONS, npe,
-              trustManager, getLastLdapUrl());
-      }
+          "Permissions error reading server: " + getLastLdapUrl(), e));
+      Type type = isAdministratorDn()
+          ? TopologyCacheException.Type.NO_PERMISSIONS
+          : TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR;
+      lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
     }
-    catch (AuthenticationException ae)
+    catch (AuthenticationException e)
     {
       logger.warn(LocalizableMessage.raw(
-          "Authentication exception: "+getLastLdapUrl(), ae));
-      if (!isAdministratorDn())
-      {
-        lastException = new TopologyCacheException(
-                TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR, ae,
-                trustManager, getLastLdapUrl());
-      }
-      else
-      {
-        lastException =
-          new TopologyCacheException(
-              TopologyCacheException.Type.GENERIC_READING_SERVER, ae,
-              trustManager, getLastLdapUrl());
-      }
+          "Authentication exception: " + getLastLdapUrl(), e));
+      Type type = isAdministratorDn()
+          ? TopologyCacheException.Type.GENERIC_READING_SERVER
+          : TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR;
+      lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
     }
-    catch (NamingException ne)
+    catch (NamingException e)
     {
       logger.warn(LocalizableMessage.raw(
-          "NamingException error reading server: "+getLastLdapUrl(), ne));
-      Type type = ctx == null
-          ? TopologyCacheException.Type.GENERIC_CREATING_CONNECTION
-          : TopologyCacheException.Type.GENERIC_READING_SERVER;
-      lastException = new TopologyCacheException(
-          type, ne, trustManager, getLastLdapUrl());
+          "NamingException error reading server: " + getLastLdapUrl(), e));
+      Type type = ctx != null
+          ? TopologyCacheException.Type.GENERIC_READING_SERVER
+          : TopologyCacheException.Type.GENERIC_CREATING_CONNECTION;
+      lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
     }
     catch (Throwable t)
     {
@@ -256,13 +237,11 @@ public class ServerLoader extends Thread
         {
         case LDAPS:
           ctx = ConnectionUtils.createLdapsContext(lastLdapUrl, dn, pwd,
-              timeout, null, trustManager,
-              null);
+              timeout, null, trustManager, null);
           break;
         case START_TLS:
           ctx = ConnectionUtils.createStartTLSContext(lastLdapUrl, dn, pwd,
-              timeout, null, trustManager,
-              null, null);
+              timeout, null, trustManager, null, null);
           break;
         default:
           ctx = ConnectionUtils.createLdapContext(lastLdapUrl, dn, pwd,
@@ -271,6 +250,18 @@ public class ServerLoader extends Thread
       }
     }
     return ctx;
+  }
+
+  /**
+   * Returns a Connection Wrapper.
+   *
+   * @return the connection wrapper
+   * @throws NamingException
+   *            If an error occurs.
+   */
+  public ConnectionWrapper createConnectionWrapper() throws NamingException
+  {
+    return new ConnectionWrapper(createContext(), timeout, trustManager);
   }
 
   /**
@@ -310,7 +301,7 @@ public class ServerLoader extends Thread
    */
   private String getStartTlsLdapUrl(Map<ServerProperty,Object> serverProperties)
   {
-    if (isLdapEnabled(serverProperties) && isStartTlsEnabled(serverProperties))
+    if (isStartTlsEnabled(serverProperties))
     {
       return "ldap://" + getHostNameForLdapUrl(serverProperties) + ":"
           + serverProperties.get(ServerProperty.LDAP_PORT);
@@ -328,8 +319,7 @@ public class ServerLoader extends Thread
    */
   private String getLdapsUrl(Map<ServerProperty,Object> serverProperties)
   {
-    boolean ldapsEnabled = isLdapsEnabled(serverProperties);
-    if (ldapsEnabled)
+    if (isLdapsEnabled(serverProperties))
     {
       return "ldaps://" + getHostNameForLdapUrl(serverProperties) + ":"
           + serverProperties.get(ServerProperty.LDAPS_PORT);
@@ -348,21 +338,13 @@ public class ServerLoader extends Thread
   private String getAdminConnectorUrl(
     Map<ServerProperty,Object> serverProperties)
   {
-    boolean portDefined;
     if (isPropertyEnabled(serverProperties, ServerProperty.ADMIN_ENABLED))
     {
-      Object v = serverProperties.get(ServerProperty.ADMIN_PORT);
-      portDefined = v != null;
-    }
-    else
-    {
-      portDefined = false;
-    }
-
-    if (portDefined)
-    {
-      return "ldaps://" + getHostNameForLdapUrl(serverProperties) + ":"
-          + serverProperties.get(ServerProperty.ADMIN_PORT);
+      Object adminPort = serverProperties.get(ServerProperty.ADMIN_PORT);
+      if (adminPort != null)
+      {
+        return "ldaps://" + getHostNameForLdapUrl(serverProperties) + ":" + adminPort;
+      }
     }
     return null;
   }
@@ -379,7 +361,7 @@ public class ServerLoader extends Thread
 
   private boolean isStartTlsEnabled(Map<ServerProperty, Object> serverProperties)
   {
-    return isPropertyEnabled(serverProperties, ServerProperty.STARTTLS_ENABLED);
+    return isLdapEnabled(serverProperties) && isPropertyEnabled(serverProperties, ServerProperty.STARTTLS_ENABLED);
   }
 
   private boolean isPropertyEnabled(Map<ServerProperty, Object> serverProperties, ServerProperty property)
@@ -420,8 +402,8 @@ public class ServerLoader extends Thread
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error parsing authentication DNs.", t));
+      return false;
     }
-    return false;
   }
 
   /**
@@ -466,24 +448,19 @@ public class ServerLoader extends Thread
 
     if (adminConnectorUrl != null)
     {
-      ldapUrls.add(
-          new PreferredConnection(adminConnectorUrl,
-          PreferredConnection.Type.LDAPS));
+      ldapUrls.add(new PreferredConnection(adminConnectorUrl, PreferredConnection.Type.LDAPS));
     }
     if (ldapsUrl != null)
     {
-      ldapUrls.add(
-          new PreferredConnection(ldapsUrl, PreferredConnection.Type.LDAPS));
+      ldapUrls.add(new PreferredConnection(ldapsUrl, PreferredConnection.Type.LDAPS));
     }
     if (startTLSUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(startTLSUrl,
-              PreferredConnection.Type.START_TLS));
+      ldapUrls.add(new PreferredConnection(startTLSUrl, PreferredConnection.Type.START_TLS));
     }
     if (ldapUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(ldapUrl,
-          PreferredConnection.Type.LDAP));
+      ldapUrls.add(new PreferredConnection(ldapUrl, PreferredConnection.Type.LDAP));
     }
     return ldapUrls;
   }

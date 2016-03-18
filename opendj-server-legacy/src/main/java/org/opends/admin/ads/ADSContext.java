@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
@@ -54,6 +54,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.server.schema.SchemaConstants;
 
@@ -320,16 +321,18 @@ public class ADSContext
 
   /** The context used to retrieve information. */
   private final InitialLdapContext dirContext;
+  private final ConnectionWrapper connectionWrapper;
 
   /**
    * Constructor of the ADSContext.
    *
-   * @param dirContext
-   *          the DirContext that must be used to retrieve information.
+   * @param connectionWrapper
+   *          provide connection either via JNDI or Ldap Connection
    */
-  public ADSContext(InitialLdapContext dirContext)
+  public ADSContext(ConnectionWrapper connectionWrapper)
   {
-    this.dirContext = dirContext;
+    this.connectionWrapper = connectionWrapper;
+    this.dirContext = connectionWrapper.getLdapContext();
   }
 
   /**
@@ -340,6 +343,16 @@ public class ADSContext
   public InitialLdapContext getDirContext()
   {
     return dirContext;
+  }
+
+  /**
+   * Returns the connection used to retrieve information by this ADSContext.
+   *
+   * @return the connection
+   */
+  public ConnectionWrapper getConnection()
+  {
+    return connectionWrapper;
   }
 
   /**
@@ -2228,7 +2241,7 @@ public class ADSContext
     {
       ben = getDefaultBackendName();
     }
-    helper.createAdministrationSuffix(getDirContext(), ben);
+    helper.createAdministrationSuffix(connectionWrapper, ben);
   }
 
   /**

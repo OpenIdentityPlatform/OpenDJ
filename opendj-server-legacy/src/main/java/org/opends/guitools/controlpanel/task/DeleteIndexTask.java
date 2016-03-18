@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
@@ -37,12 +37,10 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
@@ -128,7 +126,7 @@ public class DeleteIndexTask extends Task
    * @throws OpenDsException
    *           if an error occurs.
    */
-  private void updateConfiguration() throws OpenDsException
+  private void updateConfiguration() throws Exception
   {
     boolean configHandlerUpdated = false;
     final int totalNumber = indexesToDelete.size();
@@ -144,7 +142,7 @@ public class DeleteIndexTask extends Task
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
         DirectoryServer.getInstance().initializeConfiguration(
-            org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
+            ConfigurationHandler.class.getName(), ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
       }
       boolean isFirst = true;
@@ -197,7 +195,7 @@ public class DeleteIndexTask extends Task
         });
         if (isServerRunning())
         {
-          deleteIndex(getInfo().getDirContext(), index);
+          deleteIndex(getInfo().getConnection(), index);
         }
         else
         {
@@ -263,7 +261,7 @@ public class DeleteIndexTask extends Task
     {
       dn = "ds-cfg-attribute" + "=" + index.getName() + ",cn=Index," + backendId + ",cn=Backends,cn=config";
     }
-    DirectoryServer.getConfigurationHandler().deleteEntry(DN.valueOf(dn), null);
+    DirectoryServer.getConfigurationHandler().deleteEntry(DN.valueOf(dn));
   }
 
   /**
@@ -277,10 +275,9 @@ public class DeleteIndexTask extends Task
    * @throws OpenDsException
    *           if an error occurs.
    */
-  private void deleteIndex(final InitialLdapContext ctx, final AbstractIndexDescriptor index) throws OpenDsException
+  private void deleteIndex(final ConnectionWrapper connWrapper, final AbstractIndexDescriptor index) throws Exception
   {
-    final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
-    final RootCfgClient root = mCtx.getRootConfiguration();
+    final RootCfgClient root = connWrapper.getRootConfiguration();
     final BackendCfgClient backend = root.getBackend(index.getBackend().getBackendID());
 
     removeBackendIndex((PluggableBackendCfgClient) backend, index);
@@ -288,7 +285,7 @@ public class DeleteIndexTask extends Task
   }
 
   private void removeBackendIndex(final PluggableBackendCfgClient backend, final AbstractIndexDescriptor index)
-      throws OpenDsException
+      throws Exception
   {
     final String indexName = index.getName();
     if (isVLVIndex(index))

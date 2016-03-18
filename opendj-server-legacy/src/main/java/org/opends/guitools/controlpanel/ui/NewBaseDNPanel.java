@@ -77,9 +77,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.config.AdminException;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
@@ -87,8 +85,8 @@ import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.BackendCreationHelper;
 import org.opends.server.tools.BackendCreationHelper.DefaultIndex;
 import org.opends.server.tools.BackendTypeHelper;
@@ -853,7 +851,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       return args;
     }
 
-    private void updateConfigurationOnline() throws OpenDsException
+    private void updateConfigurationOnline() throws Exception
     {
       SwingUtilities.invokeLater(new Runnable()
       {
@@ -876,7 +874,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       refreshProgressBar();
     }
 
-    private void updateConfigurationOffline() throws OpenDsException
+    private void updateConfigurationOffline() throws Exception
     {
       boolean configHandlerUpdated = false;
       try
@@ -887,7 +885,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
           DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
         }
         DirectoryServer.getInstance().initializeConfiguration(
-            ConfigFileHandler.class.getName(), ConfigReader.configFile);
+            ConfigurationHandler.class.getName(), ConfigReader.configFile);
         getInfo().setMustDeregisterConfig(true);
         configHandlerUpdated = true;
 
@@ -919,7 +917,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       });
     }
 
-    private void performTask() throws OpenDsException
+    private void performTask() throws Exception
     {
       final String backendName = getBackendName();
       if (isNewBackend())
@@ -934,7 +932,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    private void createBackend(String backendName) throws OpenDsException
+    private void createBackend(String backendName) throws Exception
     {
       if (!isServerRunning())
       {
@@ -959,11 +957,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
     }
 
     @RemoveOnceNewConfigFrameworkIsUsed("Use BackendCreationHelper.createBackend(...)")
-    private void createBackendOnline(String backendName) throws OpenDsException
+    private void createBackendOnline(String backendName) throws Exception
     {
       final RootCfgClient root = getRootConfigurationClient();
       final BackendCfgClient backend =
-          root.createBackend(getSelectedBackendType().getLegacyConfigurationFrameworkBackend(), backendName, null);
+          root.createBackend(getSelectedBackendType().getBackend(), backendName, null);
       backend.setEnabled(true);
       backend.setBaseDN(Collections.singleton(DN.valueOf(newBaseDN)));
       backend.setBackendId(backendName);
@@ -971,13 +969,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
       backend.commit();
     }
 
-    private RootCfgClient getRootConfigurationClient()
+    private RootCfgClient getRootConfigurationClient() throws LdapException
     {
-      final JNDIDirContextAdaptor jndiContext = JNDIDirContextAdaptor.adapt(getInfo().getDirContext());
-      return LDAPManagementContext.createFromContext(jndiContext).getRootConfiguration();
+      return getInfo().getConnection().getRootConfiguration();
     }
 
-    private void addNewBaseDN(String backendName) throws OpenDsException
+    private void addNewBaseDN(String backendName) throws Exception
     {
       if (!isServerRunning())
       {
@@ -1014,7 +1011,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    private void createAdditionalIndexes() throws OpenDsException
+    private void createAdditionalIndexes() throws Exception
     {
       final String backendName = getBackendName();
       displayCreateAdditionalIndexesDsConfigCmdLine();
@@ -1023,7 +1020,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       displayCreateAdditionalIndexesDone();
     }
 
-    private void addBackendDefaultIndexes(PluggableBackendCfgClient backendCfgClient) throws AdminException
+    private void addBackendDefaultIndexes(PluggableBackendCfgClient backendCfgClient) throws Exception
     {
       for (DefaultIndex defaultIndex : BackendCreationHelper.DEFAULT_INDEXES)
       {

@@ -31,12 +31,12 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -48,18 +48,15 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.schema.SomeSchemaElement;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 
 /**
@@ -395,7 +392,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       return canLaunch;
     }
 
-    private void updateConfiguration() throws OpenDsException
+    private void updateConfiguration() throws Exception
     {
       boolean configHandlerUpdated = false;
       try
@@ -409,7 +406,7 @@ public class NewIndexPanel extends AbstractIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
+              ConfigurationHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
@@ -438,7 +435,7 @@ public class NewIndexPanel extends AbstractIndexPanel
 
         if (isServerRunning())
         {
-          createIndexOnline(getInfo().getDirContext());
+          createIndexOnline(getInfo().getConnection());
         }
         else
         {
@@ -463,14 +460,13 @@ public class NewIndexPanel extends AbstractIndexPanel
       }
     }
 
-    private void createIndexOnline(final InitialLdapContext ctx) throws OpenDsException
+    private void createIndexOnline(final ConnectionWrapper connWrapper) throws Exception
     {
-      final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
-      final BackendCfgClient backend = mCtx.getRootConfiguration().getBackend(backendName.getText());
+      final BackendCfgClient backend = connWrapper.getRootConfiguration().getBackend(backendName.getText());
       createBackendIndexOnline((PluggableBackendCfgClient) backend);
     }
 
-    private void createBackendIndexOnline(final PluggableBackendCfgClient backend) throws OpenDsException
+    private void createBackendIndexOnline(final PluggableBackendCfgClient backend) throws Exception
     {
       final List<PropertyException> exceptions = new ArrayList<>();
       final BackendIndexCfgClient index = backend.createBackendIndex(

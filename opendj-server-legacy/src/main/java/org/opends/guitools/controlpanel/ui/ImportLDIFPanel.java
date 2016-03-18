@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.admin.ads.util.ConnectionUtils.getHostPort;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
@@ -30,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.naming.ldap.InitialLdapContext;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -816,12 +818,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
           INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get()+ "<br><b>"+cmd+"</b><br><br>",
           ColorAndFontConstants.progressFont));
 
+      InitialLdapContext ctx = getInfo().getConnection().getLdapContext();
       for (DN baseDN : replicatedBaseDNs)
       {
-        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
-            ConnectionUtils.getHostPort(getInfo().getDirContext()));
+        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, getHostPort(ctx));
         getProgressDialog().appendProgressHtml(Utilities.applyFont(msg + "<br>", ColorAndFontConstants.progressFont));
-        repl.initializeAllSuffix(baseDN.toString(), getInfo().getDirContext(), true);
+        repl.initializeAllSuffix(baseDN.toString(), ctx, true);
       }
     }
 
@@ -833,7 +835,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       args.add("--hostName");
       args.add(getInfo().getServerDescriptor().getHostname());
       args.add("--port");
-      args.add(String.valueOf(ConnectionUtils.getPort(getInfo().getDirContext())));
+      args.add(String.valueOf(ConnectionUtils.getPort(getInfo().getConnection().getLdapContext())));
       for (DN baseDN : replicatedBaseDNs)
       {
         args.add("--baseDN");

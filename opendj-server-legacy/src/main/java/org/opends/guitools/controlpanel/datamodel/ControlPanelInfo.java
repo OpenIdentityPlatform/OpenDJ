@@ -12,14 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
@@ -42,6 +41,7 @@ import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.browser.LDAPConnectionPool;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor.ServerStatus;
@@ -77,7 +77,7 @@ public class ControlPanelInfo
 
   private ServerDescriptor serverDesc;
   private Set<Task> tasks = new HashSet<>();
-  private InitialLdapContext ctx;
+  private ConnectionWrapper connWrapper;
   private InitialLdapContext userDataCtx;
   private final LDAPConnectionPool connectionPool = new LDAPConnectionPool();
   /** Used by the browsers. */
@@ -288,13 +288,14 @@ public class ControlPanelInfo
   /**
    * Sets the dir context to be used by the ControlPanelInfo to retrieve
    * monitoring and configuration information.
-   * @param ctx the connection.
+   * @param connWrapper the connection.
    */
-  public void setDirContext(InitialLdapContext ctx)
+  public void setConnection(ConnectionWrapper connWrapper)
   {
-    this.ctx = ctx;
-    if (ctx != null)
+    this.connWrapper = connWrapper;
+    if (connWrapper != null)
     {
+      InitialLdapContext ctx = connWrapper.getLdapContext();
       lastWorkingBindDN = ConnectionUtils.getBindDN(ctx);
       lastWorkingBindPwd = ConnectionUtils.getBindPassword(ctx);
       lastRemoteHostName = ConnectionUtils.getHostName(ctx);
@@ -303,14 +304,14 @@ public class ControlPanelInfo
   }
 
   /**
-   * Returns the dir context to be used by the ControlPanelInfo to retrieve
+   * Returns the connection to be used by the ControlPanelInfo to retrieve
    * monitoring and configuration information.
-   * @return the dir context to be used by the ControlPanelInfo to retrieve
+   * @return the connection to be used by the ControlPanelInfo to retrieve
    * monitoring and configuration information.
    */
-  public InitialLdapContext getDirContext()
+  public ConnectionWrapper getConnection()
   {
-    return ctx;
+    return connWrapper;
   }
 
   /**
@@ -443,7 +444,7 @@ public class ControlPanelInfo
 
     ServerDescriptor desc = createNewServerDescriptorInstance();
     desc.setIsLocal(isLocal);
-    InitialLdapContext ctx = getDirContext();
+    ConnectionWrapper connWrapper = getConnection();
     if (isLocal)
     {
       desc.setOpenDSVersion(
@@ -465,11 +466,11 @@ public class ControlPanelInfo
       desc.setStatus(status);
       if (status == ServerStatus.STOPPING)
       {
-        StaticUtils.close(ctx);
-        this.ctx = null;
+        StaticUtils.close(connWrapper);
+        this.connWrapper = null;
         if (userDataCtx != null)
         {
-          unregisterConnection(connectionPool, ctx);
+          unregisterConnection(connectionPool, connWrapper.getLdapContext());
           StaticUtils.close(userDataCtx);
           userDataCtx = null;
         }
@@ -490,41 +491,42 @@ public class ControlPanelInfo
     {
       desc.setStatus(ServerStatus.STARTED);
 
-      if (ctx == null && lastWorkingBindDN != null)
+      if (connWrapper == null && lastWorkingBindDN != null)
       {
         // Try with previous credentials.
         try
         {
+          InitialLdapContext context = null;
           if (isLocal)
           {
-            ctx = Utilities.getAdminDirContext(this, lastWorkingBindDN,
-              lastWorkingBindPwd);
+            context = Utilities.getAdminDirContext(this, lastWorkingBindDN, lastWorkingBindPwd);
           }
           else if (lastRemoteAdministrationURL != null)
           {
-            ctx = createLdapsContext(lastRemoteAdministrationURL,
+            context = createLdapsContext(lastRemoteAdministrationURL,
                 lastWorkingBindDN,
                 lastWorkingBindPwd,
                 getConnectTimeout(), null,
                 getTrustManager(), null);
           }
+          connWrapper = new ConnectionWrapper(context, getConnectTimeout(), getTrustManager());
         }
         catch (ConfigReadException | NamingException cre)
         {
           // Ignore: we will ask the user for credentials.
         }
-        if (ctx != null)
+        if (connWrapper != null)
         {
-          this.ctx = ctx;
+          this.connWrapper = connWrapper;
         }
       }
 
-      if (isLocal && ctx == null)
+      if (isLocal && connWrapper == null)
       {
         reader = createNewConfigFromFileReader();
         ((ConfigFromFile)reader).readConfiguration();
       }
-      else if (!isLocal && ctx == null)
+      else if (!isLocal && connWrapper == null)
       {
         desc.setStatus(ServerStatus.NOT_CONNECTED_TO_REMOTE);
         reader = null;
@@ -533,9 +535,9 @@ public class ControlPanelInfo
       {
         Utilities.initializeLegacyConfigurationFramework();
         reader = createNewConfigFromDirContextReader();
-        ((ConfigFromDirContext) reader).readConfiguration(ctx);
+        ((ConfigFromDirContext) reader).readConfiguration(connWrapper);
 
-        boolean connectionWorks = checkConnections(ctx, userDataCtx);
+        boolean connectionWorks = checkConnections(connWrapper.getLdapContext(), userDataCtx);
         if (!connectionWorks)
         {
           if (isLocal)
@@ -549,9 +551,9 @@ public class ControlPanelInfo
             desc.setStatus(ServerStatus.NOT_CONNECTED_TO_REMOTE);
             reader = null;
           }
-          StaticUtils.close(ctx);
-          this.ctx = null;
-          unregisterConnection(connectionPool, ctx);
+          StaticUtils.close(connWrapper);
+          this.connWrapper = null;
+          unregisterConnection(connectionPool, connWrapper.getLdapContext());
           StaticUtils.close(userDataCtx);
           userDataCtx = null;
         }
@@ -1226,9 +1228,9 @@ public class ControlPanelInfo
       adminPort1 = server.getAdminConnector().getPort();
     }
 
-    if (getDirContext() != null)
+    if (getConnection() != null)
     {
-      adminPort2 = ConnectionUtils.getPort(getDirContext());
+      adminPort2 = ConnectionUtils.getPort(getConnection().getLdapContext());
     }
     return adminPort1 == adminPort2;
   }

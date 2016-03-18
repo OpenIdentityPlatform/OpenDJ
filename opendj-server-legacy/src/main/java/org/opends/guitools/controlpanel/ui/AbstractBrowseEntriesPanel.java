@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
 
 import java.awt.Component;
@@ -1195,7 +1194,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
       {
         try
         {
-          InitialLdapContext ctx = getInfo().getDirContext();
+          InitialLdapContext ctx = getInfo().getConnection().getLdapContext();
           InitialLdapContext ctx1 = controller.getConfigurationConnection();
           boolean setConnection = ctx != ctx1;
           updateNumSubordinateHacker(desc);
@@ -1216,7 +1215,8 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
                 try
                 {
                   controller.setConnections(
-                      getInfo().getServerDescriptor(), getInfo().getDirContext(), getInfo().getUserDataDirContext());
+                      getInfo().getServerDescriptor(), getInfo().getConnection().getLdapContext(),
+                      getInfo().getUserDataDirContext());
                   applyButtonClicked();
                 }
                 catch (NamingException ne)

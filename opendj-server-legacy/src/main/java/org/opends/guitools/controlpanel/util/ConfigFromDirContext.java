@@ -45,6 +45,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -55,12 +56,6 @@ import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
-import org.forgerock.opendj.ldap.LdapException;
-
-import org.forgerock.opendj.config.client.ConcurrentModificationException;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.AdministrationConnectorCfgClient;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
@@ -240,12 +235,12 @@ public class ConfigFromDirContext extends ConfigReader
    * Reads configuration and monitoring information using the provided
    * connection.
    *
-   * @param context
+   * @param connWrapper
    *          the connection to be used to read the information.
    */
-  public void readConfiguration(final InitialLdapContext context)
+  public void readConfiguration(final ConnectionWrapper connWrapper)
   {
-    final List<OpenDsException> errors = new ArrayList<>();
+    final List<Exception> errors = new ArrayList<>();
     final Set<ConnectionHandlerDescriptor> connectionHandlers = new HashSet<>();
     final Set<BackendDescriptor> backendDescriptors = new HashSet<>();
     final Set<DN> as = new HashSet<>();
@@ -260,18 +255,18 @@ public class ConfigFromDirContext extends ConfigReader
 
     hmConnectionHandlersMonitor.clear();
 
-    readSchemaIfNeeded(context, errors);
+    readSchemaIfNeeded(connWrapper.getLdapContext(), errors);
 
     try
     {
-      readConfig(context, connectionHandlers, backendDescriptors, as, errors);
+      readConfig(connWrapper, connectionHandlers, backendDescriptors, as, errors);
     }
     catch (final Throwable t)
     {
       errors.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(t), t));
     }
 
-    for (OpenDsException oe : errors)
+    for (Exception oe : errors)
     {
       logger.warn(LocalizableMessage.raw("Error reading configuration: " + oe, oe));
     }
@@ -280,7 +275,7 @@ public class ConfigFromDirContext extends ConfigReader
     backends = Collections.unmodifiableSet(backendDescriptors);
     try
     {
-      updateMonitorInformation(context, errors);
+      updateMonitorInformation(connWrapper.getLdapContext(), errors);
     }
     catch (Throwable t)
     {
@@ -290,7 +285,7 @@ public class ConfigFromDirContext extends ConfigReader
 
     try
     {
-      updateTaskInformation(context, errors, tasks);
+      updateTaskInformation(connWrapper.getLdapContext(), errors, tasks);
     }
     catch (Throwable t)
     {
@@ -311,7 +306,7 @@ public class ConfigFromDirContext extends ConfigReader
     exceptions = Collections.unmodifiableList(errors);
   }
 
-  private void readSchemaIfNeeded(final InitialLdapContext context, final List<OpenDsException> errors)
+  private void readSchemaIfNeeded(final InitialLdapContext context, final List<Exception> errors)
   {
     if (mustReadSchema())
     {
@@ -332,13 +327,11 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
-  private void readConfig(final InitialLdapContext context,
+  private void readConfig(final ConnectionWrapper connWrapper,
       final Set<ConnectionHandlerDescriptor> connectionHandlers, final Set<BackendDescriptor> backendDescriptors,
-      final Set<DN> alternateBindDNs, final List<OpenDsException> errors) throws Exception
+      final Set<DN> alternateBindDNs, final List<Exception> errors) throws Exception
   {
-    // Get the Directory Server configuration handler and use it.
-    ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(context));
-    final RootCfgClient root = mCtx.getRootConfiguration();
+    final RootCfgClient root = connWrapper.getRootConfiguration();
 
     readAdminConnector(root, errors);
     readConnectionHandlers(connectionHandlers, root, errors);
@@ -357,39 +350,45 @@ public class ConfigFromDirContext extends ConfigReader
     readAlternateBindDNs(alternateBindDNs, root, errors);
   }
 
-  private void readAdminConnector(final RootCfgClient root, final List<OpenDsException> errors)
+  private void readAdminConnector(final RootCfgClient root, final List<Exception> errors)
   {
     try
     {
       AdministrationConnectorCfgClient adminConnector = root.getAdministrationConnector();
       this.adminConnector = getConnectionHandler(adminConnector);
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       errors.add(oe);
     }
   }
 
   private void readConnectionHandlers(final Set<ConnectionHandlerDescriptor> connectionHandlers,
-      RootCfgClient root, final List<OpenDsException> errors) throws ConcurrentModificationException,
-      AuthorizationException, CommunicationException
+      RootCfgClient root, final List<Exception> errors)
   {
-    for (String connHandler : root.listConnectionHandlers())
+    try
     {
-      try
+      for (String connHandler : root.listConnectionHandlers())
       {
-        ConnectionHandlerCfgClient connectionHandler = root.getConnectionHandler(connHandler);
-        connectionHandlers.add(getConnectionHandler(connectionHandler, connHandler));
+        try
+        {
+          ConnectionHandlerCfgClient connectionHandler = root.getConnectionHandler(connHandler);
+          connectionHandlers.add(getConnectionHandler(connectionHandler, connHandler));
+        }
+        catch (Exception oe)
+        {
+          errors.add(oe);
+        }
       }
-      catch (OpenDsException oe)
-      {
-        errors.add(oe);
-      }
+    }
+    catch (Exception oe)
+    {
+      errors.add(oe);
     }
   }
 
   private void readBackendConfiguration(final Set<BackendDescriptor> backendDescriptors,
-      final RootCfgClient root, final List<OpenDsException> errors) throws Exception
+      final RootCfgClient root, final List<Exception> errors) throws Exception
   {
     for (final String backendName : root.listBackends())
     {
@@ -426,7 +425,7 @@ public class ConfigFromDirContext extends ConfigReader
         }
         backendDescriptors.add(desc);
       }
-      catch (OpenDsException oe)
+      catch (Exception oe)
       {
         errors.add(oe);
       }
@@ -466,14 +465,14 @@ public class ConfigFromDirContext extends ConfigReader
   }
 
   private void refreshBackendConfig(final Set<IndexDescriptor> indexes,
-      final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfgClient backend, final List<OpenDsException> errors)
+      final Set<VLVIndexDescriptor> vlvIndexes, final BackendCfgClient backend, final List<Exception> errors)
   {
     final PluggableBackendCfgClient db = (PluggableBackendCfgClient) backend;
     readBackendIndexes(indexes, errors, db);
     readBackendVLVIndexes(vlvIndexes, errors, db);
   }
 
-  private void readBackendIndexes(final Set<IndexDescriptor> indexes, final List<OpenDsException> errors,
+  private void readBackendIndexes(final Set<IndexDescriptor> indexes, final List<Exception> errors,
       final PluggableBackendCfgClient db)
   {
     indexes.add(new IndexDescriptor(DN2ID_INDEX_NAME));
@@ -488,14 +487,14 @@ public class ConfigFromDirContext extends ConfigReader
             null, IndexTypeDescriptor.fromBackendIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
       }
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       errors.add(oe);
     }
   }
 
   private void readBackendVLVIndexes(final Set<VLVIndexDescriptor> vlvIndexes,
-      final List<OpenDsException> errors, final PluggableBackendCfgClient db)
+      final List<Exception> errors, final PluggableBackendCfgClient db)
   {
     try
     {
@@ -508,19 +507,19 @@ public class ConfigFromDirContext extends ConfigReader
             index.getFilter(), sortOrder));
       }
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       errors.add(oe);
     }
   }
 
-  private boolean readIfReplicationIsSecure(final RootCfgClient root, final List<OpenDsException> errors)
+  private boolean readIfReplicationIsSecure(final RootCfgClient root, final List<Exception> errors)
   {
     try
     {
       return root.getCryptoManager().isSSLEncryption();
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       errors.add(oe);
       return false;
@@ -533,7 +532,7 @@ public class ConfigFromDirContext extends ConfigReader
     {
       return (ReplicationSynchronizationProviderCfgClient) root.getSynchronizationProvider(SYNC_PROVIDER_NAME);
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       return null;
     }
@@ -541,7 +540,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   private void readReplicationConfig(final Set<ConnectionHandlerDescriptor> connectionHandlers,
       final Set<BackendDescriptor> backendDescriptors, final ReplicationSynchronizationProviderCfgClient sync,
-      boolean isReplicationSecure, final List<OpenDsException> errors)
+      boolean isReplicationSecure, final List<Exception> errors)
   {
     replicationPort = -1;
     try
@@ -585,14 +584,14 @@ public class ConfigFromDirContext extends ConfigReader
         }
       }
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       errors.add(oe);
     }
   }
 
   private void readAlternateBindDNs(final Set<DN> alternateBindDNs, final RootCfgClient root,
-      final List<OpenDsException> errors)
+      final List<Exception> errors)
   {
     try
     {
@@ -607,7 +606,7 @@ public class ConfigFromDirContext extends ConfigReader
         }
       }
     }
-    catch (OpenDsException oe)
+    catch (Exception oe)
     {
       errors.add(oe);
     }
@@ -860,7 +859,7 @@ public class ConfigFromDirContext extends ConfigReader
    *           if there is an error retrieving the values of the search result.
    */
   private void handleTaskSearchResult(SearchResult sr, String searchBaseDN, Collection<TaskEntry> taskEntries,
-      List<OpenDsException> ex) throws NamingException
+      List<Exception> ex) throws NamingException
   {
     CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
     try
@@ -877,7 +876,7 @@ public class ConfigFromDirContext extends ConfigReader
   }
 
   private void updateMonitorInformation(InitialLdapContext ctx,
-      List<OpenDsException> ex)
+      List<Exception> ex)
   {
     // Read monitoring information: since it is computed, it is faster
     // to get everything in just one request.
@@ -924,7 +923,7 @@ public class ConfigFromDirContext extends ConfigReader
    * @param ts
    *          the list of task entries to be updated.
    */
-  public void updateTaskInformation(InitialLdapContext ctx, List<OpenDsException> ex, Collection<TaskEntry> ts)
+  public void updateTaskInformation(InitialLdapContext ctx, List<Exception> ex, Collection<TaskEntry> ts)
   {
     // Read monitoring information: since it is computed, it is faster
     // to get everything in just one request.

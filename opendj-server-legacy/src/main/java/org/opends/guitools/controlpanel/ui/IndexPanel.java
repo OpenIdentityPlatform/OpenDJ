@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -45,6 +44,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
@@ -56,16 +56,13 @@ import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.OpenDsException;
 
 /**
  * The panel that displays an existing index (it appears on the right of the
@@ -549,7 +546,7 @@ public class IndexPanel extends AbstractIndexPanel
      * @throws OpenDsException
      *           if there is an error updating the configuration.
      */
-    private void updateConfiguration() throws OpenDsException
+    private void updateConfiguration() throws Exception
     {
       boolean configHandlerUpdated = false;
       try
@@ -563,7 +560,7 @@ public class IndexPanel extends AbstractIndexPanel
             DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
           }
           DirectoryServer.getInstance().initializeConfiguration(
-              org.opends.server.extensions.ConfigFileHandler.class.getName(), ConfigReader.configFile);
+              ConfigurationHandler.class.getName(), ConfigReader.configFile);
           getInfo().setMustDeregisterConfig(true);
         }
         else
@@ -598,7 +595,7 @@ public class IndexPanel extends AbstractIndexPanel
 
         if (isServerRunning())
         {
-          modifyIndexOnline(getInfo().getDirContext());
+          modifyIndexOnline(getInfo().getConnection());
         }
         else
         {
@@ -628,19 +625,18 @@ public class IndexPanel extends AbstractIndexPanel
     /**
      * Modifies index using the provided connection.
      *
-     * @param ctx
+     * @param connWrapper
      *          the connection to be used to update the index configuration.
      * @throws OpenDsException
      *           if there is an error updating the server.
      */
-    private void modifyIndexOnline(final InitialLdapContext ctx) throws OpenDsException
+    private void modifyIndexOnline(final ConnectionWrapper connWrapper) throws Exception
     {
-      final ManagementContext mCtx = LDAPManagementContext.createFromContext(JNDIDirContextAdaptor.adapt(ctx));
-      final BackendCfgClient backend = mCtx.getRootConfiguration().getBackend(backendName);
+      final BackendCfgClient backend = connWrapper.getRootConfiguration().getBackend(backendName);
       modifyBackendIndexOnline((PluggableBackendCfgClient) backend);
     }
 
-    private void modifyBackendIndexOnline(final PluggableBackendCfgClient backend) throws OpenDsException
+    private void modifyBackendIndexOnline(final PluggableBackendCfgClient backend) throws Exception
     {
       final BackendIndexCfgClient index = backend.getBackendIndex(attributeName);
       if (!indexTypes.equals(indexToModify.getTypes()))
