@@ -1488,8 +1488,15 @@
         Build the configuration reference, reference documentation source files,
         and assemble artifacts from the results.
         The artifacts are used when preparing the product documentation.
+
+        This profile is active without being specified explicitly.
+        To deactivate this profile, use as exclamation point as in `-P!docs`.
       -->
       <id>docs</id>
+
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
 
       <build>
         <plugins>
