@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
@@ -463,7 +462,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
   {
     try
     {
-      final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      final RootCfg root =
+          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
       final String errorMsg = "Unexpected content in reject file:\n\n" + readFile(reject)
           + "\n\nThe backend was configured with the following base DNs: "
           + root.getBackend(beID).getBaseDN() + "\n\n";

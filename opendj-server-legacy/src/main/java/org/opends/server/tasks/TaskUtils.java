@@ -16,6 +16,8 @@
  */
 package org.opends.server.tasks;
 
+import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_ID;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,17 +25,18 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.opends.messages.TaskMessages;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.tools.BackendToolUtils;
 import org.opends.server.types.Entry;
-import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.types.Attribute;
@@ -42,7 +45,6 @@ import org.opends.server.types.DirectoryException;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -70,19 +72,7 @@ public class TaskUtils
   {
     try
     {
-      StringConfigAttribute idStub =
-           new StringConfigAttribute(
-                   ATTR_BACKEND_ID,
-                   INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(),
-                   true, false, true);
-      StringConfigAttribute idAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      return idAttr.activeValue();
-    }
-    catch (org.opends.server.config.ConfigException ce)
-    {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), ce.getMessage());
-      return null;
+      return BackendToolUtils.getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
     }
     catch (Exception e)
     {
@@ -114,57 +104,38 @@ public class TaskUtils
       return configEntries;
     }
 
-    Entry baseEntry;
-    try
-    {
-      baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (ConfigException ce)
-    {
-      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, ce.getMessage());
-      return configEntries;
-    }
-    catch (Exception e)
-    {
-      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, getExceptionMessage(e));
-      return configEntries;
-    }
-
-
     // Iterate through the immediate children, attempting to parse them as
     // backends.
-    for (Entry configEntry : baseEntry.getChildren().values())
+    try
     {
-      // Get the backend ID attribute from the entry.  If there isn't one, then
-      // skip the entry.
-      String backendID;
-      try
+      ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+      for (DN childrenDn : configHandler.getChildren(backendBaseDN))
       {
-        StringConfigAttribute idStub =
-             new StringConfigAttribute(
-                     ATTR_BACKEND_ID,
-                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(),
-                     true, false, true);
-        StringConfigAttribute idAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
+        // Get the backend ID attribute from the entry.  If there isn't one, then
+        // skip the entry.
+        Entry configEntry = null;
+        String backendID;
+        try
         {
+          configEntry = Converters.to(configHandler.getEntry(childrenDn));
+          backendID = BackendToolUtils.getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
+          if (backendID == null)
+          {
+            continue;
+          }
+        }
+        catch (Exception e)
+        {
+          logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, childrenDn, getExceptionMessage(e));
           continue;
         }
-        backendID = idAttr.activeValue();
-      }
-      catch (org.opends.server.config.ConfigException ce)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), ce.getMessage());
-        continue;
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), getExceptionMessage(e));
-        continue;
-      }
 
-      configEntries.put(backendID, configEntry);
+        configEntries.put(backendID, configEntry);
+      }
+    }
+    catch (ConfigException e)
+    {
+      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, e.getMessage());
     }
 
     return configEntries;
@@ -179,8 +150,7 @@ public class TaskUtils
    */
   public static BackendCfg getConfigEntry(Backend<?> backend)
   {
-    RootCfg root = ServerManagementContext.getInstance().
-         getRootConfiguration();
+    RootCfg root = getServerManagementContext().getRootConfiguration();
     try
     {
       return root.getBackend(backend.getBackendID());
@@ -191,7 +161,10 @@ public class TaskUtils
     }
   }
 
-
+  private static ServerManagementContext getServerManagementContext()
+  {
+    return DirectoryServer.getInstance().getServerContext().getServerManagementContext();
+  }
 
   /**
    * Enables a backend using an internal modify operation on the
@@ -204,7 +177,7 @@ public class TaskUtils
        throws DirectoryException
   {
     DN configEntryDN;
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
+    RootCfg root = getServerManagementContext().getRootConfiguration();
     try
     {
       BackendCfg cfg = root.getBackend(backendID);
@@ -240,7 +213,7 @@ public class TaskUtils
   public static void disableBackend(String backendID) throws DirectoryException
   {
     DN configEntryDN;
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
+    RootCfg root = getServerManagementContext().getRootConfiguration();
     try
     {
       BackendCfg cfg = root.getBackend(backendID);

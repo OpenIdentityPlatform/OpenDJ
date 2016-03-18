@@ -19,7 +19,6 @@ package org.opends.server.tools;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -37,9 +36,9 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -438,7 +437,7 @@ public class LDIFModify
                       .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       sourceFile =

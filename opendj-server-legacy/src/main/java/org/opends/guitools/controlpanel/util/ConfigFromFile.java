@@ -42,7 +42,6 @@ import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
@@ -121,7 +120,8 @@ public class ConfigFromFile extends ConfigReader
     {
       logger.warn(LocalizableMessage.raw("Error reading configuration: " + oe, oe));
     }
-    exceptions = Collections.unmodifiableList(errors);
+    exceptions.addAll(errors);
+    exceptions = Collections.unmodifiableList(exceptions);
     administrativeUsers = Collections.unmodifiableSet(alternateBindDNs);
     listeners = Collections.unmodifiableSet(connectionHandlers);
     backends = Collections.unmodifiableSet(backendDescriptors);
@@ -153,7 +153,8 @@ public class ConfigFromFile extends ConfigReader
       final List<OpenDsException> errors) throws OpenDsException, ConfigException
   {
     // Get the Directory Server configuration handler and use it.
-    final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    final RootCfg root =
+        DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
     readAdminConnector(root, errors);
     readConnectionHandlers(connectionHandlers, root, errors);
     isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();

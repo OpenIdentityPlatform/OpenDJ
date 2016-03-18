@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -30,9 +30,8 @@ import java.util.Properties;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.api.ConfigHandler;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.ConfigFileHandler;
 
 /**
  * This class provides a set of properties that may control various
@@ -518,7 +517,7 @@ public final class DirectoryEnvironmentConfig
     String className = getProperty(PROPERTY_CONFIG_CLASS);
     if (className == null)
     {
-      return ConfigFileHandler.class;
+      return ConfigurationHandler.class;
     }
     else
     {
@@ -528,7 +527,7 @@ public final class DirectoryEnvironmentConfig
       }
       catch (Exception e)
       {
-        return ConfigFileHandler.class;
+        return ConfigurationHandler.class;
       }
     }
   }
@@ -557,15 +556,14 @@ public final class DirectoryEnvironmentConfig
   {
     checkServerIsRunning();
 
-    if (!ConfigHandler.class.isAssignableFrom(configClass))
+    if (!ConfigurationHandler.class.isAssignableFrom(configClass))
     {
       throw new InitializationException(
               ERR_DIRCFG_INVALID_CONFIG_CLASS.get(
                       configClass.getName()));
     }
 
-    String oldClassName = setProperty(PROPERTY_CONFIG_CLASS,
-                                      configClass.getName());
+    String oldClassName = setProperty(PROPERTY_CONFIG_CLASS, configClass.getName());
     if (oldClassName == null)
     {
       return null;

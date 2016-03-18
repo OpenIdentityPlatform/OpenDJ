@@ -34,7 +34,6 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
@@ -61,7 +60,7 @@ public class ServerDescriptor
   private String instancePath;
   private String openDSVersion;
   private String javaVersion;
-  private ArrayList<OpenDsException> exceptions = new ArrayList<>();
+  private ArrayList<Exception> exceptions = new ArrayList<>();
   private boolean isWindowsServiceEnabled;
   private boolean isSchemaEnabled;
   private Schema schema;
@@ -467,7 +466,7 @@ public class ServerDescriptor
    * Returns the exceptions that occurred while reading the configuration.
    * @return the exceptions that occurred while reading the configuration.
    */
-  public List<OpenDsException> getExceptions()
+  public List<Exception> getExceptions()
   {
     return Collections.unmodifiableList(exceptions);
   }
@@ -477,7 +476,7 @@ public class ServerDescriptor
    * @param exceptions exceptions that occurred while reading the
    * configuration.
    */
-  public void setExceptions(Collection<OpenDsException> exceptions)
+  public void setExceptions(Collection<Exception> exceptions)
   {
     this.exceptions.clear();
     this.exceptions.addAll(exceptions);

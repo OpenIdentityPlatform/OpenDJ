@@ -21,6 +21,7 @@ import java.io.File;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.opends.server.core.ConfigurationBootstrapper;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
@@ -80,7 +81,8 @@ public class ServerContextBuilder
   public ServerContextBuilder withConfigurationBootstrapped()
       throws InitializationException
   {
-    final ServerManagementContext serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
+    final ServerManagementContext serverManagementContext =
+        ConfigurationBootstrapper.bootstrap(serverContext, ConfigurationHandler.class);
     when(serverContext.getServerManagementContext()).thenReturn(serverManagementContext);
     return this;
   }

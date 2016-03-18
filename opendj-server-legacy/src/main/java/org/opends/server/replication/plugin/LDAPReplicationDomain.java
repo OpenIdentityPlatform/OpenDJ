@@ -59,6 +59,7 @@ import java.util.zip.DataFormatException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AVA;
@@ -69,6 +70,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
@@ -85,6 +87,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -3862,9 +3865,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       DN eclConfigEntryDN = DN.valueOf("cn=external changeLog," + config.dn());
-      if (DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
+      if (DirectoryServer.getConfigurationHandler().hasEntry(eclConfigEntryDN))
       {
-        DirectoryServer.getConfigHandler().deleteEntry(eclConfigEntryDN, null);
+        DirectoryServer.getConfigurationHandler().deleteEntry(eclConfigEntryDN);
       }
     }
     catch(Exception e)
@@ -3889,7 +3892,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       DN configDn = config.dn();
-      if (DirectoryServer.getConfigHandler().entryExists(configDn))
+      ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+      if (configHandler.hasEntry(config.dn()))
       {
         try
         { eclDomCfg = domCfg.getExternalChangelogDomain();
@@ -3900,7 +3904,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
           // no ECL config provided hence create a default one
           // create the default one
           DN eclConfigEntryDN = DN.valueOf("cn=external changelog," + configDn);
-          if (!DirectoryServer.getConfigHandler().entryExists(eclConfigEntryDN))
+          if (!configHandler.hasEntry(eclConfigEntryDN))
           {
             // no entry exist yet for the ECL config for this domain
             // create it
@@ -3916,7 +3920,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
             ldifImportConfig.setValidateSchema(false);
             LDIFReader reader = new LDIFReader(ldifImportConfig);
             Entry eclEntry = reader.readEntry();
-            DirectoryServer.getConfigHandler().addEntry(eclEntry, null);
+            configHandler.addEntry(Converters.from(eclEntry));
             ldifImportConfig.close();
           }
         }

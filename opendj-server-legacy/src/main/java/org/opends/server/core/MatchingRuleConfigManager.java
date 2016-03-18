@@ -32,7 +32,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.server.config.meta.MatchingRuleCfgDefn;
@@ -97,7 +96,7 @@ public class MatchingRuleConfigManager
   public void initializeMatchingRules()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = ServerManagementContext.getInstance().getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
 
     // Register as an add and delete listener with the root configuration so we

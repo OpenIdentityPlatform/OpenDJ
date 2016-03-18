@@ -35,7 +35,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
   public Object[][] createSyntaxTest() throws Exception
   {
     // some config object used later in the test
-    Entry strictConfig = new Entry(TestCaseUtils.makeEntry(
+    Entry strictConfig = TestCaseUtils.makeEntry(
         "dn: cn=Telephone Number,cn=Syntaxes,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-telephone-number-attribute-syntax",
@@ -44,9 +44,9 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
         "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSyntax",
         "cn: Telephone Number"
-         ), null);
+         );
 
-    Entry relaxedConfig = new Entry(TestCaseUtils.makeEntry(
+    Entry relaxedConfig = TestCaseUtils.makeEntry(
         "dn: cn=Telephone Number,cn=Syntaxes,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-telephone-number-attribute-syntax",
@@ -55,7 +55,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
         "ds-cfg-enabled: true",
         "ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSyntax",
         "cn: Telephone Number"
-         ), null);
+         );
 
     // fill this table with tables containing :
     // - the configEntry that must be applied before the test.

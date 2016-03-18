@@ -27,6 +27,7 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -217,7 +218,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     Entry domainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
 
     // Add the config entry to create the replicated domain
-    DirectoryServer.getConfigHandler().addEntry(domainCfgEntry, null);
+    DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
@@ -245,7 +246,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     Entry domainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
 
     // Add the config entry to create the replicated domain
-    DirectoryServer.getConfigHandler().addEntry(domainCfgEntry, null);
+    DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getConfigEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 

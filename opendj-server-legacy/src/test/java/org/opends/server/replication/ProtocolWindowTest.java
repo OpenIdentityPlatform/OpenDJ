@@ -23,6 +23,7 @@ import java.util.NoSuchElementException;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -102,7 +103,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     Entry repDomainEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     // Configure replication domain
-    DirectoryServer.getConfigHandler().addEntry(repDomainEntry, null);
+    DirectoryServer.getConfigurationHandler().addEntry(Converters.from(repDomainEntry));
     assertNotNull(DirectoryServer.getConfigEntry(repDomainEntry.getName()),
           "Unable to add the synchronized server");
     configEntriesToCleanup.add(repDomainEntry.getName());

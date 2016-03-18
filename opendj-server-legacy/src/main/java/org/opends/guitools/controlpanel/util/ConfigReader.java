@@ -32,6 +32,7 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
+import org.opends.server.core.ConfigurationBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.forgerock.opendj.ldap.DN;
@@ -78,7 +79,7 @@ public abstract class ConfigReader
       Utilities.getInstanceRootDirectory(installRoot).getAbsolutePath();
     configFile = instanceRoot + File.separator + "config" + File.separator +
     "config.ldif";
-    configClassName = ReadOnlyConfigFileHandler.class.getName();
+    configClassName = ConfigurationBackend.class.getName();
     try
     {
       DirectoryEnvironmentConfig env = DirectoryServer.getEnvironmentConfig();
@@ -100,7 +101,7 @@ public abstract class ConfigReader
   /**
    * The exceptions that occurred reading the configuration.
    */
-  protected List<OpenDsException> exceptions = Collections.emptyList();
+  protected List<Exception> exceptions = Collections.emptyList();
 
   /**
    * Whether the configuration has already been read or not.
@@ -204,7 +205,7 @@ public abstract class ConfigReader
    * @return the list of exceptions that were encountered reading the
    * configuration.
    */
-  public List<OpenDsException> getExceptions()
+  public List<Exception> getExceptions()
   {
     return exceptions;
   }

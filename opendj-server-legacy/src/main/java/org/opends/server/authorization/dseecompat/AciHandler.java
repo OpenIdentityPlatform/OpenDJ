@@ -36,11 +36,12 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
+import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.BindOperation;
+import org.opends.server.core.ConfigurationBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
@@ -1036,7 +1037,7 @@ public final class AciHandler extends
     LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<>();
     InternalClientConnection conn = getRootConnection();
 
-    ConfigHandler<?> configBackend = DirectoryServer.getConfigHandler();
+    Backend<?> configBackend = DirectoryServer.getBackend(ConfigurationBackend.CONFIG_BACKEND_ID);
     for (DN baseDN : configBackend.getBaseDNs())
     {
       try

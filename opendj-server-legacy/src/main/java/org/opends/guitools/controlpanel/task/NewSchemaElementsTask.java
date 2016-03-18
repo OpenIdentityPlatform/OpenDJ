@@ -322,7 +322,7 @@ public class NewSchemaElementsTask extends Task
       final BasicAttribute attr = new BasicAttribute(schemaElement.getAttributeName());
       attr.add(getElementDefinition(schemaElement));
       final ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE, attr);
-      getInfo().getDirContext().modifyAttributes(
+      getInfo().getConnection().getLdapContext().modifyAttributes(
           ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, new ModificationItem[] { mod });
     }
     catch (NamingException ne)

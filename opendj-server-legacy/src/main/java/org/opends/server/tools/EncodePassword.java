@@ -38,7 +38,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.LDIFBackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
@@ -47,12 +46,12 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.Entry;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.crypto.CryptoManagerSync;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -194,7 +193,7 @@ public class EncodePassword
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
                       .required()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       configFile =
@@ -715,7 +714,7 @@ public class EncodePassword
   throws InitializationException, ConfigException {
     directoryServer.initializeRootDSE();
 
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
+    RootCfg root = directoryServer.getServerContext().getServerManagementContext().getRootConfiguration();
     Entry backendRoot;
     try {
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);

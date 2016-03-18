@@ -59,7 +59,8 @@ import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.OpenDsException;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.util.Utils;
 
 /**
  * The panel displaying the general status of the server (started/stopped),
@@ -222,7 +223,7 @@ class StatusPanel extends StatusGenericPanel
       pos = Utilities.getViewPositions(this);
     }
 
-    Collection<OpenDsException> exceptions = desc.getExceptions();
+    Collection<Exception> exceptions = desc.getExceptions();
     if (exceptions.isEmpty())
     {
       boolean errorPaneVisible = false;
@@ -264,39 +265,32 @@ class StatusPanel extends StatusGenericPanel
     }
     else
     {
-      ArrayList<LocalizableMessage> msgs = new ArrayList<>();
-      for (OpenDsException oe : exceptions)
+      ArrayList<String> msgs = new ArrayList<>();
+      for (Exception e : exceptions)
       {
-        msgs.add(oe.getMessageObject());
+        msgs.add(e instanceof LdapException ? ((LdapException) e).getLocalizedMessage() : e.getMessage());
       }
       LocalizableMessage title = ERR_CTRL_PANEL_ERROR_READING_CONFIGURATION_SUMMARY.get();
-      LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      for (LocalizableMessage error : msgs)
-      {
-        if (mb.length() > 0)
-        {
-          mb.append("<br>");
-        }
-        mb.append(error);
-      }
+      StringBuilder sb = new StringBuilder();
+      Utils.joinAsString("<br>", msgs);
       if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
       {
         if (!desc.isAuthenticated())
         {
-          mb.append("<br>");
-          mb.append(INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.get());
-          mb.append("<br><br>").append(getAuthenticateHTML());
+          sb.append("<br>");
+          sb.append(INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.get());
+          sb.append("<br><br>").append(getAuthenticateHTML());
         }
       }
       else if (desc.getStatus() ==
         ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
       {
-        mb.append("<br>");
-        mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
-        mb.append("<br><br>").append(getAuthenticateHTML());
+        sb.append("<br>");
+        sb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+        sb.append("<br><br>").append(getAuthenticateHTML());
       }
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
-          mb.toMessage(), ColorAndFontConstants.defaultFont);
+          LocalizableMessage.raw(sb), ColorAndFontConstants.defaultFont);
 
       if (!errorPane.isVisible())
       {

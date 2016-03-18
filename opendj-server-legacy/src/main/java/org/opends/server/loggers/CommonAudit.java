@@ -77,8 +77,10 @@ import org.forgerock.opendj.server.config.server.SizeLimitLogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.TimeLimitLogRotationPolicyCfg;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.core.ServerContext;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -119,14 +121,20 @@ public class CommonAudit
 
   private final AtomicBoolean trustTransactionIds = new AtomicBoolean(false);
 
+  private final ServerContext serverContext;
+
   /**
    * Creates the common audit.
+   *
+   * @param serverContext
+   *            The server context.
    *
    * @throws ConfigException
    *           If an error occurs.
    */
-  public CommonAudit() throws ConfigException
+  public CommonAudit(ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
     configurationFramework = ConfigurationFramework.getInstance();
     this.dependencyProvider = new CommonAuditDependencyProvider();
     this.httpAccessAuditService = createAuditServiceWithoutHandlers();
@@ -184,7 +192,7 @@ public class CommonAudit
    */
   public RequestHandler getRequestHandler(LogPublisherCfg config) throws ConfigException
   {
-    if (new PublisherConfig(config).isHttpAccessLog())
+    if (new PublisherConfig(serverContext, config).isHttpAccessLog())
     {
       return httpAccessAuditService;
     }
@@ -206,7 +214,7 @@ public class CommonAudit
       logger.trace(String.format("Setting up common audit for configuration entry: %s", newConfig.dn()));
       try
       {
-        final PublisherConfig newPublisher = new PublisherConfig(newConfig);
+        final PublisherConfig newPublisher = new PublisherConfig(serverContext, newConfig);
         String normalizedName = getConfigNormalizedName(newConfig);
         if (newPublisher.isHttpAccessLog())
         {
@@ -645,7 +653,7 @@ public class CommonAudit
    */
   public boolean isCommonAuditConfig(LogPublisherCfg config) throws ConfigException
   {
-    return new PublisherConfig(config).isCommonAudit();
+    return new PublisherConfig(serverContext, config).isCommonAudit();
   }
 
   /**
@@ -703,31 +711,37 @@ public class CommonAudit
     private LogType logType;
     private AuditType auditType;
 
-    PublisherConfig(LogPublisherCfg config) throws ConfigException
+    PublisherConfig(ServerContext serverContext, LogPublisherCfg config) throws ConfigException
     {
       this.config = config;
       Entry configEntry = DirectoryServer.getConfigEntry(config.dn());
-      if (configEntry.hasObjectClass("ds-cfg-csv-file-access-log-publisher"))
+      if (hasObjectClass(serverContext,configEntry, "ds-cfg-csv-file-access-log-publisher"))
       {
         auditType = AuditType.CSV;
         logType = LogType.ACCESS;
       }
-      else if (configEntry.hasObjectClass("ds-cfg-csv-file-http-access-log-publisher"))
+      else if (hasObjectClass(serverContext,configEntry, "ds-cfg-csv-file-http-access-log-publisher"))
       {
         auditType = AuditType.CSV;
         logType = LogType.HTTP_ACCESS;
       }
-      else if (configEntry.hasObjectClass("ds-cfg-external-access-log-publisher"))
+      else if (hasObjectClass(serverContext,configEntry, "ds-cfg-external-access-log-publisher"))
       {
         auditType = AuditType.EXTERNAL;
         logType = LogType.ACCESS;
       }
-      else if (configEntry.hasObjectClass("ds-cfg-external-http-access-log-publisher"))
+      else if (hasObjectClass(serverContext,configEntry, "ds-cfg-external-http-access-log-publisher"))
       {
         auditType = AuditType.EXTERNAL;
         logType = LogType.HTTP_ACCESS;
       }
       isCommonAudit = auditType != null;
+    }
+
+    private boolean hasObjectClass(ServerContext serverContext, Entry entry, String objectClassName)
+    {
+      ObjectClass objectClass = serverContext.getSchema().getObjectClass(objectClassName);
+      return objectClass != null && entry.hasObjectClass(objectClass);
     }
 
     DN getDn()

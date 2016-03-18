@@ -2162,13 +2162,8 @@ public class PasswordPolicyTestCase
   public void testInvalidConstructor(Entry e)
          throws Exception
   {
-    DN parentDN = DN.valueOf("cn=Password Policies,cn=config");
-    Entry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    Entry configEntry = new Entry(e, parentEntry);
-
     PasswordPolicyCfg configuration =
-      AdminTestCaseUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(),
-          configEntry);
+      AdminTestCaseUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(), e);
 
     new PasswordPolicyFactory().createAuthenticationPolicy(configuration);
   }

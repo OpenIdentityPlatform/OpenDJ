@@ -288,7 +288,7 @@ public class DeleteSchemaElementsTask extends Task
         BasicAttribute attr = new BasicAttribute(getSchemaFileAttributeName(element));
         attr.add(getSchemaFileAttributeValue(element));
         ModificationItem mod = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
-        getInfo().getDirContext().modifyAttributes(
+        getInfo().getConnection().getLdapContext().modifyAttributes(
             ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
             new ModificationItem[]  { mod });
       }

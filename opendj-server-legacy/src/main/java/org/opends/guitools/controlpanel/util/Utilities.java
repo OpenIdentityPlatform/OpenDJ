@@ -113,10 +113,8 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.config.ConfigurationFramework;
-import org.opends.server.api.ConfigHandler;
-import org.opends.server.types.Entry;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.admin.ClassLoaderProvider;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SomeSchemaElement;
@@ -2312,19 +2310,18 @@ public class Utilities
    * @throws OpenDsException if an error occurs.
    * @throws ConfigException if an error occurs.
    */
-  public static void deleteConfigSubtree(ConfigHandler confHandler, DN dn)
+  public static void deleteConfigSubtree(ConfigurationHandler confHandler, DN dn)
   throws OpenDsException, ConfigException
   {
-    Entry confEntry = confHandler.getConfigEntry(dn);
+    org.forgerock.opendj.ldap.Entry confEntry = confHandler.getEntry(dn);
     if (confEntry != null)
     {
       // Copy the values to avoid problems with this recursive method.
-      ArrayList<DN> childDNs = new ArrayList<>(confEntry.getChildren().keySet());
-      for (DN childDN : childDNs)
+      for (DN childDN : new ArrayList<>(confHandler.getChildren(dn)))
       {
         deleteConfigSubtree(confHandler, childDN);
       }
-      confHandler.deleteEntry(dn, null);
+      confHandler.deleteEntry(dn);
     }
   }
 

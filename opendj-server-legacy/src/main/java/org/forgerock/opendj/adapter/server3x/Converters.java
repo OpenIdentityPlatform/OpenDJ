@@ -17,7 +17,6 @@ package org.forgerock.opendj.adapter.server3x;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
-
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -46,8 +45,7 @@ import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
-import org.forgerock.util.Reject;
+import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DirectoryServer;
@@ -525,7 +523,7 @@ public final class Converters {
      *          The server scope value.
      * @return The SDK scope value.
      */
-    public static SearchScope from(org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope srvScope) {
+    public static SearchScope from(VirtualAttributeCfgDefn.Scope srvScope) {
         if (srvScope != null) {
             switch (srvScope) {
             case BASE_OBJECT:
@@ -655,31 +653,5 @@ public final class Converters {
             // Nothing to do.
         }
         return ByteString.empty();
-    }
-
-    /**
-     * Converts from OpenDJ server
-     * {@link org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope} to
-     * {@link org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope}.
-     *
-     * @param scope
-     *          The scope value.
-     * @return The converted scope value.
-     */
-    public static BackendVLVIndexCfgDefn.Scope from(
-        final org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope scope) {
-      Reject.ifNull(scope, "Provided scope to convert is null");
-      switch (scope) {
-      case BASE_OBJECT:
-        return BackendVLVIndexCfgDefn.Scope.BASE_OBJECT;
-      case SINGLE_LEVEL:
-        return BackendVLVIndexCfgDefn.Scope.SINGLE_LEVEL;
-      case SUBORDINATE_SUBTREE:
-        return BackendVLVIndexCfgDefn.Scope.SUBORDINATE_SUBTREE;
-      case WHOLE_SUBTREE:
-        return BackendVLVIndexCfgDefn.Scope.WHOLE_SUBTREE;
-      default:
-        throw new IllegalArgumentException("Impossible to convert the unknown scope: " + scope);
-      }
     }
 }

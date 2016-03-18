@@ -29,7 +29,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
@@ -77,22 +76,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getOperatingSystem();
   }
-
-
-
-  /**
-   * Retrieves a reference to the Directory Server configuration
-   * handler.
-   *
-   * @return  A reference to the Directory Server configuration
-   *          handler.
-   */
-  public static ConfigHandler getConfigHandler()
-  {
-    return DirectoryServer.getConfigHandler();
-  }
-
-
 
   /**
    * Retrieves the requested entry from the Directory Server

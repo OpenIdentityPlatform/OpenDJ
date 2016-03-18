@@ -16,6 +16,7 @@
  */
 package org.opends.server.tools;
 
+import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -27,6 +28,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,15 +36,18 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
@@ -142,7 +147,7 @@ public class ListBackends
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
                       .required()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       configFile =
@@ -467,53 +472,22 @@ public class ListBackends
       throw new ConfigException(message, e);
     }
 
-    Entry baseEntry = null;
-    try
-    {
-      baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (ConfigException ce)
-    {
-      LocalizableMessage message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
-          DN_BACKEND_BASE, ce.getMessage());
-      throw new ConfigException(message, ce);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
-          DN_BACKEND_BASE, getExceptionMessage(e));
-      throw new ConfigException(message, e);
-    }
-
-
     // Iterate through the immediate children, attempting to parse them as backends.
     TreeMap<String,TreeSet<DN>> backendMap = new TreeMap<>();
-    for (Entry configEntry : baseEntry.getChildren().values())
+    ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+    for (DN childrenDn : configHandler.getChildren(backendBaseDN))
     {
+      Entry configEntry = Converters.to(configHandler.getEntry(childrenDn));
       // Get the backend ID attribute from the entry.  If there isn't one, then
       // skip the entry.
       String backendID = null;
       try
       {
-        LocalizableMessage msg = INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get();
-        StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID, msg,
-                                       true, false, true);
-        StringConfigAttribute idAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
+        backendID = BackendToolUtils.getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
+        if (backendID == null)
         {
           continue;
         }
-        else
-        {
-          backendID = idAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        LocalizableMessage message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(configEntry.getName(), ce.getMessage());
-        throw new ConfigException(message, ce);
       }
       catch (Exception e)
       {
@@ -527,15 +501,14 @@ public class ListBackends
       TreeSet<DN> baseDNs = new TreeSet<>();
       try
       {
-        LocalizableMessage msg = INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get();
-        DNConfigAttribute baseDNStub =
-             new DNConfigAttribute(ATTR_BACKEND_BASE_DN, msg,
-                                   true, true, true);
-        DNConfigAttribute baseDNAttr =
-             (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-        if (baseDNAttr != null)
+        List<Attribute> attributes = configEntry.getAttribute(ATTR_BACKEND_BASE_DN);
+        if (!attributes.isEmpty())
         {
-          baseDNs.addAll(baseDNAttr.activeValues());
+          Attribute attribute = attributes.get(0);
+          for (ByteString byteString : attribute)
+          {
+            baseDNs.add(DN.valueOf(byteString.toString()));
+          }
         }
       }
       catch (Exception e)

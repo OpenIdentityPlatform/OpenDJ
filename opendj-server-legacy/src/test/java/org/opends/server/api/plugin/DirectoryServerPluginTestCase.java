@@ -29,6 +29,7 @@ import org.testng.annotations.BeforeClass;
 import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.PluginCfg;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.plugins.NullPlugin;
 import org.opends.server.types.DisconnectReason;
 import org.forgerock.opendj.ldap.DN;
@@ -807,7 +808,8 @@ public class DirectoryServerPluginTestCase
     HashSet<PluginType> pluginTypes = new HashSet<>();
     Collections.addAll(pluginTypes, PluginType.values());
 
-    nullPlugin.initializeInternal(configuration.dn(), pluginTypes,
+    nullPlugin.initializeInternal(DirectoryServer.getInstance().getServerContext(),
+        configuration.dn(), pluginTypes,
         configuration.isInvokeForInternalOperations());
     assertEquals(nullPlugin.getPluginEntryDN(), pluginEntryDN);
   }
@@ -889,7 +891,8 @@ public class DirectoryServerPluginTestCase
     HashSet<PluginType> pluginTypes = new HashSet<>();
     Collections.addAll(pluginTypes, PluginType.values());
 
-    nullPlugin.initializeInternal(configuration.dn(), pluginTypes,
+    nullPlugin.initializeInternal(DirectoryServer.getInstance().getServerContext(),
+        configuration.dn(), pluginTypes,
         configuration.isInvokeForInternalOperations());
     assertEquals(nullPlugin.getPluginTypes(), pluginTypes);
   }

@@ -19,7 +19,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 import static javax.security.auth.callback.TextOutputCallback.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.Upgrade.*;
@@ -40,8 +39,8 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.messages.RuntimeMessages;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.util.StaticUtils;
 
@@ -216,7 +215,7 @@ public final class UpgradeCli extends ConsoleApplication implements
   {
     if (!globalArgumentsInitialized)
     {
-      configClass = configClassArgument(ConfigFileHandler.class.getName());
+      configClass = configClassArgument(ConfigurationHandler.class.getName());
       configFile = configFileArgument();
       noPrompt = noPromptArgument();
       verbose = verboseArgument();

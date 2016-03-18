@@ -53,7 +53,6 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.client.ManagementContext;
@@ -1126,7 +1125,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
     if (isCreation || indexToModify.getScope() != searchScope)
     {
-      index.setScope(Converters.from(VLVIndexDescriptor.getBackendVLVIndexScope(searchScope)));
+      index.setScope(VLVIndexDescriptor.getBackendVLVIndexScope(searchScope));
     }
 
     if (isCreation || !indexToModify.getSortOrder().equals(sortOrder))

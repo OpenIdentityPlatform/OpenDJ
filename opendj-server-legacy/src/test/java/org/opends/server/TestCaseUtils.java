@@ -39,11 +39,6 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.forgerock.opendj.config.client.ldap.LDAPConnection;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.api.Backend;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.PluginType;
@@ -52,9 +47,9 @@ import org.opends.server.backends.pluggable.BackendImpl;
 import org.opends.server.backends.pluggable.EntryContainer;
 import org.opends.server.backends.pluggable.RootContainer;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.*;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
@@ -422,7 +417,7 @@ public final class TestCaseUtils {
       config.setInstanceRoot(testInstanceRoot);
 
       config.setForceDaemonThreads(true);
-      config.setConfigClass(ConfigFileHandler.class);
+      config.setConfigClass(ConfigurationHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
       // Initialize the configuration framework for DSConfig.
@@ -1677,34 +1672,6 @@ public final class TestCaseUtils {
     System.arraycopy(args, 0, fullArgs, 11, args.length);
 
     assertEquals(DSConfig.main(fullArgs, System.out, System.err), 0);
-  }
-
-  /**
-   * Gets the root configuration associated with the active server
-   * instance. This root configuration can then be used to access and
-   * modify the server's configuration using that administration
-   * framework's strongly typed API.
-   * <p>
-   * Note: were possible the {@link #dsconfig(String...)} method
-   * should be used in preference to this method in order to perform
-   * end-to-end testing.
-   *
-   * @return Returns the root configuration associated with the active
-   *         server instance.
-   * @throws Exception
-   *           If the management context could not be initialized
-   *           against the active server instance.
-   */
-  public static RootCfgClient getRootConfiguration() throws Exception
-  {
-    LDAPConnection connection = JNDIDirContextAdaptor.simpleSSLBind(
-        "127.0.0.1",
-        serverAdminPort,
-        "cn=Directory Manager",
-        "password");
-
-    ManagementContext context = LDAPManagementContext.createFromContext(connection);
-    return context.getRootConfiguration();
   }
 
   /**

@@ -2054,7 +2054,7 @@ public class ConfigFileHandler
     // this class as a backend and not as the config handler.  We need it as a
     // config handler to determine the path to the config file, so we can get
     // that from the Directory Server object.
-    return new File(((ConfigFileHandler) DirectoryServer.getConfigHandler()).configFile);
+    return new File(((ConfigFileHandler) DirectoryServer.getConfigurationHandler()).configFile);
   }
 
   /** {@inheritDoc} */

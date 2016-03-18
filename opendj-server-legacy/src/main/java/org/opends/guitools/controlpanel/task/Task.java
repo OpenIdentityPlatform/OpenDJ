@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.task;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
@@ -52,6 +51,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
@@ -730,7 +730,7 @@ public abstract class Task
   {
     List<String> args = new ArrayList<>();
     args.add("--configClass");
-    args.add(org.opends.server.extensions.ConfigFileHandler.class.getName());
+    args.add(ConfigurationHandler.class.getName());
     args.add("--configFile");
     args.add(ConfigReader.configFile);
     return args;
@@ -763,7 +763,7 @@ public abstract class Task
 
     if (useAdminConnector)
     {
-      ctx = getInfo().getDirContext();
+      ctx = getInfo().getConnection().getLdapContext();
     }
     else
     {

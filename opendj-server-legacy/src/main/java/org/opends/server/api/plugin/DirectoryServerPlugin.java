@@ -26,6 +26,7 @@ import org.opends.server.api.ClientConnection;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
@@ -58,7 +59,8 @@ public abstract class DirectoryServerPlugin
   /** The plugin types for which this plugin is registered. */
   private Set<PluginType> pluginTypes;
 
-
+  /** The server context. */
+  private ServerContext serverContext;
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every
@@ -71,7 +73,15 @@ public abstract class DirectoryServerPlugin
   {
   }
 
-
+  /**
+   * Returns the server context.
+   *
+   * @return the server context.
+   */
+  protected ServerContext getServerContext()
+  {
+    return serverContext;
+  }
 
   /**
    * Indicates whether the provided configuration is acceptable for
@@ -104,6 +114,8 @@ public abstract class DirectoryServerPlugin
    * plugins regardless of type. This should only be called by the
    * core Directory Server code during the course of loading a plugin.
    *
+   * @param serverContext
+   *          The server context.
    * @param pluginDN
    *          The configuration entry name of this plugin.
    * @param pluginTypes
@@ -118,9 +130,10 @@ public abstract class DirectoryServerPlugin
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  public final void initializeInternal(DN pluginDN,
+  public final void initializeInternal(ServerContext serverContext, DN pluginDN,
       Set<PluginType> pluginTypes, boolean invokeForInternalOps)
   {
+    this.serverContext = serverContext;
     this.pluginDN = pluginDN;
     this.pluginTypes = pluginTypes;
     this.invokeForInternalOps = invokeForInternalOps;

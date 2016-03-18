@@ -32,9 +32,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ServerManagementContext;
+import org.forgerock.opendj.ldap.AddressMask;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn.SSLClientAuthPolicy;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
@@ -48,7 +48,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
@@ -187,8 +186,7 @@ public final class AdministrationConnector implements
    * This private class implements a fake LDAP connection Handler configuration.
    * This allows to re-use the LDAPConnectionHandler as it is.
    */
-  private static class LDAPConnectionCfgAdapter implements
-      LDAPConnectionHandlerCfg
+  private static class LDAPConnectionCfgAdapter implements LDAPConnectionHandlerCfg
   {
     private final AdministrationConnectorCfg config;
 
@@ -449,8 +447,7 @@ public final class AdministrationConnector implements
   {
     try
     {
-      RootCfg root = ServerManagementContext.getInstance()
-          .getRootConfiguration();
+      RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
       AdministrationConnectorCfg config = root.getAdministrationConnector();
 
       // Check if certificate generation is needed

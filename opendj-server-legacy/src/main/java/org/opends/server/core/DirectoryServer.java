@@ -60,6 +60,7 @@ import javax.management.MBeanServerFactory;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -68,11 +69,6 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.util.Reject;
-import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.admin.AdministrationDataSync;
-import org.forgerock.opendj.config.ConfigurationFramework;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
@@ -81,6 +77,10 @@ import org.forgerock.opendj.server.config.server.PasswordValidatorCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
+import org.forgerock.util.Reject;
+import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.admin.AdministrationDataSync;
+import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
@@ -92,10 +92,6 @@ import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.CompressedSchema;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.EntryCache;
@@ -119,13 +115,11 @@ import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.backends.RootDSEBackend;
-import org.opends.server.types.Entry;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.AccessLogger;
@@ -168,6 +162,7 @@ import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.ActivateOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.ModifyOnceSDKSchemaIsUsed;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
@@ -293,10 +288,10 @@ public final class DirectoryServer
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
   /** The class used to provide the config handler implementation. */
-  private Class<ConfigHandler> configClass;
+  private Class<ConfigurationHandler> configClass;
 
   /** The configuration handler for the Directory Server. */
-  private ConfigHandler configHandler;
+  private ConfigurationHandler configurationHandler;
 
   /** The set of account status notification handlers defined in the server. */
   private ConcurrentMap<DN, AccountStatusNotificationHandler>
@@ -1075,6 +1070,7 @@ public final class DirectoryServer
 
     environmentConfig.setConfigClass(cfgClass);
     environmentConfig.setConfigFile(cfgFile);
+
     initializeConfiguration();
   }
 
@@ -1089,11 +1085,11 @@ public final class DirectoryServer
    * @throws InitializationException
    */
   @ActivateOnceNewConfigFrameworkIsUsed("it will need adaptation to be activated before sdk schema is ready")
-  @ActivateOnceSDKSchemaIsUsed
+  @ModifyOnceSDKSchemaIsUsed
   private void initializeNG() throws InitializationException
   {
-    serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
-    initializeSchemaNG();
+    //serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
+    //initializeSchemaNG();
 
     // TODO : config backend should be initialized later, with the other backends
     //ConfigBackend configBackend = new ConfigBackend();
@@ -1116,70 +1112,10 @@ public final class DirectoryServer
     }
   }
 
-  /**
-   * Instantiates the configuration handler and loads the Directory Server
-   * configuration.
-   *
-   * @throws  InitializationException  If a problem occurs while trying to
-   *                                   initialize the config handler.
-   */
-  public void initializeConfiguration()
-         throws InitializationException
+  public void initializeConfiguration() throws InitializationException
   {
     this.configClass = environmentConfig.getConfigClass();
-    this.configFile  = environmentConfig.getConfigFile();
-
-    // Make sure that administration framework definition classes are loaded.
-    ClassLoaderProvider provider = ClassLoaderProvider.getInstance();
-    if (! provider.isEnabled())
-    {
-      provider.enable();
-    }
-
-    // Load and instantiate the configuration handler class.
-    Class<ConfigHandler> handlerClass = configClass;
-    try
-    {
-      configHandler = handlerClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message =
-          ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(configClass, e.getLocalizedMessage());
-      throw new InitializationException(message, e);
-    }
-
-    // Perform the handler-specific initialization.
-    try
-    {
-      String path;
-      try
-      {
-        path = configFile.getCanonicalPath();
-      }
-      catch (Exception ex)
-      {
-        path = configFile.getAbsolutePath();
-      }
-      configHandler.initializeConfigHandler(path, false);
-    }
-    catch (InitializationException ie)
-    {
-      logger.traceException(ie);
-
-      throw ie;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message =
-          ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
-              configClass, configFile, e.getLocalizedMessage());
-      throw new InitializationException(message, e);
-    }
+    serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext, configClass);
   }
 
   /**
@@ -1277,7 +1213,7 @@ public final class DirectoryServer
 
       initializeSchema();
 
-      commonAudit = new CommonAudit();
+      commonAudit = new CommonAudit(serverContext);
 
       // Allow internal plugins to be registered.
       pluginConfigManager.initializePluginConfigManager();
@@ -1338,8 +1274,10 @@ public final class DirectoryServer
       // Initialize both subentry manager and group manager
       // for the configuration backend.
       // TODO : why do we initialize these now ? Can't we do them after backend initialization ?
-      subentryManager.performBackendPreInitializationProcessing(configHandler);
-      groupManager.performBackendPreInitializationProcessing(configHandler);
+
+      Backend<?> configBackend = getConfigurationBackend();
+      subentryManager.performBackendPreInitializationProcessing(configBackend);
+      groupManager.performBackendPreInitializationProcessing(configBackend);
 
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
 
@@ -1409,7 +1347,7 @@ public final class DirectoryServer
       // Write a copy of the config if needed.
       if (saveConfigOnSuccessfulStartup)
       {
-        configHandler.writeSuccessfulStartupConfig();
+        configurationHandler.writeSuccessfulStartupConfig();
       }
 
       isRunning = true;
@@ -1434,14 +1372,14 @@ public final class DirectoryServer
   /** Delete "server.starting" and "hostname" files if they are present. */
   private void deleteUnnecessaryFiles()
   {
-    File serverStartingFile = new File(configHandler.getInstanceRoot() + File.separator + "logs"
+    File serverStartingFile = new File(environmentConfig.getInstanceRoot() + File.separator + "logs"
         + File.separator + "server.starting");
     if (serverStartingFile.exists())
     {
       serverStartingFile.delete();
     }
 
-    File hostNameFile = new File(configHandler.getInstanceRoot() + File.separator + SetupUtils.HOST_NAME_FILE);
+    File hostNameFile = new File(environmentConfig.getInstanceRoot() + File.separator + SetupUtils.HOST_NAME_FILE);
     if (hostNameFile.exists())
     {
       hostNameFile.delete();
@@ -1595,72 +1533,6 @@ public final class DirectoryServer
 
     // With server schema in place set compressed schema.
     compressedSchema = new DefaultCompressedSchema(serverContext);
-
-    // At this point we have a problem, because none of the configuration is
-    // usable because it was all read before we had a schema (and therefore all
-    // of the attribute types and objectclasses are bogus and won't let us find
-    // anything).  So we have to re-read the configuration so that we can
-    // continue the necessary startup process.  In the process, we want to
-    // preserve any configuration add/delete/change listeners that might have
-    // been registered with the old configuration (which will primarily be
-    // schema elements) so they can be re-registered with the new configuration.
-    Map<String, List<ConfigAddListener>> addListeners = new LinkedHashMap<>();
-    Map<String, List<ConfigDeleteListener>> deleteListeners = new LinkedHashMap<>();
-    Map<String, List<ConfigChangeListener>> changeListeners = new LinkedHashMap<>();
-    getChangeListeners(configHandler.getConfigRootEntry(), addListeners,
-                       deleteListeners, changeListeners);
-
-    try
-    {
-      configHandler.finalizeConfigHandler();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-
-    try
-    {
-      configHandler.initializeConfigHandler(configFile.getAbsolutePath(), true);
-    }
-    catch (InitializationException ie)
-    {
-      logger.traceException(ie);
-
-      throw ie;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      throw new InitializationException(ERR_CANNOT_INITIALIZE_CONFIG_HANDLER.get(
-          configClass, configFile, e.getLocalizedMessage()));
-    }
-
-    // Re-register all of the change listeners with the configuration.
-    for (String dnStr : addListeners.keySet())
-    {
-      for (ConfigAddListener listener : addListeners.get(dnStr))
-      {
-        configHandler.getConfigEntry(toDn(dnStr)).registerAddListener(listener);
-      }
-    }
-
-    for (String dnStr : deleteListeners.keySet())
-    {
-      for (ConfigDeleteListener listener : deleteListeners.get(dnStr))
-      {
-        configHandler.getConfigEntry(toDn(dnStr)).registerDeleteListener(listener);
-      }
-    }
-
-    for (String dnStr : changeListeners.keySet())
-    {
-      for (ConfigChangeListener listener : changeListeners.get(dnStr))
-      {
-        configHandler.getConfigEntry(toDn(dnStr)).registerChangeListener(listener);
-      }
-    }
   }
 
   private DN toDn(String dn) throws InitializationException
@@ -1686,41 +1558,9 @@ public final class DirectoryServer
     return directoryServer.compressedSchema;
   }
 
-  /**
-   * Gets all of the add, delete, and change listeners from the provided
-   * configuration entry and all of its descendants and puts them in the
-   * appropriate lists.
-   *
-   * @param  configEntry      The configuration entry to be processed, along
-   *                          with all of its descendants.
-   * @param  addListeners     The set of add listeners mapped to the DN of the
-   *                          corresponding configuration entry.
-   * @param  deleteListeners  The set of delete listeners mapped to the DN of
-   *                          the corresponding configuration entry.
-   * @param  changeListeners  The set of change listeners mapped to the DN of
-   *                          the corresponding configuration entry.
-   */
-  private void getChangeListeners(Entry configEntry,
-      Map<String, List<ConfigAddListener>> addListeners,
-      Map<String, List<ConfigDeleteListener>> deleteListeners,
-      Map<String, List<ConfigChangeListener>> changeListeners)
+  private Backend<?> getConfigurationBackend()
   {
-    put(addListeners, configEntry, configEntry.getAddListeners());
-    put(deleteListeners, configEntry, configEntry.getDeleteListeners());
-    put(changeListeners, configEntry, configEntry.getChangeListeners());
-
-    for (Entry child : configEntry.getChildren().values())
-    {
-      getChangeListeners(child, addListeners, deleteListeners, changeListeners);
-    }
-  }
-
-  private <T> void put(Map<String, List<T>> listeners, Entry configEntry, List<T> cfgListeners)
-  {
-    if (cfgListeners != null && !cfgListeners.isEmpty())
-    {
-      listeners.put(configEntry.getName().toString(), cfgListeners);
-    }
+    return getBackend(ConfigurationBackend.CONFIG_BACKEND_ID);
   }
 
   /**
@@ -1850,7 +1690,7 @@ public final class DirectoryServer
   {
     try
     {
-      createAndRegisterWorkflows(configHandler);
+      createAndRegisterWorkflows(getConfigurationBackend());
       createAndRegisterWorkflows(rootDSEBackend);
     }
     catch (DirectoryException de)
@@ -1887,9 +1727,8 @@ public final class DirectoryServer
 
     // The configuration backend has already been registered by this point
     // so we need to handle it explicitly.
-    // Because subentryManager may depend on the groupManager, let's
-    // delay this.
-    // groupManager.performBackendPreInitializationProcessing(configHandler);
+    // Because subentryManager may depend on the groupManager, let's delay this.
+    // groupManager.performBackendPreInitializationProcessing(configurationHandler);
   }
 
   /**
@@ -1989,8 +1828,7 @@ public final class DirectoryServer
       // at this point so we need to handle it explicitly here.
       // However, subentryManager may have dependencies on the
       // groupManager. So lets delay the backend initialization until then.
-      // subentryManager.performBackendPreInitializationProcessing(
-      //        configHandler);
+      // subentryManager.performBackendPreInitializationProcessing(configurationHandler);
     }
     catch (DirectoryException de)
     {
@@ -2042,9 +1880,9 @@ public final class DirectoryServer
    *
    * @return  A reference to the Directory Server configuration handler.
    */
-  public static ConfigHandler getConfigHandler()
+  public static ConfigurationHandler getConfigurationHandler()
   {
-    return directoryServer.configHandler;
+    return directoryServer.configurationHandler;
   }
 
   /**
@@ -2158,7 +1996,7 @@ public final class DirectoryServer
   @Deprecated
   public static Entry getConfigEntry(DN entryDN) throws ConfigException
   {
-    return directoryServer.configHandler.getConfigEntry(entryDN);
+    return Converters.to(directoryServer.configurationHandler.getEntry(entryDN));
   }
 
   /**
@@ -3119,7 +2957,7 @@ public final class DirectoryServer
     }
     else
     {
-      for (AlertHandler alertHandler : directoryServer.alertHandlers)
+      for (AlertHandler<?> alertHandler : directoryServer.alertHandlers)
       {
         AlertHandlerCfg config = alertHandler.getAlertHandlerConfiguration();
         Set<String> enabledAlerts = config.getEnabledAlertType();
@@ -3164,7 +3002,7 @@ public final class DirectoryServer
    * @return  The requested password storage scheme, or {@code null} if no such
    *          scheme is defined.
    */
-  public static PasswordStorageScheme getPasswordStorageScheme(DN configEntryDN)
+  public static PasswordStorageScheme<?> getPasswordStorageScheme(DN configEntryDN)
   {
     return directoryServer.passwordStorageSchemesByDN.get(configEntryDN);
   }
@@ -5125,8 +4963,7 @@ public final class DirectoryServer
    * @param  handler  The connection handler to register with the Directory
    *                  Server.
    */
-  public static void registerConnectionHandler(
-                          ConnectionHandler<? extends ConnectionHandlerCfg>
+  public static void registerConnectionHandler(ConnectionHandler<? extends ConnectionHandlerCfg>
                                handler)
   {
     synchronized (directoryServer.connectionHandlers)
@@ -6170,7 +6007,7 @@ public final class DirectoryServer
 
     configClass              = null;
     configFile               = null;
-    configHandler            = null;
+    configurationHandler     = null;
     coreConfigManager        = null;
     compressedSchema         = null;
     cryptoManager            = null;
@@ -6727,14 +6564,14 @@ public final class DirectoryServer
   {
     try
     {
-      if (configHandler == null)
+      if (configurationHandler == null)
       {
         // The config handler hasn't been initialized yet.  Just return the DN
         // of the root DSE.
         return DN.rootDN();
       }
 
-      return configHandler.getConfigRootEntry().getDN();
+      return configurationHandler.getRootEntry().getName();
     }
     catch (Exception e)
     {
@@ -6834,7 +6671,7 @@ public final class DirectoryServer
                       .description(INFO_DSCORE_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
                       .required()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       configFile =
@@ -7136,8 +6973,7 @@ public final class DirectoryServer
     {
       theDirectoryServer.setEnvironmentConfig(environmentConfig);
       theDirectoryServer.bootstrapServer();
-      theDirectoryServer.initializeConfiguration(configClass.getValue(),
-          configFile.getValue());
+      theDirectoryServer.initializeConfiguration(configClass.getValue(), configFile.getValue());
     }
     catch (InitializationException ie)
     {

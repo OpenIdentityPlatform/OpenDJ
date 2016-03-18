@@ -415,13 +415,12 @@ public class GenerationIdTest extends ReplicationTestCase
 
       DN synchroServerDN = DN.valueOf(synchroServerStringDN);
 
-      Entry ecle = DirectoryServer.getConfigHandler().getEntry(
-          DN.valueOf("cn=external changelog," + synchroServerStringDN));
+      Entry ecle = DirectoryServer.getConfigEntry(DN.valueOf("cn=external changelog," + synchroServerStringDN));
       if (ecle!=null)
       {
-        DirectoryServer.getConfigHandler().deleteEntry(ecle.getName(), null);
+        DirectoryServer.getConfigurationHandler().deleteEntry(ecle.getName());
       }
-      DirectoryServer.getConfigHandler().deleteEntry(synchroServerDN, null);
+      DirectoryServer.getConfigurationHandler().deleteEntry(synchroServerDN);
       assertNull(DirectoryServer.getConfigEntry(synchroServerEntry.getName()),
         "Unable to delete the synchronized domain");
       synchroServerEntry = null;

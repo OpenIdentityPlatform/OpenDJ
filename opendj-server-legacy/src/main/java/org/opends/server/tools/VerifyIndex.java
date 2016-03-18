@@ -35,11 +35,11 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.VerifyConfig;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
@@ -121,7 +121,7 @@ public class VerifyIndex
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
                       .required()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       configFile =

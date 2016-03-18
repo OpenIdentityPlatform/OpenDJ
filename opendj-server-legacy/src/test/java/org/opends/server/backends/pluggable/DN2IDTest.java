@@ -53,6 +53,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "pluggablebackend" }, sequential = true)
 public class DN2IDTest extends DirectoryServerTestCase
 {
@@ -308,7 +309,7 @@ public class DN2IDTest extends DirectoryServerTestCase
   private static PDBBackendCfg createBackendCfg() throws ConfigException, DirectoryException
   {
     String homeDirName = "pdb_test";
-    PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
+    PDBBackendCfg backendCfg = mockCfg(PDBBackendCfg.class);
 
     when(backendCfg.getBackendId()).thenReturn("persTest" + homeDirName);
     when(backendCfg.getDBDirectory()).thenReturn(homeDirName);
@@ -320,7 +321,7 @@ public class DN2IDTest extends DirectoryServerTestCase
     when(backendCfg.listBackendIndexes()).thenReturn(new String[] { "sn" });
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
 
-    BackendIndexCfg indexCfg = legacyMockCfg(BackendIndexCfg.class);
+    BackendIndexCfg indexCfg = mockCfg(BackendIndexCfg.class);
     when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
     when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType("sn"));
     when(backendCfg.getBackendIndex("sn")).thenReturn(indexCfg);

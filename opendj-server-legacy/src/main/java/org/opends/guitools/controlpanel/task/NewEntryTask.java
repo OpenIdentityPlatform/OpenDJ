@@ -166,7 +166,7 @@ public class NewEntryTask extends Task
       }
       else
       {
-        ctx = getInfo().getDirContext();
+        ctx = getInfo().getConnection().getLdapContext();
         useAdminCtx = true;
       }
       BasicAttributes attrs = new BasicAttributes();

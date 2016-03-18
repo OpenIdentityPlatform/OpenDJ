@@ -47,10 +47,7 @@ public class BcryptPasswordStorageSchemeTestCase
          new BcryptPasswordStorageScheme();
 
     BcryptPasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-              BcryptPasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
-          );
+      AdminTestCaseUtils.getConfiguration(BcryptPasswordStorageSchemeCfgDefn.getInstance(), configEntry);
 
     scheme.initializePasswordStorageScheme(configuration);
     return scheme;

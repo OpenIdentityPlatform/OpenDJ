@@ -411,7 +411,7 @@ public class PluginConfigManager
 
       if (initialize)
       {
-        plugin.initializeInternal(configuration.dn(), pluginTypes,
+        plugin.initializeInternal(serverContext, configuration.dn(), pluginTypes,
             configuration.isInvokeForInternalOperations());
         plugin.initializePlugin(pluginTypes, configuration);
       }

@@ -177,7 +177,7 @@ public class AddToGroupTask extends Task
             }
           });
 
-          getInfo().getDirContext().modifyAttributes(
+          getInfo().getConnection().getLdapContext().modifyAttributes(
               Utilities.getJNDIName(groupDn.toString()), mods);
 
           SwingUtilities.invokeLater(new Runnable()
@@ -224,7 +224,7 @@ public class AddToGroupTask extends Task
         });
     String filter = BrowserController.ALL_OBJECTS_FILTER;
     NamingEnumeration<SearchResult> result =
-      getInfo().getDirContext().search(
+      getInfo().getConnection().getLdapContext().search(
           Utilities.getJNDIName(groupDn.toString()),
           filter, ctls);
 

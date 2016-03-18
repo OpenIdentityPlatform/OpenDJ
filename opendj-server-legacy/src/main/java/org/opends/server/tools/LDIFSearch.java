@@ -37,9 +37,9 @@ import java.util.LinkedList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -178,7 +178,7 @@ public class LDIFSearch
                       .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
       filterFile =

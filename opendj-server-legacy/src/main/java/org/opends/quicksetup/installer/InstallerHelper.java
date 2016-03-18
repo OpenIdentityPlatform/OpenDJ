@@ -344,7 +344,7 @@ public class InstallerHelper {
     {
       // Read the configuration file.
       DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backendName + ",cn=Backends,cn=config");
-      Utilities.deleteConfigSubtree(DirectoryServer.getConfigHandler(), dn);
+      Utilities.deleteConfigSubtree(DirectoryServer.getConfigurationHandler(), dn);
     }
     catch (OpenDsException | ConfigException ode)
     {

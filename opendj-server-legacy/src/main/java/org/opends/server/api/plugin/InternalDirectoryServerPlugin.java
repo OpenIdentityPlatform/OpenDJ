@@ -23,6 +23,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -50,7 +51,8 @@ public abstract class InternalDirectoryServerPlugin extends
   protected InternalDirectoryServerPlugin(DN componentDN,
       Set<PluginType> pluginTypes, boolean invokeForInternalOps)
   {
-    initializeInternal(componentDN, pluginTypes,
+    // TODO: server context should be provided in constructor
+    initializeInternal(DirectoryServer.getInstance().getServerContext(), componentDN, pluginTypes,
         invokeForInternalOps);
   }
 

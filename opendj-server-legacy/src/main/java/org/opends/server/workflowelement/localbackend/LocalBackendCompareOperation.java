@@ -33,6 +33,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.CompareOperationWrapper;
+import org.opends.server.core.ConfigurationBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.CanceledOperationException;
@@ -152,7 +153,7 @@ public class LocalBackendCompareOperation
 
     // If the target entry is in the server configuration, then make sure the
     // requester has the CONFIG_READ privilege.
-    if (DirectoryServer.getConfigHandler().handlesEntry(entryDN)
+    if (DirectoryServer.getBackend(ConfigurationBackend.CONFIG_BACKEND_ID).handlesEntry(entryDN)
         && !clientConnection.hasPrivilege(Privilege.CONFIG_READ, this))
     {
       appendErrorMessage(ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());

@@ -197,7 +197,7 @@ public class ResetUserPasswordTask extends Task
           // The connections must be updated, just update the environment, which
           // is what we use to clone connections and to launch scripts.
           // The environment will also be used if we want to reconnect.
-          getInfo().getDirContext().addToEnvironment(
+          getInfo().getConnection().getLdapContext().addToEnvironment(
               Context.SECURITY_CREDENTIALS,
               String.valueOf(newPassword));
           if (getInfo().getUserDataDirContext() != null)

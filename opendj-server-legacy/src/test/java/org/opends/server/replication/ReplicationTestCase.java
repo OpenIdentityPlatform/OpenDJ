@@ -28,6 +28,7 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -464,7 +465,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     if (configEntry != null)
     {
-      DirectoryServer.getConfigHandler().addEntry(configEntry, null);
+      DirectoryServer.getConfigurationHandler().addEntry(Converters.from(configEntry));
       assertNotNull(DirectoryServer.getConfigEntry(configEntry.getName()), errorMessage);
       configEntriesToCleanup.add(configEntry.getName());
     }

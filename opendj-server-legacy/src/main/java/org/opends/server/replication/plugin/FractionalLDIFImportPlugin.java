@@ -39,6 +39,7 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.LDAPReplicationDomain.FractionalConfig;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -167,7 +168,7 @@ public final class FractionalLDIFImportPlugin
    * passed entry. Null if no configuration is found for the domain
    * (not a replicated domain).
    */
-  private static FractionalConfig getStaticReplicationDomainFractionalConfig(
+  private static FractionalConfig getStaticReplicationDomainFractionalConfig(ServerContext serverContext,
         Entry entry) throws Exception {
     RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     ReplicationSynchronizationProviderCfg sync =
@@ -275,7 +276,7 @@ public final class FractionalLDIFImportPlugin
             try
             {
               localFractionalConfig =
-                getStaticReplicationDomainFractionalConfig(entry);
+                getStaticReplicationDomainFractionalConfig(getServerContext(), entry);
             } catch (Exception ex)
             {
               return PluginResult.ImportLDIF.stopEntryProcessing(

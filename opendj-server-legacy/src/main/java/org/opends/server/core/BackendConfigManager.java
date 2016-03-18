@@ -173,10 +173,9 @@ public class BackendConfigManager implements
           continue;
         }
 
-
-        // If this backend is a configuration manager, then we don't want to do
+        // If this backend is the configuration backend, then we don't want to do
         // any more with it because the configuration will have already been started.
-        if (backend instanceof ConfigHandler)
+        if (backend instanceof ConfigurationBackend)
         {
           continue;
         }

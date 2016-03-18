@@ -20,6 +20,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -505,7 +506,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       fractionalDomainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
 
       // Add the config entry to create the replicated domain
-      DirectoryServer.getConfigHandler().addEntry(fractionalDomainCfgEntry, null);
+      DirectoryServer.getConfigurationHandler().addEntry(Converters.from(fractionalDomainCfgEntry));
       assertNotNull(DirectoryServer.getConfigEntry(fractionalDomainCfgEntry.getName()),
         "Unable to add the domain config entry: " + configEntryLdif);
     }

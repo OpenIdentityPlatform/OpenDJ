@@ -11,11 +11,16 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
+import java.lang.reflect.Constructor;
+
+import static org.opends.messages.CoreMessages.ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagementContext;
@@ -27,6 +32,8 @@ import org.opends.server.types.InitializationException;
 public class ConfigurationBootstrapper
 {
 
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Bootstrap the server configuration.
    * <p>
@@ -35,11 +42,14 @@ public class ConfigurationBootstrapper
    *
    * @param serverContext
    *            The server context.
+   * @param configClass
+   *            The actual configuration class to use.
    * @return the server management context
    * @throws InitializationException
    *            If an error occurs during bootstrapping.
    */
-  public static ServerManagementContext bootstrap(ServerContext serverContext) throws InitializationException {
+  public static ServerManagementContext bootstrap(ServerContext serverContext, Class<ConfigurationHandler> configClass)
+      throws InitializationException {
     final ConfigurationFramework configFramework = ConfigurationFramework.getInstance();
     try
     {
@@ -51,12 +61,24 @@ public class ConfigurationBootstrapper
     catch (ConfigException e)
     {
       // TODO : fix the message
-      throw new InitializationException(LocalizableMessage.raw("Cannot initialize config framework"), e);
+      throw new InitializationException(LocalizableMessage.raw("Cannot initialize configuration framework"), e);
     }
 
-    final ConfigurationHandler configurationHandler = new ConfigurationHandler(serverContext);
+    // Load and instantiate the configuration handler class.
+    Class<ConfigurationHandler> handlerClass = configClass;
+    final ConfigurationHandler configurationHandler;
+    try
+    {
+      Constructor<ConfigurationHandler> cons = handlerClass.getConstructor(ServerContext.class);
+      configurationHandler = cons.newInstance(serverContext);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      LocalizableMessage message = ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(configClass, e.getLocalizedMessage());
+      throw new InitializationException(message, e);
+    }
     configurationHandler.initialize();
-
     return new ServerManagementContext(configurationHandler);
   }
 }

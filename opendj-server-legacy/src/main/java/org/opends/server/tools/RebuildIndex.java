@@ -19,7 +19,6 @@ package org.opends.server.tools;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -38,10 +37,10 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
@@ -237,7 +236,7 @@ public class RebuildIndex extends TaskTool
                     .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                     .hidden()
                     .required()
-                    .defaultValue(ConfigFileHandler.class.getName())
+                    .defaultValue(ConfigurationHandler.class.getName())
                     .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                     .buildAndAddToParser(argParser);
     configFile =

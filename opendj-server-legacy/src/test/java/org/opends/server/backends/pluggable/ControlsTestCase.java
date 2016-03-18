@@ -17,7 +17,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ConfigurationMock.legacyMockCfg;
+import static org.opends.server.ConfigurationMock.mockCfg;
 import static org.opends.server.TestCaseUtils.makeEntry;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
@@ -124,7 +124,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
 
     final DN baseDN = DN.valueOf(BACKEND_BASE_DN);
 
-    final PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
+    final PDBBackendCfg backendCfg = mockCfg(PDBBackendCfg.class);
     when(backendCfg.dn()).thenReturn(baseDN);
     when(backendCfg.getBackendId()).thenReturn(BACKEND_NAME);
     when(backendCfg.getBaseDN()).thenReturn(newTreeSet(baseDN));
@@ -155,7 +155,7 @@ public class ControlsTestCase extends DirectoryServerTestCase
   private void createVlvIndex(final DN baseDN, final PDBBackendCfg backendCfg, final String sortOrder)
       throws ConfigException
   {
-    final BackendVLVIndexCfg vlvIndexCfg = legacyMockCfg(BackendVLVIndexCfg.class);
+    final BackendVLVIndexCfg vlvIndexCfg = mockCfg(BackendVLVIndexCfg.class);
     when(vlvIndexCfg.getName()).thenReturn(sortOrder);
     when(vlvIndexCfg.getBaseDN()).thenReturn(baseDN);
     when(vlvIndexCfg.getFilter()).thenReturn(VLV_FILTER);

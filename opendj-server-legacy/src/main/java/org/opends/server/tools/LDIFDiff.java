@@ -36,9 +36,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -222,7 +222,7 @@ public class LDIFDiff
                       .shortIdentifier(OPTION_SHORT_CONFIG_CLASS)
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildAndAddToParser(argParser);
 

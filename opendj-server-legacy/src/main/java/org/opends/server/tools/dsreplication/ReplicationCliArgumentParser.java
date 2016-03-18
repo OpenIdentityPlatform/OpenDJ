@@ -38,8 +38,8 @@ import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 
 import com.forgerock.opendj.cli.Argument;
@@ -448,7 +448,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.add(index++, advancedArg);
 
     configClassArg =
-        configClassArgument(ConfigFileHandler.class.getName());
+        configClassArgument(ConfigurationHandler.class.getName());
     defaultArgs.add(index++, configClassArg);
 
     configFileArg = configFileArgument();

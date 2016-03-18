@@ -16,21 +16,22 @@
  */
 package org.opends.server.tools;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.types.Entry;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
 
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -64,13 +65,14 @@ public class BackendToolUtils
   {
     try
     {
-      final DN backendBaseDN = getBackendBaseDN();
-      final Entry baseEntry = getBaseEntry(backendBaseDN);
-
       // Iterate through the immediate children, attempting to parse them as backends.
-      final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
-      for (final Entry configEntry : baseEntry.getChildren().values())
+      final RootCfg root =
+          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
+      ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+      final DN backendBaseDN = getBackendBaseDN();
+      for (final DN childrenDn : configHandler.getChildren(backendBaseDN))
       {
+        Entry configEntry = Converters.to(configHandler.getEntry(childrenDn));
         final String backendID = getBackendID(configEntry);
         final String backendClassName = getBackendClassName(configEntry);
         if (backendID == null || backendClassName == null)
@@ -109,16 +111,41 @@ public class BackendToolUtils
     }
   }
 
+  /**
+   * Returns a string from the single valued attribute in provided entry.
+   *
+   * @param entry the entry
+   * @param attrName the attribute name
+   * @return the string value if available or {@code null}
+   */
+  public static String getStringSingleValuedAttribute(Entry entry, String attrName)
+  {
+    List<Attribute> attributes = entry.getAttribute(attrName);
+    if (!attributes.isEmpty())
+    {
+      Attribute attribute = attributes.get(0);
+      for (ByteString byteString : attribute)
+      {
+        return byteString.toString();
+      }
+    }
+    return null;
+  }
+
   private static List<DN> getBaseDNsForEntry(final Entry configEntry) throws Exception
   {
     try
     {
-      final DNConfigAttribute baseDNStub = new DNConfigAttribute(
-          ATTR_BACKEND_BASE_DN, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(), true, true, true);
-      final DNConfigAttribute baseDNAttr = (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-      if (baseDNAttr != null)
+      List<Attribute> attributes = configEntry.getAttribute(ATTR_BACKEND_BASE_DN);
+      if (!attributes.isEmpty())
       {
-        return baseDNAttr.activeValues();
+        Attribute attribute = attributes.get(0);
+        List<DN> dns = new ArrayList<>();
+        for (ByteString byteString : attribute)
+        {
+          dns.add(DN.valueOf(byteString.toString()));
+        }
+        return dns;
       }
       logger.error(ERR_NO_BASES_FOR_BACKEND, configEntry.getName());
       return null;
@@ -147,15 +174,7 @@ public class BackendToolUtils
   {
     try
     {
-      final StringConfigAttribute classStub = new StringConfigAttribute(
-          ATTR_BACKEND_CLASS, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(), true, false, false);
-      final StringConfigAttribute classAttr = (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-      return classAttr != null ? classAttr.activeValue() : null;
-    }
-    catch (final org.opends.server.config.ConfigException ce)
-    {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getName(), ce.getMessage());
-      throw ce;
+      return getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_CLASS);
     }
     catch (final Exception e)
     {
@@ -168,15 +187,7 @@ public class BackendToolUtils
   {
     try
     {
-      final StringConfigAttribute idStub = new StringConfigAttribute(
-          ATTR_BACKEND_ID, INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(), true, false, true);
-      final StringConfigAttribute idAttr = (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      return idAttr != null ? idAttr.activeValue() : null;
-    }
-    catch (final org.opends.server.config.ConfigException ce)
-    {
-      logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), ce.getMessage());
-      throw ce;
+      return getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
     }
     catch (final Exception e)
     {

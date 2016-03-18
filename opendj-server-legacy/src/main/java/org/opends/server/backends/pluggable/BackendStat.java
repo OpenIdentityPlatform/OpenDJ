@@ -17,7 +17,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -49,11 +48,11 @@ import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.BackendToolUtils;
 import org.forgerock.opendj.ldap.DN;
@@ -358,7 +357,7 @@ public class BackendStat
                       .description(INFO_DESCRIPTION_CONFIG_CLASS.get())
                       .hidden()
                       .required()
-                      .defaultValue(ConfigFileHandler.class.getName())
+                      .defaultValue(ConfigurationHandler.class.getName())
                       .valuePlaceholder(INFO_CONFIGCLASS_PLACEHOLDER.get())
                       .buildArgument();
       configFile =

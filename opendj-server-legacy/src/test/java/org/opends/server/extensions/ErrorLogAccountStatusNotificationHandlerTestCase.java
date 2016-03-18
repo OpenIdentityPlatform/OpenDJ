@@ -129,7 +129,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
    * Tests to ensure that the notification handler initialization fails with an
    * invalid configuration.
    *
-   * @param  e  The configuration entry to use to initialize the account status
+   * @param  configEntry  The configuration entry to use to initialize the account status
    *            notificaton handler.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -137,14 +137,9 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
   @Test(dataProvider = "invalidConfigs",
         expectedExceptions = { ConfigException.class,
                                InitializationException.class })
-  public void testInalidConfigs(Entry e)
+  public void testInvalidConfigs(Entry configEntry)
          throws Exception
   {
-    DN parentDN =
-            DN.valueOf("cn=Account Status Notification Handlers,cn=config");
-    Entry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    Entry configEntry = new Entry(e, parentEntry);
-
     ErrorLogAccountStatusNotificationHandler handler =
          new ErrorLogAccountStatusNotificationHandler();
     ErrorLogAccountStatusNotificationHandlerCfg configuration =

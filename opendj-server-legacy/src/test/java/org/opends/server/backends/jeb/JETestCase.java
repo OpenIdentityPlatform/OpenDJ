@@ -16,7 +16,7 @@
 package org.opends.server.backends.jeb;
 
 import static org.mockito.Mockito.when;
-import static org.opends.server.ConfigurationMock.legacyMockCfg;
+import static org.opends.server.ConfigurationMock.mockCfg;
 
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
@@ -35,7 +35,7 @@ public class JETestCase extends PluggableBackendImplTestCase<JEBackendCfg>
   @Override
   protected JEBackendCfg createBackendCfg()
   {
-    JEBackendCfg backendCfg = legacyMockCfg(JEBackendCfg.class);
+    JEBackendCfg backendCfg = mockCfg(JEBackendCfg.class);
     when(backendCfg.getBackendId()).thenReturn("JETestCase");
     when(backendCfg.getDBDirectory()).thenReturn("JETestCase");
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");

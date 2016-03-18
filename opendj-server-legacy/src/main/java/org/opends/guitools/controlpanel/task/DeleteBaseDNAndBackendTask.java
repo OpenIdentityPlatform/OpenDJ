@@ -428,7 +428,7 @@ public class DeleteBaseDNAndBackendTask extends Task
 
     String backendName = backend.getBackendID();
     DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backendName + ",cn=Backends,cn=config");
-    Entry configEntry = DirectoryServer.getConfigHandler().getConfigEntry(dn);
+    Entry configEntry = DirectoryServer.getConfigurationHandler().getConfigEntry(dn);
 
     DNConfigAttribute baseDNAttr =
       new DNConfigAttribute(
@@ -436,7 +436,7 @@ public class DeleteBaseDNAndBackendTask extends Task
           INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
           true, true, false, newBaseDNs);
     configEntry.putConfigAttribute(baseDNAttr);
-    DirectoryServer.getConfigHandler().writeUpdatedConfig();
+    DirectoryServer.getConfigurationHandler().writeUpdatedConfig();
   }
 
   /**
@@ -476,7 +476,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private void deleteBackend(BackendDescriptor backend) throws OpenDsException, ConfigException
   {
     DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backend.getBackendID() + ",cn=Backends,cn=config");
-    Utilities.deleteConfigSubtree(DirectoryServer.getConfigHandler(), dn);
+    Utilities.deleteConfigSubtree(DirectoryServer.getConfigurationHandler(), dn);
   }
 
   /**
@@ -660,8 +660,7 @@ public class DeleteBaseDNAndBackendTask extends Task
                 {
                   domainName.set(dName);
                   DN entryDN = domain.dn();
-                  Utilities.deleteConfigSubtree(
-                      DirectoryServer.getConfigHandler(), entryDN);
+                  Utilities.deleteConfigSubtree(DirectoryServer.getConfigurationHandler(), entryDN);
                   break;
                 }
               }
