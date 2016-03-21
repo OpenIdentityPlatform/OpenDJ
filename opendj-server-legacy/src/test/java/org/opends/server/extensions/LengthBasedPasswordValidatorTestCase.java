@@ -29,9 +29,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.LengthBasedPasswordValidatorCfgDefn;
-import org.forgerock.opendj.server.config.server.LengthBasedPasswordValidatorCfg;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
@@ -188,13 +186,7 @@ public class LengthBasedPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    LengthBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LengthBasedPasswordValidatorCfgDefn.getInstance(),
-              e);
-
-    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
 
@@ -289,13 +281,7 @@ public class LengthBasedPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    LengthBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LengthBasedPasswordValidatorCfgDefn.getInstance(),
-              e);
-
-    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
 
@@ -336,13 +322,7 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-min-password-length: 0",
          "ds-cfg-max-password-length: 0");
 
-    LengthBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LengthBasedPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    LengthBasedPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -359,6 +339,11 @@ public class LengthBasedPasswordValidatorTestCase
     }
 
     validator.finalizePasswordValidator();
+  }
+
+  private LengthBasedPasswordValidator initializePasswordValidator(Entry validatorEntry) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePasswordValidator(
+        new LengthBasedPasswordValidator(), validatorEntry, LengthBasedPasswordValidatorCfgDefn.getInstance());
   }
 
   private ModifyOperationBasis newModifyOperation(StringBuilder buffer) throws DirectoryException
@@ -408,13 +393,7 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-min-password-length: 10",
          "ds-cfg-max-password-length: 0");
 
-    LengthBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LengthBasedPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    LengthBasedPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -471,13 +450,7 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-min-password-length: 0",
          "ds-cfg-max-password-length: 10");
 
-    LengthBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LengthBasedPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    LengthBasedPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -534,13 +507,7 @@ public class LengthBasedPasswordValidatorTestCase
          "ds-cfg-min-password-length: 6",
          "ds-cfg-max-password-length: 10");
 
-    LengthBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LengthBasedPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    LengthBasedPasswordValidator validator = new LengthBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    LengthBasedPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)

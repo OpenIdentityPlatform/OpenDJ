@@ -21,26 +21,25 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.LastModPluginCfgDefn;
-import org.forgerock.opendj.server.config.server.LastModPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.RDN;
 import org.testng.annotations.BeforeClass;
@@ -139,18 +138,13 @@ public class LastModPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    LastModPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LastModPluginCfgDefn.getInstance(), e);
-
-    LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    LastModPlugin plugin = pp(e);
     plugin.finalizePlugin();
   }
 
-
+  private LastModPlugin pp(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(new LastModPlugin(), e, LastModPluginCfgDefn.getInstance());
+  }
 
   /**
    * Tests the process of initializing the server with valid configurations but
@@ -175,14 +169,7 @@ public class LastModPluginTestCase
     DirectoryServer.deregisterAttributeType(mnType);
 
 
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    LastModPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LastModPluginCfgDefn.getInstance(), e);
-
-    LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    LastModPlugin plugin = pp(e);
     plugin.finalizePlugin();
 
 
@@ -249,14 +236,7 @@ public class LastModPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    LastModPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LastModPluginCfgDefn.getInstance(), e);
-
-    LastModPlugin plugin = new LastModPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    LastModPlugin plugin = pp(e);
     plugin.finalizePlugin();
   }
 

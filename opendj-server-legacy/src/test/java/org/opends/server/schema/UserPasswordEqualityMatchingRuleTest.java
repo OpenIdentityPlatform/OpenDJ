@@ -16,11 +16,10 @@
  */
 package org.opends.server.schema;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.extensions.SaltedMD5PasswordStorageScheme;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
@@ -32,7 +31,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
 
 @SuppressWarnings("javadoc")
 public class UserPasswordEqualityMatchingRuleTest extends SchemaTestCase
@@ -55,17 +53,12 @@ public class UserPasswordEqualityMatchingRuleTest extends SchemaTestCase
   private Object[] generateValues(String password) throws Exception
   {
     ByteString bytePassword = ByteString.valueOfUtf8(password);
-    SaltedMD5PasswordStorageScheme scheme = new SaltedMD5PasswordStorageScheme();
 
     Entry configEntry = DirectoryServer.getConfigEntry(
            DN.valueOf("cn=Salted MD5,cn=Password Storage Schemes,cn=config"));
 
-    SaltedMD5PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedMD5PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry);
-
-    scheme.initializePasswordStorageScheme(configuration);
+    SaltedMD5PasswordStorageScheme scheme = InitializationUtils.initializePasswordStorageScheme(
+        new SaltedMD5PasswordStorageScheme(), configEntry, SaltedMD5PasswordStorageSchemeCfgDefn.getInstance());
 
     ByteString encodedAuthPassword =
          scheme.encodePasswordWithScheme(bytePassword);

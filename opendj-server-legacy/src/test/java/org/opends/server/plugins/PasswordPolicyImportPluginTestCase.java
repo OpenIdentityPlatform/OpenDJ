@@ -18,18 +18,17 @@ package org.opends.server.plugins;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyImportPluginCfgDefn;
-import org.forgerock.opendj.server.config.server.PasswordPolicyImportPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.InitializationUtils;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -152,18 +151,14 @@ public class PasswordPolicyImportPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    PasswordPolicyImportPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              PasswordPolicyImportPluginCfgDefn.getInstance(), e);
-
-    PasswordPolicyImportPlugin plugin = new PasswordPolicyImportPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    PasswordPolicyImportPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 
-
+  private PasswordPolicyImportPlugin initializePlugin(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(
+    		new PasswordPolicyImportPlugin(), e, PasswordPolicyImportPluginCfgDefn.getInstance());
+  }
 
   /**
    * Retrieves a set of invalid configuration entries.
@@ -218,14 +213,7 @@ public class PasswordPolicyImportPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    PasswordPolicyImportPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              PasswordPolicyImportPluginCfgDefn.getInstance(), e);
-
-    PasswordPolicyImportPlugin plugin = new PasswordPolicyImportPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    PasswordPolicyImportPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 

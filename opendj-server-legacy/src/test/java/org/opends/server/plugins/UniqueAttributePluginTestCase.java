@@ -16,7 +16,6 @@
  */
 package org.opends.server.plugins;
 
-import java.util.HashSet;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -25,16 +24,15 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.UniqueAttributePluginCfgDefn;
-import org.forgerock.opendj.server.config.server.UniqueAttributePluginCfg;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -193,13 +191,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   public void testInitializeWithValidConfigs(Entry e)
           throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-    UniqueAttributePluginCfg configuration =
-            AdminTestCaseUtils.getConfiguration(
-                    UniqueAttributePluginCfgDefn.getInstance(), e);
-
-    UniqueAttributePlugin plugin = new UniqueAttributePlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    UniqueAttributePlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 
@@ -305,13 +297,13 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-    UniqueAttributePluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueAttributePluginCfgDefn.getInstance(), e);
-    UniqueAttributePlugin plugin = new UniqueAttributePlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    UniqueAttributePlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
+  }
+
+  private UniqueAttributePlugin initializePlugin(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(
+        new UniqueAttributePlugin(), e, UniqueAttributePluginCfgDefn.getInstance());
   }
 
   /**

@@ -28,9 +28,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.FingerprintCertificateMapperCfgDefn;
-import org.forgerock.opendj.server.config.server.FingerprintCertificateMapperCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.tools.LDAPSearch;
@@ -157,13 +155,8 @@ public class FingerprintCertificateMapperTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    FingerprintCertificateMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              FingerprintCertificateMapperCfgDefn.getInstance(),
-              e);
-
-    FingerprintCertificateMapper mapper = new FingerprintCertificateMapper();
-    mapper.initializeCertificateMapper(configuration);
+    InitializationUtils.initializeCertificateMapper(
+        new FingerprintCertificateMapper(), e, FingerprintCertificateMapperCfgDefn.getInstance());
   }
 
 

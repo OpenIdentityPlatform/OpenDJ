@@ -23,9 +23,7 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.ErrorLogAccountStatusNotificationHandlerCfgDefn;
-import org.forgerock.opendj.server.config.server.ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.types.Entry;
@@ -35,7 +33,6 @@ import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -140,14 +137,8 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
   public void testInvalidConfigs(Entry configEntry)
          throws Exception
   {
-    ErrorLogAccountStatusNotificationHandler handler =
-         new ErrorLogAccountStatusNotificationHandler();
-    ErrorLogAccountStatusNotificationHandlerCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          ErrorLogAccountStatusNotificationHandlerCfgDefn.getInstance(),
-          configEntry
-          );
-    handler.initializeStatusNotificationHandler(configuration);
+    InitializationUtils.initializeStatusNotificationHandler(
+        new ErrorLogAccountStatusNotificationHandler(), configEntry, ErrorLogAccountStatusNotificationHandlerCfgDefn.getInstance());
   }
 
 

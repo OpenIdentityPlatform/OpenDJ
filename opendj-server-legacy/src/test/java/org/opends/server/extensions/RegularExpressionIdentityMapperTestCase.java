@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.LinkedList;
 
 import org.testng.annotations.BeforeClass;
@@ -25,7 +23,6 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.
             RegularExpressionIdentityMapperCfgDefn;
 import org.forgerock.opendj.server.config.server.RegularExpressionIdentityMapperCfg;
@@ -38,8 +35,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the regular expression identity mapper.
@@ -105,10 +100,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: :-(",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
+    RegularExpressionIdentityMapperCfg configuration = getConfiguration(mapperEntry);
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertFalse(mapper.isConfigurationAcceptable(configuration,
@@ -143,10 +135,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
+    RegularExpressionIdentityMapperCfg configuration = getConfiguration(mapperEntry);
     RegularExpressionIdentityMapper mapper =
          new RegularExpressionIdentityMapper();
     assertFalse(mapper.isConfigurationAcceptable(configuration,
@@ -154,7 +143,18 @@ public class RegularExpressionIdentityMapperTestCase
     mapper.initializeIdentityMapper(configuration);
   }
 
+  private RegularExpressionIdentityMapper initializeIdentityMapper(Entry mapperEntry)
+      throws ConfigException, InitializationException {
+    RegularExpressionIdentityMapperCfg configuration = getConfiguration(mapperEntry);
+    RegularExpressionIdentityMapper mapper = new RegularExpressionIdentityMapper();
+    assertTrue(mapper.isConfigurationAcceptable(configuration, new LinkedList<LocalizableMessage>()));
+    mapper.initializeIdentityMapper(configuration);
+    return mapper;
+  }
 
+  private RegularExpressionIdentityMapperCfg getConfiguration(Entry mapperEntry) throws ConfigException {
+    return InitializationUtils.getConfiguration(RegularExpressionIdentityMapperCfgDefn.getInstance(), mapperEntry);
+  }
 
   /**
    * Tests the {@code getEntryForID} method with a simple match with only one
@@ -182,15 +182,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -247,15 +239,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -312,15 +296,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -377,15 +353,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -442,15 +410,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -506,15 +466,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -568,15 +520,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: @.+$");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -631,15 +575,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^(.*)$",
          "ds-cfg-replace-pattern: $1@example.com");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -695,15 +631,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 
@@ -774,15 +702,7 @@ public class RegularExpressionIdentityMapperTestCase
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
 
-    RegularExpressionIdentityMapperCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RegularExpressionIdentityMapperCfgDefn.getInstance(),
-              mapperEntry);
-    RegularExpressionIdentityMapper mapper =
-         new RegularExpressionIdentityMapper();
-    assertTrue(mapper.isConfigurationAcceptable(configuration,
-                                                new LinkedList<LocalizableMessage>()));
-    mapper.initializeIdentityMapper(configuration);
+    RegularExpressionIdentityMapper mapper = initializeIdentityMapper(mapperEntry);
 
 
 

@@ -20,20 +20,19 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.EntryUUIDPluginCfgDefn;
-import org.forgerock.opendj.server.config.server.EntryUUIDPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.InitializationUtils;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -121,14 +120,7 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    EntryUUIDPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              EntryUUIDPluginCfgDefn.getInstance(), e);
-
-    EntryUUIDPlugin plugin = new EntryUUIDPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    EntryUUIDPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 
@@ -149,14 +141,7 @@ public class EntryUUIDPluginTestCase
     AttributeType entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
     DirectoryServer.deregisterAttributeType(entryUUIDType);
 
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    EntryUUIDPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              EntryUUIDPluginCfgDefn.getInstance(), e);
-
-    EntryUUIDPlugin plugin = new EntryUUIDPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    EntryUUIDPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
 
 
@@ -219,17 +204,12 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    EntryUUIDPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              EntryUUIDPluginCfgDefn.getInstance(), e);
-
-    EntryUUIDPlugin plugin = new EntryUUIDPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    initializePlugin(e);
   }
 
-
+  private EntryUUIDPlugin initializePlugin(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(new EntryUUIDPlugin(), e, EntryUUIDPluginCfgDefn.getInstance());
+  }
 
   /**
    * Tests the <CODE>doLDIFImport</CODE> method.

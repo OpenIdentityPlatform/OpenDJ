@@ -16,6 +16,8 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.server.extensions.InitializationUtils.getConfiguration;
+import static org.opends.server.extensions.InitializationUtils.initializePasswordValidator;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.meta.UniqueCharactersPasswordValidatorCfgDefn;
 import org.forgerock.opendj.server.config.server.UniqueCharactersPasswordValidatorCfg;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -132,17 +133,14 @@ public class UniqueCharactersPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(), e);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(e);
     validator.finalizePasswordValidator();
   }
 
-
+  private static UniqueCharactersPasswordValidator initializePasswordValidator0(Entry validatorEntry) throws ConfigException, InitializationException {
+    return initializePasswordValidator(
+        new UniqueCharactersPasswordValidator(), validatorEntry, UniqueCharactersPasswordValidatorCfgDefn.getInstance());
+  }
 
   /**
    * Retrieves a set of invalid configuration entries.
@@ -236,13 +234,7 @@ public class UniqueCharactersPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(), e);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator0(e);
   }
 
 
@@ -283,14 +275,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false");
 
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(validatorEntry);
 
     ByteString password = ByteString.valueOfUtf8("password");
     ArrayList<Modification> mods = new ArrayList<>();
@@ -313,8 +298,6 @@ public class UniqueCharactersPasswordValidatorTestCase
 
     validator.finalizePasswordValidator();
   }
-
-
 
   /**
    * Tests the {@code passwordIsAcceptable} method with a password that falls
@@ -352,14 +335,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false");
 
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(validatorEntry);
 
     ByteString password = ByteString.valueOfUtf8("passw");
     ArrayList<Modification> mods = new ArrayList<>();
@@ -420,14 +396,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: true");
 
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(validatorEntry);
 
     ByteString password = ByteString.valueOfUtf8("pasSw");
     ArrayList<Modification> mods = new ArrayList<>();
@@ -489,14 +458,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false");
 
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(validatorEntry);
 
     ByteString password = ByteString.valueOfUtf8("pasSw");
     ArrayList<Modification> mods = new ArrayList<>();
@@ -556,14 +518,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-min-unique-characters: 0",
          "ds-cfg-case-sensitive-validation: true");
 
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(validatorEntry);
 
     ByteString password = ByteString.valueOfUtf8("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<>();
@@ -624,14 +579,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-min-unique-characters: 0",
          "ds-cfg-case-sensitive-validation: true");
 
-    UniqueCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    UniqueCharactersPasswordValidator validator =
-         new UniqueCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    UniqueCharactersPasswordValidator validator = initializePasswordValidator0(validatorEntry);
 
     ByteString password = ByteString.valueOfUtf8("aaaaaaaa");
     ArrayList<Modification> mods = new ArrayList<>();
@@ -665,9 +613,7 @@ public class UniqueCharactersPasswordValidatorTestCase
          "ds-cfg-case-sensitive-validation: true");
 
     UniqueCharactersPasswordValidatorCfg updatedConfiguration =
-         AdminTestCaseUtils.getConfiguration(
-              UniqueCharactersPasswordValidatorCfgDefn.getInstance(),
-              updatedValidatorEntry);
+        getConfiguration(UniqueCharactersPasswordValidatorCfgDefn.getInstance(), updatedValidatorEntry);
 
     ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<>();
     assertTrue(validator.isConfigurationChangeAcceptable(updatedConfiguration,

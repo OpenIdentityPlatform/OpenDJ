@@ -19,16 +19,13 @@ package org.opends.server.extensions;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.CryptPasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.extensions.PasswordStorageSchemeTestCase.*;
-
 
 /**
  * A set of test cases for the crypt password storage scheme.
@@ -164,8 +161,6 @@ public class CryptPasswordStorageSchemeTestCase
   private CryptPasswordStorageScheme getScheme(String algo)
          throws Exception
   {
-    CryptPasswordStorageScheme scheme =
-         new CryptPasswordStorageScheme();
     Entry e = TestCaseUtils.makeEntry(
       "dn: cn=CRYPT,cn=Password Storage Schemes,cn=config",
       "objectClass: top",
@@ -175,14 +170,9 @@ public class CryptPasswordStorageSchemeTestCase
       "ds-cfg-java-class: org.opends.server.extensions.CryptPasswordStorageScheme",
       "ds-cfg-enabled: true",
       "ds-cfg-crypt-password-storage-encryption-algrithm: " + algo
-);
-    CryptPasswordStorageSchemeCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              CryptPasswordStorageSchemeCfgDefn.getInstance(),
-              e);
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    );
+    return InitializationUtils.initializePasswordStorageScheme(
+        new CryptPasswordStorageScheme(), e, CryptPasswordStorageSchemeCfgDefn.getInstance());
   }
 }
 

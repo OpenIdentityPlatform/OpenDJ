@@ -16,51 +16,22 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.MD5PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.MD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
-
-
-/**
- * A set of test cases for the MD5 password storage scheme.
- */
+/** A set of test cases for the MD5 password storage scheme. */
 public class MD5PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public MD5PasswordStorageSchemeTestCase()
   {
     super("cn=MD5,cn=Password Storage Schemes,cn=config");
   }
 
-
-
-  /**
-   * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    MD5PasswordStorageScheme scheme = new MD5PasswordStorageScheme();
-
-    MD5PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          MD5PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new MD5PasswordStorageScheme(), configEntry, MD5PasswordStorageSchemeCfgDefn.getInstance());
   }
 }
-

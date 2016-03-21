@@ -17,7 +17,6 @@
  */
 package org.opends.server.plugins;
 
-import java.util.HashSet;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -30,11 +29,8 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.ReferentialIntegrityPluginCfgDefn;
-import org.forgerock.opendj.server.config.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Group;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -42,11 +38,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -525,12 +523,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   public void testInitializeWithValidConfigs(Entry e)
           throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-    ReferentialIntegrityPluginCfg configuration =
-            AdminTestCaseUtils.getConfiguration(
-                    ReferentialIntegrityPluginCfgDefn.getInstance(), e);
-    ReferentialIntegrityPlugin plugin = new ReferentialIntegrityPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    ReferentialIntegrityPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 
@@ -783,13 +776,13 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   public void testInitializeWithInValidConfigs(Entry e)
           throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-    ReferentialIntegrityPluginCfg configuration =
-            AdminTestCaseUtils.getConfiguration(
-                    ReferentialIntegrityPluginCfgDefn.getInstance(), e);
-    ReferentialIntegrityPlugin plugin = new ReferentialIntegrityPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    ReferentialIntegrityPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
+  }
+
+  private ReferentialIntegrityPlugin initializePlugin(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(
+        new ReferentialIntegrityPlugin(), e, ReferentialIntegrityPluginCfgDefn.getInstance());
   }
 
   /**

@@ -39,8 +39,6 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 import org.forgerock.opendj.server.config.meta.SimilarityBasedPasswordValidatorCfgDefn;
-import org.forgerock.opendj.server.config.server.SimilarityBasedPasswordValidatorCfg;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 
 /**
  * A set of test cases for the Similarity-Based Password Reject.
@@ -129,13 +127,7 @@ public class SimilarityBasedPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    SimilarityBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              SimilarityBasedPasswordValidatorCfgDefn.getInstance(),
-              e);
-
-    SimilarityBasedPasswordValidator validator = new SimilarityBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
 
@@ -209,13 +201,7 @@ public class SimilarityBasedPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    SimilarityBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              SimilarityBasedPasswordValidatorCfgDefn.getInstance(),
-              e);
-
-    SimilarityBasedPasswordValidator validator = new SimilarityBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
 
@@ -256,14 +242,7 @@ public class SimilarityBasedPasswordValidatorTestCase
          "ds-cfg-min-password-difference: 0"
          );
 
-    SimilarityBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              SimilarityBasedPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    SimilarityBasedPasswordValidator validator =
-         new SimilarityBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    SimilarityBasedPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     StringBuilder buffer = new StringBuilder();
     for (int i=0; i < 20; i++)
@@ -328,14 +307,7 @@ public class SimilarityBasedPasswordValidatorTestCase
          "ds-cfg-min-password-difference: 3"
          );
 
-    SimilarityBasedPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              SimilarityBasedPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    SimilarityBasedPasswordValidator validator =
-         new SimilarityBasedPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    SimilarityBasedPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     StringBuilder buffer = new StringBuilder();
     HashSet<ByteString> currentPassword = new HashSet<>(3);
@@ -363,5 +335,9 @@ public class SimilarityBasedPasswordValidatorTestCase
 
     validator.finalizePasswordValidator();
   }
-}
 
+  private SimilarityBasedPasswordValidator initializePasswordValidator(Entry cfgEntry) throws Exception {
+    return InitializationUtils.initializePasswordValidator(
+        new SimilarityBasedPasswordValidator(), cfgEntry, SimilarityBasedPasswordValidatorCfgDefn.getInstance());
+  }
+}

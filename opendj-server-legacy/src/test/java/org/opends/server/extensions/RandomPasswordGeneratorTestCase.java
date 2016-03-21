@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.List;
 
 import org.testng.annotations.BeforeClass;
@@ -25,19 +23,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.RandomPasswordGeneratorCfgDefn;
-import org.forgerock.opendj.server.config.server.RandomPasswordGeneratorCfg;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the random password generator.
@@ -73,13 +66,8 @@ public class RandomPasswordGeneratorTestCase
     Entry configEntry = DirectoryServer.getConfigEntry(dn);
     assertNotNull(configEntry);
 
-    RandomPasswordGeneratorCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          RandomPasswordGeneratorCfgDefn.getInstance(),
-           configEntry);
-
-    RandomPasswordGenerator generator = new RandomPasswordGenerator();
-    generator.initializePasswordGenerator(configuration);
+    RandomPasswordGenerator generator = InitializationUtils.initializePasswordGenerator(
+        new RandomPasswordGenerator(), configEntry, RandomPasswordGeneratorCfgDefn.getInstance());
     assertNotNull(generator.generatePassword(null));
     generator.finalizePasswordGenerator();
   }
@@ -197,13 +185,7 @@ public class RandomPasswordGeneratorTestCase
   public void testInvalidConfigurations(Entry entry)
          throws Exception
   {
-    RandomPasswordGeneratorCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          RandomPasswordGeneratorCfgDefn.getInstance(),
-           entry);
-
-    RandomPasswordGenerator generator = new RandomPasswordGenerator();
-    generator.initializePasswordGenerator(configuration);
+    InitializationUtils.initializePasswordGenerator(
+        new RandomPasswordGenerator(), entry, RandomPasswordGeneratorCfgDefn.getInstance());
   }
 }
-

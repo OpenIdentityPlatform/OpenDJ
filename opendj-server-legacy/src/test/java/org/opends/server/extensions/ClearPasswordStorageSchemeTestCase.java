@@ -16,51 +16,22 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.ClearPasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.ClearPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
-
-
-/**
- * A set of test cases for the clear password storage scheme.
- */
+/** A set of test cases for the clear password storage scheme. */
 public class ClearPasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public ClearPasswordStorageSchemeTestCase()
   {
     super("cn=Clear,cn=Password Storage Schemes,cn=config");
   }
 
-
-
-  /**
-   * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    ClearPasswordStorageScheme scheme = new ClearPasswordStorageScheme();
-
-    ClearPasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          ClearPasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new ClearPasswordStorageScheme(), configEntry, ClearPasswordStorageSchemeCfgDefn.getInstance());
   }
 }
-

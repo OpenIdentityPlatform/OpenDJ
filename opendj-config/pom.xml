@@ -119,6 +119,8 @@
             <configuration>
               <includes>
                 <!-- Classes to have mocks with configuration defaults -->
+                <include>**/AdminTestCaseUtils.class</include>
+                <include>**/AdminTestCaseUtils$*.class</include>
                 <include>**/ConfigurationMock.class</include>
                 <include>**/ConfigurationMock$*.class</include>
               </includes>

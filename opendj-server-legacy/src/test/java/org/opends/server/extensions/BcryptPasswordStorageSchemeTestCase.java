@@ -16,8 +16,6 @@
 package org.opends.server.extensions;
 
 import org.forgerock.opendj.server.config.meta.BcryptPasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.BcryptPasswordStorageSchemeCfg;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -43,14 +41,8 @@ public class BcryptPasswordStorageSchemeTestCase
   @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    BcryptPasswordStorageScheme scheme =
-         new BcryptPasswordStorageScheme();
-
-    BcryptPasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(BcryptPasswordStorageSchemeCfgDefn.getInstance(), configEntry);
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new BcryptPasswordStorageScheme(), configEntry, BcryptPasswordStorageSchemeCfgDefn.getInstance());
   }
 
   /**

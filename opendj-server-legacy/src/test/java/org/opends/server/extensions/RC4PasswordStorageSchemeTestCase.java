@@ -16,50 +16,22 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.RC4PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.RC4PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 
-
-
-/**
- * A set of test cases for the RC4 password storage scheme.
- */
+/** A set of test cases for the RC4 password storage scheme. */
 public class RC4PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public RC4PasswordStorageSchemeTestCase()
   {
     super("cn=RC4,cn=Password Storage Schemes,cn=config");
   }
 
-
-
-  /**
-   * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    RC4PasswordStorageScheme scheme = new RC4PasswordStorageScheme();
-
-    RC4PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          RC4PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry);
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new RC4PasswordStorageScheme(), configEntry, RC4PasswordStorageSchemeCfgDefn.getInstance());
   }
 }
-

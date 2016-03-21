@@ -26,10 +26,10 @@ import java.util.Iterator;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.plugins.NullPlugin;
 import org.opends.server.types.DisconnectReason;
 import org.forgerock.opendj.ldap.DN;
@@ -800,7 +800,7 @@ public class DirectoryServerPluginTestCase
       "ds-cfg-plugin-type: intermediateResponse");
 
     PluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(), pluginEntry);
+         InitializationUtils.getConfiguration(PluginCfgDefn.getInstance(), pluginEntry);
 
     NullPlugin nullPlugin = new NullPlugin();
     DN pluginEntryDN = DN.valueOf("cn=Null Plugin,cn=Plugins,cn=config");
@@ -884,7 +884,7 @@ public class DirectoryServerPluginTestCase
       "ds-cfg-plugin-type: intermediateResponse");
 
     PluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(), pluginEntry);
+         InitializationUtils.getConfiguration(PluginCfgDefn.getInstance(), pluginEntry);
 
     NullPlugin nullPlugin = new NullPlugin();
 

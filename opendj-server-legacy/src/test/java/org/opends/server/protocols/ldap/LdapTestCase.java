@@ -25,10 +25,10 @@ import java.util.List;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.opends.server.core.ServerContext;
+import org.opends.server.extensions.InitializationUtils;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -119,10 +119,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    * @throws ConfigException
    *           If the configuration entry could not be decoded.
    */
-  static LDAPConnectionHandlerCfg getConfiguration(
-      Entry handlerEntry) throws ConfigException {
-    return AdminTestCaseUtils.getConfiguration(
-        LDAPConnectionHandlerCfgDefn.getInstance(), handlerEntry);
+  static LDAPConnectionHandlerCfg getConfiguration(Entry handlerEntry) throws ConfigException {
+    return InitializationUtils.getConfiguration(LDAPConnectionHandlerCfgDefn.getInstance(), handlerEntry);
   }
-
 }

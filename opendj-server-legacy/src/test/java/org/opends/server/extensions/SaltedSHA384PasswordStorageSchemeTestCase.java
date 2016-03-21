@@ -16,51 +16,27 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SaltedSHA384PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.SaltedSHA384PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * A set of test cases for the salted SHA-384 password storage scheme.
- */
+/** A set of test cases for the salted SHA-384 password storage scheme. */
 @SuppressWarnings("javadoc")
 public class SaltedSHA384PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public SaltedSHA384PasswordStorageSchemeTestCase()
   {
     super("cn=Salted SHA-384,cn=Password Storage Schemes,cn=config");
   }
 
-
-
-  /**
-   * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
   @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    SaltedSHA384PasswordStorageScheme scheme =
-         new SaltedSHA384PasswordStorageScheme();
-
-    SaltedSHA384PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedSHA384PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new SaltedSHA384PasswordStorageScheme(), configEntry, SaltedSHA384PasswordStorageSchemeCfgDefn.getInstance());
   }
 
   /**

@@ -16,15 +16,12 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.forgerock.opendj.server.config.meta.*;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
@@ -39,8 +36,6 @@ import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for default entry cache implementation.
@@ -95,7 +90,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-include-filter: uid=softref*",
       "ds-cfg-include-filter: uid=test1*",
       "ds-cfg-exclude-filter: uid=test0*");
-    softRefCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
+    softRefCache.initializeEntryCache(InitializationUtils.getConfiguration(
       SoftReferenceEntryCacheCfgDefn.getInstance(), cacheSoftReferenceConfigEntry));
     cacheOrderMap.put(1, softRefCache);
 
@@ -112,7 +107,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-include-filter: uid=fifo*",
       "ds-cfg-include-filter: uid=test2*",
       "ds-cfg-include-filter: uid=test0*");
-    fifoCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
+    fifoCache.initializeEntryCache(InitializationUtils.getConfiguration(
       FIFOEntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
     cacheOrderMap.put(2, fifoCache);
 

@@ -22,9 +22,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.DigestMD5SASLMechanismHandlerCfgDefn;
-import org.forgerock.opendj.server.config.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -139,13 +137,8 @@ public class DigestMD5SASLMechanismHandlerTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    DigestMD5SASLMechanismHandlerCfg configuration =
-       AdminTestCaseUtils.getConfiguration(
-            DigestMD5SASLMechanismHandlerCfgDefn.getInstance(),
-            e);
-
-    DigestMD5SASLMechanismHandler handler = new DigestMD5SASLMechanismHandler();
-    handler.initializeSASLMechanismHandler(configuration);
+    InitializationUtils.initializeSASLMechanismHandler(
+        new DigestMD5SASLMechanismHandler(), e, DigestMD5SASLMechanismHandlerCfgDefn.getInstance());
   }
 
 

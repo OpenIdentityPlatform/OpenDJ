@@ -16,23 +16,17 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SaltedSHA256PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.SaltedSHA256PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * A set of test cases for the salted SHA-256 password storage scheme.
- */
+/** A set of test cases for the salted SHA-256 password storage scheme. */
 @SuppressWarnings("javadoc")
 public class SaltedSHA256PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public SaltedSHA256PasswordStorageSchemeTestCase()
   {
     super("cn=Salted SHA-256,cn=Password Storage Schemes,cn=config");
@@ -50,17 +44,8 @@ public class SaltedSHA256PasswordStorageSchemeTestCase
   @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    SaltedSHA256PasswordStorageScheme scheme =
-         new SaltedSHA256PasswordStorageScheme();
-
-    SaltedSHA256PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedSHA256PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new SaltedSHA256PasswordStorageScheme(), configEntry, SaltedSHA256PasswordStorageSchemeCfgDefn.getInstance());
   }
 
   /**

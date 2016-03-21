@@ -16,12 +16,9 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.forgerock.opendj.server.config.meta.*;
 import org.forgerock.opendj.server.config.server.FIFOEntryCacheCfg;
@@ -35,8 +32,6 @@ import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for FIFO entry cache implementation.
@@ -68,7 +63,7 @@ public class FIFOEntryCacheTestCase
       "ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache",
       "ds-cfg-enabled: true",
       "ds-cfg-max-entries: " + super.MAXENTRIES);
-    super.configuration = AdminTestCaseUtils.getConfiguration(
+    super.configuration = InitializationUtils.getConfiguration(
       FIFOEntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
     // Force GC to make sure we have enough memory for

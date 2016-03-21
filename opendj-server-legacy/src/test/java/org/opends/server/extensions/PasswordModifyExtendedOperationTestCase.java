@@ -28,9 +28,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
-import org.forgerock.opendj.server.config.server.PasswordModifyExtendedOperationHandlerCfg;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
@@ -131,11 +129,8 @@ public class PasswordModifyExtendedOperationTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    PasswordModifyExtendedOperationHandlerCfg configuration =
-         AdminTestCaseUtils.getConfiguration(PasswordModifyExtendedOperationHandlerCfgDefn.getInstance(), e);
-
-    PasswordModifyExtendedOperation handler = new PasswordModifyExtendedOperation();
-    handler.initializeExtendedOperationHandler(configuration);
+    InitializationUtils.initializeExtendedOperationHandler(
+        new PasswordModifyExtendedOperation(), e, PasswordModifyExtendedOperationHandlerCfgDefn.getInstance());
   }
 
 

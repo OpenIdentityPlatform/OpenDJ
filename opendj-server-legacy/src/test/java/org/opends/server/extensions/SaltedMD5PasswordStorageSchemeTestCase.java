@@ -18,46 +18,26 @@ package org.opends.server.extensions;
 
 import org.testng.annotations.Test;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the salted MD5 password storage scheme.
- */
+/** A set of test cases for the salted MD5 password storage scheme. */
 public class SaltedMD5PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public SaltedMD5PasswordStorageSchemeTestCase()
   {
     super("cn=Salted MD5,cn=Password Storage Schemes,cn=config");
   }
 
-  /**
-   * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @return  An initialized instance of this password storage scheme.
-   */
-  protected PasswordStorageScheme getScheme() throws Exception
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    SaltedMD5PasswordStorageScheme scheme =
-         new SaltedMD5PasswordStorageScheme();
-
-    SaltedMD5PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedMD5PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new SaltedMD5PasswordStorageScheme(), configEntry, SaltedMD5PasswordStorageSchemeCfgDefn.getInstance());
   }
 
 
@@ -67,16 +47,8 @@ public class SaltedMD5PasswordStorageSchemeTestCase
    */
   @Test
   public void testDifferentSaltSize() throws Exception {
-    SaltedMD5PasswordStorageScheme scheme =
-      new SaltedMD5PasswordStorageScheme();
-
-    SaltedMD5PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-        SaltedMD5PasswordStorageSchemeCfgDefn.getInstance(),
-        configEntry
-      );
-
-    scheme.initializePasswordStorageScheme(configuration);
+    SaltedMD5PasswordStorageScheme scheme = InitializationUtils.initializePasswordStorageScheme(
+        new SaltedMD5PasswordStorageScheme(), configEntry, SaltedMD5PasswordStorageSchemeCfgDefn.getInstance());
     // The stored value has a 12 byte salt instead of the default 8
     assertTrue(scheme.passwordMatches(ByteString.valueOfUtf8("password"),
       ByteString.valueOfUtf8("so5s1vK3oEi4uL/oVY3bqs5LRlKjgMN+u4A4bw==")));

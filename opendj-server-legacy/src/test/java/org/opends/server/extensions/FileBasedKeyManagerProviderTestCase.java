@@ -24,9 +24,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.FileBasedKeyManagerProviderCfgDefn;
-import org.forgerock.opendj.server.config.server.FileBasedKeyManagerProviderCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
@@ -168,12 +166,7 @@ public class FileBasedKeyManagerProviderTestCase
   public void testVvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedKeyManagerProviderCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              FileBasedKeyManagerProviderCfgDefn.getInstance(), e);
-
-    FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();
-    provider.initializeKeyManagerProvider(configuration);
+    FileBasedKeyManagerProvider provider = initializeKeyManagerProvider(e);
     provider.finalizeKeyManagerProvider();
   }
 
@@ -293,13 +286,11 @@ public class FileBasedKeyManagerProviderTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedKeyManagerProviderCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              FileBasedKeyManagerProviderCfgDefn.getInstance(), e);
+    initializeKeyManagerProvider(e);
+  }
 
-
-    FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();
-    provider.initializeKeyManagerProvider(configuration);
+  private FileBasedKeyManagerProvider initializeKeyManagerProvider(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializeKeyManagerProvider(
+        new FileBasedKeyManagerProvider(), e, FileBasedKeyManagerProviderCfgDefn.getInstance());
   }
 }
-

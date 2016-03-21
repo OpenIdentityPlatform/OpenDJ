@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
@@ -26,17 +24,13 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.FileBasedTrustManagerProviderCfgDefn;
-import org.forgerock.opendj.server.config.server.FileBasedTrustManagerProviderCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * A set of test cases for the file-based trust manager provider.
@@ -160,13 +154,8 @@ public class FileBasedTrustManagerProviderTestCase
   public void testVvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedTrustManagerProviderCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              FileBasedTrustManagerProviderCfgDefn.getInstance(), e);
-
-    FileBasedTrustManagerProvider provider = new FileBasedTrustManagerProvider();
-    provider.initializeTrustManagerProvider(configuration);
-    provider.finalizeTrustManagerProvider();
+    FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(e);
+	provider.finalizeTrustManagerProvider();
   }
 
 
@@ -285,17 +274,15 @@ public class FileBasedTrustManagerProviderTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedTrustManagerProviderCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              FileBasedTrustManagerProviderCfgDefn.getInstance(), e);
-
-    FileBasedTrustManagerProvider provider =
-         new FileBasedTrustManagerProvider();
-    provider.initializeTrustManagerProvider(configuration);
+    initializeTrustManagerProvider(e);
     for (StringBuilder sb : e.toLDIF())
     {
       System.err.println(sb.toString());
     }
   }
-}
 
+  private FileBasedTrustManagerProvider initializeTrustManagerProvider(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializeTrustManagerProvider(
+        new FileBasedTrustManagerProvider(), e, FileBasedTrustManagerProviderCfgDefn.getInstance());
+  }
+}

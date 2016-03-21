@@ -19,20 +19,17 @@ package org.opends.server.plugins;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.AttributeCleanupPluginCfgDefn;
-import org.forgerock.opendj.server.config.server.AttributeCleanupPluginCfg;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.RawAttribute;
@@ -42,7 +39,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -104,18 +100,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
     throws Exception
   {
-    Set<PluginType> pluginTypes = getPluginTypes(e);
-    assertFalse(pluginTypes.isEmpty());
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),e);
-
-    assertNotNull(config);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 
@@ -188,18 +173,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
     throws ConfigException, InitializationException
   {
-    Set<PluginType> pluginTypes = getPluginTypes(e);
-    assertFalse(pluginTypes.isEmpty());
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),e);
-
-    assertNotNull(config);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
   }
 
@@ -225,15 +199,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-rename-inbound-attributes: cn:description",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),confEntry);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(confEntry);
 
     /* Construct the ADD operation as follows:
      *
@@ -320,15 +286,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-remove-inbound-attributes: createTimeStamp",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),confEntry);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(confEntry);
 
     /* Create the ADD operation as follows:
      *
@@ -404,15 +362,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-remove-inbound-attributes: createTimeStamp",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),confEntry);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(confEntry);
 
     /* Create the MODIFY request as follows:
      *
@@ -437,7 +387,11 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     assertSame(res.getResultCode(), ResultCode.SUCCESS);
 
     plugin.finalizePlugin();
+  }
 
+  private AttributeCleanupPlugin initializePlugin(Entry confEntry) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(
+        new AttributeCleanupPlugin(), confEntry, AttributeCleanupPluginCfgDefn.getInstance());
   }
 
   private ModifyOperationBasis modify(String entryDN, RawModification... rawMods)
@@ -469,15 +423,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-remove-inbound-attributes: createTimeStamp",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),confEntry);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(confEntry);
 
     /* Create the MODIFY operation as follows:
      *
@@ -555,15 +501,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-rename-inbound-attributes: modifyTimeStamp:description",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
-
-    AttributeCleanupPluginCfg config =
-      AdminTestCaseUtils.getConfiguration(
-        AttributeCleanupPluginCfgDefn.getInstance(),confEntry);
-
-    AttributeCleanupPlugin plugin = new AttributeCleanupPlugin();
-
-    plugin.initializePlugin(pluginTypes, config);
+    AttributeCleanupPlugin plugin = initializePlugin(confEntry);
 
     /* Create the MODIFY operation as follows:
      *

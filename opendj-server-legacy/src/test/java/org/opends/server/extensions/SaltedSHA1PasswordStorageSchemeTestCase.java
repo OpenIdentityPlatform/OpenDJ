@@ -16,9 +16,7 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SaltedSHA1PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.SaltedSHA1PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
 
@@ -47,20 +45,10 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
   @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    SaltedSHA1PasswordStorageScheme scheme =
-         new SaltedSHA1PasswordStorageScheme();
-
-    SaltedSHA1PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedSHA1PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new SaltedSHA1PasswordStorageScheme(), configEntry, SaltedSHA1PasswordStorageSchemeCfgDefn.getInstance());
   }
 
-  /** {@inheritDoc} */
   @Override
   protected String encodeOffline(final byte[] plaintextBytes) throws DirectoryException
   {

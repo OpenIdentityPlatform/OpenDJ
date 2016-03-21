@@ -29,8 +29,6 @@ import org.testng.annotations.AfterClass;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.server.config.meta.DictionaryPasswordValidatorCfgDefn;
-import org.forgerock.opendj.server.config.server.DictionaryPasswordValidatorCfg;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -166,13 +164,7 @@ public class DictionaryPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    DictionaryPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              DictionaryPasswordValidatorCfgDefn.getInstance(), e);
-
-    DictionaryPasswordValidator validator =
-         new DictionaryPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    DictionaryPasswordValidator validator = initializePasswordValidator(e);
     validator.finalizePasswordValidator();
   }
 
@@ -297,13 +289,7 @@ public class DictionaryPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    DictionaryPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              DictionaryPasswordValidatorCfgDefn.getInstance(), e);
-
-    DictionaryPasswordValidator validator =
-         new DictionaryPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
 
@@ -652,14 +638,7 @@ public class DictionaryPasswordValidatorTestCase
          "cn: Test User",
          "userPassword: doesntmatter");
 
-    DictionaryPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              DictionaryPasswordValidatorCfgDefn.getInstance(),
-              configEntry);
-
-    DictionaryPasswordValidator validator =
-         new DictionaryPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    DictionaryPasswordValidator validator = initializePasswordValidator(configEntry);
 
     ByteString pwOS = ByteString.valueOfUtf8(password);
     ArrayList<Modification> mods = newArrayList(
@@ -679,6 +658,12 @@ public class DictionaryPasswordValidatorTestCase
                  acceptable, invalidReason.toString());
 
     validator.finalizePasswordValidator();
+  }
+
+  private DictionaryPasswordValidator initializePasswordValidator(Entry configEntry)
+      throws ConfigException, InitializationException {
+    return InitializationUtils.initializePasswordValidator(
+        new DictionaryPasswordValidator(), configEntry, DictionaryPasswordValidatorCfgDefn.getInstance());
   }
 }
 

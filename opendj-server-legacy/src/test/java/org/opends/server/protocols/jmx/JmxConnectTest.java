@@ -37,7 +37,6 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.JMXConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.JMXConnectionHandlerCfg;
 import org.opends.server.config.JMXMBean;
@@ -45,6 +44,7 @@ import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
@@ -472,9 +472,8 @@ public class JmxConnectTest extends JmxTestCase {
     JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler();
     assertNotNull(jmxConnectionHandler);
 
-    JMXConnectionHandlerCfg config = AdminTestCaseUtils
-        .getConfiguration(JMXConnectionHandlerCfgDefn
-            .getInstance(), entry);
+    JMXConnectionHandlerCfg config = InitializationUtils.getConfiguration(
+        JMXConnectionHandlerCfgDefn.getInstance(), entry);
 
     if (!jmxConnectionHandler.isConfigurationChangeAcceptable(config,
         reasons)) {

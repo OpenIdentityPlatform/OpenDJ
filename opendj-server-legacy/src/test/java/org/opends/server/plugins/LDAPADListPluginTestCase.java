@@ -22,21 +22,20 @@ import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.LDAPAttributeDescriptionListPluginCfgDefn;
-import org.forgerock.opendj.server.config.server.LDAPAttributeDescriptionListPluginCfg;
 import org.opends.server.api.plugin.PluginType;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -104,14 +103,7 @@ public class LDAPADListPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    LDAPAttributeDescriptionListPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LDAPAttributeDescriptionListPluginCfgDefn.getInstance(), e);
-
-    LDAPADListPlugin plugin = new LDAPADListPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    LDAPADListPlugin plugin = initializePlugin0(e);
     plugin.finalizePlugin();
   }
 
@@ -178,18 +170,14 @@ public class LDAPADListPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
-
-    LDAPAttributeDescriptionListPluginCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              LDAPAttributeDescriptionListPluginCfgDefn.getInstance(), e);
-
-    LDAPADListPlugin plugin = new LDAPADListPlugin();
-    plugin.initializePlugin(pluginTypes, configuration);
+    LDAPADListPlugin plugin = initializePlugin0(e);
     plugin.finalizePlugin();
   }
-
-
+  
+  private LDAPADListPlugin initializePlugin0(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePlugin(
+        new LDAPADListPlugin(), e, LDAPAttributeDescriptionListPluginCfgDefn.getInstance());
+  }
 
   /**
    * Tests the <CODE>doPreParseSearch</CODE> method with an empty attribute

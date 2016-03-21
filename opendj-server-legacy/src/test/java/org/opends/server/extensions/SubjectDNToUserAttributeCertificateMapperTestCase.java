@@ -28,9 +28,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SubjectDNToUserAttributeCertificateMapperCfgDefn;
-import org.forgerock.opendj.server.config.server.SubjectDNToUserAttributeCertificateMapperCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.tools.LDAPSearch;
@@ -124,14 +122,10 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    SubjectDNToUserAttributeCertificateMapperCfg configuration =
-       AdminTestCaseUtils.getConfiguration(
-            SubjectDNToUserAttributeCertificateMapperCfgDefn.
-                 getInstance(), e);
-
-    SubjectDNToUserAttributeCertificateMapper mapper =
-         new SubjectDNToUserAttributeCertificateMapper();
-    mapper.initializeCertificateMapper(configuration);
+    InitializationUtils.initializeCertificateMapper(
+    		new SubjectDNToUserAttributeCertificateMapper(),
+    		e,
+    		SubjectDNToUserAttributeCertificateMapperCfgDefn.getInstance());
   }
 
 

@@ -27,8 +27,6 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.server.config.meta.CharacterSetPasswordValidatorCfgDefn;
-import org.forgerock.opendj.server.config.server.CharacterSetPasswordValidatorCfg;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -189,17 +187,14 @@ public class CharacterSetPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    CharacterSetPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              CharacterSetPasswordValidatorCfgDefn.getInstance(), e);
-
-    CharacterSetPasswordValidator validator =
-         new CharacterSetPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    CharacterSetPasswordValidator validator = initializePasswordValidator(e);
     validator.finalizePasswordValidator();
   }
 
-
+  private CharacterSetPasswordValidator initializePasswordValidator(Entry e) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePasswordValidator(
+        new CharacterSetPasswordValidator(), e, CharacterSetPasswordValidatorCfgDefn.getInstance());
+  }
 
   /**
    * Retrieves a set of invalid configuration entries.
@@ -486,13 +481,7 @@ public class CharacterSetPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    CharacterSetPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              CharacterSetPasswordValidatorCfgDefn.getInstance(), e);
-
-    CharacterSetPasswordValidator validator =
-         new CharacterSetPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
 
     StringBuilder buffer = new StringBuilder();
     for (StringBuilder line : e.toLDIF())
@@ -971,14 +960,7 @@ public class CharacterSetPasswordValidatorTestCase
          "cn: Test User",
          "userPassword: doesntmatter");
 
-    CharacterSetPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              CharacterSetPasswordValidatorCfgDefn.getInstance(),
-              configEntry);
-
-    CharacterSetPasswordValidator validator =
-         new CharacterSetPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    CharacterSetPasswordValidator validator = initializePasswordValidator(configEntry);
 
     ByteString pwOS = ByteString.valueOfUtf8(password);
     ArrayList<Modification> mods = newArrayList(

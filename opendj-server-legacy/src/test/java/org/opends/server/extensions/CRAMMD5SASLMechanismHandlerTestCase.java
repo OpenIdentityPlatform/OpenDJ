@@ -23,9 +23,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.CramMD5SASLMechanismHandlerCfgDefn;
-import org.forgerock.opendj.server.config.server.CramMD5SASLMechanismHandlerCfg;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -39,18 +37,11 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the CRAM-MD5 SASL mechanism handler.
- */
+/** A set of test cases for the CRAM-MD5 SASL mechanism handler. */
 @SuppressWarnings("javadoc")
 public class CRAMMD5SASLMechanismHandlerTestCase
        extends ExtensionsTestCase
 {
-  /**
-   * Ensures that the Directory Server is running.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
   @BeforeClass
   public void startServer() throws Exception
   {
@@ -119,13 +110,8 @@ public class CRAMMD5SASLMechanismHandlerTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    CramMD5SASLMechanismHandlerCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              CramMD5SASLMechanismHandlerCfgDefn.getInstance(),
-              e);
-
-    CRAMMD5SASLMechanismHandler handler = new CRAMMD5SASLMechanismHandler();
-    handler.initializeSASLMechanismHandler(configuration);
+    InitializationUtils.initializeSASLMechanismHandler(
+        new CRAMMD5SASLMechanismHandler(), e, CramMD5SASLMechanismHandlerCfgDefn.getInstance());
   }
 
 

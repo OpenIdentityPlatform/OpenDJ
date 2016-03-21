@@ -32,7 +32,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.RepeatedCharactersPasswordValidatorCfgDefn;
 import org.forgerock.opendj.server.config.server.RepeatedCharactersPasswordValidatorCfg;
 import org.opends.server.core.ModifyOperationBasis;
@@ -133,13 +132,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(), e);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    RepeatedCharactersPasswordValidator validator = initializePasswordValidator(e);
     validator.finalizePasswordValidator();
   }
 
@@ -237,16 +230,14 @@ public class RepeatedCharactersPasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(), e);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
-
+  private RepeatedCharactersPasswordValidator initializePasswordValidator(Entry e)
+        throws ConfigException, InitializationException {
+    return InitializationUtils.initializePasswordValidator(
+        new RepeatedCharactersPasswordValidator(), e, RepeatedCharactersPasswordValidatorCfgDefn.getInstance());  
+  }
 
   /**
    * Tests the {@code passwordIsAcceptable} method with a password that falls
@@ -356,14 +347,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "ds-cfg-max-consecutive-length: 0",
          "ds-cfg-case-sensitive-validation: true");
 
-    RepeatedCharactersPasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
-              validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator =
-         new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    RepeatedCharactersPasswordValidator validator = initializePasswordValidator(validatorEntry);
 
     String value = "aaaaaaaa";
     assertAcceptable(validator, value, userEntry, true);
@@ -380,8 +364,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: true");
 
-    RepeatedCharactersPasswordValidatorCfg updatedConfiguration =
-         AdminTestCaseUtils.getConfiguration(
+    RepeatedCharactersPasswordValidatorCfg updatedConfiguration = InitializationUtils.getConfiguration(
               RepeatedCharactersPasswordValidatorCfgDefn.getInstance(),
               updatedValidatorEntry);
 
@@ -426,14 +409,8 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "ds-cfg-max-consecutive-length: " + maxConsecutiveLength,
          "ds-cfg-case-sensitive-validation: " + caseSensitiveValidation);
 
-    RepeatedCharactersPasswordValidatorCfgDefn defn = RepeatedCharactersPasswordValidatorCfgDefn.getInstance();
-    RepeatedCharactersPasswordValidatorCfg configuration = AdminTestCaseUtils.getConfiguration(defn, validatorEntry);
-
-    RepeatedCharactersPasswordValidator validator = new RepeatedCharactersPasswordValidator();
-    validator.initializePasswordValidator(configuration);
-
+    RepeatedCharactersPasswordValidator validator = initializePasswordValidator(validatorEntry);
     assertAcceptable(validator, value, userEntry, expectedResult);
-
     validator.finalizePasswordValidator();
   }
 

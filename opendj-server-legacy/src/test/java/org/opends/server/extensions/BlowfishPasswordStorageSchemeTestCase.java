@@ -16,14 +16,8 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.BlowfishPasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.BlowfishPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-
-
 
 /**
  * A set of test cases for the Blowfish password storage scheme.
@@ -48,18 +42,9 @@ public class BlowfishPasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    BlowfishPasswordStorageScheme scheme = new BlowfishPasswordStorageScheme();
-
-    BlowfishPasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          BlowfishPasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry);
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new BlowfishPasswordStorageScheme(), configEntry, BlowfishPasswordStorageSchemeCfgDefn.getInstance());
   }
 }
-

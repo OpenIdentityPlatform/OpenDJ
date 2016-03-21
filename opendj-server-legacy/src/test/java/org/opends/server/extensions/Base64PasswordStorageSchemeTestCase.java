@@ -16,14 +16,8 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.Base64PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-
-
 
 /**
  * A set of test cases for the base64 password storage scheme.
@@ -48,19 +42,10 @@ public class Base64PasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    Base64PasswordStorageScheme scheme = new Base64PasswordStorageScheme();
-
-    Base64PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          Base64PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new Base64PasswordStorageScheme(), configEntry, Base64PasswordStorageSchemeCfgDefn.getInstance());
   }
 }
 

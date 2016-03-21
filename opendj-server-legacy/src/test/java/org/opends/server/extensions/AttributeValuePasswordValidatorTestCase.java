@@ -28,9 +28,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.AttributeValuePasswordValidatorCfgDefn;
-import org.forgerock.opendj.server.config.server.AttributeValuePasswordValidatorCfg;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
@@ -153,13 +151,7 @@ public class AttributeValuePasswordValidatorTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    AttributeValuePasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              AttributeValuePasswordValidatorCfgDefn.getInstance(), e);
-
-    AttributeValuePasswordValidator validator =
-         new AttributeValuePasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    AttributeValuePasswordValidator validator = initializePasswordValidator(e);
     validator.finalizePasswordValidator();
   }
 
@@ -222,13 +214,7 @@ public class AttributeValuePasswordValidatorTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    AttributeValuePasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              AttributeValuePasswordValidatorCfgDefn.getInstance(), e);
-
-    AttributeValuePasswordValidator validator =
-         new AttributeValuePasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    initializePasswordValidator(e);
   }
 
 
@@ -415,14 +401,7 @@ public class AttributeValuePasswordValidatorTestCase
          "cn: Test User",
          "userPassword: doesntmatter");
 
-    AttributeValuePasswordValidatorCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              AttributeValuePasswordValidatorCfgDefn.getInstance(),
-              configEntry);
-
-    AttributeValuePasswordValidator validator =
-         new AttributeValuePasswordValidator();
-    validator.initializePasswordValidator(configuration);
+    AttributeValuePasswordValidator validator = initializePasswordValidator(configEntry);
 
     ByteString pwOS = ByteString.valueOfUtf8(password);
     ArrayList<Modification> mods = CollectionUtils.newArrayList(
@@ -442,5 +421,9 @@ public class AttributeValuePasswordValidatorTestCase
 
     validator.finalizePasswordValidator();
   }
-}
 
+  private AttributeValuePasswordValidator initializePasswordValidator(Entry configEntry) throws ConfigException, InitializationException {
+    return InitializationUtils.initializePasswordValidator(
+        new AttributeValuePasswordValidator(), configEntry, AttributeValuePasswordValidatorCfgDefn.getInstance());
+  }
+}

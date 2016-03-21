@@ -16,11 +16,8 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.forgerock.opendj.server.config.meta.*;
 import org.forgerock.opendj.server.config.server.SoftReferenceEntryCacheCfg;
@@ -31,8 +28,6 @@ import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for SoftReference entry cache implementation.
@@ -64,7 +59,7 @@ public class SoftReferenceEntryCacheTestCase
       "ds-cfg-java-class: " +
       "org.opends.server.extensions.SoftReferenceEntryCache",
       "ds-cfg-enabled: true");
-    super.configuration = AdminTestCaseUtils.getConfiguration(
+    super.configuration = InitializationUtils.getConfiguration(
       SoftReferenceEntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
     // Force GC to make sure we have enough memory for

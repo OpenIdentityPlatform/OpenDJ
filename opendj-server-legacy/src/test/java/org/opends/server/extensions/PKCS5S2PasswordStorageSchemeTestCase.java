@@ -15,9 +15,7 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PKCS5S2PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.PKCS5S2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
@@ -66,17 +64,8 @@ public class PKCS5S2PasswordStorageSchemeTestCase
   @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    PKCS5S2PasswordStorageScheme scheme =
-         new PKCS5S2PasswordStorageScheme();
-
-    PKCS5S2PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-              PKCS5S2PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new PKCS5S2PasswordStorageScheme(), configEntry, PKCS5S2PasswordStorageSchemeCfgDefn.getInstance());
   }
 
   /**

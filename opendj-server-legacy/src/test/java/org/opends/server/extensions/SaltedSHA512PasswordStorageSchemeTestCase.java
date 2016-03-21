@@ -16,52 +16,28 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.SaltedSHA512PasswordStorageSchemeCfgDefn;
-import org.forgerock.opendj.server.config.server.SaltedSHA512PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * A set of test cases for the salted SHA-512 password storage scheme.
- */
+/** A set of test cases for the salted SHA-512 password storage scheme. */
 @SuppressWarnings("javadoc")
 public class SaltedSHA512PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public SaltedSHA512PasswordStorageSchemeTestCase()
   {
     super("cn=Salted SHA-512,cn=Password Storage Schemes,cn=config");
   }
 
-
-
-  /**
-   * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
   @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
-    SaltedSHA512PasswordStorageScheme scheme =
-         new SaltedSHA512PasswordStorageScheme();
-
-    SaltedSHA512PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedSHA512PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-    return scheme;
+    return InitializationUtils.initializePasswordStorageScheme(
+        new SaltedSHA512PasswordStorageScheme(), configEntry, SaltedSHA512PasswordStorageSchemeCfgDefn.getInstance());
   }
 
   /**
@@ -92,7 +68,6 @@ public class SaltedSHA512PasswordStorageSchemeTestCase
     testAuthPasswords("TestSSHA512", plaintextPassword, encodedPassword);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected String encodeOffline(byte[] plaintextBytes) throws DirectoryException
   {

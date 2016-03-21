@@ -25,16 +25,15 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.forgerock.opendj.server.config.server.PasswordPolicyCfg;
 import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
@@ -2163,7 +2162,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicyCfg configuration =
-      AdminTestCaseUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(), e);
+      InitializationUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(), e);
 
     new PasswordPolicyFactory().createAuthenticationPolicy(configuration);
   }

@@ -27,9 +27,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.AdminTestCaseUtils;
 import org.forgerock.opendj.server.config.meta.ExternalSASLMechanismHandlerCfgDefn;
-import org.forgerock.opendj.server.config.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -132,13 +130,8 @@ public class ExternalSASLMechanismHandlerTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    ExternalSASLMechanismHandlerCfg configuration =
-         AdminTestCaseUtils.getConfiguration(
-              ExternalSASLMechanismHandlerCfgDefn.getInstance(),
-              e);
-
-    ExternalSASLMechanismHandler handler = new ExternalSASLMechanismHandler();
-    handler.initializeSASLMechanismHandler(configuration);
+    InitializationUtils.initializeSASLMechanismHandler(
+        new ExternalSASLMechanismHandler(), e, ExternalSASLMechanismHandlerCfgDefn.getInstance());
   }
 
 
