@@ -1490,7 +1490,7 @@
         The artifacts are used when preparing the product documentation.
 
         This profile is active without being specified explicitly.
-        To deactivate this profile, use as exclamation point as in `-P!docs`.
+        To deactivate this profile, use an exclamation point as in `-P!docs`.
       -->
       <id>docs</id>
 
