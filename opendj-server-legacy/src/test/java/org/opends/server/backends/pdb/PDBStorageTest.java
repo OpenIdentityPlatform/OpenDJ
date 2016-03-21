@@ -17,7 +17,7 @@ package org.opends.server.backends.pdb;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ConfigurationMock.*;
+import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 
@@ -124,7 +124,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
 
   protected PDBBackendCfg createBackendCfg()
   {
-    PDBBackendCfg backendCfg = legacyMockCfg(PDBBackendCfg.class);
+    PDBBackendCfg backendCfg = mockCfg(PDBBackendCfg.class);
     when(backendCfg.getBackendId()).thenReturn("PDBStorageTest");
     when(backendCfg.getDBDirectory()).thenReturn("PDBStorageTest");
     when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");

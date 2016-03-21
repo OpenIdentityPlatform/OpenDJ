@@ -17,7 +17,7 @@
 package org.opends.server.backends.pluggable.pdb;
 
 import static org.mockito.Mockito.when;
-import static org.opends.server.ConfigurationMock.mockCfg;
+import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBBackend;

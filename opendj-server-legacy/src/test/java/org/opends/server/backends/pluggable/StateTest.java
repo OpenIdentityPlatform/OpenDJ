@@ -17,7 +17,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ConfigurationMock.*;
+import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.opends.server.backends.pluggable.State.IndexFlag.*;
 import static org.opends.server.util.CollectionUtils.*;
 

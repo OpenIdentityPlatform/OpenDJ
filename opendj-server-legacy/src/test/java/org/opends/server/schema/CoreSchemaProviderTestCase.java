@@ -18,7 +18,7 @@ package org.opends.server.schema;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
-import org.opends.server.ConfigurationMock;
+import org.forgerock.opendj.config.ConfigurationMock;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.CoreTestCase;
 import org.opends.server.core.ServerContext;

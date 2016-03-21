@@ -17,7 +17,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.opends.server.ConfigurationMock.mockCfg;
+import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 import static org.opends.server.TestCaseUtils.makeEntry;
 import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
