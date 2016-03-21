@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -404,6 +404,7 @@ final class LDAPDriver extends Driver {
      */
     boolean entryExists(DN dn) throws LdapException {
         try {
+            // request a non existent attribute name so the search returns as little data as possible
             connection.readEntry(dn, "1.1");
             return true;
         } catch (EntryNotFoundException e) {
