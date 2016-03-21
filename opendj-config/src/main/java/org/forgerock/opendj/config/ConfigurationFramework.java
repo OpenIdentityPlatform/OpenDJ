@@ -109,8 +109,12 @@ public final class ConfigurationFramework {
 
     }
 
-    private static final String MANIFEST =
-            "/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
+    /** Relative path must be used to retrieve the manifest as a jar entry from the jars. */
+    private static final String MANIFEST_RELATIVE_PATH =
+        "META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
+
+    /** Absolute path must be used to retrieve the manifest as a resource stream. */
+    private static final String MANIFEST_ABSOLUTE_PATH = "/" + MANIFEST_RELATIVE_PATH;
 
     private static final LocalizedLogger adminLogger = LocalizedLogger
             .getLocalizedLogger(ConfigMessages.resourceName());
@@ -330,7 +334,7 @@ public final class ConfigurationFramework {
         // retrieve MANIFEST entry and display name, build number and revision number
         try {
             JarFile jarFile = new JarFile(extension);
-            JarEntry entry = jarFile.getJarEntry(MANIFEST);
+            JarEntry entry = jarFile.getJarEntry(MANIFEST_RELATIVE_PATH);
             if (entry == null) {
                 return;
             }
@@ -532,6 +536,7 @@ public final class ConfigurationFramework {
         if (path.exists() && path.isDirectory()) {
 
             return Arrays.asList(path.listFiles(new FileFilter() {
+                @Override
                 public boolean accept(File pathname) {
                     // only files with names ending with ".jar"
                     return pathname.isFile() && pathname.getName().endsWith(".jar");
@@ -549,9 +554,9 @@ public final class ConfigurationFramework {
      *             configuration definition classes could not be initialized.
      */
     private void initializeCoreComponents() throws ConfigException {
-        final InputStream is = RootCfgDefn.class.getResourceAsStream(MANIFEST);
+        final InputStream is = RootCfgDefn.class.getResourceAsStream(MANIFEST_ABSOLUTE_PATH);
         if (is == null) {
-            final LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST);
+            final LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST_ABSOLUTE_PATH);
             throw new ConfigException(message);
         }
         try {
@@ -559,7 +564,7 @@ public final class ConfigurationFramework {
         } catch (final ConfigException e) {
             debugLogger.trace("Unable to initialize core components", e);
             final LocalizableMessage message =
-                    ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(MANIFEST, stackTraceToSingleLineString(e,
+                    ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(MANIFEST_ABSOLUTE_PATH, stackTraceToSingleLineString(e,
                             true));
             throw new ConfigException(message);
         }
@@ -577,7 +582,7 @@ public final class ConfigurationFramework {
      *             initialized.
      */
     private void initializeExtension(final JarFile jarFile) throws ConfigException {
-        final JarEntry entry = jarFile.getJarEntry(MANIFEST);
+        final JarEntry entry = jarFile.getJarEntry(MANIFEST_RELATIVE_PATH);
         if (entry != null) {
             InputStream is;
             try {
@@ -585,7 +590,7 @@ public final class ConfigurationFramework {
             } catch (final Exception e) {
                 debugLogger.trace("Unable to get input stream from jar", e);
                 final LocalizableMessage message =
-                        ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(MANIFEST, jarFile.getName(),
+                        ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(MANIFEST_RELATIVE_PATH, jarFile.getName(),
                                 stackTraceToSingleLineString(e, true));
                 throw new ConfigException(message);
             }
@@ -595,7 +600,7 @@ public final class ConfigurationFramework {
             } catch (final ConfigException e) {
                 debugLogger.trace("Unable to load classes from input stream", e);
                 final LocalizableMessage message =
-                        ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), MANIFEST,
+                        ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), MANIFEST_RELATIVE_PATH,
                                 stackTraceToSingleLineString(e, true));
                 throw new ConfigException(message);
             }
