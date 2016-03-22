@@ -29,29 +29,23 @@ import com.forgerock.opendj.cli.ReturnCode;
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_INVALID_LOG_FILE;
 
 /**
- * Creates a historical log about the upgrade. If file does not exist an attempt
- * will be made to create it.
+ * Creates a historical log about the upgrade.
+ * <br>
+ * If file does not exist an attempt will be made to create it.
  */
 class UpgradeLog
 {
   private static File logFile;
-  static final String UPGRADELOGNAME = "upgrade.log";
+  private static final String UPGRADE_LOG_NAME = "upgrade.log";
 
   static void createLogFile()
   {
     if (logFile == null)
     {
-      logFile = Paths.get(UpgradeUtils.getInstancePath(), Installation.LOGS_PATH_RELATIVE, UPGRADELOGNAME).toFile();
+      logFile = Paths.get(UpgradeUtils.getInstancePath(), Installation.LOGS_PATH_RELATIVE, UPGRADE_LOG_NAME).toFile();
     }
   }
 
-  /**
-   * Returns the print stream of the current logger.
-   *
-   * @return the print stream of the current logger.
-   * @throws ClientException
-   *           If the file defined by the logger is not found or invalid.
-   */
   static PrintStream getPrintStream() throws ClientException
   {
     try
@@ -60,8 +54,7 @@ class UpgradeLog
     }
     catch (FileNotFoundException e)
     {
-      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_INVALID_LOG_FILE.get(e
-          .getMessage()));
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_INVALID_LOG_FILE.get(e.getMessage()));
     }
   }
 
