@@ -198,16 +198,6 @@ ds-cfg-writability-mode: disabled
 ds-cfg-base-dn: cn=backups
 ds-cfg-backup-directory: bak
 
-dn: ds-cfg-backend-id=config,cn=Backends,cn=config
-objectClass: top
-objectClass: ds-cfg-backend
-objectClass: ds-cfg-config-file-handler-backend
-ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.extensions.ConfigFileHandler
-ds-cfg-backend-id: config
-ds-cfg-writability-mode: enabled
-ds-cfg-base-dn: cn=config
-
 dn: ds-cfg-backend-id=ads-truststore,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend

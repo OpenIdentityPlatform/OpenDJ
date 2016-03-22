@@ -1894,8 +1894,7 @@ public class SchemaConstants
   /**
    * The OID for the user password attribute syntax.
    */
-  public static final String SYNTAX_USER_PASSWORD_OID =
-       OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".1";
+  public static final String SYNTAX_USER_PASSWORD_OID = "1.3.6.1.4.1.1466.115.121.1.40";
 
 
 

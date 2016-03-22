@@ -5240,11 +5240,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.157
   SUP ds-cfg-virtual-attribute
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.158
-  NAME 'ds-cfg-config-file-handler-backend'
-  SUP ds-cfg-backend
-  STRUCTURAL
-  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.159
   NAME 'ds-cfg-subject-equals-dn-certificate-mapper'
   SUP ds-cfg-certificate-mapper

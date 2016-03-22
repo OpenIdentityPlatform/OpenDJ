@@ -20,6 +20,7 @@ package org.opends.server.authorization.dseecompat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -1104,8 +1105,12 @@ public final class AciHandler extends
   {
     try
     {
-      final SortedSet<Aci> globalAcis = configuration.getGlobalACI();
-      if (globalAcis != null)
+      final SortedSet<Aci> globalAcis = new TreeSet<Aci>();
+      for (String value : configuration.getGlobalACI())
+      {
+        globalAcis.add(Aci.decode(ByteString.valueOfUtf8(value), DN.rootDN()));
+      }
+      if (!globalAcis.isEmpty())
       {
         aciList.addAci(DN.rootDN(), globalAcis);
         logger.debug(INFO_ACI_ADD_LIST_GLOBAL_ACIS, globalAcis.size());

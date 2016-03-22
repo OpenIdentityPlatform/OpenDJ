@@ -11,7 +11,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2006-2010 Sun Microsystems, Inc.
-# Portions Copyright 2011-2015 ForgeRock AS.
+# Portions Copyright 2011-2016 ForgeRock AS.
 # Portions Copyright 2013-2014 Manuel Gaupp
 
 # This file contains a core set of attribute type and objectlass definitions
@@ -116,7 +116,7 @@ attributeTypes: ( 2.5.4.33 NAME 'roleOccupant' SUP distinguishedName
 attributeTypes: ( 2.5.4.34 NAME 'seeAlso' SUP distinguishedName
   X-ORIGIN 'RFC 4519' )
 attributeTypes: ( 2.5.4.35 NAME 'userPassword'
-  SYNTAX 1.3.6.1.4.1.26027.1.3.1 X-ORIGIN 'RFC 4519' )
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'RFC 4519' )
 attributeTypes: ( 2.5.4.36 NAME 'userCertificate'
   EQUALITY certificateExactMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.8 X-ORIGIN 'RFC 4523' )

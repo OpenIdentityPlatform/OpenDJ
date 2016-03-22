@@ -23,7 +23,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -44,11 +43,11 @@ public class ConfigurationBootstrapper
    *            The server context.
    * @param configClass
    *            The actual configuration class to use.
-   * @return the server management context
+   * @return the configuration handler
    * @throws InitializationException
    *            If an error occurs during bootstrapping.
    */
-  public static ServerManagementContext bootstrap(ServerContext serverContext, Class<ConfigurationHandler> configClass)
+  public static ConfigurationHandler bootstrap(ServerContext serverContext, Class<ConfigurationHandler> configClass)
       throws InitializationException {
     final ConfigurationFramework configFramework = ConfigurationFramework.getInstance();
     try
@@ -79,6 +78,6 @@ public class ConfigurationBootstrapper
       throw new InitializationException(message, e);
     }
     configurationHandler.initialize();
-    return new ServerManagementContext(configurationHandler);
+    return configurationHandler;
   }
 }

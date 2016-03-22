@@ -63,6 +63,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -159,10 +160,8 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.util.ActivateOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.ModifyOnceSDKSchemaIsUsed;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
@@ -1074,28 +1073,6 @@ public final class DirectoryServer
     initializeConfiguration();
   }
 
-  /**
-   * Initializes this server.
-   * <p>
-   * Initialization involves the following steps:
-   * <ul>
-   *  <li>Configuration</li>
-   *  <li>Schema</li>
-   * </ul>
-   * @throws InitializationException
-   */
-  @ActivateOnceNewConfigFrameworkIsUsed("it will need adaptation to be activated before sdk schema is ready")
-  @ModifyOnceSDKSchemaIsUsed
-  private void initializeNG() throws InitializationException
-  {
-    //serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
-    //initializeSchemaNG();
-
-    // TODO : config backend should be initialized later, with the other backends
-    //ConfigBackend configBackend = new ConfigBackend();
-    //configBackend.initializeConfigBackend(serverContext, configurationHandler);
-  }
-
   /** Initialize the schema of this server. */
   @ActivateOnceSDKSchemaIsUsed
   private void initializeSchemaNG() throws InitializationException
@@ -1112,10 +1089,30 @@ public final class DirectoryServer
     }
   }
 
+  /**
+   * Initializes the configuration.
+   * <p>
+   * Creates the configuration handler, the server management context and the configuration backend.
+   *
+   * @throws InitializationException
+   *            If an error occurs.
+   */
   public void initializeConfiguration() throws InitializationException
   {
-    this.configClass = environmentConfig.getConfigClass();
-    serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext, configClass);
+    configClass = environmentConfig.getConfigClass();
+    configurationHandler = ConfigurationBootstrapper.bootstrap(serverContext, configClass);
+    serverManagementContext = new ServerManagementContext(configurationHandler);
+
+    final ConfigurationBackend configBackend = new ConfigurationBackend(serverContext, configurationHandler);
+    configBackend.openBackend();
+    try
+    {
+      registerBackend(configBackend);
+    }
+    catch (DirectoryException e)
+    {
+      throw new InitializationException(LocalizableMessage.raw("Unable to register configuration backend", e));
+    }
   }
 
   /**
@@ -1280,6 +1277,7 @@ public final class DirectoryServer
       groupManager.performBackendPreInitializationProcessing(configBackend);
 
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
+      initializeAuthenticationPolicyComponents();
 
       // Initialize all the backends and their associated suffixes
       // and initialize the workflows when workflow configuration mode is auto.
@@ -1304,7 +1302,6 @@ public final class DirectoryServer
       monitorConfigManager = new MonitorConfigManager(serverContext);
       monitorConfigManager.initializeMonitorProviders();
 
-      initializeAuthenticationPolicyComponents();
 
       pluginConfigManager.initializeUserPlugins(null);
 
@@ -5944,8 +5941,9 @@ public final class DirectoryServer
       }
     }
 
-    // Finalize the entry cache.
-    EntryCache ec = DirectoryServer.getEntryCache();
+    directoryServer.configurationHandler.finalize();
+
+    EntryCache<?> ec = DirectoryServer.getEntryCache();
     if (ec != null)
     {
       ec.finalizeEntryCache();
