@@ -39,8 +39,10 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.messages.RuntimeMessages;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -306,8 +308,11 @@ public final class UpgradeCli extends ConsoleApplication implements
     // Main process
     try
     {
-      // Creates the log file.
-      UpgradeLog.initLogFileHandler();
+      UpgradeLog.createLogFile();
+      JDKLogging.enableLoggingForOpenDJTool(UpgradeLog.getPrintStream());
+      logger.info(LocalizableMessage.raw("**** Upgrade of OpenDJ started ****"));
+      logger.info(RuntimeMessages.NOTE_INSTALL_DIRECTORY.get(UpgradeUtils.getInstallationPath()));
+      logger.info(RuntimeMessages.NOTE_INSTANCE_DIRECTORY.get(UpgradeUtils.getInstancePath()));
 
       // Upgrade's context.
       UpgradeContext context = new UpgradeContext(this)

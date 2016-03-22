@@ -647,7 +647,6 @@ public class RebuildIndex extends TaskTool
   public int rebuildIndexesWithinMultipleBackends(
       final boolean initializeServer, final PrintStream out, final Collection<String> args)
   {
-    JDKLogging.enableLoggingForOpenDJTool(out);
     try
     {
       setErrorAndDebugLogPublisher(out, out);
