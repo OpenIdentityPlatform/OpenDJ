@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -37,6 +37,7 @@ import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -79,7 +80,7 @@ public class InstallReviewPanel extends ReviewPanel {
   private JCheckBox enableWindowsServiceCheckBox;
   private JLabel warningLabel;
 
-  private JComboBox viewCombo;
+  private JComboBox<LocalizableMessage> viewCombo;
   private final LocalizableMessage DISPLAY_TEXT = INFO_REVIEW_DISPLAY_TEXT.get();
   private final LocalizableMessage DISPLAY_EQUIVALENT_COMMAND = INFO_REVIEW_DISPLAY_EQUIVALENT_COMMAND.get();
 
@@ -150,14 +151,11 @@ public class InstallReviewPanel extends ReviewPanel {
     final JLabel l = new JLabel(instructions.toString());
     l.setFont(UIFactory.INSTRUCTIONS_FONT);
 
-    final LocalizableMessage[] values = {
+    viewCombo = new JComboBox<LocalizableMessage>();
+    viewCombo.setModel(new DefaultComboBoxModel<>(new LocalizableMessage[] {
       DISPLAY_TEXT,
       DISPLAY_EQUIVALENT_COMMAND
-    };
-
-    final DefaultComboBoxModel model = new DefaultComboBoxModel(values);
-    viewCombo = new JComboBox();
-    viewCombo.setModel(model);
+    }));
     viewCombo.setSelectedIndex(0);
 
     viewCombo.addActionListener(new ActionListener()
@@ -351,7 +349,7 @@ public class InstallReviewPanel extends ReviewPanel {
         && !remotePorts.isEmpty())
     {
       final AuthenticationData authData = userInstallData.getReplicationOptions().getAuthenticationData();
-      final String serverToConnectDisplay = authData == null ? "" : authData.getHostName() + ":" + authData.getPort();
+      final HostPort serverToConnectDisplay = authData != null ? authData.getHostPort() : new HostPort(null, 0);
       String s;
       if (userInstallData.getReplicationOptions().useSecureReplication())
       {
@@ -367,8 +365,8 @@ public class InstallReviewPanel extends ReviewPanel {
       final TreeSet<LocalizableMessage> remoteServerLines = new TreeSet<>();
       for (final ServerDescriptor server : remotePorts.keySet())
       {
-        String serverDisplay;
-        if (server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay))
+        HostPort serverDisplay;
+        if (server.getHostPort(false).equals(serverToConnectDisplay))
         {
           serverDisplay = serverToConnectDisplay;
         }

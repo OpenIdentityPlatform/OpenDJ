@@ -52,6 +52,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
@@ -766,12 +767,12 @@ public abstract class Task
     }
     if (isServerRunning() && ctx != null)
     {
+      HostPort hostPort = ConnectionUtils.getHostPort(ctx);
       String hostName = localHostName;
       if (hostName == null || !getInfo().getServerDescriptor().isLocal())
       {
-        hostName = ConnectionUtils.getHostName(ctx);
+        hostName = hostPort.getHost();
       }
-      int port = ConnectionUtils.getPort(ctx);
       boolean isSSL = ConnectionUtils.isSSL(ctx);
       boolean isStartTLS = ConnectionUtils.isStartTLS(ctx);
       String bindDN = ConnectionUtils.getBindDN(ctx);
@@ -779,7 +780,7 @@ public abstract class Task
       args.add("--hostName");
       args.add(hostName);
       args.add("--port");
-      args.add(String.valueOf(port));
+      args.add(String.valueOf(hostPort.getPort()));
       args.add("--bindDN");
       args.add(bindDN);
       args.add("--bindPassword");

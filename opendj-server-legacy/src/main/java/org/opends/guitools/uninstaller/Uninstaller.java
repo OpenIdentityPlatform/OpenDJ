@@ -58,6 +58,7 @@ import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -1974,7 +1975,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @throws ApplicationException if an error occurs while updating the remote
    * OpenDS server configuration.
    */
-  private void removeReferences(ConnectionWrapper connWrapper, String serverDisplay,
+  private void removeReferences(ConnectionWrapper connWrapper, HostPort serverDisplay,
       Map<ADSContext.ServerProperty, Object> serverADSProperties)
   throws ApplicationException
   {

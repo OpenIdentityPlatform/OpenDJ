@@ -12,13 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import java.net.*;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -385,17 +386,6 @@ public final class HostPort
   }
 
   /**
-   * Returns a normalized string representation of this {@code HostPort} object.
-   *
-   * @return A string representation of this {@code HostPort} object.
-   * @see #normalizedHost what host normalization covers
-   */
-  private String toNormalizedString()
-  {
-    return toString(normalizedHost);
-  }
-
-  /**
    * Inner computation for #toString() and {@link #toNormalizedString()}.
    *
    * @param hostName
@@ -501,19 +491,7 @@ public final class HostPort
     }
 
     HostPort other = (HostPort) obj;
-    if (normalizedHost == null)
-    {
-      if (other.normalizedHost != null)
-      {
-        return false;
-      }
-    }
-    else if (!normalizedHost.equals(other.normalizedHost))
-    {
-      return false;
-    }
-
-    return port == other.port;
+    return port == other.port && Objects.equals(normalizedHost, other.normalizedHost);
   }
 
   /**
@@ -531,5 +509,4 @@ public final class HostPort
     result = prime * result + port;
     return result;
   }
-
 }

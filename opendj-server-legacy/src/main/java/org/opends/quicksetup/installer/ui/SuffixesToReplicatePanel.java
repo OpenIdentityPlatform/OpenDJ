@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -59,6 +59,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
+import org.opends.server.types.HostPort;
 
 /**
  * This class is used to provide a data model for the list of suffixes that we
@@ -73,11 +74,8 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
   private final Set<SuffixDescriptor> orderedSuffixes = new TreeSet<>(this);
   private final Map<String, JCheckBox> hmCheckBoxes = new HashMap<>();
   private final Map<String, JComboBox<BackendTypeUIAdapter>> backendTypeComboBoxes = new HashMap<>();
-  /**
-   * The display of the server the user provided in the replication options
-   * panel.
-   */
-  private String serverToConnectDisplay;
+  /** The display of the server the user provided in the replication options panel. */
+  private HostPort serverToConnectDisplay;
 
   private JLabel noSuffixLabel;
   private Component labelGlue;
@@ -216,8 +214,7 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
   {
     Set<SuffixDescriptor> array = orderSuffixes(data.getSuffixesToReplicateOptions().getAvailableSuffixes());
     AuthenticationData authData = data.getReplicationOptions().getAuthenticationData();
-    String newServerDisplay;
-    newServerDisplay = authData != null ? authData.getHostName() + ":" + authData.getPort() : "";
+    HostPort newServerDisplay = authData != null ? authData.getHostPort() : new HostPort(null, 0);
 
     if (!array.equals(orderedSuffixes) || !newServerDisplay.equals(serverToConnectDisplay))
     {
@@ -422,14 +419,14 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     Set<String> replicaDisplays = new TreeSet<>();
     for (ReplicaDescriptor rep : desc.getReplicas())
     {
-      replicaDisplays.add(getServerDisplay(rep));
+      replicaDisplays.add(getServerDisplay(rep).toString());
     }
     return joinAsString("\n", replicaDisplays);
   }
 
-  private String getServerDisplay(ReplicaDescriptor replica)
+  private HostPort getServerDisplay(ReplicaDescriptor replica)
   {
-    final boolean isServerToConnect = replica.getServer().getHostPort(false).equalsIgnoreCase(serverToConnectDisplay);
+    final boolean isServerToConnect = replica.getServer().getHostPort(false).equals(serverToConnectDisplay);
     return isServerToConnect ? serverToConnectDisplay : replica.getServer().getHostPort(true);
   }
 
@@ -450,5 +447,4 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
   {
     return getSuffixString(desc1).compareTo(getSuffixString(desc2));
   }
-
 }

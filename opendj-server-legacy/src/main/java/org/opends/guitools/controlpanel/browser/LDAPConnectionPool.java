@@ -28,6 +28,7 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
 import org.forgerock.opendj.ldap.SearchScope;
 
@@ -84,9 +85,10 @@ public class LDAPConnectionPool {
     for (String key : connectionTable.keySet())
     {
       ConnectionRecord cr = connectionTable.get(key);
+      HostPort hostPort = getHostPort(ctx);
+      HostPort crHostPort = getHostPort(cr.ctx);
       if (cr.ctx != null
-          && getHostName(cr.ctx).equals(getHostName(ctx))
-          && getPort(cr.ctx) == getPort(ctx)
+          && hostPort.equals(crHostPort)
           && getBindDN(cr.ctx).equals(getBindDN(ctx))
           && getBindPassword(cr.ctx).equals(getBindPassword(ctx))
           && isSSL(cr.ctx) == isSSL(ctx)
@@ -389,7 +391,7 @@ public class LDAPConnectionPool {
    */
   private static String makeKeyFromRecord(ConnectionRecord rec) {
     String protocol = ConnectionUtils.isSSL(rec.ctx) ? "LDAPS" : "LDAP";
-    return protocol + ":" + getHostName(rec.ctx) + ":" + getPort(rec.ctx);
+    return protocol + ":" + getHostPort(rec.ctx);
   }
 
   /**
@@ -476,17 +478,8 @@ public class LDAPConnectionPool {
   }
 
   private LDAPURL makeLDAPUrl(InitialLdapContext ctx) {
-    return new LDAPURL(
-        isSSL(ctx) ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
-            getHostName(ctx),
-            getPort(ctx),
-            "",
-            null, // no attributes
-            SearchScope.BASE_OBJECT,
-            null, // No filter
-            null); // No extensions
+    return makeLDAPUrl(ctx, "");
   }
-
 
   /**
    * Make an url from the specified arguments.
@@ -495,15 +488,16 @@ public class LDAPConnectionPool {
    * @return an LDAP URL from the specified arguments.
    */
   public static LDAPURL makeLDAPUrl(InitialLdapContext ctx, String dn) {
+    HostPort hostPort = ConnectionUtils.getHostPort(ctx);
     return new LDAPURL(
-        ConnectionUtils.isSSL(ctx) ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
-               ConnectionUtils.getHostName(ctx),
-               ConnectionUtils.getPort(ctx),
+        isSSL(ctx) ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
+               hostPort.getHost(),
+               hostPort.getPort(),
                dn,
                null, // No attributes
                SearchScope.BASE_OBJECT,
-               null,
-               null); // No filter
+               null, // No filter
+               null); // No extensions
   }
 
 

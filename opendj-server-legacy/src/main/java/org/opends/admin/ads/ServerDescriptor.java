@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
@@ -47,6 +47,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.types.HostPort;
 
 /** The object of this class represent an OpenDS server. */
 public class ServerDescriptor
@@ -352,7 +353,7 @@ public class ServerDescriptor
    * of the returning String or not.
    * @return a String of type host-name:port-number for the server.
    */
-  public String getHostPort(boolean securePreferred)
+  public HostPort getHostPort(boolean securePreferred)
   {
     int port = -1;
 
@@ -409,9 +410,7 @@ public class ServerDescriptor
         }
       }
     }
-
-    String host = getHostName();
-    return host + ":" + port;
+    return new HostPort(getHostName(), port);
   }
 
   private ADSContext.ServerProperty getPortProperty(ADSContext.ServerProperty prop)
@@ -1402,20 +1401,7 @@ public class ServerDescriptor
    */
   public static String getReplicationServer(String hostName, int replicationPort)
   {
-    return getServerRepresentation(hostName, replicationPort);
-  }
-
-  /**
-   * Returns the normalized server representation for a given host name and
-   * port.
-   * @param hostName the host name.
-   * @param port the port.
-   * @return the normalized server representation for a given host name and
-   * port.
-   */
-  public static String getServerRepresentation(String hostName, int port)
-  {
-    return hostName.toLowerCase() + ":" + port;
+    return new HostPort(hostName, replicationPort).toString();
   }
 
   /**

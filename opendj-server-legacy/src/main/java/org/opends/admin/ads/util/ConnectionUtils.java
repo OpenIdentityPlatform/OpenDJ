@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import java.io.IOException;
@@ -44,6 +43,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.types.HostPort;
 
 import com.forgerock.opendj.cli.Utils;
 
@@ -383,18 +383,7 @@ public class ConnectionUtils
    */
   public static String getLdapUrl(InitialLdapContext ctx)
   {
-    String s = null;
-    try
-    {
-      s = (String)ctx.getEnvironment().get(Context.PROVIDER_URL);
-    }
-    catch (NamingException ne)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
-          ne));
-    }
-    return s;
+    return getEnvProperty(ctx, Context.PROVIDER_URL);
   }
 
   /**
@@ -404,18 +393,8 @@ public class ConnectionUtils
    */
   public static String getHostName(InitialLdapContext ctx)
   {
-    String s = null;
-    try
-    {
-      URI ldapURL = new URI(getLdapUrl(ctx));
-      s = ldapURL.getHost();
-    }
-    catch (Throwable t)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Error getting host: "+t, t));
-    }
-    return s;
+    HostPort hp = getHostPort(ctx);
+    return hp != null ? hp.getHost() : null;
   }
 
   /**
@@ -425,18 +404,8 @@ public class ConnectionUtils
    */
   public static int getPort(InitialLdapContext ctx)
   {
-    int port = -1;
-    try
-    {
-      URI ldapURL = new URI(getLdapUrl(ctx));
-      port = ldapURL.getPort();
-    }
-    catch (Throwable t)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Error getting port: "+t, t));
-    }
-    return port;
+    HostPort hp = getHostPort(ctx);
+    return hp != null ? hp.getPort() : -1;
   }
 
   /**
@@ -446,9 +415,19 @@ public class ConnectionUtils
    * @return the host port representation of the server to which this
    * context is connected.
    */
-  public static String getHostPort(InitialLdapContext ctx)
+  public static HostPort getHostPort(InitialLdapContext ctx)
   {
-    return getHostName(ctx)+":"+getPort(ctx);
+    try
+    {
+      URI ldapURL = new URI(getLdapUrl(ctx));
+      return new HostPort(ldapURL.getHost(), ldapURL.getPort());
+    }
+    catch (Throwable t)
+    {
+      // This is really strange.  Seems like a bug somewhere.
+      logger.warn(LocalizableMessage.raw("Error getting host: "+t, t));
+      return null;
+    }
   }
 
   /**
@@ -458,18 +437,7 @@ public class ConnectionUtils
    */
   public static String getBindDN(InitialLdapContext ctx)
   {
-    String bindDN = null;
-    try
-    {
-      bindDN = (String)ctx.getEnvironment().get(Context.SECURITY_PRINCIPAL);
-    }
-    catch (NamingException ne)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
-          ne));
-    }
-    return bindDN;
+    return getEnvProperty(ctx, Context.SECURITY_PRINCIPAL);
   }
 
   /**
@@ -479,18 +447,17 @@ public class ConnectionUtils
    */
   public static String getBindPassword(InitialLdapContext ctx)
   {
-    String bindPwd = null;
-    try
-    {
-      bindPwd = (String)ctx.getEnvironment().get(Context.SECURITY_CREDENTIALS);
-    }
-    catch (NamingException ne)
-    {
+    return getEnvProperty(ctx, Context.SECURITY_CREDENTIALS);
+  }
+
+  private static String getEnvProperty(InitialLdapContext ctx, String property) {
+    try {
+      return (String) ctx.getEnvironment().get(property);
+    } catch (NamingException ne) {
       // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
-          ne));
+      logger.warn(LocalizableMessage.raw("Naming exception getting environment of " + ctx, ne));
+      return null;
     }
-    return bindPwd;
   }
 
   /**
@@ -501,17 +468,16 @@ public class ConnectionUtils
    */
   public static boolean isSSL(InitialLdapContext ctx)
   {
-    boolean isSSL = false;
     try
     {
-      isSSL = getLdapUrl(ctx).toLowerCase().startsWith("ldaps");
+      return getLdapUrl(ctx).toLowerCase().startsWith("ldaps");
     }
     catch (Throwable t)
     {
       // This is really strange.  Seems like a bug somewhere.
       logger.warn(LocalizableMessage.raw("Error getting if is SSL "+t, t));
+      return false;
     }
-    return isSSL;
   }
 
   /**
@@ -522,19 +488,7 @@ public class ConnectionUtils
    */
   public static boolean isStartTLS(InitialLdapContext ctx)
   {
-    boolean isStartTLS = false;
-    try
-    {
-      isStartTLS = "true".equalsIgnoreCase((String)ctx.getEnvironment().get(
-            STARTTLS_PROPERTY));
-    }
-    catch (NamingException ne)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Naming exception getting environment of "+ctx,
-          ne));
-    }
-    return isStartTLS;
+    return "true".equalsIgnoreCase(getEnvProperty(ctx, STARTTLS_PROPERTY));
   }
 
   /**
@@ -551,7 +505,6 @@ public class ConnectionUtils
   public static boolean canConnectAsAdministrativeUser(String ldapUrl,
       String dn, String pwd, int timeout)
   {
-    boolean canConnectAsAdministrativeUser = false;
     try
     {
       InitialLdapContext ctx;
@@ -566,15 +519,15 @@ public class ConnectionUtils
             null, null, null);
       }
 
-      canConnectAsAdministrativeUser = connectedAsAdministrativeUser(ctx);
+      return connectedAsAdministrativeUser(ctx);
     } catch (NamingException ne)
     {
       // Nothing to do.
+      return false;
     } catch (Throwable t)
     {
       throw new IllegalStateException("Unexpected throwable.", t);
     }
-    return canConnectAsAdministrativeUser;
   }
 
   /**
@@ -586,12 +539,9 @@ public class ConnectionUtils
    */
   public static boolean connectedAsAdministrativeUser(InitialLdapContext ctx)
   {
-    boolean connectedAsAdministrativeUser = false;
     try
     {
-      /*
-       * Search for the config to check that it is the directory manager.
-       */
+      // Search for the config to check that it is the directory manager.
       SearchControls searchControls = new SearchControls();
       searchControls.setSearchScope(
           SearchControls. OBJECT_SCOPE);
@@ -618,15 +568,15 @@ public class ConnectionUtils
               "Unexpected error closing enumeration on cn=Config entry", ex));
         }
       }
-      connectedAsAdministrativeUser = true;
+      return true;
     } catch (NamingException ne)
     {
       // Nothing to do.
+      return false;
     } catch (Throwable t)
     {
       throw new IllegalStateException("Unexpected throwable.", t);
     }
-    return connectedAsAdministrativeUser;
   }
 
   /**
@@ -682,10 +632,8 @@ public class ConnectionUtils
 
     if (throwException)
     {
-      NamingException xx;
-      ConnectException x = new ConnectException("Connection timed out");
-      xx = new CommunicationException("Connection timed out");
-      xx.initCause(x);
+      NamingException xx = new CommunicationException("Connection timed out");
+      xx.initCause(new ConnectException("Connection timed out"));
       throw xx;
     }
 
@@ -706,6 +654,17 @@ public class ConnectionUtils
       }
     }
     return (InitialLdapContext) pair[0];
+  }
+
+  /**
+   * Returns the LDAP URL for the provided parameters.
+   * @param hostPort the host name and LDAP port.
+   * @param useSSL whether to use SSL or not.
+   * @return the LDAP URL for the provided parameters.
+   */
+  public static String getLDAPUrl(HostPort hostPort, boolean useSSL)
+  {
+    return getLDAPUrl(hostPort.getHost(), hostPort.getPort(), useSSL);
   }
 
   /**

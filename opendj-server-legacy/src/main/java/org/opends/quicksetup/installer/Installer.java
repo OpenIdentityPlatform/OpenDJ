@@ -121,6 +121,7 @@ import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
@@ -1422,7 +1423,7 @@ public abstract class Installer extends GuiApplication
       AuthenticationData auth = repl.getAuthenticationData();
       if (isVerbose())
       {
-        notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
+        notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_ADS_ON_REMOTE.get(auth.getHostPort())));
       }
       try
       {
@@ -1674,7 +1675,7 @@ public abstract class Installer extends GuiApplication
       adsServers.add(getLocalReplicationServer());
       for (String dn : baseDns)
       {
-        replicationServers.put(dn, new HashSet<String>(h));
+        replicationServers.put(dn, h);
       }
     }
     else
@@ -1692,8 +1693,9 @@ public abstract class Installer extends GuiApplication
           AuthenticationData repPort = getUserData().getRemoteWithNoReplicationPort().get(server);
           if (repPort != null)
           {
-            h.add(server.getHostName() + ":" + repPort.getPort());
-            adsServers.add(server.getHostName() + ":" + repPort.getPort());
+            String serverDisplay = server.getHostName() + ":" + repPort.getPort();
+            h.add(serverDisplay);
+            adsServers.add(serverDisplay);
           }
         }
         replicationServers.put(suffix.getDN(), h);
@@ -1705,14 +1707,14 @@ public abstract class Installer extends GuiApplication
     ConnectionWrapper connWrapper = null;
     long localTime = -1;
     long localTimeMeasureTime = -1;
-    String localServerDisplay = null;
+    HostPort localServerDisplay = null;
     try
     {
       connWrapper = createLocalConnection();
       helper.configureReplication(connWrapper, replicationServers,
           getUserData().getReplicationOptions().getReplicationPort(),
           getUserData().getReplicationOptions().useSecureReplication(),
-          getLocalHostPort(),
+          getUserData().getHostPort(),
           knownReplicationServerIds, knownServerIds);
       localTimeMeasureTime = System.currentTimeMillis();
       localTime = Utils.getServerClock(connWrapper.getLdapContext());
@@ -2177,7 +2179,7 @@ public abstract class Installer extends GuiApplication
 
       ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
       ServerDescriptor server = replica.getServer();
-      String hostPort = getHostPort(server);
+      HostPort hostPort = getHostPort(server);
 
       boolean isADS = areDnsEqual(dn, ADSContext.getAdministrationSuffixDN());
       boolean isSchema = areDnsEqual(dn, Constants.SCHEMA_DN);
@@ -2323,7 +2325,7 @@ public abstract class Installer extends GuiApplication
         {
           if (isVerbose())
           {
-            notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
+            notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS_ON_REMOTE.get(auth.getHostPort())));
           }
 
           adsContext.createAdminData(null);
@@ -2427,7 +2429,7 @@ public abstract class Installer extends GuiApplication
       LocalizableMessage msg;
       if (isRemoteServer)
       {
-        msg = getMessageForException(ne, getHostDisplay(auth));
+        msg = getMessageForException(ne, auth.getHostPort().toString());
       }
       else
       {
@@ -2438,7 +2440,7 @@ public abstract class Installer extends GuiApplication
     catch (ADSContextException ace)
     {
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, (isRemoteServer ? INFO_REMOTE_ADS_EXCEPTION.get(
-          getHostDisplay(auth), ace.getMessageObject()) : INFO_ADS_EXCEPTION.get(ace)), ace);
+          auth.getHostPort(), ace.getMessageObject()) : INFO_ADS_EXCEPTION.get(ace)), ace);
     }
     finally
     {
@@ -2448,16 +2450,15 @@ public abstract class Installer extends GuiApplication
 
   private ConnectionWrapper createConnection(AuthenticationData auth) throws NamingException
   {
-    String ldapUrl = getLdapUrl(auth);
+    String ldapUrl = auth.getLdapUrl();
     String dn = auth.getDn();
     String pwd = auth.getPwd();
 
-    InitialLdapContext context = null;
-
+    InitialLdapContext context;
     if (auth.useSecureConnection())
     {
       ApplicationTrustManager trustManager = getTrustManager();
-      trustManager.setHost(auth.getHostName());
+      trustManager.setHost(auth.getHostPort().getHost());
       context = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, trustManager, null);
     }
     else
@@ -2619,24 +2620,10 @@ public abstract class Installer extends GuiApplication
         {
           type = PreferredConnection.Type.LDAP;
         }
-        cnx.add(new PreferredConnection(getLdapUrl(auth), type));
+        cnx.add(new PreferredConnection(auth.getLdapUrl(), type));
       }
     }
     return cnx;
-  }
-
-  private String getLdapUrl(AuthenticationData auth)
-  {
-    if (auth.useSecureConnection())
-    {
-      return "ldaps://" + auth.getHostName() + ":" + auth.getPort();
-    }
-    return "ldap://" + auth.getHostName() + ":" + auth.getPort();
-  }
-
-  private String getHostDisplay(AuthenticationData auth)
-  {
-    return auth.getHostName() + ":" + auth.getPort();
   }
 
   private Map<ADSContext.ServerProperty, Object> getNewServerAdsProperties(UserData userData)
@@ -2979,11 +2966,7 @@ public abstract class Installer extends GuiApplication
     if (errorMsgs.isEmpty())
     {
       AuthenticationData auth = new AuthenticationData();
-      auth.setHostName(host);
-      if (port != null)
-      {
-        auth.setPort(port);
-      }
+      auth.setHostPort(new HostPort(host, port != null ? port : 0));
       auth.setDn(dn);
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);
@@ -3635,19 +3618,6 @@ public abstract class Installer extends GuiApplication
     getUserData().setEnableWindowsService(b);
   }
 
-  /**
-   * Returns the number of free disk space in bytes required to install Open DS
-   * For the moment we just return 20 Megabytes. TODO we might want to have
-   * something dynamic to calculate the required free disk space for the
-   * installation.
-   *
-   * @return the number of free disk space required to install Open DS.
-   */
-  private long getRequiredInstallSpace()
-  {
-    return 20 * 1024 * 1024;
-  }
-
   /** Update the UserInstallData with the contents we discover in the ADS. */
   private Set<TopologyCacheException> updateUserDataWithSuffixesInADS(ADSContext adsContext,
       ApplicationTrustManager trustManager) throws TopologyCacheException
@@ -3919,7 +3889,7 @@ public abstract class Installer extends GuiApplication
    *           if the replication mechanism cannot find a peer.
    */
   public void initializeSuffix(InitialLdapContext ctx, int replicaId, String suffixDn, boolean displayProgress,
-      String sourceServerDisplay) throws ApplicationException, PeerNotFoundException
+      HostPort sourceServerDisplay) throws ApplicationException, PeerNotFoundException
   {
     boolean taskCreated = false;
     int i = 1;
@@ -4190,12 +4160,7 @@ public abstract class Installer extends GuiApplication
     return getUserData().getHostName() + ":" + getUserData().getReplicationOptions().getReplicationPort();
   }
 
-  private String getLocalHostPort()
-  {
-    return getUserData().getHostName() + ":" + getUserData().getServerPort();
-  }
-
-  private void resetGenerationId(InitialLdapContext ctx, String suffixDn, String sourceServerDisplay)
+  private void resetGenerationId(InitialLdapContext ctx, String suffixDn, HostPort sourceServerDisplay)
       throws ApplicationException
   {
     boolean taskCreated = false;
@@ -4368,9 +4333,9 @@ public abstract class Installer extends GuiApplication
    *          the ServerDescriptor.
    * @return the host port string representation of the provided server.
    */
-  protected String getHostPort(ServerDescriptor server)
+  protected HostPort getHostPort(ServerDescriptor server)
   {
-    String hostPort = null;
+    HostPort hostPort = null;
 
     for (PreferredConnection connection : getPreferredConnections())
     {

@@ -21,8 +21,7 @@ import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
 import static org.opends.admin.ads.util.ConnectionUtils.getBindDN;
 import static org.opends.admin.ads.util.ConnectionUtils.getBindPassword;
-import static org.opends.admin.ads.util.ConnectionUtils.getHostName;
-import static org.opends.admin.ads.util.ConnectionUtils.getPort;
+import static org.opends.admin.ads.util.ConnectionUtils.getHostPort;
 import static org.opends.admin.ads.util.ConnectionUtils.isSSL;
 import static org.opends.admin.ads.util.ConnectionUtils.isStartTLS;
 
@@ -46,6 +45,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.util.Options;
 import org.forgerock.util.time.Duration;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -87,7 +87,8 @@ public class ConnectionWrapper implements Closeable
       options.set(SSL_CONTEXT, getSSLContext(trustManager)).set(SSL_USE_STARTTLS, isStartTLS(ctx));
     }
     options.set(AUTHN_BIND_REQUEST, Requests.newSimpleBindRequest(getBindDN(ctx), getBindPassword(ctx).toCharArray()));
-    connectionFactory = new LDAPConnectionFactory(getHostName(ctx), getPort(ctx), options);
+    HostPort hostPort = getHostPort(ctx);
+    connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
     try
     {
       connection = connectionFactory.getConnection();

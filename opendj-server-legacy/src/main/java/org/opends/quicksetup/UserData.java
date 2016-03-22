@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -31,6 +31,7 @@ import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.CollectionUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
@@ -42,8 +43,7 @@ import com.forgerock.opendj.cli.CliConstants;
 public class UserData
 {
   private String serverLocation;
-  private String hostName;
-  private int serverPort;
+  private HostPort hostPort = new HostPort(null, 0);
   private int adminConnectorPort;
   private String directoryManagerDn;
   private String directoryManagerPwd;
@@ -161,7 +161,7 @@ public class UserData
    */
   public void setHostName(String hostName)
   {
-    this.hostName = hostName;
+    hostPort = new HostPort(hostName, hostPort.getPort());
   }
 
   /**
@@ -170,7 +170,16 @@ public class UserData
    */
   public String getHostName()
   {
-    return hostName;
+    return hostPort.getHost();
+  }
+
+  /**
+   * Returns the server host name and LDAP port.
+   * @return the server host name and LDAP port.
+   */
+  public HostPort getHostPort()
+  {
+    return hostPort;
   }
 
   /**
@@ -179,7 +188,7 @@ public class UserData
    */
   public void setServerPort(int serverPort)
   {
-    this.serverPort = serverPort;
+    hostPort = new HostPort(hostPort.getHost(), serverPort);
   }
 
   /**
@@ -188,7 +197,7 @@ public class UserData
    */
   public int getServerPort()
   {
-    return serverPort;
+    return hostPort.getPort();
   }
 
   /**

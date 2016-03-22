@@ -81,6 +81,7 @@ import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
@@ -361,7 +362,7 @@ public class InstallerHelper {
    *           if something goes wrong.
    */
   public void createBackend(ConnectionWrapper connWrapper, String backendName, Set<String> baseDNs,
-      String serverDisplay, ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
+      HostPort serverDisplay, ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
       throws ApplicationException
   {
     try
@@ -438,7 +439,7 @@ public class InstallerHelper {
    */
   public ConfiguredReplication configureReplication(
       ConnectionWrapper connWrapper, Map<String,Set<String>> replicationServers,
-      int replicationPort, boolean useSecureReplication, String serverDisplay,
+      int replicationPort, boolean useSecureReplication, HostPort serverDisplay,
       Set<Integer> usedReplicationServerIds, Set<Integer> usedServerIds)
   throws ApplicationException
   {
@@ -647,7 +648,7 @@ public class InstallerHelper {
    *           if something goes wrong.
    */
   public void unconfigureReplication(ConnectionWrapper connWrapper, ConfiguredReplication replConf,
-      String serverDisplay) throws ApplicationException
+      HostPort serverDisplay) throws ApplicationException
   {
     try
     {

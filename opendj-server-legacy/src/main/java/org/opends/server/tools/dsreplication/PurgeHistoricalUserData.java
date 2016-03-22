@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
 
@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.RawAttribute;
 
 /** This class is used to store the information provided by the user to purge historical data. */
@@ -121,8 +122,8 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
     {
       uData.setAdminUid(argParser.getAdministratorUIDOrDefault());
       uData.setAdminPwd(argParser.getBindPasswordAdmin());
-      uData.setHostName(argParser.getHostNameToStatusOrDefault());
-      uData.setPort(argParser.getPortToStatusOrDefault());
+      uData.setHostPort(new HostPort(
+          argParser.getHostNameToStatusOrDefault(), argParser.getPortToStatusOrDefault()));
       uData.setOnline(true);
       TaskScheduleUserData taskSchedule = new TaskScheduleUserData();
       TaskScheduleArgs taskArgs = argParser.getTaskArgsList();

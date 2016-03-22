@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
+import static org.opends.admin.ads.util.ConnectionUtils.getHostPort;
+import static org.opends.admin.ads.util.ConnectionUtils.isSSL;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
 
@@ -486,9 +489,10 @@ public class NodeRefresher extends AbstractNodeTask {
         {
           // Use the local server connection.
           ctx = controller.getUserDataConnection();
-          url.setHost(ConnectionUtils.getHostName(ctx));
-          url.setPort(ConnectionUtils.getPort(ctx));
-          url.setScheme(ConnectionUtils.isSSL(ctx)?"ldaps":"ldap");
+          HostPort hostPort = getHostPort(ctx);
+          url.setHost(hostPort.getHost());
+          url.setPort(hostPort.getPort());
+          url.setScheme(isSSL(ctx) ? "ldaps" : "ldap");
         }
         ctx = connectionPool.getConnection(url);
         remoteDn = url.getRawBaseDN();
@@ -1120,23 +1124,11 @@ public class NodeRefresher extends AbstractNodeTask {
       DN dn2 = url.getBaseDN();
       if (dn2.isSuperiorOrEqualTo(dn1))
       {
-        String host = url.getHost();
-        int port = url.getPort();
-        String adminHost = ConnectionUtils.getHostName(
-            controller.getConfigurationConnection());
-        int adminPort =
-          ConnectionUtils.getPort(controller.getConfigurationConnection());
-        checkSucceeded = port != adminPort ||
-        !adminHost.equalsIgnoreCase(host);
-
+        HostPort urlHostPort = new HostPort(url.getHost(), url.getPort());
+        checkSucceeded = urlHostPort.equals(getHostPort(controller.getConfigurationConnection()));
         if (checkSucceeded)
         {
-          String hostUserData = ConnectionUtils.getHostName(
-              controller.getUserDataConnection());
-          int portUserData =
-            ConnectionUtils.getPort(controller.getUserDataConnection());
-          checkSucceeded = port != portUserData ||
-          !hostUserData.equalsIgnoreCase(host);
+          checkSucceeded = urlHostPort.equals(getHostPort(controller.getUserDataConnection()));
         }
       }
     }

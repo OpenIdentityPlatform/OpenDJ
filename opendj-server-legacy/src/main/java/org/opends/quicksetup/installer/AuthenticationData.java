@@ -12,27 +12,23 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer;
+
+import org.opends.server.types.HostPort;
 
 /**
  * This class is used to provide a data model for the different parameters used
  * to connect to a server that we want to replicate contents with.
  *
  * @see DataReplicationOptions
- *
  */
 public class AuthenticationData
 {
-  private String hostName;
-
-  private int port;
-
+  private HostPort hostPort = new HostPort(null, 0);
   private String dn;
-
   private String pwd;
-
   private boolean useSecureConnection;
 
   /**
@@ -41,7 +37,7 @@ public class AuthenticationData
    */
   public void setPort(int port)
   {
-    this.port = port;
+    hostPort = new HostPort(hostPort.getHost(), port);
   }
 
   /**
@@ -50,7 +46,7 @@ public class AuthenticationData
    */
   public int getPort()
   {
-    return port;
+    return getHostPort().getPort();
   }
 
   /**
@@ -90,21 +86,21 @@ public class AuthenticationData
   }
 
   /**
-   * Returns the host name to connect to.
-   * @return the host name to connect to.
+   * Returns the host name and port to connect to.
+   * @return the host name and port to connect to.
    */
-  public String getHostName()
+  public HostPort getHostPort()
   {
-    return hostName;
+    return hostPort;
   }
 
   /**
    * Sets the host name to connect to.
-   * @param hostName the host name to connect to.
+   * @param hostport the host name and port to connect to.
    */
-  public void setHostName(String hostName)
+  public void setHostPort(HostPort hostport)
   {
-    this.hostName = hostName;
+    this.hostPort = hostport;
   }
 
   /**
@@ -124,5 +120,12 @@ public class AuthenticationData
   public void setUseSecureConnection(boolean useSecureConnection)
   {
     this.useSecureConnection = useSecureConnection;
+  }
+
+  String getLdapUrl()
+  {
+    HostPort hostPort = getHostPort();
+    String scheme = useSecureConnection() ? "ldaps" : "ldap";
+    return scheme + "://" + hostPort.getHost() + ":" + hostPort.getPort();
   }
 }

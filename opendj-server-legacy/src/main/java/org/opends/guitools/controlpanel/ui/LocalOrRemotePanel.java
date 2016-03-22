@@ -14,7 +14,6 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
@@ -45,7 +44,6 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -64,6 +62,7 @@ import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.monitors.VersionMonitorProvider;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
@@ -84,7 +83,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final long serialVersionUID = 5051556513294844797L;
 
-  private JComboBox combo;
+  private JComboBox<LocalizableMessage> combo;
   private JLabel portLabel;
   private JTextField hostName;
   private JTextField port;
@@ -267,8 +266,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       localServerInstallPath = instancePath.getAbsolutePath();
     }
     combo = Utilities.createComboBox();
-    combo.setModel(new DefaultComboBoxModel(
-        new Object[] {INFO_CTRL_PANEL_LOCAL_SERVER.get(),
+    combo.setModel(new DefaultComboBoxModel<LocalizableMessage>(
+        new LocalizableMessage[] {INFO_CTRL_PANEL_LOCAL_SERVER.get(),
             INFO_CTRL_PANEL_REMOTE_SERVER.get()}));
     combo.setSelectedIndex(0);
     gbc.gridwidth = 2;
@@ -687,11 +686,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               }
               else
               {
-                String hostPort = ServerDescriptor.getServerRepresentation(
+                HostPort hostPort = new HostPort(
                     hostName.getText().trim(),
                     Integer.valueOf(port.getText().trim()));
                 NamingException ne = (NamingException)throwable;
-                errors.add(getMessageForException(ne, hostPort));
+                errors.add(getMessageForException(ne, hostPort.toString()));
                 setPrimaryInvalid(portLabel);
               }
               setPrimaryInvalid(dnLabel);

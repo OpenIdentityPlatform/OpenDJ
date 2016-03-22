@@ -12,56 +12,37 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.server.tools.dsreplication;
 
-/**
- * This is an abstract class used for code refactorization.
- *
- */
+import org.opends.server.types.HostPort;
+
+/** This is an abstract class used for code factorization. */
 abstract class MonoServerReplicationUserData extends ReplicationUserData
 {
-  private String hostName;
-  private int port;
+  private HostPort hostPort = new HostPort(null, 0);
   private boolean useStartTLS;
   private boolean useSSL;
 
   /**
-   * Returns the host name of the server.
-   * @return the host name of the server.
+   * Returns the host name and port of the server.
+   * @return the host name and port of the server.
    */
-  public String getHostName()
+  public HostPort getHostPort()
   {
-    return hostName;
+    return hostPort;
   }
 
   /**
-   * Sets the host name of the server.
-   * @param hostName the host name of the server.
+   * Sets the host name and port of the server.
+   * @param hostPort the host name and port of the server.
    */
-  public void setHostName(String hostName)
+  public void setHostPort(HostPort hostPort)
   {
-    this.hostName = hostName;
+    this.hostPort = hostPort;
   }
 
-  /**
-   * Returns the port of the server.
-   * @return the port of the server.
-   */
-  public int getPort()
-  {
-    return port;
-  }
-
-  /**
-   * Sets the port of the server.
-   * @param port the port of the server.
-   */
-  public void setPort(int port)
-  {
-    this.port = port;
-  }
   /**
    * Returns <CODE>true</CODE> if we must use SSL to connect to the server and
    * <CODE>false</CODE> otherwise.
@@ -102,5 +83,3 @@ abstract class MonoServerReplicationUserData extends ReplicationUserData
     this.useStartTLS = useStartTLS;
   }
 }
-
-

@@ -12,9 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
+
+import org.opends.server.types.HostPort;
 
 /**
  * This class is used to store the information provided by the user to enable
@@ -26,8 +28,7 @@ public class EnableReplicationUserData extends ReplicationUserData
   /** Data for enabling replication on a server. */
   static final class EnableReplicationServerData
   {
-    private String hostName;
-    private int port;
+    private HostPort hostPort = new HostPort(null, 0);
     private String bindDn;
     private String pwd;
     private int replicationPort;
@@ -36,24 +37,34 @@ public class EnableReplicationUserData extends ReplicationUserData
     private boolean configureReplicationDomain = true;
 
     /**
+     * Returns the host name and port of this server.
+     *
+     * @return the host name and port of this server.
+     */
+    HostPort getHostPort()
+    {
+      return hostPort;
+    }
+
+    /**
+     * Sets the host name and port of this server.
+     *
+     * @param hostPort
+     *          the host name and port of this server
+     */
+    void setHostPort(HostPort hostPort)
+    {
+      this.hostPort = hostPort;
+    }
+
+    /**
      * Returns the host name of this server.
      *
      * @return the host name of this server.
      */
     String getHostName()
     {
-      return hostName;
-    }
-
-    /**
-     * Sets the host name of this server.
-     *
-     * @param hostName
-     *          the host name of this server
-     */
-    void setHostName(String hostName)
-    {
-      this.hostName = hostName;
+      return hostPort.getHost();
     }
 
     /**
@@ -63,18 +74,7 @@ public class EnableReplicationUserData extends ReplicationUserData
      */
     int getPort()
     {
-      return port;
-    }
-
-    /**
-     * Sets the port of this server.
-     *
-     * @param port
-     *          the port of this server
-     */
-    void setPort(int port)
-    {
-      this.port = port;
+      return hostPort.getPort();
     }
 
     /**

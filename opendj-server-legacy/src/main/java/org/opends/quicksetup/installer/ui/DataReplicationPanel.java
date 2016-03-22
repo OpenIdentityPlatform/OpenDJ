@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -303,9 +303,9 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     case REMOTE_SERVER_PWD:
       return auth.getPwd();
     case REMOTE_SERVER_HOST:
-      return auth.getHostName();
+      return auth.getHostPort().getHost();
     case REMOTE_SERVER_PORT:
-      return auth.getPort();
+      return auth.getHostPort().getPort();
     case REPLICATION_OPTIONS:
       return defaultUserData.getReplicationOptions().getType();
     default:

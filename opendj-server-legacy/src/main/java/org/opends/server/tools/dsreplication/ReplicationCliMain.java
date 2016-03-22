@@ -142,7 +142,6 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.*;
 import static org.opends.admin.ads.ServerDescriptor.getReplicationServer;
-import static org.opends.admin.ads.ServerDescriptor.getServerRepresentation;
 import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -1042,10 +1041,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * Returns an InitialLdapContext using the provided parameters. We try to
    * guarantee that the connection is able to read the configuration.
    *
-   * @param host
-   *          the host name.
-   * @param port
-   *          the port to connect.
+   * @param hostPort
+   *          the host name and port to connect.
    * @param useSSL
    *          whether to use SSL or not.
    * @param useStartTLS
@@ -1062,13 +1059,13 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws NamingException
    *           if there was an error establishing the connection.
    */
-  private InitialLdapContext createAdministrativeContext(String host,
-      int port, boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
+  private InitialLdapContext createAdministrativeContext(HostPort hostPort,
+      boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
       int connectTimeout, ApplicationTrustManager trustManager)
       throws NamingException
   {
     InitialLdapContext ctx;
-    String ldapUrl = getLDAPUrl(host, port, useSSL);
+    String ldapUrl = getLDAPUrl(hostPort, useSSL);
     if (useSSL)
     {
       ctx = createLdapsContext(ldapUrl, bindDn, pwd, connectTimeout, null, trustManager, null);
@@ -1229,9 +1226,8 @@ public class ReplicationCliMain extends ConsoleApplication
                   ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
-          String hostPort =
-              ServerDescriptor.getServerRepresentation(hostName, portNumber);
-          LocalizableMessage message = getMessageForException(e, hostPort);
+          HostPort hostPort = new HostPort(hostName, portNumber);
+          LocalizableMessage message = getMessageForException(e, hostPort.toString());
           throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
         }
       }
@@ -1361,7 +1357,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private ReplicationCliReturnCode resetChangeNumber()
   {
-    final String changeNumber;
     final SourceDestinationServerUserData uData = new SourceDestinationServerUserData();
 
     if (!argParser.isInteractive())
@@ -1593,8 +1588,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException e)
     {
-      String hostPort = getServerRepresentation(uData.getHostName(), uData.getPort());
-      logger.error(LocalizableMessage.raw("Error when creating connection for:" + hostPort));
+      logger.error(LocalizableMessage.raw("Error when creating connection for:" + uData.getHostPort()));
       return null;
     }
   }
@@ -1603,15 +1597,13 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      return createAdministrativeContext(uData.getHostName(), uData.getPort(),
-          useSSL, useStartTLS, bindDn,
+      return createAdministrativeContext(uData.getHostPort(), useSSL, useStartTLS, bindDn,
           uData.getAdminPwd(), getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException ne)
     {
-      String hostPort = getServerRepresentation(uData.getHostName(), uData.getPort());
       errPrintln();
-      errPrintln(getMessageForException(ne, hostPort));
+      errPrintln(getMessageForException(ne, uData.getHostPort().toString()));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
       return null;
     }
@@ -1773,7 +1765,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private LocalizableMessage getPurgeErrorMsg(String lastLogMsg, String state, InitialLdapContext ctx)
   {
-    String server = getHostPort(ctx);
+    HostPort server = getHostPort(ctx);
     if (lastLogMsg != null)
     {
       return ERR_UNEXPECTED_DURING_TASK_WITH_LOG.get(lastLogMsg, state, server);
@@ -2122,8 +2114,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (ctx != null)
         {
           uData.setOnline(true);
-          uData.setHostName(sourceServerCI.getHostName());
-          uData.setPort(sourceServerCI.getPortNumber());
+          uData.setHostPort(new HostPort(sourceServerCI.getHostName(), sourceServerCI.getPortNumber()));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
         }
@@ -2263,8 +2254,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      uData.getServer1().setHostName(host1);
-      uData.getServer1().setPort(port1);
+      uData.getServer1().setHostPort(new HostPort(host1, port1));
       uData.getServer1().setBindDn(bindDn1);
       uData.getServer1().setPwd(pwd1);
     }
@@ -2531,8 +2521,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      uData.getServer2().setHostName(host2);
-      uData.getServer2().setPort(port2);
+      uData.getServer2().setHostPort(new HostPort(host2, port2));
       uData.getServer2().setBindDn(bindDn2);
       uData.getServer2().setPwd(pwd2);
     }
@@ -2834,8 +2823,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      uData.setHostName(host);
-      uData.setPort(port);
+      uData.setHostPort(new HostPort(host, port));
       uData.setAdminUid(adminUid);
       uData.setBindDn(bindDn);
       uData.setAdminPwd(adminPwd);
@@ -3027,7 +3015,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private LocalizableMessage getPrompt(InitializeAllReplicationUserData uData, InitialLdapContext ctx)
   {
-    String hostPortSource = getHostPort(ctx);
+    HostPort hostPortSource = getHostPort(ctx);
     if (initializeADS(uData.getBaseDNs()))
     {
       return INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(ADSContext.getAdministrationSuffixDN(), hostPortSource);
@@ -3108,8 +3096,7 @@ public class ReplicationCliMain extends ConsoleApplication
         InitialLdapContext ctx = createInitialLdapContextInteracting(sourceServerCI);
         if (ctx != null)
         {
-          uData.setHostName(sourceServerCI.getHostName());
-          uData.setPort(sourceServerCI.getPortNumber());
+          uData.setHostPort(new HostPort(sourceServerCI.getHostName(), sourceServerCI.getPortNumber()));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
           if (uData instanceof StatusReplicationUserData)
@@ -3357,8 +3344,8 @@ public class ReplicationCliMain extends ConsoleApplication
   private LocalizableMessage getInitializeReplicationPrompt(SourceDestinationServerUserData uData,
       InitialLdapContext ctxSource, InitialLdapContext ctxDestination)
   {
-    String hostPortSource = getHostPort(ctxSource);
-    String hostPortDestination = getHostPort(ctxDestination);
+    HostPort hostPortSource = getHostPort(ctxSource);
+    HostPort hostPortDestination = getHostPort(ctxDestination);
     if (initializeADS(uData.getBaseDNs()))
     {
       final String adminSuffixDN = ADSContext.getAdministrationSuffixDN();
@@ -3413,8 +3400,8 @@ public class ReplicationCliMain extends ConsoleApplication
   private void setConnectionDetails(
       EnableReplicationServerData server, ServerArgs args, String adminDN, String adminPwd)
   {
-    server.setHostName(getValueOrDefault(args.hostNameArg));
-    server.setPort(getValueOrDefault(args.portArg));
+    server.setHostPort(new HostPort(
+        getValueOrDefault(args.hostNameArg), getValueOrDefault(args.portArg)));
 
     String pwd = args.getBindPassword();
     if (pwd == null)
@@ -3427,7 +3414,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Best-effort: try to use admin, if it does not work, use bind DN.
       try
       {
-        InitialLdapContext ctx = createAdministrativeContext(server.getHostName(), server.getPort(),
+        InitialLdapContext ctx = createAdministrativeContext(server.getHostPort(),
             useSSL, useStartTLS, adminDN, adminPwd, getConnectTimeout(), getTrustManager(sourceServerCI));
         server.setBindDn(adminDN);
         server.setPwd(adminPwd);
@@ -3488,8 +3475,8 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setBindDn(bindDn);
     uData.setAdminPwd(argParser.getBindPasswordAdmin());
 
-    uData.setHostName(argParser.getHostNameToDisableOrDefault());
-    uData.setPort(argParser.getPortToDisableOrDefault());
+    uData.setHostPort(new HostPort(
+        argParser.getHostNameToDisableOrDefault(), argParser.getPortToDisableOrDefault()));
 
     uData.setDisableAll(argParser.disableAllArg.isPresent());
     uData.setDisableReplicationServer(argParser.disableReplicationServerArg.isPresent());
@@ -3504,8 +3491,8 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     initialize(uData);
 
-    uData.setHostName(argParser.getHostNameToInitializeAllOrDefault());
-    uData.setPort(argParser.getPortToInitializeAllOrDefault());
+    uData.setHostPort(new HostPort(
+        argParser.getHostNameToInitializeAllOrDefault(), argParser.getPortToInitializeAllOrDefault()));
   }
 
   /**
@@ -3518,8 +3505,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     initialize(uData);
 
-    uData.setHostName(argParser.getHostNameToStatusOrDefault());
-    uData.setPort(argParser.getPortToStatusOrDefault());
+    uData.setHostPort(new HostPort(argParser.getHostNameToStatusOrDefault(), argParser.getPortToStatusOrDefault()));
     uData.setScriptFriendly(argParser.isScriptFriendly());
   }
 
@@ -3602,8 +3588,7 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean triedWithUserProvidedAdmin = false;
     final ConnectionWrapper connWrapper1 = connWrapper.get();
     final InitialLdapContext ctx1 = connWrapper1.getLdapContext();
-    String host = getHostName(ctx1);
-    int port = getPort(ctx1);
+    HostPort hostPort = getHostPort(ctx1);
     boolean isSSL = isSSL(ctx1);
     boolean isStartTLS = isStartTLS(ctx1);
     if (getTrustManager(ci) == null)
@@ -3695,9 +3680,8 @@ public class ReplicationCliMain extends ConsoleApplication
                   close(ctx1);
                   try
                   {
-                    final InitialLdapContext ctx2 = createAdministrativeContext(host, port, isSSL,
-                        isStartTLS, getAdministratorDN(adminUid),
-                        adminPwd, getConnectTimeout(), getTrustManager(ci));
+                    final InitialLdapContext ctx2 = createAdministrativeContext(hostPort, isSSL, isStartTLS,
+                        getAdministratorDN(adminUid), adminPwd, getConnectTimeout(), getTrustManager(ci));
                     final ConnectionWrapper connWrapper2 =
                         new ConnectionWrapper(ctx2, getConnectTimeout(), getTrustManager(ci));
                     connWrapper.set(connWrapper2);
@@ -3712,9 +3696,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   catch (Throwable t)
                   {
                     errPrintln();
-                    errPrintln(
-                        ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-                          getServerRepresentation(host, port), t.getMessage()));
+                    errPrintln(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(hostPort, t.getMessage()));
                     logger.warn(LocalizableMessage.raw("Complete error stack:", t));
                     errPrintln();
                   }
@@ -4188,8 +4170,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException e)
     {
-      String hostPort = getServerRepresentation(server.getHostName(), server.getPort());
-      logger.error(LocalizableMessage.raw("Error when creating connection for:" + hostPort));
+      logger.error(LocalizableMessage.raw("Error when creating connection for:" + server.getHostPort()));
       return null;
     }
   }
@@ -4201,13 +4182,12 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       return createAdministrativeContext(
-          server.getHostName(), server.getPort(), useSSL, useStartTLS, server.getBindDn(), server.getPwd(),
+          server.getHostPort(), useSSL, useStartTLS, server.getBindDn(), server.getPwd(),
           getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException ne)
     {
-      String hostPort = getServerRepresentation(server.getHostName(), server.getPort());
-      errorMessages.add(getMessageForException(ne, hostPort));
+      errorMessages.add(getMessageForException(ne, server.getHostPort().toString()));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
       return null;
     }
@@ -4401,7 +4381,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       return createAdministrativeContext(
-          server.getHost(), server.getPort(), useSSL, useStartTLS,
+          server, useSSL, useStartTLS,
           getAdministratorDN(uData.getAdminUid()), uData.getAdminPwd(),
           getConnectTimeout(), getTrustManager(sourceServerCI));
     }
@@ -5706,7 +5686,7 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (NamingException ne)
     {
       throw new ReplicationCliException(
-          getMessageForException(ne, getHostPort(ctx)),
+          getMessageForException(ne, getHostPort(ctx).toString()),
           ERROR_READING_CONFIGURATION, ne);
     }
   }
@@ -6332,7 +6312,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<ServerDescriptor> serversWithNoReplica)
   {
     Set<ReplicaDescriptor> orderedReplicas = new LinkedHashSet<>();
-    Set<String> hostPorts = new TreeSet<>();
+    Set<HostPort> hostPorts = new TreeSet<>();
     Set<ServerDescriptor> notAddedReplicationServers = new TreeSet<>(new ReplicationServerComparator());
     for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
     {
@@ -6340,7 +6320,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         hostPorts.add(getHostPort2(replica.getServer(), cnx));
       }
-      for (String hostPort : hostPorts)
+      for (HostPort hostPort : hostPorts)
       {
         for (ReplicaDescriptor replica : replicas)
         {
@@ -6401,8 +6381,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Suffix DN
       tableBuilder.appendCell(LocalizableMessage.raw(replica.getSuffix().getDN()));
       // Server port
-      tableBuilder.appendCell(
-          LocalizableMessage.raw(getHostPort2(replica.getServer(), cnx)));
+      tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(replica.getServer(), cnx)));
       // Number of entries
       int nEntries = replica.getEntries();
       if (nEntries >= 0)
@@ -6496,7 +6475,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Suffix DN
       tableBuilder.appendCell(EMPTY_MSG);
       // Server port
-      tableBuilder.appendCell(LocalizableMessage.raw(getHostPort2(server, cnx)));
+      tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(server, cnx)));
       // Number of entries
       if (scriptFriendly)
       {
@@ -6600,7 +6579,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       tableBuilder.startRow();
       // Server port
-      tableBuilder.appendCell(LocalizableMessage.raw(getHostPort2(server, cnx)));
+      tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(server, cnx)));
       // Replication port
       int replicationPort = server.getReplicationServerPort();
       if (replicationPort >= 0)
@@ -7143,16 +7122,15 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (NamingException ne)
       {
-        String hostPort = getHostPort2(s, cache.getPreferredConnections());
-        LocalizableMessage msg = getMessageForException(ne, hostPort);
+        HostPort hostPort = getHostPort2(s, cache.getPreferredConnections());
+        LocalizableMessage msg = getMessageForException(ne, hostPort.toString());
         throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
       }
       catch (Exception ode)
       {
-        String hostPort = getHostPort2(s, cache.getPreferredConnections());
+        HostPort hostPort = getHostPort2(s, cache.getPreferredConnections());
         LocalizableMessage msg = getMessageForEnableException(hostPort, baseDN);
-        throw new ReplicationCliException(msg,
-            ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
+        throw new ReplicationCliException(msg, ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
       }
       finally
       {
@@ -7203,8 +7181,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      String hostPort = getHostPort(ctxSource);
-      LocalizableMessage msg = getMessageForException(ne, hostPort);
+      LocalizableMessage msg = getMessageForException(ne, getHostPort(ctxSource).toString());
       throw new ReplicationCliException(msg, ERROR_READING_CONFIGURATION, ne);
     }
 
@@ -7425,7 +7402,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private LocalizableMessage getPrePostErrorMsg(String lastLogMsg, String state, InitialLdapContext ctx)
   {
-    String server = getHostPort(ctx);
+    HostPort server = getHostPort(ctx);
     if (lastLogMsg != null)
     {
       return ERR_UNEXPECTED_DURING_TASK_WITH_LOG.get(lastLogMsg, state, server);
@@ -7461,7 +7438,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     boolean isOver = false;
     String dn = null;
-    String serverDisplay = getHostPort(ctx);
+    HostPort serverDisplay = getHostPort(ctx);
     Map<String, String> attrsMap = new TreeMap<>();
     attrsMap.put("ds-task-initialize-domain-dn", baseDN);
     attrsMap.put("ds-task-initialize-replica-server-id", "all");
@@ -7667,7 +7644,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private LocalizableMessage getInitializeAllErrorMsg(String serverDisplay, String lastLogMsg, String state)
+  private LocalizableMessage getInitializeAllErrorMsg(HostPort serverDisplay, String lastLogMsg, String state)
   {
     if (lastLogMsg != null)
     {
@@ -7752,7 +7729,7 @@ public class ReplicationCliMain extends ConsoleApplication
         pwd, getTrustManager(sourceServerCI), getConnectTimeout(), cnx, filter);
     ConnectionWrapper ctx = null;
     String lastBaseDN = null;
-    String hostPort = null;
+    HostPort hostPort = null;
 
     try
     {
@@ -7842,7 +7819,7 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (NamingException ne)
     {
       hostPort = getHostPort2(server, cnx);
-      LocalizableMessage msg = getMessageForException(ne, hostPort);
+      LocalizableMessage msg = getMessageForException(ne, hostPort.toString());
       throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
     }
     catch (Exception ode)
@@ -7877,7 +7854,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void deleteReplicationDomain(ConnectionWrapper ctx, String baseDN) throws ReplicationCliException
   {
-    String hostPort = getHostPort(ctx.getLdapContext());
+    HostPort hostPort = getHostPort(ctx.getLdapContext());
     try
     {
       RootCfgClient root = ctx.getRootConfiguration();
@@ -7933,7 +7910,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void disableReplicationServer(ConnectionWrapper connWrapper)
   throws ReplicationCliException
   {
-    String hostPort = getHostPort(connWrapper.getLdapContext());
+    HostPort hostPort = getHostPort(connWrapper.getLdapContext());
     try
     {
       RootCfgClient root = connWrapper.getRootConfiguration();
@@ -7990,7 +7967,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication domain or updating the list of replication servers of
    * the replication domain).
    */
-  private LocalizableMessage getMessageForEnableException(String hostPort, String baseDN)
+  private LocalizableMessage getMessageForEnableException(HostPort hostPort, String baseDN)
   {
     return ERR_REPLICATION_CONFIGURING_BASEDN.get(baseDN, hostPort);
   }
@@ -8009,7 +7986,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication domain or updating the list of replication servers of
    * the replication domain).
    */
-  private LocalizableMessage getMessageForDisableException(String hostPort, String baseDN)
+  private LocalizableMessage getMessageForDisableException(HostPort hostPort, String baseDN)
   {
     return ERR_REPLICATION_CONFIGURING_BASEDN.get(baseDN, hostPort);
   }
@@ -8352,10 +8329,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param cnx the preferred connections list.
    * @return the host port string representation of the provided server.
    */
-  private String getHostPort2(ServerDescriptor server,
-      Collection<PreferredConnection> cnx)
+  private HostPort getHostPort2(ServerDescriptor server, Collection<PreferredConnection> cnx)
   {
-    String hostPort = null;
+    HostPort hostPort = null;
     for (PreferredConnection connection : cnx)
     {
       String url = connection.getLDAPURL();
@@ -9495,8 +9471,8 @@ public class ReplicationCliMain extends ConsoleApplication
         ctxDestination = adsCtx1.getDirContext();
       }
 
-      String hostPortSource = getHostPort(ctxSource);
-      String hostPortDestination = getHostPort(ctxDestination);
+      HostPort hostPortSource = getHostPort(ctxSource);
+      HostPort hostPortDestination = getHostPort(ctxDestination);
       if (isInteractive())
       {
         LocalizableMessage msg = INFO_REPLICATION_MERGING_REGISTRIES_CONFIRMATION.get(hostPortSource,

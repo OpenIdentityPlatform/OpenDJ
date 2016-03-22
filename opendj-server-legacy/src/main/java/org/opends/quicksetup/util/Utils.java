@@ -1854,10 +1854,9 @@ public class Utils
       if (s.getAdminConnectorURL().equals(server.getAdminConnectorURL()))
       {
         AuthenticationData remoteRepl = userData.getRemoteWithNoReplicationPort().get(server);
-        int remoteReplicationPort = remoteRepl.getPort();
 
         cmdLine.add("--replicationPort1");
-        cmdLine.add(String.valueOf(remoteReplicationPort));
+        cmdLine.add(String.valueOf(remoteRepl.getPort()));
         if (remoteRepl.useSecureConnection())
         {
           cmdLine.add("--secureReplication1");
@@ -2029,8 +2028,7 @@ public class Utils
 
     Set<SuffixDescriptor> suffixes = userData.getSuffixesToReplicateOptions().getSuffixes();
     AuthenticationData authData = userData.getReplicationOptions().getAuthenticationData();
-    String ldapURL =
-        ConnectionUtils.getLDAPUrl(authData.getHostName(), authData.getPort(), authData.useSecureConnection());
+    String ldapURL = ConnectionUtils.getLDAPUrl(authData.getHostPort(), authData.useSecureConnection());
     for (SuffixDescriptor suffix : suffixes)
     {
       boolean found = false;

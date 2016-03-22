@@ -1413,7 +1413,7 @@ public class ADSContext
     catch (ADSContextException ace)
     {
       ServerDescriptor s = ServerDescriptor.createStandalone(serverProperties);
-      return makeDNFromServerUniqueId(s.getHostPort(true));
+      return makeDNFromServerUniqueId(s.getHostPort(true).toString());
     }
   }
 

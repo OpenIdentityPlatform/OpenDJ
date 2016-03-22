@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -62,8 +62,10 @@ import org.opends.guitools.controlpanel.ui.renderer.BrowserCellRenderer;
 import org.opends.guitools.controlpanel.util.NumSubordinateHacker;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
 
+import static org.opends.admin.ads.util.ConnectionUtils.getPort;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -195,11 +197,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       this.ctxConfiguration = ctxConfiguration;
       this.ctxUserData = ctxUserData;
 
-      this.ctxConfiguration.setRequestControls(
-          getConfigurationRequestControls());
+      this.ctxConfiguration.setRequestControls(getConfigurationRequestControls());
       this.ctxUserData.setRequestControls(getRequestControls());
-      rootNodeName = server.getHostname() + ":" +
-      ConnectionUtils.getPort(ctxConfiguration);
+      rootNodeName = new HostPort(server.getHostname(), getPort(ctxConfiguration)).toString();
     }
     else {
       rootNodeName = "";

@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -47,6 +46,7 @@ import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.server.types.HostPort;
 
 /**
  * This class is used to provide a data model for the list of servers for which
@@ -62,9 +62,9 @@ implements Comparator<ServerDescriptor>
   private HashMap<String, JCheckBox> hmCbs = new HashMap<>();
   private JScrollPane scroll;
   private JPanel fieldsPanel;
-  private TreeSet<ServerDescriptor> orderedServers = new TreeSet<>(this);
+  private TreeSet<ServerDescriptor> orderedServers = new TreeSet<>();
   /** The display of the server the user provided in the replication options panel. */
-  private String serverToConnectDisplay;
+  private HostPort serverToConnectDisplay;
 
   /**
    * Constructor of the panel.
@@ -152,7 +152,7 @@ implements Comparator<ServerDescriptor>
   /** {@inheritDoc} */
   public int compare(ServerDescriptor desc1, ServerDescriptor desc2)
   {
-    return desc1.getHostPort(true).compareTo(desc2.getHostPort(true));
+    return desc1.getHostPort(true).toString().compareTo(desc2.getHostPort(true).toString());
   }
 
   /** {@inheritDoc} */
@@ -197,15 +197,7 @@ implements Comparator<ServerDescriptor>
         data.getRemoteWithNoReplicationPort().keySet());
     AuthenticationData authData =
       data.getReplicationOptions().getAuthenticationData();
-    String newServerDisplay;
-    if (authData != null)
-    {
-      newServerDisplay = authData.getHostName()+":"+authData.getPort();
-    }
-    else
-    {
-      newServerDisplay = "";
-    }
+    HostPort newServerDisplay = authData != null ? authData.getHostPort() : new HostPort(null, 0);
     if (!array.equals(orderedServers) ||
         !newServerDisplay.equals(serverToConnectDisplay))
     {
@@ -240,8 +232,8 @@ implements Comparator<ServerDescriptor>
       hmLabels.clear();
       for (ServerDescriptor server : orderedServers)
       {
-        String serverDisplay;
-        if (server.getHostPort(false).equalsIgnoreCase(serverToConnectDisplay))
+        HostPort serverDisplay;
+        if (server.getHostPort(false).equals(serverToConnectDisplay))
         {
           serverDisplay = serverToConnectDisplay;
         }
@@ -250,7 +242,7 @@ implements Comparator<ServerDescriptor>
           serverDisplay = server.getHostPort(true);
         }
         LabelFieldDescriptor desc = new LabelFieldDescriptor(
-                LocalizableMessage.raw(serverDisplay),
+                LocalizableMessage.raw(serverDisplay.toString()),
                 INFO_REPLICATION_PORT_TOOLTIP.get(),
                 LabelFieldDescriptor.FieldType.TEXTFIELD,
                 LabelFieldDescriptor.LabelType.PRIMARY,
