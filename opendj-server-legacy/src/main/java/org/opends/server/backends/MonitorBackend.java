@@ -132,30 +132,9 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final ArrayList<Attribute> userAttrs = new ArrayList<>();
     try
     {
-      final Entry configEntry = DirectoryServer
-          .getConfigEntry(configEntryDN);
-      for (final List<Attribute> attrs : configEntry
-          .getUserAttributes().values())
-      {
-        for (final Attribute a : attrs)
-        {
-          if (!isMonitorConfigAttribute(a))
-          {
-            userAttrs.add(a);
-          }
-        }
-      }
-      for (final List<Attribute> attrs : configEntry
-          .getOperationalAttributes().values())
-      {
-        for (final Attribute a : attrs)
-        {
-          if (!isMonitorConfigAttribute(a))
-          {
-            userAttrs.add(a);
-          }
-        }
-      }
+      final Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
+      addAllNonMonitorConfigAttributes(userAttrs, configEntry.getUserAttributes().values());
+      addAllNonMonitorConfigAttributes(userAttrs, configEntry.getOperationalAttributes().values());
     }
     catch (final Exception e)
     {
@@ -174,7 +153,20 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
+  private void addAllNonMonitorConfigAttributes(final List<Attribute> userAttrs, Collection<List<Attribute>> attrbutes)
+  {
+    for (final List<Attribute> attrs : attrbutes)
+    {
+      for (final Attribute a : attrs)
+      {
+        if (!isMonitorConfigAttribute(a))
+        {
+          userAttrs.add(a);
+        }
+      }
+    }
+  }
+
   @Override
   public void configureBackend(final MonitorBackendCfg config, ServerContext serverContext)
       throws ConfigException
@@ -232,16 +224,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   private void addAll(ArrayList<Attribute> attributes, Collection<List<Attribute>> attributesToAdd)
   {
-    for (final List<Attribute> attrs : attributesToAdd)
-    {
-      for (final Attribute a : attrs)
-      {
-        if (!isMonitorConfigAttribute(a))
-        {
-          attributes.add(a);
-        }
-      }
-    }
+    addAllNonMonitorConfigAttributes(attributes, attributesToAdd);
   }
 
   /** {@inheritDoc} */
@@ -840,11 +823,10 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   {
     final AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     return attrType.hasName(ATTR_COMMON_NAME)
-        || attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase())
-        || attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase())
-        || attrType.hasName(ATTR_BACKEND_BASE_DN.toLowerCase())
-        || attrType.hasName(ATTR_BACKEND_ID.toLowerCase())
-        || attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase());
+        || attrType.hasName(ATTR_BACKEND_ENABLED)
+        || attrType.hasName(ATTR_BACKEND_CLASS)
+        || attrType.hasName(ATTR_BACKEND_BASE_DN)
+        || attrType.hasName(ATTR_BACKEND_ID)
+        || attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE);
   }
-
 }

@@ -284,8 +284,8 @@ public class RootDSEBackend
   private boolean isDSEConfigAttribute(Attribute attribute)
   {
     AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
-    return attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN.toLowerCase())
-        || attrType.hasName(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES.toLowerCase())
+    return attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN)
+        || attrType.hasName(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES)
         || attrType.hasName(ATTR_COMMON_NAME);
   }
 

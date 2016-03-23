@@ -456,19 +456,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private boolean isSchemaConfigAttribute(Attribute attribute)
   {
     AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
-    return attrType.hasName(ATTR_SCHEMA_ENTRY_DN.toLowerCase()) ||
-        attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase()) ||
-        attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase()) ||
-        attrType.hasName(ATTR_BACKEND_ID.toLowerCase()) ||
-        attrType.hasName(ATTR_BACKEND_BASE_DN.toLowerCase()) ||
-        attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase()) ||
-        attrType.hasName(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES.toLowerCase()) ||
+    return attrType.hasName(ATTR_SCHEMA_ENTRY_DN) ||
+        attrType.hasName(ATTR_BACKEND_ENABLED) ||
+        attrType.hasName(ATTR_BACKEND_CLASS) ||
+        attrType.hasName(ATTR_BACKEND_ID) ||
+        attrType.hasName(ATTR_BACKEND_BASE_DN) ||
+        attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE) ||
+        attrType.hasName(ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES) ||
         attrType.hasName(ATTR_COMMON_NAME) ||
         attrType.hasName(OP_ATTR_CREATORS_NAME_LC) ||
         attrType.hasName(OP_ATTR_CREATE_TIMESTAMP_LC) ||
         attrType.hasName(OP_ATTR_MODIFIERS_NAME_LC) ||
         attrType.hasName(OP_ATTR_MODIFY_TIMESTAMP_LC);
-
   }
 
   @Override
