@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
@@ -41,6 +41,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
@@ -54,7 +55,6 @@ import static org.opends.messages.QuickSetupMessages.*;
  */
 public class TopologyCache
 {
-
   private final ADSContext adsContext;
   private final ApplicationTrustManager trustManager;
   private final int timeout;
@@ -111,11 +111,9 @@ public class TopologyCache
         threadSet.add(t);
       }
       joinThreadSet(threadSet);
-      /*
-       * Try to consolidate things (even if the data is not complete).
-       */
 
-      HashMap<LdapName, Set<SuffixDescriptor>> hmSuffixes = new HashMap<>();
+      // Try to consolidate things (even if the data is not complete)
+      Map<LdapName, Set<SuffixDescriptor>> hmSuffixes = new HashMap<>();
       for (ServerLoader loader : threadSet)
       {
         ServerDescriptor descriptor = loader.getServerDescriptor();
@@ -177,30 +175,7 @@ public class TopologyCache
     }
   }
 
-  /**
-   * Returns the trust manager used by this class.
-   *
-   * @return the trust manager used by this class.
-   */
-  public ApplicationTrustManager getTrustManager()
-  {
-    return trustManager;
-  }
-
-  /**
-   * Returns the timeout to establish the connection in milliseconds.
-   *
-   * @return the timeout to establish the connection in milliseconds. Returns
-   * {@code 0} to express no timeout.
-   */
-  public int getConnectTimeout()
-  {
-    return timeout;
-  }
-
-  /**
-   * Reads the replication monitoring.
-   */
+  /** Reads the replication monitoring. */
   private void readReplicationMonitoring()
   {
     Set<ReplicaDescriptor> replicasToUpdate = getReplicasToUpdate();
@@ -415,9 +390,7 @@ public class TopologyCache
         exceptions.add(e);
       }
     }
-    /*
-     * Check the exceptions and see if we throw them or not.
-     */
+    /* Check the exceptions and see if we throw them or not. */
     for (TopologyCacheException e : exceptions)
     {
       switch (e.getType())
@@ -532,10 +505,7 @@ public class TopologyCache
               "Unexpected error closing enumeration on monitor entries" + t, t));
         }
       }
-      if (ctx != null)
-      {
-        ctx.close();
-      }
+      StaticUtils.close(ctx);
     }
   }
 
