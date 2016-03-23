@@ -208,53 +208,15 @@ public class ListBackends
       return 1;
     }
 
-    // Perform the initial bootstrap of the Directory Server and process the
-    // configuration.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-
     if (initializeServer)
     {
       try
       {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
+        new DirectoryServer.InitializationBuilder(configFile.getValue());
       }
       catch (Exception e)
       {
-        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-      try
-      {
-        directoryServer.initializeConfiguration(configFile.getValue());
-      }
-      catch (InitializationException ie)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-
-      // Initialize the Directory Server schema elements.
-      try
-      {
-        directoryServer.initializeSchema();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
+        printWrappedText(err, e.getLocalizedMessage());
         return 1;
       }
     }

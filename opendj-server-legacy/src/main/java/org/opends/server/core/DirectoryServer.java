@@ -37,8 +37,11 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -683,6 +686,279 @@ public final class DirectoryServer
     }
   }
 
+  /** Initialize the client DirectoryServer singleton by using a fluent interface. */
+  public static class InitializationBuilder
+  {
+    /** Keep track of how subSystemsToInitialize are sequenced. */
+    private enum SubSystem
+    {
+      CLIENT_INIT,
+      CORE_CONFIG,
+      INIT_CRYPTO,
+      ADMIN_BACKEND,
+      ADMIN_USERS,
+      START_CRYPTO,
+      PASSWORD_STORAGE_SCHEME,
+      USER_PLUGINS;
+    }
+
+    private String configFile;
+    private Set<PluginType> pluginTypes = new HashSet<>();
+    private static EnumSet<SubSystem> subSystemsToInitialize = EnumSet.noneOf(SubSystem.class);
+
+    /**
+     * Initialize the client side of DirectoryServer and the Core Configuration.
+     *
+     * @param configFile the configuration file
+     * @throws InitializationException if client initialization or core Config fails
+     */
+    public InitializationBuilder(String configFile) throws InitializationException
+    {
+      this.configFile = configFile;
+      subSystemsToInitialize.add(SubSystem.CLIENT_INIT);
+      subSystemsToInitialize.add(SubSystem.CORE_CONFIG);
+    }
+
+    /**
+     * Require to setup and start everything necessary for Crypto Services.
+     * Core config should already be initialized through the constructor.
+     *
+     * @return the initialization object
+     * @throws InitializationException if Core Config is not initialized
+     */
+    public InitializationBuilder requireCryptoServices() throws InitializationException
+    {
+      Collections.addAll(subSystemsToInitialize,
+          SubSystem.INIT_CRYPTO,
+          SubSystem.ADMIN_BACKEND,
+          SubSystem.ADMIN_USERS,
+          SubSystem.START_CRYPTO);
+      return this;
+    }
+
+    /**
+     * Requires to setup and start Password Storage Schemes.
+     * Crypto services are needed for Password Storage, so it will also set them up if not already done.
+     *
+     * @return the initialization object
+     * @throws InitializationException if Core Config is not initialized
+     */
+    public InitializationBuilder requirePasswordStorageSchemes() throws InitializationException
+    {
+      requireCryptoServices();
+      Collections.addAll(subSystemsToInitialize, SubSystem.PASSWORD_STORAGE_SCHEME);
+      return this;
+    }
+
+    /**
+     * Requires to start specified user plugins.
+     *
+     * @param plugins the plugins to start
+     * @return the initialization object
+     * @throws InitializationException if Core Config is not initialized
+     */
+    public InitializationBuilder requireUserPlugins(PluginType... plugins) throws InitializationException
+    {
+      Collections.addAll(subSystemsToInitialize, SubSystem.USER_PLUGINS);
+      this.pluginTypes.addAll(Arrays.asList(plugins));
+      return this;
+    }
+
+    /**
+     * Run all Initialization blocks as configured.
+     *
+     * @throws InitializationException if one of the initialization steps fails
+     */
+    public void initialize() throws InitializationException
+    {
+      for (SubSystem subSystem : subSystemsToInitialize)
+      {
+        switch (subSystem)
+        {
+        case CLIENT_INIT:
+          clientInit();
+          break;
+        case CORE_CONFIG:
+          initCoreConfig(configFile);
+          break;
+        case ADMIN_BACKEND:
+          setupAdminBackends();
+          break;
+        case ADMIN_USERS:
+          setupAdminUsers();
+          break;
+        case INIT_CRYPTO:
+          initCryptoServices();
+          break;
+        case PASSWORD_STORAGE_SCHEME:
+          startPasswordStorageScheme();
+          break;
+        case START_CRYPTO:
+          startCryptoServices();
+          break;
+        case USER_PLUGINS:
+          startUserPlugin();
+          break;
+        }
+      }
+    }
+
+    private static void checkSubsystemIsInitialized(SubSystem subsystem) throws InitializationException
+    {
+      if (!subSystemsToInitialize.contains(subsystem))
+      {
+        throw new InitializationException(ERR_CANNOT_SUBSYSTEM_NOT_INITIALIZED.get(subsystem));
+      }
+    }
+
+    private void clientInit() throws InitializationException
+    {
+      try
+      {
+        bootstrapClient();
+        initializeJMX();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_SERVER_BOOTSTRAP_ERROR.get(e.getLocalizedMessage()));
+      }
+    }
+
+    private void initCoreConfig(String configFile) throws InitializationException
+    {
+      try
+      {
+        directoryServer.initializeConfiguration(configFile);
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_LOAD_CONFIG.get(e.getLocalizedMessage()));
+      }
+      try
+      {
+        directoryServer.initializeSchema();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_LOAD_SCHEMA.get(e.getLocalizedMessage()));
+      }
+      try
+      {
+        directoryServer.coreConfigManager = new CoreConfigManager(directoryServer.serverContext);
+        directoryServer.coreConfigManager.initializeCoreConfig();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getLocalizedMessage()));
+      }
+    }
+
+    private void initCryptoServices() throws InitializationException
+    {
+      try
+      {
+        directoryServer.initializeCryptoManager();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getLocalizedMessage()));
+      }
+    }
+
+    private void startCryptoServices() throws InitializationException
+    {
+      checkSubsystemIsInitialized(SubSystem.INIT_CRYPTO);
+      checkSubsystemIsInitialized(SubSystem.ADMIN_USERS);
+      new CryptoManagerSync();
+    }
+
+    private void setupAdminBackends() throws InitializationException
+    {
+      checkSubsystemIsInitialized(SubSystem.CORE_CONFIG);
+
+      try
+      {
+        directoryServer.initializePlugins(Collections.EMPTY_SET);
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_SERVER_PLUGINS.get(e.getLocalizedMessage()));
+      }
+
+      try
+      {
+        directoryServer.initializeBackends(Arrays.asList("adminRoot", "ads-truststore"));
+      }
+      catch (InitializationException | ConfigException e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_BACKENDS.get(e.getLocalizedMessage()));
+      }
+
+      try
+      {
+        directoryServer.initializeSubentryManager();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_SUBENTRY_MANAGER.get(e.getLocalizedMessage()));
+      }
+    }
+
+    private void setupAdminUsers() throws InitializationException
+    {
+      checkSubsystemIsInitialized(SubSystem.ADMIN_BACKEND);
+
+      try
+      {
+        directoryServer.initializeRootDNConfigManager();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(e.getLocalizedMessage()));
+      }
+
+      try
+      {
+        directoryServer.initializeAuthenticationPolicyComponents();
+        directoryServer.initializeAuthenticatedUsers();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_PWPOLICY.get(e.getLocalizedMessage()));
+      }
+    }
+
+    private void startUserPlugin() throws InitializationException
+    {
+      checkSubsystemIsInitialized(SubSystem.ADMIN_USERS);
+
+      try
+      {
+        directoryServer.pluginConfigManager.initializeUserPlugins(pluginTypes);
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(getExceptionMessage(e));
+      }
+    }
+
+    private void startPasswordStorageScheme() throws InitializationException
+    {
+      checkSubsystemIsInitialized(SubSystem.START_CRYPTO);
+
+      try
+      {
+        directoryServer.storageSchemeConfigManager =
+            new PasswordStorageSchemeConfigManager(directoryServer.serverContext);
+        directoryServer.storageSchemeConfigManager.initializePasswordStorageSchemes();
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(getExceptionMessage(e)));
+      }
+    }
+  }
+
   /**
    * Temporary class to provide instance methods instead of static methods for
    * server. Once all static methods related to context are removed from the
@@ -1265,11 +1541,8 @@ public final class DirectoryServer
 
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
 
-      // Initialize all the backends and their associated suffixes
-      // and initialize the workflows when workflow configuration mode is auto.
-      initializeBackends();
+      initializeBackends(Collections.<String> emptyList());
 
-      // configure the remaining workflows (rootDSE and config backend).
       createAndRegisterRemainingWorkflows();
 
       // Check for and initialize user configured entry cache if any.
@@ -1370,8 +1643,7 @@ public final class DirectoryServer
     }
   }
 
-  /** Initializes authenticated users. */
-  public void initializeAuthenticatedUsers()
+  private void initializeAuthenticatedUsers()
   {
     directoryServer.authenticatedUsers = new AuthenticatedUsers();
   }
@@ -1425,17 +1697,7 @@ public final class DirectoryServer
     return directoryServer.authenticatedUsers;
   }
 
-  /**
-   * Initializes the crypto manager for the Directory Server.
-   *
-   * @throws ConfigException
-   *           If a configuration problem is identified while initializing the
-   *           crypto manager.
-   * @throws InitializationException
-   *           If a problem occurs while initializing the crypto manager that is
-   *           not related to the server configuration.
-   */
-  public void initializeCryptoManager()
+  private void initializeCryptoManager()
          throws ConfigException, InitializationException
   {
     CryptoManagerCfg cryptoManagerCfg = serverContext.getRootConfig().getCryptoManager();
@@ -1589,6 +1851,8 @@ public final class DirectoryServer
   /**
    * Initializes the set of backends defined in the Directory Server.
    *
+   * @param backends The list of backends to initialize. All backends will be initialized
+   *                 if empty.
    * @throws  ConfigException  If there is a configuration problem with any of
    *                           the backends.
    *
@@ -1596,10 +1860,10 @@ public final class DirectoryServer
    *                                   the backends that is not related to the
    *                                   server configuration.
    */
-  private void initializeBackends() throws ConfigException, InitializationException
+  private void initializeBackends(Collection<String> backends) throws ConfigException, InitializationException
   {
     backendConfigManager = new BackendConfigManager(serverContext);
-    backendConfigManager.initializeBackendConfig();
+    backendConfigManager.initializeBackendConfig(backends);
 
     // Make sure to initialize the root DSE backend separately after all other backends.
     RootDSEBackendCfg rootDSECfg;
@@ -1798,8 +2062,7 @@ public final class DirectoryServer
    *                                 initializing the subentry
    *                                 manager.
    */
-  public void initializeSubentryManager()
-          throws InitializationException
+  private void initializeSubentryManager() throws InitializationException
   {
     try
     {
@@ -1820,6 +2083,8 @@ public final class DirectoryServer
   /**
    * Initializes the set of authentication policy components for use by the
    * Directory Server.
+   * For the time this is mostly PasswordPolicy but new Authentication Policy
+   * extensions should be initialized at the same time.
    *
    * @throws ConfigException
    *           If there is a configuration problem with any of the
@@ -1828,7 +2093,7 @@ public final class DirectoryServer
    *           If a problem occurs while initializing the authentication policy
    *           components that is not related to the server configuration.
    */
-  public void initializeAuthenticationPolicyComponents() throws ConfigException, InitializationException
+  private void initializeAuthenticationPolicyComponents() throws ConfigException, InitializationException
   {
     storageSchemeConfigManager = new PasswordStorageSchemeConfigManager(serverContext);
     storageSchemeConfigManager.initializePasswordStorageSchemes();
@@ -1866,21 +2131,7 @@ public final class DirectoryServer
     return directoryServer.configurationHandler;
   }
 
-  /**
-   * Initializes the set of plugins defined in the Directory Server.  Only the
-   * specified types of plugins will be initialized.
-   *
-   * @param  pluginTypes  The set of plugin types for the plugins to
-   *                      initialize.
-   *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the Directory Server plugins.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the plugins that is not related to the
-   *                                   server configuration.
-   */
-  public void initializePlugins(Set<PluginType> pluginTypes)
+  private void initializePlugins(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
     pluginConfigManager = new PluginConfigManager(serverContext);
@@ -1895,7 +2146,7 @@ public final class DirectoryServer
    * @throws InitializationException If a problem occurs initializing the root
    *                                 DN manager.
    */
-  public void initializeRootDNConfigManager()
+  private void initializeRootDNConfigManager()
          throws ConfigException, InitializationException{
     rootDNConfigManager = new RootDNConfigManager(serverContext);
     rootDNConfigManager.initializeRootDNs();

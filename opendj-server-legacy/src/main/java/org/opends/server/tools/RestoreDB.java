@@ -34,11 +34,9 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
-import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.DebugLogger;
@@ -282,90 +280,18 @@ public class RestoreDB extends TaskTool {
                            PrintStream err) {
 
 
-    // Perform the initial bootstrap of the Directory Server and process the
-    // configuration.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
     if (initializeServer)
     {
       try
       {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-      try
-      {
-        directoryServer.initializeConfiguration(configFile.getValue());
+        new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .initialize();
       }
       catch (InitializationException ie)
       {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(ie.getLocalizedMessage()));
         return 1;
       }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-
-      // Initialize the Directory Server schema elements.
-      try
-      {
-        directoryServer.initializeSchema();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-      // Initialize the Directory Server core configuration.
-      try
-      {
-        CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
-        coreConfigManager.initializeCoreConfig();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-      // Initialize the Directory Server crypto manager.
-      try
-      {
-        directoryServer.initializeCryptoManager();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e)));
-        return 1;
-      }
-
 
       try
       {

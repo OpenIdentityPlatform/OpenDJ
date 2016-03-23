@@ -40,10 +40,8 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.JDKLogging;
@@ -495,75 +493,21 @@ public class ImportLDIF extends TaskTool {
                            PrintStream err) {
 
 
-    // Perform the initial bootstrap of the Directory Server and process the configuration.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
     if (initializeServer)
     {
+      DirectoryServer.InitializationBuilder ib;
       try
       {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
+        new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .requireCryptoServices()
+            .requireUserPlugins(PluginType.LDIF_IMPORT)
+            .initialize();
       }
-      catch (Exception e)
+      catch (InitializationException e)
       {
-        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(e.getLocalizedMessage()));
         return 1;
       }
-
-      try
-      {
-        directoryServer.initializeConfiguration(configFile.getValue());
-      }
-      catch (InitializationException ie)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-
-      // Initialize the Directory Server schema elements.
-      try
-      {
-        directoryServer.initializeSchema();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getMessage(e)));
-        return 1;
-      }
-
-
-      // Initialize the Directory Server core configuration.
-      try
-      {
-        CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
-        coreConfigManager.initializeCoreConfig();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getMessage(e)));
-        return 1;
-      }
-
-
-      // Initialize the Directory Server crypto manager.
-      try
-      {
-        directoryServer.initializeCryptoManager();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getMessage(e)));
-        return 1;
-      }
-
-
       if (! quietMode.isPresent())
       {
         try
@@ -577,68 +521,9 @@ public class ImportLDIF extends TaskTool {
         {
           err.println("Error installing the custom error logger: " +
               stackTraceToSingleLineString(e));
+          return 1;
         }
       }
-
-      // Initialize the root DNs.
-      try
-      {
-        directoryServer.initializeRootDNConfigManager();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_ROOTDN_MANAGER.get(getMessage(e)));
-        return 1;
-      }
-
-      // Initialize the plugin manager.
-      try
-      {
-        HashSet<PluginType> pluginTypes = new HashSet<>(1);
-        directoryServer.initializePlugins(pluginTypes);
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(getMessage(e)));
-        return 1;
-      }
-
-      // Initialize the subentry manager.
-      try
-      {
-        directoryServer.initializeSubentryManager();
-      }
-      catch (InitializationException ie)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_SUBENTRY_MANAGER.get(ie.getMessage()));
-        return 1;
-      }
-
-      // Initialize all the password policy information.
-      try
-      {
-        directoryServer.initializeAuthenticationPolicyComponents();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_LDIFIMPORT_CANNOT_INITIALIZE_PWPOLICY.get(getMessage(e)));
-        return 1;
-      }
-    }
-
-    // Make sure that the plugin initialization is performed.
-    try
-    {
-      HashSet<PluginType> pluginTypes = new HashSet<>(1);
-      pluginTypes.add(PluginType.LDIF_IMPORT);
-      PluginConfigManager pluginConfigManager =
-              DirectoryServer.getPluginConfigManager();
-      pluginConfigManager.initializeUserPlugins(pluginTypes);
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, ERR_LDIFIMPORT_CANNOT_INITIALIZE_PLUGINS.get(getMessage(e)));
-      return 1;
     }
 
     // See if there were any user-defined sets of include/exclude attributes or

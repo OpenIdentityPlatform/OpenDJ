@@ -47,7 +47,6 @@ import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
-import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
@@ -284,8 +283,6 @@ public class BackendStat
   private boolean subCommandsInitialized;
   /** Flag indicating whether or not the global arguments have already been initialized. */
   private boolean globalArgumentsInitialized;
-
-  private DirectoryServer directoryServer;
 
   /**
    * Provides the command-line arguments to the main application for
@@ -578,61 +575,24 @@ public class BackendStat
     }
 
     // Perform the initial bootstrap of the Directory Server and process the configuration.
-    directoryServer = DirectoryServer.getInstance();
-    try
-    {
-      DirectoryServer.bootstrapClient();
-      DirectoryServer.initializeJMX();
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getStartUpExceptionMessage(e)));
-      return 1;
-    }
-
-    try
-    {
-      directoryServer.initializeConfiguration(configFile.getValue());
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getStartUpExceptionMessage(e)));
-      return 1;
-    }
-
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getStartUpExceptionMessage(e)));
-      return 1;
-    }
-
-    try
-    {
-      CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
-      coreConfigManager.initializeCoreConfig();
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getStartUpExceptionMessage(e)));
-      return 1;
-    }
-
-    try
-    {
-      directoryServer.initializeCryptoManager();
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getStartUpExceptionMessage(e)));
-      return 1;
-    }
-
     SubCommand subCommand = parser.getSubCommand();
-    if (LIST_BACKENDS.equals(subCommand.getName()))
+    final String subCommandName = subCommand.getName();
+    try
+    {
+      DirectoryServer.InitializationBuilder initializationBuilder =
+          new DirectoryServer.InitializationBuilder(configFile.getValue());
+      if (subCommandName.equals(DUMP_INDEX) || subCommandName.equals(SHOW_INDEX_STATUS))
+      {
+        initializationBuilder.requireCryptoServices();
+      }
+      initializationBuilder.initialize();
+    }
+    catch (InitializationException e)
+    {
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(e.getLocalizedMessage()));
+      return 1;
+    }
+    if (LIST_BACKENDS.equals(subCommandName))
     {
       return listRootContainers();
     }
@@ -648,7 +608,7 @@ public class BackendStat
     }
     try
     {
-      switch (subCommand.getName())
+      switch (subCommandName)
       {
       case LIST_BASE_DNS:
         return listBaseDNs(rootContainer);
@@ -668,7 +628,7 @@ public class BackendStat
     }
     catch (Exception e)
     {
-      printWrappedText(err, ERR_BACKEND_TOOL_EXECUTING_COMMAND.get(subCommand.getName(),
+      printWrappedText(err, ERR_BACKEND_TOOL_EXECUTING_COMMAND.get(subCommandName,
           StaticUtils.stackTraceToString(e)));
       return 1;
     }
@@ -1053,7 +1013,7 @@ public class BackendStat
       {
         try
         {
-          b.configureBackend(backend.getKey(), directoryServer.getServerContext());
+          b.configureBackend(backend.getKey(), DirectoryServer.getInstance().getServerContext());
           return b;
         }
         catch (ConfigException ce)

@@ -37,7 +37,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
-import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.DebugLogger;
@@ -279,17 +278,12 @@ public class RebuildIndex extends TaskTool
     argParser.setUsageArgument(displayUsage);
   }
 
-  /** {@inheritDoc} */
   @Override
-  protected int processLocal(final boolean initializeServer,
-      final PrintStream out, final PrintStream err)
+  protected int processLocal(final boolean initializeServer, final PrintStream out, final PrintStream err)
   {
-    // Performs the initial bootstrap of the Directory Server and processes the
-    // configuration.
-    final DirectoryServer directoryServer = DirectoryServer.getInstance();
     if (initializeServer)
     {
-      final int init = initializeServer(directoryServer, out, err);
+      final int init = initializeServer(out, err);
       if (init != 0)
       {
         return init;
@@ -372,17 +366,8 @@ public class RebuildIndex extends TaskTool
   }
 
   /**
-   * Initializes the directory server.<br />
-   * Processes to :
-   * - bootstrapClient
-   * - initializeJMX
-   * - initializeConfiguration
-   * - initializeSchema
-   * - coreConfigManager.initializeCoreConfig()
-   * - initializeCryptoManager
+   * Initializes the directory server.
    *
-   * @param directoryServer
-   *          The current instance.
    * @param out
    *          The output stream to use for standard output, or {@code null} if
    *          standard output is not needed.
@@ -391,65 +376,20 @@ public class RebuildIndex extends TaskTool
    *          standard error is not needed.
    * @return The result code.
    */
-  private int initializeServer(final DirectoryServer directoryServer,
-      final PrintStream out, final PrintStream err)
+  private int initializeServer(final PrintStream out, final PrintStream err)
   {
     try
     {
-      DirectoryServer.bootstrapClient();
-      DirectoryServer.initializeJMX();
+      new DirectoryServer.InitializationBuilder(configFile.getValue())
+          .requireCryptoServices()
+          .initialize();
+      return 0;
     }
-    catch (Exception e)
+    catch (InitializationException ie)
     {
-      printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
+      printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(ie.getLocalizedMessage()));
       return 1;
     }
-
-    try
-    {
-      directoryServer.initializeConfiguration(configFile.getValue());
-    }
-    catch (Exception ex)
-    {
-      printWrappedText(err, toErrorMsg(ERR_CANNOT_LOAD_CONFIG, ex));
-      return 1;
-    }
-
-    // Initializes the Directory Server schema elements.
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (Exception e)
-    {
-      printWrappedText(err, toErrorMsg(ERR_CANNOT_LOAD_SCHEMA, e));
-      return 1;
-    }
-
-    // Initializes the Directory Server core configuration.
-    try
-    {
-      final CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
-      coreConfigManager.initializeCoreConfig();
-    }
-    catch (Exception ex)
-    {
-      printWrappedText(err, toErrorMsg(ERR_CANNOT_INITIALIZE_CORE_CONFIG, ex));
-      return 1;
-    }
-
-    // Initializes the Directory Server crypto manager.
-    try
-    {
-      directoryServer.initializeCryptoManager();
-    }
-    catch (Exception ex)
-    {
-      printWrappedText(err, toErrorMsg(ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER, ex));
-      return 1;
-    }
-
-    return 0;
   }
 
   private String toErrorMsg(Arg1<Object> errorMsg, Exception ex)
@@ -658,10 +598,9 @@ public class RebuildIndex extends TaskTool
         return 1;
       }
 
-      final DirectoryServer directoryServer = DirectoryServer.getInstance();
       if (initializeServer)
       {
-        final int init = initializeServer(directoryServer, out, out);
+        final int init = initializeServer(out, out);
         if (init != 0)
         {
           return init;

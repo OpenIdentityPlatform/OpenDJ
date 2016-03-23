@@ -22,10 +22,12 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -87,8 +89,10 @@ public class BackendConfigManager implements
    * @throws InitializationException
    *           If a problem occurs while initializing the backends that is not
    *           related to the server configuration.
+   * @param backendIDsToStart
+   *           The list of backendID to start. Everything will be started if empty.
    */
-  public void initializeBackendConfig()
+  public void initializeBackendConfig(Collection<String> backendIDsToStart)
          throws ConfigException, InitializationException
   {
     // Register add and delete listeners.
@@ -132,8 +136,12 @@ public class BackendConfigManager implements
       // This will decode and validate its properties.
       BackendCfg backendCfg = root.getBackend(name);
 
+      final String backendID = backendCfg.getBackendId();
+      if (!backendIDsToStart.isEmpty() && !backendIDsToStart.contains(backendID))
+      {
+        continue;
+      }
       DN backendDN = backendCfg.dn();
-      String backendID = backendCfg.getBackendId();
 
       // Register as a change listener for this backend so that we can be
       // notified when it is disabled or enabled.
@@ -144,7 +152,7 @@ public class BackendConfigManager implements
       {
         // If there is already a backend registered with the specified ID,
         // then log an error and skip it.
-        if (DirectoryServer.hasBackend(backendCfg.getBackendId()))
+        if (DirectoryServer.hasBackend(backendID))
         {
           logger.warn(WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID, backendID, backendDN);
           continue;

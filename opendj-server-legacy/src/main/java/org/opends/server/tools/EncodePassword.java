@@ -20,7 +20,6 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -34,22 +33,10 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.forgerock.opendj.server.config.server.LDIFBackendCfg;
-import org.forgerock.opendj.server.config.server.RootCfg;
-import org.forgerock.opendj.server.config.server.TrustStoreBackendCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.Entry;
-import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.opends.server.core.PasswordStorageSchemeConfigManager;
-import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -297,95 +284,17 @@ public class EncodePassword
     }
 
 
-    // Perform the initial bootstrap of the Directory Server and process the
-    // configuration.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-
     if (initializeServer)
     {
       try
       {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
-        return OPERATIONS_ERROR;
-      }
-
-      try
-      {
-        directoryServer.initializeConfiguration(configFile.getValue());
+        new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .requirePasswordStorageSchemes()
+            .initialize();
       }
       catch (InitializationException ie)
       {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
-        return OPERATIONS_ERROR;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
-        return OPERATIONS_ERROR;
-      }
-
-
-
-      // Initialize the Directory Server schema elements.
-      try
-      {
-        directoryServer.initializeSchema();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
-        return OPERATIONS_ERROR;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
-        return OPERATIONS_ERROR;
-      }
-
-
-      // Initialize the Directory Server core configuration.
-      try
-      {
-        CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
-        coreConfigManager.initializeCoreConfig();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage()));
-        return OPERATIONS_ERROR;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e)));
-        return OPERATIONS_ERROR;
-      }
-
-
-      if(!initializeServerComponents(directoryServer, err))
-      {
-        return -1;
-      }
-
-      // Initialize the password storage schemes.
-      try
-      {
-        PasswordStorageSchemeConfigManager storageSchemeConfigManager =
-             new PasswordStorageSchemeConfigManager(directoryServer.getServerContext());
-        storageSchemeConfigManager.initializePasswordStorageSchemes();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(e.getMessage()));
-        return OPERATIONS_ERROR;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_ENCPW_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(getExceptionMessage(e)));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(ie)));
         return OPERATIONS_ERROR;
       }
     }
@@ -658,100 +567,6 @@ public class EncodePassword
       return INFO_ENCPW_PASSWORDS_MATCH.get();
     }
     return INFO_ENCPW_PASSWORDS_DO_NOT_MATCH.get();
-  }
-
-
-
-  private static boolean initializeServerComponents(DirectoryServer directoryServer, PrintStream err)
-  {
-      // Initialize the Directory Server crypto manager.
-      try
-      {
-        directoryServer.initializeCryptoManager();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage()));
-        return false;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e)));
-        return false;
-      }
-      //Attempt to bring up enough of the server to process schemes requiring
-      //secret keys from the trust store backend (3DES, BLOWFISH, AES, RC4) via
-      //the crypto-manager.
-      try {
-          directoryServer.initializeRootDNConfigManager();
-          directoryServer.initializePlugins(Collections.EMPTY_SET);
-          initializeServerBackends(directoryServer, err);
-          directoryServer.initializeSubentryManager();
-          directoryServer.initializeAuthenticationPolicyComponents();
-          directoryServer.initializeAuthenticatedUsers();
-          new CryptoManagerSync();
-    } catch (InitializationException | ConfigException e) {
-        printWrappedText(err, ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(e)));
-        return false;
-    }
-    return true;
-  }
-
-  private static void initializeServerBackends(DirectoryServer directoryServer, PrintStream err)
-  throws InitializationException, ConfigException {
-    directoryServer.initializeRootDSE();
-
-    Entry backendRoot;
-    try {
-      DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
-      backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
-    } catch (Exception e) {
-      LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE.get(
-          getExceptionMessage(e));
-      throw new ConfigException(message, e);
-    }
-    if (backendRoot == null) {
-      LocalizableMessage message = ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get();
-      throw new ConfigException(message);
-    }
-
-    RootCfg root = directoryServer.getServerContext().getRootConfig();
-    for (String name : root.listBackends()) {
-      BackendCfg backendCfg = root.getBackend(name);
-      String backendID = backendCfg.getBackendId();
-      if((backendCfg instanceof TrustStoreBackendCfg
-          || backendCfg instanceof LDIFBackendCfg)
-          && backendCfg.isEnabled())
-      {
-        String className = backendCfg.getJavaClass();
-        Class<?> backendClass;
-        Backend<BackendCfg> backend;
-        try {
-          backendClass = DirectoryServer.loadClass(className);
-          backend = (Backend<BackendCfg>) backendClass.newInstance();
-        } catch (Exception e) {
-          printWrappedText(err,
-              ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendCfg.dn(), stackTraceToSingleLineString(e)));
-          continue;
-        }
-        backend.setBackendID(backendID);
-        backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
-        try {
-          backend.configureBackend(backendCfg, directoryServer.getServerContext());
-          backend.openBackend();
-        } catch (Exception e) {
-          printWrappedText(err,
-              ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(), stackTraceToSingleLineString(e)));
-        }
-        try {
-          DirectoryServer.registerBackend(backend);
-        } catch (Exception e)
-        {
-          printWrappedText(
-              err, WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(), getExceptionMessage(e)));
-        }
-      }
-    }
   }
 
   /**

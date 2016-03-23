@@ -31,12 +31,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.DebugLogger;
@@ -357,145 +355,48 @@ public class ExportLDIF extends TaskTool {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getTaskObjectclass() {
     return "ds-task-export";
   }
 
-  /** {@inheritDoc} */
   @Override
   public Class<?> getTaskClass() {
     return ExportTask.class;
   }
 
-  /** {@inheritDoc} */
   @Override
-  protected int processLocal(boolean initializeServer,
-                           PrintStream out,
-                           PrintStream err) {
-
-    // Perform the initial bootstrap of the Directory Server and process the
-    // configuration.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
+  protected int processLocal(boolean initializeServer, PrintStream out, PrintStream err)
+  {
     if (initializeServer)
     {
       try
       {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-      try
-      {
-        directoryServer.initializeConfiguration(configFile.getValue());
+        new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .requireCryptoServices()
+            .requireUserPlugins(PluginType.LDIF_EXPORT)
+            .initialize();
       }
       catch (InitializationException ie)
       {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage()));
+        printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(ie)));
         return 1;
       }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-
-      // Initialize the Directory Server schema elements.
-      try
-      {
-        directoryServer.initializeSchema();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-      // Initialize the Directory Server core configuration.
-      try
-      {
-        CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
-        coreConfigManager.initializeCoreConfig();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e)));
-        return 1;
-      }
-
-
-      // Initialize the Directory Server crypto manager.
-      try
-      {
-        directoryServer.initializeCryptoManager();
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(e.getMessage()));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        printWrappedText(err, ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e)));
-        return 1;
-      }
-
 
       try
       {
-        ErrorLogPublisher errorLogPublisher =
-            TextErrorLogPublisher.getToolStartupTextErrorPublisher(
+        ErrorLogPublisher errorLogPublisher = TextErrorLogPublisher.getToolStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
         ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
 
         DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STREAM(out));
       }
-      catch(Exception e)
-      {
-        err.println("Error installing the custom error logger: " +
-                    stackTraceToSingleLineString(e));
-      }
-
-
-
-      // Make sure that the Directory Server plugin initialization is performed.
-      try
-      {
-        HashSet<PluginType> pluginTypes = new HashSet<>(1);
-        pluginTypes.add(PluginType.LDIF_EXPORT);
-        directoryServer.initializePlugins(pluginTypes);
-      }
-      catch (ConfigException | InitializationException e)
-      {
-        printWrappedText(err, ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(e.getMessage()));
-        return 1;
-      }
       catch (Exception e)
       {
-        printWrappedText(err, ERR_LDIFEXPORT_CANNOT_INITIALIZE_PLUGINS.get(getExceptionMessage(e)));
+        err.println("Error installing the custom error logger: " + stackTraceToSingleLineString(e));
         return 1;
       }
     }
-
 
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
