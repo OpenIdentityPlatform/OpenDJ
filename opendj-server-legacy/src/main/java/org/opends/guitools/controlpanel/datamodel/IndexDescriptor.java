@@ -24,6 +24,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;;
 
 /**
  * The class used to describe the index configuration (the normal index: the one
@@ -35,7 +36,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
   private static final String[] DATABASE_INDEXES = new String[] {
     DN2ID_INDEX_NAME, ID2CHILDREN_COUNT_NAME, ID2CHILDREN_INDEX_NAME, ID2SUBTREE_INDEX_NAME };
 
-  private final SortedSet<IndexTypeDescriptor> types = new TreeSet<>();
+  private final SortedSet<IndexType> types = new TreeSet<>();
   private final boolean isDatabaseIndex;
   private final int entryLimit;
   private final AttributeType attr;
@@ -67,7 +68,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    *          the entry limit for the index.
    */
   public IndexDescriptor(
-      String name, AttributeType attr, BackendDescriptor backend, Set<IndexTypeDescriptor> types, int entryLimit)
+      String name, AttributeType attr, BackendDescriptor backend, Set<IndexType> types, int entryLimit)
   {
     super(name, backend);
     this.attr = attr;
@@ -104,7 +105,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
    *
    * @return the type of indexes (equality, substring, etc.).
    */
-  public SortedSet<IndexTypeDescriptor> getTypes()
+  public SortedSet<IndexType> getTypes()
   {
     return new TreeSet<>(types);
   }
@@ -180,7 +181,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
   protected void recalculateHashCode()
   {
     final StringBuilder sb = new StringBuilder();
-    for (final IndexTypeDescriptor t : types)
+    for (final IndexType t : types)
     {
       sb.append(t).append(",");
     }

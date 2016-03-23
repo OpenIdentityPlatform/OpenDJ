@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
@@ -61,12 +62,12 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
@@ -479,9 +480,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           { FilterType.EQUALITY, FilterType.SUBSTRING, FilterType.GREATER_OR_EQUAL, FilterType.LESS_OR_EQUAL,
             FilterType.PRESENT, FilterType.APPROXIMATE_MATCH, FilterType.EXTENSIBLE_MATCH };
 
-      IndexTypeDescriptor[] indexTypes =
-          { IndexTypeDescriptor.EQUALITY, IndexTypeDescriptor.SUBSTRING, IndexTypeDescriptor.ORDERING,
-            IndexTypeDescriptor.ORDERING, IndexTypeDescriptor.PRESENCE, IndexTypeDescriptor.APPROXIMATE, null };
+      IndexType[] indexTypes = { EQUALITY, SUBSTRING, ORDERING, ORDERING, PRESENCE, APPROXIMATE, null };
 
       LocalizableMessage[] indexTypeNames =
           { INFO_CTRL_PANEL_VLV_INDEX_EQUALITY_TYPE.get(), INFO_CTRL_PANEL_VLV_INDEX_SUBSTRING_TYPE.get(),
@@ -494,7 +493,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           IndexDescriptor index = getIndex(filter.getAttributeType());
           if (index != null)
           {
-            IndexTypeDescriptor type = indexTypes[i];
+            IndexType type = indexTypes[i];
             if (type != null && !index.getTypes().contains(type))
             {
               msgs.add(INFO_CTRL_PANEL_MUST_UPDATE_INDEX_DEFINITION_TYPE.get(filter.getAttributeType(),

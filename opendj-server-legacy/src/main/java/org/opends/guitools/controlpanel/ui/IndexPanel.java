@@ -48,7 +48,6 @@ import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
@@ -59,6 +58,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
@@ -389,7 +389,7 @@ public class IndexPanel extends AbstractIndexPanel
     ordering.setSelected(false);
     substring.setSelected(false);
     presence.setSelected(false);
-    for (IndexTypeDescriptor type : index.getTypes())
+    for (IndexType type : index.getTypes())
     {
       switch(type)
       {
@@ -476,7 +476,7 @@ public class IndexPanel extends AbstractIndexPanel
     private String backendName;
     private int entryLimitValue;
     private IndexDescriptor indexToModify;
-    private SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<>();
+    private SortedSet<IndexType> indexTypes = new TreeSet<>();
     private IndexDescriptor modifiedIndex;
 
     /**
@@ -639,7 +639,7 @@ public class IndexPanel extends AbstractIndexPanel
       final BackendIndexCfgClient index = backend.getBackendIndex(attributeName);
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
-        index.setIndexType(IndexTypeDescriptor.toBackendIndexTypes(indexTypes));
+        index.setIndexType(indexTypes);
       }
 
       if (entryLimitValue != index.getIndexEntryLimit())
@@ -726,8 +726,8 @@ public class IndexPanel extends AbstractIndexPanel
       if (!indexTypes.equals(indexToModify.getTypes()))
       {
         // To add
-        Set<IndexTypeDescriptor> toAdd = new TreeSet<>();
-        for (IndexTypeDescriptor newType : indexTypes)
+        Set<IndexType> toAdd = new TreeSet<>();
+        for (IndexType newType : indexTypes)
         {
           if (!indexToModify.getTypes().contains(newType))
           {
@@ -735,23 +735,23 @@ public class IndexPanel extends AbstractIndexPanel
           }
         }
         // To delete
-        Set<IndexTypeDescriptor> toDelete = new TreeSet<>();
-        for (IndexTypeDescriptor oldType : indexToModify.getTypes())
+        Set<IndexType> toDelete = new TreeSet<>();
+        for (IndexType oldType : indexToModify.getTypes())
         {
           if (!indexTypes.contains(oldType))
           {
             toDelete.add(oldType);
           }
         }
-        for (IndexTypeDescriptor newType : toDelete)
+        for (IndexType newType : toDelete)
         {
           args.add("--remove");
           args.add("index-type:" + newType);
         }
-        for (IndexTypeDescriptor newType : toAdd)
+        for (IndexType newType : toAdd)
         {
           args.add("--add");
-          args.add("index-type:" + newType.toBackendIndexType());
+          args.add("index-type:" + newType);
         }
       }
       if (entryLimitValue != indexToModify.getEntryLimit())

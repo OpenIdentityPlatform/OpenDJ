@@ -41,7 +41,6 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
@@ -52,6 +51,7 @@ import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.schema.SomeSchemaElement;
@@ -334,7 +334,7 @@ public class NewIndexPanel extends AbstractIndexPanel
     private final Set<String> backendSet = new HashSet<>();
     private final String attributeName;
     private final int entryLimitValue;
-    private final SortedSet<IndexTypeDescriptor> indexTypes;
+    private final SortedSet<IndexType> indexTypes;
 
     /**
      * The constructor of the task.
@@ -469,7 +469,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       final List<PropertyException> exceptions = new ArrayList<>();
       final BackendIndexCfgClient index = backend.createBackendIndex(
           BackendIndexCfgDefn.getInstance(), attributeName, exceptions);
-      index.setIndexType(IndexTypeDescriptor.toBackendIndexTypes(indexTypes));
+      index.setIndexType(indexTypes);
       if (entryLimitValue != index.getIndexEntryLimit())
       {
         index.setIndexEntryLimit(entryLimitValue);
@@ -549,10 +549,10 @@ public class NewIndexPanel extends AbstractIndexPanel
       args.add("--index-name");
       args.add(attributeName);
 
-      for (IndexTypeDescriptor type : indexTypes)
+      for (IndexType type : indexTypes)
       {
         args.add("--set");
-        args.add("index-type:" + type.toBackendIndexType());
+        args.add("index-type:" + type);
       }
       args.add("--set");
       args.add("index-entry-limit:" + entryLimitValue);

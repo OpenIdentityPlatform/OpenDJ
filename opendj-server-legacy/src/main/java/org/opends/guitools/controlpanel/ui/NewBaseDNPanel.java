@@ -64,7 +64,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -82,7 +81,6 @@ import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
@@ -94,7 +92,6 @@ import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.MakeLDIF;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.RemoveOnceNewConfigFrameworkIsUsed;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CommandBuilder;
@@ -945,8 +942,8 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       try
       {
-        Set<DN> baseDN = Collections.singleton(DN.valueOf(newBaseDN));
-        BackendCreationHelper.createBackendOffline(backendName, baseDN, getSelectedBackendType().getBackend());
+        Set<DN> baseDNs = Collections.singleton(DN.valueOf(newBaseDN));
+        BackendCreationHelper.createBackendOffline(backendName, baseDNs, getSelectedBackendType().getBackend());
       }
       catch (Exception e)
       {
@@ -954,17 +951,10 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    @RemoveOnceNewConfigFrameworkIsUsed("Use BackendCreationHelper.createBackend(...)")
     private void createBackendOnline(String backendName) throws Exception
     {
-      final RootCfgClient root = getRootConfigurationClient();
-      final BackendCfgClient backend =
-          root.createBackend(getSelectedBackendType().getBackend(), backendName, null);
-      backend.setEnabled(true);
-      backend.setBaseDN(Collections.singleton(DN.valueOf(newBaseDN)));
-      backend.setBackendId(backendName);
-      backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
-      backend.commit();
+      Set<DN> baseDNs = Collections.singleton(DN.valueOf(newBaseDN));
+      BackendCreationHelper.createBackendOffline(backendName, baseDNs, getSelectedBackendType().getBackend());
     }
 
     private RootCfgClient getRootConfigurationClient() throws LdapException
@@ -1119,11 +1109,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
       args.add("--index-name");
       args.add(defaultIndex.getName());
       args.add("--set");
-      args.add("index-type:" + IndexTypeDescriptor.EQUALITY.toBackendIndexType());
+      args.add("index-type:" + IndexType.EQUALITY);
       if (defaultIndex.shouldCreateSubstringIndex())
       {
         args.add("--set");
-        args.add("index-type:" + IndexTypeDescriptor.SUBSTRING.toBackendIndexType());
+        args.add("index-type:" + IndexType.SUBSTRING);
       }
       args.addAll(getConnectionCommandLineArguments());
       args.add(getNoPropertiesFileArgument());

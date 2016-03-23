@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Container;
@@ -44,8 +45,8 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -116,10 +117,9 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
   /** Substring index type check box. */
   final JCheckBox substring = Utilities.createCheckBox(INFO_CTRL_PANEL_SUBSTRING_LABEL.get());
   /** Array of checkboxes. */
-  final JCheckBox[] types = { approximate, equality, ordering, presence, substring };
+  final JCheckBox[] types =       { approximate, equality, ordering, presence, substring };
   /** Array of index types that matches the array of checkboxes (types). */
-  final IndexTypeDescriptor[] configTypes = { IndexTypeDescriptor.APPROXIMATE, IndexTypeDescriptor.EQUALITY,
-    IndexTypeDescriptor.ORDERING, IndexTypeDescriptor.PRESENCE, IndexTypeDescriptor.SUBSTRING };
+  final IndexType[] configTypes = { APPROXIMATE, EQUALITY, ORDERING, PRESENCE, SUBSTRING };
 
   final JButton deleteIndex = Utilities.createButton(INFO_CTRL_PANEL_DELETE_INDEX_LABEL.get());
   final JButton saveChanges = Utilities.createButton(INFO_CTRL_PANEL_SAVE_CHANGES_LABEL.get());
@@ -304,9 +304,9 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
    * @return a sorted set of indexes (that matches what the user selected on the
    *         check boxes).
    */
-  SortedSet<IndexTypeDescriptor> getTypes()
+  SortedSet<IndexType> getTypes()
   {
-    SortedSet<IndexTypeDescriptor> indexTypes = new TreeSet<>();
+    SortedSet<IndexType> indexTypes = new TreeSet<>();
     for (int i = 0; i < types.length; i++)
     {
       if (types[i].isSelected())
@@ -357,19 +357,19 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
   }
 
   void createIndexOffline(final String backendName, final String attributeName,
-      final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit) throws OpenDsException
+      final Set<IndexType> indexTypes, final int indexEntryLimit) throws OpenDsException
   {
     updateIndexOffline(backendName, null, attributeName, indexTypes, indexEntryLimit);
   }
 
   void modifyIndexOffline(final String backendName, final String attributeName, final IndexDescriptor indexToModify,
-      final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit) throws OpenDsException
+      final Set<IndexType> indexTypes, final int indexEntryLimit) throws OpenDsException
   {
     updateIndexOffline(backendName, indexToModify, attributeName, indexTypes, indexEntryLimit);
   }
 
   private void updateIndexOffline(final String backendName, final IndexDescriptor indexToModify,
-      final String attributeName, final Set<IndexTypeDescriptor> indexTypes, final int indexEntryLimit)
+      final String attributeName, final Set<IndexType> indexTypes, final int indexEntryLimit)
       throws OpenDsException
   {
     getInfo().initializeConfigurationFramework();
@@ -388,7 +388,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
   }
 
   private void updateBackendIndexOnline(final PluggableBackendCfgClient backend,
-      final IndexDescriptor indexToModify, final String attributeName, final Set<IndexTypeDescriptor> indexTypes,
+      final IndexDescriptor indexToModify, final String attributeName, final Set<IndexType> indexTypes,
       final int indexEntryLimit) throws Exception
   {
     final boolean isCreation = indexToModify == null;
@@ -399,7 +399,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
 
     if (isCreation || indexTypes.equals(indexToModify.getTypes()))
     {
-      index.setIndexType(IndexTypeDescriptor.toNewConfigBackendIndexTypes(indexTypes));
+      index.setIndexType(indexTypes);
     }
 
     if (indexEntryLimit != index.getIndexEntryLimit())

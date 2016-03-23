@@ -12,21 +12,20 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.messages.AdminToolMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 
 /**
  * The table model for the indexes.  This is the table model used by the table
  * that appears on the right side of the Manage Index dialog when the user
  * clicks on the node "Index" and it gives a global view of the indexes
  * defined on a given backend.
- *
  */
 public class IndexTableModel extends AbstractIndexTableModel
 {
@@ -133,7 +132,7 @@ public class IndexTableModel extends AbstractIndexTableModel
   private String getIndexTypeString(IndexDescriptor index)
   {
     StringBuilder sb = new StringBuilder();
-    for (IndexTypeDescriptor type : index.getTypes())
+    for (IndexType type : index.getTypes())
     {
       if (sb.length() > 0)
       {
@@ -148,7 +147,7 @@ public class IndexTableModel extends AbstractIndexTableModel
     return sb.toString();
   }
 
-  private LocalizableMessage getIndexName(IndexTypeDescriptor type)
+  private LocalizableMessage getIndexName(IndexType type)
   {
     switch (type)
     {

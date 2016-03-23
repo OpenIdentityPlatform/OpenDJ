@@ -52,7 +52,6 @@ import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.IndexTypeDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
@@ -484,7 +483,7 @@ public class ConfigFromDirContext extends ConfigReader
         final BackendIndexCfgClient index = db.getBackendIndex(indexName);
         indexes.add(new IndexDescriptor(
             index.getAttribute().getNameOrOID(), index.getAttribute(),
-            null, IndexTypeDescriptor.fromBackendIndexTypes(index.getIndexType()), index.getIndexEntryLimit()));
+            null, index.getIndexType(), index.getIndexEntryLimit()));
       }
     }
     catch (Exception oe)
