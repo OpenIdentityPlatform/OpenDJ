@@ -111,8 +111,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
     /** The attribute description for this attribute. */
     private final AttributeDescription attributeDescription;
-    /** The name of this attribute as provided by the end user. */
-    private final String name;
     /**
      * The unmodifiable set of attribute values, which are lazily normalized.
      * <p>
@@ -120,20 +118,9 @@ public final class AttributeBuilder implements Iterable<ByteString>
      */
     private final Set<AttributeValue> values;
 
-    /**
-     * Creates a new real attribute.
-     *
-     * @param attributeDescription
-     *          The attribute description.
-     * @param name
-     *          The user-provided attribute name.
-     * @param values
-     *          The attribute values.
-     */
-    private RealAttribute(AttributeDescription attributeDescription, String name, Set<AttributeValue> values)
+    private RealAttribute(AttributeDescription attributeDescription, Set<AttributeValue> values)
     {
       this.attributeDescription = attributeDescription;
-      this.name = name;
       this.values = values;
     }
 
@@ -233,7 +220,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public final String getName()
     {
-      return name;
+      return attributeDescription.getNameOrOID();
     }
 
     @Override
@@ -1465,19 +1452,19 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
   private Attribute toAttribute0()
   {
-    return new RealAttribute(toAttributeDescription(), name, values);
+    return new RealAttribute(toAttributeDescription(name), values);
   }
 
-  private AttributeDescription toAttributeDescription()
+  private AttributeDescription toAttributeDescription(String name)
   {
     switch (options.size())
     {
     case 0:
-      return AttributeDescription.create(attributeType);
+      return AttributeDescription.create(name, attributeType);
     case 1:
-      return AttributeDescription.create(attributeType, options.firstElement);
+      return AttributeDescription.create(name, attributeType, options.firstElement);
     default:
-      return AttributeDescription.create(attributeType, options.elements);
+      return AttributeDescription.create(name, attributeType, options.elements);
     }
   }
 
