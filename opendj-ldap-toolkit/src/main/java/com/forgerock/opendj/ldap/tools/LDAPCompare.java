@@ -25,7 +25,6 @@ import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
-import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -48,7 +47,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
 /** A tool that can be used to issue Compare requests to the Directory Server. */
@@ -118,7 +116,6 @@ public final class LDAPCompare extends ConsoleApplication {
 
         BooleanArgument dryRun;
         BooleanArgument showUsage;
-        IntegerArgument ldapProtocolVersion;
         StringArgument assertionFilter;
         StringArgument controlStr;
         StringArgument proxyAuthzID;
@@ -154,9 +151,6 @@ public final class LDAPCompare extends ConsoleApplication {
             controlStr = controlArgument();
             argParser.addArgument(controlStr);
 
-            ldapProtocolVersion = ldapVersionArgument();
-            argParser.addArgument(ldapProtocolVersion);
-
             dryRun = noOpArgument();
             argParser.addArgument(dryRun);
 
@@ -177,7 +171,6 @@ public final class LDAPCompare extends ConsoleApplication {
         if (argParser.usageOrVersionDisplayed()) {
             return ResultCode.SUCCESS.intValue();
         }
-        ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
 
         final List<String> trailingArguments = argParser.getTrailingArguments();
         final String attribute = trailingArguments.get(0);

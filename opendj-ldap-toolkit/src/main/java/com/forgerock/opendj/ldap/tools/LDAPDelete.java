@@ -19,7 +19,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.USE_SYSTEM_STREAM_TOKEN;
 import static com.forgerock.opendj.cli.CommonArguments.continueOnErrorArgument;
 import static com.forgerock.opendj.cli.CommonArguments.controlArgument;
-import static com.forgerock.opendj.cli.CommonArguments.ldapVersionArgument;
 import static com.forgerock.opendj.cli.CommonArguments.noOpArgument;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
@@ -31,7 +30,6 @@ import static com.forgerock.opendj.cli.CommonArguments.verboseArgument;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
-import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printSuccessMessage;
@@ -42,7 +40,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
@@ -131,7 +128,6 @@ public final class LDAPDelete extends ConsoleApplication {
         final BooleanArgument deleteSubtree;
         final BooleanArgument dryRun;
         final BooleanArgument showUsage;
-        final IntegerArgument ldapProtocolVersion;
         final StringArgument controlStr;
         final StringArgument propertiesFileArgument;
         final BooleanArgument noPropertiesFileArgument;
@@ -159,9 +155,6 @@ public final class LDAPDelete extends ConsoleApplication {
             controlStr = controlArgument();
             argParser.addArgument(controlStr);
 
-            ldapProtocolVersion = ldapVersionArgument();
-            argParser.addArgument(ldapProtocolVersion);
-
             dryRun = noOpArgument();
             argParser.addArgument(dryRun);
 
@@ -175,12 +168,10 @@ public final class LDAPDelete extends ConsoleApplication {
             throw newToolParamException(ae, ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
         }
 
-
         argParser.parseArguments(args, getErrStream(), connectionFactoryProvider);
         if (argParser.usageOrVersionDisplayed()) {
             return ResultCode.SUCCESS.intValue();
         }
-        ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
 
         final List<Control> controls = readControls(controlStr);
         if (deleteSubtree.isPresent()) {

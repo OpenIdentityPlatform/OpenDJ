@@ -297,17 +297,6 @@ final class Utils {
         return filesLines;
     }
 
-    static void ensureLdapProtocolVersionIsSupported(final IntegerArgument version) throws LDAPToolException {
-        try {
-            final int versionNumber = version.getIntValue();
-            if (versionNumber != 2 && versionNumber != 3) {
-                throw newToolParamException(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
-            }
-        } catch (final ArgumentException e) {
-            throw newToolParamException(e, ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
-        }
-    }
-
     static void addControlsToRequest(final Request request, final List<Control> controls) throws LDAPToolException {
         for (final Control control : controls) {
             request.addControl(control);

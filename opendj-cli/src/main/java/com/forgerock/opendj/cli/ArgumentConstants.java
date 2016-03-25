@@ -207,11 +207,6 @@ public final class ArgumentConstants {
      */
     public static final String OPTION_LONG_EFFECTIVERIGHTSATTR = "getEffectiveRightsAttribute";
 
-    /** The value for the short option protocol version attributes. */
-    public static final char OPTION_SHORT_PROTOCOL_VERSION = 'V';
-    /** The value for the long option protocol version attribute. */
-    public static final String OPTION_LONG_PROTOCOL_VERSION = "ldapVersion";
-
     /** The value for the long option version. */
     public static final char OPTION_SHORT_PRODUCT_VERSION = 'V';
     /** The value for the long option version. */

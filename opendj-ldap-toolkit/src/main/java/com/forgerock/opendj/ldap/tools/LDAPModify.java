@@ -26,7 +26,6 @@ import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
 import static com.forgerock.opendj.ldap.tools.Utils.printSuccessMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
-import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
@@ -68,7 +67,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
@@ -271,7 +269,6 @@ public final class LDAPModify extends ConsoleApplication {
         BooleanArgument continueOnError;
         BooleanArgument noop;
         BooleanArgument showUsage;
-        IntegerArgument ldapProtocolVersion;
         StringArgument assertionFilter;
         StringArgument controlStr;
         StringArgument filename;
@@ -325,9 +322,6 @@ public final class LDAPModify extends ConsoleApplication {
             controlStr = controlArgument();
             argParser.addArgument(controlStr);
 
-            ldapProtocolVersion = ldapVersionArgument();
-            argParser.addArgument(ldapProtocolVersion);
-
             continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
 
@@ -349,7 +343,6 @@ public final class LDAPModify extends ConsoleApplication {
         if (argParser.usageOrVersionDisplayed()) {
             return ResultCode.SUCCESS.intValue();
         }
-        ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
 
         controls = readControls(controlStr);
         if (proxyAuthzID.isPresent()) {

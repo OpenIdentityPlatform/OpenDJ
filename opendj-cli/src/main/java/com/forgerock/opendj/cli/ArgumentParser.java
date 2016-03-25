@@ -1473,8 +1473,7 @@ public class ArgumentParser implements ToolRefDocContainer {
                             || OPTION_LONG_ADMIN_UID.equals(longId)
                             || OPTION_LONG_REPORT_AUTHZ_ID.equals(longId)
                             || OPTION_LONG_USE_PW_POLICY_CTL.equals(longId)
-                            || OPTION_LONG_USE_SASL_EXTERNAL.equals(longId)
-                            || OPTION_LONG_PROTOCOL_VERSION.equals(longId);
+                            || OPTION_LONG_USE_SASL_EXTERNAL.equals(longId);
         }
         return false;
     }

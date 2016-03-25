@@ -74,7 +74,6 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
-import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printPasswordPolicyResults;
@@ -242,7 +241,6 @@ public final class LDAPSearch extends ConsoleApplication {
         BooleanArgument typesOnly;
         IntegerArgument simplePageSize;
         IntegerArgument timeLimit;
-        IntegerArgument ldapProtocolVersion;
         StringArgument baseDN;
         StringArgument controlStr;
         MultiChoiceArgument<DereferenceAliasesPolicy> dereferencePolicy;
@@ -340,10 +338,6 @@ public final class LDAPSearch extends ConsoleApplication {
                             .multiValued()
                             .valuePlaceholder(INFO_ATTRIBUTE_PLACEHOLDER.get())
                             .buildAndAddToParser(argParser);
-
-            ldapProtocolVersion = ldapVersionArgument();
-            argParser.addArgument(ldapProtocolVersion);
-
             dereferencePolicy =
                     MultiChoiceArgument.<DereferenceAliasesPolicy>builder("dereferencePolicy")
                             .shortIdentifier('a')
@@ -419,7 +413,6 @@ public final class LDAPSearch extends ConsoleApplication {
                                                       scope,
                                                       filter,
                                                       attributes.toArray(new String[attributes.size()]));
-            ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
         } catch (final LocalizedIllegalArgumentException e) {
             errPrintln(e.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();

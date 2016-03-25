@@ -160,22 +160,6 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "ldapVersion" integer argument.
-     *
-     * @return The "ldapVersion" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static IntegerArgument ldapVersionArgument() throws ArgumentException {
-        return IntegerArgument.builder(OPTION_LONG_PROTOCOL_VERSION)
-                .shortIdentifier(OPTION_SHORT_PROTOCOL_VERSION)
-                .description(INFO_DESCRIPTION_VERSION.get())
-                .defaultValue(3)
-                .valuePlaceholder(INFO_PROTOCOL_VERSION_PLACEHOLDER.get())
-                .buildArgument();
-    }
-
-    /**
      * Returns the "quiet" boolean argument.
      *
      * @return The "quiet" argument.

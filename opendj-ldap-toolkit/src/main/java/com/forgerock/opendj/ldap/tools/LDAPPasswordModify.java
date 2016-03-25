@@ -24,7 +24,6 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
-import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
 
@@ -44,7 +43,6 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
-import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
@@ -126,7 +124,6 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         FileBasedArgument currentPWFile;
         FileBasedArgument newPWFile;
         BooleanArgument showUsage;
-        IntegerArgument ldapProtocolVersion;
         StringArgument currentPW;
         StringArgument controlStr;
         StringArgument newPW;
@@ -178,9 +175,6 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             controlStr = controlArgument();
             argParser.addArgument(controlStr);
 
-            ldapProtocolVersion = ldapVersionArgument();
-            argParser.addArgument(ldapProtocolVersion);
-
             verbose = verboseArgument();
             argParser.addArgument(verbose);
 
@@ -196,7 +190,6 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         if (argParser.usageOrVersionDisplayed()) {
             return ResultCode.SUCCESS.intValue();
         }
-        ensureLdapProtocolVersionIsSupported(ldapProtocolVersion);
 
         final PasswordModifyExtendedRequest request = Requests.newPasswordModifyExtendedRequest();
         addControlsToRequest(request, readControls(controlStr));
