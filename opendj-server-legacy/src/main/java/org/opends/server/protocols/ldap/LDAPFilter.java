@@ -18,13 +18,15 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -76,8 +78,8 @@ public class LDAPFilter
   /** The filter component for NOT filters. */
   private RawFilter notComponent;
 
-  /** The attribute type for several filter types. */
-  private String attributeType;
+  /** The attribute description for several filter types. */
+  private String attributeDescription;
 
   /** The matching rule ID for extensible matching filters. */
   private String matchingRuleID;
@@ -94,7 +96,7 @@ public class LDAPFilter
    * @param  filterType         The filter type for this filter.
    * @param  filterComponents   The filter components for AND and OR filters.
    * @param  notComponent       The filter component for NOT filters.
-   * @param  attributeType      The attribute type for this filter.
+   * @param  attributeDescription The attribute description for this filter.
    * @param  assertionValue     The assertion value for this filter.
    * @param  subInitialElement  The subInitial element for substring filters.
    * @param  subAnyElements     The subAny elements for substring filters.
@@ -104,7 +106,7 @@ public class LDAPFilter
    */
   public LDAPFilter(FilterType filterType,
                     ArrayList<RawFilter> filterComponents,
-                    RawFilter notComponent, String attributeType,
+                    RawFilter notComponent, String attributeDescription,
                     ByteString assertionValue, ByteString subInitialElement,
                     ArrayList<ByteString> subAnyElements,
                     ByteString subFinalElement, String matchingRuleID,
@@ -113,7 +115,7 @@ public class LDAPFilter
     this.filterType        = filterType;
     this.filterComponents  = filterComponents;
     this.notComponent      = notComponent;
-    this.attributeType     = attributeType;
+    this.attributeDescription = attributeDescription;
     this.assertionValue    = assertionValue;
     this.subInitialElement = subInitialElement;
     this.subAnyElements    = subAnyElements;
@@ -145,7 +147,7 @@ public class LDAPFilter
         }
 
         notComponent      = null;
-        attributeType     = null;
+        attributeDescription     = null;
         assertionValue    = null;
         subInitialElement = null;
         subAnyElements    = null;
@@ -157,7 +159,7 @@ public class LDAPFilter
         notComponent = new LDAPFilter(filter.getNotComponent());
 
         filterComponents  = null;
-        attributeType     = null;
+        attributeDescription     = null;
         assertionValue    = null;
         subInitialElement = null;
         subAnyElements    = null;
@@ -169,7 +171,7 @@ public class LDAPFilter
       case GREATER_OR_EQUAL:
       case LESS_OR_EQUAL:
       case APPROXIMATE_MATCH:
-        attributeType  = filter.getAttributeType().getNameOrOID();
+        attributeDescription  = filter.getAttributeType().getNameOrOID();
         assertionValue = filter.getAssertionValue();
 
         filterComponents  = null;
@@ -181,7 +183,7 @@ public class LDAPFilter
         dnAttributes      = false;
         break;
       case SUBSTRING:
-        attributeType  = filter.getAttributeType().getNameOrOID();
+        attributeDescription  = filter.getAttributeType().getNameOrOID();
 
         ByteString bs = filter.getSubInitialElement();
         if (bs == null)
@@ -220,7 +222,7 @@ public class LDAPFilter
         dnAttributes      = false;
         break;
       case PRESENT:
-        attributeType  = filter.getAttributeType().getNameOrOID();
+        attributeDescription  = filter.getAttributeType().getNameOrOID();
 
         filterComponents  = null;
         notComponent      = null;
@@ -238,11 +240,11 @@ public class LDAPFilter
         AttributeType attrType = filter.getAttributeType();
         if (attrType == null)
         {
-          attributeType = null;
+          attributeDescription = null;
         }
         else
         {
-          attributeType = attrType.getNameOrOID();
+          attributeDescription = attrType.getNameOrOID();
         }
 
         assertionValue    = filter.getAssertionValue();
@@ -423,12 +425,11 @@ public class LDAPFilter
     }
 
 
-    // The part of the filter string before the equal sign should be the
-    // attribute type.  Make sure that the characters it contains are acceptable
-    // for attribute types, including those allowed by attribute name
-    // exceptions (ASCII letters and digits, the dash, and the underscore).  We
-    // also need to allow attribute options, which includes the semicolon and
-    // the equal sign.
+    // The part of the filter string before the equal sign should be the attribute description.
+    // Make sure that the characters it contains are acceptable for attribute descriptions,
+    // including those allowed by attribute name exceptions
+    // (ASCII letters and digits, the dash, and the underscore).
+    // We also need to allow attribute options, which includes the semicolon and the equal sign.
     String attrType = filterString.substring(startPos, attrEndPos);
     for (int i=0; i < attrType.length(); i++)
     {
@@ -856,10 +857,10 @@ public class LDAPFilter
    *
    * @param  filterString  The filter string containing the information to
    *                       decode.
-   * @param  attrType      The attribute type for this substring filter
+   * @param  attrDesc      The attribute description for this substring filter
    *                       component.
    * @param  equalPos      The location of the equal sign separating the
-   *                       attribute type from the value.
+   *                       attribute description from the value.
    * @param  endPos        The position of the first character after the end of
    *                       the substring value.
    *
@@ -869,7 +870,7 @@ public class LDAPFilter
    *                         substring filter.
    */
   private static LDAPFilter decodeSubstringFilter(String filterString,
-                                                  String attrType, int equalPos,
+                                                  String attrDesc, int equalPos,
                                                   int endPos)
           throws LDAPException
   {
@@ -1403,7 +1404,7 @@ public class LDAPFilter
     }
 
 
-    return new LDAPFilter(FilterType.SUBSTRING, null, null, attrType, null,
+    return new LDAPFilter(FilterType.SUBSTRING, null, null, attrDesc, null,
                           subInitial, subAny, subFinal, null, false);
   }
 
@@ -1440,13 +1441,12 @@ public class LDAPFilter
 
     // Look at the first character.  If it is a colon, then it must be followed
     // by either the string "dn" or the matching rule ID.  If it is not, then
-    // must be the attribute type.
+    // must be the attribute description.
     String lowerLeftStr =
          toLowerCase(filterString.substring(startPos, equalPos));
     if (filterString.charAt(startPos) == ':')
     {
-      // See if it starts with ":dn".  Otherwise, it much be the matching rule
-      // ID.
+      // See if it starts with ":dn".  Otherwise, it much be the matching rule ID.
       if (lowerLeftStr.startsWith(":dn:"))
       {
         dnAttributes = true;
@@ -1724,16 +1724,16 @@ public class LDAPFilter
 
 
   /**
-   * Retrieves the attribute type for this search filter.  This will not be
+   * Retrieves the attribute description for this search filter.  This will not be
    * applicable for AND, OR, or NOT filters.
    *
-   * @return  The attribute type for this search filter, or <CODE>null</CODE> if
+   * @return  The attribute description for this search filter, or <CODE>null</CODE> if
    *          there is none.
    */
   @Override
   public String getAttributeType()
   {
-    return attributeType;
+    return attributeDescription;
   }
 
 
@@ -1886,38 +1886,16 @@ public class LDAPFilter
       notComp = notComponent.toSearchFilter();
     }
 
-
-    AttributeType attrType;
-    HashSet<String> options;
-    if (attributeType == null)
+    AttributeDescription attrDesc = null;
+    AttributeType attributeType = null;
+    Set<String> options = Collections.emptySet();
+    if (attributeDescription != null)
     {
-      attrType = null;
-      options  = null;
+      attrDesc = AttributeDescription.valueOf(attributeDescription);
+      attributeType = attrDesc.getAttributeType();
+      options = toSet(attrDesc);
     }
-    else
-    {
-      int semicolonPos = attributeType.indexOf(';');
-      if (semicolonPos > 0)
-      {
-        String baseName = attributeType.substring(0, semicolonPos);
-        attrType = DirectoryServer.getAttributeType(baseName);
-        options = new HashSet<>();
-        StringTokenizer tokenizer =
-             new StringTokenizer(attributeType.substring(semicolonPos+1), ";");
-        while (tokenizer.hasMoreTokens())
-        {
-          options.add(tokenizer.nextToken());
-        }
-      }
-      else
-      {
-        options = null;
-        attrType = DirectoryServer.getAttributeType(attributeType);
-      }
-    }
-
-
-    if (assertionValue != null && attrType == null)
+    if (assertionValue != null && attrDesc == null)
     {
       if (matchingRuleID == null)
       {
@@ -1935,10 +1913,19 @@ public class LDAPFilter
 
     ArrayList<ByteString> subAnyComps =
         subAnyElements != null ? new ArrayList<ByteString>(subAnyElements) : null;
-
-    return new SearchFilter(filterType, subComps, notComp, attrType,
-                            options, assertionValue, subInitialElement, subAnyComps,
+    return new SearchFilter(filterType, subComps, notComp, attributeType, options,
+                            assertionValue, subInitialElement, subAnyComps,
                             subFinalElement, matchingRuleID, dnAttributes);
+  }
+
+  private Set<String> toSet(AttributeDescription attrDesc)
+  {
+    LinkedHashSet<String> results = new LinkedHashSet<>();
+    for (String option : attrDesc.getOptions())
+    {
+      results.add(option);
+    }
+    return results;
   }
 
 
@@ -1977,14 +1964,14 @@ public class LDAPFilter
         break;
       case EQUALITY:
         buffer.append("(");
-        buffer.append(attributeType);
+        buffer.append(attributeDescription);
         buffer.append("=");
         valueToFilterString(buffer, assertionValue);
         buffer.append(")");
         break;
       case SUBSTRING:
         buffer.append("(");
-        buffer.append(attributeType);
+        buffer.append(attributeDescription);
         buffer.append("=");
 
         if (subInitialElement != null)
@@ -2012,26 +1999,26 @@ public class LDAPFilter
         break;
       case GREATER_OR_EQUAL:
         buffer.append("(");
-        buffer.append(attributeType);
+        buffer.append(attributeDescription);
         buffer.append(">=");
         valueToFilterString(buffer, assertionValue);
         buffer.append(")");
         break;
       case LESS_OR_EQUAL:
         buffer.append("(");
-        buffer.append(attributeType);
+        buffer.append(attributeDescription);
         buffer.append("<=");
         valueToFilterString(buffer, assertionValue);
         buffer.append(")");
         break;
       case PRESENT:
         buffer.append("(");
-        buffer.append(attributeType);
+        buffer.append(attributeDescription);
         buffer.append("=*)");
         break;
       case APPROXIMATE_MATCH:
         buffer.append("(");
-        buffer.append(attributeType);
+        buffer.append(attributeDescription);
         buffer.append("~=");
         valueToFilterString(buffer, assertionValue);
         buffer.append(")");
@@ -2039,9 +2026,9 @@ public class LDAPFilter
       case EXTENSIBLE_MATCH:
         buffer.append("(");
 
-        if (attributeType != null)
+        if (attributeDescription != null)
         {
-          buffer.append(attributeType);
+          buffer.append(attributeDescription);
         }
 
         if (dnAttributes)

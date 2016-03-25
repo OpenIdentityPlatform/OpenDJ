@@ -19,15 +19,9 @@ package org.opends.server.replication.plugin;
 import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -74,12 +68,12 @@ class HistoricalAttributeValue
   private final CSN csn;
   private final HistAttrModificationKey histKey;
   private final String stringValue;
-
+  private boolean attrTypeIsNull;
   /**
    * This flag indicates that this value was generated to store the last date
    * when the entry was renamed.
    */
-  private boolean isModDN;
+  private final boolean isModDN;
 
   /**
    * Create a new object from the String encoded form.
@@ -91,43 +85,14 @@ class HistoricalAttributeValue
   {
     String[] token = strVal.split(":", 4);
 
-    Set<String> options;
-    if (token[0].contains(";"))
-    {
-      options = new LinkedHashSet<>();
-      String[] optionsToken = token[0].split(";");
-      int index = 1;
-      while (index < optionsToken.length)
-      {
-        options.add(optionsToken[index]);
-        index ++;
-      }
-      attrString = toLowerCase(optionsToken[0]);
-    }
-    else
-    {
-      options = Collections.emptySet();
-      attrString = toLowerCase(token[0]);
-    }
-
-    AttributeType attrType;
-    if (attrString.compareTo("dn") != 0)
-    {
-      // This HistVal was used to store the date when some
-      // modifications were done to the entries.
-      attrType = DirectoryServer.getAttributeType(attrString);
-    }
-    else
-    {
-      // This HistVal is used to store the date when the entry
-      // was added to the directory or when it was last renamed.
-      attrType = null;
-      if (token.length >= 3 && token[2].compareTo("moddn") == 0)
-      {
-        isModDN = true;
-      }
-    }
-    this.attrDesc = attrType != null ? AttributeDescription.create(attrType, options) : null;
+    attrDesc = AttributeDescription.valueOf(token[0]);
+    attrString = toLowerCase(attrDesc.getNameOrOID());
+    // This HistVal was used to store the date when some
+    // modifications were done to the entries.
+    attrTypeIsNull = attrString.equalsIgnoreCase("dn");
+    // This HistVal is used to store the date when the entry
+    // was added to the directory or when it was last renamed.
+    isModDN = attrTypeIsNull && token.length >= 3 && token[2].compareTo("moddn") == 0;
 
     csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
@@ -149,16 +114,6 @@ class HistoricalAttributeValue
       stringValue = null;
       attributeValue = null;
     }
-  }
-
-  private AttributeType getAttributeType()
-  {
-    return attrDesc != null ? attrDesc.getAttributeType() : null;
-  }
-
-  private Iterable<String> getOptions()
-  {
-    return attrDesc != null ? attrDesc.getOptions() : Collections.<String> emptySet();
   }
 
   /**
@@ -218,8 +173,8 @@ class HistoricalAttributeValue
    */
   public Modification generateMod()
   {
-    AttributeBuilder builder = new AttributeBuilder(getAttributeType(), attrString);
-    builder.setOptions(getOptions());
+    AttributeBuilder builder = new AttributeBuilder(attrDesc.getAttributeType(), attrString);
+    builder.setOptions(attrDesc.getOptions());
 
     if (histKey != ATTRDEL)
     {
@@ -249,7 +204,7 @@ class HistoricalAttributeValue
    */
   public boolean isADDOperation()
   {
-    return getAttributeType() == null && !isModDN;
+    return attrTypeIsNull && !isModDN;
   }
 
   /**
@@ -260,18 +215,14 @@ class HistoricalAttributeValue
    */
   public boolean isMODDNOperation()
   {
-    return getAttributeType() == null && isModDN;
+    return attrTypeIsNull && isModDN;
   }
 
   @Override
   public String toString()
   {
     final StringBuilder sb = new StringBuilder();
-    sb.append(attrString);
-    for (String option : getOptions())
-    {
-      sb.append(";").append(option);
-    }
+    sb.append(attrDesc);
     sb.append(":").append(csn).append(":").append(getModificationType());
     if (stringValue != null)
     {

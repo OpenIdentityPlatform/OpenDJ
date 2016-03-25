@@ -89,6 +89,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -117,7 +119,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -1473,12 +1474,7 @@ public class Utilities
    */
   public static String getAttributeNameWithoutOptions(String attrName)
   {
-    int index = attrName.indexOf(";");
-    if (index != -1)
-    {
-      attrName = attrName.substring(0, index);
-    }
-    return attrName;
+    return AttributeDescription.valueOf(attrName).getNameOrOID();
   }
 
   /**

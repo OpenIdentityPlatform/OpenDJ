@@ -3556,7 +3556,6 @@ public class Entry
       int endPos;
       for (int i=0; i < attrs; i++)
       {
-
         // First, we have the zero-terminated attribute name.
         startPos = entryBuffer.position();
         while (entryBuffer.readByte() != 0x00)
@@ -3566,38 +3565,9 @@ public class Entry
         String name = entryBuffer.readStringUtf8(endPos - startPos);
         entryBuffer.skip(1);
 
-        AttributeType attributeType;
-        int semicolonPos = name.indexOf(';');
-        if (semicolonPos > 0)
-        {
-          builder.setAttributeType(name.substring(0, semicolonPos));
-          attributeType = builder.getAttributeType();
-
-          int nextPos = name.indexOf(';', semicolonPos+1);
-          while (nextPos > 0)
-          {
-            String option = name.substring(semicolonPos+1, nextPos);
-            if (option.length() > 0)
-            {
-              builder.setOption(option);
-            }
-
-            semicolonPos = nextPos;
-            nextPos = name.indexOf(';', semicolonPos+1);
-          }
-
-          String option = name.substring(semicolonPos+1);
-          if (option.length() > 0)
-          {
-            builder.setOption(option);
-          }
-        }
-        else
-        {
-          builder.setAttributeType(name);
-          attributeType = builder.getAttributeType();
-        }
-
+        AttributeDescription attrDesc = AttributeDescription.valueOf(name);
+        builder.setAttributeType(attrDesc.getAttributeType(), attrDesc.getNameOrOID());
+        builder.setOptions(attrDesc.getOptions());
 
         // Next, we have the number of values.
         int numValues = entryBuffer.readBERLength();
@@ -3606,15 +3576,13 @@ public class Entry
         for (int j=0; j < numValues; j++)
         {
           int valueLength = entryBuffer.readBERLength();
-
-          ByteString valueBytes =
-              entryBuffer.readByteSequence(valueLength).toByteString();
-          builder.add(valueBytes);
+          builder.add(entryBuffer.readByteSequence(valueLength).toByteString());
         }
 
 
         // Create the attribute and add it to the set of attributes.
         Attribute a = builder.toAttribute();
+        AttributeType attributeType = a.getAttributeDescription().getAttributeType();
         List<Attribute> attrList = attributes.get(attributeType);
         if (attrList == null)
         {
@@ -4470,55 +4438,30 @@ public class Entry
           continue;
         }
 
-        String name;
-        Set<String> options;
-        int semicolonPos = attrName.indexOf(';');
-        if (semicolonPos > 0)
-        {
-          String tmpName = attrName.substring(0, semicolonPos);
-          name = tmpName;
-          int nextPos = attrName.indexOf(';', semicolonPos+1);
-          options = new HashSet<>();
-          while (nextPos > 0)
-          {
-            options.add(attrName.substring(semicolonPos+1, nextPos));
-
-            semicolonPos = nextPos;
-            nextPos = attrName.indexOf(';', semicolonPos+1);
-          }
-          options.add(attrName.substring(semicolonPos+1));
-          attrName = tmpName;
-        }
-        else
-        {
-          name = attrName;
-          options = null;
-        }
-
-        AttributeType attrType = DirectoryServer.getAttributeType(name);
+        AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
+        attrName = attrDesc.getNameOrOID();
+        final AttributeType attrType = attrDesc.getAttributeType();
         if (attrType.isPlaceHolder())
         {
           // Unrecognized attribute type - do best effort search.
-          for (Map.Entry<AttributeType, List<Attribute>> e :
-            userAttributes.entrySet())
+          for (Map.Entry<AttributeType, List<Attribute>> e : userAttributes.entrySet())
           {
             AttributeType t = e.getKey();
-            if (t.hasNameOrOID(name))
+            if (t.hasNameOrOID(attrName))
             {
-              mergeAttributeLists(e.getValue(), userAttrsCopy, t,
-                  attrName, options, omitValues, omitReal, omitVirtual);
+              mergeAttributeLists(e.getValue(), userAttrsCopy, attrDesc,
+                  omitValues, omitReal, omitVirtual);
               continue;
             }
           }
 
-          for (Map.Entry<AttributeType, List<Attribute>> e :
-            operationalAttributes.entrySet())
+          for (Map.Entry<AttributeType, List<Attribute>> e : operationalAttributes.entrySet())
           {
             AttributeType t = e.getKey();
-            if (t.hasNameOrOID(name))
+            if (t.hasNameOrOID(attrName))
             {
-              mergeAttributeLists(e.getValue(), operationalAttrsCopy,
-                  t, attrName, options, omitValues, omitReal, omitVirtual);
+              mergeAttributeLists(e.getValue(), operationalAttrsCopy, attrDesc,
+                 omitValues, omitReal, omitVirtual);
               continue;
             }
           }
@@ -4556,17 +4499,16 @@ public class Entry
             List<Attribute> attrList = getUserAttribute(attrType);
             if (!attrList.isEmpty())
             {
-              mergeAttributeLists(attrList, userAttrsCopy, attrType,
-                  attrName, options, omitValues, omitReal, omitVirtual);
+              mergeAttributeLists(attrList, userAttrsCopy, attrDesc,
+                  omitValues, omitReal, omitVirtual);
             }
             else
             {
               attrList = getOperationalAttribute(attrType);
               if (!attrList.isEmpty())
               {
-                mergeAttributeLists(attrList, operationalAttrsCopy,
-                    attrType, attrName, options, omitValues, omitReal,
-                    omitVirtual);
+                mergeAttributeLists(attrList, operationalAttrsCopy, attrDesc,
+                    omitValues, omitReal, omitVirtual);
               }
             }
           }
@@ -4578,39 +4520,8 @@ public class Entry
                      operationalAttrsCopy);
   }
 
-  /**
-   * Copies the provided list of attributes into the destination
-   * attribute map according to the provided criteria.
-   *
-   * @param sourceList
-   *          The list containing the attributes to be copied.
-   * @param destMap
-   *          The map where the attributes should be copied to.
-   * @param attrType
-   *          The attribute type.
-   * @param attrName
-   *          The user-provided attribute name.
-   * @param options
-   *          The user-provided attribute options.
-   * @param omitValues
-   *          Indicates whether to exclude attribute values.
-   * @param omitReal
-   *          Indicates whether to exclude real attributes.
-   * @param omitVirtual
-   *          Indicates whether to exclude virtual attributes.
-   */
   private void mergeAttributeLists(List<Attribute> sourceList,
-      Map<AttributeType, List<Attribute>> destMap,
-      AttributeType attrType, String attrName, Set<String> options,
-      boolean omitValues, boolean omitReal, boolean omitVirtual)
-  {
-    AttributeDescription attrDesc = AttributeDescription.create(attrType, options);
-    mergeAttributeLists(sourceList, destMap, attrDesc, attrName, omitValues, omitReal, omitVirtual);
-  }
-
-  private void mergeAttributeLists(List<Attribute> sourceList,
-      Map<AttributeType, List<Attribute>> destMap,
-      AttributeDescription attrDesc, String attrName,
+      Map<AttributeType, List<Attribute>> destMap, AttributeDescription attrDesc,
       boolean omitValues, boolean omitReal, boolean omitVirtual)
   {
     if (sourceList == null)
@@ -4618,6 +4529,7 @@ public class Entry
       return;
     }
 
+    final String attrName = attrDesc.getNameOrOID();
     for (Attribute attribute : sourceList)
     {
       if (attribute.isEmpty()
