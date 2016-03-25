@@ -21,9 +21,11 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.util.Iterator;
+import java.util.Arrays;
 
+import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -161,7 +163,10 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             { "cn;BAR;FOO", "cn", new String[] { "BAR", "FOO" }, true },
             { " cn;BAR;FOO ", "cn", new String[] { "BAR", "FOO" }, true },
             { "  cn;BAR;FOO  ", "cn", new String[] { "BAR", "FOO" }, true },
+            { "  CN;BAR;FOO  ", "CN", new String[] { "BAR", "FOO" }, true },
             { "cn;xxx;yyy;zzz", "cn", new String[] { "xxx", "yyy", "zzz" }, false },
+            { "cn;zzz;YYY;xxx", "cn", new String[] { "zzz", "YYY", "xxx" }, false },
+            { "CN;zzz;YYY;xxx", "CN", new String[] { "zzz", "YYY", "xxx" }, false },
         };
         // @formatter:on
     }
@@ -224,15 +229,14 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
                 AttributeDescription.valueOf(ad, Schema.getCoreSchema());
 
         assertEquals(attributeDescription.toString(), ad);
-
+        assertEquals(attributeDescription.getNameOrOID(), ad);
         assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
         assertEquals(attributeDescription.isObjectClass(), isObjectClass);
 
         assertFalse(attributeDescription.hasOptions());
         assertFalse(attributeDescription.hasOption("dummy"));
 
-        final Iterator<String> iterator = attributeDescription.getOptions().iterator();
-        assertFalse(iterator.hasNext());
+        Assertions.assertThat(attributeDescription.getOptions()).isEmpty();
     }
 
     /** FIXME: none of these pass! The valueOf method is far too lenient. */
@@ -252,8 +256,7 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
         assertFalse(attributeDescription.isObjectClass());
 
-        assertEquals(attributeDescription.hasOptions(), options.length != 0);
-
+        assertOptions(attributeDescription, options);
         assertFalse(attributeDescription.hasOption("dummy"));
         if (containsFoo) {
             assertTrue(attributeDescription.hasOption("foo"));
@@ -264,28 +267,24 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             assertFalse(attributeDescription.hasOption("FOO"));
             assertFalse(attributeDescription.hasOption("FoO"));
         }
+    }
 
+    private void assertOptions(final AttributeDescription attributeDescription, final String... options) {
+        assertEquals(attributeDescription.hasOptions(), options.length != 0);
         for (final String option : options) {
             assertTrue(attributeDescription.hasOption(option));
         }
 
-        final Iterator<String> iterator = attributeDescription.getOptions().iterator();
-        for (final String option : options) {
-            assertTrue(iterator.hasNext());
-            assertEquals(iterator.next(), option);
-        }
-        assertFalse(iterator.hasNext());
+        Assertions.assertThat(attributeDescription.getOptions()).containsExactly(options);
     }
 
     @Test
     public void testWithOptionAddFirstOption() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn");
         AttributeDescription ad2 = ad1.withOption("test");
-        assertTrue(ad2.hasOptions());
-        assertTrue(ad2.hasOption("test"));
+        assertOptions(ad2, "test");
         assertFalse(ad2.hasOption("dummy"));
         assertEquals(ad2.toString(), "cn;test");
-        assertEquals(ad2.getOptions().iterator().next(), "test");
     }
 
     @Test
@@ -297,16 +296,20 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
 
     @Test
     public void testWithOptionAddSecondOption() {
-        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1");
-        AttributeDescription ad2 = ad1.withOption("test2");
-        assertTrue(ad2.hasOptions());
-        assertTrue(ad2.hasOption("test1"));
-        assertTrue(ad2.hasOption("test2"));
+        testWithOptionAddSecondOption("test1", "test2");
+    }
+
+    @Test
+    public void testWithOptionAddSecondOption2() {
+        testWithOptionAddSecondOption("test2", "test1");
+    }
+
+    private void testWithOptionAddSecondOption(String option1, String option2) {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;" + option1);
+        AttributeDescription ad2 = ad1.withOption(option2);
+        assertOptions(ad2, option1, option2);
         assertFalse(ad2.hasOption("dummy"));
-        assertEquals(ad2.toString(), "cn;test1;test2");
-        Iterator<String> i = ad2.getOptions().iterator();
-        assertEquals(i.next(), "test1");
-        assertEquals(i.next(), "test2");
+        assertEquals(ad2.toString(), toAttributeDescriptionString("cn", option1, option2));
     }
 
     @Test
@@ -316,6 +319,24 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad3 = ad1.withOption("test2");
         assertSame(ad1, ad2);
         assertSame(ad1, ad3);
+    }
+
+    @Test
+    public void testWithOptionAddMultipleOptions() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
+        AttributeDescription ad2 = ad1.withOption("test4").withOption("test3");
+        assertOptions(ad2, "test1", "test2", "test4", "test3");
+        assertFalse(ad2.hasOption("dummy"));
+        assertEquals(ad2.toString(), "cn;test1;test2;test4;test3");
+    }
+
+    @Test
+    public void testWithOptionAddMultipleOptions2() {
+        AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
+        AttributeDescription ad2 = ad1.withOption("test0");
+        assertOptions(ad2, "test1", "test2", "test0");
+        assertFalse(ad2.hasOption("dummy"));
+        assertEquals(ad2.toString(), "cn;test1;test2;test0");
     }
 
     @Test
@@ -329,10 +350,9 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
     public void testWithoutOptionFirstOption() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test");
         AttributeDescription ad2 = ad1.withoutOption("test");
-        assertFalse(ad2.hasOptions());
+        assertOptions(ad2);
         assertFalse(ad2.hasOption("test"));
         assertEquals(ad2.toString(), "cn");
-        assertFalse(ad2.getOptions().iterator().hasNext());
     }
 
     @Test
@@ -346,22 +366,18 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
     public void testWithoutOptionSecondOption1() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
         AttributeDescription ad2 = ad1.withoutOption("test1");
-        assertTrue(ad2.hasOptions());
+        assertOptions(ad2, "test2");
         assertFalse(ad2.hasOption("test1"));
-        assertTrue(ad2.hasOption("test2"));
         assertEquals(ad2.toString(), "cn;test2");
-        assertEquals(ad2.getOptions().iterator().next(), "test2");
     }
 
     @Test
     public void testWithoutOptionSecondOption2() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2");
         AttributeDescription ad2 = ad1.withoutOption("test2");
-        assertTrue(ad2.hasOptions());
-        assertTrue(ad2.hasOption("test1"));
+        assertOptions(ad2, "test1");
         assertFalse(ad2.hasOption("test2"));
         assertEquals(ad2.toString(), "cn;test1");
-        assertEquals(ad2.getOptions().iterator().next(), "test1");
     }
 
     @Test
@@ -375,42 +391,27 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
     public void testWithoutOptionThirdOption1() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("test1");
-        assertTrue(ad2.hasOptions());
+        assertOptions(ad2, "test2", "test3");
         assertFalse(ad2.hasOption("test1"));
-        assertTrue(ad2.hasOption("test2"));
-        assertTrue(ad2.hasOption("test3"));
         assertEquals(ad2.toString(), "cn;test2;test3");
-        Iterator<String> i = ad2.getOptions().iterator();
-        assertEquals(i.next(), "test2");
-        assertEquals(i.next(), "test3");
     }
 
     @Test
     public void testWithoutOptionThirdOption2() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("test2");
-        assertTrue(ad2.hasOptions());
-        assertTrue(ad2.hasOption("test1"));
+        assertOptions(ad2, "test1", "test3");
         assertFalse(ad2.hasOption("test2"));
-        assertTrue(ad2.hasOption("test3"));
         assertEquals(ad2.toString(), "cn;test1;test3");
-        Iterator<String> i = ad2.getOptions().iterator();
-        assertEquals(i.next(), "test1");
-        assertEquals(i.next(), "test3");
     }
 
     @Test
     public void testWithoutOptionThirdOption3() {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("test3");
-        assertTrue(ad2.hasOptions());
-        assertTrue(ad2.hasOption("test1"));
-        assertTrue(ad2.hasOption("test2"));
+        assertOptions(ad2, "test1", "test2");
         assertFalse(ad2.hasOption("test3"));
         assertEquals(ad2.toString(), "cn;test1;test2");
-        Iterator<String> i = ad2.getOptions().iterator();
-        assertEquals(i.next(), "test1");
-        assertEquals(i.next(), "test2");
     }
 
     @Test
@@ -418,5 +419,126 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad1 = AttributeDescription.valueOf("cn;test1;test2;test3");
         AttributeDescription ad2 = ad1.withoutOption("dummy");
         assertSame(ad1, ad2);
+    }
+
+    @Test
+    public void testCreateAttributeType() {
+        Schema schema = Schema.getCoreSchema();
+        AttributeType attributeType = schema.getAttributeType("cn");
+        String name = attributeType.getNameOrOID();
+
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(attributeType),
+            name, attributeType);
+    }
+
+    @Test
+    public void testCreateAttributeNameAndType() {
+        Schema schema = Schema.getCoreSchema();
+        String name = "CN";
+        AttributeType attributeType = schema.getAttributeType(name);
+
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(name, attributeType),
+            name, attributeType);
+    }
+
+    @Test
+    public void testCreateAttributeTypeAndOption() {
+        Schema schema = Schema.getCoreSchema();
+        AttributeType attributeType = schema.getAttributeType("cn");
+        String name = attributeType.getNameOrOID();
+
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(attributeType, "option"),
+            name, attributeType, "option");
+    }
+
+    @Test
+    public void testCreateAttributeNameTypeAndOption() {
+        Schema schema = Schema.getCoreSchema();
+        String name = "CN";
+        AttributeType attributeType = schema.getAttributeType(name);
+
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(name, attributeType, "option"),
+            name, attributeType, "option");
+    }
+
+    @Test
+    public void testCreateAttributeTypeAndOptionsArray() {
+        Schema schema = Schema.getCoreSchema();
+        AttributeType attributeType = schema.getAttributeType("cn");
+        String name = attributeType.getNameOrOID();
+
+        String[] options = { "option1", "option2" };
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(attributeType, options),
+            name, attributeType, options);
+    }
+
+    @Test
+    public void testCreateAttributeNameTypeAndOptionsArray() {
+        Schema schema = Schema.getCoreSchema();
+        String name = "CN";
+        AttributeType attributeType = schema.getAttributeType(name);
+
+        String[] options = { "option1", "option2" };
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(name, attributeType, options),
+            name, attributeType, options);
+    }
+
+    @Test
+    public void testCreateAttributeTypeAndOptionsCollection() {
+        Schema schema = Schema.getCoreSchema();
+        AttributeType attributeType = schema.getAttributeType("cn");
+        String name = attributeType.getNameOrOID();
+
+        String[] options = { "option1", "option2" };
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(attributeType, Arrays.asList(options)),
+            name, attributeType, options);
+    }
+
+    @Test
+    public void testCreateAttributeNameTypeAndNoOptionsCollection() {
+        testCreateAttributeNameTypeAndOptionsCollection();
+    }
+
+    @Test
+    public void testCreateAttributeNameTypeAndOneOptionCollection() {
+        testCreateAttributeNameTypeAndOptionsCollection("option");
+    }
+
+    @Test
+    public void testCreateAttributeNameTypeAndTwoOptionsCollection() {
+        testCreateAttributeNameTypeAndOptionsCollection("option1", "option2");
+    }
+
+    private void testCreateAttributeNameTypeAndOptionsCollection(String... options) {
+        Schema schema = Schema.getCoreSchema();
+        String name = "CN";
+        AttributeType attributeType = schema.getAttributeType(name);
+
+        assertAttributeDescriptionCreate(
+            AttributeDescription.create(name, attributeType, Arrays.asList(options)),
+            name, attributeType, options);
+    }
+
+    private void assertAttributeDescriptionCreate(AttributeDescription attrDesc,
+            String name, AttributeType attributeType, String... options) {
+        assertEquals(attrDesc.getAttributeType(), attributeType);
+        assertEquals(attrDesc.getNameOrOID(), name);
+        assertOptions(attrDesc, options);
+        assertEquals(attrDesc.toString(), toAttributeDescriptionString(name, options));
+    }
+
+    private String toAttributeDescriptionString(String name, String... options) {
+        StringBuilder sb = new StringBuilder(name);
+        for (String option : options) {
+            sb.append(";").append(option);
+        }
+        return sb.toString();
     }
 }

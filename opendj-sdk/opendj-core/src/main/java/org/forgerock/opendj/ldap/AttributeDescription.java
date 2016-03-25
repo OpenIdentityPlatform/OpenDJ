@@ -81,7 +81,6 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     private static final class MultiOptionImpl extends Impl {
 
         private final String[] normalizedOptions;
-
         private final String[] options;
 
         private MultiOptionImpl(final String[] options, final String[] normalizedOptions) {
@@ -203,7 +202,6 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     private static final class SingleOptionImpl extends Impl {
 
         private final String normalizedOption;
-
         private final String option;
 
         private SingleOptionImpl(final String option, final String normalizedOption) {
@@ -351,9 +349,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     private static final AttributeDescription OBJECT_CLASS;
     static {
         final AttributeType attributeType = Schema.getCoreSchema().getAttributeType("2.5.4.0");
-        OBJECT_CLASS =
-                new AttributeDescription(attributeType.getNameOrOID(), attributeType,
-                        ZERO_OPTION_IMPL);
+        final String attributeName = attributeType.getNameOrOID();
+        OBJECT_CLASS = new AttributeDescription(attributeName, attributeName, attributeType, ZERO_OPTION_IMPL);
     }
 
     /**
@@ -378,21 +375,15 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         Reject.ifNull(option);
 
         final String normalizedOption = toLowerCase(option);
-        if (pimpl.hasOption(normalizedOption)) {
+        if (optionsPimpl.hasOption(normalizedOption)) {
             return this;
         }
 
-        final String oldAttributeDescription = attributeDescription;
-        final StringBuilder builder =
-                new StringBuilder(oldAttributeDescription.length() + option.length() + 1);
-        builder.append(oldAttributeDescription);
-        builder.append(';');
-        builder.append(option);
-        final String newAttributeDescription = builder.toString();
+        final String newAttributeDescription = appendOption(attributeDescription, option);
 
-        final Impl impl = pimpl;
+        final Impl impl = optionsPimpl;
         if (impl instanceof ZeroOptionImpl) {
-            return new AttributeDescription(newAttributeDescription, attributeType,
+            return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType,
                     new SingleOptionImpl(option, normalizedOption));
         } else if (impl instanceof SingleOptionImpl) {
             final SingleOptionImpl simpl = (SingleOptionImpl) impl;
@@ -410,7 +401,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 newNormalizedOptions[1] = normalizedOption;
             }
 
-            return new AttributeDescription(newAttributeDescription, attributeType,
+            return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType,
                     new MultiOptionImpl(newOptions, newNormalizedOptions));
         } else {
             final MultiOptionImpl mimpl = (MultiOptionImpl) impl;
@@ -441,7 +432,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 newNormalizedOptions[sz2] = normalizedOption;
             }
 
-            return new AttributeDescription(newAttributeDescription, attributeType,
+            return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType,
                     new MultiOptionImpl(newOptions, newNormalizedOptions));
         }
     }
@@ -464,7 +455,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         Reject.ifNull(option);
 
         final String normalizedOption = toLowerCase(option);
-        if (!pimpl.hasOption(normalizedOption)) {
+        if (!optionsPimpl.hasOption(normalizedOption)) {
             return this;
         }
 
@@ -479,11 +470,11 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 .length());
         final String newAttributeDescription = builder.toString();
 
-        final Impl impl = pimpl;
+        final Impl impl = optionsPimpl;
         if (impl instanceof ZeroOptionImpl) {
             throw new IllegalStateException("ZeroOptionImpl unexpected");
         } else if (impl instanceof SingleOptionImpl) {
-            return new AttributeDescription(newAttributeDescription, attributeType,
+            return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType,
                     ZERO_OPTION_IMPL);
         } else {
             final MultiOptionImpl mimpl = (MultiOptionImpl) impl;
@@ -503,7 +494,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                     remainingNormalizedOption = mimpl.normalizedOptions[0];
                 }
 
-                return new AttributeDescription(newAttributeDescription, attributeType,
+                return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType,
                         new SingleOptionImpl(remainingOption, remainingNormalizedOption));
             } else {
                 final String[] newOptions = new String[mimpl.options.length - 1];
@@ -522,15 +513,14 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                     }
                 }
 
-                return new AttributeDescription(newAttributeDescription, attributeType,
+                return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType,
                         new MultiOptionImpl(newOptions, newNormalizedOptions));
             }
         }
     }
 
     /**
-     * Creates an attribute description having the provided attribute type and
-     * no options.
+     * Creates an attribute description having the provided attribute type and no options.
      *
      * @param attributeType
      *            The attribute type.
@@ -539,21 +529,35 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType) {
-        Reject.ifNull(attributeType);
-
-        // Use object identity in case attribute type does not come from
-        // core schema.
-        if (attributeType == OBJECT_CLASS.getAttributeType()) {
-            return OBJECT_CLASS;
-        } else {
-            return new AttributeDescription(attributeType.getNameOrOID(), attributeType,
-                    ZERO_OPTION_IMPL);
-        }
+        return create(attributeType.getNameOrOID(), attributeType);
     }
 
     /**
-     * Creates an attribute description having the provided attribute type and
-     * single option.
+     * Creates an attribute description having the provided attribute name, type and no options.
+     *
+     * @param attributeName
+     *            The attribute name.
+     * @param attributeType
+     *            The attribute type.
+     * @return The attribute description.
+     * @throws NullPointerException
+     *             If {@code attributeType} was {@code null}.
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-2803 Migrate Attribute
+     */
+    @Deprecated
+    public static AttributeDescription create(final String attributeName, final AttributeType attributeType) {
+        Reject.ifNull(attributeName, attributeType);
+
+        // Use object identity in case attribute type does not come from core schema.
+        if (attributeType == OBJECT_CLASS.getAttributeType()) {
+            return OBJECT_CLASS;
+        }
+        return new AttributeDescription(attributeName, attributeName, attributeType, ZERO_OPTION_IMPL);
+    }
+
+    /**
+     * Creates an attribute description having the provided attribute type and single option.
      *
      * @param attributeType
      *            The attribute type.
@@ -564,18 +568,64 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} or {@code option} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType, final String option) {
-        Reject.ifNull(attributeType, option);
+        return create(attributeType.getNameOrOID(), attributeType, option);
+    }
 
-        final String oid = attributeType.getNameOrOID();
+    /**
+     * Creates an attribute description having the provided attribute name, type and single option.
+     *
+     * @param attributeName
+     *            The attribute name.
+     * @param attributeType
+     *            The attribute type.
+     * @param option
+     *            The attribute option.
+     * @return The attribute description.
+     * @throws NullPointerException
+     *             If {@code attributeType} or {@code option} was {@code null}.
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-2803 Migrate Attribute
+     */
+    @Deprecated
+    public static AttributeDescription create(
+            final String attributeName, final AttributeType attributeType, final String option) {
+        Reject.ifNull(attributeName, attributeType, option);
+
+        final String attributeDescription = appendOption(attributeName, option);
+        final String normalizedOption = toLowerCase(option);
+
+        return new AttributeDescription(attributeDescription, attributeName, attributeType,
+            new SingleOptionImpl(option, normalizedOption));
+    }
+
+    private static String appendOption(final String oid, final String option) {
         final StringBuilder builder = new StringBuilder(oid.length() + option.length() + 1);
         builder.append(oid);
         builder.append(';');
         builder.append(option);
-        final String attributeDescription = builder.toString();
-        final String normalizedOption = toLowerCase(option);
+        return builder.toString();
+    }
 
-        return new AttributeDescription(attributeDescription, attributeType, new SingleOptionImpl(
-                option, normalizedOption));
+    /**
+     * Creates an attribute description having the provided attribute name, type and options.
+     *
+     * @param attributeName
+     *            The attribute name.
+     * @param attributeType
+     *            The attribute type.
+     * @param options
+     *            The attribute options.
+     * @return The attribute description.
+     * @throws NullPointerException
+     *             If {@code attributeType} or {@code options} was {@code null}.
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-2803 Migrate Attribute
+     */
+    @Deprecated
+    public static AttributeDescription create(
+            final String attributeName, final AttributeType attributeType, final String... options) {
+        Reject.ifNull(options);
+        return create(attributeName, attributeType, Arrays.asList(options));
     }
 
     /**
@@ -591,7 +641,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      */
     public static AttributeDescription create(final AttributeType attributeType, final String... options) {
         Reject.ifNull(options);
-        return create(attributeType, Arrays.asList(options));
+        return create(attributeType.getNameOrOID(), attributeType, Arrays.asList(options));
     }
 
     /**
@@ -606,23 +656,43 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} or {@code options} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType, final Collection<String> options) {
-        Reject.ifNull(attributeType);
+        return create(attributeType.getNameOrOID(), attributeType, options);
+    }
+
+    /**
+     * Creates an attribute description having the provided attribute name, type and options.
+     *
+     * @param attributeName
+     *            The attribute name.
+     * @param attributeType
+     *            The attribute type.
+     * @param options
+     *            The attribute options.
+     * @return The attribute description.
+     * @throws NullPointerException
+     *             If {@code attributeType} or {@code options} was {@code null}.
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-2803 Migrate Attribute
+     */
+    @Deprecated
+    public static AttributeDescription create(
+            final String attributeName, final AttributeType attributeType, final Collection<String> options) {
+        Reject.ifNull(attributeName, attributeType);
 
         final Collection<String> opts = options != null ? options : Collections.<String> emptySet();
         switch (opts.size()) {
         case 0:
-            return create(attributeType);
+            return create(attributeName, attributeType);
         case 1:
-            return create(attributeType, opts.iterator().next());
+            return create(attributeName, attributeType, opts.iterator().next());
         default:
             final String[] optionsList = new String[opts.size()];
             final String[] normalizedOptions = new String[opts.size()];
 
             final Iterator<String> it = opts.iterator();
-            final String oid = attributeType.getNameOrOID();
             final StringBuilder builder =
-                    new StringBuilder(oid.length() + it.next().length() + it.next().length() + 2);
-            builder.append(oid);
+                    new StringBuilder(attributeName.length() + it.next().length() + it.next().length() + 2);
+            builder.append(attributeName);
 
             int i = 0;
             for (final String option : opts) {
@@ -634,10 +704,9 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             Arrays.sort(normalizedOptions);
 
             final String attributeDescription = builder.toString();
-            return new AttributeDescription(attributeDescription, attributeType,
+            return new AttributeDescription(attributeDescription, attributeName, attributeType,
                     new MultiOptionImpl(optionsList, normalizedOptions));
         }
-
     }
 
     /**
@@ -779,7 +848,6 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             i++;
             while (i < length) {
                 c = attributeDescription.charAt(i);
-
                 if (c == ';' || c == ' ') {
                     break;
                 }
@@ -827,8 +895,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             i = skipTrailingWhiteSpace(attributeDescription, i + 1, length);
         }
 
-        // Determine the portion of the string containing the attribute type
-        // name.
+        // Determine the portion of the string containing the attribute type name.
         String oid;
         if (attributeTypeStart == 0 && attributeTypeEnd == length) {
             oid = attributeDescription;
@@ -848,15 +915,12 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         // If we're already at the end of the attribute description then it
         // does not contain any options.
         if (i == length) {
-            // Use object identity in case attribute type does not come from
-            // core schema.
+            // Use object identity in case attribute type does not come from core schema.
             if (attributeType == OBJECT_CLASS.getAttributeType()
                     && attributeDescription.equals(OBJECT_CLASS.toString())) {
                 return OBJECT_CLASS;
-            } else {
-                return new AttributeDescription(attributeDescription, attributeType,
-                        ZERO_OPTION_IMPL);
             }
+            return new AttributeDescription(attributeDescription, oid, attributeType, ZERO_OPTION_IMPL);
         }
 
         // At this point 'i' must point at a semi-colon.
@@ -911,7 +975,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         // If we're already at the end of the attribute description then it
         // only contains a single option.
         if (i == length) {
-            return new AttributeDescription(attributeDescription, attributeType,
+            return new AttributeDescription(attributeDescription, oid, attributeType,
                     new SingleOptionImpl(option, normalizedOption));
         }
 
@@ -977,23 +1041,23 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             normalizedOptions.add(normalizedOption);
         }
 
-        return new AttributeDescription(attributeDescription, attributeType, new MultiOptionImpl(
-                options.toArray(new String[options.size()]), normalizedOptions
-                        .toArray(new String[normalizedOptions.size()])));
+        return new AttributeDescription(attributeDescription, oid, attributeType,
+                new MultiOptionImpl(options.toArray(new String[options.size()]),
+                                    normalizedOptions.toArray(new String[normalizedOptions.size()])));
     }
 
     private final String attributeDescription;
-
+    private final String nameOrOid;
     private final AttributeType attributeType;
-
-    private final Impl pimpl;
+    private final Impl optionsPimpl;
 
     /** Private constructor. */
-    private AttributeDescription(final String attributeDescription,
+    private AttributeDescription(final String attributeDescription, final String attributeName,
             final AttributeType attributeType, final Impl pimpl) {
         this.attributeDescription = attributeDescription;
+        this.nameOrOid = attributeName;
         this.attributeType = attributeType;
-        this.pimpl = pimpl;
+        this.optionsPimpl = pimpl;
     }
 
     /**
@@ -1016,7 +1080,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             return result;
         } else {
             // Attribute type is the same, so compare options.
-            return pimpl.compareTo(other.pimpl);
+            return optionsPimpl.compareTo(other.optionsPimpl);
         }
     }
 
@@ -1033,7 +1097,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      */
     public boolean hasOption(final String option) {
         final String normalizedOption = toLowerCase(option);
-        return pimpl.hasOption(normalizedOption);
+        return optionsPimpl.hasOption(normalizedOption);
     }
 
     /**
@@ -1054,7 +1118,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             return true;
         } else if (o instanceof AttributeDescription) {
             final AttributeDescription other = (AttributeDescription) o;
-            return attributeType.equals(other.attributeType) && pimpl.equals(other.pimpl);
+            return attributeType.equals(other.attributeType) && optionsPimpl.equals(other.optionsPimpl);
         } else {
             return false;
         }
@@ -1070,6 +1134,20 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
+     * Returns the attribute name or the oid provided by the user associated with this attribute
+     * description.
+     *
+     * @return The attribute name or the oid provided by the user associated with this attribute
+     *         description.
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-2803 Migrate Attribute
+     */
+    @Deprecated
+    public String getNameOrOID() {
+        return nameOrOid;
+    }
+
+    /**
      * Returns an {@code Iterable} containing the options contained in this
      * attribute description. Attempts to remove options using an iterator's
      * {@code remove()} method are not permitted and will result in an
@@ -1078,7 +1156,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      * @return An {@code Iterable} containing the options.
      */
     public Iterable<String> getOptions() {
-        return pimpl;
+        return optionsPimpl;
     }
 
     /**
@@ -1091,7 +1169,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     @Override
     public int hashCode() {
         // FIXME: should we cache this?
-        return attributeType.hashCode() * 31 + pimpl.hashCode();
+        return attributeType.hashCode() * 31 + optionsPimpl.hashCode();
     }
 
     /**
@@ -1101,7 +1179,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *         {@code false} if not.
      */
     public boolean hasOptions() {
-        return pimpl.hasOptions();
+        return optionsPimpl.hasOptions();
     }
 
     /**
@@ -1160,7 +1238,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      */
     public boolean isSubTypeOf(final AttributeDescription other) {
         return attributeType.isSubTypeOf(other.attributeType)
-            && pimpl.isSubTypeOf(other.pimpl);
+            && optionsPimpl.isSubTypeOf(other.optionsPimpl);
     }
 
     /**
@@ -1187,7 +1265,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      */
     public boolean isSuperTypeOf(final AttributeDescription other) {
         return attributeType.isSuperTypeOf(other.attributeType)
-            && pimpl.isSuperTypeOf(other.pimpl);
+            && optionsPimpl.isSuperTypeOf(other.optionsPimpl);
     }
 
     /**
@@ -1205,7 +1283,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         if (this == other) {
             return true;
         } else {
-            return attributeType.matches(other.attributeType) && pimpl.equals(other.pimpl);
+            return attributeType.matches(other.attributeType) && optionsPimpl.equals(other.optionsPimpl);
         }
     }
 
