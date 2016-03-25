@@ -96,12 +96,6 @@ public final class VirtualAttribute
   }
 
   @Override
-  public String getNameWithOptions()
-  {
-    return getName();
-  }
-
-  @Override
   public AttributeDescription getAttributeDescription()
   {
     return attributeDescription;
@@ -123,18 +117,6 @@ public final class VirtualAttribute
   public ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
   {
     return provider.greaterThanOrEqualTo(entry, rule, assertionValue);
-  }
-
-  @Override
-  public boolean hasOption(String option)
-  {
-    return false;
-  }
-
-  @Override
-  public boolean hasOptions()
-  {
-    return false;
   }
 
   @Override

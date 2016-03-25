@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -46,7 +47,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
@@ -3245,7 +3245,7 @@ public class ModifyOperationTestCase
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).hasOptions());
+    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
     assertThat(attrList.get(0)).hasSize(1);
   }
 
@@ -3285,7 +3285,7 @@ public class ModifyOperationTestCase
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).hasOptions());
+    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
     assertThat(attrList.get(0)).hasSize(1);
   }
 
@@ -3321,7 +3321,7 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).hasOptions());
+    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
     assertThat(attrList.get(0)).hasSize(1);
   }
 
@@ -3357,7 +3357,7 @@ public class ModifyOperationTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     List<Attribute> attrList = e.getAttribute("userpassword");
     assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).hasOptions());
+    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
     assertThat(attrList.get(0)).hasSize(1);
   }
 
@@ -3413,7 +3413,7 @@ public class ModifyOperationTestCase
     List<Attribute> attrList = e.getAttribute(DirectoryServer.getAttributeType("usercertificate"));
     assertThat(attrList).hasSize(1);
     Attribute a = attrList.get(0);
-    assertTrue(a.hasOption("binary"));
+    assertTrue(a.getAttributeDescription().hasOption("binary"));
     assertEquals(a.size(), 1);
     assertEquals(Base64.encode(a.iterator().next()), certificateValue);
   }

@@ -1101,7 +1101,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           }
           else  if (SchemaConfigManager.isSchemaAttribute(a))
           {
-            logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, a.getNameWithOptions());
+          logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, a.getAttributeDescription());
           }
           else
           {

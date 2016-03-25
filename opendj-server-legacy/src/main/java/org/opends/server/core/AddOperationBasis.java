@@ -302,9 +302,10 @@ public class AddOperationBasis
                 ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attr.getName()));
           }
 
+          boolean hasBinaryOption = attr.getAttributeDescription().hasOption("binary");
           if(attrType.getSyntax().isBEREncodingRequired())
           {
-            if(!attr.hasOption("binary"))
+            if (!hasBinaryOption)
             {
               //A binary option wasn't provided by the client so add it.
               AttributeBuilder builder = new AttributeBuilder(attr);
@@ -312,7 +313,7 @@ public class AddOperationBasis
               attr = builder.toAttribute();
             }
           }
-          else if (attr.hasOption("binary"))
+          else if (hasBinaryOption)
           {
             // binary option is not honored for non-BER-encodable attributes.
             throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,

@@ -1313,7 +1313,7 @@ public class Entry
   {
     for (Attribute a : getAttribute(attributeType))
     {
-      if (!a.hasOptions() && a.contains(value))
+      if (!a.getAttributeDescription().hasOptions() && a.contains(value))
       {
         return true;
       }
@@ -3273,8 +3273,7 @@ public class Entry
       {
         for (Attribute a : attrList)
         {
-          byte[] nameBytes = getBytes(a.getNameWithOptions());
-          buffer.appendBytes(nameBytes);
+          buffer.appendBytes(getBytes(a.getAttributeDescription().toString()));
           buffer.appendByte(0x00);
 
           buffer.appendBERLength(a.size());
@@ -3643,7 +3642,7 @@ public class Entry
     {
       for (Attribute a : attrList)
       {
-        String attrName = a.getNameWithOptions();
+        String attrName = a.getAttributeDescription().toString();
         for (ByteString v : a)
         {
           StringBuilder attrLine = new StringBuilder(attrName);
@@ -3872,7 +3871,7 @@ public class Entry
       BufferedWriter writer, boolean wrapLines, int wrapColumn)
       throws IOException
   {
-    String attrName = attribute.getNameWithOptions();
+    String attrName = attribute.getAttributeDescription().toString();
     if (typesOnly)
     {
       StringBuilder attrLine = new StringBuilder(attrName);
@@ -4149,7 +4148,7 @@ public class Entry
           buffer.append(",");
         }
 
-        buffer.append(a.getNameWithOptions());
+        buffer.append(a.getAttributeDescription());
 
         buffer.append("={");
         Iterator<ByteString> valueIterator = a.iterator();

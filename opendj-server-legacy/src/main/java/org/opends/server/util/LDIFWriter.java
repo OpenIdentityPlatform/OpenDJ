@@ -297,7 +297,7 @@ outerLoop:
       {
         for (ByteString v : a)
         {
-          final String attrName = a.getNameWithOptions();
+          final String attrName = a.getAttributeDescription().toString();
           writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
         }
       }
@@ -431,7 +431,7 @@ outerLoop:
     {
       for (Attribute a : entry.getUserAttribute(attrType))
       {
-        StringBuilder attrName = new StringBuilder(a.getNameWithOptions());
+        String attrName = a.getAttributeDescription().toString();
         for (ByteString v : a)
         {
           writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
@@ -495,9 +495,10 @@ outerLoop:
       {
         for (Attribute a : entry.getUserAttribute(attrType))
         {
-          StringBuilder attrName = new StringBuilder();
+          final String attrDesc = a.getAttributeDescription().toString();
+          final StringBuilder attrName = new StringBuilder(2 + attrDesc.length());
           attrName.append("# ");
-          attrName.append(a.getNameWithOptions());
+          attrName.append(attrDesc);
 
           for (ByteString v : a)
           {
@@ -557,7 +558,7 @@ outerLoop:
       Modification m    = iterator.next();
       Attribute    a    = m.getAttribute();
 
-      String name = a.getNameWithOptions();
+      String name = a.getAttributeDescription().toString();
 
       StringBuilder modTypeLine = new StringBuilder();
       modTypeLine.append(m.getModificationType());

@@ -27,7 +27,9 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg4;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -63,14 +65,12 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationModifyOperation;
@@ -849,7 +849,7 @@ public class LocalBackendModifyOperation
   private void validatePasswordModification(Modification m, PasswordPolicy authPolicy) throws DirectoryException
   {
     Attribute a = m.getAttribute();
-    if (a.hasOptions())
+    if (a.getAttributeDescription().hasOptions())
     {
       switch (m.getModificationType().asEnum())
       {

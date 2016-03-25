@@ -1162,7 +1162,7 @@ public class SearchOperationTestCase extends OperationTestCase
     Set<String> actualNames = new HashSet<>();
     for (Attribute attribute : entry.getAttributes())
     {
-      actualNames.add(attribute.getNameWithOptions());
+      actualNames.add(attribute.getAttributeDescription().toString());
     }
     return actualNames;
   }

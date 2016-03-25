@@ -33,7 +33,11 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -54,30 +58,22 @@ public final class EntityTagVirtualAttributeProvider extends
   private static final Comparator<Attribute> ATTRIBUTE_COMPARATOR =
       new Comparator<Attribute>()
   {
-    /** {@inheritDoc} */
     @Override
     public int compare(final Attribute a1, final Attribute a2)
     {
-      return a1.getNameWithOptions().compareTo(a2.getNameWithOptions());
+      return a1.getAttributeDescription().compareTo(a2.getAttributeDescription());
     }
   };
 
   /** Current configuration. */
   private volatile EntityTagVirtualAttributeCfg config;
 
-
-
-  /**
-   * Default constructor invoked by reflection.
-   */
+  /** Default constructor invoked by reflection. */
   public EntityTagVirtualAttributeProvider()
   {
     // Initialization performed by initializeVirtualAttributeProvider.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final EntityTagVirtualAttributeCfg configuration)
@@ -86,9 +82,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return new ConfigChangeResult();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(final Entry entry,
       final VirtualAttributeRule rule, final ByteString value)
@@ -97,18 +90,12 @@ public final class EntityTagVirtualAttributeProvider extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeVirtualAttributeProvider()
   {
     config.removeEntityTagChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(final Entry entry, final VirtualAttributeRule rule)
   {
@@ -131,9 +118,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return Attributes.create(rule.getAttributeType(), etag);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(final Entry entry,
       final VirtualAttributeRule rule, final ByteString value)
@@ -142,9 +126,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(final Entry entry, final VirtualAttributeRule rule)
   {
@@ -152,9 +133,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeVirtualAttributeProvider(
       final EntityTagVirtualAttributeCfg configuration) throws ConfigException,
@@ -164,9 +142,6 @@ public final class EntityTagVirtualAttributeProvider extends
     configuration.addEntityTagChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final EntityTagVirtualAttributeCfg configuration,
@@ -176,9 +151,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
@@ -186,9 +158,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(final VirtualAttributeRule rule,
                               final SearchOperation searchOperation,
@@ -199,9 +168,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(final Entry entry,
       final VirtualAttributeRule rule, final ByteString value)
@@ -210,9 +176,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(final Entry entry,
       final VirtualAttributeRule rule, final ByteString subInitial,
@@ -222,9 +185,6 @@ public final class EntityTagVirtualAttributeProvider extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void processSearch(final VirtualAttributeRule rule,
       final SearchOperation searchOperation)
@@ -234,8 +194,6 @@ public final class EntityTagVirtualAttributeProvider extends
     searchOperation.appendErrorMessage(message);
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
   }
-
-
 
   private void checksumAttribute(final EntityTagVirtualAttributeCfg cfg,
       final Checksum checksummer, final Attribute attribute)
@@ -259,8 +217,7 @@ public final class EntityTagVirtualAttributeProvider extends
     }
 
     // Checksum the attribute description.
-    final String atd = attribute.getNameWithOptions();
-    final byte[] bytes = StaticUtils.getBytes(atd);
+    final byte[] bytes = StaticUtils.getBytes(attribute.getAttributeDescription().toString());
     checksummer.update(bytes, 0, bytes.length);
 
     // Checksum the attribute values. The value order may vary between
@@ -297,8 +254,6 @@ public final class EntityTagVirtualAttributeProvider extends
     }
   }
 
-
-
   private ByteString checksumEntry(final EntityTagVirtualAttributeCfg cfg,
       final Checksum checksummer, final Entry entry)
   {
@@ -333,8 +288,6 @@ public final class EntityTagVirtualAttributeProvider extends
     }
     return ByteString.wrap(bytes);
   }
-
-
 
   private void checksumValue(final Checksum checksummer, final ByteString value)
   {

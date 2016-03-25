@@ -39,10 +39,7 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
-/**
- * This class defines an operation that may be used to modify an entry in the
- * Directory Server.
- */
+/** This class defines an operation that may be used to modify an entry in the Directory Server. */
 public class ModifyOperationBasis
        extends AbstractOperation implements ModifyOperation,
        PreParseModifyOperation,
@@ -91,7 +88,6 @@ public class ModifyOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.rawEntryDN       = rawEntryDN;
     this.rawModifications = rawModifications;
 
@@ -121,7 +117,6 @@ public class ModifyOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.entryDN       = entryDN;
     this.modifications = modifications;
 
@@ -138,14 +133,12 @@ public class ModifyOperationBasis
     cancelRequest    = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -177,7 +170,6 @@ public class ModifyOperationBasis
     return rawModifications;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addRawModification(RawModification rawModification)
   {
@@ -186,7 +178,6 @@ public class ModifyOperationBasis
     modifications = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawModifications(List<RawModification> rawModifications)
   {
@@ -195,7 +186,6 @@ public class ModifyOperationBasis
     modifications = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Modification> getModifications()
   {
@@ -209,9 +199,10 @@ public class ModifyOperationBasis
            Attribute attr = mod.getAttribute();
            AttributeType type = attr.getAttributeDescription().getAttributeType();
 
-           if(type.getSyntax().isBEREncodingRequired())
+           boolean hasBinaryOption = attr.getAttributeDescription().hasOption("binary");
+           if (type.getSyntax().isBEREncodingRequired())
            {
-             if(!attr.hasOption("binary"))
+             if (!hasBinaryOption)
              {
                //A binary option wasn't provided by the client so add it.
                AttributeBuilder builder = new AttributeBuilder(attr);
@@ -220,7 +211,7 @@ public class ModifyOperationBasis
                mod.setAttribute(attr);
              }
            }
-           else if (attr.hasOption("binary"))
+           else if (hasBinaryOption)
            {
              // binary option is not honored for non-BER-encodable attributes.
              throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
@@ -241,7 +232,6 @@ public class ModifyOperationBasis
     return modifications;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addModification(Modification modification)
   throws DirectoryException
@@ -249,7 +239,6 @@ public class ModifyOperationBasis
     modifications.add(modification);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -259,35 +248,30 @@ public class ModifyOperationBasis
     return OperationType.MODIFY;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -300,14 +284,12 @@ public class ModifyOperationBasis
     buffer.append(")");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void run()
   {
@@ -333,7 +315,6 @@ public class ModifyOperationBasis
 
       // Check for and handle a request to cancel this operation.
       checkIfCanceled(false);
-
 
       // Process the entry DN to convert it from the raw form to the form
       // required for the rest of the modify processing.
@@ -385,7 +366,6 @@ public class ModifyOperationBasis
     }
   }
 
-
   /**
    * Invokes the post response plugins. If a workflow has been executed
    * then invoke the post response plugins provided by the workflow
@@ -421,7 +401,6 @@ public class ModifyOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateOperationErrMsgAndResCode()
   {
@@ -472,6 +451,4 @@ public class ModifyOperationBasis
   {
     return null;
   }
-
 }
-

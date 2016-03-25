@@ -613,7 +613,7 @@ public class ModifyEntryTask extends Task
   {
     for (org.opends.server.types.Attribute attr : attrs)
     {
-      if (attr.getNameWithOptions().equalsIgnoreCase(attrName))
+      if (attr.getAttributeDescription().toString().equalsIgnoreCase(attrName))
       {
         return true;
       }

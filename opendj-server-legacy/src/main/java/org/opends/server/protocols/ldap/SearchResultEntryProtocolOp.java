@@ -32,11 +32,11 @@ import java.util.Map;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ObjectClass;
@@ -176,7 +176,7 @@ public class SearchResultEntryProtocolOp
             if (attrList != null && attrList.getValue().size() == 1)
             {
               Attribute a = attrList.getValue().get(0);
-              if (!a.hasOptions())
+              if (!a.getAttributeDescription().hasOptions())
               {
                 needsMerge = false;
                 tmp.add(new LDAPAttribute(a));
@@ -204,7 +204,7 @@ public class SearchResultEntryProtocolOp
             if (attrList != null && attrList.getValue().size() == 1)
             {
               Attribute a = attrList.getValue().get(0);
-              if (!a.hasOptions())
+              if (!a.getAttributeDescription().hasOptions())
               {
                 needsMerge = false;
                 tmp.add(new LDAPAttribute(a));
@@ -213,8 +213,7 @@ public class SearchResultEntryProtocolOp
 
             if (needsMerge)
             {
-              AttributeBuilder builder =
-                  new AttributeBuilder(attrList.getKey());
+              AttributeBuilder builder = new AttributeBuilder(attrList.getKey());
               for (Attribute a : attrList.getValue())
               {
                 builder.addAll(a);
@@ -226,8 +225,7 @@ public class SearchResultEntryProtocolOp
         else
         {
           // LDAPv3
-          for (List<Attribute> attrList : entry.getUserAttributes()
-              .values())
+          for (List<Attribute> attrList : entry.getUserAttributes().values())
           {
             for (Attribute a : attrList)
             {
@@ -235,8 +233,7 @@ public class SearchResultEntryProtocolOp
             }
           }
 
-          for (List<Attribute> attrList : entry
-              .getOperationalAttributes().values())
+          for (List<Attribute> attrList : entry.getOperationalAttributes().values())
           {
             for (Attribute a : attrList)
             {
@@ -614,7 +611,7 @@ public class SearchResultEntryProtocolOp
       throws IOException
   {
     stream.writeStartSequence();
-    stream.writeOctetString(a.getNameWithOptions());
+    stream.writeOctetString(a.getAttributeDescription().toString());
     stream.writeStartSet();
     for (ByteString value : a)
     {

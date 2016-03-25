@@ -27,6 +27,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
@@ -894,10 +895,11 @@ public final class IntegerConfigAttribute
 
     for (Attribute a : attributeList)
     {
-      if (a.hasOptions())
+      AttributeDescription attrDesc = a.getAttributeDescription();
+      if (attrDesc.hasOptions())
       {
         // This must be the pending value.
-        if (a.hasOption(OPTION_PENDING_VALUES))
+        if (attrDesc.hasOption(OPTION_PENDING_VALUES))
         {
           if (pendingValues != null)
           {

@@ -93,33 +93,7 @@ public abstract class AbstractAttribute implements Attribute
   @Override
   public String getName()
   {
-    return getAttributeDescription().getAttributeType().getNameOrOID();
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation returns this attribute's name if there are no
-   * attribute options, otherwise it constructs a string comprising of
-   * this attribute's name followed by a semi-colon and a semi-colon
-   * separated list of its attribute options.
-   */
-  @Override
-  public String getNameWithOptions()
-  {
-    if (!hasOptions())
-    {
-      return getName();
-    }
-
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(getName());
-    for (String option : getAttributeDescription().getOptions())
-    {
-      buffer.append(';');
-      buffer.append(option);
-    }
-    return buffer.toString();
+    return getAttributeDescription().getNameOrOID();
   }
 
   @Override
@@ -140,24 +114,6 @@ public abstract class AbstractAttribute implements Attribute
       }
     }
     return hashCode;
-  }
-
-  @Override
-  public boolean hasOption(String option)
-  {
-    return getAttributeDescription().hasOption(option);
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation retrieves the set of options associated with
-   * this attribute and tests to see if it is empty.
-   */
-  @Override
-  public boolean hasOptions()
-  {
-    return getAttributeDescription().hasOptions();
   }
 
   /**

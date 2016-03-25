@@ -1328,12 +1328,11 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Check name and options.
-    String[] elements = a.getNameWithOptions().split(";");
+    String[] elements = a.getAttributeDescription().toString().split(";");
     switch (elements.length)
     {
     case 0:
-      Assert.fail("Name and options could not be split: "
-          + a.getNameWithOptions());
+      Assert.fail("Name and options could not be split: " + a.getAttributeDescription());
       break;
     case 1:
       Assert.assertEquals(elements[0], name);
@@ -1473,15 +1472,16 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Check hasOption().
+    AttributeDescription attrDesc = a.getAttributeDescription();
     for (String option : options)
     {
-      Assert.assertTrue(a.hasOption(option));
+      Assert.assertTrue(attrDesc.hasOption(option));
 
       // Assumes internal normalization to lower-case.
-      Assert.assertTrue(a.hasOption(option.toUpperCase()));
+      Assert.assertTrue(attrDesc.hasOption(option.toUpperCase()));
     }
 
-    Assert.assertFalse(a.hasOption("xxxx"));
+    Assert.assertFalse(attrDesc.hasOption("xxxx"));
   }
 
 
@@ -1507,7 +1507,7 @@ public class AttributeBuilderTest extends TypesTestCase
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    Assert.assertEquals(options.length != 0, a.hasOptions());
+    Assert.assertEquals(options.length != 0, a.getAttributeDescription().hasOptions());
   }
 
 
@@ -1770,14 +1770,8 @@ public class AttributeBuilderTest extends TypesTestCase
       String[] options, String[] values)
   {
     AttributeBuilder builder = new AttributeBuilder(type, name);
-    for (String option : options)
-    {
-      builder.setOption(option);
-    }
-    for (String value : values)
-    {
-      builder.add(value);
-    }
+    builder.setOptions(Arrays.asList(options));
+    builder.addAllStrings(Arrays.asList(values));
     return builder.toAttribute();
   }
 }

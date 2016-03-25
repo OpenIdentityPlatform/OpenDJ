@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
@@ -1177,10 +1178,9 @@ public class ChangelogBackend extends Backend<Configuration>
           // This attribute is not multi-valued.
           changeInitiatorsName = attr.iterator().next().toString();
         }
-        final String attrName = attr.getNameWithOptions();
         for (ByteString value : attr)
         {
-          builder.append(attrName);
+          builder.append(attr.getAttributeDescription());
           appendLDIFSeparatorAndValue(builder, value);
           builder.append('\n');
         }
@@ -1221,15 +1221,15 @@ public class ChangelogBackend extends Backend<Configuration>
           // This attribute is not multi-valued.
           changeInitiatorsName = attr.iterator().next().toString();
         }
-        final String attrName = attr.getNameWithOptions();
+        final AttributeDescription attrDesc = attr.getAttributeDescription();
         builder.append(mod.getModificationType());
         builder.append(": ");
-        builder.append(attrName);
+        builder.append(attrDesc);
         builder.append('\n');
 
         for (ByteString value : attr)
         {
-          builder.append(attrName);
+          builder.append(attrDesc);
           appendLDIFSeparatorAndValue(builder, value);
           builder.append('\n');
         }

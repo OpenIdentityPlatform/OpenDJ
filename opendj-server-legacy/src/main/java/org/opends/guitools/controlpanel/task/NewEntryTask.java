@@ -179,14 +179,13 @@ public class NewEntryTask extends Task
       attrs.put(objectclass);
       for (org.opends.server.types.Attribute attr : newEntry.getAttributes())
       {
-        String attrName = attr.getNameWithOptions();
         Set<ByteString> values = new LinkedHashSet<>();
         Iterator<ByteString> it = attr.iterator();
         while (it.hasNext())
         {
           values.add(it.next());
         }
-        BasicAttribute a = new BasicAttribute(attrName);
+        BasicAttribute a = new BasicAttribute(attr.getAttributeDescription().toString());
         for (ByteString value : values)
         {
           a.add(value.toByteArray());

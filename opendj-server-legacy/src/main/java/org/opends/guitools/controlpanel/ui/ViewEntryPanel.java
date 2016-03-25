@@ -291,7 +291,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       boolean done = false;
       for (org.opends.server.types.Attribute attr : entry.getAttribute(attrName.toLowerCase()))
       {
-        if (attr.getNameWithOptions().equals(attrName))
+        if (attr.getAttributeDescription().toString().equals(attrName))
         {
           List<ByteString> newValues = getValues(attr);
           newValues.add(value);

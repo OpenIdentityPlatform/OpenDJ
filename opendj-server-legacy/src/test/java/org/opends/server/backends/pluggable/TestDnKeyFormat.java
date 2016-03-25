@@ -326,8 +326,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     {
       for (Attribute a : attrList)
       {
-        byte[] nameBytes = getBytes(a.getNameWithOptions());
-        buffer.appendBytes(nameBytes);
+        buffer.appendBytes(getBytes(a.getAttributeDescription().toString()));
         buffer.appendByte(0x00);
 
         buffer.appendBERLength(a.size());

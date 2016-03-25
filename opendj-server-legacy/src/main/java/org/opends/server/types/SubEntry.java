@@ -164,7 +164,7 @@ public class SubEntry {
         {
           this.collectiveAttributes.add(new CollectiveVirtualAttribute(subAttr));
         }
-        else if (subAttr.hasOption(ATTR_OPTION_COLLECTIVE))
+        else if (subAttr.getAttributeDescription().hasOption(ATTR_OPTION_COLLECTIVE))
         {
           AttributeBuilder builder = new AttributeBuilder(subAttr.getAttributeDescription().getAttributeType());
           builder.addAll(subAttr);

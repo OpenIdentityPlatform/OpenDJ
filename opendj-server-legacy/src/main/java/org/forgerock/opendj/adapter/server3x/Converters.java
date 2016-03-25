@@ -448,7 +448,7 @@ public final class Converters {
      */
     public static org.forgerock.opendj.ldap.Attribute from(
             final org.opends.server.types.Attribute attribute) {
-        Attribute sdkAttribute = new LinkedAttribute(attribute.getNameWithOptions());
+        Attribute sdkAttribute = new LinkedAttribute(attribute.getAttributeDescription());
         for (ByteString value : attribute) {
             sdkAttribute.add(value);
         }

@@ -236,7 +236,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       assertThat(description).hasSize(1);
       Attribute attribute = description.get(0);
       assertEquals(attribute.size(), 1);
-      assertFalse(attribute.hasOptions());
+      assertFalse(attribute.getAttributeDescription().hasOptions());
       assertTrue(attribute.contains(ByteString.valueOfUtf8("inherited description")));
     }
     finally

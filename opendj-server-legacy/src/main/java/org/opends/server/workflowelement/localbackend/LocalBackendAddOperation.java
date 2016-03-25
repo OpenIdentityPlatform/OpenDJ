@@ -585,7 +585,7 @@ public class LocalBackendAddOperation
 
     for (int j = 0; j < attrList.size(); j++) {
       Attribute a = attrList.get(j);
-      if (a.hasOptions())
+      if (a.getAttributeDescription().hasOptions())
       {
         continue;
       }
@@ -678,7 +678,7 @@ public class LocalBackendAddOperation
     }
 
     Attribute passwordAttr = attrList.get(0);
-    if (passwordAttr.hasOptions())
+    if (passwordAttr.getAttributeDescription().hasOptions())
     {
       LocalizableMessage message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());

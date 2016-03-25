@@ -206,24 +206,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     }
 
     @Override
-    public boolean hasOption(String option)
-    {
-      return attributeDescription.hasOption(option);
-    }
-
-    @Override
-    public boolean hasOptions()
-    {
-      return attributeDescription.hasOptions();
-    }
-
-    @Override
-    public final String getName()
-    {
-      return attributeDescription.getNameOrOID();
-    }
-
-    @Override
     public final ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
     {
       MatchingRule matchingRule = getAttributeType().getOrderingMatchingRule();
@@ -390,7 +372,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     public final void toString(StringBuilder buffer)
     {
       buffer.append("Attribute(");
-      buffer.append(getNameWithOptions());
+      buffer.append(attributeDescription);
       buffer.append(", {");
       Utils.joinAsString(buffer, ", ", values);
       buffer.append("})");

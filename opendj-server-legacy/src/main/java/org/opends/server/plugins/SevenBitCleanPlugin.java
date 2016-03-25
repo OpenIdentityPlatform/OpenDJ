@@ -77,9 +77,6 @@ public final class SevenBitCleanPlugin
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      SevenBitCleanPluginCfg configuration)
@@ -106,25 +103,18 @@ public final class SevenBitCleanPlugin
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
     currentConfig.removeSevenBitCleanChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
     // Get the current configuration for this plugin.
     SevenBitCleanPluginCfg config = currentConfig;
-
 
     // Make sure that the entry is within the scope of this plugin.  While
     // processing an LDIF import, we don't have access to the set of public
@@ -136,7 +126,6 @@ public final class SevenBitCleanPlugin
       return PluginResult.ImportLDIF.continueEntryProcessing();
     }
 
-
     // Make sure all configured attributes have clean values.
     for (AttributeType t : config.getAttributeType())
     {
@@ -147,28 +136,23 @@ public final class SevenBitCleanPlugin
           if (!is7BitClean(v))
           {
             LocalizableMessage rejectMessage =
-                 ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(a.getNameWithOptions());
+                 ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(a.getAttributeDescription());
             return PluginResult.ImportLDIF.stopEntryProcessing(rejectMessage);
           }
         }
       }
     }
 
-
     // If we've gotten here, then everything is acceptable.
     return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse
                doPreParse(PreParseAddOperation addOperation)
   {
     // Get the current configuration for this plugin.
     SevenBitCleanPluginCfg config = currentConfig;
-
 
     // If the entry is within the scope of this plugin, then make sure all
     // configured attributes have clean values.
@@ -218,21 +202,16 @@ public final class SevenBitCleanPlugin
       }
     }
 
-
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PreParse.continueOperationProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse
                     doPreParse(PreParseModifyOperation modifyOperation)
   {
     // Get the current configuration for this plugin.
     SevenBitCleanPluginCfg config = currentConfig;
-
 
     // If the target entry is within the scope of this plugin, then make sure
     // all values that will be added during the modification will be acceptable.
@@ -294,21 +273,16 @@ public final class SevenBitCleanPlugin
       }
     }
 
-
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PreParse.continueOperationProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreParse
                     doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     // Get the current configuration for this plugin.
     SevenBitCleanPluginCfg config = currentConfig;
-
 
     // If the target entry is within the scope of this plugin, then make sure
     // all values that will be added during the modification will be acceptable.
@@ -354,12 +328,9 @@ public final class SevenBitCleanPlugin
       }
     }
 
-
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PreParse.continueOperationProcessing();
   }
-
-
 
   /**
    * Indicates whether the provided DN is within the scope of this plugin.
@@ -395,8 +366,6 @@ public final class SevenBitCleanPlugin
     return false;
   }
 
-
-
   /**
    * Indicates whether the provided value is 7-bit clean.
    *
@@ -418,9 +387,6 @@ public final class SevenBitCleanPlugin
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -429,9 +395,6 @@ public final class SevenBitCleanPlugin
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SevenBitCleanPluginCfg configuration,
@@ -451,7 +414,6 @@ public final class SevenBitCleanPlugin
           // These are acceptable.
           break;
 
-
         default:
           unacceptableReasons.add(ERR_PLUGIN_7BIT_INVALID_PLUGIN_TYPE.get(pluginType));
           configAcceptable = false;
@@ -461,9 +423,6 @@ public final class SevenBitCleanPlugin
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  SevenBitCleanPluginCfg configuration)

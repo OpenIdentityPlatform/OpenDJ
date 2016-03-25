@@ -363,7 +363,7 @@ public class TemplateEntry
             continue;
           }
 
-          String attrName = a.getNameWithOptions();
+          String attrName = a.getAttributeDescription().toString();
           if (typesOnly)
           {
             StringBuilder attrLine = new StringBuilder(attrName);
@@ -407,7 +407,7 @@ public class TemplateEntry
               continue;
             }
 
-            String attrName = a.getNameWithOptions();
+            String attrName = a.getAttributeDescription().toString();
             if (typesOnly)
             {
               StringBuilder attrLine = new StringBuilder(attrName);

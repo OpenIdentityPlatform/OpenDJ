@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.config;
 
@@ -25,6 +25,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanParameterInfo;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.core.DirectoryServer;
@@ -394,10 +395,11 @@ public final class BooleanConfigAttribute
 
     for (Attribute a : attributeList)
     {
-      if (a.hasOptions())
+      final AttributeDescription attrDesc = a.getAttributeDescription();
+      if (attrDesc.hasOptions())
       {
         // This must be the pending value.
-        if (a.hasOption(OPTION_PENDING_VALUES))
+        if (attrDesc.hasOption(OPTION_PENDING_VALUES))
         {
           if (pendingValueSet)
           {

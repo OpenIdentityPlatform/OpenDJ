@@ -824,9 +824,9 @@ public class LDIFReader implements Closeable
       }
 
        //The attribute is not being ignored so check for binary option.
-      if(checkSchema
+      if (checkSchema
           && !attrType.getSyntax().isBEREncodingRequired()
-          && attribute.hasOption("binary"))
+          && attribute.getAttributeDescription().hasOption("binary"))
       {
         LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(
           entryDN, lastEntryLineNumber, attrName);
@@ -1663,7 +1663,7 @@ public class LDIFReader implements Closeable
     for (int j = 0; j < attrList.size(); j++)
     {
       Attribute a = attrList.get(j);
-      if (a.hasOptions())
+      if (a.getAttributeDescription().hasOptions())
       {
         continue;
       }

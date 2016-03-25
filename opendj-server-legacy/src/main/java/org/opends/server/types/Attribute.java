@@ -126,15 +126,6 @@ public interface Attribute extends Iterable<ByteString>
   String getName();
 
   /**
-   * Retrieves the user-provided name of this attribute, along with
-   * any options that might have been provided.
-   *
-   * @return The user-provided name of this attribute, along with any
-   *         options that might have been provided.
-   */
-  String getNameWithOptions();
-
-  /**
    * Indicates whether this attribute has any value(s) that are
    * greater than or equal to the provided value.
    *
@@ -155,24 +146,6 @@ public interface Attribute extends Iterable<ByteString>
    */
   @Override
   int hashCode();
-
-  /**
-   * Indicates whether this attribute has the specified option.
-   *
-   * @param option
-   *          The option for which to make the determination.
-   * @return {@code true} if this attribute has the specified option,
-   *         or {@code false} if not.
-   */
-  boolean hasOption(String option);
-
-  /**
-   * Indicates whether this attribute has any options at all.
-   *
-   * @return {@code true} if this attribute has at least one
-   *         option, or {@code false} if not.
-   */
-  boolean hasOptions();
 
   /**
    * Returns {@code true} if this attribute contains no

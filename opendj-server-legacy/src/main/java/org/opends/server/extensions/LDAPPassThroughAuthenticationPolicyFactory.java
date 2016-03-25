@@ -15,16 +15,42 @@
  */
 package org.opends.server.extensions;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -32,6 +58,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.GeneralizedTime;
@@ -51,13 +78,20 @@ import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ServerContext;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.ProtocolOp;
+import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
+import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
@@ -1765,7 +1799,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         for (Attribute attribute : userEntry.getAttribute(cachedPasswordTimeAttribute))
         {
           // Ignore any attributes with options.
-          if (!attribute.hasOptions())
+          if (!attribute.getAttributeDescription().hasOptions())
           {
             for (ByteString value : attribute)
             {
@@ -1799,7 +1833,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         for (Attribute attribute : userEntry.getAttribute(cachedPasswordAttribute))
         {
           // Ignore any attributes with options.
-          if (!attribute.hasOptions())
+          if (!attribute.getAttributeDescription().hasOptions())
           {
             for (ByteString value : attribute)
             {
