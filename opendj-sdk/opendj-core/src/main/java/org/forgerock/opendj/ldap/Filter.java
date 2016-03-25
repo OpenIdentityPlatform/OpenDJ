@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2011 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -299,22 +299,45 @@ public final class Filter {
                 }
 
                 @Override
-                public StringBuilder visitApproxMatchFilter(final StringBuilder builder,
-                        final String attributeDescription, final ByteString assertionValue) {
-                    builder.append('(');
-                    builder.append(attributeDescription);
-                    builder.append("~=");
-                    valueToFilterString(builder, assertionValue);
+                public StringBuilder visitOrFilter(final StringBuilder builder,
+                        final List<Filter> subFilters) {
+                    builder.append("(|");
+                    for (final Filter subFilter : subFilters) {
+                        subFilter.accept(this, builder);
+                    }
                     builder.append(')');
                     return builder;
                 }
 
                 @Override
+                public StringBuilder visitApproxMatchFilter(final StringBuilder builder,
+                        final String attributeDescription, final ByteString assertionValue) {
+                    return visitBinaryOperator(builder, attributeDescription, "~=", assertionValue);
+                }
+
+                @Override
                 public StringBuilder visitEqualityMatchFilter(final StringBuilder builder,
                         final String attributeDescription, final ByteString assertionValue) {
+                    return visitBinaryOperator(builder, attributeDescription, "=", assertionValue);
+                }
+
+                @Override
+                public StringBuilder visitGreaterOrEqualFilter(final StringBuilder builder,
+                        final String attributeDescription, final ByteString assertionValue) {
+                    return visitBinaryOperator(builder, attributeDescription, ">=", assertionValue);
+                }
+
+                @Override
+                public StringBuilder visitLessOrEqualFilter(final StringBuilder builder,
+                        final String attributeDescription, final ByteString assertionValue) {
+                    return visitBinaryOperator(builder, attributeDescription, "<=", assertionValue);
+                }
+
+                private StringBuilder visitBinaryOperator(final StringBuilder builder,
+                        final String attributeDescription, final String operator, final ByteString assertionValue) {
                     builder.append('(');
                     builder.append(attributeDescription);
-                    builder.append("=");
+                    builder.append(operator);
                     valueToFilterString(builder, assertionValue);
                     builder.append(')');
                     return builder;
@@ -346,43 +369,10 @@ public final class Filter {
                 }
 
                 @Override
-                public StringBuilder visitGreaterOrEqualFilter(final StringBuilder builder,
-                        final String attributeDescription, final ByteString assertionValue) {
-                    builder.append('(');
-                    builder.append(attributeDescription);
-                    builder.append(">=");
-                    valueToFilterString(builder, assertionValue);
-                    builder.append(')');
-                    return builder;
-                }
-
-                @Override
-                public StringBuilder visitLessOrEqualFilter(final StringBuilder builder,
-                        final String attributeDescription, final ByteString assertionValue) {
-                    builder.append('(');
-                    builder.append(attributeDescription);
-                    builder.append("<=");
-                    valueToFilterString(builder, assertionValue);
-                    builder.append(')');
-                    return builder;
-                }
-
-                @Override
                 public StringBuilder visitNotFilter(final StringBuilder builder,
                         final Filter subFilter) {
                     builder.append("(!");
                     subFilter.accept(this, builder);
-                    builder.append(')');
-                    return builder;
-                }
-
-                @Override
-                public StringBuilder visitOrFilter(final StringBuilder builder,
-                        final List<Filter> subFilters) {
-                    builder.append("(|");
-                    for (final Filter subFilter : subFilters) {
-                        subFilter.accept(this, builder);
-                    }
                     builder.append(')');
                     return builder;
                 }
@@ -836,11 +826,11 @@ public final class Filter {
         Reject.ifNull(attributeDescription);
         Reject.ifFalse(initialSubstring != null
                 || finalSubstring != null
-                || (anySubstrings != null && anySubstrings.size() > 0),
+                || (anySubstrings != null && !anySubstrings.isEmpty()),
                 "at least one substring (initial, any or final) must be specified");
 
         List<ByteString> anySubstringList;
-        if (anySubstrings == null || anySubstrings.size() == 0) {
+        if (anySubstrings == null || anySubstrings.isEmpty()) {
             anySubstringList = Collections.emptyList();
         } else if (anySubstrings.size() == 1) {
             final Object anySubstring = anySubstrings.iterator().next();
@@ -1660,5 +1650,4 @@ public final class Filter {
         final StringBuilder builder = new StringBuilder();
         return pimpl.accept(TO_STRING_VISITOR, builder).toString();
     }
-
 }

@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static org.testng.Assert.assertEquals;
@@ -29,68 +28,123 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test {@code AttributeDescription}.
- */
+/** Test {@link AttributeDescription}. */
 @SuppressWarnings("javadoc")
 public final class AttributeDescriptionTestCase extends SdkTestCase {
-    @DataProvider(name = "dataForCompareCoreSchema")
+
+    @DataProvider
     public Object[][] dataForCompareCoreSchema() {
-        // AD1, AD2, compare result, isSubtype, isSuperType
-        return new Object[][] { { "cn", "cn", 0, true, true },
-            { "cn", "commonName", 0, true, true }, { " cn", "commonName ", 0, true, true },
-            { "commonName", "cn", 0, true, true }, { "commonName", "commonName", 0, true, true },
-            { "cn", "objectClass", 1, false, false }, { "objectClass", "cn", -1, false, false },
-            { "name", "cn", 1, false, true }, { "cn", "name", -1, true, false },
-            { "name;foo", "cn", 1, false, false }, { "cn;foo", "name", -1, true, false },
-            { "name", "cn;foo", 1, false, true }, { "cn", "name;foo", -1, false, false }, };
+        // @formatter:off
+        return new Object[][] {
+            // AD1, AD2, compare result, isSubtype, isSuperType
+            { "cn", "cn", 0, true, true },
+            { "cn", "commonName", 0, true, true },
+            { " cn", "commonName ", 0, true, true },
+            { "commonName", "cn", 0, true, true },
+            { "commonName", "commonName", 0, true, true },
+            { "cn", "objectClass", 1, false, false },
+            { "objectClass", "cn", -1, false, false },
+            { "name", "cn", 1, false, true },
+            { "cn", "name", -1, true, false },
+            { "name;foo", "cn", 1, false, false },
+            { "cn;foo", "name", -1, true, false },
+            { "name", "cn;foo", 1, false, true },
+            { "cn", "name;foo", -1, false, false },
+        };
+        // @formatter:on
     }
 
-    @DataProvider(name = "dataForCompareNoSchema")
+    @DataProvider
     public Object[][] dataForCompareNoSchema() {
-        // AD1, AD2, compare result, isSubtype, isSuperType
-        return new Object[][] { { "cn", "cn", 0, true, true }, { "cn", "CN", 0, true, true },
-            { "CN", "cn", 0, true, true }, { "CN", "CN", 0, true, true },
-            { "cn", "commonName", -1, false, false }, { "commonName", "cn", 1, false, false },
-            { "commonName", "commonName", 0, true, true }, { "cn", "cn;foo", -1, false, true },
-            { "cn;foo", "cn", 1, true, false }, { "cn;foo", "cn;foo", 0, true, true },
-            { "CN;FOO", "cn;foo", 0, true, true }, { "cn;foo", "CN;FOO", 0, true, true },
-            { "CN;FOO", "CN;FOO", 0, true, true }, { "cn;foo", "cn;bar", 1, false, false },
+        // @formatter:off
+        return new Object[][] {
+            // AD1, AD2, compare result, isSubtype, isSuperType
+            { "cn", "cn", 0, true, true },
+            { "cn", "CN", 0, true, true },
+            { "CN", "cn", 0, true, true },
+            { "CN", "CN", 0, true, true },
+            { "cn", "commonName", -1, false, false },
+            { "commonName", "cn", 1, false, false },
+            { "commonName", "commonName", 0, true, true },
+            { "cn", "cn;foo", -1, false, true },
+            { "cn;foo", "cn", 1, true, false },
+            { "cn;foo", "cn;foo", 0, true, true },
+            { "CN;FOO", "cn;foo", 0, true, true },
+            { "cn;foo", "CN;FOO", 0, true, true },
+            { "CN;FOO", "CN;FOO", 0, true, true },
+            { "cn;foo", "cn;bar", 1, false, false },
             { "cn;bar", "cn;foo", -1, false, false },
 
-            { "cn;xxx;yyy", "cn", 1, true, false }, { "cn;xxx;yyy", "cn;yyy", 1, true, false },
+            { "cn;xxx;yyy", "cn", 1, true, false },
+            { "cn;xxx;yyy", "cn;yyy", 1, true, false },
             { "cn;xxx;yyy", "cn;xxx", 1, true, false },
             { "cn;xxx;yyy", "cn;xxx;yyy", 0, true, true },
             { "cn;xxx;yyy", "cn;yyy;xxx", 0, true, true },
 
-            { "cn", "cn;xxx;yyy", -1, false, true }, { "cn;yyy", "cn;xxx;yyy", -1, false, true },
+            { "cn", "cn;xxx;yyy", -1, false, true },
+            { "cn;yyy", "cn;xxx;yyy", -1, false, true },
             { "cn;xxx", "cn;xxx;yyy", -1, false, true },
             { "cn;xxx;yyy", "cn;xxx;yyy", 0, true, true },
-            { "cn;yyy;xxx", "cn;xxx;yyy", 0, true, true }, };
+            { "cn;yyy;xxx", "cn;xxx;yyy", 0, true, true },
+        };
+        // @formatter:on
     }
 
-    @DataProvider(name = "dataForValueOfCoreSchema")
+    @DataProvider
     public Object[][] dataForValueOfCoreSchema() {
-        // Value, type, isObjectClass
-        return new Object[][] { { "cn", "cn", false }, { "CN", "cn", false },
-            { "commonName", "cn", false }, { "objectclass", "objectClass", true }, };
+        // @formatter:off
+        return new Object[][] {
+            // Value, type, isObjectClass
+            { "cn", "cn", false },
+            { "CN", "cn", false },
+            { "commonName", "cn", false },
+            { "objectclass", "objectClass", true },
+        };
+        // @formatter:on
     }
 
-    @DataProvider(name = "dataForValueOfInvalidAttributeDescriptions")
+    @DataProvider
     public Object[][] dataForValueOfInvalidAttributeDescriptions() {
-        return new Object[][] { { "" }, { " " }, { ";" }, { " ; " }, { "0cn" }, { "cn+" },
-            { "cn;foo+bar" }, { "cn;foo;foo+bar" }, { ";foo" }, { "cn;" }, { "cn;;foo" },
-            { "cn; ;foo" }, { "cn;foo;" }, { "cn;foo; " }, { "cn;foo;;bar" }, { "cn;foo; ;bar" },
-            { "cn;foo;bar;;" }, { "1a" }, { "1.a" }, { "1-" }, { "1.1a" }, { "1.1.a" }, };
+        // @formatter:off
+        return new Object[][] {
+            { "" },
+            { " " },
+            { ";" },
+            { " ; " },
+            { "0cn" },
+            { "cn+" },
+            { "cn;foo+bar" },
+            { "cn;foo;foo+bar" },
+            { ";foo" },
+            { "cn;" },
+            { "cn;;foo" },
+            { "cn; ;foo" },
+            { "cn;foo;" },
+            { "cn;foo; " },
+            { "cn;foo;;bar" },
+            { "cn;foo; ;bar" },
+            { "cn;foo;bar;;" },
+            { "1a" },
+            { "1.a" },
+            { "1-" },
+            { "1.1a" },
+            { "1.1.a" },
+        };
+        // @formatter:on
     }
 
-    @DataProvider(name = "dataForValueOfNoSchema")
+    @DataProvider
     public Object[][] dataForValueOfNoSchema() {
-        // Value, type, options, containsOptions("foo")
-        return new Object[][] { { "cn", "cn", new String[0], false },
-            { " cn ", "cn", new String[0], false }, { "  cn  ", "cn", new String[0], false },
-            { "CN", "CN", new String[0], false }, { "1", "1", new String[0], false },
-            { "1.2", "1.2", new String[0], false }, { "1.2.3", "1.2.3", new String[0], false },
+        // @formatter:off
+        return new Object[][] {
+            // Value, type, options, containsOptions("foo")
+            { "cn", "cn", new String[0], false },
+            { " cn ", "cn", new String[0], false },
+            { "  cn  ", "cn", new String[0], false },
+            { "CN", "CN", new String[0], false },
+            { "1", "1", new String[0], false },
+            { "1.2", "1.2", new String[0], false },
+            { "1.2.3", "1.2.3", new String[0], false },
             { "111.222.333", "111.222.333", new String[0], false },
             { "objectClass", "objectClass", new String[0], false },
             { "cn;foo", "cn", new String[] { "foo" }, true },
@@ -108,72 +162,40 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             { " cn;BAR;FOO ", "cn", new String[] { "BAR", "FOO" }, true },
             { "  cn;BAR;FOO  ", "cn", new String[] { "BAR", "FOO" }, true },
             { "cn;xxx;yyy;zzz", "cn", new String[] { "xxx", "yyy", "zzz" }, false },
-            { "cn;zzz;YYY;xxx", "cn", new String[] { "zzz", "YYY", "xxx" }, false }, };
+        };
+        // @formatter:on
     }
 
     @Test(dataProvider = "dataForCompareCoreSchema")
     public void testCompareCoreSchema(final String ad1, final String ad2, final int compare,
             final boolean isSubType, final boolean isSuperType) {
-        final AttributeDescription attributeDescription1 =
-                AttributeDescription.valueOf(ad1, Schema.getCoreSchema());
-
-        final AttributeDescription attributeDescription2 =
-                AttributeDescription.valueOf(ad2, Schema.getCoreSchema());
-
-        // Identity.
-        assertTrue(attributeDescription1.equals(attributeDescription1));
-        assertTrue(attributeDescription1.compareTo(attributeDescription1) == 0);
-        assertTrue(attributeDescription1.isSubTypeOf(attributeDescription1));
-        assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription1));
-
-        if (compare == 0) {
-            assertTrue(attributeDescription1.equals(attributeDescription2));
-            assertTrue(attributeDescription2.equals(attributeDescription1));
-            assertTrue(attributeDescription1.compareTo(attributeDescription2) == 0);
-            assertTrue(attributeDescription2.compareTo(attributeDescription1) == 0);
-
-            assertTrue(attributeDescription1.isSubTypeOf(attributeDescription2));
-            assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription2));
-            assertTrue(attributeDescription2.isSubTypeOf(attributeDescription1));
-            assertTrue(attributeDescription2.isSuperTypeOf(attributeDescription1));
-        } else {
-            assertFalse(attributeDescription1.equals(attributeDescription2));
-            assertFalse(attributeDescription2.equals(attributeDescription1));
-
-            if (compare < 0) {
-                assertTrue(attributeDescription1.compareTo(attributeDescription2) < 0);
-                assertTrue(attributeDescription2.compareTo(attributeDescription1) > 0);
-            } else {
-                assertTrue(attributeDescription1.compareTo(attributeDescription2) > 0);
-                assertTrue(attributeDescription2.compareTo(attributeDescription1) < 0);
-            }
-
-            assertEquals(attributeDescription1.isSubTypeOf(attributeDescription2), isSubType);
-
-            assertEquals(attributeDescription1.isSuperTypeOf(attributeDescription2), isSuperType);
-        }
+        Schema schema = Schema.getCoreSchema();
+        compare0(ad1, ad2, compare, isSubType, isSuperType, schema);
     }
 
     @Test(dataProvider = "dataForCompareNoSchema")
     public void testCompareNoSchema(final String ad1, final String ad2, final int compare,
             final boolean isSubType, final boolean isSuperType) {
-        final AttributeDescription attributeDescription1 =
-                AttributeDescription.valueOf(ad1, Schema.getEmptySchema());
+        Schema schema = Schema.getEmptySchema();
+        compare0(ad1, ad2, compare, isSubType, isSuperType, schema);
+    }
 
-        final AttributeDescription attributeDescription2 =
-                AttributeDescription.valueOf(ad2, Schema.getEmptySchema());
+    private void compare0(final String ad1, final String ad2, final int compare,
+            final boolean isSubType, final boolean isSuperType, final Schema schema) {
+        final AttributeDescription attributeDescription1 = AttributeDescription.valueOf(ad1, schema);
+        final AttributeDescription attributeDescription2 = AttributeDescription.valueOf(ad2, schema);
 
         // Identity.
-        assertTrue(attributeDescription1.equals(attributeDescription1));
-        assertTrue(attributeDescription1.compareTo(attributeDescription1) == 0);
+        assertEquals(attributeDescription1, attributeDescription1);
+        assertEquals(attributeDescription1.compareTo(attributeDescription1), 0);
         assertTrue(attributeDescription1.isSubTypeOf(attributeDescription1));
         assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription1));
 
         if (compare == 0) {
-            assertTrue(attributeDescription1.equals(attributeDescription2));
-            assertTrue(attributeDescription2.equals(attributeDescription1));
-            assertTrue(attributeDescription1.compareTo(attributeDescription2) == 0);
-            assertTrue(attributeDescription2.compareTo(attributeDescription1) == 0);
+            assertEquals(attributeDescription1, attributeDescription2);
+            assertEquals(attributeDescription2, attributeDescription1);
+            assertEquals(attributeDescription1.compareTo(attributeDescription2), 0);
+            assertEquals(attributeDescription2.compareTo(attributeDescription1), 0);
 
             assertTrue(attributeDescription1.isSubTypeOf(attributeDescription2));
             assertTrue(attributeDescription1.isSuperTypeOf(attributeDescription2));
@@ -192,7 +214,6 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             }
 
             assertEquals(attributeDescription1.isSubTypeOf(attributeDescription2), isSubType);
-
             assertEquals(attributeDescription1.isSuperTypeOf(attributeDescription2), isSuperType);
         }
     }
@@ -205,7 +226,6 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         assertEquals(attributeDescription.toString(), ad);
 
         assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
-
         assertEquals(attributeDescription.isObjectClass(), isObjectClass);
 
         assertFalse(attributeDescription.hasOptions());
@@ -215,7 +235,7 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         assertFalse(iterator.hasNext());
     }
 
-    /** FIXME: none of these pass! The valueOf method is far to lenient. */
+    /** FIXME: none of these pass! The valueOf method is far too lenient. */
     @Test(dataProvider = "dataForValueOfInvalidAttributeDescriptions",
             expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfInvalidAttributeDescriptions(final String ad) {
@@ -229,16 +249,10 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
                 AttributeDescription.valueOf(ad, Schema.getEmptySchema());
 
         assertEquals(attributeDescription.toString(), ad);
-
         assertEquals(attributeDescription.getAttributeType().getNameOrOID(), at);
-
         assertFalse(attributeDescription.isObjectClass());
 
-        if (options.length == 0) {
-            assertFalse(attributeDescription.hasOptions());
-        } else {
-            assertTrue(attributeDescription.hasOptions());
-        }
+        assertEquals(attributeDescription.hasOptions(), options.length != 0);
 
         assertFalse(attributeDescription.hasOption("dummy"));
         if (containsFoo) {
@@ -405,5 +419,4 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         AttributeDescription ad2 = ad1.withoutOption("dummy");
         assertSame(ad1, ad2);
     }
-
 }
