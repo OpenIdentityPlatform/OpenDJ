@@ -771,8 +771,7 @@ public class LDIFReader implements Closeable
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
-    final Attribute attribute = parseAttrDescription(attrDescr);
-    final AttributeDescription attrDesc = attribute.getAttributeDescription();
+    final AttributeDescription attrDesc = parseAttrDescription(attrDescr);
     final AttributeType attrType = attrDesc.getAttributeType();
     final String attrName = attrType.getNameOrOID();
 
@@ -932,14 +931,13 @@ public class LDIFReader implements Closeable
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
-    Attribute attribute = parseAttrDescription(attrDescr);
-    String attrName = attribute.getAttributeDescription().getNameOrOID();
+    AttributeDescription attrDesc = parseAttrDescription(attrDescr);
+    String attrName = attrDesc.getNameOrOID();
 
     if (attributeName != null)
     {
-      Attribute expectedAttr = parseAttrDescription(attributeName);
-
-      if (!attribute.equals(expectedAttr))
+      AttributeDescription expectedAttrDesc = parseAttrDescription(attributeName);
+      if (!attrDesc.equals(expectedAttrDesc))
       {
         LocalizableMessage message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE.get(
             attrDescr, attributeName);
@@ -951,7 +949,7 @@ public class LDIFReader implements Closeable
     ByteString value = parseSingleValue(lines, line, entryDN,
         colonPos, attrName);
 
-    AttributeBuilder builder = new AttributeBuilder(attribute.getAttributeDescription());
+    AttributeBuilder builder = new AttributeBuilder(attrDesc);
     builder.add(value);
     return builder.toAttribute();
   }
@@ -1077,43 +1075,14 @@ public class LDIFReader implements Closeable
    * @return A new attribute with no values, representing the
    *         attribute type and its options.
    */
-  public static Attribute parseAttrDescription(String attrDescr)
+  public static AttributeDescription parseAttrDescription(String attrDescr)
   {
-    AttributeBuilder builder;
-    int semicolonPos = attrDescr.indexOf(';');
-    if (semicolonPos > 0)
+    AttributeDescription result = AttributeDescription.valueOf(attrDescr);
+    if (result.getAttributeType().getSyntax().isBEREncodingRequired())
     {
-      builder = new AttributeBuilder(attrDescr.substring(0, semicolonPos));
-      int nextPos = attrDescr.indexOf(';', semicolonPos + 1);
-      while (nextPos > 0)
-      {
-        String option = attrDescr.substring(semicolonPos + 1, nextPos);
-        if (option.length() > 0)
-        {
-          builder.setOption(option);
-          semicolonPos = nextPos;
-          nextPos = attrDescr.indexOf(';', semicolonPos + 1);
-        }
-      }
-
-      String option = attrDescr.substring(semicolonPos + 1);
-      if (option.length() > 0)
-      {
-        builder.setOption(option);
-      }
+      result = result.withOption("binary");
     }
-    else
-    {
-      builder = new AttributeBuilder(attrDescr);
-    }
-
-    if(builder.getAttributeType().getSyntax().isBEREncodingRequired())
-    {
-      //resetting doesn't hurt and returns false.
-      builder.setOption("binary");
-    }
-
-    return builder.toAttribute();
+    return result;
   }
 
 
@@ -1331,8 +1300,8 @@ public class LDIFReader implements Closeable
       }
 
       // Now go through the rest of the attributes till the "-" line is reached.
-      Attribute modAttr = LDIFReader.parseAttrDescription(attrDescr);
-      AttributeBuilder builder = new AttributeBuilder(modAttr.getAttributeDescription());
+      AttributeDescription modAttrDesc = LDIFReader.parseAttrDescription(attrDescr);
+      AttributeBuilder builder = new AttributeBuilder(modAttrDesc);
       while (! lines.isEmpty())
       {
         line = lines.remove();

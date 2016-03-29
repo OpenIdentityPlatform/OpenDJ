@@ -34,6 +34,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -283,15 +284,14 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
 
     for (String wholeName : getAttributeNames())
     {
-      final org.opends.server.types.Attribute attribute =
-        LDIFReader.parseAttrDescription(wholeName);
-      final String attrName = attribute.getAttributeDescription().getNameOrOID();
+      final AttributeDescription attrDesc = LDIFReader.parseAttrDescription(wholeName);
+      final AttributeType attrType = attrDesc.getAttributeType();
 
       // See if this is an objectclass or an attribute.  Then get the
       // corresponding definition and add the value to the appropriate hash.
-      if (attrName.equalsIgnoreCase("objectclass"))
+      if (attrType.isObjectClass())
       {
-        for (Object value : getAttributeValues(attrName))
+        for (Object value : getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
           String lowerOCName = toLowerCase(ocName);
@@ -308,9 +308,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       }
       else
       {
-        AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-        AttributeBuilder builder = new AttributeBuilder(attribute.getAttributeDescription());
-        for (Object value : getAttributeValues(attrName))
+        AttributeBuilder builder = new AttributeBuilder(attrDesc);
+        for (Object value : getAttributeValues(attrType.getNameOrOID()))
         {
           ByteString bs;
           if (value instanceof byte[])

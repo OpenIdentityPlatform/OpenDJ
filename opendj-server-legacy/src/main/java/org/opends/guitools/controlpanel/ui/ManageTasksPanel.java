@@ -19,6 +19,7 @@ package org.opends.guitools.controlpanel.ui;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.LDIFReader.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
@@ -53,6 +54,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -640,14 +642,14 @@ public class ManageTasksPanel extends StatusGenericPanel
 
     for (String wholeName : csr.getAttributeNames())
     {
-      final Attribute attribute = parseAttrDescription(wholeName);
-      final String attrName = attribute.getAttributeDescription().getNameOrOID();
+      final AttributeDescription attrDesc = parseAttrDescription(wholeName);
+      final AttributeType attrType = attrDesc.getAttributeType();
 
       // See if this is an objectclass or an attribute.  Then get the
       // corresponding definition and add the value to the appropriate hash.
-      if ("objectclass".equalsIgnoreCase(attrName))
+      if (attrType.isObjectClass())
       {
-        for (Object value : csr.getAttributeValues(attrName))
+        for (Object value : csr.getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
           String lowerOCName = toLowerCase(ocName);
@@ -664,9 +666,8 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       else
       {
-        AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-        AttributeBuilder builder = new AttributeBuilder(attribute.getAttributeDescription());
-        for (Object value : csr.getAttributeValues(attrName))
+        AttributeBuilder builder = new AttributeBuilder(attrDesc);
+        for (Object value : csr.getAttributeValues(attrType.getNameOrOID()))
         {
           ByteString bs;
           if (value instanceof byte[])
@@ -693,55 +694,6 @@ public class ManageTasksPanel extends StatusGenericPanel
     }
 
     return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
-  }
-
-  /**
-   * Parse an AttributeDescription (an attribute type name and its
-   * options).
-   * TODO: make this method in LDIFReader public.
-   *
-   * @param attrDescr
-   *          The attribute description to be parsed.
-   * @return A new attribute with no values, representing the
-   *         attribute type and its options.
-   */
-  private static Attribute parseAttrDescription(String attrDescr)
-  {
-    AttributeBuilder builder;
-    int semicolonPos = attrDescr.indexOf(';');
-    if (semicolonPos > 0)
-    {
-      builder = new AttributeBuilder(attrDescr.substring(0, semicolonPos));
-      int nextPos = attrDescr.indexOf(';', semicolonPos + 1);
-      while (nextPos > 0)
-      {
-        String option = attrDescr.substring(semicolonPos + 1, nextPos);
-        if (option.length() > 0)
-        {
-          builder.setOption(option);
-          semicolonPos = nextPos;
-          nextPos = attrDescr.indexOf(';', semicolonPos + 1);
-        }
-      }
-
-      String option = attrDescr.substring(semicolonPos + 1);
-      if (option.length() > 0)
-      {
-        builder.setOption(option);
-      }
-    }
-    else
-    {
-      builder = new AttributeBuilder(attrDescr);
-    }
-
-    if(builder.getAttributeType().getSyntax().isBEREncodingRequired())
-    {
-      //resetting doesn't hurt and returns false.
-      builder.setOption("binary");
-    }
-
-    return builder.toAttribute();
   }
 
   /**
