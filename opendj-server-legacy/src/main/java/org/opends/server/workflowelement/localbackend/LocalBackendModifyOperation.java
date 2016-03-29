@@ -960,7 +960,7 @@ public class LocalBackendModifyOperation
     // pre-encoded. If so, then check to see if we'll allow it.
     // Otherwise, store the clear-text values for later validation
     // and update the attribute with the encoded values.
-    AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
+    AttributeBuilder builder = new AttributeBuilder(pwAttr.getAttributeDescription());
     for (ByteString v : pwAttr)
     {
       if (pwPolicyState.passwordIsPreEncoded(v))
@@ -1013,7 +1013,7 @@ public class LocalBackendModifyOperation
       numPasswords = 0;
     }
 
-    AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
+    AttributeBuilder builder = new AttributeBuilder(pwAttr.getAttributeDescription());
     for (ByteString v : pwAttr)
     {
       if (pwPolicyState.passwordIsPreEncoded(v))
@@ -1414,7 +1414,7 @@ public class LocalBackendModifyOperation
     }
 
     // Increment each attribute value by the specified amount.
-    AttributeBuilder builder = new AttributeBuilder(a, true);
+    AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
     for (ByteString existingValue : a)
     {
       long currentValue;

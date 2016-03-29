@@ -14,7 +14,6 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.forgerock.util.Utils.*;
@@ -55,6 +54,7 @@ import javax.swing.event.ListSelectionListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -70,37 +70,25 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
 
-/**
- * The panel displaying the list of scheduled tasks.
- *
- */
+/** The panel displaying the list of scheduled tasks. */
 public class ManageTasksPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -8034784684412532193L;
 
   private JLabel lNoTasksFound;
 
-  /**
-   * Remove task button.
-   */
+  /** Remove task button. */
   private JButton cancelTask;
-  /**
-   * The scroll that contains the list of tasks (actually is a table).
-   */
+  /** The scroll that contains the list of tasks (actually is a table). */
   private JScrollPane tableScroll;
-  /**
-   * The table of tasks.
-   */
+  /** The table of tasks. */
   private JTable taskTable;
 
-  /**
-   * The model of the table.
-   */
+  /** The model of the table. */
   private TaskTableModel tableModel;
 
   private ManageTasksMenuBar menuBar;
@@ -126,31 +114,30 @@ public class ManageTasksPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_TASK_TO_SCHEDULE_LIST_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // Nothing to do, it only contains a close button.
   }
 
-  /** {@inheritDoc} */
   @Override
   public JMenuBar getMenuBar()
   {
@@ -161,7 +148,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     return menuBar;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return taskTable;
@@ -235,6 +222,7 @@ public class ManageTasksPanel extends StatusGenericPanel
        * Updates the table model contents and sorts its contents depending on
        * the sort options set by the user.
        */
+      @Override
       public void forceResort()
       {
         Set<String> selectedIds = getSelectedIds();
@@ -271,7 +259,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     add(Box.createVerticalGlue(), gbc);
     cancelTask.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         cancelTaskClicked();
@@ -324,7 +312,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
     ListSelectionListener listener = new ListSelectionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void valueChanged(ListSelectionEvent ev)
       {
         tableSelected();
@@ -334,10 +322,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     listener.valueChanged(null);
   }
 
-  /**
-   * Creates the details panel.
-   *
-   */
+  /** Creates the details panel. */
   private void createDetailsPanel()
   {
     detailsPanel = new JPanel(new GridBagLayout());
@@ -371,10 +356,7 @@ public class ManageTasksPanel extends StatusGenericPanel
         Box.createVerticalStrut(logs.getPreferredSize().height), gbc);
   }
 
-  /**
-   * Method called when the table is selected.
-   *
-   */
+  /** Method called when the table is selected. */
   private void tableSelected()
   {
     List<TaskEntry> tasks = getSelectedTasks(true);
@@ -640,8 +622,6 @@ public class ManageTasksPanel extends StatusGenericPanel
     }
   }
 
-
-
   /**
    * Gets the Entry object equivalent to the provided CustomSearchResult.
    * The method assumes that the schema in DirectoryServer has been initialized.
@@ -665,7 +645,7 @@ public class ManageTasksPanel extends StatusGenericPanel
 
       // See if this is an objectclass or an attribute.  Then get the
       // corresponding definition and add the value to the appropriate hash.
-      if (attrName.equalsIgnoreCase("objectclass"))
+      if ("objectclass".equalsIgnoreCase(attrName))
       {
         for (Object value : csr.getAttributeValues(attrName))
         {
@@ -685,7 +665,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       else
       {
         AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-        AttributeBuilder builder = new AttributeBuilder(attribute, true);
+        AttributeBuilder builder = new AttributeBuilder(attribute.getAttributeDescription());
         for (Object value : csr.getAttributeValues(attrName))
         {
           ByteString bs;
@@ -775,6 +755,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     final ManageTasksPanel p = new ManageTasksPanel();
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -791,6 +772,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           try
           {
             SwingUtilities.invokeLater(new Runnable(){
+              @Override
               public void run()
               {
                 Set<TaskEntry> tasks = p.createRandomTasksList();
@@ -817,8 +799,8 @@ public class ManageTasksPanel extends StatusGenericPanel
     });
     t.start();
 
-
     SwingUtilities.invokeLater(new Runnable(){
+      @Override
       public void run()
       {
         GenericDialog dlg = new GenericDialog(Utilities.createFrame(), p);
@@ -830,10 +812,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     t = null;
   }
 
-  /**
-   * Displays a dialog allowing the user to select which operations to display.
-   *
-   */
+  /** Displays a dialog allowing the user to select which operations to display. */
   private void operationViewClicked()
   {
     if (operationViewDlg == null)
@@ -858,7 +837,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     updateErrorPaneIfServerRunningAndAuthRequired(ev.getNewDescriptor(),
@@ -870,7 +849,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           Set<String> selectedIds = getSelectedIds();
@@ -927,10 +906,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     setSelectedIds(selectedIds);
   }
 
-  /**
-   * The specific menu bar of this panel.
-   *
-   */
+  /** The specific menu bar of this panel. */
   class ManageTasksMenuBar extends MainMenuBar
   {
     private static final long serialVersionUID = 5051878116443370L;
@@ -944,7 +920,6 @@ public class ManageTasksPanel extends StatusGenericPanel
       super(info);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void addMenus()
     {
@@ -968,6 +943,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       menu.add(viewOperations);
       viewOperations.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           operationViewClicked();

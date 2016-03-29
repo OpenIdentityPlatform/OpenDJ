@@ -706,7 +706,7 @@ public class LocalBackendAddOperation
 
     List<PasswordStorageScheme<?>> defaultStorageSchemes =
          passwordPolicy.getDefaultPasswordStorageSchemes();
-    AttributeBuilder builder = new AttributeBuilder(passwordAttr, true);
+    AttributeBuilder builder = new AttributeBuilder(passwordAttr.getAttributeDescription());
     for (ByteString value : passwordAttr)
     {
       // See if the password is pre-encoded.

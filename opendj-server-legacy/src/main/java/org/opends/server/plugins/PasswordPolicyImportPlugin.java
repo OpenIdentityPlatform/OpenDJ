@@ -344,7 +344,7 @@ policyLoop:
 
           for (Attribute a : attrList)
           {
-            AttributeBuilder builder = new AttributeBuilder(a, true);
+            AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
             boolean gotError = false;
 
             for (ByteString value : a)
@@ -419,7 +419,7 @@ policyLoop:
     {
       for (Attribute a : entry.getAttribute(t))
       {
-        AttributeBuilder builder = new AttributeBuilder(a, true);
+        AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
         boolean gotError = false;
 
         for (ByteString value : a)
@@ -462,7 +462,7 @@ policyLoop:
     {
       for (Attribute a : entry.getAttribute(t))
       {
-        AttributeBuilder builder = new AttributeBuilder(a, true);
+        AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
         boolean gotError = false;
 
         for (ByteString value : a)

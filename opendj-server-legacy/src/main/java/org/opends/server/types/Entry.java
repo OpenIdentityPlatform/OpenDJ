@@ -1088,7 +1088,7 @@ public class Entry
     }
 
     // Increment each attribute value by the specified amount.
-    AttributeBuilder builder = new AttributeBuilder(a, true);
+    AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
 
     for (ByteString v : a)
     {

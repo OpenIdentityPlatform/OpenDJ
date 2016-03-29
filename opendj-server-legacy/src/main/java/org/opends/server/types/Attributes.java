@@ -223,7 +223,7 @@ public final class Attributes
    */
   public static Attribute empty(Attribute attribute)
   {
-    return new AttributeBuilder(attribute, true).toAttribute();
+    return new AttributeBuilder(attribute.getAttributeDescription()).toAttribute();
   }
 
 

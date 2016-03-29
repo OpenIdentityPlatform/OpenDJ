@@ -826,7 +826,7 @@ public class LDIFReader implements Closeable
        //The attribute is not being ignored so check for binary option.
       if (checkSchema
           && !attrType.getSyntax().isBEREncodingRequired()
-          && attribute.getAttributeDescription().hasOption("binary"))
+ && attrDesc.hasOption("binary"))
       {
         LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(
           entryDN, lastEntryLineNumber, attrName);
@@ -867,7 +867,7 @@ public class LDIFReader implements Closeable
       final List<AttributeBuilder> attrList = attrBuilders.get(attrType);
       if (attrList == null)
       {
-        AttributeBuilder builder = new AttributeBuilder(attribute, true);
+        AttributeBuilder builder = new AttributeBuilder(attrDesc);
         builder.add(attributeValue);
         attrBuilders.put(attrType, newArrayList(builder));
         return;
@@ -900,7 +900,7 @@ public class LDIFReader implements Closeable
 
       // No set of matching options was found, so create a new one and
       // add it to the list.
-      AttributeBuilder builder = new AttributeBuilder(attribute, true);
+      AttributeBuilder builder = new AttributeBuilder(attrDesc);
       builder.add(attributeValue);
       attrList.add(builder);
     }
@@ -951,7 +951,7 @@ public class LDIFReader implements Closeable
     ByteString value = parseSingleValue(lines, line, entryDN,
         colonPos, attrName);
 
-    AttributeBuilder builder = new AttributeBuilder(attribute, true);
+    AttributeBuilder builder = new AttributeBuilder(attribute.getAttributeDescription());
     builder.add(value);
     return builder.toAttribute();
   }
@@ -1332,7 +1332,7 @@ public class LDIFReader implements Closeable
 
       // Now go through the rest of the attributes till the "-" line is reached.
       Attribute modAttr = LDIFReader.parseAttrDescription(attrDescr);
-      AttributeBuilder builder = new AttributeBuilder(modAttr, true);
+      AttributeBuilder builder = new AttributeBuilder(modAttr.getAttributeDescription());
       while (! lines.isEmpty())
       {
         line = lines.remove();

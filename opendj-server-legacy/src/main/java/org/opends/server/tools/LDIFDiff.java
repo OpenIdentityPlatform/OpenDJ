@@ -915,7 +915,7 @@ public class LDIFDiff
           LinkedList<Modification> attrMods = new LinkedList<>();
           for (ByteString v : a)
           {
-            AttributeBuilder builder = new AttributeBuilder(a, true);
+            AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
             builder.add(v);
             Attribute attr = builder.toAttribute();
 

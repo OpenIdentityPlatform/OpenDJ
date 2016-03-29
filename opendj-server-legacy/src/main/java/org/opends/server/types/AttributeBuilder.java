@@ -792,36 +792,21 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(Attribute attribute)
   {
-    this(attribute, false);
+    this(attribute.getAttributeDescription());
+    addAll(attribute);
   }
-
-
 
   /**
-   * Creates a new attribute builder from an existing attribute,
-   * optionally omitting the values contained in the provided
-   * attribute.
-   * <p>
-   * Modifications to the attribute builder will not impact the
-   * provided attribute.
+   * Creates a new attribute builder with the specified description.
    *
-   * @param attribute
-   *          The attribute to be copied.
-   * @param omitValues
-   *          <CODE>true</CODE> if the values should be omitted.
+   * @param attributeDescription
+   *          The attribute description for this attribute builder.
    */
-  public AttributeBuilder(Attribute attribute, boolean omitValues)
+  public AttributeBuilder(AttributeDescription attributeDescription)
   {
-    this(attribute.getAttributeDescription().getAttributeType(), attribute.getName());
-
-    setOptions(attribute.getAttributeDescription().getOptions());
-    if (!omitValues)
-    {
-      addAll(attribute);
-    }
+    this(attributeDescription.getAttributeType(), attributeDescription.getNameOrOID());
+    setOptions(attributeDescription.getOptions());
   }
-
-
 
   /**
    * Creates a new attribute builder with the specified type and no
@@ -1299,17 +1284,15 @@ public final class AttributeBuilder implements Iterable<ByteString>
         options.add(option);
         return true;
       }
-      break;
+      return false;
     default:
       if (normalizedOptions.add(toLowerCase(option)))
       {
         options.add(option);
         return true;
       }
-      break;
+      return false;
     }
-
-    return false;
   }
 
 

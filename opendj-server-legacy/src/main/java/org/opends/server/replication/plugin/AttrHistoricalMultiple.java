@@ -23,12 +23,12 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class is used to store historical information for multiple valued attributes.
@@ -281,7 +281,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
        */
       boolean conflict = false;
       Attribute addedValues = m.getAttribute();
-      m.setAttribute(new AttributeBuilder(addedValues, true).toAttribute());
+      m.setAttribute(new AttributeBuilder(addedValues.getAttributeDescription()).toAttribute());
 
       processDeleteConflict(csn, m, modifiedEntry);
       Attribute keptValues = m.getAttribute();
@@ -386,7 +386,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     {
       // We are processing a DELETE attribute modification
       m.setModificationType(ModificationType.REPLACE);
-      AttributeBuilder builder = new AttributeBuilder(modAttr, true);
+      AttributeBuilder builder = new AttributeBuilder(modAttr.getAttributeDescription());
 
       for (Iterator<AttrValueHistorical> it = valuesHist.keySet().iterator(); it.hasNext();)
       {

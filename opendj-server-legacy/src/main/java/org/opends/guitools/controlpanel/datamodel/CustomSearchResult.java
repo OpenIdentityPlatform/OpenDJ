@@ -35,11 +35,11 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
@@ -92,7 +92,6 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       {
         name = new CompositeName(sName);
         name.add(baseDN);
-
       }
       else {
         name = Utilities.getJNDIName(baseDN);
@@ -181,7 +180,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return attrNames;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compareTo(CustomSearchResult o) {
     if (this.equals(o))
     {
@@ -205,7 +204,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return sr;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (o == this)
@@ -234,12 +233,12 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String toString() {
     return toString;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode() {
     return hashCode;
   }
@@ -310,7 +309,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       else
       {
         AttributeType attrType = DirectoryServer.getAttributeType(attrName);
-        AttributeBuilder builder = new AttributeBuilder(attribute, true);
+        AttributeBuilder builder = new AttributeBuilder(attribute.getAttributeDescription());
         for (Object value : getAttributeValues(attrName))
         {
           ByteString bs;

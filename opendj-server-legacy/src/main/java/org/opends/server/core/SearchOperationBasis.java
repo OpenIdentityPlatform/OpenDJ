@@ -27,9 +27,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
@@ -40,12 +42,10 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperationType;
@@ -608,7 +608,7 @@ public class SearchOperationBasis
         {
           // Assume that the attribute will be either empty or contain
           // very few values.
-          AttributeBuilder builder = new AttributeBuilder(a, true);
+          AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
           for (ByteString v : a)
           {
             if (matchedValuesControl.valueMatches(t, v))
@@ -634,7 +634,7 @@ public class SearchOperationBasis
         {
           // Assume that the attribute will be either empty or contain
           // very few values.
-          AttributeBuilder builder = new AttributeBuilder(a, true);
+          AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
           for (ByteString v : a)
           {
             if (matchedValuesControl.valueMatches(t, v))

@@ -323,7 +323,7 @@ public class AttributeBuilderTest extends TypesTestCase
         {
             35,
             new AttributeBuilder(createAttribute(cnType, "CN", threeOptions,
-                threeValues), false).toAttribute(),
+                threeValues)).toAttribute(),
             cnType,
             "CN",
             threeOptions,
@@ -332,7 +332,7 @@ public class AttributeBuilderTest extends TypesTestCase
         {
             36,
             new AttributeBuilder(createAttribute(cnType, "CN", threeOptions,
-                threeValues), true).toAttribute(),
+                threeValues).getAttributeDescription()).toAttribute(),
             cnType,
             "CN",
             threeOptions,
