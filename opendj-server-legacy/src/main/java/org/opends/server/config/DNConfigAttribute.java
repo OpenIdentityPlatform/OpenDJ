@@ -711,7 +711,7 @@ public final class DNConfigAttribute
           {
             // We cannot have multiple pending value sets.
             LocalizableMessage message =
-                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName());
+                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(attrDesc.getNameOrOID());
             throw new ConfigException(message);
           }
 
@@ -721,7 +721,7 @@ public final class DNConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
+              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID()));
             }
             // This is fine. The pending value set can be empty.
             pendingValues = new ArrayList<>(0);
@@ -732,7 +732,7 @@ public final class DNConfigAttribute
             if (numValues > 1 && !isMultiValued())
             {
               // This is illegal -- the attribute is single-valued.
-              throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
+              throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID()));
             }
 
             pendingValues = new ArrayList<>(numValues);
@@ -760,7 +760,7 @@ public final class DNConfigAttribute
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
           throw new ConfigException(
-              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName()));
+              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(attrDesc.getNameOrOID()));
         }
       }
       else
@@ -770,7 +770,7 @@ public final class DNConfigAttribute
         {
           // We cannot have multiple active value sets.
           throw new ConfigException(
-              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName()));
+              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(attrDesc.getNameOrOID()));
         }
 
 
@@ -779,7 +779,7 @@ public final class DNConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
+            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID()));
           }
           // This is fine. The active value set can be empty.
           activeValues = new ArrayList<>(0);
@@ -790,7 +790,7 @@ public final class DNConfigAttribute
           if (numValues > 1 && !isMultiValued())
           {
             // This is illegal -- the attribute is single-valued.
-            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
+            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID()));
           }
 
           activeValues = new ArrayList<>(numValues);

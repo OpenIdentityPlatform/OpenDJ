@@ -299,7 +299,7 @@ public class AddOperationBasis
               && !isSynchronizationOperation())
           {
             throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
-                ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attr.getName()));
+                ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attr.getAttributeDescription().getNameOrOID()));
           }
 
           boolean hasBinaryOption = attr.getAttributeDescription().hasOption("binary");
@@ -317,7 +317,7 @@ public class AddOperationBasis
           {
             // binary option is not honored for non-BER-encodable attributes.
             throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
+                ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getAttributeDescription().getNameOrOID()));
           }
 
           if (attrType.isObjectClass())

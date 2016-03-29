@@ -404,12 +404,12 @@ public final class BooleanConfigAttribute
           if (pendingValueSet)
           {
             // We cannot have multiple pending values.
-            throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName()));
+            throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(attrDesc.getNameOrOID()));
           }
           if (a.isEmpty())
           {
             // This is illegal -- it must have a value.
-            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
+            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID()));
           }
 
           // Get the value and parse it as a Boolean.
@@ -437,14 +437,14 @@ public final class BooleanConfigAttribute
           if (iterator.hasNext())
           {
             // This is illegal -- it must be single-valued.
-            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
+            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID()));
           }
         }
         else
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(attrDesc.getNameOrOID()));
         }
       }
       else
@@ -453,12 +453,12 @@ public final class BooleanConfigAttribute
         if (activeValueSet)
         {
           // We cannot have multiple active values.
-          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(attrDesc.getNameOrOID()));
         }
         if (a.isEmpty())
         {
           // This is illegal -- it must have a value.
-          throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID()));
         }
 
         // Get the value and parse it as a Boolean.
@@ -486,7 +486,7 @@ public final class BooleanConfigAttribute
         if (iterator.hasNext())
         {
           // This is illegal -- it must be single-valued.
-          throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID()));
         }
       }
     }

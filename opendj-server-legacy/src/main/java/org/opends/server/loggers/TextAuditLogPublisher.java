@@ -415,7 +415,7 @@ public final class TextAuditLogPublisher extends
       }
 
       Attribute a = mod.getAttribute();
-      buffer.append(a.getName());
+      buffer.append(a.getAttributeDescription().getNameOrOID());
       buffer.append(EOL);
 
       append(buffer, a);
@@ -428,7 +428,7 @@ public final class TextAuditLogPublisher extends
   {
     for (ByteString v : a)
     {
-      buffer.append(a.getName());
+      buffer.append(a.getAttributeDescription().getNameOrOID());
       buffer.append(":");
       encodeValue(v, buffer);
       buffer.append(EOL);

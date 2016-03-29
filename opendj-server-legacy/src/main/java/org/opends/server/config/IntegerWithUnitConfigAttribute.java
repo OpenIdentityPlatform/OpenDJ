@@ -874,12 +874,12 @@ public final class IntegerWithUnitConfigAttribute
         if (!attrDesc.hasOption(OPTION_PENDING_VALUES))
         {
           // This is illegal -- only the pending option is allowed for configuration attributes.
-          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(attrDesc.getNameOrOID()));
         }
         if (pendingUnit != null)
         {
           // We cannot have multiple pending value sets.
-          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(attrDesc.getNameOrOID()));
         }
 
         String valueString = getValue(a);
@@ -891,7 +891,8 @@ public final class IntegerWithUnitConfigAttribute
         }
         catch (Exception e)
         {
-          throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(valueString, a.getName(), e));
+          throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+              valueString, attrDesc.getNameOrOID(), e));
         }
 
         pendingCalculatedValue = calculateValue(pendingIntValue, activeUnit, pendingUnit, a);
@@ -902,7 +903,7 @@ public final class IntegerWithUnitConfigAttribute
         if (activeUnit != null)
         {
           // We cannot have multiple active value sets.
-          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getName()));
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(attrDesc.getNameOrOID()));
         }
 
         String valueString = getValue(a);
@@ -914,7 +915,8 @@ public final class IntegerWithUnitConfigAttribute
         }
         catch (Exception e)
         {
-          throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(valueString, a.getName(), e));
+          throw new ConfigException(ERR_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT.get(
+              valueString, attrDesc.getNameOrOID(), e));
         }
 
         activeCalculatedValue = calculateValue(activeIntValue, activeUnit, activeUnit, a);
@@ -945,10 +947,11 @@ public final class IntegerWithUnitConfigAttribute
 
   private String getValue(Attribute a) throws ConfigException
   {
+    AttributeDescription attrDesc = a.getAttributeDescription();
     if (a.isEmpty())
     {
       // This is illegal -- it must have a value.
-      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
+      throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID()));
     }
 
     Iterator<ByteString> iterator = a.iterator();
@@ -956,7 +959,7 @@ public final class IntegerWithUnitConfigAttribute
     if (iterator.hasNext())
     {
       // This is illegal -- the attribute is single-valued.
-      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getName()));
+      throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID()));
     }
     return valueString;
   }
@@ -964,9 +967,10 @@ public final class IntegerWithUnitConfigAttribute
   private long calculateValue(long intValue, String activeUnit, String pendingUnit, Attribute a) throws ConfigException
   {
     // Get the unit and use it to determine the corresponding multiplier.
+    AttributeDescription attrDesc = a.getAttributeDescription();
     if (!units.containsKey(pendingUnit))
     {
-      throw new ConfigException(ERR_CONFIG_ATTR_INVALID_UNIT.get(pendingUnit, a.getName()));
+      throw new ConfigException(ERR_CONFIG_ATTR_INVALID_UNIT.get(pendingUnit, attrDesc.getNameOrOID()));
     }
 
     double multiplier = units.get(activeUnit);
@@ -975,11 +979,11 @@ public final class IntegerWithUnitConfigAttribute
     // Check the bounds set for this attribute.
     if (hasLowerBound && result < lowerBound)
     {
-      throw new ConfigException(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(a.getName(), result, lowerBound));
+      throw new ConfigException(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(attrDesc.getNameOrOID(), result, lowerBound));
     }
     if (hasUpperBound && result > upperBound)
     {
-      throw new ConfigException(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(a.getName(), result, upperBound));
+      throw new ConfigException(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(attrDesc.getNameOrOID(), result, upperBound));
     }
     return result;
   }

@@ -116,7 +116,7 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     Iterator<Attribute> iterator = attributes.iterator();
     while (iterator.hasNext())
     {
-      buffer.append(iterator.next().getName());
+      buffer.append(iterator.next().getAttributeDescription().getNameOrOID());
       if (iterator.hasNext())
       {
         buffer.append(", ");

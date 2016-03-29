@@ -588,7 +588,7 @@ public final class JMXMBean
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
-        attrs.add(new MBeanAttributeInfo(a.getName(), String.class.getName(),
+        attrs.add(new MBeanAttributeInfo(a.getAttributeDescription().getNameOrOID(), String.class.getName(),
                                          null, true, false, false));
       }
     }

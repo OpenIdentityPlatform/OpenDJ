@@ -1054,7 +1054,7 @@ public class Entry
     if (a == null)
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(
-            attribute.getName());
+            attribute.getAttributeDescription().getNameOrOID());
       throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
     }
 
@@ -1063,7 +1063,7 @@ public class Entry
     if (!i.hasNext())
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
-          attribute.getName());
+          attribute.getAttributeDescription().getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -1076,14 +1076,14 @@ public class Entry
     catch (NumberFormatException e)
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
-          attribute.getName());
+          attribute.getAttributeDescription().getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (i.hasNext())
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
-          attribute.getName());
+          attribute.getAttributeDescription().getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -1100,7 +1100,7 @@ public class Entry
       catch (NumberFormatException e)
       {
         LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
-            attribute.getName());
+            attribute.getAttributeDescription().getNameOrOID());
         throw new DirectoryException(
             ResultCode.CONSTRAINT_VIOLATION, message);
       }
@@ -1377,7 +1377,7 @@ public class Entry
         {
           if (!relaxConstraints)
           {
-            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
+            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription().getNameOrOID());
             throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
           }
         }
@@ -1394,7 +1394,7 @@ public class Entry
       {
         if (objectClasses.remove(oc) == null && !relaxConstraints)
         {
-          LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
+          LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription().getNameOrOID());
           throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
         }
       }
@@ -1426,7 +1426,7 @@ public class Entry
       addAttribute(a, duplicateValues);
       if (!duplicateValues.isEmpty() && !relaxConstraints)
       {
-        LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
+        LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription().getNameOrOID());
         throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
       }
       break;
@@ -1436,7 +1436,7 @@ public class Entry
       removeAttribute(a, missingValues);
       if (!missingValues.isEmpty() && !relaxConstraints)
       {
-        LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
+        LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription().getNameOrOID());
         throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
       }
       break;
@@ -4480,7 +4480,7 @@ public class Entry
                 Attribute ocAttr = getObjectClassAttribute();
                 if (ocAttr != null)
                 {
-                  if (!attrName.equals(ocAttr.getName()))
+                  if (!attrName.equals(ocAttr.getAttributeDescription().getNameOrOID()))
                   {
                     // User requested non-default object class type name.
                     AttributeBuilder builder = new AttributeBuilder(ocAttr);
@@ -4546,7 +4546,7 @@ public class Entry
         AttributeDescription subAttrDesc = attribute.getAttributeDescription();
         AttributeType subAttrType = subAttrDesc.getAttributeType();
 
-        if ((attrName != null && !attrName.equals(attribute.getName()))
+        if ((attrName != null && !attrName.equals(attribute.getAttributeDescription().getNameOrOID()))
             || attrDesc.hasOptions())
         {
           AttributeBuilder builder = new AttributeBuilder();
@@ -4557,7 +4557,7 @@ public class Entry
           // want to rename "name" to "cn".
           if (attrName == null || !subAttrType.equals(attrDesc.getAttributeType()))
           {
-            builder.setAttributeType(subAttrType, attribute.getName());
+            builder.setAttributeType(subAttrType, attribute.getAttributeDescription().getNameOrOID());
           }
           else
           {

@@ -290,7 +290,7 @@ public class MockLDAPConnection extends LDAPConnection {
     // We now have the parent entry - so construct the new entry.
     Attributes attributes = new BasicAttributes();
     for (org.opends.server.types.Attribute attribute : entry.getAttributes()) {
-      BasicAttribute ba = new BasicAttribute(attribute.getName());
+      BasicAttribute ba = new BasicAttribute(attribute.getAttributeDescription().getNameOrOID());
       for (ByteString value : attribute) {
         ba.add(value.toString());
       }

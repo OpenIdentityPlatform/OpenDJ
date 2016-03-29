@@ -471,7 +471,7 @@ public class SchemaConfigManager
     {
       if (!isSchemaAttribute(attribute))
       {
-        schema.addExtraAttribute(attribute.getName(), attribute);
+        schema.addExtraAttribute(attribute.getAttributeDescription().getNameOrOID(), attribute);
       }
     }
 

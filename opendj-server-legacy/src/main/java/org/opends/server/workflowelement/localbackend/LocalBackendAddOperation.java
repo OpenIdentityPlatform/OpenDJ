@@ -904,12 +904,12 @@ public class LocalBackendAddOperation
               {
                 // Value is not human-readable
                 message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.
-                    get(entryDN, a.getName(), invalidReason);
+                    get(entryDN, a.getAttributeDescription().getNameOrOID(), invalidReason);
               }
               else
               {
                 message = WARN_ADD_OP_INVALID_SYNTAX.
-                    get(entryDN, v, a.getName(), invalidReason);
+                    get(entryDN, v, a.getAttributeDescription().getNameOrOID(), invalidReason);
               }
 
               switch (DirectoryServer.getSyntaxEnforcementPolicy())

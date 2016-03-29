@@ -933,7 +933,7 @@ public class LDIFReader implements Closeable
     int colonPos = parseColonPosition(lines, line);
     String attrDescr = line.substring(0, colonPos);
     Attribute attribute = parseAttrDescription(attrDescr);
-    String attrName = attribute.getName();
+    String attrName = attribute.getAttributeDescription().getNameOrOID();
 
     if (attributeName != null)
     {
@@ -1299,7 +1299,7 @@ public class LDIFReader implements Closeable
     {
       StringBuilder line = lines.remove();
       Attribute attr = readSingleValueAttribute(lines, line, entryDN, null);
-      String name = attr.getName();
+      String name = attr.getAttributeDescription().getNameOrOID();
 
       // Get the attribute description
       String attrDescr = attr.iterator().next().toString();

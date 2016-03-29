@@ -887,7 +887,7 @@ public class LDIFDiff
       ListIterator<Modification> modIter = modifications.listIterator();
       while (modIter.hasNext())
       {
-        String name = modIter.next().getAttribute().getName().toLowerCase();
+        String name = modIter.next().getAttribute().getAttributeDescription().getNameOrOID().toLowerCase();
         if (ignoreAttrs.contains(name))
         {
             modIter.remove();

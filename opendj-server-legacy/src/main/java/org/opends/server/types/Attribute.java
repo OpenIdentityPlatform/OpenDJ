@@ -119,13 +119,6 @@ public interface Attribute extends Iterable<ByteString>
   AttributeDescription getAttributeDescription();
 
   /**
-   * Retrieves the user-provided name for this attribute.
-   *
-   * @return The user-provided name for this attribute.
-   */
-  String getName();
-
-  /**
    * Indicates whether this attribute has any value(s) that are
    * greater than or equal to the provided value.
    *

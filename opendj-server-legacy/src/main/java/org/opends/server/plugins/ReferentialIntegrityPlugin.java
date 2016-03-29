@@ -43,7 +43,9 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -67,7 +69,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -1149,6 +1150,7 @@ public class ReferentialIntegrityPlugin
   {
     try
     {
+      AttributeDescription attrDesc = attr.getAttributeDescription();
       for (ByteString attrVal : attr)
       {
         DN valueEntryDN = DN.valueOf(attrVal);
@@ -1158,7 +1160,7 @@ public class ReferentialIntegrityPlugin
             && valueEntryDN.isInScopeOf(entryBaseDN, SearchScope.SUBORDINATES))
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attr.getName(), entryDN));
+              ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attrDesc.getNameOrOID(), entryDN));
         }
         valueEntry = DirectoryServer.getEntry(valueEntryDN);
 
@@ -1166,15 +1168,15 @@ public class ReferentialIntegrityPlugin
         if (valueEntry == null)
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(valueEntryDN, attr.getName(), entryDN));
+            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(valueEntryDN, attrDesc.getNameOrOID(), entryDN));
         }
 
         // Verify that the value entry conforms to the filter.
-        SearchFilter filter = attrFiltMap.get(attr.getAttributeDescription().getAttributeType());
+        SearchFilter filter = attrFiltMap.get(attrDesc.getAttributeType());
         if (filter != null && !filter.matchesEntry(valueEntry))
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(valueEntry.getName(), attr.getName(), entryDN, filter));
+            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(valueEntry.getName(), attrDesc.getNameOrOID(), entryDN, filter));
         }
       }
     }

@@ -285,7 +285,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     {
       final org.opends.server.types.Attribute attribute =
         LDIFReader.parseAttrDescription(wholeName);
-      final String attrName = attribute.getName();
+      final String attrName = attribute.getAttributeDescription().getNameOrOID();
 
       // See if this is an objectclass or an attribute.  Then get the
       // corresponding definition and add the value to the appropriate hash.

@@ -83,19 +83,6 @@ public abstract class AbstractAttribute implements Attribute
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * This implementation returns the primary name associated with this
-   * attribute's attribute type or, if there is no primary name, the
-   * attribute type's OID.
-   */
-  @Override
-  public String getName()
-  {
-    return getAttributeDescription().getNameOrOID();
-  }
-
   @Override
   public int hashCode()
   {

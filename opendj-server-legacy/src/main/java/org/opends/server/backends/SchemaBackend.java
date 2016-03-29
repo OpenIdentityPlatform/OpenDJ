@@ -925,9 +925,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           else
           {
             LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                message);
+                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription().getNameOrOID());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
 
           break;
@@ -937,9 +936,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           if (a.isEmpty())
           {
             LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getName());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                message);
+                ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getAttributeDescription().getNameOrOID());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
 
           if (at.equals(attributeTypesType))
@@ -1084,9 +1082,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           else
           {
             LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getName());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                message);
+                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription().getNameOrOID());
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
 
           break;
@@ -1181,8 +1178,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
       LocalizableMessage message =
           ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
     finally
     {

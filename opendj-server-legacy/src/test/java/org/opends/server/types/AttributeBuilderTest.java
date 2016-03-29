@@ -1041,7 +1041,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getName(), "cn");
+    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "cn");
   }
 
 
@@ -1061,7 +1061,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getName(), "cn");
+    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "cn");
   }
 
 
@@ -1081,7 +1081,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getName(), "CN");
+    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "CN");
   }
 
 
@@ -1102,7 +1102,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getName(), "CN");
+    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "CN");
   }
 
 
@@ -1301,7 +1301,7 @@ public class AttributeBuilderTest extends TypesTestCase
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    Assert.assertEquals(a.getName(), name);
+    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), name);
   }
 
 
