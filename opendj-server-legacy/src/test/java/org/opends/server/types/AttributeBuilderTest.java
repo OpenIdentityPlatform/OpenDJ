@@ -722,20 +722,6 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertFalse(builder.containsAll(Arrays.asList(av1, av2, av3)));
   }
 
-
-
-  /**
-   * Tests {@link AttributeBuilder#getAttributeType()}.
-   */
-  @Test
-  public void testAttributeBuilderGetAttributeType() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder(cnType);
-    Assert.assertEquals(builder.getAttributeType(), cnType);
-  }
-
-
-
   /**
    * Tests {@link AttributeBuilder#toAttribute()} throws
    * IllegalStateException after default constructor.
@@ -1023,89 +1009,6 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertEquals(a.size(), 1);
     Assert.assertTrue(a.contains(ByteString.valueOfUtf8("value4")));
   }
-
-
-
-  /**
-   * Tests {@link AttributeBuilder#setAttributeType(AttributeType)}.
-   */
-  @Test
-  public void testAttributeBuilderSetAttributeType1() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder();
-
-    Assert.assertNull(builder.getAttributeType());
-
-    builder.setAttributeType(cnType);
-    Assert.assertEquals(builder.getAttributeType(), cnType);
-
-    Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "cn");
-  }
-
-
-
-  /**
-   * Tests {@link AttributeBuilder#setAttributeType(String)}.
-   */
-  @Test
-  public void testAttributeBuilderSetAttributeType2() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder();
-
-    Assert.assertNull(builder.getAttributeType());
-
-    builder.setAttributeType("cn");
-    Assert.assertEquals(builder.getAttributeType(), cnType);
-
-    Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "cn");
-  }
-
-
-
-  /**
-   * Tests {@link AttributeBuilder#setAttributeType(String)}.
-   */
-  @Test
-  public void testAttributeBuilderSetAttributeType3() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder();
-
-    Assert.assertNull(builder.getAttributeType());
-
-    builder.setAttributeType("CN");
-    Assert.assertEquals(builder.getAttributeType(), cnType);
-
-    Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "CN");
-  }
-
-
-
-  /**
-   * Tests
-   * {@link AttributeBuilder#setAttributeType(AttributeType, String)}.
-   */
-  @Test
-  public void testAttributeBuilderSetAttributeType4() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder();
-
-    Assert.assertNull(builder.getAttributeType());
-
-    builder.setAttributeType(cnType, "CN");
-    Assert.assertEquals(builder.getAttributeType(), cnType);
-
-    Attribute a = builder.toAttribute();
-    Assert.assertEquals(a.getAttributeDescription().getAttributeType(), cnType);
-    Assert.assertEquals(a.getAttributeDescription().getNameOrOID(), "CN");
-  }
-
-
 
   /**
    * Tests {@link AttributeBuilder#setOptions(java.util.Collection)}.

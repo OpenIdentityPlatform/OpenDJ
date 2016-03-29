@@ -42,6 +42,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -2454,7 +2455,7 @@ public final class Schema
                                 builder.toAttribute()));
     }
 
-    builder.setAttributeType(elementType);
+    builder.setAttributeDescription(AttributeDescription.create(elementType));
     for (String s : newElements)
     {
       if (!oldElements.contains(s))

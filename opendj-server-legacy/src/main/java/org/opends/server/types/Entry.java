@@ -3565,8 +3565,7 @@ public class Entry
         entryBuffer.skip(1);
 
         AttributeDescription attrDesc = AttributeDescription.valueOf(name);
-        builder.setAttributeType(attrDesc.getAttributeType(), attrDesc.getNameOrOID());
-        builder.setOptions(attrDesc.getOptions());
+        builder.setAttributeDescription(attrDesc);
 
         // Next, we have the number of values.
         int numValues = entryBuffer.readBERLength();
@@ -3594,8 +3593,6 @@ public class Entry
 
     return attributes;
   }
-
-
 
   /**
    * Retrieves a list of the lines for this entry in LDIF form.  Long
@@ -4484,7 +4481,7 @@ public class Entry
                   {
                     // User requested non-default object class type name.
                     AttributeBuilder builder = new AttributeBuilder(ocAttr);
-                    builder.setAttributeType(ocType, attrName);
+                    builder.setAttributeDescription(AttributeDescription.create(attrName, ocType));
                     ocAttr = builder.toAttribute();
                   }
 
@@ -4531,10 +4528,11 @@ public class Entry
     final String attrName = attrDesc.getNameOrOID();
     for (Attribute attribute : sourceList)
     {
+      AttributeDescription subAttrDesc = attribute.getAttributeDescription();
       if (attribute.isEmpty()
           || (omitReal && attribute.isReal())
           || (omitVirtual && attribute.isVirtual())
-          || !attribute.getAttributeDescription().isSubTypeOf(attrDesc))
+          || !subAttrDesc.isSubTypeOf(attrDesc))
       {
         continue;
       }
@@ -4543,32 +4541,32 @@ public class Entry
         // If a non-default attribute name was provided or if the
         // attribute has options then we will need to rebuild the
         // attribute so that it contains the user-requested names and options.
-        AttributeDescription subAttrDesc = attribute.getAttributeDescription();
-        AttributeType subAttrType = subAttrDesc.getAttributeType();
+        final AttributeType subAttrType = subAttrDesc.getAttributeType();
 
-        if ((attrName != null && !attrName.equals(attribute.getAttributeDescription().getNameOrOID()))
+        if ((attrName != null && !attrName.equals(subAttrDesc.getNameOrOID()))
             || attrDesc.hasOptions())
         {
-          AttributeBuilder builder = new AttributeBuilder();
-
           // We want to use the user-provided name only if this attribute has
           // the same type as the requested type. This might not be the case for
           // sub-types e.g. requesting "name" and getting back "cn" - we don't
           // want to rename "name" to "cn".
-          if (attrName == null || !subAttrType.equals(attrDesc.getAttributeType()))
+          AttributeType attrType = attrDesc.getAttributeType();
+          AttributeDescription newAttrDesc;
+          if (attrName == null || !subAttrType.equals(attrType))
           {
-            builder.setAttributeType(subAttrType, attribute.getAttributeDescription().getNameOrOID());
+            newAttrDesc = AttributeDescription.create(subAttrDesc.getNameOrOID(), subAttrDesc.getAttributeType());
           }
           else
           {
-            builder.setAttributeType(subAttrType, attrName);
+            newAttrDesc = AttributeDescription.create(attrName, subAttrDesc.getAttributeType());
           }
+          AttributeBuilder builder = new AttributeBuilder(newAttrDesc);
 
           builder.setOptions(attrDesc.getOptions());
 
           // Now add in remaining options from original attribute
           // (this will not overwrite options already present).
-          builder.setOptions(attribute.getAttributeDescription().getOptions());
+          builder.setOptions(subAttrDesc.getOptions());
 
           if (!omitValues)
           {

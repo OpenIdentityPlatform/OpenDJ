@@ -16,8 +16,6 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,8 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
@@ -39,7 +35,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute.RemoveOnceSwitchingAttributes;
 import org.opends.server.util.CollectionUtils;
 
@@ -174,7 +169,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     @Override
     public final boolean contains(ByteString value)
     {
-      return values.contains(createAttributeValue(getAttributeType(), value));
+      return values.contains(createAttributeValue(attributeDescription, value));
     }
 
     @Override
@@ -623,7 +618,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   private static final class AttributeValue
   {
-    private final AttributeType attributeType;
+    private final AttributeDescription attributeDescription;
 
     /** User-provided value. */
     private final ByteString value;
@@ -634,14 +629,14 @@ public final class AttributeBuilder implements Iterable<ByteString>
     /**
      * Construct a new attribute value.
      *
-     * @param attributeType
-     *          The attribute type.
+     * @param attributeDescription
+     *          The attribute description.
      * @param value
      *          The value of the attribute.
      */
-    private AttributeValue(AttributeType attributeType, ByteString value)
+    private AttributeValue(AttributeDescription attributeDescription, ByteString value)
     {
-      this.attributeType = attributeType;
+      this.attributeDescription = attributeDescription;
       this.value = value;
     }
 
@@ -654,7 +649,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     {
       if (normalizedValue == null)
       {
-        normalizedValue = normalize(attributeType, value);
+        normalizedValue = normalize(attributeDescription, value);
       }
       return normalizedValue;
     }
@@ -757,14 +752,8 @@ public final class AttributeBuilder implements Iterable<ByteString>
     return builder.toAttribute();
   }
 
-  /** The attribute type for this attribute. */
-  private AttributeType attributeType;
-  /** The name of this attribute as provided by the end user. */
-  private String name;
-  /** The normalized set of options if there are more than one. */
-  private SortedSet<String> normalizedOptions;
-  /** The set of options. */
-  private final SmallSet<String> options = new SmallSet<>();
+  /** The attribute description for this attribute. */
+  private AttributeDescription attributeDescription;
   /** The set of attribute values, which are lazily normalized. */
   private Set<AttributeValue> values = new SmallSet<>();
 
@@ -804,8 +793,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(AttributeDescription attributeDescription)
   {
-    this(attributeDescription.getAttributeType(), attributeDescription.getNameOrOID());
-    setOptions(attributeDescription.getOptions());
+    this.attributeDescription = attributeDescription;
   }
 
   /**
@@ -835,8 +823,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
   {
     Reject.ifNull(attributeType, name);
 
-    this.attributeType = attributeType;
-    this.name = name;
+    this.attributeDescription = AttributeDescription.create(name, attributeType);
   }
 
 
@@ -853,7 +840,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(String attributeName)
   {
-    this(DirectoryServer.getAttributeType(attributeName), attributeName);
+    this(AttributeDescription.valueOf(attributeName));
   }
 
 
@@ -887,7 +874,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public boolean add(ByteString attributeValue)
   {
-    AttributeValue value = createAttributeValue(attributeType, attributeValue);
+    AttributeValue value = createAttributeValue(attributeDescription, attributeValue);
     boolean isNewValue = values.add(value);
     if (!isNewValue)
     {
@@ -901,18 +888,19 @@ public final class AttributeBuilder implements Iterable<ByteString>
   }
 
   /** Creates an attribute value with delayed normalization. */
-  private static AttributeValue createAttributeValue(AttributeType attributeType, ByteString attributeValue)
+  private static AttributeValue createAttributeValue(AttributeDescription attributeDescription,
+      ByteString attributeValue)
   {
-    return new AttributeValue(attributeType, attributeValue);
+    return new AttributeValue(attributeDescription, attributeValue);
   }
 
-  private static ByteString normalize(AttributeType attributeType, ByteString attributeValue)
+  private static ByteString normalize(AttributeDescription attributeDescription, ByteString attributeValue)
   {
     try
     {
-      if (attributeType != null)
+      if (attributeDescription != null)
       {
-        final MatchingRule eqRule = attributeType.getEqualityMatchingRule();
+        final MatchingRule eqRule = attributeDescription.getAttributeType().getEqualityMatchingRule();
         return eqRule.normalizeAttributeValue(attributeValue);
       }
     }
@@ -1001,7 +989,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public boolean contains(ByteString value)
   {
-    return values.contains(createAttributeValue(attributeType, value));
+    return values.contains(createAttributeValue(attributeDescription, value));
   }
 
   /**
@@ -1026,21 +1014,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
     }
     return true;
   }
-
-
-
-  /**
-   * Retrieves the attribute type for this attribute builder.
-   *
-   * @return The attribute type for this attribute builder, or
-   *         <code>null</code> if one has not yet been specified.
-   */
-  public AttributeType getAttributeType()
-  {
-    return attributeType;
-  }
-
-
 
   /**
    * Returns <code>true</code> if this attribute builder contains no
@@ -1085,7 +1058,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public boolean remove(ByteString value)
   {
-    return values.remove(createAttributeValue(attributeType, value));
+    return values.remove(createAttributeValue(attributeDescription, value));
   }
 
   /**
@@ -1208,55 +1181,15 @@ public final class AttributeBuilder implements Iterable<ByteString>
     addAll(values);
   }
 
-
-
   /**
-   * Sets the attribute type associated with this attribute builder.
+   * Sets the attribute description associated with this attribute builder.
    *
-   * @param attributeType
-   *          The attribute type for this attribute builder.
+   * @param attrDesc
+   *          The attribute description for this attribute builder.
    */
-  public void setAttributeType(AttributeType attributeType)
+  void setAttributeDescription(AttributeDescription attrDesc)
   {
-    setAttributeType(attributeType, attributeType.getNameOrOID());
-  }
-
-
-
-  /**
-   * Sets the attribute type and user-provided name associated with
-   * this attribute builder.
-   *
-   * @param attributeType
-   *          The attribute type for this attribute builder.
-   * @param name
-   *          The user-provided name for this attribute builder.
-   */
-  public void setAttributeType(
-      AttributeType attributeType,
-      String name)
-  {
-    Reject.ifNull(attributeType, name);
-
-    this.attributeType = attributeType;
-    this.name = name;
-  }
-
-
-
-  /**
-   * Sets the attribute type associated with this attribute builder
-   * using the provided attribute type name.
-   * <p>
-   * If the attribute name cannot be found in the schema, a new
-   * attribute type is created using the default attribute syntax.
-   *
-   * @param attributeName
-   *          The attribute name for this attribute builder.
-   */
-  public void setAttributeType(String attributeName)
-  {
-    setAttributeType(DirectoryServer.getAttributeType(attributeName), attributeName);
+    attributeDescription = attrDesc;
   }
 
   /**
@@ -1270,29 +1203,13 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public boolean setOption(String option)
   {
-    switch (options.size())
+    AttributeDescription newAD = attributeDescription.withOption(option);
+    if (attributeDescription != newAD)
     {
-    case 0:
-      return options.add(option);
-    case 1:
-      // Normalize and add the first option to normalized set.
-      normalizedOptions = new TreeSet<>();
-      normalizedOptions.add(toLowerCase(options.firstElement));
-
-      if (normalizedOptions.add(toLowerCase(option)))
-      {
-        options.add(option);
-        return true;
-      }
-      return false;
-    default:
-      if (normalizedOptions.add(toLowerCase(option)))
-      {
-        options.add(option);
-        return true;
-      }
-      return false;
+      attributeDescription = newAD;
+      return true;
     }
+    return false;
   }
 
 
@@ -1397,7 +1314,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public Attribute toAttribute() throws IllegalStateException
   {
-    if (attributeType == null)
+    if (attributeDescription == null)
     {
       throw new IllegalStateException("Undefined attribute type or name");
     }
@@ -1406,10 +1323,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
     Attribute attribute = toAttribute0();
 
     // Reset the state of this builder.
-    attributeType = null;
-    name = null;
-    normalizedOptions = null;
-    options.clear();
+    attributeDescription = null;
     values = new SmallSet<>();
 
     return attribute;
@@ -1417,20 +1331,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
 
   private Attribute toAttribute0()
   {
-    return new RealAttribute(toAttributeDescription(name), values);
-  }
-
-  private AttributeDescription toAttributeDescription(String name)
-  {
-    switch (options.size())
-    {
-    case 0:
-      return AttributeDescription.create(name, attributeType);
-    case 1:
-      return AttributeDescription.create(name, attributeType, options.firstElement);
-    default:
-      return AttributeDescription.create(name, attributeType, options.elements);
-    }
+    return new RealAttribute(attributeDescription, values);
   }
 
   /**
@@ -1454,18 +1355,10 @@ public final class AttributeBuilder implements Iterable<ByteString>
   {
     StringBuilder builder = new StringBuilder();
     builder.append("AttributeBuilder(");
-    builder.append(name);
-
-    for (String option : options)
-    {
-      builder.append(';');
-      builder.append(option);
-    }
-
+    builder.append(attributeDescription);
     builder.append(", {");
     Utils.joinAsString(builder, ", ", values);
     builder.append("})");
-
     return builder.toString();
   }
 }
