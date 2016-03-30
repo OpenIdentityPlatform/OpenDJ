@@ -23,18 +23,30 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.assertj.core.api.Assertions;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -315,10 +327,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       {
         final Attribute expectedAttr = expectedAttrs.get(i);
         final Attribute actualAttr = actualAttrs.get(i).toAttribute();
-
-        assertTrue(expectedAttr.getAttributeDescription().getNameOrOID().equalsIgnoreCase(actualAttr.getAttributeDescription().getNameOrOID()));
-        assertTrue(expectedAttr.toString().equalsIgnoreCase(actualAttr.toString()),
-            "Comparing: " + expectedAttr + " and " + actualAttr);
+        assertThat(expectedAttr.getAttributeDescription()).isEqualTo(actualAttr.getAttributeDescription());
+        assertThat(expectedAttr.toString()).isEqualToIgnoringCase(actualAttr.toString());
       }
     }
   }

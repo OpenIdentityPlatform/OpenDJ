@@ -805,7 +805,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(AttributeType attributeType)
   {
-    this(attributeType, attributeType.getNameOrOID());
+    this(AttributeDescription.create(attributeType));
   }
 
 

@@ -554,10 +554,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     {
       final Attribute expectedAttr = expectedAttrs.get(i);
       final Attribute actualAttr = actualAttrs.get(i).toAttribute();
-
-      assertTrue(expectedAttr.getAttributeDescription().getNameOrOID().equalsIgnoreCase(actualAttr.getAttributeDescription().getNameOrOID()));
-      assertTrue(expectedAttr.toString().equalsIgnoreCase(actualAttr.toString()),
-          "Comparing: " + expectedAttr + " and " + actualAttr);
+      Assertions.assertThat(expectedAttr.getAttributeDescription()).isEqualTo(actualAttr.getAttributeDescription());
+      Assertions.assertThat(expectedAttr.toString()).isEqualToIgnoringCase(actualAttr.toString());
     }
   }
 

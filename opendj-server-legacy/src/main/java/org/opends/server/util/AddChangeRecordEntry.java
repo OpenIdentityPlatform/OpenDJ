@@ -24,9 +24,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.types.Attribute;
 
 
 
@@ -76,19 +76,11 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     }
   }
 
-
-
-  /**
-   * Retrieves the name of the change operation type.
-   *
-   * @return  The name of the change operation type.
-   */
+  @Override
   public ChangeOperationType getChangeOperationType()
   {
     return ChangeOperationType.ADD;
   }
-
-
 
   /**
    * Retrieves the entire set of attributes for this entry.
@@ -102,9 +94,6 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     return Collections.unmodifiableList(attributes);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -116,7 +105,7 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     Iterator<Attribute> iterator = attributes.iterator();
     while (iterator.hasNext())
     {
-      buffer.append(iterator.next().getAttributeDescription().getNameOrOID());
+      buffer.append(iterator.next().getAttributeDescription());
       if (iterator.hasNext())
       {
         buffer.append(", ");
@@ -127,4 +116,3 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
     return buffer.toString();
   }
 }
-

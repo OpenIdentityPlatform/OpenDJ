@@ -33,8 +33,18 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ServerContext;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -415,7 +425,7 @@ public final class TextAuditLogPublisher extends
       }
 
       Attribute a = mod.getAttribute();
-      buffer.append(a.getAttributeDescription().getNameOrOID());
+      buffer.append(a.getAttributeDescription());
       buffer.append(EOL);
 
       append(buffer, a);
@@ -428,7 +438,7 @@ public final class TextAuditLogPublisher extends
   {
     for (ByteString v : a)
     {
-      buffer.append(a.getAttributeDescription().getNameOrOID());
+      buffer.append(a.getAttributeDescription());
       buffer.append(":");
       encodeValue(v, buffer);
       buffer.append(EOL);
