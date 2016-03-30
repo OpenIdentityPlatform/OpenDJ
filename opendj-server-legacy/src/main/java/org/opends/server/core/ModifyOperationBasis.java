@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -28,8 +29,19 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
@@ -197,25 +209,24 @@ public class ModifyOperationBasis
         {
            Modification mod = m.toModification();
            Attribute attr = mod.getAttribute();
-           AttributeType type = attr.getAttributeDescription().getAttributeType();
+           AttributeDescription attrDesc = attr.getAttributeDescription();
 
-           boolean hasBinaryOption = attr.getAttributeDescription().hasOption("binary");
-           if (type.getSyntax().isBEREncodingRequired())
+           boolean hasBinaryOption = attrDesc.hasOption("binary");
+           if (attrDesc.getAttributeType().getSyntax().isBEREncodingRequired())
            {
              if (!hasBinaryOption)
              {
                //A binary option wasn't provided by the client so add it.
                AttributeBuilder builder = new AttributeBuilder(attr);
                builder.setOption("binary");
-               attr = builder.toAttribute();
-               mod.setAttribute(attr);
+               mod.setAttribute(builder.toAttribute());
              }
            }
            else if (hasBinaryOption)
            {
              // binary option is not honored for non-BER-encodable attributes.
              throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                 ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getAttributeDescription().getNameOrOID()));
+                 ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attrDesc));
            }
 
            modifications.add(mod);

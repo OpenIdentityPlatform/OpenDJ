@@ -707,7 +707,7 @@ public class LocalBackendModifyOperation
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
-            ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(entryDN, attrDesc.getNameOrOID()));
+            ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(entryDN, attrDesc));
       }
 
       // If the attribute type is marked "OBSOLETE" and the modification is
@@ -720,7 +720,7 @@ public class LocalBackendModifyOperation
       {
         throw newDirectoryException(currentEntry,
             ResultCode.CONSTRAINT_VIOLATION,
-            ERR_MODIFY_ATTR_IS_OBSOLETE.get(entryDN, attrDesc.getNameOrOID()));
+            ERR_MODIFY_ATTR_IS_OBSOLETE.get(entryDN, attrDesc));
       }
 
 
@@ -826,7 +826,7 @@ public class LocalBackendModifyOperation
     default:
       AttributeDescription attrDesc = m.getAttribute().getAttributeDescription();
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-          ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(m.getModificationType(), attrDesc.getNameOrOID()));
+          ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(m.getModificationType(), attrDesc));
     }
   }
 
@@ -1142,7 +1142,7 @@ public class LocalBackendModifyOperation
     if (attr.isEmpty())
     {
       throw newDirectoryException(currentEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_ADD_NO_VALUES.get(entryDN, attrDesc.getNameOrOID()));
+          ERR_MODIFY_ADD_NO_VALUES.get(entryDN, attrDesc));
     }
 
     if (mustCheckSchema())
@@ -1168,7 +1168,7 @@ public class LocalBackendModifyOperation
 
       throw newDirectoryException(currentEntry,
           ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(entryDN, attrDesc.getNameOrOID(), duplicateValuesStr));
+          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(entryDN, attrDesc, duplicateValuesStr));
     }
   }
 
@@ -1198,8 +1198,8 @@ public class LocalBackendModifyOperation
       if (!syntax.valueIsAcceptable(v, invalidReason))
       {
         LocalizableMessage msg = isHumanReadable(syntax)
-            ? invalidSyntaxErrorMsg.get(entryDN, attrDesc.getNameOrOID(), v, invalidReason)
-            : invalidSyntaxNoValueErrorMsg.get(entryDN, attrDesc.getNameOrOID(), invalidReason);
+            ? invalidSyntaxErrorMsg.get(entryDN, attrDesc, v, invalidReason)
+            : invalidSyntaxNoValueErrorMsg.get(entryDN, attrDesc, invalidReason);
 
         switch (syntaxPolicy)
         {
@@ -1303,7 +1303,7 @@ public class LocalBackendModifyOperation
         {
           throw newDirectoryException(currentEntry,
               ResultCode.NOT_ALLOWED_ON_RDN,
-              ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attrDesc.getNameOrOID()));
+              ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attrDesc));
         }
       }
       else if (!permissiveModify)
@@ -1311,13 +1311,13 @@ public class LocalBackendModifyOperation
         String missingValuesStr = Utils.joinAsString(", ", missingValues);
 
         throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
-            ERR_MODIFY_DELETE_MISSING_VALUES.get(entryDN, attrDesc.getNameOrOID(), missingValuesStr));
+            ERR_MODIFY_DELETE_MISSING_VALUES.get(entryDN, attrDesc, missingValuesStr));
       }
     }
     else if (!permissiveModify)
     {
       throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
-          ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(entryDN, attrDesc.getNameOrOID()));
+          ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(entryDN, attrDesc));
     }
   }
 
@@ -1357,7 +1357,7 @@ public class LocalBackendModifyOperation
         && !modifiedEntry.hasValue(attr.getAttributeDescription(), rdn.getAttributeValue(t)))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getAttributeDescription().getNameOrOID()));
+          ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getAttributeDescription()));
     }
   }
 
@@ -1378,19 +1378,19 @@ public class LocalBackendModifyOperation
     if (rdn != null && rdn.hasAttributeType(t))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_INCREMENT_RDN.get(entryDN, attrDesc.getNameOrOID()));
+          ERR_MODIFY_INCREMENT_RDN.get(entryDN, attrDesc));
     }
 
     // The provided attribute must have a single value, and it must be an integer
     if (attr.isEmpty())
     {
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(entryDN, attrDesc.getNameOrOID()));
+          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(entryDN, attrDesc));
     }
     else if (attr.size() > 1)
     {
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attrDesc.getNameOrOID()));
+          ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attrDesc));
     }
 
     MatchingRule eqRule = t.getEqualityMatchingRule();
@@ -1407,7 +1407,7 @@ public class LocalBackendModifyOperation
       logger.traceException(e);
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(entryDN, attrDesc.getNameOrOID(), v), e);
+          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(entryDN, attrDesc, v), e);
     }
 
     // Get the attribute that is to be incremented.
@@ -1416,7 +1416,7 @@ public class LocalBackendModifyOperation
     {
       throw newDirectoryException(modifiedEntry,
           ResultCode.CONSTRAINT_VIOLATION,
-          ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(entryDN, attrDesc.getNameOrOID()));
+          ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(entryDN, attrDesc));
     }
 
     // Increment each attribute value by the specified amount.
@@ -1435,7 +1435,7 @@ public class LocalBackendModifyOperation
 
         throw new DirectoryException(
             ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(entryDN, modifiedAttrDesc.getNameOrOID(), existingValue),
+            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(entryDN, modifiedAttrDesc, existingValue),
             e);
       }
 

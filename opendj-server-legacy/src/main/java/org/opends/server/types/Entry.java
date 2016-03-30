@@ -1053,8 +1053,7 @@ public class Entry
     Attribute a = getExactAttribute(attribute.getAttributeDescription());
     if (a == null)
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(
-            attribute.getAttributeDescription().getNameOrOID());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(attribute.getAttributeDescription());
       throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
     }
 
@@ -1062,28 +1061,16 @@ public class Entry
     Iterator<ByteString> i = attribute.iterator();
     if (!i.hasNext())
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
-          attribute.getAttributeDescription().getNameOrOID());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(attribute.getAttributeDescription());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     String incrementValue = i.next().toString();
-    long increment;
-    try
-    {
-      increment = Long.parseLong(incrementValue);
-    }
-    catch (NumberFormatException e)
-    {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
-          attribute.getAttributeDescription().getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
+    long increment = parseLong(incrementValue, attribute);
 
     if (i.hasNext())
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
-          attribute.getAttributeDescription().getNameOrOID());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(attribute.getAttributeDescription());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -1092,19 +1079,7 @@ public class Entry
 
     for (ByteString v : a)
     {
-      long currentValue;
-      try
-      {
-        currentValue = Long.parseLong(v.toString());
-      }
-      catch (NumberFormatException e)
-      {
-        LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
-            attribute.getAttributeDescription().getNameOrOID());
-        throw new DirectoryException(
-            ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-
+      long currentValue = parseLong(v.toString(), attribute);
       long newValue = currentValue + increment;
       builder.add(String.valueOf(newValue));
     }
@@ -1112,6 +1087,18 @@ public class Entry
     replaceAttribute(builder.toAttribute());
   }
 
+  private long parseLong(String value, Attribute attribute) throws DirectoryException
+  {
+    try
+    {
+      return Long.parseLong(value);
+    }
+    catch (NumberFormatException e)
+    {
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(attribute.getAttributeDescription());
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+    }
+  }
 
 
   /**
@@ -1377,7 +1364,7 @@ public class Entry
         {
           if (!relaxConstraints)
           {
-            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription().getNameOrOID());
+            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription());
             throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
           }
         }
@@ -1394,7 +1381,7 @@ public class Entry
       {
         if (objectClasses.remove(oc) == null && !relaxConstraints)
         {
-          LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription().getNameOrOID());
+          LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription());
           throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
         }
       }
@@ -1426,7 +1413,7 @@ public class Entry
       addAttribute(a, duplicateValues);
       if (!duplicateValues.isEmpty() && !relaxConstraints)
       {
-        LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription().getNameOrOID());
+        LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription());
         throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
       }
       break;
@@ -1436,7 +1423,7 @@ public class Entry
       removeAttribute(a, missingValues);
       if (!missingValues.isEmpty() && !relaxConstraints)
       {
-        LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription().getNameOrOID());
+        LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription());
         throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
       }
       break;
@@ -4443,7 +4430,7 @@ public class Entry
           for (Map.Entry<AttributeType, List<Attribute>> e : userAttributes.entrySet())
           {
             AttributeType t = e.getKey();
-            if (t.hasNameOrOID(attrName))
+            if (t.hasNameOrOID(attrType.getNameOrOID()))
             {
               mergeAttributeLists(e.getValue(), userAttrsCopy, attrDesc,
                   omitValues, omitReal, omitVirtual);
@@ -4454,7 +4441,7 @@ public class Entry
           for (Map.Entry<AttributeType, List<Attribute>> e : operationalAttributes.entrySet())
           {
             AttributeType t = e.getKey();
-            if (t.hasNameOrOID(attrName))
+            if (t.hasNameOrOID(attrType.getNameOrOID()))
             {
               mergeAttributeLists(e.getValue(), operationalAttrsCopy, attrDesc,
                  omitValues, omitReal, omitVirtual);

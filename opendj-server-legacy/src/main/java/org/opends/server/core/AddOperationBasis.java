@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -289,7 +290,8 @@ public class AddOperationBasis
         try
         {
           Attribute attr = a.toAttribute();
-          AttributeType attrType = attr.getAttributeDescription().getAttributeType();
+          AttributeDescription attrDesc = attr.getAttributeDescription();
+          AttributeType attrType = attrDesc.getAttributeType();
 
           // If the attribute type is marked "NO-USER-MODIFICATION" then fail
           // unless this is an internal operation or is related to
@@ -299,11 +301,11 @@ public class AddOperationBasis
               && !isSynchronizationOperation())
           {
             throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
-                ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attr.getAttributeDescription().getNameOrOID()));
+                ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attrDesc));
           }
 
-          boolean hasBinaryOption = attr.getAttributeDescription().hasOption("binary");
-          if(attrType.getSyntax().isBEREncodingRequired())
+          boolean hasBinaryOption = attrDesc.hasOption("binary");
+          if (attrType.getSyntax().isBEREncodingRequired())
           {
             if (!hasBinaryOption)
             {
@@ -317,7 +319,7 @@ public class AddOperationBasis
           {
             // binary option is not honored for non-BER-encodable attributes.
             throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getAttributeDescription().getNameOrOID()));
+                ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attrDesc));
           }
 
           if (attrType.isObjectClass())
@@ -325,8 +327,7 @@ public class AddOperationBasis
             for (ByteString os : a.getValues())
             {
               String ocName = os.toString();
-              ObjectClass oc =
-                DirectoryServer.getObjectClass(toLowerCase(ocName));
+              ObjectClass oc = DirectoryServer.getObjectClass(toLowerCase(ocName));
               if (oc == null)
               {
                 oc = DirectoryServer.getDefaultObjectClass(ocName);
@@ -361,7 +362,7 @@ public class AddOperationBasis
               boolean attributeSeen = false;
               for (int i = 0; i < attrs.size(); i++) {
                 Attribute ea = attrs.get(i);
-                if (ea.getAttributeDescription().equals(attr.getAttributeDescription()))
+                if (ea.getAttributeDescription().equals(attrDesc))
                 {
                   AttributeBuilder builder = new AttributeBuilder(ea);
                   builder.addAll(attr);

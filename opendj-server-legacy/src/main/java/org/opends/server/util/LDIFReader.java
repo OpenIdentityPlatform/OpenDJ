@@ -930,24 +930,21 @@ public class LDIFReader implements Closeable
   {
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
-    String attrDescr = line.substring(0, colonPos);
-    AttributeDescription attrDesc = parseAttrDescription(attrDescr);
-    String attrName = attrDesc.getNameOrOID();
+    String attrDescStr = line.substring(0, colonPos);
+    AttributeDescription attrDesc = parseAttrDescription(attrDescStr);
 
     if (attributeName != null)
     {
       AttributeDescription expectedAttrDesc = parseAttrDescription(attributeName);
       if (!attrDesc.equals(expectedAttrDesc))
       {
-        LocalizableMessage message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE.get(
-            attrDescr, attributeName);
+        LocalizableMessage message = ERR_LDIF_INVALID_CHANGERECORD_ATTRIBUTE.get(attrDescStr, attributeName);
         throw new LDIFException(message, lastEntryLineNumber, false);
       }
     }
 
     //  Now parse the attribute value.
-    ByteString value = parseSingleValue(lines, line, entryDN,
-        colonPos, attrName);
+    ByteString value = parseSingleValue(lines, line, entryDN, colonPos, attrDescStr);
 
     AttributeBuilder builder = new AttributeBuilder(attrDesc);
     builder.add(value);
@@ -1268,39 +1265,15 @@ public class LDIFReader implements Closeable
     {
       StringBuilder line = lines.remove();
       Attribute attr = readSingleValueAttribute(lines, line, entryDN, null);
-      String name = attr.getAttributeDescription().getNameOrOID();
 
       // Get the attribute description
-      String attrDescr = attr.iterator().next().toString();
+      String attrDescStr = attr.iterator().next().toString();
 
-      ModificationType modType;
-      String lowerName = toLowerCase(name);
-      if (lowerName.equals("add"))
-      {
-        modType = ModificationType.ADD;
-      }
-      else if (lowerName.equals("delete"))
-      {
-        modType = ModificationType.DELETE;
-      }
-      else if (lowerName.equals("replace"))
-      {
-        modType = ModificationType.REPLACE;
-      }
-      else if (lowerName.equals("increment"))
-      {
-        modType = ModificationType.INCREMENT;
-      }
-      else
-      {
-        // Invalid attribute name.
-        LocalizableMessage message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(name,
-            "add, delete, replace, increment");
-        throw new LDIFException(message, lineNumber, true);
-      }
+      String name = attr.getAttributeDescription().getAttributeType().getNameOrOID();
+      ModificationType modType = toModType(name);
 
       // Now go through the rest of the attributes till the "-" line is reached.
-      AttributeDescription modAttrDesc = LDIFReader.parseAttrDescription(attrDescr);
+      AttributeDescription modAttrDesc = LDIFReader.parseAttrDescription(attrDescStr);
       AttributeBuilder builder = new AttributeBuilder(modAttrDesc);
       while (! lines.isEmpty())
       {
@@ -1309,19 +1282,42 @@ public class LDIFReader implements Closeable
         {
           break;
         }
-        Attribute a = readSingleValueAttribute(lines, line, entryDN, attrDescr);
-        builder.addAll(a);
+        builder.addAll(readSingleValueAttribute(lines, line, entryDN, attrDescStr));
       }
 
       LDAPAttribute ldapAttr = new LDAPAttribute(builder.toAttribute());
-      LDAPModification mod = new LDAPModification(modType, ldapAttr);
-      modifications.add(mod);
+      modifications.add(new LDAPModification(modType, ldapAttr));
     }
 
     return new ModifyChangeRecordEntry(entryDN, modifications);
   }
 
 
+  private ModificationType toModType(String name) throws LDIFException
+  {
+    if ("add".equalsIgnoreCase(name))
+    {
+      return ModificationType.ADD;
+    }
+    else if ("delete".equalsIgnoreCase(name))
+    {
+      return ModificationType.DELETE;
+    }
+    else if ("replace".equalsIgnoreCase(name))
+    {
+      return ModificationType.REPLACE;
+    }
+    else if ("increment".equalsIgnoreCase(name))
+    {
+      return ModificationType.INCREMENT;
+    }
+    else
+    {
+      // Invalid attribute name.
+      LocalizableMessage message = ERR_LDIF_INVALID_MODIFY_ATTRIBUTE.get(name, "add, delete, replace, increment");
+      throw new LDIFException(message, lineNumber, true);
+    }
+  }
 
   /**
    * Parse a delete change record entry from LDIF.

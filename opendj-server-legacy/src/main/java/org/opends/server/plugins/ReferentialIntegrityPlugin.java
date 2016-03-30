@@ -1160,7 +1160,7 @@ public class ReferentialIntegrityPlugin
             && valueEntryDN.isInScopeOf(entryBaseDN, SearchScope.SUBORDINATES))
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attrDesc.getNameOrOID(), entryDN));
+              ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attrDesc, entryDN));
         }
         valueEntry = DirectoryServer.getEntry(valueEntryDN);
 
@@ -1168,7 +1168,7 @@ public class ReferentialIntegrityPlugin
         if (valueEntry == null)
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(valueEntryDN, attrDesc.getNameOrOID(), entryDN));
+            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(valueEntryDN, attrDesc, entryDN));
         }
 
         // Verify that the value entry conforms to the filter.
@@ -1176,7 +1176,7 @@ public class ReferentialIntegrityPlugin
         if (filter != null && !filter.matchesEntry(valueEntry))
         {
           return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(valueEntry.getName(), attrDesc.getNameOrOID(), entryDN, filter));
+            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(valueEntry.getName(), attrDesc, entryDN, filter));
         }
       }
     }

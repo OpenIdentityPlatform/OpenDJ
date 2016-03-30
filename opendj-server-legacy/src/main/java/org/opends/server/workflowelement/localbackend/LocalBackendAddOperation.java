@@ -903,13 +903,11 @@ public class LocalBackendAddOperation
               if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
               {
                 // Value is not human-readable
-                message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.
-                    get(entryDN, a.getAttributeDescription().getNameOrOID(), invalidReason);
+                message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(entryDN, a.getAttributeDescription(), invalidReason);
               }
               else
               {
-                message = WARN_ADD_OP_INVALID_SYNTAX.
-                    get(entryDN, v, a.getAttributeDescription().getNameOrOID(), invalidReason);
+                message = WARN_ADD_OP_INVALID_SYNTAX.get(entryDN, v, a.getAttributeDescription(), invalidReason);
               }
 
               switch (DirectoryServer.getSyntaxEnforcementPolicy())

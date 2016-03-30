@@ -904,9 +904,7 @@ public final class IntegerConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(a.getAttributeDescription().getNameOrOID());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(attrDesc));
           }
 
           if (a.isEmpty())
@@ -914,8 +912,7 @@ public final class IntegerConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getAttributeDescription().getNameOrOID());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc));
             }
             else
             {
@@ -929,9 +926,7 @@ public final class IntegerConfigAttribute
             if (numValues > 1 && !isMultiValued())
             {
               // This is illegal -- the attribute is single-valued.
-              LocalizableMessage message =
-                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getAttributeDescription().getNameOrOID());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc));
             }
 
             pendingValues = new ArrayList<>(numValues);
@@ -944,24 +939,19 @@ public final class IntegerConfigAttribute
               }
               catch (Exception e)
               {
-                LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                    v, a.getAttributeDescription().getNameOrOID(), e);
+                LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(v, attrDesc, e);
                 throw new ConfigException(message, e);
               }
 
               // Check the bounds set for this attribute.
               if (hasLowerBound && longValue < lowerBound)
               {
-                LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
-                    a.getAttributeDescription().getNameOrOID(), longValue, lowerBound);
-                throw new ConfigException(message);
+                throw new ConfigException(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(attrDesc, longValue, lowerBound));
               }
 
               if (hasUpperBound && longValue > upperBound)
               {
-                LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
-                    a.getAttributeDescription().getNameOrOID(), longValue, upperBound);
-                throw new ConfigException(message);
+                throw new ConfigException(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(attrDesc, longValue, upperBound));
               }
 
               pendingValues.add(longValue);
@@ -972,10 +962,7 @@ public final class IntegerConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(
-                      a.getAttributeDescription().getNameOrOID());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(attrDesc));
         }
       }
       else
@@ -984,9 +971,7 @@ public final class IntegerConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(a.getAttributeDescription().getNameOrOID());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(attrDesc));
         }
 
         if (a.isEmpty())
@@ -994,8 +979,7 @@ public final class IntegerConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getAttributeDescription().getNameOrOID());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc));
           }
           else
           {
@@ -1009,9 +993,7 @@ public final class IntegerConfigAttribute
           if (numValues > 1 && !isMultiValued())
           {
             // This is illegal -- the attribute is single-valued.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(a.getAttributeDescription().getNameOrOID());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc));
           }
 
           activeValues = new ArrayList<>(numValues);
@@ -1024,24 +1006,18 @@ public final class IntegerConfigAttribute
             }
             catch (Exception e)
             {
-              LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                  v, a.getAttributeDescription().getNameOrOID(), e);
-              throw new ConfigException(message, e);
+              throw new ConfigException(ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(v, attrDesc, e), e);
             }
 
             // Check the bounds set for this attribute.
             if (hasLowerBound && longValue < lowerBound)
             {
-              LocalizableMessage message = ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(
-                  a.getAttributeDescription().getNameOrOID(), longValue, lowerBound);
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_INT_BELOW_LOWER_BOUND.get(attrDesc, longValue, lowerBound));
             }
 
             if (hasUpperBound && longValue > upperBound)
             {
-              LocalizableMessage message = ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(
-                  a.getAttributeDescription().getNameOrOID(), longValue, upperBound);
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_INT_ABOVE_UPPER_BOUND.get(attrDesc, longValue, upperBound));
             }
 
             activeValues.add(longValue);

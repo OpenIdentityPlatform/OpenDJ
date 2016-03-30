@@ -924,8 +924,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           }
           else
           {
-            LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription().getNameOrOID());
+            LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
 
@@ -935,8 +934,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         case DELETE:
           if (a.isEmpty())
           {
-            LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getAttributeDescription().getNameOrOID());
+            LocalizableMessage message = ERR_SCHEMA_MODIFY_DELETE_NO_VALUES.get(a.getAttributeDescription());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
 
@@ -1081,8 +1079,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           }
           else
           {
-            LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription().getNameOrOID());
+            LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
 
@@ -3478,10 +3475,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                 DirectoryServer.getServerErrorResultCode(),
                 ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(e), le);
           }
-          else
-          {
-            continue;
-          }
+          continue;
         }
 
         importEntry(e);

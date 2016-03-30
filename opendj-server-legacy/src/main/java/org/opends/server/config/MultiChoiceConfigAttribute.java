@@ -704,9 +704,7 @@ public final class MultiChoiceConfigAttribute
           if (pendingValues != null)
           {
             // We cannot have multiple pending value sets.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(attrDesc.getNameOrOID());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_PENDING_VALUE_SETS.get(attrDesc));
           }
 
 
@@ -715,7 +713,7 @@ public final class MultiChoiceConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID()));
+              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc));
             }
             // This is fine. The pending value set can be empty.
             pendingValues = new ArrayList<>(0);
@@ -726,9 +724,7 @@ public final class MultiChoiceConfigAttribute
             if (numValues > 1 && !isMultiValued())
             {
               // This is illegal -- the attribute is single-valued.
-              LocalizableMessage message =
-                  ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc));
             }
 
             pendingValues = new ArrayList<>(numValues);
@@ -738,7 +734,7 @@ public final class MultiChoiceConfigAttribute
               if (! allowedValues.contains(lowerValue))
               {
                 // This is illegal -- the value is not allowed.
-                throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(v, attrDesc.getNameOrOID()));
+                throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(v, attrDesc));
               }
 
               pendingValues.add(v.toString());
@@ -749,9 +745,7 @@ public final class MultiChoiceConfigAttribute
         {
           // This is illegal -- only the pending option is allowed for
           // configuration attributes.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(attrDesc.getNameOrOID());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_OPTIONS_NOT_ALLOWED.get(attrDesc));
         }
       }
       else
@@ -760,9 +754,7 @@ public final class MultiChoiceConfigAttribute
         if (activeValues!= null)
         {
           // We cannot have multiple active value sets.
-          LocalizableMessage message =
-              ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(attrDesc.getNameOrOID());
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_CONFIG_ATTR_MULTIPLE_ACTIVE_VALUE_SETS.get(attrDesc));
         }
 
 
@@ -771,8 +763,7 @@ public final class MultiChoiceConfigAttribute
           if (isRequired())
           {
             // This is illegal -- it must have a value.
-            LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc.getNameOrOID());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(attrDesc));
           }
           // This is fine. The active value set can be empty.
           activeValues = new ArrayList<>(0);
@@ -783,9 +774,7 @@ public final class MultiChoiceConfigAttribute
           if (numValues > 1 && ! isMultiValued())
           {
             // This is illegal -- the attribute is single-valued.
-            LocalizableMessage message =
-                ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc.getNameOrOID());
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CONFIG_ATTR_SET_VALUES_IS_SINGLE_VALUED.get(attrDesc));
           }
 
           activeValues = new ArrayList<>(numValues);
@@ -795,7 +784,7 @@ public final class MultiChoiceConfigAttribute
             if (! allowedValues.contains(lowerValue))
             {
               // This is illegal -- the value is not allowed.
-              throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(v, attrDesc.getNameOrOID()));
+              throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(v, attrDesc));
             }
 
             activeValues.add(v.toString());

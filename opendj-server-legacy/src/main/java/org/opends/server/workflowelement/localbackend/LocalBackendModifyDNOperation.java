@@ -614,7 +614,7 @@ public class LocalBackendModifyDNOperation
             && !isSynchronizationOperation())
         {
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getAttributeDescription().getNameOrOID()));
+              ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getAttributeDescription()));
         }
 
         List<ByteString> missingValues = new LinkedList<>();
@@ -648,7 +648,7 @@ public class LocalBackendModifyDNOperation
           if (!isInternalOperation() && !isSynchronizationOperation())
           {
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getAttributeDescription().getNameOrOID()));
+                ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(entryDN, a.getAttributeDescription()));
           }
         }
         else
