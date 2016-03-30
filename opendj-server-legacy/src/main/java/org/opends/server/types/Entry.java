@@ -1050,10 +1050,11 @@ public class Entry
    */
   public void incrementAttribute(Attribute attribute) throws DirectoryException
   {
-    Attribute a = getExactAttribute(attribute.getAttributeDescription());
+    AttributeDescription attrDesc = attribute.getAttributeDescription();
+    Attribute a = getExactAttribute(attrDesc);
     if (a == null)
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(attribute.getAttributeDescription());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(attrDesc);
       throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
     }
 
@@ -1061,25 +1062,24 @@ public class Entry
     Iterator<ByteString> i = attribute.iterator();
     if (!i.hasNext())
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(attribute.getAttributeDescription());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(attrDesc);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     String incrementValue = i.next().toString();
-    long increment = parseLong(incrementValue, attribute);
+    long increment = parseLong(incrementValue, attrDesc);
 
     if (i.hasNext())
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(attribute.getAttributeDescription());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(attrDesc);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     // Increment each attribute value by the specified amount.
     AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
-
     for (ByteString v : a)
     {
-      long currentValue = parseLong(v.toString(), attribute);
+      long currentValue = parseLong(v.toString(), attrDesc);
       long newValue = currentValue + increment;
       builder.add(String.valueOf(newValue));
     }
@@ -1087,7 +1087,7 @@ public class Entry
     replaceAttribute(builder.toAttribute());
   }
 
-  private long parseLong(String value, Attribute attribute) throws DirectoryException
+  private long parseLong(String value, AttributeDescription attrDesc) throws DirectoryException
   {
     try
     {
@@ -1095,11 +1095,10 @@ public class Entry
     }
     catch (NumberFormatException e)
     {
-      LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(attribute.getAttributeDescription());
+      LocalizableMessage message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(attrDesc);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
   }
-
 
   /**
    * Removes all instances of the specified attribute type from this
@@ -1329,9 +1328,7 @@ public class Entry
   public void applyModification(Modification mod, boolean relaxConstraints)
          throws DirectoryException
   {
-    Attribute     a = mod.getAttribute();
-    AttributeType t = a.getAttributeDescription().getAttributeType();
-
+    AttributeType t = mod.getAttribute().getAttributeDescription().getAttributeType();
     if (t.isObjectClass())
     {
       applyModificationToObjectclass(mod, relaxConstraints);
@@ -1355,6 +1352,7 @@ public class Entry
       ocs.put(oc, ocName);
     }
 
+    AttributeDescription attrDesc = a.getAttributeDescription();
     switch (mod.getModificationType().asEnum())
     {
     case ADD:
@@ -1364,7 +1362,7 @@ public class Entry
         {
           if (!relaxConstraints)
           {
-            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getAttributeDescription());
+            LocalizableMessage message = ERR_ENTRY_DUPLICATE_VALUES.get(attrDesc);
             throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
           }
         }
@@ -1381,7 +1379,7 @@ public class Entry
       {
         if (objectClasses.remove(oc) == null && !relaxConstraints)
         {
-          LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getAttributeDescription());
+          LocalizableMessage message = ERR_ENTRY_NO_SUCH_VALUE.get(attrDesc);
           throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
         }
       }
@@ -3526,11 +3524,12 @@ public class Entry
         }
         // Decode the attribute.
         Attribute a = config.getCompressedSchema().decodeAttribute(entryBuffer);
-        List<Attribute> attrList = attributes.get(a.getAttributeDescription().getAttributeType());
+        AttributeType attrType = a.getAttributeDescription().getAttributeType();
+        List<Attribute> attrList = attributes.get(attrType);
         if (attrList == null)
         {
           attrList = new ArrayList<>(1);
-          attributes.put(a.getAttributeDescription().getAttributeType(), attrList);
+          attributes.put(attrType, attrList);
         }
         attrList.add(a);
       }
@@ -4523,92 +4522,87 @@ public class Entry
       {
         continue;
       }
-      else
+
+      // If a non-default attribute name was provided or if the
+      // attribute has options then we will need to rebuild the
+      // attribute so that it contains the user-requested names and options.
+      final AttributeType subAttrType = subAttrDesc.getAttributeType();
+
+      if ((attrName != null && !attrName.equals(subAttrDesc.getNameOrOID()))
+          || attrDesc.hasOptions())
       {
-        // If a non-default attribute name was provided or if the
-        // attribute has options then we will need to rebuild the
-        // attribute so that it contains the user-requested names and options.
-        final AttributeType subAttrType = subAttrDesc.getAttributeType();
-
-        if ((attrName != null && !attrName.equals(subAttrDesc.getNameOrOID()))
-            || attrDesc.hasOptions())
+        // We want to use the user-provided name only if this attribute has
+        // the same type as the requested type. This might not be the case for
+        // sub-types e.g. requesting "name" and getting back "cn" - we don't
+        // want to rename "name" to "cn".
+        AttributeType attrType = attrDesc.getAttributeType();
+        AttributeDescription newAttrDesc;
+        if (attrName == null || !subAttrType.equals(attrType))
         {
-          // We want to use the user-provided name only if this attribute has
-          // the same type as the requested type. This might not be the case for
-          // sub-types e.g. requesting "name" and getting back "cn" - we don't
-          // want to rename "name" to "cn".
-          AttributeType attrType = attrDesc.getAttributeType();
-          AttributeDescription newAttrDesc;
-          if (attrName == null || !subAttrType.equals(attrType))
-          {
-            newAttrDesc = AttributeDescription.create(subAttrDesc.getNameOrOID(), subAttrDesc.getAttributeType());
-          }
-          else
-          {
-            newAttrDesc = AttributeDescription.create(attrName, subAttrDesc.getAttributeType());
-          }
-          AttributeBuilder builder = new AttributeBuilder(newAttrDesc);
-
-          builder.setOptions(attrDesc.getOptions());
-
-          // Now add in remaining options from original attribute
-          // (this will not overwrite options already present).
-          builder.setOptions(subAttrDesc.getOptions());
-
-          if (!omitValues)
-          {
-            builder.addAll(attribute);
-          }
-
-          attribute = builder.toAttribute();
-        }
-        else if (omitValues)
-        {
-          attribute = Attributes.empty(attribute);
-        }
-
-        // Now put the attribute into the destination map.
-        // Be careful of duplicates.
-        List<Attribute> attrList = destMap.get(subAttrType);
-
-        if (attrList == null)
-        {
-          // Assume that they'll all go in the one list. This isn't
-          // always the case, for example if the list contains sub-types.
-          attrList = new ArrayList<>(sourceList.size());
-          attrList.add(attribute);
-          destMap.put(subAttrType, attrList);
+          newAttrDesc = AttributeDescription.create(subAttrDesc.getNameOrOID(), subAttrDesc.getAttributeType());
         }
         else
         {
-          // The attribute may have already been put in the list.
-          //
-          // This may occur in two cases:
-          //
-          // 1) The attribute is identified by more than one attribute
-          //    type description in the attribute list (e.g. in a wildcard).
-          //
-          // 2) The attribute has both a real and virtual component.
-          //
-          boolean found = false;
-          for (int i = 0; i < attrList.size(); i++)
-          {
-            Attribute otherAttribute = attrList.get(i);
-            if (otherAttribute.getAttributeDescription().equals(subAttrDesc))
-            {
-              // Assume that wildcards appear first in an attribute
-              // list with more specific attribute names afterwards:
-              // let the attribute name and options from the later
-              // attribute take preference.
-              attrList.set(i, Attributes.merge(attribute, otherAttribute));
-              found = true;
-            }
-          }
+          newAttrDesc = AttributeDescription.create(attrName, subAttrDesc.getAttributeType());
+        }
 
-          if (!found)
+        AttributeBuilder builder = new AttributeBuilder(newAttrDesc);
+        builder.setOptions(attrDesc.getOptions());
+        // Now add in remaining options from original attribute
+        // (this will not overwrite options already present).
+        builder.setOptions(subAttrDesc.getOptions());
+        if (!omitValues)
+        {
+          builder.addAll(attribute);
+        }
+        attribute = builder.toAttribute();
+      }
+      else if (omitValues)
+      {
+        attribute = Attributes.empty(attribute);
+      }
+
+      // Now put the attribute into the destination map.
+      // Be careful of duplicates.
+      List<Attribute> attrList = destMap.get(subAttrType);
+
+      if (attrList == null)
+      {
+        // Assume that they'll all go in the one list. This isn't
+        // always the case, for example if the list contains sub-types.
+        attrList = new ArrayList<>(sourceList.size());
+        attrList.add(attribute);
+        destMap.put(subAttrType, attrList);
+      }
+      else
+      {
+        // The attribute may have already been put in the list.
+        //
+        // This may occur in two cases:
+        //
+        // 1) The attribute is identified by more than one attribute
+        //    type description in the attribute list (e.g. in a wildcard).
+        //
+        // 2) The attribute has both a real and virtual component.
+        //
+        boolean found = false;
+        for (int i = 0; i < attrList.size(); i++)
+        {
+          Attribute otherAttribute = attrList.get(i);
+          if (otherAttribute.getAttributeDescription().equals(subAttrDesc))
           {
-            attrList.add(attribute);
+            // Assume that wildcards appear first in an attribute
+            // list with more specific attribute names afterwards:
+            // let the attribute name and options from the later
+            // attribute take preference.
+            attrList.set(i, Attributes.merge(attribute, otherAttribute));
+            found = true;
           }
+        }
+
+        if (!found)
+        {
+          attrList.add(attribute);
         }
       }
     }

@@ -1015,7 +1015,8 @@ public class LocalBackendModifyOperation
       numPasswords = 0;
     }
 
-    AttributeBuilder builder = new AttributeBuilder(pwAttr.getAttributeDescription());
+    AttributeDescription pwdAttrDesc = pwAttr.getAttributeDescription();
+    AttributeBuilder builder = new AttributeBuilder(pwdAttrDesc);
     for (ByteString v : pwAttr)
     {
       if (pwPolicyState.passwordIsPreEncoded(v))
@@ -1029,7 +1030,7 @@ public class LocalBackendModifyOperation
 
         // We still need to check if the pre-encoded password matches
         // an existing value, to decrease the number of passwords.
-        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeDescription().getAttributeType());
+        List<Attribute> attrList = currentEntry.getAttribute(pwdAttrDesc.getAttributeType());
         if (attrList.isEmpty())
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
@@ -1042,7 +1043,7 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeDescription().getAttributeType());
+        List<Attribute> attrList = currentEntry.getAttribute(pwdAttrDesc.getAttributeType());
         if (attrList.isEmpty())
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_MODIFY_NO_EXISTING_VALUES.get());
@@ -1341,7 +1342,9 @@ public class LocalBackendModifyOperation
 
     // If the attribute to be replaced is the object class attribute
     // then make sure that all the object classes are known and not obsoleted.
-    if (attr.getAttributeDescription().getAttributeType().isObjectClass())
+    AttributeDescription attrDesc = attr.getAttributeDescription();
+    AttributeType t = attrDesc.getAttributeType();
+    if (t.isObjectClass())
     {
       validateObjectClasses(attr);
     }
@@ -1350,14 +1353,13 @@ public class LocalBackendModifyOperation
     modifiedEntry.replaceAttribute(attr);
 
     // Make sure that the RDN attribute value(s) has not been removed.
-    AttributeType t = attr.getAttributeDescription().getAttributeType();
     RDN rdn = modifiedEntry.getName().rdn();
     if (rdn != null
         && rdn.hasAttributeType(t)
-        && !modifiedEntry.hasValue(attr.getAttributeDescription(), rdn.getAttributeValue(t)))
+        && !modifiedEntry.hasValue(attrDesc, rdn.getAttributeValue(t)))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attr.getAttributeDescription()));
+          ERR_MODIFY_DELETE_RDN_ATTR.get(entryDN, attrDesc));
     }
   }
 

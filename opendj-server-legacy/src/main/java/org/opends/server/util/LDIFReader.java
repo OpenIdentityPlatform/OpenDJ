@@ -770,25 +770,20 @@ public class LDIFReader implements Closeable
   {
     // Parse the attribute type description.
     int colonPos = parseColonPosition(lines, line);
-    String attrDescr = line.substring(0, colonPos);
-    final AttributeDescription attrDesc = parseAttrDescription(attrDescr);
+    String attrDescStr = line.substring(0, colonPos);
+    final AttributeDescription attrDesc = parseAttrDescription(attrDescStr);
     final AttributeType attrType = attrDesc.getAttributeType();
-    final String attrName = attrType.getNameOrOID();
 
     // Now parse the attribute value.
-    ByteString value = parseSingleValue(lines, line, entryDN, colonPos, attrName);
+    ByteString value = parseSingleValue(lines, line, entryDN, colonPos, attrDescStr);
 
     // See if this is an objectclass or an attribute.  Then get the
     // corresponding definition and add the value to the appropriate hash.
-    if (attrName.equalsIgnoreCase("objectclass"))
+    if (attrType.isObjectClass())
     {
       if (! importConfig.includeObjectClasses())
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Skipping objectclass %s for entry %s due to " +
-              "the import configuration.", value, entryDN);
-        }
+        logger.trace("Skipping objectclass %s for entry %s due to the import configuration.", value, entryDN);
         return;
       }
 
@@ -814,21 +809,16 @@ public class LDIFReader implements Closeable
     {
       if (! importConfig.includeAttribute(attrType))
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Skipping attribute %s for entry %s due to the " +
-              "import configuration.", attrName, entryDN);
-        }
+        logger.trace("Skipping attribute %s for entry %s due to the import configuration.", attrDescStr, entryDN);
         return;
       }
 
        //The attribute is not being ignored so check for binary option.
       if (checkSchema
           && !attrType.getSyntax().isBEREncodingRequired()
- && attrDesc.hasOption("binary"))
+          && attrDesc.hasOption("binary"))
       {
-        LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(
-          entryDN, lastEntryLineNumber, attrName);
+        LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(entryDN, lastEntryLineNumber, attrDescStr);
         logToRejectWriter(lines, message);
         throw new LDIFException(message, lastEntryLineNumber,true);
       }
@@ -839,7 +829,7 @@ public class LDIFReader implements Closeable
         if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
         {
           LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
-              entryDN, lastEntryLineNumber, value, attrName, invalidReason);
+              entryDN, lastEntryLineNumber, value, attrDescStr, invalidReason);
           if (DirectoryServer.getSyntaxEnforcementPolicy() == AcceptRejectWarn.WARN)
           {
             logger.error(message);
@@ -881,14 +871,14 @@ public class LDIFReader implements Closeable
           if (!a.add(attributeValue) && checkSchema)
           {
               LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTR.get(
-                  entryDN, lastEntryLineNumber, attrName, value);
+                  entryDN, lastEntryLineNumber, attrDescStr, value);
               logToRejectWriter(lines, message);
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
           if (attrType.isSingleValue() && a.size() > 1 && checkSchema)
           {
             LocalizableMessage message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
-                    .get(entryDN, lastEntryLineNumber, attrName);
+                    .get(entryDN, lastEntryLineNumber, attrDescStr);
             logToRejectWriter(lines, message);
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
