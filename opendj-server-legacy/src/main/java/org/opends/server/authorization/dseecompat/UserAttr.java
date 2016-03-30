@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -227,7 +228,7 @@ public class UserAttr implements KeywordBindRule {
                 LDAPURL url;
                 try {
                    url = LDAPURL.decode(v.toString(), true);
-                } catch (DirectoryException e) {
+                } catch (LocalizedIllegalArgumentException | DirectoryException e) {
                     break;
                 }
                 matched=UserDN.evalURL(evalCtx, url);

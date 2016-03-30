@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
@@ -37,9 +36,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 
-/**
- * The panel that is displayed when there is an error searching an entry.
- */
+/** The panel that is displayed when there is an error searching an entry. */
 public class ErrorSearchingEntryPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -8460172599072631973L;
@@ -47,7 +44,6 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
   /** Default constructor. */
   public ErrorSearchingEntryPanel()
   {
-    super();
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
     gbc.gridy = 0;
@@ -135,58 +131,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     if (ex instanceof NamingException)
     {
       Object arg = error.getArg();
-      LocalizableMessage msg = null;
-      if (arg != null)
-      {
-        // Maybe is the LDAPURL
-        try
-        {
-          LDAPURL url = LDAPURL.decode(arg.toString(), false);
-          if (url.getHost() != null)
-          {
-            String hostPort = url.getHost()+":"+url.getPort();
-            if (ex instanceof ReferralLimitExceededException)
-            {
-              msg = LocalizableMessage.raw(ex.getLocalizedMessage());
-            }
-            else if (ex instanceof NameNotFoundException)
-            {
-              msg = ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL.get(arg, hostPort);
-            }
-            else
-            {
-              msg = getMessageForException((NamingException) ex, hostPort);
-            }
-          }
-          else if (ex instanceof ReferralLimitExceededException)
-          {
-            msg = LocalizableMessage.raw(ex.getLocalizedMessage());
-          }
-          else if (ex instanceof NameNotFoundException)
-          {
-            msg = ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(arg);
-          }
-          else
-          {
-            msg = Utils.getMessageForException((NamingException)ex);
-          }
-        }
-        catch (Throwable t)
-        {
-        }
-      }
-
-      if (msg == null)
-      {
-        if (ex instanceof ReferralLimitExceededException)
-        {
-          msg = LocalizableMessage.raw(ex.getLocalizedMessage());
-        }
-        else
-        {
-          msg = Utils.getMessageForException((NamingException)ex);
-        }
-      }
+      LocalizableMessage msg = getErrorMsg(ex, arg);
       if (arg != null)
       {
         details.append("<br><br>").append(ERR_CTRL_PANEL_RESOLVING_REFERRAL_DETAILS.get(arg, msg));
@@ -208,5 +153,68 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     details.append("<br><br>").append(INFO_CTRL_PANEL_HOW_TO_EDIT_REFERRALS.get());
     updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
         details.toMessage(), ColorAndFontConstants.defaultFont);
+  }
+
+  private LocalizableMessage getErrorMsg(Exception ex, Object arg)
+  {
+    LocalizableMessage msg = getErrorMsg0(ex, arg);
+    if (msg != null)
+    {
+      return msg;
+    }
+    else if (ex instanceof ReferralLimitExceededException)
+    {
+      return LocalizableMessage.raw(ex.getLocalizedMessage());
+    }
+    else
+    {
+      return Utils.getMessageForException((NamingException) ex);
+    }
+  }
+
+  private LocalizableMessage getErrorMsg0(Exception ex, Object arg)
+  {
+    if (arg == null)
+    {
+      return null;
+    }
+
+    // Maybe arg is an LDAPURL
+    try
+    {
+      LDAPURL url = LDAPURL.decode(arg.toString(), false);
+      if (url.getHost() != null)
+      {
+        String hostPort = url.getHost() + ":" + url.getPort();
+        if (ex instanceof ReferralLimitExceededException)
+        {
+          return LocalizableMessage.raw(ex.getLocalizedMessage());
+        }
+        else if (ex instanceof NameNotFoundException)
+        {
+          return ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL.get(arg, hostPort);
+        }
+        else
+        {
+          return getMessageForException((NamingException) ex, hostPort);
+        }
+      }
+      else if (ex instanceof ReferralLimitExceededException)
+      {
+        return LocalizableMessage.raw(ex.getLocalizedMessage());
+      }
+      else if (ex instanceof NameNotFoundException)
+      {
+        return ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(arg);
+      }
+      else
+      {
+        return Utils.getMessageForException((NamingException) ex);
+      }
+    }
+    catch (Throwable t)
+    {
+      return null;
+    }
   }
 }

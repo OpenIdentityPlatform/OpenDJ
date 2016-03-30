@@ -16,6 +16,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -518,7 +519,7 @@ class DN2URI extends AbstractTree
           }
         }
       }
-      catch (DirectoryException e)
+      catch (LocalizedIllegalArgumentException | DirectoryException e)
       {
         logger.traceException(e);
         // Return the non-LDAP URI as is.
@@ -621,7 +622,7 @@ class DN2URI extends AbstractTree
       {
         // We have found a subordinate referral.
         // Make sure the referral is within scope.
-        if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
+        if (searchOp.getScope() == SINGLE_LEVEL
             && DnKeyFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
         {
           success = cursor.next();
@@ -670,7 +671,6 @@ class DN2URI extends AbstractTree
       try
       {
         LDAPURL ldapurl = LDAPURL.decode(uri, false);
-
         if ("ldap".equalsIgnoreCase(ldapurl.getScheme()))
         {
           if (ldapurl.getBaseDN().isRootDN())
@@ -678,19 +678,12 @@ class DN2URI extends AbstractTree
             ldapurl.setBaseDN(dn);
           }
           ldapurl.getAttributes().clear();
-          if (scope == SearchScope.SINGLE_LEVEL)
-          {
-            ldapurl.setScope(SearchScope.BASE_OBJECT);
-          }
-          else
-          {
-            ldapurl.setScope(SearchScope.WHOLE_SUBTREE);
-          }
+          ldapurl.setScope(scope == SINGLE_LEVEL ? BASE_OBJECT : WHOLE_SUBTREE);
           ldapurl.setFilter(null);
           uri = ldapurl.toString();
         }
       }
-      catch (DirectoryException e)
+      catch (LocalizedIllegalArgumentException | DirectoryException e)
       {
         logger.traceException(e);
         // Return the non-LDAP URI as is.

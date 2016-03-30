@@ -242,9 +242,9 @@ public class NewGroupPanel extends AbstractNewEntryPanel
         {
           LDAPURL.decode(f, true);
         }
-        catch (OpenDsException ode)
+        catch (LocalizedIllegalArgumentException | OpenDsException e)
         {
-          errors.add(ERR_CTRL_PANEL_GROUP_FILTER_NOT_VALID.get(ode.getMessageObject()));
+          errors.add(ERR_CTRL_PANEL_GROUP_FILTER_NOT_VALID.get(e.getMessageObject()));
         }
       }
       if (errorFound)

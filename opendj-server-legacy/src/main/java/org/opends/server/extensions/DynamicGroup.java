@@ -23,9 +23,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
@@ -33,7 +35,6 @@ import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -135,10 +136,10 @@ public class DynamicGroup
         {
           memberURLs.add(LDAPURL.decode(v.toString(), true));
         }
-        catch (DirectoryException de)
+        catch (LocalizedIllegalArgumentException | DirectoryException e)
         {
-          logger.traceException(de);
-          logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v, groupEntry.getName(), de.getMessageObject());
+          logger.traceException(e);
+          logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v, groupEntry.getName(), e.getMessageObject());
         }
       }
     }

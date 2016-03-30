@@ -20,33 +20,28 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPURL;
+import org.opends.server.types.SearchFilter;
 
 import static org.opends.messages.AccessControlMessages.*;
 
-/**
- * This class represents the userdn keyword in a bind rule.
- */
+/** This class represents the userdn keyword in a bind rule. */
 public class UserDN implements KeywordBindRule {
 
-    /**
-     * A dummy URL for invalid URLs such as: all, parent, anyone, self.
-     */
-    private static String urlStr="ldap:///";
+    /** A dummy URL for invalid URLs such as: all, parent, anyone, self. */
+    private static final String URL_STR = "ldap:///";
 
-    /**
-     * This list holds a list of objects representing a EnumUserDNType
-     * URL mapping.
-     */
+    /** This list holds a list of objects representing a EnumUserDNType URL mapping. */
     private List<UserDNTypeURL> urlList;
-
     /** Enumeration of the userdn operation type. */
     private EnumBindRuleType type;
 
@@ -94,13 +89,10 @@ public class UserDN implements KeywordBindRule {
             LDAPURL url;
             try {
                url=LDAPURL.decode(value.toString(), true);
-            } catch (DirectoryException de) {
-                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERDN_URL.get(
-                    de.getMessageObject());
-                throw new AciException(message);
+            } catch (LocalizedIllegalArgumentException | DirectoryException e) {
+                throw new AciException(WARN_ACI_SYNTAX_INVALID_USERDN_URL.get(e.getMessageObject()));
             }
-            UserDNTypeURL dnTypeURL=new UserDNTypeURL(userDNType, url);
-            urlList.add(dnTypeURL);
+            urlList.add(new UserDNTypeURL(userDNType, url));
         }
         return new UserDN(type, urlList);
       }
@@ -144,16 +136,16 @@ public class UserDN implements KeywordBindRule {
             type = EnumUserDNType.URL;
         } else  if(str.equalsIgnoreCase("ldap:///self")) {
             type = EnumUserDNType.SELF;
-            bldr.replace(0, bldr.length(), urlStr);
+            bldr.replace(0, bldr.length(), URL_STR);
         } else if(str.equalsIgnoreCase("ldap:///anyone")) {
             type = EnumUserDNType.ANYONE;
-            bldr.replace(0, bldr.length(), urlStr);
+            bldr.replace(0, bldr.length(), URL_STR);
         } else if(str.equalsIgnoreCase("ldap:///parent")) {
             type = EnumUserDNType.PARENT;
-            bldr.replace(0, bldr.length(), urlStr);
+            bldr.replace(0, bldr.length(), URL_STR);
         } else if(str.equalsIgnoreCase("ldap:///all")) {
             type = EnumUserDNType.ALL;
-            bldr.replace(0, bldr.length(), urlStr);
+            bldr.replace(0, bldr.length(), URL_STR);
         } else if (str.contains("*")) {
             type = EnumUserDNType.DNPATTERN;
         } else {
@@ -409,7 +401,7 @@ public class UserDN implements KeywordBindRule {
         buffer.append(this.type.getType());
         for (UserDNTypeURL url : this.urlList) {
             buffer.append("\"");
-            buffer.append(urlStr);
+            buffer.append(URL_STR);
             buffer.append(url.getUserDNType().toString().toLowerCase());
             buffer.append("\"");
         }

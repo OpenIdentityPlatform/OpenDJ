@@ -18,6 +18,7 @@ package org.opends.server.authorization.dseecompat;
 
 import java.util.regex.Pattern;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
@@ -86,7 +87,7 @@ public class Target
               }
           }
         }
-        catch (DirectoryException e){
+        catch (LocalizedIllegalArgumentException | DirectoryException e) {
             throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target));
         }
     }

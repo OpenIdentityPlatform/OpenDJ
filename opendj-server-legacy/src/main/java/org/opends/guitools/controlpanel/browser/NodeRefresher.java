@@ -33,6 +33,7 @@ import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -562,7 +563,7 @@ public class NodeRefresher extends AbstractNodeTask {
       catch (InterruptedNamingException x) {
         throwAbandonIfNeeded(x);
       }
-      catch (NamingException | DirectoryException x) {
+      catch (NamingException | LocalizedIllegalArgumentException | DirectoryException x) {
         lastException = x;
         lastExceptionArg = referral[i];
       }

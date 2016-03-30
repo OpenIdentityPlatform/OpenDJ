@@ -87,10 +87,8 @@ public class GroupDN implements KeywordBindRule {
                String value = ldapURLMatcher.group(ldapURLPos).trim();
                DN dn=LDAPURL.decode(value, true).getBaseDN();
                groupDNs.add(dn);
-            } catch (DirectoryException ex) {
-                LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_GROUPDN_URL.get(
-                    ex.getMessageObject());
-                throw new AciException(message);
+            } catch (LocalizedIllegalArgumentException | DirectoryException e) {
+                throw new AciException(WARN_ACI_SYNTAX_INVALID_GROUPDN_URL.get(e.getMessageObject()));
             }
         }
         return new GroupDN(type, groupDNs);

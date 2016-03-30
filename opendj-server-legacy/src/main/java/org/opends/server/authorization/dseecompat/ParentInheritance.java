@@ -17,6 +17,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -176,10 +177,8 @@ public class ParentInheritance {
                 throw new AciException(message);
               }
               attrTypeStr=attrs.iterator().next();
-            } catch (DirectoryException ex) {
-              LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERATTR_URL.get(
-                  ex.getMessageObject());
-              throw new AciException(message);
+            } catch (LocalizedIllegalArgumentException | DirectoryException ex) {
+              throw new AciException(WARN_ACI_SYNTAX_INVALID_USERATTR_URL.get(ex.getMessageObject()));
             }
           }
           numLevels=1;
