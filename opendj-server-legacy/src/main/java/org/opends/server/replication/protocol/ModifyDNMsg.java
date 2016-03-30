@@ -16,6 +16,9 @@
  */
 package org.opends.server.replication.protocol;
 
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -28,16 +31,11 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
-import static org.opends.server.replication.protocol.OperationContext.*;
-
-/**
- * Message used to send Modify DN information.
- */
+/** Message used to send Modify DN information. */
 public class ModifyDNMsg extends ModifyCommonMsg
 {
   private String newRDN;
@@ -143,7 +141,6 @@ public class ModifyDNMsg extends ModifyCommonMsg
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ModifyDNOperation createOperation(InternalClientConnection connection,
       DN newDN) throws LDAPException, IOException
@@ -171,7 +168,6 @@ public class ModifyDNMsg extends ModifyCommonMsg
   // Msg Encoding
   // ============
 
-  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V1()
   {
@@ -183,12 +179,10 @@ public class ModifyDNMsg extends ModifyCommonMsg
     return builder.toByteArray();
   }
 
-  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V23()
   {
-    final ByteArrayBuilder builder =
-        encodeHeader(MSG_TYPE_MODIFYDN,ProtocolVersion.REPLICATION_PROTOCOL_V3);
+    final ByteArrayBuilder builder = encodeHeader(MSG_TYPE_MODIFYDN, REPLICATION_PROTOCOL_V3);
     builder.appendString(newRDN);
     builder.appendString(newSuperior);
     builder.appendString(newSuperiorEntryUUID);
@@ -197,12 +191,10 @@ public class ModifyDNMsg extends ModifyCommonMsg
     return builder.toByteArray();
   }
 
-  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V45(short protocolVersion)
   {
-    final ByteArrayBuilder builder =
-        encodeHeader(MSG_TYPE_MODIFYDN, protocolVersion);
+    final ByteArrayBuilder builder = encodeHeader(MSG_TYPE_MODIFYDN, protocolVersion);
     builder.appendString(newRDN);
     builder.appendString(newSuperior);
     builder.appendString(newSuperiorEntryUUID);
@@ -250,11 +242,10 @@ public class ModifyDNMsg extends ModifyCommonMsg
     encodedEclIncludes = scanner.nextByteArray(eclAttrLen);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion >= REPLICATION_PROTOCOL_V1)
     {
       return "ModifyDNMsg content: " +
         " protocolVersion: " + protocolVersion +
@@ -265,7 +256,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
         " newSuperior: " + newSuperior +
         " deleteOldRdn: " + deleteOldRdn +
         " assuredFlag: " + assuredFlag +
-        (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2 ?
+        (protocolVersion >= REPLICATION_PROTOCOL_V2 ?
           " assuredMode: " + assuredMode +
           " safeDataLevel: " + safeDataLevel
           : "");
@@ -361,13 +352,13 @@ public class ModifyDNMsg extends ModifyCommonMsg
   }
 
   /**
-   * Computes and return the new DN that the entry should
-   * have after this operation.
+   * Computes and return the new DN that the entry should have after this operation.
    *
    * @return the newDN.
-   * @throws DirectoryException in case of decoding problems.
+   * @throws LocalizedIllegalArgumentException
+   *           in case of decoding problems.
    */
-  private DN computeNewDN() throws DirectoryException
+  private DN computeNewDN() throws LocalizedIllegalArgumentException
   {
     if (newSuperior != null)
     {
@@ -391,7 +382,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
     {
       DN newDN = computeNewDN();
       return newDN.isSuperiorOrEqualTo(targetDn);
-    } catch (DirectoryException e)
+    }
+    catch (LocalizedIllegalArgumentException e)
     {
       // The DN was not a correct DN, and therefore does not a parent of the
       // DN given as a parameter.
@@ -414,7 +406,8 @@ public class ModifyDNMsg extends ModifyCommonMsg
     {
       DN newDN = computeNewDN();
       return newDN.equals(targetDN);
-    } catch (DirectoryException e)
+    }
+    catch (LocalizedIllegalArgumentException e)
     {
       // The DN was not a correct DN, and therefore does not match the
       // DN given as a parameter.
@@ -435,7 +428,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     try
     {
-      DN newSuperiorDN = DN.valueOf(newSuperior);
+      DN newSuperiorDN = newSuperior != null ? DN.valueOf(newSuperior) : DN.rootDN();
       return newSuperiorDN.equals(targetDN);
     }
     catch (LocalizedIllegalArgumentException e)
@@ -452,5 +445,4 @@ public class ModifyDNMsg extends ModifyCommonMsg
     return encodedMods.length + newRDN.length() +
       encodedEclIncludes.length + headerSize();
   }
-
 }
