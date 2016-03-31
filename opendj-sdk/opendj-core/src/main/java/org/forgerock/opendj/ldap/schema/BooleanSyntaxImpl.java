@@ -50,13 +50,15 @@ final class BooleanSyntaxImpl extends AbstractSyntaxImpl {
     @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
-        final String valueString = value.toString().toUpperCase();
+        final String valueString = value.toString();
+        final String valueUpperCase = valueString.toUpperCase();
 
-        if (!"TRUE".equals(valueString) && !"YES".equals(valueString)
-                && !"ON".equals(valueString) && !"1".equals(valueString)
-                && !"FALSE".equals(valueString) && !"NO".equals(valueString)
-                && !"OFF".equals(valueString) && !"0".equals(valueString)) {
-            invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(value.toString()));
+        if (!"TRUE".equals(valueUpperCase) && !"YES".equals(valueUpperCase)
+                && !"ON".equals(valueUpperCase) && !"1".equals(valueUpperCase)
+                && !"FALSE".equals(valueUpperCase) && !"NO".equals(valueUpperCase)
+                && !"OFF".equals(valueUpperCase) && !"0".equals(valueUpperCase)) {
+            invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(valueString));
+            return false;
         }
         return true;
     }
