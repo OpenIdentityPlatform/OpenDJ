@@ -17,13 +17,13 @@
 package org.opends.server.core;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -33,20 +33,15 @@ import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPReader;
-import org.opends.server.tools.LDAPWriter;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
@@ -54,7 +49,7 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.util.StaticUtils;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -89,11 +84,9 @@ public class AddOperationTestCase
   @DataProvider(name = "addOperations")
   public Object[][] getAddOperations() throws Exception
   {
-    ArrayList<Control> noControls = new ArrayList<>();
+    List<Control> noControls = new ArrayList<>();
 
-    ArrayList<RawAttribute> ldapAttrList = newRawAttributes(
-        new LDAPAttribute("objectclass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
+    List<RawAttribute> ldapAttrList = rawAttributes();
 
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People,o=test",
@@ -101,31 +94,27 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    Operation[] opArray = new Operation[]
-    {
-      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                       null, ByteString.valueOfUtf8("ou=People,o=test"),
-                       ldapAttrList),
-      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                       noControls, ByteString.valueOfUtf8("ou=People,o=test"),
-                       ldapAttrList),
-      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                       null, entry.getName(), entry.getObjectClasses(),
-                       entry.getUserAttributes(),
-                       entry.getOperationalAttributes()),
-      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                       noControls, entry.getName(), entry.getObjectClasses(),
-                       entry.getUserAttributes(),
-                       entry.getOperationalAttributes()),
+    // @formatter:off
+    return new Object[][] {
+      { newAddOperationBasis("ou=People,o=test", ldapAttrList, null) },
+      { newAddOperationBasis("ou=People,o=test", ldapAttrList, noControls) },
+      { newAddOperationBasis(entry, null) },
+      { newAddOperationBasis(entry, noControls) },
     };
+    // @formatter:on
+  }
 
-    Object[][] objArray = new Object[opArray.length][1];
-    for (int i=0; i < opArray.length; i++)
-    {
-      objArray[i][0] = opArray[i];
-    }
+  private AddOperationBasis newAddOperationBasis(
+      String entryDn, List<RawAttribute> rawAttributes, List<Control> controls)
+  {
+    return new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        controls, ByteString.valueOfUtf8(entryDn), rawAttributes);
+  }
 
-    return objArray;
+  private AddOperationBasis newAddOperationBasis(Entry e, List<Control> controls)
+  {
+    return new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(), controls,
+        e.getName(), e.getObjectClasses(), e.getUserAttributes(), e.getOperationalAttributes());
   }
 
   @Override
@@ -170,18 +159,21 @@ public class AddOperationTestCase
   @Test
   public void testGetEntryDNInitiallyNull()
   {
-    ArrayList<RawAttribute> ldapAttrList = newRawAttributes(
-        new LDAPAttribute("objectclass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
+    List<RawAttribute> ldapAttrList = rawAttributes();
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          null, ByteString.valueOfUtf8("ou=People,o=test"),
-                          ldapAttrList);
+         newAddOperationBasis("ou=People,o=test", ldapAttrList, null);
     assertNotNull(addOperation.getEntryDN());
   }
 
-  private ArrayList<RawAttribute> newRawAttributes(RawAttribute... attributes)
+  private List<RawAttribute> rawAttributes()
+  {
+    return newRawAttributes(
+        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
+        new LDAPAttribute("ou", "People"));
+  }
+
+  private List<RawAttribute> newRawAttributes(RawAttribute... attributes)
   {
     return newArrayList(attributes);
   }
@@ -211,11 +203,7 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    AddOperationBasis addOperation =
-         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          null, entry.getName(), entry.getObjectClasses(),
-                          entry.getUserAttributes(),
-                          entry.getOperationalAttributes());
+    AddOperationBasis addOperation = newAddOperationBasis(entry, null);
     assertNotNull(addOperation.getEntryDN());
   }
 
@@ -235,11 +223,7 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    AddOperationBasis addOperation =
-         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          null, entry.getName(), entry.getObjectClasses(),
-                          entry.getUserAttributes(),
-                          entry.getOperationalAttributes());
+    AddOperationBasis addOperation = newAddOperationBasis(entry, null);
     assertNotNull(addOperation.getEntryDN());
 
     addOperation.setRawEntryDN(ByteString.valueOfUtf8("ou=Users,o=test"));
@@ -259,7 +243,7 @@ public class AddOperationTestCase
     assertNotNull(rawAttrs);
     assertFalse(rawAttrs.isEmpty());
 
-    ArrayList<RawAttribute> copiedAttrs = new ArrayList<>(rawAttrs);
+    List<RawAttribute> copiedAttrs = new ArrayList<>(rawAttrs);
     copiedAttrs.add(new LDAPAttribute("description", "foo"));
     addOperation.setRawAttributes(copiedAttrs);
 
@@ -487,11 +471,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=test", attrs);
+    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=test", rawAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -529,11 +509,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    AddOperation addOperation = getRootConnection().processAdd("invalid", attrs);
+    AddOperation addOperation = getRootConnection().processAdd("invalid", rawAttributes());
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -548,7 +524,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "organization")),
         new LDAPAttribute("o", "test"));
 
@@ -567,7 +543,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "organization")),
         new LDAPAttribute("o", "undefined"));
 
@@ -586,11 +562,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=undefined", attrs);
+    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=undefined", rawAttributes());
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -604,11 +576,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=missing,o=test", attrs);
+    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=missing,o=test", rawAttributes());
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -653,7 +621,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "undefined")),
         new LDAPAttribute("ou", "People"));
 
@@ -702,7 +670,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
         new LDAPAttribute("description", "foo"),
         new LDAPAttribute("ou", "People"),
@@ -723,7 +691,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
         new LDAPAttribute("description", "foo"),
         new LDAPAttribute("ou", "People"),
@@ -744,7 +712,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
         new LDAPAttribute("ou", "People"),
         new LDAPAttribute("description;lang-en-us", "foo"));
@@ -796,7 +764,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    ArrayList<RawAttribute> attrs = newRawAttributes(
+    List<RawAttribute> attrs = newRawAttributes(
         new LDAPAttribute("objectClass", newArrayList("top", "ds-root-dse", "extensibleObject")),
         new LDAPAttribute("cn", "Root DSE"));
 
@@ -1211,17 +1179,6 @@ public class AddOperationTestCase
     }
   }
 
-  private void bind(LDAPReader r, LDAPWriter w) throws Exception
-  {
-    final BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
-        ByteString.valueOfUtf8("cn=Directory Manager"), 3, ByteString.valueOfUtf8("password"));
-    w.writeMessage(new LDAPMessage(1, bindRequest));
-
-    final LDAPMessage message = r.readMessage();
-    final BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-    assertEquals(bindResponse.getResultCode(), 0);
-  }
-
   private void addFailure(RemoteConnection conn, AddRequest addRequest) throws Exception
   {
     LDAPMessage message = conn.add(addRequest, false);
@@ -1395,7 +1352,7 @@ public class AddOperationTestCase
   /**
    * Tests an add operation that gets canceled before startup.
    *
-   * @throws  Exception  If an unexpected probem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
   public void testCancelBeforeStartup() throws Exception
@@ -1408,15 +1365,8 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    AddOperationBasis addOperation =
-         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          null, entry.getName(), entry.getObjectClasses(),
-                          entry.getUserAttributes(),
-                          entry.getOperationalAttributes());
-
-    CancelRequest cancelRequest = new CancelRequest(false,
-                                                    LocalizableMessage.raw("testCancelBeforeStartup"));
-    addOperation.abort(cancelRequest);
+    AddOperationBasis addOperation = newAddOperationBasis(entry, null);
+    addOperation.abort(newCancelRequest("testCancelBeforeStartup"));
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.CANCELLED);
   }
@@ -1424,7 +1374,7 @@ public class AddOperationTestCase
   /**
    * Tests an add operation that gets canceled before startup.
    *
-   * @throws  Exception  If an unexpected probem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
   public void testCancelAfterOperation() throws Exception
@@ -1437,20 +1387,18 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    AddOperationBasis addOperation =
-         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          null, entry.getName(), entry.getObjectClasses(),
-                          entry.getUserAttributes(),
-                          entry.getOperationalAttributes());
-
+    AddOperationBasis addOperation = newAddOperationBasis(entry, null);
     addOperation.run();
 
-    CancelRequest cancelRequest = new CancelRequest(false,
-                                                    LocalizableMessage.raw("testCancelAfterOperation"));
-    CancelResult cancelResult = addOperation.cancel(cancelRequest);
+    CancelResult cancelResult = addOperation.cancel(newCancelRequest("testCancelAfterOperation"));
 
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
+  }
+
+  private CancelRequest newCancelRequest(String cancelReason)
+  {
+    return new CancelRequest(false, LocalizableMessage.raw(cancelReason));
   }
 
   /**
@@ -1492,28 +1440,18 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    bind(r, w);
-
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    addDisconnect(r, w, attrs, "PreParse");
-
-    StaticUtils.close(s);
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
+      addDisconnect(conn, "PreParse");
+    }
   }
 
-  private void addDisconnect(LDAPReader r, LDAPWriter w,
-      ArrayList<RawAttribute> attrs, String section) throws Exception
+  private void addDisconnect(RemoteConnection conn, String section) throws Exception
   {
-    writeAddRequest(w, attrs, section);
+    writeAddRequest(conn, rawAttributes(), section);
 
-    LDAPMessage message = r.readMessage();
+    LDAPMessage message = conn.readMessage();
     if (message != null)
     {
       // If we got an element back, then it must be a notice of disconnect
@@ -1522,13 +1460,10 @@ public class AddOperationTestCase
     }
   }
 
-  private void writeAddRequest(LDAPWriter w, List<RawAttribute> attrs, String section) throws IOException
+  private void writeAddRequest(RemoteConnection conn, List<RawAttribute> attrs, String section) throws IOException
   {
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), attrs);
-    List<Control> controls = section != null
-        ? DisconnectClientPlugin.createDisconnectControlList(section)
-        : null;
-    w.writeMessage(new LDAPMessage(2, addRequest, controls));
+    conn.writeMessage(addRequest, DisconnectClientPlugin.createDisconnectControlList(section));
   }
 
   /**
@@ -1542,20 +1477,11 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    bind(r, w);
-
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    addDisconnect(r, w, attrs, "PreOperation");
-
-    StaticUtils.close(s);
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
+    {
+      conn.bind("cn=Directory Manager", "password");
+      addDisconnect(conn, "PreOperation");
+    }
   }
 
   /**
@@ -1569,25 +1495,15 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    TestCaseUtils.configureSocket(s);
-
-    bind(r, w);
-
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    addDisconnect(r, w, attrs, "PostOperation");
-
-    StaticUtils.close(s);
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort());)
+    {
+      conn.bind("cn=Directory Manager", "password");
+      addDisconnect(conn, "PostOperation");
+    }
   }
 
   /**
-   * Tests an add operation that should be disconnected in a post-response
-   * plugin.
+   * Tests an add operation that should be disconnected in a post-response plugin.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -1596,50 +1512,37 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    LDAPReader r = new LDAPReader(s);
-    LDAPWriter w = new LDAPWriter(s);
-    //TestCaseUtils.configureSocket(s);
-
-    bind(r, w);
-
-    ArrayList<RawAttribute> attrs = newRawAttributes(
-        new LDAPAttribute("objectClass", newArrayList("top", "organizationalUnit")),
-        new LDAPAttribute("ou", "People"));
-
-    writeAddRequest(w, attrs, "PostResponse");
-
-responseLoop:
-    while (true)
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
-      LDAPMessage message = r.readMessage();
-      if (message == null)
-      {
-        // The connection has been closed.
-        break responseLoop;
-      }
+      conn.bind("cn=Directory Manager", "password");
+      writeAddRequest(conn, rawAttributes(), "PostResponse");
 
-      switch (message.getProtocolOpType())
+      while (true)
       {
+        LDAPMessage message = conn.readMessage();
+        if (message == null)
+        {
+          // The connection has been closed.
+          return;
+        }
+
+        switch (message.getProtocolOpType())
+        {
         case OP_TYPE_ADD_RESPONSE:
           // This was expected.  The disconnect didn't happen until after the
           // response was sent.
           break;
         case OP_TYPE_EXTENDED_RESPONSE:
           // The server is notifying us that it will be closing the connection.
-          break responseLoop;
+          return;
         default:
           // This is a problem.  It's an unexpected response.
-
-        StaticUtils.close(s);
-
-          throw new Exception("Unexpected response message " + message +
-                              " encountered in " +
-                              "testDisconnectInPostResponseAdd");
+          Assert.fail("Unexpected response message " + message +
+              " encountered in testDisconnectInPostResponseAdd");
+          break;
+        }
       }
     }
-
-    StaticUtils.close(s);
   }
 
   /**
@@ -1819,16 +1722,13 @@ responseLoop:
   {
     TestCaseUtils.initializeTestBackend(false);
 
-    List<Control> controls =
-         ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
+    List<Control> controls = ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
-    ArrayList<RawAttribute> rawAttrs = newRawAttributes(
+    List<RawAttribute> rawAttrs = newRawAttributes(
         RawAttribute.create("objectClass", byteStrings("top", "organization")),
         RawAttribute.create("o", "test"));
 
-    AddOperationBasis addOperation =
-         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                          controls, ByteString.valueOfUtf8("o=test"), rawAttrs);
+    AddOperationBasis addOperation = newAddOperationBasis("o=test", rawAttrs, controls);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
