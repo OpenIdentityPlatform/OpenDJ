@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -62,7 +62,6 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--bindPassword" , "password",
       "--no-prompt",
       "--handler-name", "HTTP Connection Handler",
-      "--set", "authentication-required:false"
     };
     assertEquals(dsconfigMain(args), SUCCESS.get());
   }

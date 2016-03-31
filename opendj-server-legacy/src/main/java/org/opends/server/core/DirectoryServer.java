@@ -60,6 +60,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
+import org.forgerock.http.routing.Router;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -672,6 +673,8 @@ public final class DirectoryServer
   /** Entry point to common audit service, where all audit events must be published. */
   private CommonAudit commonAudit;
 
+  private Router httpRouter;
+
   /** Class that prints the version of OpenDJ server to System.out. */
   public static final class DirectoryServerVersionHandler implements VersionHandler
   {
@@ -1019,6 +1022,11 @@ public final class DirectoryServer
     public DiskSpaceMonitor getDiskSpaceMonitor()
     {
       return directoryServer.diskSpaceMonitor;
+    }
+
+    @Override
+    public Router getHTTPRouter() {
+     return directoryServer.httpRouter;
     }
 
     @Override
@@ -1463,6 +1471,7 @@ public final class DirectoryServer
       configurationHandler.reinitializeWithFullSchema(schema.getSchemaNG());
 
       commonAudit = new CommonAudit(serverContext);
+      httpRouter = new Router();
 
       // Allow internal plugins to be registered.
       pluginConfigManager.initializePluginConfigManager();
@@ -1512,6 +1521,9 @@ public final class DirectoryServer
 
       identityMapperConfigManager = new IdentityMapperConfigManager(serverContext);
       identityMapperConfigManager.initializeIdentityMappers();
+
+      new HttpEndpointConfigManager(httpRouter)
+        .registerTo(serverContext.getServerManagementContext().getRootConfiguration());
 
       initializeRootDNConfigManager();
 

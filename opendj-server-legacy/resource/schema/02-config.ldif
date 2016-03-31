@@ -3836,6 +3836,18 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.159
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.160
+  NAME 'ds-cfg-base-path'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.161
+  NAME 'ds-cfg-config-url'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3965,8 +3977,6 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
         ds-cfg-ssl-cipher-suite $
         ds-cfg-max-blocked-write-time-limit $
         ds-cfg-buffer-size $
-        ds-cfg-config-file $
-        ds-cfg-authentication-required $
         ds-cfg-max-concurrent-ops-per-connection )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.14
@@ -5868,4 +5878,19 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.32
   SUP ds-cfg-password-storage-scheme
   STRUCTURAL
   MAY ds-cfg-bcrypt-cost
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.33
+  NAME 'ds-cfg-http-endpoint'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-base-path $
+         ds-cfg-enabled $
+         ds-cfg-java-class )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.34
+  NAME 'ds-cfg-rest2ldap-endpoint'
+  SUP ds-cfg-http-endpoint
+  STRUCTURAL
+  MUST ( ds-cfg-authentication-required $
+         ds-cfg-config-url )
   X-ORIGIN 'OpenDJ Directory Server' )

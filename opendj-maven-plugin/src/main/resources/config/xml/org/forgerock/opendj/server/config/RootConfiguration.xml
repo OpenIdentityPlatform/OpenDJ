@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2010 Sun Microsystems, Inc.
-  Portions Copyright 2011-2014 ForgeRock AS.
+  Portions Copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:root-managed-object xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
@@ -421,6 +421,19 @@
     <adm:one-to-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Administration Connector,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="http-endpoint">
+    <adm:one-to-many naming-property="base-path" />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=HTTP Endpoints,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:product-name>OpenDJ</adm:product-name>

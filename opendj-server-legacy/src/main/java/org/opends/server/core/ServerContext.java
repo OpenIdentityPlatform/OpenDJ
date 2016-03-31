@@ -15,6 +15,7 @@
  */
 package org.opends.server.core;
 
+import org.forgerock.http.routing.Router;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.extensions.DiskSpaceMonitor;
@@ -96,6 +97,13 @@ public interface ServerContext
    * @return the Disk Space Monitoring service
    */
   DiskSpaceMonitor getDiskSpaceMonitor();
+
+  /**
+   * Returns the HTTP request router.
+   *
+   * @return the HTTP Router service
+   */
+  Router getHTTPRouter();
 
   /**
    * Returns the common audit manager.

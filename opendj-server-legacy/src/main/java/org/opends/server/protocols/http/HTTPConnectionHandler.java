@@ -15,17 +15,10 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.opends.messages.ConfigMessages.WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.isAddressInUse;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -43,12 +36,26 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
+import org.forgerock.http.Handler;
+import org.forgerock.http.HttpApplication;
+import org.forgerock.http.HttpApplicationException;
+import org.forgerock.http.handler.Handlers;
+import org.forgerock.http.io.Buffer;
 import org.forgerock.http.servlet.HttpFrameworkServlet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
+import org.forgerock.opendj.server.config.server.HTTPConnectionHandlerCfg;
+import org.forgerock.util.time.TimeService;
 import org.glassfish.grizzly.http.HttpProbe;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
@@ -59,9 +66,6 @@ import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.utils.Charsets;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
-import org.forgerock.opendj.server.config.server.HTTPConnectionHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -74,10 +78,10 @@ import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 
@@ -158,19 +162,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   public HTTPConnectionHandler()
   {
     super(DEFAULT_FRIENDLY_NAME);
-  }
-
-  /**
-   * Returns whether unauthenticated HTTP requests are allowed. The server
-   * checks whether unauthenticated requests are allowed server-wide first then
-   * for the HTTP Connection Handler second.
-   *
-   * @return true if unauthenticated requests are allowed, false otherwise.
-   */
-  public boolean acceptUnauthenticatedRequests()
-  {
-    // The global setting overrides the more specific setting here.
-    return !DirectoryServer.rejectUnauthenticatedRequests() && !this.currentConfig.isAuthenticationRequired();
   }
 
   /**
@@ -703,7 +694,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     this.httpServer = createHttpServer();
 
     // Register servlet as default servlet and also able to serve REST requests
-    createAndRegisterServlet("OpenDJ Rest2LDAP servlet", "", "/*");
+    createAndRegisterServlet("OpenDJ HTTP servlet", "", "/*");
 
     logger.trace("Starting HTTP server...");
     this.httpServer.start();
@@ -728,7 +719,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     // Configure the network listener
     final NetworkListener listener = new NetworkListener(
-        "Rest2LDAP", NetworkListener.DEFAULT_NETWORK_HOST, initConfig.getListenPort());
+        "OpenDJ-HTTP", NetworkListener.DEFAULT_NETWORK_HOST, initConfig.getListenPort());
     server.addListener(listener);
 
     // Configure the network transport
@@ -772,8 +763,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   {
     // Create and deploy the Web app context
     final WebappContext ctx = new WebappContext(servletName);
-    ctx.addServlet(servletName,
-        new HttpFrameworkServlet(new LdapHttpApplication(serverContext, this))).addMapping(urlPatterns);
+    ctx.addServlet(servletName, new HttpFrameworkServlet(new RootHttpApplication())).addMapping(urlPatterns);
     ctx.deploy(this.httpServer);
   }
 
@@ -917,4 +907,40 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(), null);
     return sslContext;
   }
+
+  /**
+   * This is the root {@link HttpApplication} handling all the requests from the
+   * {@link HTTPConnectionHandler}. If accepted, requests are audited and then
+   * forwarded to the global {@link ServerContext#getHTTPRouter()}.
+   */
+  private final class RootHttpApplication implements HttpApplication
+  {
+    @Override
+    public Handler start() throws HttpApplicationException
+    {
+      return Handlers.chainOf(
+          serverContext.getHTTPRouter(),
+          new AllowDenyFilter(currentConfig.getDeniedClient(), currentConfig.getAllowedClient()),
+          new CommonAuditTransactionIdFilter(serverContext),
+          new CommonAuditHttpAccessCheckEnabledFilter(serverContext,
+              new CommonAuditHttpAccessAuditFilter(
+                  DynamicConstants.PRODUCT_NAME,
+                  serverContext.getCommonAudit().getAuditServiceForHttpAccessLog(),
+                  TimeService.SYSTEM)),
+          new LDAPContextInjectionFilter(serverContext, HTTPConnectionHandler.this));
+    }
+
+    @Override
+    public void stop()
+    {
+      // Nothing to do
+    }
+
+    @Override
+    public org.forgerock.util.Factory<Buffer> getBufferFactory()
+    {
+      return null;
+    }
+  }
+
 }

@@ -13,13 +13,14 @@
  *
  * Copyright 2015-2016 ForgeRock AS.
  */
-package org.opends.server.protocols.http;
+package org.opends.server.protocols.http.rest2ldap;
 
-import static org.forgerock.util.Utils.closeSilently;
-import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.forgerock.http.util.Json.*;
+import static org.opends.messages.ProtocolMessages.*;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
@@ -28,9 +29,6 @@ import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
-import org.forgerock.http.util.Json;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ConnectionFactory;
@@ -48,18 +46,18 @@ import org.forgerock.services.context.Context;
 import org.forgerock.util.Factory;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.time.TimeService;
-import org.opends.messages.ProtocolMessages;
-import org.opends.server.core.ServerContext;
-import org.opends.server.util.DynamicConstants;
+import org.opends.server.protocols.http.AuthenticationFilter;
+import org.opends.server.protocols.http.HTTPAuthenticationConfig;
 
-/** Main class of the HTTP Connection Handler web application */
-class LdapHttpApplication implements HttpApplication
+/** Entry point of the Rest2Ldap application when used in embedded mode. */
+final class Rest2LdapEmbeddedHttpApplication implements HttpApplication
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** Http Handler which sets a connection to an OpenDJ server. */
-  private static class LdapHttpHandler implements Handler
+  /**
+   * Http Handler re-using the pre-established internal LDAP connection.
+   *
+   * @see AuthenticationFilter
+   */
+  private static final class Rest2LdapHandler implements Handler
   {
     private final Handler delegate;
 
@@ -70,9 +68,9 @@ class LdapHttpApplication implements HttpApplication
      *            The configuration which will be used to set
      *            the connection and the mappings to the OpenDJ server.
      */
-    public LdapHttpHandler(final JsonValue configuration)
+    public Rest2LdapHandler(final JsonValue configuration)
     {
-      ConnectionFactory connectionFactory = Resources.newInternalConnectionFactory(createRouter(configuration));
+      final ConnectionFactory connectionFactory = Resources.newInternalConnectionFactory(createRouter(configuration));
       delegate = CrestHttp.newHttpHandler(connectionFactory, new HttpContextFactory()
       {
         @Override
@@ -106,15 +104,13 @@ class LdapHttpApplication implements HttpApplication
     }
   }
 
-  private HTTPConnectionHandler connectionHandler;
-  private LdapHttpHandler handler;
-  private CollectClientConnectionsFilter filter;
-  private final ServerContext serverContext;
+  private final URL configFileUrl;
+  private final boolean authenticationRequired;
 
-  LdapHttpApplication(ServerContext serverContext, HTTPConnectionHandler connectionHandler)
+  Rest2LdapEmbeddedHttpApplication(URL configFileUrl, boolean authenticationRequired)
   {
-    this.serverContext = serverContext;
-    this.connectionHandler = connectionHandler;
+    this.configFileUrl = configFileUrl;
+    this.authenticationRequired = authenticationRequired;
   }
 
   @Override
@@ -122,33 +118,30 @@ class LdapHttpApplication implements HttpApplication
   {
     try
     {
-      final File configFile = getFileForPath(connectionHandler.getCurrentConfig().getConfigFile());
-      final Object jsonElems = Json.readJsonLenient(new FileReader(configFile));
+      final Object jsonElems = readJson(configFileUrl);
       final JsonValue configuration = new JsonValue(jsonElems).recordKeyAccesses();
-      handler = new LdapHttpHandler(configuration);
-      filter =
-          new CollectClientConnectionsFilter(serverContext, connectionHandler, getAuthenticationConfig(configuration));
+      final Handler handler = Handlers.chainOf(
+          new Rest2LdapHandler(configuration),
+          new AuthenticationFilter(getAuthenticationConfig(configuration), authenticationRequired));
       configuration.verifyAllKeysAccessed();
-
-      RequestHandler requestHandler = serverContext.getCommonAudit().getAuditServiceForHttpAccessLog();
-      CommonAuditTransactionIdFilter transactionIdFilter = new CommonAuditTransactionIdFilter(serverContext);
-      CommonAuditHttpAccessAuditFilter httpAccessFilter =
-          new CommonAuditHttpAccessAuditFilter(DynamicConstants.PRODUCT_NAME, requestHandler, TimeService.SYSTEM);
-      CommonAuditHttpAccessCheckEnabledFilter checkFilter =
-          new CommonAuditHttpAccessCheckEnabledFilter(serverContext, httpAccessFilter);
-
-      return Handlers.chainOf(handler, transactionIdFilter, checkFilter, filter);
+      return handler;
     }
     catch (final Exception e)
     {
-      final LocalizableMessage errorMsg = ProtocolMessages.ERR_INITIALIZE_HTTP_CONNECTION_HANDLER.get();
-      logger.error(errorMsg, e);
       stop();
-      throw new HttpApplicationException(errorMsg.toString(), e);
+      throw new HttpApplicationException(ERR_INITIALIZE_HTTP_CONNECTION_HANDLER.get().toString(), e);
     }
   }
 
-  private HTTPAuthenticationConfig getAuthenticationConfig(final JsonValue configuration)
+  private static JsonValue readJson(final URL resource) throws IOException
+  {
+    try (final InputStream in = resource.openStream())
+    {
+      return new JsonValue(readJsonLenient(in));
+    }
+  }
+
+  private static HTTPAuthenticationConfig getAuthenticationConfig(final JsonValue configuration)
   {
     final HTTPAuthenticationConfig result = new HTTPAuthenticationConfig();
 
@@ -165,12 +158,12 @@ class LdapHttpApplication implements HttpApplication
     return result;
   }
 
-  private String asString(JsonValue value, String key)
+  private static String asString(JsonValue value, String key)
   {
     return value.get(key).required().asString();
   }
 
-  private boolean asBool(JsonValue value, String key)
+  private static boolean asBool(JsonValue value, String key)
   {
     return value.get(key).defaultTo(false).asBoolean();
   }
@@ -184,8 +177,6 @@ class LdapHttpApplication implements HttpApplication
   @Override
   public void stop()
   {
-    closeSilently(filter);
-    handler = null;
-    filter = null;
+    // Nothing to do
   }
 }

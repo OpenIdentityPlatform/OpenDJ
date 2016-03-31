@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
@@ -22,7 +22,7 @@ import org.forgerock.opendj.ldap.SearchScope;
  * Class holding the configuration for HTTP authentication. This is extracted
  * from the JSON config file or the config held in LDAP.
  */
-class HTTPAuthenticationConfig
+public final class HTTPAuthenticationConfig
 {
 
   private boolean basicAuthenticationSupported;

@@ -20,12 +20,10 @@
   xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    is used to interact with clients using HTTP.
+    <adm:user-friendly-plural-name /> provide HTTP services built on top of the underlying LDAP directory.
   </adm:synopsis>
   <adm:description>
-    It provides full support for Rest2LDAP.
+    It routes HTTP requests to HTTP endpoints registered in the configuration.
   </adm:description>
   <adm:constraint>
     <adm:synopsis>
@@ -475,60 +473,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-max-blocked-write-time-limit</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="config-file" mandatory="true">
-    <adm:synopsis>
-      Specifies the name of the configuration file for the <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>config/http-config.json</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string>
-        <adm:pattern>
-         <adm:regex>.*</adm:regex>
-         <adm:usage>FILE</adm:usage>
-           <adm:synopsis>
-             A path to an existing file that is readable by the server.
-           </adm:synopsis>
-         </adm:pattern>
-      </adm:string>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-config-file</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="authentication-required" mandatory="true">
-    <adm:synopsis>
-      Specifies whether only authenticated requests can be processed by the
-      <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:description>
-      If true, only authenticated requests will be processed by the
-      <adm:user-friendly-name />. If false, both authenticated requests and 
-      unauthenticated requests will be processed. All requests are subject
-      to ACI limitations and unauthenticated requests are subject to server
-      limits like maximum number of entries returned. Note that setting
-      ds-cfg-reject-unauthenticated-requests to true will override the current
-      setting.
-    </adm:description>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>true</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:boolean />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-authentication-required</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

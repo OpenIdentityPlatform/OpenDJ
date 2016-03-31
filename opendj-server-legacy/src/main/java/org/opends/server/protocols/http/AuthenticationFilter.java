@@ -15,13 +15,13 @@
  */
 package org.opends.server.protocols.http;
 
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.Collection;
 
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
@@ -31,7 +31,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.adapter.server3x.Adapters;
-import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
@@ -44,24 +43,18 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
+import org.forgerock.services.context.ClientContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
-import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
-import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 /** Servlet {@link Filter} that collects information about client connections. */
-final class CollectClientConnectionsFilter implements org.forgerock.http.Filter, Closeable
+public final class AuthenticationFilter implements org.forgerock.http.Filter, Closeable
 {
 
   /** HTTP Header sent by the client with HTTP basic authentication. */
@@ -70,117 +63,59 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The connection handler that created this servlet filter. */
-  private final HTTPConnectionHandler connectionHandler;
   /**
    * Configures how to perform the search for the username prior to
    * authentication.
    */
   private final HTTPAuthenticationConfig authConfig;
 
-  private final ServerContext serverContext;
+  private final boolean authenticationRequired;
 
   /**
    * Constructs a new instance of this class.
-   * @param serverContext
-   *            The server context.
-   * @param connectionHandler
-   *          the connection handler that accepted this connection
+   *
    * @param authenticationConfig
    *          configures how to perform the search for the username prior to
    *          authentication
+   * @param authenticationRequired
+   *          If true, only authenticated requests will be accepted.
    */
-  public CollectClientConnectionsFilter(ServerContext serverContext, HTTPConnectionHandler connectionHandler,
-      HTTPAuthenticationConfig authenticationConfig)
+  public AuthenticationFilter(HTTPAuthenticationConfig authenticationConfig, boolean authenticationRequired)
   {
-    this.serverContext = serverContext;
-    this.connectionHandler = connectionHandler;
     this.authConfig = authenticationConfig;
+    this.authenticationRequired = authenticationRequired;
   }
 
   @Override
   public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next)
   {
-    final HTTPClientConnection clientConnection =
-        new HTTPClientConnection(serverContext, this.connectionHandler, context, request);
-    connectionHandler.addClientConnection(clientConnection);
-
-    if (connectionHandler.keepStats())
-    {
-      connectionHandler.getStatTracker().addRequest(request.getMethod());
-    }
-
     try
     {
-      if (!canProcessRequest(clientConnection))
-      {
-        return resourceExceptionToPromise(ResourceException.getException(ResourceException.INTERNAL_ERROR));
-      }
-      // Logs the connect after all the possible disconnect reasons have been checked.
-      logConnect(clientConnection);
-      final Connection connection = new SdkConnectionAdapter(clientConnection);
-
+      final Connection ldapConnection = context.asContext(LDAPContext.class).getLdapConnectionFactory().getConnection();
       final String[] userCredentials = extractUsernamePassword(request);
       if (userCredentials != null && userCredentials.length == 2)
       {
         final String userName = userCredentials[0];
         final String password = userCredentials[1];
-
         return Adapters.newRootConnection()
-            .searchSingleEntryAsync(buildSearchRequest(userName))
-            .thenAsync(doBindAfterSearch(context, request, next, userName, password, clientConnection, connection),
-                       returnErrorAfterFailedSearch(clientConnection));
+                       .searchSingleEntryAsync(buildSearchRequest(userName))
+                       .thenAsync(doBindAfterSearch(context, request, next, userName, password, ldapConnection),
+                                  returnErrorAfterFailedSearch(context.asContext(ClientContext.class)));
       }
-      else if (this.connectionHandler.acceptUnauthenticatedRequests())
+      else if (authenticationRequired)
       {
-        // Use unauthenticated user
-        return doFilter(context, request, next, connection);
+        return authenticationFailure(context.asContext(ClientContext.class));
       }
       else
       {
-        return authenticationFailure(clientConnection);
+        // Use unauthenticated user
+        return doFilter(context, request, next, ldapConnection);
       }
     }
     catch (Exception e)
     {
-      return asErrorResponse(e, clientConnection);
+      return asErrorResponse(e, context.asContext(ClientContext.class));
     }
-  }
-
-  private boolean canProcessRequest(final HTTPClientConnection connection) throws UnknownHostException
-  {
-    final InetAddress clientAddr = connection.getRemoteAddress();
-
-    // Check to see if the core server rejected the connection (e.g. already too many connections established).
-    if (connection.getConnectionID() < 0)
-    {
-      connection.disconnect(
-          DisconnectReason.ADMIN_LIMIT_EXCEEDED, true, ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
-      return false;
-    }
-
-    // Check to see if the client is on the denied list. If so, then reject it immediately.
-    final ConnectionHandlerCfg config = this.connectionHandler.getCurrentConfig();
-    final Collection<AddressMask> deniedClients = config.getDeniedClient();
-    if (!deniedClients.isEmpty()
-        && AddressMask.matchesAny(deniedClients, clientAddr))
-    {
-      connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
-          ERR_CONNHANDLER_DENIED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
-      return false;
-    }
-
-    // Check to see if there is an allowed list and if there is whether the client is on that list.
-    // If not, then reject the connection.
-    final Collection<AddressMask> allowedClients = config.getAllowedClient();
-    if (!allowedClients.isEmpty()
-        && !AddressMask.matchesAny(allowedClients, clientAddr))
-    {
-      connection.disconnect(DisconnectReason.CONNECTION_REJECTED, false,
-          ERR_CONNHANDLER_DISALLOWED_CLIENT.get(connection.getClientHostPort(), connection.getServerHostPort()));
-      return false;
-    }
-    return true;
   }
 
   private SearchRequest buildSearchRequest(String userName)
@@ -191,40 +126,40 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
         authConfig.getSearchBaseDN(), authConfig.getSearchScope(), filter, SchemaConstants.NO_ATTRIBUTES);
   }
 
-  private AsyncFunction<SearchResultEntry, Response, NeverThrowsException> doBindAfterSearch(
-      final Context context, final Request request, final Handler next, final String userName, final String password,
-      final HTTPClientConnection clientConnection, final Connection connection)
+  private AsyncFunction<SearchResultEntry, Response, NeverThrowsException> doBindAfterSearch(final Context context,
+      final Request request, final Handler next, final String userName, final String password,
+      final Connection connection)
   {
+    final ClientContext clientContext = context.asContext(ClientContext.class);
     return new AsyncFunction<SearchResultEntry, Response, NeverThrowsException>()
     {
       @Override
       public Promise<Response, NeverThrowsException> apply(final SearchResultEntry resultEntry)
       {
         final DN bindDN = resultEntry.getName();
+
         if (bindDN == null)
         {
-          return authenticationFailure(clientConnection);
+          return authenticationFailure(clientContext);
         }
 
         final BindRequest bindRequest =
             Requests.newSimpleBindRequest(bindDN.toString(), password.getBytes(Charset.forName("UTF-8")));
         return connection.bindAsync(bindRequest)
-                         .thenAsync(doChain(context, request, next, userName, clientConnection, connection),
-                                    returnErrorAfterFailedBind(clientConnection));
+                         .thenAsync(doChain(context, request, next, userName, connection),
+                                    returnErrorAfterFailedBind(clientContext));
       }
     };
   }
 
-  private AsyncFunction<BindResult, Response, NeverThrowsException> doChain(
-      final Context context, final Request request, final Handler next, final String userName,
-      final HTTPClientConnection clientConnection, final Connection connection)
+  private AsyncFunction<BindResult, Response, NeverThrowsException> doChain(final Context context,
+      final Request request, final Handler next, final String userName, final Connection connection)
   {
     return new AsyncFunction<BindResult, Response, NeverThrowsException>()
     {
       @Override
       public Promise<Response, NeverThrowsException> apply(BindResult value) throws NeverThrowsException
       {
-        clientConnection.setAuthUser(userName);
         try
         {
           SecurityContext securityContext = new SecurityContext(context, userName, null);
@@ -232,7 +167,7 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
         }
         catch (Exception e)
         {
-          return asErrorResponse(e, clientConnection);
+          return asErrorResponse(e, context.asContext(ClientContext.class));
         }
       }
     };
@@ -247,7 +182,7 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
   }
 
   private AsyncFunction<? super LdapException, Response, NeverThrowsException> returnErrorAfterFailedSearch(
-      final HTTPClientConnection clientConnection)
+      final ClientContext clientContext)
   {
     return new AsyncFunction<LdapException, Response, NeverThrowsException>()
     {
@@ -260,60 +195,51 @@ final class CollectClientConnectionsFilter implements org.forgerock.http.Filter,
         {
           // Avoid information leak:
           // do not hint to the user that it is the username that is invalid
-          return authenticationFailure(clientConnection);
+          return authenticationFailure(clientContext);
         }
         else
         {
-          return asErrorResponse(exception, clientConnection);
+          return asErrorResponse(exception, clientContext);
         }
       }
     };
   }
 
   private AsyncFunction<LdapException, Response, NeverThrowsException> returnErrorAfterFailedBind(
-      final HTTPClientConnection clientConnection)
+      final ClientContext clientContext)
   {
     return new AsyncFunction<LdapException, Response, NeverThrowsException>()
     {
       @Override
       public Promise<Response, NeverThrowsException> apply(final LdapException e)
       {
-        return asErrorResponse(e, clientConnection);
+        return asErrorResponse(e, clientContext);
       }
     };
   }
 
-  private Promise<Response, NeverThrowsException> authenticationFailure(final HTTPClientConnection clientConnection)
+  private Promise<Response, NeverThrowsException> authenticationFailure(final ClientContext clientContext)
   {
-    return asErrorResponse(ResourceException.getException(401, "Invalid Credentials"), clientConnection,
-        DisconnectReason.INVALID_CREDENTIALS, false);
+    return asErrorResponse(ResourceException.getException(401, "Invalid Credentials"), clientContext, false);
   }
 
-  private Promise<Response, NeverThrowsException> asErrorResponse(
-      final Throwable t, final HTTPClientConnection clientConnection)
+  private Promise<Response, NeverThrowsException> asErrorResponse(final Throwable t, final ClientContext clientContext)
   {
-    return asErrorResponse(t, clientConnection, DisconnectReason.SERVER_ERROR, true);
+    return asErrorResponse(t, clientContext, true);
   }
 
-  private Promise<Response, NeverThrowsException> asErrorResponse(final Throwable t,
-      final HTTPClientConnection clientConnection, final DisconnectReason reason, final boolean logError)
+  private Promise<Response, NeverThrowsException> asErrorResponse(final Throwable t, final ClientContext clientContext,
+      final boolean logError)
   {
     final ResourceException ex = Rest2LDAP.asResourceException(t);
-    try
+    LocalizableMessage message = null;
+    if (logError)
     {
-      LocalizableMessage message = null;
-      if (logError)
-      {
-        logger.traceException(ex);
-        message = INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(
-            clientConnection.getClientHostPort(), clientConnection.getServerHostPort(), getExceptionMessage(ex));
-        logger.debug(message);
-      }
-      clientConnection.disconnect(reason, false, message);
-    }
-    finally
-    {
-      clientConnection.log(ex.getCode());
+      logger.traceException(ex);
+      message =
+          INFO_CONNHANDLER_UNABLE_TO_REGISTER_CLIENT.get(clientContext.getRemotePort(), clientContext.getLocalPort(),
+              getExceptionMessage(ex));
+      logger.debug(message);
     }
 
     return resourceExceptionToPromise(ex);

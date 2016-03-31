@@ -11,13 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.http;
 
 import static org.mockito.Mockito.mock;
+import static org.opends.server.protocols.http.AuthenticationFilter.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.protocols.http.CollectClientConnectionsFilter.*;
 
 import java.io.IOException;
 
@@ -33,20 +33,20 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class CollectClientConnectionsFilterTest extends DirectoryServerTestCase
+public class AuthenticationFilterTest extends DirectoryServerTestCase
 {
   private static final String USERNAME = "Aladdin";
   private static final String PASSWORD = "open sesame";
   private static final String BASE64_USERPASS = Base64.encode((USERNAME + ":" + PASSWORD).getBytes());
 
   private HTTPAuthenticationConfig authConfig;
-  private CollectClientConnectionsFilter filter;
+  private AuthenticationFilter filter;
 
   @BeforeMethod
   private void createConfigAndFilter()
   {
     authConfig = new HTTPAuthenticationConfig();
-    filter = new CollectClientConnectionsFilter(mock(ServerContext.class), null, authConfig);
+    filter = new AuthenticationFilter(authConfig, false);
   }
 
   @DataProvider(name = "Invalid HTTP basic auth strings")

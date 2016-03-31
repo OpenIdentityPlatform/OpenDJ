@@ -315,6 +315,33 @@
                     </execute>
                   </action>
                 </pluginExecution>
+                <pluginExecution>
+                	<pluginExecutionFilter>
+                		<groupId>org.forgerock.opendj</groupId>
+                		<artifactId>opendj-maven-plugin</artifactId>
+                		<versionRange>[4.0.0-SNAPSHOT,)</versionRange>
+                		<goals>
+                			<goal>generate-manifest</goal>
+                			<goal>concat</goal>
+                		</goals>
+                	</pluginExecutionFilter>
+                	<action>
+                		<ignore></ignore>
+                	</action>
+                </pluginExecution>
+                <pluginExecution>
+                	<pluginExecutionFilter>
+                		<groupId>org.forgerock.opendj</groupId>
+                		<artifactId>opendj-doc-maven-plugin</artifactId>
+                		<versionRange>[4.0.0-SNAPSHOT,)</versionRange>
+                		<goals>
+                			<goal>generate-config-ref</goal>
+                		</goals>
+                	</pluginExecutionFilter>
+                	<action>
+                		<ignore></ignore>
+                	</action>
+                </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>
           </configuration>
