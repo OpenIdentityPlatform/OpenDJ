@@ -20,7 +20,9 @@ import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +52,7 @@ import org.opends.server.backends.pluggable.OnDiskMergeImporter.EntryIDSetsColle
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.CollectorCursor;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.CompositeCursor;
-import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.FileRegionChunk;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.FileRegion;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.InMemorySortedChunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.MeteredCursor;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.UniqueValueCollector;
@@ -98,7 +100,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = "resource")
   public void testCollectCursor()
   {
     final MeteredCursor<ByteString, ByteString> source =
@@ -118,7 +119,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = "resource")
   public void testCompositeCursor()
   {
     final Collection<MeteredCursor<ByteString, ByteString>> sources = new ArrayList<>();
@@ -150,7 +150,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = { "unchecked", "resource" })
+  @SuppressWarnings(value = "unchecked")
   public void testCounterCollector()
   {
     final MeteredCursor<String, ByteString> source = cursorOf(
@@ -172,7 +172,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = { "unchecked", "resource" })
+  @SuppressWarnings(value = "unchecked")
   public void testEntryIDSetCollector()
   {
     final MeteredCursor<String, ByteString> source = cursorOf(
@@ -208,7 +208,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = "resource")
   public void testUniqueValueCollectorAcceptUniqueValues()
   {
     final MeteredCursor<ByteString, ByteString> source =
@@ -224,7 +223,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
-  @SuppressWarnings(value = "resource")
   public void testUniqueValueCollectorDoesNotAcceptMultipleValues()
   {
     final MeteredCursor<ByteString, ByteString> source =
@@ -259,8 +257,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings("resource")
-  public void testFileRegionChunk() throws Exception
+  public void testFileRegion() throws Exception
   {
     final int NB_REGION = 10;
     final int NB_RECORDS = 15;
@@ -285,25 +282,29 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     }
 
     // Copy content into file regions
-    final List<Chunk> regionChunks = new ArrayList<>(memoryChunks.size());
+    final List<Pair<Long, Integer>> regions = new ArrayList<>(memoryChunks.size());
     long offset = 0;
     for (Chunk source : memoryChunks)
     {
-      final Chunk region = new FileRegionChunk("test", channel, offset, source.size());
+      final FileRegion region = new FileRegion(channel, offset, source.size());
+      try(final SequentialCursor<ByteString, ByteString> cursor = source.flip()) {
+        regions.add(Pair.of(offset, region.write(cursor)));
+      }
       offset += source.size();
-      populate(region, toPairs(source.flip()));
-      regionChunks.add(region);
     }
 
     // Verify file regions contents
     int regionNumber = 0;
-    for (Chunk region : regionChunks)
+    final MappedByteBuffer buffer = channel.map(MapMode.READ_ONLY, 0, offset);
+    for (Pair<Long, Integer> region : regions)
     {
-      assertThat(toPairs(region.flip())).containsExactlyElementsOf(content(contents[regionNumber]));
+      buffer.position(region.getFirst().intValue()).limit(buffer.position() + region.getSecond());
+      assertThat(toPairs(new FileRegion.Cursor("test", buffer.slice()))).containsExactlyElementsOf(content(contents[regionNumber]));
       regionNumber++;
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testExternalSortChunk() throws Exception
   {
