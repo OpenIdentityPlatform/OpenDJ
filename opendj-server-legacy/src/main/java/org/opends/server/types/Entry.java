@@ -4431,7 +4431,18 @@ public class Entry
           continue;
         }
 
-        AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
+        final AttributeDescription attrDesc;
+        try
+        {
+          attrDesc = AttributeDescription.valueOf(attrName);
+        }
+        catch (LocalizedIllegalArgumentException e)
+        {
+          // For compatibility tolerate and ignore illegal attribute types, instead of
+          // aborting with a ProtocolError (2) as per the RFC. See OPENDJ-2813.
+          logger.traceException(e);
+          continue;
+        }
         attrName = attrDesc.getNameOrOID();
         final AttributeType attrType = attrDesc.getAttributeType();
         if (attrType.isPlaceHolder())
