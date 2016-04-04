@@ -583,21 +583,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     }
 
     /**
-     * Returns the normalized name or OID for this schema definition.
-     * <p>
-     * If it has one or more names, then the lower case primary name will be returned.
-     * If it does not have any names, then the lower case OID will be returned.
-     *
-     * @return The normalized name or OID for this schema definition.
-     * @deprecated This method may be removed at any time
-     * @since OPENDJ-1632 Migrate AttributeType in one shot
-     */
-    @Deprecated
-    public String getNormalizedNameOrOID() {
-        return normalizedName;
-    }
-
-    /**
      * Returns an unmodifiable list containing the user-defined names that may
      * be used to reference this schema definition.
      *
