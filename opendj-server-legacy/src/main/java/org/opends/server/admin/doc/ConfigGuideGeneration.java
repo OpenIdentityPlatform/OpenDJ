@@ -188,11 +188,8 @@ public class ConfigGuideGeneration {
     Collection<AbstractManagedObjectDefinition<?, ?>> topObjects =
       topCfg.getChildren();
     for (AbstractManagedObjectDefinition topObject : topObjects) {
-      if (topObject.getName().equals("")) {
-        // root
-        continue;
-      }
-      if (topObject.hasOption(ManagedObjectOption.HIDDEN))
+      if (isRoot(topObject.getName())
+          || topObject.hasOption(ManagedObjectOption.HIDDEN))
       {
         continue;
       }
@@ -228,7 +225,10 @@ public class ConfigGuideGeneration {
         catMap.put(topObject.getName(), topObject);
       }
     }
+  }
 
+  private boolean isRoot(String name) {
+    return name.equals("");
   }
 
   /**
@@ -338,7 +338,7 @@ public class ConfigGuideGeneration {
       String linkStr = getLink(childMo.getUserFriendlyName().toString(),
         childMo.getName() + ".html", MAIN_FRAME);
       String fromStr = "";
-      if (!parentMo.getName().equals("")) {
+      if (!isRoot(parentMo.getName())) {
         fromStr = " (from " +
           getLink(parentMo.getUserFriendlyName().toString(),
           parentMo.getName() + ".html", MAIN_FRAME) + ")";
@@ -561,11 +561,8 @@ public class ConfigGuideGeneration {
     boolean isReverseCompRelsEmpty = true;
     if (!reverseCompRels.isEmpty()) {
       for (RelationDefinition rel : reverseCompRels) {
-        if (rel.hasOption(RelationOption.HIDDEN)) {
-          continue;
-        }
-        // check if it is not root
-        if (rel.getParentDefinition().getName().equals("")) {
+        if (rel.hasOption(RelationOption.HIDDEN)
+            || isRoot(rel.getParentDefinition().getName())) {
           continue;
         }
         isReverseCompRelsEmpty = false;
@@ -685,10 +682,11 @@ public class ConfigGuideGeneration {
 
     // Property table
     startTable();
+    LocalizableMessage propSynopsis = prop.getSynopsis();
+    LocalizableMessage propDescription = prop.getDescription();
     tableRow("Description",
-      ((prop.getSynopsis() != null) ? prop.getSynopsis()+ " " : "") +
-      ((prop.getDescription() != null) ?
-        prop.getDescription().toString() : ""));
+      ((propSynopsis != null) ? propSynopsis.toString() : "") +
+      ((propDescription != null) ? propDescription.toString() : ""));
 
     // Default value
     String defValueStr = getDefaultBehaviorString(prop);
@@ -1083,9 +1081,9 @@ public class ConfigGuideGeneration {
         RelationDefinition rel = prop.getRelationDefinition();
         String linkStr = getLink(rel.getUserFriendlyName().toString(),
           rel.getName() + ".html");
-      return "The DN of any " +  linkStr + ". " +
-        ((prop.getSourceConstraintSynopsis() != null) ?
-          prop.getSourceConstraintSynopsis().toString() : "");
+        LocalizableMessage synopsis = prop.getSourceConstraintSynopsis();
+        return "The DN of any " +  linkStr + ". " +
+            ((synopsis != null) ? synopsis.toString() : "");
       }
 
       @Override
