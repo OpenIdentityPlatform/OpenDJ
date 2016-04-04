@@ -16,6 +16,7 @@
  */
 package org.opends.server.tools.tasks;
 
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.text.DateFormat;
@@ -27,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -36,10 +38,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -53,6 +53,27 @@ public class TaskEntry {
   private static Map<String, LocalizableMessage> mapAttrToDisplayName = new HashMap<>();
 
   private int hashCode;
+
+  /**
+   * These attributes associated with the ds-task object
+   * class are all handled explicitly below in the constructor.
+   */
+  private static final Set<String> supAttrNames = newHashSet(
+    // @formatter:off
+    "ds-task-id",
+    "ds-task-class-name",
+    "ds-task-state",
+    "ds-task-scheduled-start-time",
+    "ds-task-actual-start-time",
+    "ds-task-completion-time",
+    "ds-task-dependency-id",
+    "ds-task-failed-dependency-action",
+    "ds-task-log-message",
+    "ds-task-notify-on-completion",
+    "ds-task-notify-on-error",
+    "ds-recurring-task-id",
+    "ds-recurring-task-schedule");
+    // @formatter:on
 
   private String id;
   private String className;
@@ -98,10 +119,10 @@ public class TaskEntry {
     notifyComp = getMultiStringValue(entry,  p + "notify-on-completion");
     schedTab =   getSingleStringValue(entry, "ds-recurring-task-schedule");
 
-    final ObjectClass dsTask = DirectoryServer.getObjectClass("ds-task");
-    final ObjectClass dsRecurringTask = DirectoryServer.getObjectClass("ds-recurring-task");
+    // Build a map of non-superior attribute value pairs for display
     for (AttributeType attrType : entry.getUserAttributes().keySet()) {
-      if (!dsTask.isRequiredOrOptional(attrType) && !dsRecurringTask.isRequiredOrOptional(attrType)) {
+      // See if we've handled it already above
+      if (!hasAnyNameOrOID(attrType, supAttrNames)) {
         LocalizableMessage attrTypeName = getAttributeDisplayName(attrType);
         for (Attribute attr : entry.getUserAttribute(attrType)) {
           for (ByteString av : attr) {
@@ -115,6 +136,7 @@ public class TaskEntry {
         }
       }
     }
+
     hashCode += id.hashCode();
     hashCode += className.hashCode();
     hashCode += state.hashCode();
@@ -128,6 +150,18 @@ public class TaskEntry {
     hashCode += notifyComp.hashCode();
     hashCode += schedTab.hashCode();
     hashCode += taskSpecificAttrValues.hashCode();
+  }
+
+  private boolean hasAnyNameOrOID(AttributeType attrType, Set<String> attrNames)
+  {
+    for (String attrName : attrNames)
+    {
+      if (attrType.hasNameOrOID(attrName))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
