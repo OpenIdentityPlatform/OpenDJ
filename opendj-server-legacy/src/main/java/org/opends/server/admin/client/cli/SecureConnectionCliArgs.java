@@ -437,9 +437,7 @@ public final class SecureConnectionCliArgs
     }
     if (couldInitializeConfig)
     {
-      // Get the Directory Server configuration handler and use it.
-      RootCfg root =
-          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
+      RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
       administrationConnectorCfg = root.getAdministrationConnector();
 
       String trustManagerStr = administrationConnectorCfg.getTrustManagerProvider();
@@ -496,8 +494,7 @@ public final class SecureConnectionCliArgs
     }
     if (couldInitializeConfiguration)
     {
-      RootCfg root =
-          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
+      RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
       return root.getAdministrationConnector().getListenPort();
     }
     else
@@ -511,10 +508,9 @@ public final class SecureConnectionCliArgs
     // check if the initialization is required
     try
     {
-      DirectoryServer.getInstance().getServerContext().getServerManagementContext()
-        .getRootConfiguration().getAdministrationConnector();
+      DirectoryServer.getInstance().getServerContext().getRootConfig().getAdministrationConnector();
     }
-    catch (java.lang.Throwable th)
+    catch (Throwable th)
     {
       try
       {

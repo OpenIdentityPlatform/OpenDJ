@@ -92,11 +92,7 @@ public class  KeyManagerProviderConfigManager
   public void initializeKeyManagerProviders()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any key manager provider entries are added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addKeyManagerProviderAddListener(this);
     rootConfiguration.addKeyManagerProviderDeleteListener(this);
 

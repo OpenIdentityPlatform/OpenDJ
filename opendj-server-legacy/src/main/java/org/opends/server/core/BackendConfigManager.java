@@ -91,12 +91,8 @@ public class BackendConfigManager implements
   public void initializeBackendConfig()
          throws ConfigException, InitializationException
   {
-    // Create an internal server management context and retrieve
-    // the root configuration.
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-
     // Register add and delete listeners.
+    RootCfg root = serverContext.getRootConfig();
     root.addBackendAddListener(this);
     root.addBackendDeleteListener(this);
 

@@ -86,11 +86,7 @@ public class AlertHandlerConfigManager
   public void initializeAlertHandlers()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any alert handler entries are added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addAlertHandlerAddListener(this);
     rootConfiguration.addAlertHandlerDeleteListener(this);
 

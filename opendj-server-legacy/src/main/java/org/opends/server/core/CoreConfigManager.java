@@ -29,7 +29,6 @@ import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
 import org.forgerock.opendj.server.config.server.GlobalCfg;
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.loggers.CommonAudit;
 import org.opends.server.types.*;
@@ -74,17 +73,12 @@ public class CoreConfigManager
   public void initializeCoreConfig()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Get the global configuration and register with it as a change listener.
-    GlobalCfg globalConfig = rootConfiguration.getGlobalConfiguration();
+    GlobalCfg globalConfig = serverContext.getRootConfig().getGlobalConfiguration();
     globalConfig.addChangeListener(this);
 
 
     // If there are any STMP servers specified, then make sure that if the value
-    // contains a colon that the portion after it is an integer between 1 and
-    // 65535.
+    // contains a colon that the portion after it is an integer between 1 and 65535.
     Set<String> smtpServers = globalConfig.getSMTPServer();
     if (smtpServers != null)
     {

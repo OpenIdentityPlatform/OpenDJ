@@ -96,7 +96,6 @@ public final class SchemaHandler
   {
     this.serverContext = serverContext;
 
-    final RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
     final org.opends.server.types.Schema schema = serverContext.getSchema();
 
     schema.exclusiveLock();
@@ -106,7 +105,7 @@ public final class SchemaHandler
       final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
       // Take providers into account.
-      loadSchemaFromProviders(rootConfiguration, schemaBuilder);
+      loadSchemaFromProviders(serverContext.getRootConfig(), schemaBuilder);
 
       // Take schema files into account (TODO : or load files using provider mechanism ?)
       completeSchemaFromFiles(schemaBuilder);

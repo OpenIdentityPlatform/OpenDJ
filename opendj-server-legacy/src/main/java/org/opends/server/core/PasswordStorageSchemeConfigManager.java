@@ -87,10 +87,7 @@ public class PasswordStorageSchemeConfigManager
   public void initializePasswordStorageSchemes()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any entry cache entry is added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addPasswordStorageSchemeAddListener (this);
     rootConfiguration.addPasswordStorageSchemeDeleteListener (this);
 

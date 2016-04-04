@@ -728,6 +728,12 @@ public final class DirectoryServer
     }
 
     @Override
+    public RootCfg getRootConfig()
+    {
+      return getServerManagementContext().getRootConfiguration();
+    }
+
+    @Override
     public MemoryQuota getMemoryQuota()
     {
       return directoryServer.memoryQuota;
@@ -1432,8 +1438,7 @@ public final class DirectoryServer
   public void initializeCryptoManager()
          throws ConfigException, InitializationException
   {
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-    CryptoManagerCfg cryptoManagerCfg = root.getCryptoManager();
+    CryptoManagerCfg cryptoManagerCfg = serverContext.getRootConfig().getCryptoManager();
     cryptoManager = new CryptoManagerImpl(serverContext, cryptoManagerCfg);
   }
 
@@ -1596,13 +1601,11 @@ public final class DirectoryServer
     backendConfigManager = new BackendConfigManager(serverContext);
     backendConfigManager.initializeBackendConfig();
 
-    // Make sure to initialize the root DSE backend separately after all other
-    // backends.
+    // Make sure to initialize the root DSE backend separately after all other backends.
     RootDSEBackendCfg rootDSECfg;
     try
     {
-      RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-      rootDSECfg = root.getRootDSEBackend();
+      rootDSECfg = serverContext.getRootConfig().getRootDSEBackend();
     }
     catch (Exception e)
     {
@@ -1910,8 +1913,7 @@ public final class DirectoryServer
          throws ConfigException, InitializationException {
   RootDSEBackendCfg rootDSECfg;
   try {
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-    rootDSECfg = root.getRootDSEBackend();
+    rootDSECfg = serverContext.getRootConfig().getRootDSEBackend();
   }  catch (Exception e) {
     logger.traceException(e);
     LocalizableMessage message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(

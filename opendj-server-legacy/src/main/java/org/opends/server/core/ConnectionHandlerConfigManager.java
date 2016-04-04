@@ -231,11 +231,8 @@ public class ConnectionHandlerConfigManager implements
 
     initializeAdministrationConnectorConfig();
 
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
 
-    // Register as an add and delete listener so that we can
-    // be notified if new connection handlers are added or existing
-    // connection handlers are removed.
+    RootCfg root = serverContext.getRootConfig();
     root.addConnectionHandlerAddListener(this);
     root.addConnectionHandlerDeleteListener(this);
 
@@ -272,10 +269,8 @@ public class ConnectionHandlerConfigManager implements
 
   private void initializeAdministrationConnectorConfig()
     throws ConfigException, InitializationException {
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     AdministrationConnectorCfg administrationConnectorCfg =
-      root.getAdministrationConnector();
+      serverContext.getRootConfig().getAdministrationConnector();
 
     AdministrationConnector ac = new AdministrationConnector(serverContext);
     ac.initializeAdministrationConnector(administrationConnectorCfg);

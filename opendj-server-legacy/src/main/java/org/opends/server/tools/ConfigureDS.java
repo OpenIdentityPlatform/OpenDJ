@@ -308,8 +308,6 @@ public class ConfigureDS
       final DN rootDN = parseRootDN();
       final String rootPW = parseRootDNPassword();
 
-      // Get the Directory Server configuration handler and use it to make the
-      // appropriate configuration changes.
       configHandler = DirectoryServer.getConfigurationHandler();
 
       checkManagerProvider(keyManagerProviderDN, JCKES_KEY_MANAGER_DN, JCKES_KEY_MANAGER_LDIF_ENTRY, true);

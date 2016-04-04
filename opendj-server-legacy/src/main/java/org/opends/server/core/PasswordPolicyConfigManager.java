@@ -65,8 +65,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     this.serverContext = serverContext;
   }
 
-
-
   /**
    * Initializes all authentication policies currently defined in the Directory
    * Server configuration. This should only be called at Directory Server
@@ -82,10 +80,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   public void initializeAuthenticationPolicies() throws ConfigException,
       InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any password policy entries are added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addPasswordPolicyAddListener(this);
     rootConfiguration.addPasswordPolicyDeleteListener(this);
 
@@ -152,27 +147,19 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     DirectoryServer.getSubentryManager().registerChangeListener(this);
   }
 
-
-
   /**
    * Perform any required finalization tasks for all authentication policies
    * currently defined. This should only be called at Directory Server shutdown.
    */
   public void finalizeAuthenticationPolicies()
   {
-    // Deregister this as subentry change listener with SubentryManager.
     DirectoryServer.getSubentryManager().deregisterChangeListener(this);
 
-    // Deregister as configuration change listeners.
-
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.removePasswordPolicyAddListener(this);
     rootConfiguration.removePasswordPolicyDeleteListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
@@ -183,9 +170,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
         unacceptableReason);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(AuthenticationPolicyCfg configuration)
   {
@@ -215,9 +199,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
@@ -235,9 +216,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(AuthenticationPolicyCfg configuration)
   {
@@ -259,9 +237,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void checkSubentryAddAcceptable(Entry entry) throws DirectoryException
   {
@@ -271,9 +246,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void checkSubentryDeleteAcceptable(Entry entry)
       throws DirectoryException
@@ -283,9 +255,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // either directly or via a virtual attribute).
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void checkSubentryModifyAcceptable(Entry oldEntry, Entry newEntry)
       throws DirectoryException
@@ -296,9 +265,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void checkSubentryModifyDNAcceptable(Entry oldEntry, Entry newEntry)
       throws DirectoryException
@@ -308,9 +274,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // either directly or via a virtual attribute).
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleSubentryAdd(Entry entry)
   {
@@ -329,9 +292,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleSubentryDelete(Entry entry)
   {
@@ -341,9 +301,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleSubentryModify(Entry oldEntry, Entry newEntry)
   {
@@ -369,9 +326,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleSubentryModifyDN(Entry oldEntry, Entry newEntry)
   {
@@ -397,12 +351,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
-  /**
-   * Creates and registers the provided authentication policy
-   * configuration.
-   */
+  /** Creates and registers the provided authentication policy configuration. */
   private <T extends AuthenticationPolicyCfg> void createAuthenticationPolicy(
       T policyConfiguration) throws ConfigException, InitializationException
   {
@@ -454,8 +403,6 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
   }
 
-
-
   /**
    * Determines whether or not the new authentication policy configuration's
    * implementation class is acceptable.
@@ -497,5 +444,4 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       return false;
     }
   }
-
 }

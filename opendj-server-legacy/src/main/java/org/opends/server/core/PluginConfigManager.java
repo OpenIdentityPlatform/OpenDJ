@@ -46,7 +46,6 @@ import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.forgerock.opendj.server.config.server.PluginRootCfg;
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
@@ -293,11 +292,7 @@ public class PluginConfigManager
   {
     registeredPlugins.clear();
 
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Get the plugin root configuration and register with it as an add and
-    // delete listener so we can be notified if any plugin entries are added or removed.
-    pluginRootConfig = rootConfiguration.getPluginRoot();
+    pluginRootConfig = serverContext.getRootConfig().getPluginRoot();
     pluginRootConfig.addPluginAddListener(this);
     pluginRootConfig.addPluginDeleteListener(this);
   }

@@ -447,7 +447,7 @@ public final class AdministrationConnector implements
   {
     try
     {
-      RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
+      RootCfg root = serverContext.getRootConfig();
       AdministrationConnectorCfg config = root.getAdministrationConnector();
 
       // Check if certificate generation is needed

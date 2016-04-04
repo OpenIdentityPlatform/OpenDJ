@@ -174,11 +174,7 @@ public class LoggerConfigManager implements ConfigurationAddListener<LogPublishe
    */
   public void initializeLoggerConfig() throws ConfigException, InitializationException
   {
-    // Create an internal server management context and retrieve
-    // the root configuration which has the log publisher relation.
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-
+    RootCfg root = serverContext.getRootConfig();
     root.addLogPublisherAddListener(this);
     root.addLogPublisherDeleteListener(this);
 

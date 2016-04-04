@@ -16,6 +16,7 @@
 package org.opends.server.core;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -70,6 +71,15 @@ public interface ServerContext
    * @return the server management context
    */
   ServerManagementContext getServerManagementContext();
+
+  /**
+   * Returns the root configuration object.
+   * <p>
+   * Equivalent to calling {@code getServerManagementContext().getRootConfiguration()}.
+   *
+   * @return the root configuration object
+   */
+  RootCfg getRootConfig();
 
   /**
    * Returns the memory quota system for reserving long term memory.

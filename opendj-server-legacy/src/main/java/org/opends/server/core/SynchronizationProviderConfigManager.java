@@ -88,14 +88,7 @@ public class SynchronizationProviderConfigManager
   public void initializeSynchronizationProviders()
          throws ConfigException, InitializationException
   {
-    // Create an internal server management context and retrieve
-    // the root configuration which has the synchronization provider relation.
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Register as an add and delete listener so that we can
-    // be notified when new synchronization providers are added or existing
-    // synchronization providers are removed.
+    RootCfg root = serverContext.getRootConfig();
     root.addSynchronizationProviderAddListener(this);
     root.addSynchronizationProviderDeleteListener(this);
 

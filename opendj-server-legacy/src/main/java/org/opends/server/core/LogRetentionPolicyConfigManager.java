@@ -73,9 +73,7 @@ public class LogRetentionPolicyConfigManager implements
    */
   public void initializeLogRetentionPolicyConfig() throws ConfigException, InitializationException
   {
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-
+    RootCfg root = serverContext.getRootConfig();
     root.addLogRetentionPolicyAddListener(this);
     root.addLogRetentionPolicyDeleteListener(this);
 
@@ -83,13 +81,11 @@ public class LogRetentionPolicyConfigManager implements
     {
       LogRetentionPolicyCfg config = root.getLogRetentionPolicy(name);
 
-      RetentionPolicy RetentionPolicy = getRetentionPolicy(config);
-
+      RetentionPolicy<LogRetentionPolicyCfg> RetentionPolicy = getRetentionPolicy(config);
       DirectoryServer.registerRetentionPolicy(config.dn(), RetentionPolicy);
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       LogRetentionPolicyCfg configuration,
@@ -98,7 +94,6 @@ public class LogRetentionPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       LogRetentionPolicyCfg configuration,
@@ -108,7 +103,6 @@ public class LogRetentionPolicyConfigManager implements
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogRetentionPolicyCfg config)
   {
@@ -116,9 +110,8 @@ public class LogRetentionPolicyConfigManager implements
 
     try
     {
-      RetentionPolicy RetentionPolicy = getRetentionPolicy(config);
-
-      DirectoryServer.registerRetentionPolicy(config.dn(), RetentionPolicy);
+      RetentionPolicy<LogRetentionPolicyCfg> retentionPolicy = getRetentionPolicy(config);
+      DirectoryServer.registerRetentionPolicy(config.dn(), retentionPolicy);
     }
     catch (ConfigException e) {
       logger.traceException(e);
@@ -135,14 +128,13 @@ public class LogRetentionPolicyConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       LogRetentionPolicyCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    RetentionPolicy policy = DirectoryServer.getRetentionPolicy(config.dn());
+    RetentionPolicy<?> policy = DirectoryServer.getRetentionPolicy(config.dn());
     if(policy != null)
     {
       DirectoryServer.deregisterRetentionPolicy(config.dn());
@@ -156,7 +148,6 @@ public class LogRetentionPolicyConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LogRetentionPolicyCfg configuration,
@@ -165,7 +156,6 @@ public class LogRetentionPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LogRetentionPolicyCfg configuration)
@@ -193,7 +183,7 @@ public class LogRetentionPolicyConfigManager implements
       Class<? extends RetentionPolicy> theClass =
           pd.loadClass(className, RetentionPolicy.class);
       // Explicitly cast to check that implementation implements the correct interface.
-      RetentionPolicy retentionPolicy = theClass.newInstance();
+      RetentionPolicy<?> retentionPolicy = theClass.newInstance();
       // next line is here to ensure that eclipse does not remove the cast in the line above
       retentionPolicy.hashCode();
       return true;
@@ -204,7 +194,7 @@ public class LogRetentionPolicyConfigManager implements
     }
   }
 
-  private RetentionPolicy getRetentionPolicy(LogRetentionPolicyCfg config)
+  private RetentionPolicy<LogRetentionPolicyCfg> getRetentionPolicy(LogRetentionPolicyCfg config)
       throws ConfigException {
     String className = config.getJavaClass();
     LogRetentionPolicyCfgDefn d = LogRetentionPolicyCfgDefn.getInstance();
@@ -212,10 +202,8 @@ public class LogRetentionPolicyConfigManager implements
     try {
       Class<? extends RetentionPolicy> theClass =
           pd.loadClass(className, RetentionPolicy.class);
-      RetentionPolicy retentionPolicy = theClass.newInstance();
-
+      RetentionPolicy<LogRetentionPolicyCfg> retentionPolicy = theClass.newInstance();
       retentionPolicy.initializeLogRetentionPolicy(config);
-
       return retentionPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
@@ -224,4 +212,3 @@ public class LogRetentionPolicyConfigManager implements
     }
   }
 }
-

@@ -87,11 +87,7 @@ public class MonitorConfigManager
   public void initializeMonitorProviders()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any monitor provider entries are added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addMonitorProviderAddListener(this);
     rootConfiguration.addMonitorProviderDeleteListener(this);
 

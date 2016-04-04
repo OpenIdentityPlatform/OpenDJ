@@ -90,10 +90,7 @@ public class PasswordGeneratorConfigManager
   public void initializePasswordGenerators()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any password generator entries are added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addPasswordGeneratorAddListener(this);
     rootConfiguration.addPasswordGeneratorDeleteListener(this);
 

@@ -91,11 +91,7 @@ public class AccountStatusNotificationHandlerConfigManager
   public void initializeNotificationHandlers()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Register as an add and delete listener with the root configuration so
-    // we can be notified if any account status notification handler entry
-    // is added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addAccountStatusNotificationHandlerAddListener (this);
     rootConfiguration.addAccountStatusNotificationHandlerDeleteListener (this);
 

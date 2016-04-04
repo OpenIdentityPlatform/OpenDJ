@@ -701,7 +701,6 @@ public class EncodePassword
   throws InitializationException, ConfigException {
     directoryServer.initializeRootDSE();
 
-    RootCfg root = directoryServer.getServerContext().getServerManagementContext().getRootConfiguration();
     Entry backendRoot;
     try {
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
@@ -715,6 +714,8 @@ public class EncodePassword
       LocalizableMessage message = ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get();
       throw new ConfigException(message);
     }
+
+    RootCfg root = directoryServer.getServerContext().getRootConfig();
     for (String name : root.listBackends()) {
       BackendCfg backendCfg = root.getBackend(name);
       String backendID = backendCfg.getBackendId();

@@ -15,6 +15,7 @@
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.core;
+
 import static org.opends.messages.ConfigMessages.*;
 
 import java.util.HashSet;
@@ -28,7 +29,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.RootDNCfg;
 import org.forgerock.opendj.server.config.server.RootDNUserCfg;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -88,17 +88,11 @@ public class RootDNConfigManager
   public void initializeRootDNs()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Get the root DN configuration object, use it to set the default root
-    // privileges, and register a change listener for it.
-    RootDNCfg rootDNCfg = rootConfiguration.getRootDN();
+    RootDNCfg rootDNCfg = serverContext.getRootConfig().getRootDN();
     rootPrivilegeChangeListener.setDefaultRootPrivileges(rootDNCfg);
     rootDNCfg.addChangeListener(rootPrivilegeChangeListener);
 
 
-    // Register as an add and delete listener for new root DN users.
     rootDNCfg.addRootDNUserAddListener(this);
     rootDNCfg.addRootDNUserDeleteListener(this);
 

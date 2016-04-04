@@ -633,8 +633,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         }
         else
         {
-          RootCfg root =
-              DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
+          RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
           ReplicationSynchronizationProviderCfg sync = null;
           try
           {

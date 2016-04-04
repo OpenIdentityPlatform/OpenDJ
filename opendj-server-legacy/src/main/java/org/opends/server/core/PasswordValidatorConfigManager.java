@@ -91,11 +91,7 @@ public class PasswordValidatorConfigManager
   public void initializePasswordValidators()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any password validator entries are added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addPasswordValidatorAddListener(this);
     rootConfiguration.addPasswordValidatorDeleteListener(this);
 

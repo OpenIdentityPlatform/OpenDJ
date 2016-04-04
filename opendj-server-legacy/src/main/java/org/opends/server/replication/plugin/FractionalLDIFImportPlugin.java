@@ -170,7 +170,7 @@ public final class FractionalLDIFImportPlugin
    */
   private static FractionalConfig getStaticReplicationDomainFractionalConfig(ServerContext serverContext,
         Entry entry) throws Exception {
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
+    RootCfg root = serverContext.getRootConfig();
     ReplicationSynchronizationProviderCfg sync =
       (ReplicationSynchronizationProviderCfg)
       root.getSynchronizationProvider("Multimaster Synchronization");

@@ -23,14 +23,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
@@ -150,10 +149,9 @@ public class TaskUtils
    */
   public static BackendCfg getConfigEntry(Backend<?> backend)
   {
-    RootCfg root = getServerManagementContext().getRootConfiguration();
     try
     {
-      return root.getBackend(backend.getBackendID());
+      return getRootConfig().getBackend(backend.getBackendID());
     }
     catch (ConfigException e)
     {
@@ -161,9 +159,9 @@ public class TaskUtils
     }
   }
 
-  private static ServerManagementContext getServerManagementContext()
+  private static RootCfg getRootConfig()
   {
-    return DirectoryServer.getInstance().getServerContext().getServerManagementContext();
+    return DirectoryServer.getInstance().getServerContext().getRootConfig();
   }
 
   /**
@@ -176,29 +174,7 @@ public class TaskUtils
   public static void enableBackend(String backendID)
        throws DirectoryException
   {
-    DN configEntryDN;
-    RootCfg root = getServerManagementContext().getRootConfiguration();
-    try
-    {
-      BackendCfg cfg = root.getBackend(backendID);
-      configEntryDN = cfg.dn();
-    }
-    catch (ConfigException e)
-    {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject(), e);
-    }
-
-    ModifyRequest modifyRequest = newModifyRequest(configEntryDN)
-        .addModification(REPLACE, ATTR_BACKEND_ENABLED, TRUE_VALUE);
-    ModifyOperation internalModify = getRootConnection().processModify(modifyRequest);
-
-    ResultCode resultCode = internalModify.getResultCode();
-    if (resultCode != ResultCode.SUCCESS)
-    {
-      LocalizableMessage message = ERR_TASK_CANNOT_ENABLE_BACKEND.get(configEntryDN);
-      throw new DirectoryException(resultCode, message);
-    }
+    enableBackend(backendID, TRUE_VALUE, ERR_TASK_CANNOT_ENABLE_BACKEND);
   }
 
 
@@ -212,28 +188,29 @@ public class TaskUtils
    */
   public static void disableBackend(String backendID) throws DirectoryException
   {
+    enableBackend(backendID, FALSE_VALUE, ERR_TASK_CANNOT_DISABLE_BACKEND);
+  }
+
+  private static void enableBackend(String backendID, ByteString enableValue, Arg1<Object> errorMsg)
+        throws DirectoryException {
     DN configEntryDN;
-    RootCfg root = getServerManagementContext().getRootConfiguration();
     try
     {
-      BackendCfg cfg = root.getBackend(backendID);
-      configEntryDN = cfg.dn();
+      configEntryDN = getRootConfig().getBackend(backendID).dn();
     }
     catch (ConfigException e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject(), e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), e.getMessageObject(), e);
     }
 
     ModifyRequest modifyRequest = newModifyRequest(configEntryDN)
-        .addModification(REPLACE, ATTR_BACKEND_ENABLED, FALSE_VALUE);
-    ModifyOperation internalModify = getRootConnection().processModify(modifyRequest);
+        .addModification(REPLACE, ATTR_BACKEND_ENABLED, enableValue);
+    ModifyOperation modifyOp = getRootConnection().processModify(modifyRequest);
 
-    ResultCode resultCode = internalModify.getResultCode();
+    ResultCode resultCode = modifyOp.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
-      LocalizableMessage message = ERR_TASK_CANNOT_DISABLE_BACKEND.get(configEntryDN);
-      throw new DirectoryException(resultCode, message);
+      throw new DirectoryException(resultCode, errorMsg.get(configEntryDN));
     }
   }
 

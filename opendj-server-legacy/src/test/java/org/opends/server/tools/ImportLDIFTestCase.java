@@ -462,8 +462,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
   {
     try
     {
-      final RootCfg root =
-          DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
+      final RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
       final String errorMsg = "Unexpected content in reject file:\n\n" + readFile(reject)
           + "\n\nThe backend was configured with the following base DNs: "
           + root.getBackend(beID).getBaseDN() + "\n\n";

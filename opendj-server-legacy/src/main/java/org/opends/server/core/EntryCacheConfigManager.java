@@ -125,14 +125,11 @@ public class EntryCacheConfigManager
   public void initializeEntryCache()
          throws ConfigException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
     // Default entry cache should be already installed with
     // <CODE>initializeDefaultEntryCache()</CODE> method so
     // that there will be one even if we encounter a problem later.
 
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any entry cache entry is added or removed.
+    RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addEntryCacheAddListener(this);
     rootConfiguration.addEntryCacheDeleteListener(this);
 
@@ -461,8 +458,6 @@ public class EntryCacheConfigManager
     )
     throws InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
     // Load the entry cache class...
     EntryCache<? extends EntryCacheCfg> entryCache =
       loadEntryCache (className, configuration, true);
@@ -481,9 +476,9 @@ public class EntryCacheConfigManager
         new EntryCacheMonitorProvider(configuration.dn().
             rdn().getFirstAVA().getAttributeValue().toString(), entryCache);
     try {
+      RootCfg rootConfiguration = serverContext.getRootConfig();
       monitor.initializeMonitorProvider((EntryCacheMonitorProviderCfg)
-        rootConfiguration.getMonitorProvider(
-        DEFAULT_ENTRY_CACHE_MONITOR_PROVIDER));
+        rootConfiguration.getMonitorProvider(DEFAULT_ENTRY_CACHE_MONITOR_PROVIDER));
     } catch (ConfigException ce) {
       // ConfigException here means that either the entry cache monitor
       // config entry is not present or the monitor is not enabled. In

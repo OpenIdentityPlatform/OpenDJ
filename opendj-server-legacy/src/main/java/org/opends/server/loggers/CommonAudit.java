@@ -72,7 +72,6 @@ import org.forgerock.opendj.server.config.server.FreeDiskSpaceLogRetentionPolicy
 import org.forgerock.opendj.server.config.server.LogPublisherCfg;
 import org.forgerock.opendj.server.config.server.LogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.LogRotationPolicyCfg;
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.TimeLimitLogRotationPolicyCfg;
@@ -511,7 +510,6 @@ public class CommonAudit
   private void addCsvHandlerRotationConfig(PublisherConfig publisher, CsvConfigData config,
       CsvAuditEventHandlerConfiguration auditConfig) throws ConfigException
   {
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     SortedSet<String> rotationPolicies = config.getRotationPolicies();
     if (rotationPolicies.isEmpty())
     {
@@ -522,7 +520,7 @@ public class CommonAudit
     fileRotation.setRotationEnabled(true);
     for (final String policy : rotationPolicies)
     {
-      LogRotationPolicyCfg policyConfig = root.getLogRotationPolicy(policy);
+      LogRotationPolicyCfg policyConfig = serverContext.getRootConfig().getLogRotationPolicy(policy);
       if (policyConfig instanceof FixedTimeLogRotationPolicyCfg)
       {
         List<String> times = convertTimesOfDay(publisher, (FixedTimeLogRotationPolicyCfg) policyConfig);
@@ -549,7 +547,6 @@ public class CommonAudit
   private void addCsvHandlerRetentionConfig(PublisherConfig publisher, CsvConfigData config,
       CsvAuditEventHandlerConfiguration auditConfig) throws ConfigException
   {
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
     SortedSet<String> retentionPolicies = config.getRetentionPolicies();
     if (retentionPolicies.isEmpty())
     {
@@ -559,7 +556,7 @@ public class CommonAudit
     FileRetention fileRetention = new FileRetention();
     for (final String policy : retentionPolicies)
     {
-      LogRetentionPolicyCfg policyConfig = root.getLogRetentionPolicy(policy);
+      LogRetentionPolicyCfg policyConfig = serverContext.getRootConfig().getLogRetentionPolicy(policy);
       if (policyConfig instanceof FileCountLogRetentionPolicyCfg)
       {
         fileRetention.setMaxNumberOfHistoryFiles(((FileCountLogRetentionPolicyCfg) policyConfig).getNumberOfFiles());

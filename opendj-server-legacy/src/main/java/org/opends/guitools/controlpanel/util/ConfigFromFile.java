@@ -151,9 +151,7 @@ public class ConfigFromFile extends ConfigReader
       final Set<BackendDescriptor> backendDescriptors, final Set<DN> alternateBindDNs,
       final List<OpenDsException> errors) throws OpenDsException, ConfigException
   {
-    // Get the Directory Server configuration handler and use it.
-    final RootCfg root =
-        DirectoryServer.getInstance().getServerContext().getServerManagementContext().getRootConfiguration();
+    final RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
     readAdminConnector(root, errors);
     readConnectionHandlers(connectionHandlers, root, errors);
     isSchemaEnabled = root.getGlobalConfiguration().isCheckSchema();

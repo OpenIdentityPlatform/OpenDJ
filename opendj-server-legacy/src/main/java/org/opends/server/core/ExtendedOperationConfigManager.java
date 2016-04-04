@@ -86,12 +86,7 @@ public class ExtendedOperationConfigManager implements
   public void initializeExtendedOperationHandlers()
          throws ConfigException, InitializationException
   {
-    // Create an internal server management context and retrieve
-    // the root configuration which has the extended operation handler relation.
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-
-    // Register add and delete listeners.
+    RootCfg root = serverContext.getRootConfig();
     root.addExtendedOperationHandlerAddListener(this);
     root.addExtendedOperationHandlerDeleteListener(this);
 

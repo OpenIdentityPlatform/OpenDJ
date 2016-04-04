@@ -21,7 +21,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.WorkQueueCfgDefn;
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.WorkQueueCfg;
 import org.opends.server.api.WorkQueue;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -69,12 +68,8 @@ public class WorkQueueConfigManager
   public WorkQueue initializeWorkQueue()
          throws ConfigException, InitializationException
   {
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
-
-
-    // Get the work queue configuration and register with it as a change
-    // listener.
-    WorkQueueCfg workQueueConfig = rootConfiguration.getWorkQueue();
+    // Get the work queue configuration and register with it as a change listener.
+    WorkQueueCfg workQueueConfig = serverContext.getRootConfig().getWorkQueue();
     workQueueConfig.addChangeListener(this);
 
 

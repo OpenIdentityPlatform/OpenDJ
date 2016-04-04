@@ -78,12 +78,12 @@ public class ServerContextBuilder
    * Ensure that configuration is fully bootstrapped. Only use when necessary as
    * it will impact test performance.
    */
-  public ServerContextBuilder withConfigurationBootstrapped()
-      throws InitializationException
+  public ServerContextBuilder withConfigurationBootstrapped() throws InitializationException
   {
     final ConfigurationHandler configHandler = ConfigurationHandler.bootstrapConfiguration(serverContext);
     final ServerManagementContext serverManagementContext = new ServerManagementContext(configHandler);
     when(serverContext.getServerManagementContext()).thenReturn(serverManagementContext);
+    when(serverContext.getRootConfig()).thenReturn(serverManagementContext.getRootConfiguration());
     return this;
   }
 

@@ -72,23 +72,18 @@ public class LogRotationPolicyConfigManager implements
    */
   public void initializeLogRotationPolicyConfig() throws ConfigException, InitializationException
   {
-
-    RootCfg root = serverContext.getServerManagementContext().getRootConfiguration();
-
+    RootCfg root = serverContext.getRootConfig();
     root.addLogRotationPolicyAddListener(this);
     root.addLogRotationPolicyDeleteListener(this);
 
     for(String name : root.listLogRotationPolicies())
     {
       LogRotationPolicyCfg config = root.getLogRotationPolicy(name);
-
-      RotationPolicy rotationPolicy = getRotationPolicy(config);
-
+      RotationPolicy<LogRotationPolicyCfg> rotationPolicy = getRotationPolicy(config);
       DirectoryServer.registerRotationPolicy(config.dn(), rotationPolicy);
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       LogRotationPolicyCfg configuration,
@@ -97,7 +92,6 @@ public class LogRotationPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       LogRotationPolicyCfg configuration,
@@ -107,7 +101,6 @@ public class LogRotationPolicyConfigManager implements
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogRotationPolicyCfg config)
   {
@@ -115,8 +108,7 @@ public class LogRotationPolicyConfigManager implements
 
     try
     {
-      RotationPolicy rotationPolicy = getRotationPolicy(config);
-
+      RotationPolicy<LogRotationPolicyCfg> rotationPolicy = getRotationPolicy(config);
       DirectoryServer.registerRotationPolicy(config.dn(), rotationPolicy);
     }
     catch (ConfigException e) {
@@ -134,14 +126,13 @@ public class LogRotationPolicyConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       LogRotationPolicyCfg config)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    RotationPolicy policy = DirectoryServer.getRotationPolicy(config.dn());
+    RotationPolicy<?> policy = DirectoryServer.getRotationPolicy(config.dn());
     if(policy != null)
     {
       DirectoryServer.deregisterRotationPolicy(config.dn());
@@ -155,7 +146,6 @@ public class LogRotationPolicyConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LogRotationPolicyCfg configuration,
@@ -164,15 +154,13 @@ public class LogRotationPolicyConfigManager implements
     return isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LogRotationPolicyCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    RotationPolicy policy =
-        DirectoryServer.getRotationPolicy(configuration.dn());
+    RotationPolicy<?> policy = DirectoryServer.getRotationPolicy(configuration.dn());
     String className = configuration.getJavaClass();
     if(!className.equals(policy.getClass().getName()))
     {
@@ -192,7 +180,7 @@ public class LogRotationPolicyConfigManager implements
       Class<? extends RotationPolicy> theClass =
           pd.loadClass(className, RotationPolicy.class);
       // Explicitly cast to check that implementation implements the correct interface.
-      RotationPolicy retentionPolicy = theClass.newInstance();
+      RotationPolicy<?> retentionPolicy = theClass.newInstance();
       // next line is here to ensure that eclipse does not remove the cast in the line above
       retentionPolicy.hashCode();
       return true;
@@ -203,7 +191,7 @@ public class LogRotationPolicyConfigManager implements
     }
   }
 
-  private RotationPolicy getRotationPolicy(LogRotationPolicyCfg config)
+  private RotationPolicy<LogRotationPolicyCfg> getRotationPolicy(LogRotationPolicyCfg config)
       throws ConfigException {
     String className = config.getJavaClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
@@ -211,10 +199,8 @@ public class LogRotationPolicyConfigManager implements
     try {
       Class<? extends RotationPolicy> theClass =
           pd.loadClass(className, RotationPolicy.class);
-      RotationPolicy rotationPolicy = theClass.newInstance();
-
+      RotationPolicy<LogRotationPolicyCfg> rotationPolicy = theClass.newInstance();
       rotationPolicy.initializeLogRotationPolicy(config);
-
       return rotationPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(

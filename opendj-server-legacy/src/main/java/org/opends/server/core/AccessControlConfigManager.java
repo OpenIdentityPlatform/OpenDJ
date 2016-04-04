@@ -34,7 +34,6 @@ import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.AccessControlHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.AccessControlHandlerCfg;
-import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AlertGenerator;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -145,14 +144,12 @@ public final class AccessControlConfigManager
          throws ConfigException, InitializationException
   {
     this.serverContext = serverContext;
-    RootCfg rootConfiguration = serverContext.getServerManagementContext().getRootConfiguration();
 
     // Don't register as an add and delete listener with the root configuration
     // as we can have only one object at a given time.
 
-    // //Initialize the current Access control.
-    AccessControlHandlerCfg accessControlConfiguration =
-           rootConfiguration.getAccessControlHandler();
+    // Initialize the current Access control.
+    AccessControlHandlerCfg accessControlConfiguration = serverContext.getRootConfig().getAccessControlHandler();
 
     // We have a valid usable entry, so register a change listener in
     // order to handle configuration changes.
