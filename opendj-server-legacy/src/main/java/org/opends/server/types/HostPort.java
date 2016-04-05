@@ -157,7 +157,7 @@ public final class HostPort
    */
   public static HostPort allAddresses(int port)
   {
-    return new HostPort(port);
+    return new HostPort(WILDCARD_ADDRESS, port);
   }
 
   /**
@@ -175,22 +175,6 @@ public final class HostPort
   }
 
   /**
-   * Creates a new {@code HostPort} object with the specified port number but no
-   * host.
-   *
-   * @param port
-   *          The port number for this {@code HostPort} object.
-   */
-  private HostPort(int port)
-  {
-    this.host = null;
-    this.normalizedHost = null;
-    this.port = normalizePort(port);
-  }
-
-
-
-  /**
    * Creates a new {@code HostPort} object with the specified port
    * number but no explicit host.
    *
@@ -200,9 +184,14 @@ public final class HostPort
    */
   public HostPort(String host, int port)
   {
-    this.host = removeExtraChars(host);
-    this.normalizedHost = normalizeHost(this.host);
-    this.port = normalizePort(port);
+    if (host != null) {
+      this.host = removeExtraChars(host);
+      this.normalizedHost = normalizeHost(this.host);
+    } else {
+      this.host = null;
+      this.normalizedHost = null;
+    }
+    this.port = normalizePort(port, host);
   }
 
 
@@ -314,9 +303,9 @@ public final class HostPort
    *          the port number to validate
    * @return the port number if valid
    */
-  private int normalizePort(int port)
+  private int normalizePort(int port, String host)
   {
-    if (1 <= port && port <= 65535)
+    if ((1 <= port && port <= 65535) || (port == 0 && host == null))
     {
       return port;
     }
@@ -382,27 +371,11 @@ public final class HostPort
   @Override
   public String toString()
   {
-    return toString(host);
-  }
-
-  /**
-   * Inner computation for #toString() and {@link #toNormalizedString()}.
-   *
-   * @param hostName
-   *          the hostName to use for this computation
-   * @return the String representation fo4r this object
-   */
-  private String toString(String hostName)
-  {
-    if (hostName != null)
+    if (host != null && host.contains(":"))
     {
-      if (hostName.contains(":"))
-      {
-        return "[" + hostName + "]:" + port;
-      }
-      return hostName + ":" + port;
+      return "[" + host + "]:" + port;
     }
-    return WILDCARD_ADDRESS + ":" + port;
+    return host + ":" + port;
   }
 
   /**

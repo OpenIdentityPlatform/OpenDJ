@@ -5925,7 +5925,9 @@ public final class DirectoryServer
       }
     }
 
-    directoryServer.configurationHandler.finalize();
+    if (directoryServer.configurationHandler != null) {
+      directoryServer.configurationHandler.finalize();
+    }
 
     EntryCache<?> ec = DirectoryServer.getEntryCache();
     if (ec != null)
@@ -6943,6 +6945,7 @@ public final class DirectoryServer
     {
       theDirectoryServer.setEnvironmentConfig(environmentConfig);
       theDirectoryServer.bootstrapServer();
+      theDirectoryServer.initializeConfiguration();
     }
     catch (InitializationException ie)
     {

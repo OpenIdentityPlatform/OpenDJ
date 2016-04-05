@@ -48,6 +48,14 @@ public class HostPortTest extends TypesTestCase
   }
 
   @Test
+  public void undefinedHostPort()
+  {
+    final HostPort hp = new HostPort(null, 0);
+    assertThat(hp.getHost()).isNull();
+    assertThat(hp.getPort()).isEqualTo(0);
+  }
+
+  @Test
   public void valueOfEqualsHashCodeIPv4()
   {
     final HostPort hp1 = HostPort.valueOf("home:1");
@@ -135,7 +143,7 @@ public class HostPortTest extends TypesTestCase
   @Test
   public void allAddressesNullHost() {
     HostPort hp = HostPort.allAddresses(1);
-    assertThat(hp.getHost()).isNull();
+    assertThat(hp.getHost()).isEqualTo("0.0.0.0");
     assertThat(hp.getPort()).isEqualTo(1);
   }
 

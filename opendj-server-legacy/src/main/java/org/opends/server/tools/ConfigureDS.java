@@ -51,7 +51,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
@@ -74,6 +73,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.ServerConstants;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -720,7 +720,7 @@ public class ConfigureDS
       {
         try
         {
-          getConfigEntry(dn);
+          configHandler.getEntry(dn);
         }
         catch (final Exception e)
         {
@@ -767,7 +767,7 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             DN_LDAP_CONNECTION_HANDLER, ATTR_LISTEN_PORT,
             DirectoryServer.getDefaultIntegerSyntax(),
-            ByteString.valueOfInt(ldapPort.getIntValue()));
+            ldapPort.getIntValue());
       }
       catch (final Exception e)
       {
@@ -786,7 +786,7 @@ public class ConfigureDS
             DN_ADMIN_CONNECTOR,
             ATTR_LISTEN_PORT,
             DirectoryServer.getDefaultIntegerSyntax(),
-            ByteString.valueOfInt(adminConnectorPort.getIntValue()));
+            adminConnectorPort.getIntValue());
       }
       catch (final Exception e)
       {
@@ -805,13 +805,13 @@ public class ConfigureDS
             DN_LDAPS_CONNECTION_HANDLER,
             ATTR_LISTEN_PORT,
             DirectoryServer.getDefaultIntegerSyntax(),
-            ByteString.valueOfInt(ldapsPort.getIntValue()));
+            ldapsPort.getIntValue());
 
         updateConfigEntryWithAttribute(
             DN_LDAPS_CONNECTION_HANDLER,
             ATTR_CONNECTION_HANDLER_ENABLED,
             DirectoryServer.getDefaultBooleanSyntax(),
-            ByteString.valueOfUtf8("TRUE"));
+            ServerConstants.TRUE_VALUE);
       }
       catch (final Exception e)
       {
@@ -830,13 +830,13 @@ public class ConfigureDS
             DN_JMX_CONNECTION_HANDLER,
             ATTR_LISTEN_PORT,
             DirectoryServer.getDefaultIntegerSyntax(),
-            ByteString.valueOfInt(jmxPort.getIntValue()));
+            jmxPort.getIntValue());
 
         updateConfigEntryWithAttribute(
             DN_JMX_CONNECTION_HANDLER,
             ATTR_CONNECTION_HANDLER_ENABLED,
             DirectoryServer.getDefaultBooleanSyntax(),
-            ByteString.valueOfUtf8("TRUE"));
+            ServerConstants.TRUE_VALUE);
       }
       catch (final Exception e)
       {
@@ -855,7 +855,7 @@ public class ConfigureDS
             DN_LDAP_CONNECTION_HANDLER,
             ATTR_ALLOW_STARTTLS,
             DirectoryServer.getDefaultBooleanSyntax(),
-            ByteString.valueOfUtf8("TRUE"));
+            ServerConstants.TRUE_VALUE);
       }
       catch (final Exception e)
       {
@@ -877,7 +877,7 @@ public class ConfigureDS
               keyManagerProviderDN.getValue(),
               ATTR_KEYMANAGER_ENABLED,
               DirectoryServer.getDefaultBooleanSyntax(),
-              ByteString.valueOfUtf8("TRUE"));
+              ServerConstants.TRUE_VALUE);
         }
         catch (final Exception e)
         {
@@ -897,7 +897,7 @@ public class ConfigureDS
               keyManagerProviderDN.getValue(),
               ATTR_KEYSTORE_FILE,
               DirectoryServer.getDefaultStringSyntax(),
-              ByteString.valueOfUtf8(keyManagerPath.getValue()));
+              keyManagerPath.getValue());
         }
         catch (final Exception e)
         {
@@ -918,7 +918,7 @@ public class ConfigureDS
             attributeDN,
             ATTR_KEYMANAGER_DN,
             DirectoryServer.getDefaultStringSyntax(),
-            ByteString.valueOfUtf8(keyManagerProviderDN.getValue()));
+            keyManagerProviderDN.getValue());
       }
       catch (final Exception e)
       {
@@ -939,7 +939,7 @@ public class ConfigureDS
               trustManagerProviderDN.getValue(),
               ATTR_TRUSTMANAGER_ENABLED,
               DirectoryServer.getDefaultBooleanSyntax(),
-              ByteString.valueOfUtf8("TRUE"));
+              ServerConstants.TRUE_VALUE);
         }
         catch (final Exception e)
         {
@@ -979,7 +979,7 @@ public class ConfigureDS
             attributeDN,
             ATTR_TRUSTMANAGER_DN,
             DirectoryServer.getDefaultStringSyntax(),
-            ByteString.valueOfUtf8(trustManagerProviderDN.getValue()));
+            trustManagerProviderDN.getValue());
       }
       catch (final Exception e)
       {
@@ -995,17 +995,11 @@ public class ConfigureDS
     {
       if (arg.isPresent())
       {
-        Object[] values = new ByteString[attrValues.size()];
-        int index = 0;
-        for (String attrValue : attrValues)
-        {
-          values[index++] = ByteString.valueOfUtf8(attrValue);
-        }
         updateConfigEntryWithAttribute(
             attributeDN,
             attrName,
             DirectoryServer.getDefaultStringSyntax(),
-            values);
+            attrValues.toArray(new Object[attrValues.size()]));
       }
       else
       {
@@ -1040,13 +1034,13 @@ public class ConfigureDS
             DN_ROOT_USER,
             ATTR_ROOTDN_ALTERNATE_BIND_DN,
             DirectoryServer.getDefaultStringSyntax(),
-            ByteString.valueOfUtf8(rootDN.toString()));
+            rootDN);
         final String encodedPassword = SaltedSHA512PasswordStorageScheme.encodeOffline(getBytes(rootPW));
         updateConfigEntryWithAttribute(
             DN_ROOT_USER,
             ATTR_USER_PASSWORD,
             DirectoryServer.getDefaultStringSyntax(),
-            ByteString.valueOfUtf8(encodedPassword));
+            encodedPassword);
       }
       catch (final Exception e)
       {
@@ -1064,7 +1058,7 @@ public class ConfigureDS
           DN_DIGEST_MD5_SASL_MECHANISM,
           "ds-cfg-server-fqdn",
           DirectoryServer.getDefaultStringSyntax(),
-          ByteString.valueOfUtf8(hostName.getValue()));
+          hostName.getValue());
     }
     catch (final Exception e)
     {
@@ -1114,7 +1108,7 @@ public class ConfigureDS
                 DN_CRYPTO_MANAGER,
                 ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION,
                 DirectoryServer.getDefaultStringSyntax(),
-                ByteString.valueOfUtf8(alternativeCipher));
+                alternativeCipher);
           }
           catch (final Exception e)
           {
@@ -1129,7 +1123,7 @@ public class ConfigureDS
   private void updateConfigEntryWithAttribute(String entryDn, String attributeName, Syntax syntax, Object...values)
       throws DirectoryException, ConfigException
   {
-    org.forgerock.opendj.ldap.Entry configEntry = getConfigEntry(DN.valueOf(entryDn));
+    org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntry(DN.valueOf(entryDn));
     final org.forgerock.opendj.ldap.Entry newEntry = putAttribute(configEntry, attributeName, syntax, values);
     configHandler.replaceEntry(configEntry, newEntry);
   }
@@ -1138,14 +1132,9 @@ public class ConfigureDS
   private void updateConfigEntryByRemovingAttribute(String entryDn, String attributeName)
       throws DirectoryException, ConfigException
   {
-    final org.forgerock.opendj.ldap.Entry configEntry = getConfigEntry(DN.valueOf(entryDn));
+    final org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntry(DN.valueOf(entryDn));
     final Entry newEntry = removeAttribute(Converters.to(configEntry), attributeName);
     configHandler.replaceEntry(configEntry, Converters.from(newEntry));
-  }
-
-  private org.forgerock.opendj.ldap.Entry getConfigEntry(DN dn) throws ConfigException
-  {
-    return configHandler.getEntry(dn);
   }
 
   /**
@@ -1158,7 +1147,7 @@ public class ConfigureDS
   private org.forgerock.opendj.ldap.Entry putAttribute(
       org.forgerock.opendj.ldap.Entry configEntry, String attrName, Syntax syntax, Object...values)
   {
-    org.forgerock.opendj.ldap.Entry newEntry = new LinkedHashMapEntry(configEntry);
+    org.forgerock.opendj.ldap.Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(configEntry);
     AttributeType attrType = DirectoryServer.getAttributeType(attrName, syntax);
     newEntry.replaceAttribute(new LinkedAttribute(AttributeDescription.create(attrType), values));
     return newEntry;

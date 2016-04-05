@@ -123,6 +123,7 @@ import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
@@ -209,9 +210,6 @@ public abstract class Installer extends GuiApplication
   private boolean createdAdministrator;
   private boolean createdRemoteAds;
   private String lastImportProgress;
-
-  /** A static String that contains the class name of ConfigFileHandler. */
-  protected static final String DEFAULT_CONFIG_CLASS_NAME = "org.opends.server.extensions.ConfigFileHandler";
 
   /** Aliases of self-signed certificates. */
   protected static final String SELF_SIGNED_CERT_ALIASES[] = new String[] {
@@ -823,18 +821,11 @@ public abstract class Installer extends GuiApplication
     writeHostName();
     checkAbort();
 
-    List<String> argList = new ArrayList<>();
-    argList.add("-C");
-    argList.add(getConfigurationClassName());
-
-    argList.add("-c");
-    argList.add(getConfigurationFile());
-    argList.add("-h");
-    argList.add(getUserData().getHostName());
-    argList.add("-p");
-    argList.add(String.valueOf(getUserData().getServerPort()));
-    argList.add("--adminConnectorPort");
-    argList.add(String.valueOf(getUserData().getAdminConnectorPort()));
+    List<String> argList = CollectionUtils.newArrayList(
+        "-c", getConfigurationFile(),
+        "-h", getUserData().getHostName(),
+        "-p", String.valueOf(getUserData().getServerPort()),
+        "--adminConnectorPort", String.valueOf(getUserData().getAdminConnectorPort()));
 
     final SecurityOptions sec = getUserData().getSecurityOptions();
     // TODO: even if the user does not configure SSL maybe we should choose
@@ -2966,7 +2957,7 @@ public abstract class Installer extends GuiApplication
     if (errorMsgs.isEmpty())
     {
       AuthenticationData auth = new AuthenticationData();
-      auth.setHostPort(new HostPort(host, port != null ? port : 0));
+      auth.setHostPort(new HostPort("".equals(host) ? null : host, port != null ? port : 0));
       auth.setDn(dn);
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);
@@ -4141,18 +4132,6 @@ public abstract class Installer extends GuiApplication
   private String getConfigurationFile()
   {
     return getPath(getInstallation().getCurrentConfigurationFile());
-  }
-
-  /**
-   * Returns the configuration class name to be used when invoking the
-   * command-lines.
-   *
-   * @return the configuration class name to be used when invoking the
-   *         command-lines.
-   */
-  private String getConfigurationClassName()
-  {
-    return DEFAULT_CONFIG_CLASS_NAME;
   }
 
   private String getLocalReplicationServer()

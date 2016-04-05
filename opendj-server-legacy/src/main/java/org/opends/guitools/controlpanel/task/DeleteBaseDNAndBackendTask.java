@@ -436,7 +436,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   {
     ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
     final Entry configEntry = configHandler.getEntry(entryDn);
-    final Entry newEntry = new LinkedHashMapEntry(configEntry);
+    final Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(configEntry);
     AttributeType attrType = Schema.getDefaultSchema().getAttributeType(
         attrName, CoreSchema.getDirectoryStringSyntax());
     newEntry.replaceAttribute(new LinkedAttribute(AttributeDescription.create(attrType), newBaseDNs));

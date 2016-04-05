@@ -1087,13 +1087,10 @@ public class ControlPanelInfo
   }
 
   /**
-   * Returns <CODE>true</CODE> if the configuration must be deregistered and
-   * <CODE>false</CODE> otherwise.
-   * This is required when we use the ConfigFileHandler to update the
-   * configuration, in these cases cn=config must the deregistered from the
-   * ConfigFileHandler and after that register again.
-   * @return <CODE>true</CODE> if the configuration must be deregistered and
-   * <CODE>false</CODE> otherwise.
+   * Returns {@code true} if the configuration must be deregistered and {@code false} otherwise.
+   * This is required when we update the configuration, in these cases {@code cn=config}
+   * must the deregistered and after that register again.
+   * @return {@code true} if the configuration must be deregistered and {@code false} otherwise.
    */
   public boolean mustDeregisterConfig()
   {
