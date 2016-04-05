@@ -49,6 +49,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanelArgumentParser;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
+import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
@@ -74,12 +75,9 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.monitors.VersionMonitorProvider.*;
 
-/**
- * The panel that appears when the user is asked to provide authentication.
- */
+/** The panel that appears when the user is asked to provide authentication. */
 public class LocalOrRemotePanel extends StatusGenericPanel
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final long serialVersionUID = 5051556513294844797L;
 
@@ -105,14 +103,12 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_LOCAL_OR_REMOTE_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -242,9 +238,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     return callOKWhenVisible;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -311,7 +305,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
     gbc.gridx = 0;
     gbc.gridwidth = 1;
-
 
     localInstallLabel = Utilities.createPrimaryLabel(
         INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get());
@@ -386,7 +379,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
@@ -397,13 +389,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     return combo;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -421,7 +411,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           isLocalServerRunning = Utilities.isServerRunning(instancePath);
           return null;
         }
-
 
         @Override
         public void backgroundTaskCompleted(Void returnValue,
@@ -449,7 +438,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -522,11 +510,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       BackgroundTask<InitialLdapContext> worker =
         new BackgroundTask<InitialLdapContext>()
       {
-        /** {@inheritDoc} */
         @Override
         public InitialLdapContext processBackgroundTask() throws Throwable
         {
-          getInfo().stopPooling();
+          final ControlPanelInfo info = getInfo();
+          info.stopPooling();
           if (isLocal)
           {
             // At least load the local information.
@@ -539,12 +527,12 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                     INFO_CTRL_PANEL_READING_CONFIGURATION_SUMMARY.get());
               }
             });
-            if (getInfo().isLocal() != isLocal)
+            if (info.isLocal() != isLocal)
             {
               closeInfoConnections();
             }
-            getInfo().setIsLocal(isLocal);
-            getInfo().regenerateDescriptor();
+            info.setIsLocal(isLocal);
+            info.regenerateDescriptor();
             if (!isLocalServerRunning)
             {
               return null;
@@ -555,8 +543,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           {
             if (isLocal)
             {
-              usedUrl = getInfo().getAdminConnectorURL();
-              ctx = Utilities.getAdminDirContext(getInfo(), dn.getText(),
+              usedUrl = info.getAdminConnectorURL();
+              ctx = Utilities.getAdminDirContext(info, dn.getText(),
                   String.valueOf(pwd.getPassword()));
             }
             else
@@ -565,8 +553,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                   Integer.valueOf(port.getText().trim()), true);
               ctx = createLdapsContext(usedUrl, dn.getText(),
                   String.valueOf(pwd.getPassword()),
-                  getInfo().getConnectTimeout(), null,
-                  getInfo().getTrustManager(), null);
+                  info.getConnectTimeout(), null,
+                  info.getTrustManager(), null);
               checkVersion(ctx);
             }
 
@@ -580,11 +568,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               }
             });
             closeInfoConnections();
-            getInfo().setIsLocal(isLocal);
-            getInfo().setConnection(
-                new ConnectionWrapper(ctx, getInfo().getConnectTimeout(), getInfo().getTrustManager()));
-            getInfo().setUserDataDirContext(null);
-            getInfo().regenerateDescriptor();
+            info.setIsLocal(isLocal);
+            info.setConnection(
+                new ConnectionWrapper(ctx, info.getConnectTimeout(), info.getTrustManager()));
+            info.setUserDataDirContext(null);
+            info.regenerateDescriptor();
             return ctx;
           } catch (Throwable t)
           {
@@ -593,10 +581,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           }
         }
 
-        /** {@inheritDoc} */
         @Override
-        public void backgroundTaskCompleted(InitialLdapContext ctx,
-            Throwable throwable)
+        public void backgroundTaskCompleted(InitialLdapContext ctx, Throwable throwable)
         {
           boolean handleCertificateException = false;
           boolean localServerErrorConnecting = false;
@@ -605,6 +591,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           {
             logger.info(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
 
+            final ControlPanelInfo info = getInfo();
             if (isVersionException(throwable))
             {
               errors.add(((OpenDsException)throwable).getMessageObject());
@@ -612,7 +599,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             else if (isCertificateException(throwable))
             {
               ApplicationTrustManager.Cause cause =
-                getInfo().getTrustManager().getLastRefusedCause();
+                info.getTrustManager().getLastRefusedCause();
 
               logger.info(LocalizableMessage.raw("Certificate exception cause: "+cause));
               UserDataCertificateException.Type excType = null;
@@ -620,16 +607,13 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               {
                 excType = UserDataCertificateException.Type.NOT_TRUSTED;
               }
-              else if (cause ==
-                ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+              else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
               {
                 excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
               }
               else
               {
-                LocalizableMessage msg = getThrowableMsg(
-                    INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
-                errors.add(msg);
+                errors.add(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable));
               }
 
               if (excType != null)
@@ -649,12 +633,13 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                   h = INFO_NOT_AVAILABLE_LABEL.get().toString();
                   p = -1;
                 }
+                ApplicationTrustManager trustMgr = info.getTrustManager();
                 UserDataCertificateException udce =
                   new UserDataCertificateException(null,
                       INFO_CERTIFICATE_EXCEPTION.get(h, p),
                       throwable, h, p,
-                      getInfo().getTrustManager().getLastRefusedChain(),
-                      getInfo().getTrustManager().getLastRefusedAuthType(),
+                      trustMgr.getLastRefusedChain(),
+                      trustMgr.getLastRefusedAuthType(),
                       excType);
 
                 handleCertificateException(udce);
@@ -667,7 +652,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               String providedDn = dn.getText();
               if (isLocal)
               {
-                Iterator<DN> it = getInfo().getServerDescriptor().
+                Iterator<DN> it = info.getServerDescriptor().
                 getAdministrativeUsers().iterator();
                 while (it.hasNext() && !found)
                 {
@@ -771,7 +756,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -922,10 +906,10 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
       String hostName = ConnectionUtils.getHostName(ctx);
 
-      String productName = String.valueOf(getFirstValueAsString(csr, ATTR_PRODUCT_NAME));
-      String major = String.valueOf(getFirstValueAsString(csr, ATTR_MAJOR_VERSION));
-      String point = String.valueOf(getFirstValueAsString(csr, ATTR_POINT_VERSION));
-      String minor = String.valueOf(getFirstValueAsString(csr, ATTR_MINOR_VERSION));
+      String productName = getFirstValueAsString(csr, ATTR_PRODUCT_NAME);
+      String major = getFirstValueAsString(csr, ATTR_MAJOR_VERSION);
+      String point = getFirstValueAsString(csr, ATTR_POINT_VERSION);
+      String minor = getFirstValueAsString(csr, ATTR_MINOR_VERSION);
       // Be strict, control panel is only compatible with exactly the same version
       if (!productName.equalsIgnoreCase(DynamicConstants.PRODUCT_NAME))
       {

@@ -62,6 +62,7 @@ import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
@@ -73,22 +74,29 @@ import com.forgerock.opendj.cli.CliConstants;
  */
 public class ControlPanelInfo
 {
-  private long poolingPeriod = 20000;
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private ServerDescriptor serverDesc;
+  private static boolean mustDeregisterConfig;
+  private static ControlPanelInfo instance;
+
   private Set<Task> tasks = new HashSet<>();
   private ConnectionWrapper connWrapper;
   private InitialLdapContext userDataCtx;
   private final LDAPConnectionPool connectionPool = new LDAPConnectionPool();
   /** Used by the browsers. */
   private final IconPool iconPool = new IconPool();
+
+  private long poolingPeriod = 20000;
   private Thread poolingThread;
   private boolean stopPooling;
   private boolean pooling;
+
   private ApplicationTrustManager trustManager;
   private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
   private ConnectionProtocolPolicy connectionPolicy =
     ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
+
+  private ServerDescriptor serverDesc;
   private String ldapURL;
   private String startTLSURL;
   private String ldapsURL;
@@ -99,22 +107,16 @@ public class ControlPanelInfo
   private String lastRemoteHostName;
   private String lastRemoteAdministrationURL;
 
-  private static boolean mustDeregisterConfig;
-
   private boolean isLocal = true;
 
-  private Set<AbstractIndexDescriptor> modifiedIndexes = new HashSet<>();
-  private LinkedHashSet<ConfigChangeListener> configListeners = new LinkedHashSet<>();
-  private LinkedHashSet<BackupCreatedListener> backupListeners = new LinkedHashSet<>();
-  private LinkedHashSet<BackendPopulatedListener> backendPopulatedListeners = new LinkedHashSet<>();
-  private LinkedHashSet<IndexModifiedListener> indexListeners = new LinkedHashSet<>();
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  private static ControlPanelInfo instance;
+  private final Set<AbstractIndexDescriptor> modifiedIndexes = new HashSet<>();
+  private final Set<ConfigChangeListener> configListeners = new LinkedHashSet<>();
+  private final Set<BackupCreatedListener> backupListeners = new LinkedHashSet<>();
+  private final Set<BackendPopulatedListener> backendPopulatedListeners = new LinkedHashSet<>();
+  private final Set<IndexModifiedListener> indexListeners = new LinkedHashSet<>();
 
   /** Default constructor. */
-  protected ControlPanelInfo()
+  private ControlPanelInfo()
   {
   }
 
@@ -392,41 +394,11 @@ public class ControlPanelInfo
   }
 
   /**
-   * Returns an empty new server descriptor instance.
-   * @return an empty new server descriptor instance.
-   */
-  protected ServerDescriptor createNewServerDescriptorInstance()
-  {
-    return new ServerDescriptor();
-  }
-
-  /**
-   * Returns a reader that will read the configuration from a file.
-   * @return a reader that will read the configuration from a file.
-   */
-  protected ConfigFromFile createNewConfigFromFileReader()
-  {
-    return new ConfigFromFile();
-  }
-
-  /**
-   * Returns a reader that will read the configuration from a dir context.
-   * @return a reader that will read the configuration from a dir context.
-   */
-  protected ConfigFromDirContext createNewConfigFromDirContextReader()
-  {
-    ConfigFromDirContext configFromDirContext = new ConfigFromDirContext();
-    configFromDirContext.setIsLocal(isLocal());
-    return configFromDirContext;
-  }
-
-  /**
    * Updates the contents of the server descriptor with the provider reader.
    * @param reader the configuration reader.
    * @param desc the server descriptor.
    */
-  protected void updateServerDescriptor(ConfigReader reader,
-      ServerDescriptor desc)
+  private void updateServerDescriptor(ConfigReader reader, ServerDescriptor desc)
   {
     desc.setExceptions(reader.getExceptions());
     desc.setAdministrativeUsers(reader.getAdministrativeUsers());
@@ -440,15 +412,11 @@ public class ControlPanelInfo
   /** Regenerates the last found ServerDescriptor object. */
   public synchronized void regenerateDescriptor()
   {
-    boolean isLocal = isLocal();
-
-    ServerDescriptor desc = createNewServerDescriptorInstance();
+    ServerDescriptor desc = new ServerDescriptor();
     desc.setIsLocal(isLocal);
-    ConnectionWrapper connWrapper = getConnection();
     if (isLocal)
     {
-      desc.setOpenDSVersion(
-        org.opends.server.util.DynamicConstants.FULL_VERSION_STRING);
+      desc.setOpenDSVersion(DynamicConstants.FULL_VERSION_STRING);
       String installPath = Utilities.getInstallPathFromClasspath();
       desc.setInstallPath(installPath);
       desc.setInstancePath(Utils.getInstancePathFromInstallPath(installPath));
@@ -458,8 +426,8 @@ public class ControlPanelInfo
     {
       desc.setHostname(lastRemoteHostName);
     }
-    ConfigReader reader;
 
+    ConfigReader reader;
     ServerStatus status = getStatus(desc);
     if (status != null)
     {
@@ -467,18 +435,17 @@ public class ControlPanelInfo
       if (status == ServerStatus.STOPPING)
       {
         StaticUtils.close(connWrapper);
-        this.connWrapper = null;
+        connWrapper = null;
         if (userDataCtx != null)
         {
-          unregisterConnection(connectionPool, connWrapper.getLdapContext());
+          unregisterConnection(connectionPool, null);
           StaticUtils.close(userDataCtx);
           userDataCtx = null;
         }
       }
       if (isLocal)
       {
-        reader = createNewConfigFromFileReader();
-        ((ConfigFromFile)reader).readConfiguration();
+        reader = newLocalConfigReader();
       }
       else
       {
@@ -515,41 +482,36 @@ public class ControlPanelInfo
         {
           // Ignore: we will ask the user for credentials.
         }
-        if (connWrapper != null)
-        {
-          this.connWrapper = connWrapper;
-        }
       }
 
-      if (isLocal && connWrapper == null)
+      if (connWrapper == null)
       {
-        reader = createNewConfigFromFileReader();
-        ((ConfigFromFile)reader).readConfiguration();
-      }
-      else if (!isLocal && connWrapper == null)
-      {
-        desc.setStatus(ServerStatus.NOT_CONNECTED_TO_REMOTE);
-        reader = null;
+        if (isLocal)
+        {
+          reader = newLocalConfigReader();
+        }
+        else
+        {
+          reader = null;
+          desc.setStatus(ServerStatus.NOT_CONNECTED_TO_REMOTE);
+        }
       }
       else
       {
         Utilities.initializeConfigurationFramework();
-        reader = createNewConfigFromDirContextReader();
-        ((ConfigFromDirContext) reader).readConfiguration(connWrapper);
+        reader = newRemoteConfigReader();
 
         boolean connectionWorks = checkConnections(connWrapper.getLdapContext(), userDataCtx);
         if (!connectionWorks)
         {
           if (isLocal)
           {
-            // Try with off-line info
-            reader = createNewConfigFromFileReader();
-            ((ConfigFromFile) reader).readConfiguration();
+            reader = newLocalConfigReader();
           }
           else
           {
-            desc.setStatus(ServerStatus.NOT_CONNECTED_TO_REMOTE);
             reader = null;
+            desc.setStatus(ServerStatus.NOT_CONNECTED_TO_REMOTE);
           }
           StaticUtils.close(connWrapper);
           this.connWrapper = null;
@@ -591,8 +553,7 @@ public class ControlPanelInfo
     {
       desc.setStatus(ServerStatus.STOPPED);
       desc.setAuthenticated(false);
-      reader = createNewConfigFromFileReader();
-      ((ConfigFromFile)reader).readConfiguration();
+      reader = newLocalConfigReader();
     }
     if (reader != null)
     {
@@ -609,14 +570,28 @@ public class ControlPanelInfo
       {
         localAdminConnectorURL = adminConnectorURL;
       }
-      startTLSURL = getURL(serverDesc,
-          ConnectionHandlerDescriptor.Protocol.LDAP_STARTTLS);
+      startTLSURL = getURL(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAP_STARTTLS);
       ConfigurationChangeEvent ev = new ConfigurationChangeEvent(this, desc);
       for (ConfigChangeListener listener : configListeners)
       {
         listener.configurationChanged(ev);
       }
     }
+  }
+
+  private ConfigReader newRemoteConfigReader()
+  {
+    ConfigFromDirContext reader = new ConfigFromDirContext();
+    reader.setIsLocal(isLocal);
+    reader.readConfiguration(connWrapper);
+    return reader;
+  }
+
+  private ConfigReader newLocalConfigReader()
+  {
+    ConfigFromFile reader = new ConfigFromFile();
+    reader.readConfiguration();
+    return reader;
   }
 
   private ServerStatus getStatus(ServerDescriptor desc)
@@ -1019,11 +994,7 @@ public class ControlPanelInfo
    */
   public boolean connectUsingStartTLS()
   {
-    if (getStartTLSURL() != null)
-    {
-      return getStartTLSURL().equals(getURLToConnect());
-    }
-    return false;
+    return startTLSURL != null && startTLSURL.equals(getURLToConnect());
   }
 
   /**
@@ -1033,11 +1004,7 @@ public class ControlPanelInfo
    */
   public boolean connectUsingLDAPS()
   {
-    if (getLDAPSURL() != null)
-    {
-      return getLDAPSURL().equals(getURLToConnect());
-    }
-    return false;
+    return ldapsURL != null && ldapsURL.equals(getURLToConnect());
   }
 
   /**
@@ -1048,39 +1015,38 @@ public class ControlPanelInfo
    */
   public String getURLToConnect()
   {
-    String url;
     switch (getConnectionPolicy())
     {
     case USE_STARTTLS:
-      return getStartTLSURL();
+      return startTLSURL;
     case USE_LDAP:
-      return getLDAPURL();
+      return ldapURL;
     case USE_LDAPS:
-      return getLDAPSURL();
+      return ldapsURL;
     case USE_ADMIN:
       return getAdminConnectorURL();
     case USE_MOST_SECURE_AVAILABLE:
-      url = getLDAPSURL();
-      if (url == null)
+      String url1 = ldapsURL;
+      if (url1 == null)
       {
-        url = getStartTLSURL();
+        url1 = startTLSURL;
       }
-      if (url == null)
+      if (url1 == null)
       {
-        url = getLDAPURL();
+        url1 = ldapURL;
       }
-      return url;
+      return url1;
     case USE_LESS_SECURE_AVAILABLE:
-      url = getLDAPURL();
-      if (url == null)
+      String url2 = ldapURL;
+      if (url2 == null)
       {
-        url = getStartTLSURL();
+        url2 = startTLSURL;
       }
-      if (url == null)
+      if (url2 == null)
       {
-        url = getLDAPSURL();
+        url2 = ldapsURL;
       }
-      return url;
+      return url2;
     default:
       throw new RuntimeException("Unknown policy: "+getConnectionPolicy());
     }

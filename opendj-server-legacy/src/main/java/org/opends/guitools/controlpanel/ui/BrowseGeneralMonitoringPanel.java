@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -26,6 +26,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.util.HashMap;
+import java.util.Objects;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -42,7 +43,6 @@ import javax.swing.tree.TreePath;
 
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TreePanel;
@@ -53,17 +53,12 @@ import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-/**
- * The pane that is displayed when the user clicks on 'General Monitoring'.
- *
- */
+/** The pane that is displayed when the user clicks on 'General Monitoring'. */
 public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 6462914563746678830L;
 
-  /**
-   * The panel containing the tree.
-   */
+  /** The panel containing the tree. */
   private TreePanel treePane;
 
   private JScrollPane treeScroll;
@@ -79,10 +74,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   private LocalizableMessage MULTIPLE_ITEMS_SELECTED =
     INFO_CTRL_PANEL_MULTIPLE_ITEMS_SELECTED_LABEL.get();
 
-  /**
-   * The enumeration used to define the different static nodes of the tree.
-   *
-   */
+  /** The enumeration used to define the different static nodes of the tree. */
   protected enum NodeType
   {
     /** Root node. */
@@ -101,43 +93,34 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     PDB_DATABASES_INFORMATION
   }
 
-  /**
-   * The panel displaying the informations about the selected node.
-   */
+  /** The panel displaying the informations about the selected node. */
   protected GeneralMonitoringRightPanel entryPane;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BrowseGeneralMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -152,9 +135,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     setBackground(ColorAndFontConstants.greyBackground);
@@ -177,28 +158,24 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     add(createSplitPane(), gbc);
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_GENERAL_MONITORING_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return treePane;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -236,7 +213,6 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
-      /** {@inheritDoc} */
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (!ignoreSelectionEvents)
@@ -270,7 +246,6 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     return pane;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -326,9 +301,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       if (!server.isAuthenticated())
       {
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-        mb.append(
-   INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
-   get());
+        mb.append(INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.get());
         mb.append("<br><br>").append(getAuthenticateHTML());
         errorDetails = mb.toMessage();
         errorTitle = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
@@ -339,8 +312,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     else if (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
     {
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
-          server.getHostname()));
+      mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(server.getHostname()));
       mb.append("<br><br>").append(getAuthenticateHTML());
       errorDetails = mb.toMessage();
       errorTitle = INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
@@ -350,9 +322,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     {
       errorTitle = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      mb.append(
-          INFO_CTRL_PANEL_SERVER_MUST_RUN_TO_BROWSE_MONITORING_SUMMARY.
-          get());
+      mb.append(INFO_CTRL_PANEL_SERVER_MUST_RUN_TO_BROWSE_MONITORING_SUMMARY.get());
       mb.append("<br><br>");
       mb.append(getStartServerHTML());
       errorDetails = mb.toMessage();
@@ -363,7 +333,6 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       public void run()
       {
         errorPane.setVisible(fDisplayErrorPane);
@@ -389,31 +358,24 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
     ViewPositions pos = Utilities.getViewPositions(treeScroll);
 
-    ServerDescriptor server = null;
-    if (getInfo() != null)
-    {
-      server = getInfo().getServerDescriptor();
-    }
-    GeneralMonitoringTreeNode root;
-    if (server == null)
-    {
-      root =
-        new GeneralMonitoringTreeNode(
-            INFO_CTRL_PANEL_GENERAL_MONITORING_ROOT.get().toString(),
-            NodeType.ROOT,
-            true);
-    }
-    else
-    {
-      root =
-        new GeneralMonitoringTreeNode(
-            getServerName(server),
-            NodeType.ROOT,
-            true);
-    }
+    GeneralMonitoringTreeNode root = new GeneralMonitoringTreeNode(getServerName(), NodeType.ROOT, true);
 
-    LocalizableMessage[] messages = getNodeMessages();
-    NodeType[] identifiers = getNodeTypes();
+    LocalizableMessage[] messages = {
+          INFO_CTRL_PANEL_SYSTEM_INFORMATION.get(),
+          INFO_CTRL_PANEL_JAVA_INFORMATION.get(),
+          INFO_CTRL_PANEL_WORK_QUEUE.get(),
+          INFO_CTRL_PANEL_ENTRY_CACHES.get(),
+          INFO_CTRL_PANEL_JE_DB_INFO.get(),
+          INFO_CTRL_PANEL_PDB_DB_INFO.get()
+    };
+    NodeType[] identifiers = {
+          NodeType.SYSTEM_INFORMATION,
+          NodeType.JAVA_INFORMATION,
+          NodeType.WORK_QUEUE,
+          NodeType.ENTRY_CACHES,
+          NodeType.JE_DATABASES_INFORMATION,
+          NodeType.PDB_DATABASES_INFORMATION
+    };
     for (int i=0; i < messages.length; i++)
     {
       if (isVisible(identifiers[i]))
@@ -422,17 +384,26 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       }
     }
 
-    DefaultTreeModel model = new DefaultTreeModel(root);
-    tree.setModel(model);
+    tree.setModel(new DefaultTreeModel(root));
 
     Utilities.updateViewPositions(pos);
     ignoreSelectionEvents = false;
   }
 
-  /**
-   * Updates the right entry panel.
-   *
-   */
+  private String getServerName() {
+    ServerDescriptor server = null;
+    if (getInfo() != null)
+    {
+      server = getInfo().getServerDescriptor();
+      if (server != null)
+      {
+        return getServerName(server);
+      }
+    }
+    return INFO_CTRL_PANEL_GENERAL_MONITORING_ROOT.get().toString();
+}
+
+  /** Updates the right entry panel. */
   private void updateEntryPane()
   {
     ViewPositions pos = Utilities.getViewPositions(entryPane);
@@ -499,16 +470,13 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
           throw new RuntimeException("Unknown node type: "+type);
         }
       }
+      else if (paths != null && paths.length > 1)
+      {
+        entryPane.displayMessage(MULTIPLE_ITEMS_SELECTED);
+      }
       else
       {
-        if (paths != null && paths.length > 1)
-        {
-          entryPane.displayMessage(MULTIPLE_ITEMS_SELECTED);
-        }
-        else
-        {
-          entryPane.displayMessage(NO_ELEMENT_SELECTED);
-        }
+        entryPane.displayMessage(NO_ELEMENT_SELECTED);
       }
     }
     Utilities.updateViewPositions(pos);
@@ -521,48 +489,18 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
   private boolean serverChanged(ServerDescriptor desc)
   {
-    boolean changed = false;
-    if (lastServer != null)
+    if (lastServer == null)
     {
-      // Just compare the elements interesting for this panel
-      changed =
-        !desc.getBackends().equals(lastServer.getBackends());
-      if (!changed)
-      {
-        CustomSearchResult[] monitor1 =
-        {
-            lastServer.getEntryCachesMonitor(),
-            lastServer.getJvmMemoryUsageMonitor(),
-            lastServer.getRootMonitor(),
-            lastServer.getSystemInformationMonitor(),
-            lastServer.getWorkQueueMonitor()
-        };
-        CustomSearchResult[] monitor2 =
-        {
-            desc.getEntryCachesMonitor(),
-            desc.getJvmMemoryUsageMonitor(),
-            desc.getRootMonitor(),
-            desc.getSystemInformationMonitor(),
-            desc.getWorkQueueMonitor()
-        };
-        for (int i=0; i<monitor1.length && !changed; i++)
-        {
-          if (monitor1[i] == null)
-          {
-            changed = monitor2[i] != null;
-          }
-          else
-          {
-            changed = !monitor1[i].equals(monitor2[i]);
-          }
-        }
-      }
+      return true;
     }
-    else
-    {
-      changed = true;
-    }
-    return changed;
+
+    // Just compare the elements interesting for this panel
+    return !Objects.equals(desc.getBackends(), lastServer.getBackends())
+        && !Objects.equals(lastServer.getEntryCachesMonitor(), desc.getEntryCachesMonitor())
+        && !Objects.equals(lastServer.getJvmMemoryUsageMonitor(), desc.getJvmMemoryUsageMonitor())
+        && !Objects.equals(lastServer.getRootMonitor(), desc.getRootMonitor())
+        && !Objects.equals(lastServer.getSystemInformationMonitor(), desc.getSystemInformationMonitor())
+        && !Objects.equals(lastServer.getWorkQueueMonitor(), desc.getWorkQueueMonitor());
   }
 
   private HashMap<Object, ImageIcon> hmImages = new HashMap<>();
@@ -587,32 +525,29 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     };
     for (int i=0; i<identifiers.length; i++)
     {
-      hmImages.put(identifiers[i],
-          Utilities.createImageIcon(IconPool.IMAGE_PATH+"/"+ocPaths[i],
-              getClass().getClassLoader()));
+      hmImages.put(identifiers[i], createImageIcon(ocPaths[i]));
     }
+  }
+
+  private ImageIcon createImageIcon(LocalizableMessage msg)
+  {
+    return Utilities.createImageIcon(IconPool.IMAGE_PATH + "/" + msg, getClass().getClassLoader());
   }
 
   private String getServerName(ServerDescriptor server)
   {
-    String serverName = server.getHostname();
     if (server.getAdminConnector() != null)
     {
-      serverName +=":"+server.getAdminConnector().getPort();
+      return server.getHostname() + ":" + server.getAdminConnector().getPort();
     }
-    return serverName;
+    return server.getHostname();
   }
 
-  /**
-   * Specific class used to render the nodes in the tree.  It uses specific
-   * icons for the nodes.
-   *
-   */
+  /** Specific class used to render the nodes in the tree. It uses specific icons for the nodes. */
   protected class GeneralMonitoringTreeCellRenderer extends TreeCellRenderer
   {
     private static final long serialVersionUID = -3390566664259441766L;
 
-    /** {@inheritDoc} */
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
@@ -626,55 +561,16 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
     private ImageIcon getIcon(Object value)
     {
-      ImageIcon icon = null;
-      if (value instanceof GeneralMonitoringTreeNode)
-      {
-        icon = hmImages.get(
-            ((GeneralMonitoringTreeNode)value).getIdentifier());
-      }
-      else
+      if (!(value instanceof GeneralMonitoringTreeNode))
       {
         throw new RuntimeException("Unexpected tree node: "+value);
       }
-      return icon;
+      return hmImages.get(((GeneralMonitoringTreeNode) value).getIdentifier());
     }
-  }
-
-  /**
-   * Returns the labels of the nodes to be displayed.
-   * @return the labels of the nodes to be displayed.
-   */
-  protected LocalizableMessage[] getNodeMessages()
-  {
-    return new LocalizableMessage[] {
-      INFO_CTRL_PANEL_SYSTEM_INFORMATION.get(),
-      INFO_CTRL_PANEL_JAVA_INFORMATION.get(),
-      INFO_CTRL_PANEL_WORK_QUEUE.get(),
-      INFO_CTRL_PANEL_ENTRY_CACHES.get(),
-      INFO_CTRL_PANEL_JE_DB_INFO.get(),
-      INFO_CTRL_PANEL_PDB_DB_INFO.get()
-    };
-  }
-
-  /**
-   * Returns the node types to be displayed.
-   * @return the node types to be displayed.
-   */
-  protected NodeType[] getNodeTypes()
-  {
-    return new NodeType[] {
-        NodeType.SYSTEM_INFORMATION,
-        NodeType.JAVA_INFORMATION,
-        NodeType.WORK_QUEUE,
-        NodeType.ENTRY_CACHES,
-        NodeType.JE_DATABASES_INFORMATION,
-        NodeType.PDB_DATABASES_INFORMATION
-    };
   }
 
   private boolean isVisible(NodeType nodetype)
   {
-    return !(isOEMVersion() && nodetype == NodeType.JE_DATABASES_INFORMATION);
+    return !isOEMVersion() || nodetype != NodeType.JE_DATABASES_INFORMATION;
   }
 }
-

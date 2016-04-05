@@ -70,10 +70,12 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -83,10 +85,8 @@ import com.forgerock.opendj.cli.ReturnCode;
  *
  * Once the user has provided all the required information it calls Uninstaller
  * and launches it.
- *
  */
 public class UninstallCliHelper extends ConsoleApplication {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private UninstallerArgumentParser parser;
@@ -97,9 +97,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   private boolean useSSL = true;
   private boolean useStartTLS;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public UninstallCliHelper()
   {
     // Nothing to do.
@@ -135,8 +133,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       boolean isVerbose;
       boolean isCanceled = false;
 
-      /* Step 1: analyze the arguments.
-       */
+      /* Step 1: analyze the arguments. */
 
       isInteractive = args.isInteractive();
 
@@ -151,9 +148,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
       userData.setConnectTimeout(getConnectTimeout());
 
-      /*
-       * Step 2: check that the provided parameters are compatible.
-       */
+      /* Step 2: check that the provided parameters are compatible. */
       LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
       int v = args.validateGlobalOptions(buf);
       if (v != ReturnCode.SUCCESS.get())
@@ -245,9 +240,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       info.setConnectTimeout(getConnectTimeout());
       info.regenerateDescriptor();
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-
       String adminConnectorUrl = info.getAdminConnectorURL();
-
       if (adminConnectorUrl == null)
       {
         logger.warn(LocalizableMessage.raw(
@@ -268,12 +261,11 @@ public class UninstallCliHelper extends ConsoleApplication {
       if (!isCanceled)
       {
         isCanceled = checkServerState(userData);
-      }
-
-      if (isCanceled && !userData.isForceOnError())
-      {
-        logger.info(LocalizableMessage.raw("User cancelled uninstall."));
-        userData = null;
+        if (isCanceled && !userData.isForceOnError())
+        {
+          logger.info(LocalizableMessage.raw("User cancelled uninstall."));
+          userData = null;
+        }
       }
 
       if (userData != null && !args.isQuiet())
@@ -790,44 +782,47 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     while (!couldConnect && accepted)
     {
-
       // This is done because we do not need to ask the user about these parameters.
       // If we force their presence the class LDAPConnectionConsoleInteraction will not prompt the user for them.
       SecureConnectionCliArgs secureArgsList = parser.getSecureArgsList();
 
-      secureArgsList.getHostNameArg().setPresent(true);
-      secureArgsList.getPortArg().setPresent(true);
-      secureArgsList.getHostNameArg().clearValues();
-      secureArgsList.getHostNameArg().addValue(
-          secureArgsList.getHostNameArg().getDefaultValue());
-      secureArgsList.getPortArg().clearValues();
-      secureArgsList.getPortArg().addValue(
-          secureArgsList.getPortArg().getDefaultValue());
-      secureArgsList.getBindDnArg().clearValues();
+      StringArgument hostNameArg = secureArgsList.getHostNameArg();
+      hostNameArg.setPresent(true);
+      hostNameArg.clearValues();
+      hostNameArg.addValue(hostNameArg.getDefaultValue());
+
+      IntegerArgument portArg = secureArgsList.getPortArg();
+      portArg.setPresent(true);
+      portArg.clearValues();
+      portArg.addValue(portArg.getDefaultValue());
+
+      StringArgument bindDnArg = secureArgsList.getBindDnArg();
+      bindDnArg.clearValues();
       if (uid != null)
       {
-        secureArgsList.getBindDnArg().addValue(ADSContext.getAdministratorDN(uid));
-        secureArgsList.getBindDnArg().setPresent(true);
+        bindDnArg.addValue(ADSContext.getAdministratorDN(uid));
+        bindDnArg.setPresent(true);
       }
       else
       {
-        secureArgsList.getBindDnArg().setPresent(false);
+        bindDnArg.setPresent(false);
       }
-      secureArgsList.getBindPasswordArg().clearValues();
+
+      StringArgument bindPasswordArg = secureArgsList.getBindPasswordArg();
+      bindPasswordArg.clearValues();
       if (pwd != null)
       {
-        secureArgsList.getBindPasswordArg().addValue(pwd);
-        secureArgsList.getBindPasswordArg().setPresent(true);
+        bindPasswordArg.addValue(pwd);
+        bindPasswordArg.setPresent(true);
       }
       else
       {
-        secureArgsList.getBindPasswordArg().setPresent(false);
+        bindPasswordArg.setPresent(false);
       }
 
       if (ci == null)
       {
-        ci =
-        new LDAPConnectionConsoleInteraction(this, parser.getSecureArgsList());
+        ci = new LDAPConnectionConsoleInteraction(this, parser.getSecureArgsList());
         ci.setDisplayLdapIfSecureParameters(true);
       }
 
@@ -838,21 +833,19 @@ public class UninstallCliHelper extends ConsoleApplication {
         userData.setAdminPwd(ci.getBindPassword());
 
         info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-
         String adminConnectorUrl = info.getAdminConnectorURL();
         if (adminConnectorUrl == null)
         {
-          logger.warn(LocalizableMessage.raw(
-         "Error retrieving a valid Administration Connector URL in conf file."));
+          logger.warn(LocalizableMessage.raw("Error retrieving a valid Administration Connector URL in conf file."));
           LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
-            throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
+          throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
         }
         try
         {
           URI uri = new URI(adminConnectorUrl);
           int port = uri.getPort();
-          secureArgsList.getPortArg().clearValues();
-          secureArgsList.getPortArg().addValue(String.valueOf(port));
+          portArg.clearValues();
+          portArg.addValue(String.valueOf(port));
           ci.setPortNumber(port);
         }
         catch (Throwable t)
@@ -862,9 +855,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         updateTrustManager(userData, ci);
 
         info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-
         adminConnectorUrl = info.getAdminConnectorURL();
-
         if (adminConnectorUrl == null)
         {
           logger.warn(LocalizableMessage.raw(
@@ -948,13 +939,11 @@ public class UninstallCliHelper extends ConsoleApplication {
     boolean serverStarted = false;
     Application application = new Application()
     {
-      /** {@inheritDoc} */
       @Override
       public String getInstallationPath()
       {
         return Installation.getLocal().getRootDirectory().getAbsolutePath();
       }
-      /** {@inheritDoc} */
       @Override
       public String getInstancePath()
       {
@@ -964,75 +953,51 @@ public class UninstallCliHelper extends ConsoleApplication {
         String instancePathFileName = installPath + File.separator + "lib"
         + File.separator + "resource.loc";
         File f = new File(instancePathFileName);
-
-        if (! f.exists())
+        if (!f.exists())
         {
           return installPath;
         }
-
-        BufferedReader reader;
-        try
-        {
-          reader = new BufferedReader(new FileReader(instancePathFileName));
-        }
-        catch (Exception e)
-        {
-          return installPath;
-        }
-
 
         // Read the first line and close the file.
-        String line;
-        try
+        try (BufferedReader reader = new BufferedReader(new FileReader(instancePathFileName)))
         {
-          line = reader.readLine();
+          String line = reader.readLine();
           return new File(line).getAbsolutePath();
         }
         catch (Exception e)
         {
           return installPath;
         }
-        finally
-        {
-          StaticUtils.close(reader);
-        }
       }
-      /** {@inheritDoc} */
       @Override
       public ProgressStep getCurrentProgressStep()
       {
         return UninstallProgressStep.NOT_STARTED;
       }
-      /** {@inheritDoc} */
       @Override
       public Integer getRatio(ProgressStep step)
       {
         return 0;
       }
-      /** {@inheritDoc} */
       @Override
       public LocalizableMessage getSummary(ProgressStep step)
       {
         return null;
       }
-      /** {@inheritDoc} */
       @Override
       public boolean isFinished()
       {
         return false;
       }
-      /** {@inheritDoc} */
       @Override
       public boolean isCancellable()
       {
         return false;
       }
-      /** {@inheritDoc} */
       @Override
       public void cancel()
       {
       }
-      /** {@inheritDoc} */
       @Override
       public void run()
       {
@@ -1055,13 +1020,14 @@ public class UninstallCliHelper extends ConsoleApplication {
         Installation.getLocal());
     try
     {
-      if (!suppressOutput)
+      if (suppressOutput)
+      {
+        controller.startServer(true);
+      }
+      else
       {
         println();
-      }
-      controller.startServer(suppressOutput);
-      if (!suppressOutput)
-      {
+        controller.startServer(false);
         println();
       }
       serverStarted = Installation.getLocal().getStatus().isServerRunning();
@@ -1192,8 +1158,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
       }
       ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
-          pwd, getConnectTimeout(),
-          userData.getTrustManager());
+          pwd, getConnectTimeout(), userData.getTrustManager());
       ConnectionWrapper connWrapper = new ConnectionWrapper(ctx, getConnectTimeout(), userData.getTrustManager());
 
       ADSContext adsContext = new ADSContext(connWrapper);
@@ -1233,11 +1198,9 @@ public class UninstallCliHelper extends ConsoleApplication {
     {
       logger.warn(LocalizableMessage.raw("Error connecting to server: "+te, te));
       exceptionMsg = Utils.getMessage(te);
-
     } catch (ClientException ce)
     {
       throw ce;
-
     } catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error connecting to server: "+t, t));
@@ -1435,47 +1398,31 @@ public class UninstallCliHelper extends ConsoleApplication {
     return returnValue;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return !forceNonInteractive && parser.isInteractive();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isQuiet() {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return true;
@@ -1507,12 +1454,7 @@ public class UninstallCliHelper extends ConsoleApplication {
      userData.setTrustManager(trust);
    }
 
-
-
-   /**
-    * Forces the initialization of the trust manager in the
-    * LDAPConnectionInteraction object.
-    */
+   /** Forces the initialization of the trust manager in the LDAPConnectionInteraction object. */
    private void forceTrustManagerInitialization()
    {
      forceNonInteractive = true;

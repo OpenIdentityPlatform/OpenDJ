@@ -86,7 +86,9 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.ReturnCode;
+import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
 
@@ -135,7 +137,6 @@ public class StatusCli extends ConsoleApplication
    *
    * @param args The command-line arguments provided to this program.
    */
-
   public static void main(String[] args)
   {
     int retCode = mainCLI(args, true, System.out, System.err, System.in);
@@ -267,11 +268,9 @@ public class StatusCli extends ConsoleApplication
       // parameters. We force their presence in the
       // LDAPConnectionConsoleInteraction, this done, it will not prompt
       // the user for them.
-      final SecureConnectionCliArgs secureArgsList = argParser.getSecureArgsList();
       controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+      String ldapUrl = controlInfo.getAdminConnectorURL();
       int port = CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-      controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-      String ldapUrl = controlInfo.getURLToConnect();
       try
       {
         final URI uri = new URI(ldapUrl);
@@ -281,16 +280,19 @@ public class StatusCli extends ConsoleApplication
       {
         logger.error(LocalizableMessage.raw("Error parsing url: " + ldapUrl));
       }
-      secureArgsList.getHostNameArg().setPresent(true);
-      secureArgsList.getPortArg().setPresent(true);
-      secureArgsList.getHostNameArg().addValue(secureArgsList.getHostNameArg().getDefaultValue());
-      secureArgsList.getPortArg().addValue(Integer.toString(port));
+      final SecureConnectionCliArgs secureArgsList = argParser.getSecureArgsList();
+      final StringArgument hostNameArg = secureArgsList.getHostNameArg();
+      hostNameArg.setPresent(true);
+      hostNameArg.addValue(hostNameArg.getDefaultValue());
+      final IntegerArgument portArg = secureArgsList.getPortArg();
+      portArg.setPresent(true);
+      portArg.addValue(Integer.toString(port));
       // We already know if SSL or StartTLS can be used.  If we cannot
       // use them we will not propose them in the connection parameters
       // and if none of them can be used we will just not ask for the
       // protocol to be used.
       final LDAPConnectionConsoleInteraction ci =
-          new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList(), ALLOW_ANONYMOUS_IF_NON_INTERACTIVE);
+          new LDAPConnectionConsoleInteraction(this, secureArgsList, ALLOW_ANONYMOUS_IF_NON_INTERACTIVE);
       try
       {
         ci.run(false);
@@ -1108,38 +1110,32 @@ public class StatusCli extends ConsoleApplication
     return argParser.getTrustManager();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return argParser.isInteractive();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isQuiet() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return true;
