@@ -364,7 +364,7 @@ public final class SchemaBuilder {
                 atBuilder.approximateMatchingRule(approxRules.get(0));
             }
 
-            if (superiorType == null && syntax == null) {
+            if (superiorType == null && syntax == null && !options.get(ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX)) {
                 throw new LocalizedIllegalArgumentException(
                     WARN_ATTR_SYNTAX_ATTRTYPE_MISSING_SYNTAX_AND_SUPERIOR.get(definition));
             }

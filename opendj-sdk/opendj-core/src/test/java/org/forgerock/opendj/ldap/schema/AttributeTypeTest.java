@@ -16,6 +16,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import java.util.Iterator;
@@ -481,37 +482,39 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
         Assert.assertFalse(type.isSingleValue());
     }
 
-    /**
-     * Check that the simple constructor throws an NPE when mandatory parameters
-     * are not specified.
-     *
-     * @throws Exception
-     *             If the test failed unexpectedly.
-     */
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testNoSupNorSyntax1() throws Exception {
-        final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-        builder.buildAttributeType("1.2.1")
-               .names(EMPTY_NAMES)
-               .obsolete(true)
-               .usage(AttributeUsage.DSA_OPERATION)
-               .addToSchema();
-
-        builder.addAttributeType("( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )", false);
-
+    @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void attributeTypeDefinitionsRequireSyntaxOrSuperiorWhenStrict1() throws Exception {
+        new SchemaBuilder(Schema.getCoreSchema())
+                .setOption(SchemaOptions.ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX, false)
+                .addAttributeType("(1.2.1)", true);
     }
 
-    /**
-     * Check that the simple constructor throws an NPE when mandatory parameters
-     * are not specified.
-     *
-     * @throws Exception
-     *             If the test failed unexpectedly.
-     */
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void testNoSupNorSyntax2() throws Exception {
-        final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-        builder.addAttributeType("( 1.2.2 OBSOLETE SINGLE-VALUE )", false);
+    public void attributeTypeDefinitionsRequireSyntaxOrSuperiorWhenStrict2() throws Exception {
+        new SchemaBuilder(Schema.getCoreSchema())
+                .setOption(SchemaOptions.ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX, false)
+                .buildAttributeType("1.2.1")
+                .addToSchema();
+    }
+
+    @Test
+    public void attributeTypeDefinitionsDoNotRequireSyntaxOrSuperiorWhenTolerant1() throws Exception {
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+                .addAttributeType("(1.2.1)", true).toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getAttributeType("1.2.1").getSuperiorType()).isNull();
+        assertThat(schema.getAttributeType("1.2.1").getSyntax()).isSameAs(schema.getDefaultSyntax());
+    }
+
+    @Test
+    public void attributeTypeDefinitionsDoNotRequireSyntaxOrSuperiorWhenTolerant2() throws Exception {
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+                .buildAttributeType("1.2.1")
+                .addToSchema()
+                .toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getAttributeType("1.2.1").getSuperiorType()).isNull();
+        assertThat(schema.getAttributeType("1.2.1").getSyntax()).isSameAs(schema.getDefaultSyntax());
     }
 
     @Test

@@ -19,6 +19,7 @@ package org.forgerock.opendj.ldap.schema;
 import static java.util.Arrays.*;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -97,7 +98,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
          *             numeric OID.
          */
         public SchemaBuilder addToSchema() {
-            return getSchemaBuilder().addAttributeType(new AttributeType(this), false);
+            return addToSchema(false);
         }
 
         /**
@@ -107,19 +108,11 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
          * @return The parent schema builder.
          */
         public SchemaBuilder addToSchemaOverwrite() {
-            return getSchemaBuilder().addAttributeType(new AttributeType(this), true);
+            return addToSchema(true);
         }
 
-        /**
-         * Adds this attribute type to the schema, overwriting any existing attribute type
-         * with the same numeric OID if the overwrite parameter is set to {@code true}.
-         *
-         * @param overwrite
-         *            {@code true} if any attribute type with the same OID should be overwritten.
-         * @return The parent schema builder.
-         */
         SchemaBuilder addToSchema(final boolean overwrite) {
-            return overwrite ? addToSchemaOverwrite() : addToSchema();
+            return getSchemaBuilder().addAttributeType(new AttributeType(this), overwrite);
         }
 
         /**
@@ -424,8 +417,11 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     private AttributeType(Builder builder) {
         super(builder);
         Reject.ifTrue(builder.oid == null || builder.oid.isEmpty(), "An OID must be specified.");
-        Reject.ifTrue(builder.superiorTypeOID == null && builder.syntaxOID == null,
-                "Superior type and/or Syntax must not be null");
+
+        if (builder.superiorTypeOID == null && builder.syntaxOID == null
+                && !builder.getSchemaBuilder().getOptions().get(ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX)) {
+            throw new IllegalArgumentException("Superior type and/or Syntax must not be null");
+        }
 
         oid = builder.oid;
         names = unmodifiableCopyOfList(builder.names);
@@ -989,6 +985,8 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         } else if (getSuperiorType() != null && getSuperiorType().getSyntax() != null) {
             // Try to inherit the syntax from the superior type if possible
             syntax = getSuperiorType().getSyntax();
+        } else {
+            syntax = schema.getDefaultSyntax();
         }
 
         if (equalityMatchingRuleOID != null) {

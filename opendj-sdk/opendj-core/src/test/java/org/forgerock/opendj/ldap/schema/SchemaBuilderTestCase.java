@@ -84,11 +84,23 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 "1.3.6.1.4.1.1466.115.121.1.15");
     }
 
-    /** Tests that attribute types must have a syntax or a superior. */
+    /** Tests that attribute types must have a syntax or a superior when strict. */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
-    public void attributeTypeNoSuperiorNoSyntax() {
-        new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
-                "( parenttype-oid NAME 'parenttype' )", false);
+    public void attributeTypeNoSuperiorNoSyntaxWhenStrict() {
+        new SchemaBuilder(Schema.getCoreSchema())
+                .setOption(ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX, false)
+                .addAttributeType("( parenttype-oid NAME 'parenttype' )", false);
+    }
+
+    /** Tests that attribute types do not have to have a syntax or a superior when leniant. */
+    @Test
+    public void attributeTypeNoSuperiorNoSyntaxWhenLeniant() {
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+                .addAttributeType("( parenttype-oid NAME 'parenttype' )", false)
+                .toSchema();
+        assertThat(schema.getAttributeType("parenttype").getSyntax()).isNotNull();
+        assertThat(schema.getAttributeType("parenttype").getSyntax().getOID())
+                .isEqualTo("1.3.6.1.4.1.1466.115.121.1.40");
     }
 
     /**

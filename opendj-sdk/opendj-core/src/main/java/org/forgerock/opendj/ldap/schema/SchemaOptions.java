@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -49,6 +49,16 @@ public final class SchemaOptions {
      * characters are often used for naming purposes (such as collation rules).
      */
     public static final Option<Boolean> ALLOW_MALFORMED_NAMES_AND_OPTIONS = Option.withDefault(true);
+
+    /**
+     * Specifies whether the schema should allow attribute type definitions that do not declare a superior attribute
+     * type or syntax. When this compatibility option is set to {@code true} invalid attribute type definitions will
+     * use the default syntax specifed by the {@link #DEFAULT_SYNTAX_OID} option.
+     * <p>
+     * By default this compatibility option is set to {@code true} in order to remain compatible with previous
+     * versions of OpenDJ.
+     */
+    public static final Option<Boolean> ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX = Option.withDefault(true);
 
     /**
      * Specifies whether the JPEG Photo syntax should allow values which
