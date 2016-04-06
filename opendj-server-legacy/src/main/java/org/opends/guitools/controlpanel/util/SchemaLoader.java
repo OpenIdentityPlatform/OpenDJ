@@ -21,7 +21,7 @@ import static org.opends.messages.ConfigMessages.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -106,7 +106,7 @@ public class SchemaLoader
   {
     schema = getBaseSchema();
 
-    String[] fileNames;
+    List<String> fileNames;
     String schemaDirPath = getSchemaDirectoryPath();
     try
     {
@@ -140,18 +140,16 @@ public class SchemaLoader
         }
       };
       File[] schemaFiles = schemaDir.listFiles(ldifFilesFilter);
-      List<String> fileList = new ArrayList<>(schemaFiles.length);
+      fileNames = new ArrayList<>(schemaFiles.length);
       for (File f : schemaFiles)
       {
         if (f.isFile())
         {
-          fileList.add(f.getName());
+          fileNames.add(f.getName());
         }
       }
 
-      fileNames = new String[fileList.size()];
-      fileList.toArray(fileNames);
-      Arrays.sort(fileNames);
+      Collections.sort(fileNames);
     }
     catch (InitializationException ie)
     {
@@ -162,10 +160,9 @@ public class SchemaLoader
       throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirPath, e.getMessage()), e);
     }
 
-    //  Iterate through the schema files and read them as an LDIF file
-    //  containing a single entry.  Then get the attributeTypes and
-    //  objectClasses attributes from that entry and parse them to
-    //  initialize the server schema.
+    // Iterate through the schema files and read them as an LDIF file containing a single entry.
+    // Then get the attributeTypes and objectClasses attributes from that entry
+    // and parse them to initialize the server schema.
     for (String schemaFile : fileNames)
     {
       SchemaConfigManager.loadSchemaFile(schema, schemaFile);
