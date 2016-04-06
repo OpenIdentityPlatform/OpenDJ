@@ -25,12 +25,11 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
 /**
@@ -104,8 +103,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, int dsId, int rsId, String msg)
-      throws Exception
+  private void checkConnection(int dsId, int rsId, String msg) throws Exception
   {
 
     int rsPort = -1;
@@ -137,51 +135,10 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
         fail("Unknown replication server id.");
     }
 
-    int nSec = 0;
-
-    // Go out of the loop only if connection is verified or if timeout occurs
-    while (true)
-    {
-      // Test connection
-      boolean connected = rd.isConnected();
-      int rdPort = -1;
-      boolean rightPort = false;
-      if (connected)
-      {
-        String serverStr = rd.getReplicationServer();
-        rdPort = HostPort.valueOf(serverStr).getPort();
-        if (rdPort == rsPort)
-        {
-          rightPort = true;
-        }
-      }
-      if (connected && rightPort)
-      {
-        // Connection verified
-        debugInfo("checkConnection: connection from domain " + dsId + " to" +
-          " replication server " + rsId + " obtained after "
-          + nSec + " seconds.");
-        return;
-      }
-
-      // Sleep 1 second
-      Thread.sleep(1000);
-      nSec++;
-
-      if (nSec > secTimeout)
-      {
-        // Timeout reached, end with error
-        fail("checkConnection: could not verify connection from domain " + dsId
-          + " to replication server " + rsId + " after " + secTimeout + " seconds."
-          + " Domain connected: " + connected + ", connection port: " + rdPort
-          + " (should be: " + rsPort + "). [" + msg + "]");
-      }
-    }
+    waitConnected(dsId, rsId, rsPort, rd, msg);
   }
 
-  /**
-   * Find needed free TCP ports.
-   */
+  /** Find needed free TCP ports. */
   private void findFreePorts() throws IOException
   {
     int[] ports = TestCaseUtils.findFreePorts(3);
@@ -400,7 +357,6 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
 
     try
     {
-
       /**
        * Start RS1 with GID=1 and RS2 with GID=2
        */
@@ -414,8 +370,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
        */
       // Start DS1
       rd1 = createReplicationDomain(DS1_ID, 2, testCase);
-      checkConnection(30, DS1_ID, RS2_ID,
-        "Start DS1 with GID=2, should connect to RS2 with GID=2");
+      checkConnection(DS1_ID, RS2_ID, "Start DS1 with GID=2, should connect to RS2 with GID=2");
 
       /**
        * Start DS2 with GID=3, should connect to either RS1 or RS2 (no GID=3
@@ -433,8 +388,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       rs3 = createReplicationServer(RS3_ID, 3, testCase);
       // Sleep to insure start is done and DS2 has time to detect to server
       // arrival and reconnect
-      checkConnection(30, DS2_ID, RS3_ID,
-        "Start RS3 with GID=3, DS2 with GID=3 should detect server with his GID and connect to RS3");
+      checkConnection(DS2_ID, RS3_ID,
+          "Start RS3 with GID=3, DS2 with GID=3 should detect server with his GID and connect to RS3");
 
 
       /**
@@ -446,10 +401,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       // Simulate RS3 failure
       rs3.remove();
       // Sleep to insure shutdowns are ok and DS1 and DS2 reconnect to RS1
-      checkConnection(30, DS1_ID, RS1_ID,
-        "Stop RS2 and RS3, DS1 should failover to RS1 with GID=1");
-      checkConnection(30, DS2_ID, RS1_ID,
-        "Stop RS2 and RS3, DS2 should failover to RS1 with GID=1");
+      checkConnection(DS1_ID, RS1_ID, "Stop RS2 and RS3, DS1 should failover to RS1 with GID=1");
+      checkConnection(DS2_ID, RS1_ID, "Stop RS2 and RS3, DS2 should failover to RS1 with GID=1");
 
       /**
        * Restart RS2 and RS3, DS1 should reconnect to RS2 (with GID=2, his GID)
@@ -461,10 +414,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       rs3 = createReplicationServer(RS3_ID, 3, testCase);
       // Sleep to insure restarts are ok and DS1 and DS2 reconnect to the RS with
       // their group id
-      checkConnection(30, DS1_ID, RS2_ID,
-        "Restart RS2 and RS3, DS1 should reconnect to RS2 (with GID=2, his GID)");
-      checkConnection(30, DS2_ID, RS3_ID,
-        "Restart RS2 and RS3, DS2 should reconnect to RS3 (with GID=3, his GID)");
+      checkConnection(DS1_ID, RS2_ID, "Restart RS2 and RS3, DS1 should reconnect to RS2 (with GID=2, his GID)");
+      checkConnection(DS2_ID, RS3_ID, "Restart RS2 and RS3, DS2 should reconnect to RS3 (with GID=3, his GID)");
 
       //
       // ENTERING CHANGE CONFIG TEST PART
@@ -479,10 +430,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       rd1.applyConfigurationChange(domainConfWithNewGid);
       domainConfWithNewGid = new DomainFakeCfg(baseDn, DS2_ID, replServers, 1);
       rd2.applyConfigurationChange(domainConfWithNewGid);
-      checkConnection(30, DS1_ID, RS1_ID,
-        "Change GID of DS1 to 1, it should reconnect to RS1 with GID=1");
-      checkConnection(30, DS2_ID, RS1_ID,
-        "Change GID of DS2 to 1, it should reconnect to RS1 with GID=1");
+      checkConnection(DS1_ID, RS1_ID, "Change GID of DS1 to 1, it should reconnect to RS1 with GID=1");
+      checkConnection(DS2_ID, RS1_ID, "Change GID of DS2 to 1, it should reconnect to RS1 with GID=1");
 
       /**
        * Change group id of RS3 to 1
@@ -505,10 +454,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       rsConfWithNewGid =
           new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID, 0, 100, otherReplServers, 3, 1000, 5000);
       rs1.applyConfigurationChange(rsConfWithNewGid);
-      checkConnection(30, DS1_ID, RS3_ID,
-        "Change GID of RS3 to 1 and RS1 to 3, DS1 should reconnect to RS3 with GID=1");
-      checkConnection(30, DS2_ID, RS3_ID,
-        "Change GID of RS3 to 1 and RS1 to 3, DS2 should reconnect to RS3 with GID=1");
+      checkConnection(DS1_ID, RS3_ID, "Change GID of RS3 to 1 and RS1 to 3, DS1 should reconnect to RS3 with GID=1");
+      checkConnection(DS2_ID, RS3_ID, "Change GID of RS3 to 1 and RS1 to 3, DS2 should reconnect to RS3 with GID=1");
 
       /**
        * Change group id of DS1 and DS2 to 3 : they should reconnect to RS1
@@ -517,12 +464,10 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       rd1.applyConfigurationChange(domainConfWithNewGid);
       domainConfWithNewGid = new DomainFakeCfg(baseDn, DS2_ID, replServers, 3);
       rd2.applyConfigurationChange(domainConfWithNewGid);
-      checkConnection(30, DS1_ID, RS1_ID,
-        "Change GID of DS1 to 3, it should reconnect to RS1 with GID=3");
-      checkConnection(30, DS2_ID, RS1_ID,
-        "Change GID of DS2 to 3, it should reconnect to RS1 with GID=3");
-
-    } finally
+      checkConnection(DS1_ID, RS1_ID, "Change GID of DS1 to 3, it should reconnect to RS1 with GID=3");
+      checkConnection(DS2_ID, RS1_ID, "Change GID of DS2 to 3, it should reconnect to RS1 with GID=3");
+    }
+    finally
     {
       endTest();
     }

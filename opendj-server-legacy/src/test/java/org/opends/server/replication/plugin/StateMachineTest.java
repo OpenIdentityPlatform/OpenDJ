@@ -222,7 +222,7 @@ public class StateMachineTest extends ReplicationTestCase
     ReplicationBroker broker = new ReplicationBroker(
         new DummyReplicationDomain(generationId), state, fakeCfg, security);
     broker.start();
-    checkConnection(30, broker, rs1Port);
+    checkConnection(30, broker);
     return broker;
   }
 

@@ -31,6 +31,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -38,7 +39,6 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -60,8 +60,8 @@ import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.TestTimer;
@@ -111,8 +111,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /** Replicated suffix (replication domain). */
   protected Entry synchroServerEntry;
   protected Entry replServerEntry;
-
-  private static final String REPLICATION_DB_IMPL_PROPERTY = "org.opends.test.replicationDbImpl";
 
   /** Replication monitor stats. */
   private DN monitorDN;
@@ -207,18 +205,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       int serverId, int windowSize, int port, int timeout,
       long generationId) throws Exception
   {
-    DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
+    final DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
     config.setWindowSize(windowSize);
-    return openReplicationSession(config, port, timeout, generationId);
-  }
 
-  protected ReplicationBroker openReplicationSession(ReplicationDomainCfg config,
-      int port, int timeout, long generationId) throws Exception
-  {
     final ReplicationBroker broker = new ReplicationBroker(
         new DummyReplicationDomain(generationId), new ServerState(),
         config, getReplSessionSecurity());
-    connect(broker, port, timeout);
+    connect(broker, timeout);
     return broker;
   }
 
@@ -230,11 +223,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return fakeCfg;
   }
 
-  protected void connect(ReplicationBroker broker, int port, int timeout) throws Exception
+  protected void connect(ReplicationBroker broker, int timeout) throws Exception
   {
     broker.start();
     // give some time to the broker to connect to the replicationServer.
-    checkConnection(30, broker, port);
+    checkConnection(30, broker);
 
     if (timeout != 0)
     {
@@ -246,7 +239,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Check connection of the provided ds to the replication server. Waits for connection to be ok up
    * to secTimeout seconds before failing.
    */
-  protected void checkConnection(int secTimeout, final ReplicationBroker rb, int rsPort) throws Exception
+  protected void checkConnection(int secTimeout, final ReplicationBroker rb) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(secTimeout, SECONDS)
@@ -918,5 +911,55 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         return searchOp;
       }
     });
+  }
+
+  protected void waitConnected(int dsId, int rsId, int rsPort, LDAPReplicationDomain rd, String msg) throws InterruptedException
+  {
+    final int secTimeout = 30;
+    int nSec = 0;
+
+    // Go out of the loop only if connection is verified or if timeout occurs
+    while (true)
+    {
+      boolean connected = rd.isConnected();
+      int rdPort = -1;
+      boolean rightPort = false;
+      if (connected)
+      {
+        String rsUrl = rd.getReplicationServer();
+        try {
+          rdPort = HostPort.valueOf(rsUrl).getPort();
+          rightPort = rdPort == rsPort;
+        }
+        catch (IllegalArgumentException notConnectedYet)
+        {
+          // wait a bit more
+        }
+      }
+      if (connected && rightPort)
+      {
+        // Connection verified
+        String s = "checkConnection: connection from domain " + dsId
+            + " to replication server " + rsId + " obtained after " + nSec + " seconds.";
+        logger.error(LocalizableMessage.raw(s));
+        if (logger.isTraceEnabled())
+        {
+          logger.trace("*** TEST *** " + s);
+        }
+        return;
+      }
+
+      Thread.sleep(1000);
+      nSec++;
+
+      if (nSec > secTimeout)
+      {
+        // Timeout reached, end with error
+        fail("checkConnection: could not verify connection from domain " + dsId
+            + " to replication server " + rsId + " after " + secTimeout + " seconds."
+            + " Domain connected: " + connected + ", connection port: " + rdPort
+            + " (should be: " + rsPort + "). [" + msg + "]");
+      }
+    }
   }
 }

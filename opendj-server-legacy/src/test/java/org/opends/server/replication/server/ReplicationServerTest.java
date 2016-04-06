@@ -28,6 +28,8 @@ import java.util.TreeSet;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
@@ -59,13 +61,11 @@ import org.opends.server.replication.protocol.WindowProbeMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
@@ -358,7 +358,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       broker = new ReplicationBroker(new DummyReplicationDomain(generationId),
           state, newFakeCfg(TEST_ROOT_DN, 3, replicationServerPort),
           getReplSessionSecurity());
-      connect(broker, replicationServerPort, 5000);
+      connect(broker, 5000);
 
       ReplicationMsg receivedMsg = broker.receive();
       broker.updateWindowAfterReplay();

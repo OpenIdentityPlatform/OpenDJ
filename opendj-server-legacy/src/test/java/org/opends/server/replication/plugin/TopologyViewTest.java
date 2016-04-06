@@ -31,8 +31,9 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.DSInfo;
@@ -41,8 +42,6 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
 /**
@@ -210,8 +209,7 @@ public class TopologyViewTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, int dsId, int rsId)
-      throws Exception
+  private void checkConnection(int dsId, int rsId) throws Exception
   {
     int rsPort = -1;
     LDAPReplicationDomain rd = null;
@@ -254,51 +252,10 @@ public class TopologyViewTest extends ReplicationTestCase
         fail("Unknown replication server id.");
     }
 
-    int nSec = 0;
-
-    // Go out of the loop only if connection is verified or if timeout occurs
-    while (true)
-    {
-      // Test connection
-      boolean connected = rd.isConnected();
-      int rdPort = -1;
-      boolean rightPort = false;
-      if (connected)
-      {
-        String serverStr = rd.getReplicationServer();
-        rdPort = HostPort.valueOf(serverStr).getPort();
-        if (rdPort == rsPort)
-        {
-          rightPort = true;
-        }
-      }
-      if (connected && rightPort)
-      {
-        // Connection verified
-        debugInfo("checkConnection: connection from domain " + dsId + " to" +
-          " replication server " + rsId + " obtained after "
-          + nSec + " seconds.");
-        return;
-      }
-
-      // Sleep 1 second
-      Thread.sleep(1000);
-      nSec++;
-
-      if (nSec > secTimeout)
-      {
-        // Timeout reached, end with error
-        fail("checkConnection: could not verify connection from domain " + dsId
-          + " to replication server " + rsId + " after " + secTimeout + " seconds."
-          + " Domain connected: " + connected + ", connection port: " + rdPort
-          + " (should be: " + rsPort + ")");
-      }
-    }
+    waitConnected(dsId, rsId, rsPort, rd, "");
   }
 
-  /**
-   * Find needed free TCP ports.
-   */
+  /** Find needed free TCP ports. */
   private void findFreePorts() throws Exception
   {
     int[] ports = TestCaseUtils.findFreePorts(3);
@@ -537,7 +494,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 1 ***");
       rd1 = createReplicationDomain(DS1_ID);
-      checkConnection(30, DS1_ID, RS1_ID);
+      checkConnection(DS1_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_1);
       checkTopoView(new int[] {DS1_ID}, theoricalTopoView);
 
@@ -547,8 +504,8 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 2 ***");
       rd2 = createReplicationDomain(DS2_ID);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_2);
       checkTopoView(new int[] {DS1_ID, DS2_ID}, theoricalTopoView);
 
@@ -558,8 +515,8 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 3 ***");
       rs2 = createReplicationServer(RS2_ID, testCase);
       Thread.sleep(1000); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_3);
       checkTopoView(new int[] {DS1_ID, DS2_ID}, theoricalTopoView);
 
@@ -569,9 +526,9 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 4 ***");
       rd3 = createReplicationDomain(DS3_ID);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_4);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID}, theoricalTopoView);
 
@@ -581,10 +538,10 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 5 ***");
       rd4 = createReplicationDomain(DS4_ID);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_5);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID},
         theoricalTopoView);
@@ -595,11 +552,11 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 6 ***");
       rd5 = createReplicationDomain(DS5_ID);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS2_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_6);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
         theoricalTopoView);
@@ -611,11 +568,11 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 7 ***");
       rs3 = createReplicationServer(RS3_ID, testCase);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS3_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_7);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
         theoricalTopoView);
@@ -628,12 +585,12 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 8 ***");
       rd6 = createReplicationDomain(DS6_ID);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS3_ID);
-      checkConnection(30, DS6_ID, RS3_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS3_ID);
+      checkConnection(DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_8);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
@@ -645,11 +602,11 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 9 ***");
       rd6.disable();
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS3_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS3_ID);
       assertFalse(rd6.isConnected());
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_9);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID},
@@ -663,12 +620,12 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 10 ***");
       rd6.enable();
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS3_ID);
-      checkConnection(30, DS6_ID, RS3_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS3_ID);
+      checkConnection(DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_10);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
@@ -681,12 +638,12 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 11 ***");
       rs3.remove();
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS2_ID);
-      checkConnection(30, DS6_ID, RS2_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS2_ID);
+      checkConnection(DS6_ID, RS2_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_11);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
@@ -699,12 +656,12 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 12 ***");
       rs3 = createReplicationServer(RS3_ID, testCase);
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS3_ID, RS2_ID);
-      checkConnection(30, DS4_ID, RS2_ID);
-      checkConnection(30, DS5_ID, RS3_ID);
-      checkConnection(30, DS6_ID, RS3_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS3_ID, RS2_ID);
+      checkConnection(DS4_ID, RS2_ID);
+      checkConnection(DS5_ID, RS3_ID);
+      checkConnection(DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_12);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS3_ID, DS4_ID, DS5_ID, DS6_ID},
         theoricalTopoView);
@@ -718,10 +675,10 @@ public class TopologyViewTest extends ReplicationTestCase
       debugInfo("*** STEP 13 ***");
       rs2.remove();
       Thread.sleep(500); // Let time to topo msgs being propagated through the network
-      checkConnection(30, DS1_ID, RS1_ID);
-      checkConnection(30, DS2_ID, RS1_ID);
-      checkConnection(30, DS5_ID, RS3_ID);
-      checkConnection(30, DS6_ID, RS3_ID);
+      checkConnection(DS1_ID, RS1_ID);
+      checkConnection(DS2_ID, RS1_ID);
+      checkConnection(DS5_ID, RS3_ID);
+      checkConnection(DS6_ID, RS3_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_13);
       checkTopoView(new int[] {DS1_ID, DS2_ID, DS5_ID, DS6_ID},
         theoricalTopoView);

@@ -26,11 +26,11 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
@@ -139,7 +139,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
         // Let time for failover to happen
         // DS1 connected to RS2 ?
         msg = "After " + RS1_ID + " failure";
-        checkConnection(30, DS1_ID, RS2_ID, msg);
+        checkConnection(DS1_ID, RS2_ID, msg);
       }
       else if (rsPort == rs2Port)
       { // Simulate RS2 failure
@@ -148,7 +148,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
         rs2.remove();
         // DS1 connected to RS1 ?
         msg = "After " + RS2_ID + " failure";
-        checkConnection(30, DS1_ID, RS1_ID, msg);
+        checkConnection(DS1_ID, RS1_ID, msg);
       }
       else {
         fail("DS1 is not connected to a RS");
@@ -202,36 +202,36 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
       // DS1 connected to RS2 ?
       String msg = "After " + RS1_ID + " failure";
-      checkConnection(30, DS1_ID, RS2_ID, msg);
+      checkConnection(DS1_ID, RS2_ID, msg);
       // DS2 connected to RS2 ?
-      checkConnection(30, DS2_ID, RS2_ID, msg);
+      checkConnection(DS2_ID, RS2_ID, msg);
 
       // Restart RS1
       rs1 = createReplicationServer(RS1_ID, testCase);
 
       // DS1 connected to RS2 ?
       msg = "Before " + RS2_ID + " failure";
-      checkConnection(30, DS1_ID, RS2_ID, msg);
+      checkConnection(DS1_ID, RS2_ID, msg);
       // DS2 connected to RS2 ?
-      checkConnection(30, DS2_ID, RS2_ID, msg);
+      checkConnection(DS2_ID, RS2_ID, msg);
 
       // Simulate RS2 failure
       rs2.remove();
 
       // DS1 connected to RS1 ?
       msg = "After " + RS2_ID + " failure";
-      checkConnection(30, DS1_ID, RS1_ID, msg);
+      checkConnection(DS1_ID, RS1_ID, msg);
       // DS2 connected to RS1 ?
-      checkConnection(30, DS2_ID, RS1_ID, msg);
+      checkConnection(DS2_ID, RS1_ID, msg);
 
       // Restart RS2
       rs2 = createReplicationServer(RS2_ID, testCase);
 
       // DS1 connected to RS1 ?
       msg = "After " + RS2_ID + " restart";
-      checkConnection(30, DS1_ID, RS1_ID, msg);
+      checkConnection(DS1_ID, RS1_ID, msg);
       // DS2 connected to RS1 ?
-      checkConnection(30, DS2_ID, RS1_ID, msg);
+      checkConnection(DS2_ID, RS1_ID, msg);
 
       debugInfo(testCase + " successfully ended.");
     } finally
@@ -245,7 +245,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, int dsId, int rsId, String msg)
+  private void checkConnection(int dsId, int rsId, String msg)
       throws Exception
   {
     LDAPReplicationDomain rd = null;
@@ -274,51 +274,10 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
         fail("Unknown replication server id.");
     }
 
-    int nSec = 0;
-
-    // Go out of the loop only if connection is verified or if timeout occurs
-    while (true)
-    {
-      // Test connection
-      boolean connected = rd.isConnected();
-      int rdPort = -1;
-      boolean rightPort = false;
-      if (connected)
-      {
-        String serverStr = rd.getReplicationServer();
-        rdPort = HostPort.valueOf(serverStr).getPort();
-        if (rdPort == rsPort)
-        {
-          rightPort = true;
-        }
-      }
-      if (connected && rightPort)
-      {
-        // Connection verified
-        debugInfo("checkConnection: connection from domain " + dsId + " to" +
-          " replication server " + rsId + " obtained after "
-          + nSec + " seconds.");
-        return;
-      }
-
-      // Sleep 1 second
-      Thread.sleep(1000);
-      nSec++;
-
-      if (nSec > secTimeout)
-      {
-        // Timeout reached, end with error
-        fail("checkConnection: could not verify connection from domain " + dsId
-          + " to replication server " + rsId + " after " + secTimeout + " seconds."
-          + " Domain connected: " + connected + ", connection port: " + rdPort
-          + " (should be: " + rsPort + "). [" + msg + "]");
-      }
-    }
+    waitConnected(dsId, rsId, rsPort, rd, msg);
   }
 
-  /**
-   * Find needed free TCP ports.
-   */
+  /** Find needed free TCP ports. */
   private void findFreePorts() throws IOException
   {
     int[] ports = TestCaseUtils.findFreePorts(2);
