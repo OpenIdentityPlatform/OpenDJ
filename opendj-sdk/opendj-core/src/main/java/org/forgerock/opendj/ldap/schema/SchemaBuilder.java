@@ -31,7 +31,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -615,33 +614,10 @@ public final class SchemaBuilder {
     public SchemaBuilder addEnumerationSyntax(final String oid, final String description,
             final boolean overwrite, final String... enumerations) {
         Reject.ifNull((Object) enumerations);
-        lazyInitBuilder();
-
-        final List<String> enumEntries = Arrays.asList(enumerations);
-        final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description)
-            .extraProperties(Collections.singletonMap("X-ENUM", enumEntries));
-        addEnumerationSyntax0(syntaxBuilder, oid, enumEntries, overwrite);
-        return this;
-    }
-
-    private void addEnumerationSyntax0(final Syntax.Builder syntaxBuilder,
-            final String oid, final List<String> enumEntries, final boolean overwrite) {
-        final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, enumEntries);
-
-        syntaxBuilder
-                .implementation(enumImpl)
+        return buildSyntax(oid)
+                .description(description)
+                .extraProperties("X-ENUM", enumerations)
                 .addToSchema(overwrite);
-
-        try {
-            buildMatchingRule(enumImpl.getOrderingMatchingRule())
-                    .names(OMR_GENERIC_ENUM_NAME + "." + oid)
-                    .syntaxOID(oid)
-                    .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
-                    .implementation(new EnumOrderingMatchingRule(enumImpl))
-                    .addToSchemaOverwrite();
-        } catch (final ConflictingSchemaElementException e) {
-            removeSyntax(oid);
-        }
     }
 
     /**
@@ -1400,15 +1376,10 @@ public final class SchemaBuilder {
     public SchemaBuilder addPatternSyntax(final String oid, final String description,
             final Pattern pattern, final boolean overwrite) {
         Reject.ifNull(pattern);
-
-        lazyInitBuilder();
-
-        final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description).extraProperties(
-                Collections.singletonMap("X-PATTERN", Collections.singletonList(pattern.toString())));
-
-        syntaxBuilder.addToSchema(overwrite);
-
-        return this;
+        return buildSyntax(oid)
+                .description(description)
+                .extraProperties("X-PATTERN", pattern.toString())
+                .addToSchema(overwrite);
     }
 
     /**
@@ -1726,15 +1697,10 @@ public final class SchemaBuilder {
     public SchemaBuilder addSubstitutionSyntax(final String oid, final String description,
             final String substituteSyntax, final boolean overwrite) {
         Reject.ifNull(substituteSyntax);
-
-        lazyInitBuilder();
-
-        final Syntax.Builder syntaxBuilder = buildSyntax(oid).description(description).extraProperties(
-                Collections.singletonMap("X-SUBST", Collections.singletonList(substituteSyntax)));
-
-        syntaxBuilder.addToSchema(overwrite);
-
-        return this;
+        return buildSyntax(oid)
+                .description(description)
+                .extraProperties("X-SUBST", substituteSyntax)
+                .addToSchema(overwrite);
     }
 
     /**
@@ -1818,14 +1784,6 @@ public final class SchemaBuilder {
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName));
-                }
-            }
-
-            // See if it is a enum syntax
-            for (final Map.Entry<String, List<String>> property : syntaxBuilder.getExtraProperties().entrySet()) {
-                if ("x-enum".equalsIgnoreCase(property.getKey())) {
-                    addEnumerationSyntax0(syntaxBuilder, oid, property.getValue(), overwrite);
-                    return this;
                 }
             }
 
@@ -2557,7 +2515,7 @@ public final class SchemaBuilder {
     private void removeSyntax(final Syntax syntax) {
         for (Map.Entry<String, List<String>> property : syntax.getExtraProperties().entrySet()) {
             if ("x-enum".equalsIgnoreCase(property.getKey())) {
-                removeMatchingRule(OMR_GENERIC_ENUM_NAME + "." + syntax.getOID());
+                removeMatchingRule(OMR_OID_GENERIC_ENUM + "." + syntax.getOID());
                 break;
             }
         }

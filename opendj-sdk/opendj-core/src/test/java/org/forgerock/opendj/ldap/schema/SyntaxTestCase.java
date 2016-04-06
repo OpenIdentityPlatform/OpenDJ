@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
  */
 
@@ -30,34 +30,32 @@ import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 public class SyntaxTestCase extends AbstractSchemaTestCase {
 
     @Test
-    public final void testCreatesANewSyntax() {
+    public final void testBuilderCreatesCustomSyntax() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")
-            .description("Security Label")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new DirectoryStringSyntaxImpl())
-            .addToSchema()
+                .description("Security Label")
+                .extraProperties("X-TEST", "1", "2", "3")
+                .implementation(new DirectoryStringSyntaxImpl())
+                .addToSchema()
             .toSchema();
         // @formatter:on
         assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
         assertThat(syntax.getDescription()).isEqualTo("Security Label");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
+        assertThat(syntax.getExtraProperties().get("X-TEST")).hasSize(3);
         assertThat(syntax.getApproximateMatchingRule().getNameOrOID()).isEqualTo("ds-mr-double-metaphone-approx");
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreMatch");
         assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreSubstringsMatch");
-        assertThat(syntax.toString()).isEqualTo(
-                "( 1.9.1.2.3 DESC 'Security Label' X-ENUM ( 'top-secret' 'secret' 'confidential' ) )");
+        assertThat(syntax.toString()).isEqualTo("( 1.9.1.2.3 DESC 'Security Label' X-TEST ( '1' '2' '3' ) )");
         assertThat(syntax.isHumanReadable()).isTrue();
         assertThat(syntax.isBEREncodingRequired()).isFalse();
     }
 
     /**
-     * Tests that unrecognized syntaxes are automatically substituted with the
-     * default syntax during building.
+     * Tests that unrecognized syntaxes are automatically substituted with the default syntax during building.
      */
     @Test
     public final void testBuilderSubstitutesUnknownSyntaxWithDefaultSyntax() {
@@ -70,14 +68,12 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
         assertThat(syntax.getDescription()).isEmpty();
         assertThat(syntax.getApproximateMatchingRule()).isNull();
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo(
-                "octetStringOrderingMatch");
+        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule()).isNull();
     }
 
     /**
-     * Tests that unrecognized syntaxes are automatically substituted with the
-     * default syntax and matching rule.
+     * Tests that unrecognized syntaxes are automatically substituted with the default syntax and matching rule.
      */
     @Test
     public final void testDefaultSyntaxSubstitution() {
@@ -85,12 +81,10 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
         assertThat(syntax).isNotNull();
         assertThat(syntax.getDescription()).isEmpty();
         // Dynamically created syntaxes include the X-SUBST extension.
-        assertThat(syntax.getExtraProperties().get("X-SUBST").get(0)).isEqualTo(
-                "1.3.6.1.4.1.1466.115.121.1.40");
+        assertThat(syntax.getExtraProperties().get("X-SUBST").get(0)).isEqualTo("1.3.6.1.4.1.1466.115.121.1.40");
         assertThat(syntax.getApproximateMatchingRule()).isNull();
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo(
-                "octetStringOrderingMatch");
+        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule()).isNull();
     }
 
@@ -99,14 +93,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test(expectedExceptions = IllegalArgumentException.class)
     public final void testBuilderDoesNotAllowEmptyOid() {
-        // @formatter:off
-        new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("")
-            .description("Security Label")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new DirectoryStringSyntaxImpl())
-            .addToSchema();
-        // @formatter:on
+        new SchemaBuilder(Schema.getCoreSchema()).buildSyntax("").addToSchema();
     }
 
     /**
@@ -114,14 +101,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test(expectedExceptions = IllegalArgumentException.class)
     public final void testBuilderDoesNotAllowNullOid() {
-        // @formatter:off
-        new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax((String) null)
-            .description("Security Label")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new DirectoryStringSyntaxImpl())
-            .addToSchema();
-        // @formatter:on
+        new SchemaBuilder(Schema.getCoreSchema()).buildSyntax((String) null).addToSchema();
     }
 
     /**
@@ -129,28 +109,19 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsNullSyntax() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
-                .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-                .implementation(null)
-                .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3").implementation(null).addToSchema()
+                .toSchema();
 
         assertThat(schema.getWarnings()).isNotEmpty();
         assertThat(schema.getWarnings().toString()).contains("It will be substituted by the default syntax");
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
         assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
         assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
-        assertThat(syntax.toString()).isEqualTo(
-                "( 1.9.1.2.3 DESC 'Security Label' X-ENUM ( 'top-secret' 'secret' 'confidential' ) )");
+        assertThat(syntax.toString()).isEqualTo("( 1.9.1.2.3 )");
     }
 
     /**
@@ -158,27 +129,19 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsNoSyntax() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
-                .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-                .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3").addToSchema()
+                .toSchema();
 
         assertThat(schema.getWarnings()).isNotEmpty();
         assertThat(schema.getWarnings().toString()).contains("It will be substituted by the default syntax");
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
         assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
         assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
-        assertThat(syntax.toString()).isEqualTo(
-                "( 1.9.1.2.3 DESC 'Security Label' X-ENUM ( 'top-secret' 'secret' 'confidential' ) )");
+        assertThat(syntax.toString()).isEqualTo("( 1.9.1.2.3 )");
     }
 
     /**
@@ -187,28 +150,20 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsNoSyntaxCaseWhereDefaultSyntaxIsChanged() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .setOption(DEFAULT_SYNTAX_OID, "1.3.6.1.4.1.1466.115.121.1.15")
-            .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
-                .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-                .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .setOption(DEFAULT_SYNTAX_OID, "1.3.6.1.4.1.1466.115.121.1.15")
+                .buildSyntax("1.9.1.2.3").addToSchema()
+                .toSchema();
 
         assertThat(schema.getWarnings()).isNotEmpty();
         assertThat(schema.getWarnings().toString()).contains("It will be substituted by the default syntax");
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
         assertThat(syntax.getApproximateMatchingRule().getNameOrOID()).isEqualTo("ds-mr-double-metaphone-approx");
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreMatch");
         assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreSubstringsMatch");
-        assertThat(syntax.toString()).isEqualTo(
-                "( 1.9.1.2.3 DESC 'Security Label' X-ENUM ( 'top-secret' 'secret' 'confidential' ) )");
+        assertThat(syntax.toString()).isEqualTo("( 1.9.1.2.3 )");
     }
 
     /**
@@ -216,24 +171,13 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsNoDescription() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new OctetStringSyntaxImpl())
-            .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3").addToSchema()
+                .toSchema();
 
-        assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
         assertThat(syntax.getDescription()).isEqualTo("");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
-        assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
-        assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
     }
 
     /**
@@ -241,25 +185,13 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsNullDescription() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-            .description(null)
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new OctetStringSyntaxImpl())
-            .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3").description(null).addToSchema()
+                .toSchema();
 
-        assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
         assertThat(syntax.getDescription()).isEqualTo("");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
-        assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
-        assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
     }
 
     /**
@@ -267,25 +199,13 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsEmptyDescription() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-            .description("")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new OctetStringSyntaxImpl())
-            .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3").description("").addToSchema()
+                .toSchema();
 
-        assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
         assertThat(syntax.getDescription()).isEqualTo("");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
-        assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
-        assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
     }
 
     /**
@@ -293,24 +213,13 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderAllowsNoExtraProperties() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
-                .implementation(new OctetStringSyntaxImpl())
-                .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3").addToSchema()
+                .toSchema();
 
-        assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
         assertThat(syntax.getExtraProperties().isEmpty()).isTrue();
-        assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
-        assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
     }
 
     /**
@@ -318,15 +227,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testBuilderDoesNotAllowNullExtraProperties() {
-        // @formatter:off
-        new SchemaBuilder(Schema.getCoreSchema())
-                .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
-                .extraProperties(null)
-                .implementation(new OctetStringSyntaxImpl())
-                .addToSchema()
-            .toSchema();
-        // @formatter:on
+        new SchemaBuilder(Schema.getCoreSchema()).buildSyntax("1.9.1.2.3").extraProperties(null);
     }
 
     /**
@@ -334,26 +235,14 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderRemoveExtraProperties() {
-        // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
-                .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-                .implementation(new OctetStringSyntaxImpl())
-                .removeAllExtraProperties()
-                .addToSchema()
-            .toSchema();
-        // @formatter:on
+                .buildSyntax("1.9.1.2.3")
+                .extraProperties("X-ENUM", "1", "2", "3").removeAllExtraProperties().addToSchema()
+                .toSchema();
 
-        assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
         assertThat(syntax.getExtraProperties().isEmpty()).isTrue();
-        assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
-        assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
     }
 
     /**
@@ -364,28 +253,19 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")
-                .description("Security Label")
                 .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
                 .extraProperties("X-ORIGIN", "Sam Carter")
-                .implementation(new OctetStringSyntaxImpl())
                 .removeExtraProperty("X-ENUM", "top-secret")
                 .addToSchema()
             .toSchema();
         // @formatter:on
 
-        assertThat(schema.getWarnings()).isEmpty();
         final Syntax syntax = schema.getSyntax("1.9.1.2.3");
         assertThat(syntax).isNotNull();
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
         assertThat(syntax.getExtraProperties().isEmpty()).isFalse();
         assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(2);
         assertThat(syntax.getExtraProperties().get("X-ORIGIN").size()).isEqualTo(1);
-        assertThat(syntax.getApproximateMatchingRule()).isEqualTo(null);
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
-        assertThat(syntax.getSubstringMatchingRule()).isEqualTo(null);
     }
-
 
     /**
      * Sets a syntax using a string definition.
@@ -470,41 +350,20 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testBuilderDuplicatesExistingSyntax() {
-        final SchemaBuilder sb = new SchemaBuilder();
-        sb.addSchema(Schema.getCoreSchema(), false);
+        final Schema schema1 = new SchemaBuilder(Schema.getCoreSchema())
+                .buildSyntax("1.2.3.4.5.6").description("v1").addToSchema()
+                .toSchema();
 
-        // @formatter:off
-        final Syntax.Builder syntaxBuilder = new Syntax.Builder("1.9.1.2.3", sb);
-        syntaxBuilder.description("Security Label")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new DirectoryStringSyntaxImpl())
-            .addToSchema();
-        // @formatter:on
+        final Syntax syntax1 = schema1.getSyntax("1.2.3.4.5.6");
+        assertThat(syntax1.getDescription()).isEqualTo("v1");
 
-        Schema schema = sb.toSchema();
-        assertThat(schema.getWarnings()).isEmpty();
-        final Syntax syntax = schema.getSyntax("1.9.1.2.3");
-        assertThat(syntax.getDescription()).isEqualTo("Security Label");
-        assertThat(syntax.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
+        final Schema schema2 = new SchemaBuilder(Schema.getCoreSchema())
+                .buildSyntax(syntax1).description("v2").addToSchema()
+                .toSchema();
 
-        // @formatter:off
-        sb.buildSyntax(syntax)
-            .description("Security Label II")
-            .extraProperties("X-ENUM", "private")
-            .addToSchemaOverwrite();
-        // @formatter:on
-
-        schema = sb.toSchema();
-        assertThat(schema.getWarnings()).isEmpty();
-        final Syntax dolly = schema.getSyntax("1.9.1.2.3");
-        assertThat(dolly.getDescription()).isEqualTo("Security Label II");
-        assertThat(dolly.getExtraProperties().get("X-ENUM").size()).isEqualTo(4);
-        assertThat(dolly.getApproximateMatchingRule().getNameOrOID()).isEqualTo("ds-mr-double-metaphone-approx");
-        assertThat(dolly.getEqualityMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreMatch");
-        assertThat(dolly.getOrderingMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreOrderingMatch");
-        assertThat(dolly.getSubstringMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreSubstringsMatch");
-        assertThat(dolly.toString()).isEqualTo(
-                "( 1.9.1.2.3 DESC 'Security Label II' X-ENUM ( 'top-secret' 'secret' 'confidential' 'private' ) )");
+        final Syntax syntax2 = schema2.getSyntax("1.2.3.4.5.6");
+        assertThat(syntax2.getDescription()).isEqualTo("v2");
+        assertThat(syntax2.toString()).isEqualTo("( 1.2.3.4.5.6 DESC 'v2' )");
     }
 
     /**
@@ -673,24 +532,24 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")
-            .description("Security Label")
-            .extraProperties("X-ENUM", "top-secret", "secret", "confidential")
-            .implementation(new DirectoryStringSyntaxImpl())
-            .addToSchema()
+                .description("Security Label")
+                .extraProperties("X-TEST", "1", "2", "3")
+                .implementation(new DirectoryStringSyntaxImpl())
+                .addToSchema()
             .buildSyntax("1.9.1.2.4")
-            .description("Security Label II")
-            .extraProperties("X-ENUM", "private")
-            .addToSchema()
+                .description("Security Label II")
+                .extraProperties("X-TEST", "private")
+                .addToSchema()
             .buildSyntax("non-implemented-syntax-oid")
-            .description("Not Implemented in OpenDJ")
-            .extraProperties("X-SUBST", "1.3.6.1.4.1.1466.115.121.1.15")
-            .implementation(null)
-            .addToSchema()
+                .description("Not Implemented in OpenDJ")
+                .extraProperties("X-SUBST", "1.3.6.1.4.1.1466.115.121.1.15")
+                .implementation(null)
+                .addToSchema()
             .buildSyntax("1.3.6.1.4.1.4203.1.1.2")
-            .description("Authentication Password Syntax")
-            .extraProperties("X-ORIGIN", "RFC 4512")
-            .implementation(new OctetStringSyntaxImpl())
-            .addToSchemaOverwrite()
+                .description("Authentication Password Syntax")
+                .extraProperties("X-ORIGIN", "RFC 4512")
+                .implementation(new OctetStringSyntaxImpl())
+                .addToSchemaOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -706,12 +565,12 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
         assertThat(s1.getEqualityMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreMatch");
         assertThat(s1.getOrderingMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreOrderingMatch");
         assertThat(s1.getSubstringMatchingRule().getNameOrOID()).isEqualTo("caseIgnoreSubstringsMatch");
-        assertThat(s1.getExtraProperties().get("X-ENUM").size()).isEqualTo(3);
+        assertThat(s1.getExtraProperties().get("X-TEST")).hasSize(3);
 
         // Second
         final Syntax s2 = schema.getSyntax("1.9.1.2.4");
         assertThat(s2.getDescription()).isEqualTo("Security Label II");
-        assertThat(s2.getExtraProperties().get("X-ENUM").size()).isEqualTo(1);
+        assertThat(s2.getExtraProperties().get("X-TEST")).hasSize(1);
         assertThat(s2.getApproximateMatchingRule()).isEqualTo(null);
         assertThat(s2.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
         assertThat(s2.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");

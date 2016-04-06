@@ -26,6 +26,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -40,6 +41,7 @@ import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /** Test SchemaBuilder. */
@@ -2157,5 +2159,170 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(isValid)
                 .as("Value should have been valid, but it is not: " + invalidReason.toString())
                 .isTrue();
+    }
+
+    @DataProvider
+    private Object[][] schemasWithEnumerationSyntaxes() {
+        final Schema coreSchema = Schema.getCoreSchema();
+
+        final Schema usingAddEnumerationSyntax = new SchemaBuilder("usingAddEnumerationSyntax")
+                .addSchema(coreSchema, true)
+                .addEnumerationSyntax("3.3.3", "Primary colors", true, "red", "green", "blue")
+                .toSchema();
+
+        final Schema usingAddSyntaxString = new SchemaBuilder("usingAddSyntaxString")
+                .addSchema(coreSchema, true)
+                .addSyntax("( 3.3.3  DESC 'Primary colors' X-ENUM ( 'red' 'green' 'blue' ))", true)
+                .toSchema();
+
+        final Schema usingBuildSyntaxCopy = new SchemaBuilder("usingBuildSyntaxCopy")
+                .addSchema(coreSchema, true)
+                .buildSyntax(usingAddEnumerationSyntax.getSyntax("3.3.3")).addToSchema()
+                .toSchema();
+
+        final Schema usingBuildSyntaxIncremental = new SchemaBuilder("usingBuildSyntaxIncremental")
+                .addSchema(coreSchema, true)
+                .buildSyntax("3.3.3")
+                .description("Primary colors")
+                .extraProperties("X-ENUM", "red", "green", "blue")
+                .addToSchema()
+                .toSchema();
+
+        final Schema usingCopyOfSchema = new SchemaBuilder("usingCopyOfSchema")
+                .addSchema(usingAddEnumerationSyntax, true)
+                .toSchema();
+
+        return new Object[][] {
+            { usingAddEnumerationSyntax },
+            { usingAddSyntaxString },
+            { usingBuildSyntaxCopy },
+            { usingBuildSyntaxIncremental },
+            { usingCopyOfSchema }
+        };
+    }
+
+    @Test(dataProvider = "schemasWithEnumerationSyntaxes")
+    public void enumerationSyntaxesCanBeCreatedUsingDifferentApproaches(Schema schema) {
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getMatchingRules())
+                .as("Expected an enum ordering matching rule to be added for the enum syntax")
+                .hasSize(Schema.getCoreSchema().getMatchingRules().size() + 1);
+
+        LocalizableMessageBuilder msgBuilder = new LocalizableMessageBuilder();
+        Syntax primaryColors = schema.getSyntax("3.3.3");
+        assertThat(primaryColors.valueIsAcceptable(ByteString.valueOfUtf8("red"), msgBuilder)).isTrue();
+        assertThat(primaryColors.valueIsAcceptable(ByteString.valueOfUtf8("yellow"), msgBuilder)).isFalse();
+
+        MatchingRule matchingRule = schema.getMatchingRule(OMR_OID_GENERIC_ENUM + "." + "3.3.3");
+        assertThat(matchingRule).isNotNull();
+        assertThat(matchingRule).isSameAs(primaryColors.getOrderingMatchingRule());
+    }
+
+    @DataProvider
+    private Object[][] schemasWithSubstitutionSyntaxes() {
+        final Schema coreSchema = Schema.getCoreSchema();
+
+        final Schema usingAddSubstitutionSyntax = new SchemaBuilder("usingAddSubstitutionSyntax")
+                .addSchema(coreSchema, true)
+                .addSubstitutionSyntax("3.3.3", "Long Integer", "1.3.6.1.4.1.1466.115.121.1.27", true)
+                .toSchema();
+
+        final Schema usingAddSyntaxString = new SchemaBuilder("usingAddSyntaxString")
+                .addSchema(coreSchema, true)
+                .addSyntax("( 3.3.3  DESC 'Long Integer' X-SUBST '1.3.6.1.4.1.1466.115.121.1.27' )", true)
+                .toSchema();
+
+        final Schema usingBuildSyntaxCopy = new SchemaBuilder("usingBuildSyntaxCopy")
+                .addSchema(coreSchema, true)
+                .buildSyntax(usingAddSubstitutionSyntax.getSyntax("3.3.3")).addToSchema()
+                .toSchema();
+
+        final Schema usingBuildSyntaxIncremental = new SchemaBuilder("usingBuildSyntaxIncremental")
+                .addSchema(coreSchema, true)
+                .buildSyntax("3.3.3")
+                .description("Long Integer")
+                .extraProperties("X-SUBST", "1.3.6.1.4.1.1466.115.121.1.27")
+                .addToSchema()
+                .toSchema();
+
+        final Schema usingCopyOfSchema = new SchemaBuilder("usingCopyOfSchema")
+                .addSchema(usingAddSubstitutionSyntax, true)
+                .toSchema();
+
+        return new Object[][] {
+            { usingAddSubstitutionSyntax },
+            { usingAddSyntaxString },
+            { usingBuildSyntaxCopy },
+            { usingBuildSyntaxIncremental },
+            { usingCopyOfSchema }
+        };
+    }
+
+    @Test(dataProvider = "schemasWithSubstitutionSyntaxes")
+    public void substitutionSyntaxesCanBeCreatedUsingDifferentApproaches(Schema schema) {
+        assertThat(schema.getWarnings()).isEmpty();
+
+        LocalizableMessageBuilder msgBuilder = new LocalizableMessageBuilder();
+        Syntax longInteger = schema.getSyntax("3.3.3");
+        assertThat(longInteger.valueIsAcceptable(ByteString.valueOfUtf8("12345"), msgBuilder)).isTrue();
+        assertThat(longInteger.valueIsAcceptable(ByteString.valueOfUtf8("NaN"), msgBuilder)).isFalse();
+
+        MatchingRule matchingRule = schema.getMatchingRule("integerOrderingMatch");
+        assertThat(matchingRule).isNotNull();
+        assertThat(matchingRule).isSameAs(longInteger.getOrderingMatchingRule());
+    }
+
+    @DataProvider
+    private Object[][] schemasWithPatternSyntaxes() {
+        final Schema coreSchema = Schema.getCoreSchema();
+
+        final Schema usingAddPatternSyntax = new SchemaBuilder("usingAddSubstitutionSyntax")
+                .addSchema(coreSchema, true)
+                .addPatternSyntax("3.3.3", "Host and Port", Pattern.compile("[^:]+:\\d+"), true)
+                .toSchema();
+
+        final Schema usingAddSyntaxString = new SchemaBuilder("usingAddSyntaxString")
+                .addSchema(coreSchema, true)
+                .addSyntax("( 3.3.3  DESC 'Host and Port' X-PATTERN '[^:]+:\\d+' )", true)
+                .toSchema();
+
+        final Schema usingBuildSyntaxCopy = new SchemaBuilder("usingBuildSyntaxCopy")
+                .addSchema(coreSchema, true)
+                .buildSyntax(usingAddPatternSyntax.getSyntax("3.3.3")).addToSchema()
+                .toSchema();
+
+        final Schema usingBuildSyntaxIncremental = new SchemaBuilder("usingBuildSyntaxIncremental")
+                .addSchema(coreSchema, true)
+                .buildSyntax("3.3.3")
+                .description("Host and Port")
+                .extraProperties("X-PATTERN", "[^:]+:\\d+")
+                .addToSchema()
+                .toSchema();
+
+        final Schema usingCopyOfSchema = new SchemaBuilder("usingCopyOfSchema")
+                .addSchema(usingAddPatternSyntax, true)
+                .toSchema();
+
+        return new Object[][] {
+            { usingAddPatternSyntax },
+            { usingAddSyntaxString },
+            { usingBuildSyntaxCopy },
+            { usingBuildSyntaxIncremental },
+            { usingCopyOfSchema }
+        };
+    }
+
+    @Test(dataProvider = "schemasWithPatternSyntaxes")
+    public void patternSyntaxesCanBeCreatedUsingDifferentApproaches(Schema schema) {
+        assertThat(schema.getWarnings()).isEmpty();
+
+        LocalizableMessageBuilder msgBuilder = new LocalizableMessageBuilder();
+        Syntax longInteger = schema.getSyntax("3.3.3");
+        assertThat(longInteger.valueIsAcceptable(ByteString.valueOfUtf8("localhost:389"), msgBuilder)).isTrue();
+        assertThat(longInteger.valueIsAcceptable(ByteString.valueOfUtf8("bad"), msgBuilder)).isFalse();
+
+        MatchingRule matchingRule = schema.getMatchingRule("caseIgnoreOrderingMatch");
+        assertThat(matchingRule).isNotNull();
+        assertThat(matchingRule).isSameAs(longInteger.getOrderingMatchingRule());
     }
 }

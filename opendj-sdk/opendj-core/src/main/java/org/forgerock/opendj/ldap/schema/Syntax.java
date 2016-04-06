@@ -72,7 +72,7 @@ public final class Syntax extends SchemaElement {
          *             If there is an existing syntax with the same numeric OID.
          */
         public SchemaBuilder addToSchema() {
-            return getSchemaBuilder().addSyntax(new Syntax(this), false);
+            return addToSchema(false);
         }
 
         /**
@@ -81,19 +81,25 @@ public final class Syntax extends SchemaElement {
          * @return The parent schema builder.
          */
         public SchemaBuilder addToSchemaOverwrite() {
-            return getSchemaBuilder().addSyntax(new Syntax(this), true);
+            return addToSchema(true);
         }
 
-        /**
-         * Adds this syntax to the schema - overwriting any existing syntax with the same numeric OID
-         * if the overwrite parameter is set to {@code true}.
-         *
-         * @param overwrite
-         *            {@code true} if any syntax with the same OID should be overwritten.
-         * @return The parent schema builder.
-         */
         SchemaBuilder addToSchema(final boolean overwrite) {
-            return overwrite ? addToSchemaOverwrite() : addToSchema();
+            // Enumeration syntaxes will need their associated matching rule registered now as well.
+            for (final Map.Entry<String, List<String>> property : getExtraProperties().entrySet()) {
+                if ("x-enum".equalsIgnoreCase(property.getKey())) {
+                    final EnumSyntaxImpl enumSyntaxImpl = new EnumSyntaxImpl(oid, property.getValue());
+                    implementation(enumSyntaxImpl);
+                    return getSchemaBuilder().addSyntax(new Syntax(this), overwrite)
+                                             .buildMatchingRule(enumSyntaxImpl.getOrderingMatchingRule())
+                                             .description(getDescription() + " enumeration ordering matching rule")
+                                             .syntaxOID(oid)
+                                             .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
+                                             .implementation(new EnumOrderingMatchingRule(enumSyntaxImpl))
+                                             .addToSchemaOverwrite();
+                }
+            }
+            return getSchemaBuilder().addSyntax(new Syntax(this), overwrite);
         }
 
         @Override
