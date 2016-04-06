@@ -635,6 +635,10 @@ public final class Upgrade
         rebuildIndexesNamed(INFO_UPGRADE_REBUILD_INDEXES_DISTINGUISHED_NAME.get(),
             "distinguishedName", "member", "owner", "roleOccupant", "seeAlso"));
 
+    register("4.0.0",
+        deleteConfigEntry(INFO_UPGRADE_TASK_CONFIGURATION_BACKEND_NOT_CONFIGURABLE.get(),
+            "dn: ds-cfg-backend-id=config,cn=Backends,cn=config"));
+
     /**
      * All upgrades will refresh the server configuration schema and generate a new upgrade folder.
      */

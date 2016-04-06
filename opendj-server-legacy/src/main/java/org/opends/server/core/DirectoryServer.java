@@ -1358,17 +1358,6 @@ public final class DirectoryServer
     configFile = environmentConfig.getConfigFile();
     configurationHandler = ConfigurationHandler.bootstrapConfiguration(serverContext);
     serverManagementContext = new ServerManagementContext(configurationHandler);
-
-    final ConfigurationBackend configBackend = new ConfigurationBackend(serverContext, configurationHandler);
-    configBackend.openBackend();
-    try
-    {
-      registerBackend(configBackend);
-    }
-    catch (DirectoryException e)
-    {
-      throw new InitializationException(LocalizableMessage.raw("Unable to register configuration backend", e));
-    }
   }
 
   /**
@@ -1527,18 +1516,8 @@ public final class DirectoryServer
       initializeRootDNConfigManager();
 
       initializeAuthenticatedUsers();
-      // initialize both subentry manager and group manager for this backend.
       initializeSubentryManager();
       initializeGroupManager();
-
-      // Initialize both subentry manager and group manager
-      // for the configuration backend.
-      // TODO : why do we initialize these now ? Can't we do them after backend initialization ?
-
-      Backend<?> configBackend = getConfigurationBackend();
-      subentryManager.performBackendPreInitializationProcessing(configBackend);
-      groupManager.performBackendPreInitializationProcessing(configBackend);
-
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
 
       initializeBackends(Collections.<String> emptyList());

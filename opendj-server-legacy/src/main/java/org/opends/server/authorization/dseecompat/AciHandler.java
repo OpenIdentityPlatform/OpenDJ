@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -33,23 +32,17 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.BindOperation;
-import org.opends.server.core.ConfigurationBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -68,22 +61,17 @@ import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendCompareOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
-import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.EnumEvalReason.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * The AciHandler class performs the main processing for the dseecompat package.
- */
+/** The AciHandler class performs the main processing for the dseecompat package. */
 public final class AciHandler extends
     AccessControlHandler<DseeCompatAccessControlHandlerCfg>
 {
@@ -129,8 +117,6 @@ public final class AciHandler extends
     initStatics();
   }
 
-
-
   /**
    * We initialize these for each new AciHandler so that we can clear out the
    * stale references that can occur during an in-core restart.
@@ -168,7 +154,6 @@ public final class AciHandler extends
     // the intializeAccessControlHandler method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void filterEntry(Operation operation,
       SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
@@ -194,7 +179,6 @@ public final class AciHandler extends
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeAccessControlHandler()
   {
@@ -203,7 +187,6 @@ public final class AciHandler extends
     DirectoryServer.deregisterSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeAccessControlHandler(
       DseeCompatAccessControlHandlerCfg configuration)
@@ -214,11 +197,9 @@ public final class AciHandler extends
     aciList = new AciList(configurationDN);
     aciListenerMgr = new AciListenerManager(aciList, configurationDN);
     processGlobalAcis(configuration);
-    processConfigAcis();
     DirectoryServer.registerSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(DN entryDN, Operation op, Control control)
       throws DirectoryException
@@ -257,7 +238,6 @@ public final class AciHandler extends
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(ExtendedOperation operation)
   {
@@ -272,7 +252,6 @@ public final class AciHandler extends
     return accessAllowed(container);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendAddOperation operation)
       throws DirectoryException
@@ -284,15 +263,12 @@ public final class AciHandler extends
         && verifySyntax(operation.getEntryToAdd(), operation, container.getClientDN());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(BindOperation bindOperation)
   {
     // Not planned to be implemented.
     return true;
   }
-
-
 
   /**
    * Check access on compare operations. Note that the attribute type is
@@ -328,8 +304,6 @@ public final class AciHandler extends
     return isAllowed(container, operation);
   }
 
-
-
   /**
    * Check access on delete operations.
    *
@@ -344,8 +318,6 @@ public final class AciHandler extends
         new AciLDAPOperationContainer(operation, ACI_DELETE);
     return isAllowed(container, operation);
   }
-
-
 
   /**
    * Checks access on a modifyDN operation.
@@ -394,7 +366,6 @@ public final class AciHandler extends
     return rdnChangesAllowed;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendModifyOperation operation)
       throws DirectoryException
@@ -403,7 +374,6 @@ public final class AciHandler extends
     return aciCheckMods(container, operation, skipAccessCheck(operation));
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(SearchOperation searchOperation)
   {
@@ -411,7 +381,6 @@ public final class AciHandler extends
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(Operation operation, Entry entry,
       SearchFilter filter) throws DirectoryException
@@ -426,7 +395,6 @@ public final class AciHandler extends
     return testFilter(container, filter);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean mayProxy(Entry proxyUser, Entry proxiedUser, Operation op)
   {
@@ -443,7 +411,6 @@ public final class AciHandler extends
     return accessAllowedEntry(container);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean maySend(DN dn, Operation operation, SearchResultReference reference)
   {
@@ -465,7 +432,6 @@ public final class AciHandler extends
     return accessAllowed(container);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean maySend(Operation operation, SearchResultEntry entry)
   {
@@ -512,8 +478,6 @@ public final class AciHandler extends
 
     return true;
   }
-
-
 
   /**
    * Check access using the specified container. This container will
@@ -579,8 +543,6 @@ public final class AciHandler extends
     return ret;
   }
 
-
-
   /*
    * TODO Evaluate performance of this method. TODO Evaluate security
    * concerns of this method. Logic from this method taken almost
@@ -642,8 +604,6 @@ public final class AciHandler extends
     return false;
   }
 
-
-
   /**
    * Performs an access check against all of the attributes of an entry. The
    * attributes that fail access are removed from the entry. This method
@@ -676,8 +636,6 @@ public final class AciHandler extends
     }
   }
 
-
-
   /**
    * Checks to see if a LDAP modification is allowed access.
    *
@@ -708,8 +666,7 @@ public final class AciHandler extends
 
       if (modAttrType.equals(aciType)
           /*
-           * Check that the operation has modify privileges if it contains
-           * an "aci" attribute type.
+           * Check that the operation has modify privileges if it contains an "aci" attribute type.
            */
           && !operation.getClientConnection().hasPrivilege(
               Privilege.MODIFY_ACL, operation))
@@ -725,8 +682,8 @@ public final class AciHandler extends
               || modType == ModificationType.REPLACE
               || modType == ModificationType.INCREMENT)
           /*
-           * Check if we have rights to delete all values of an attribute
-           * type in the resource entry.
+           * Check if we have rights to delete all values of an attribute type in the resource
+           * entry.
            */
           && resourceEntry.hasAttribute(modAttrType))
       {
@@ -816,8 +773,6 @@ public final class AciHandler extends
     return true;
   }
 
-
-
   /**
    * Perform all needed RDN checks for the modifyDN operation. The old RDN is
    * not equal to the new RDN. The access checks are:
@@ -860,8 +815,6 @@ public final class AciHandler extends
     return ret;
   }
 
-
-
   /**
    * Check access on the new superior entry if it exists. If superiordn is null,
    * the entry does not exist or the DN cannot be locked then false is returned.
@@ -891,8 +844,6 @@ public final class AciHandler extends
     }
   }
 
-
-
   /**
    * Check access on each attribute-value pair component of the
    * specified RDN. There may be more than one attribute-value pair if
@@ -921,8 +872,6 @@ public final class AciHandler extends
     }
     return true;
   }
-
-
 
   /**
    * Creates the allow and deny ACI lists based on the provided target
@@ -960,8 +909,6 @@ public final class AciHandler extends
     targetMatchCtx.setDenyList(denys);
   }
 
-
-
   /**
    * Gathers all of the attribute types in an entry along with the
    * "objectclass" attribute type in a List. The "objectclass" attribute
@@ -987,8 +934,6 @@ public final class AciHandler extends
     typeList.addAll(e.getOperationalAttributes().keySet());
     return typeList;
   }
-
-
 
   /**
    * Check access using the accessAllowed method. The LDAP add, compare,
@@ -1021,70 +966,6 @@ public final class AciHandler extends
     return SYNTAX_DN_OID.equals(attribute.getSyntax().getOID());
   }
 
-
-
-  /**
-   * Process all ACIs under the "cn=config" naming context and adds them
-   * to the ACI list cache. It also logs messages about the number of
-   * ACIs added to the cache. This method is called once at startup. It
-   * will put the server in lockdown mode if needed.
-   *
-   * @throws InitializationException
-   *           If there is an error searching for the ACIs in the naming
-   *           context.
-   */
-  private void processConfigAcis() throws InitializationException
-  {
-    LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<>();
-    InternalClientConnection conn = getRootConnection();
-
-    Backend<?> configBackend = DirectoryServer.getBackend(ConfigurationBackend.CONFIG_BACKEND_ID);
-    for (DN baseDN : configBackend.getBaseDNs())
-    {
-      try
-      {
-        if (! configBackend.entryExists(baseDN))
-        {
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        // FIXME -- Is there anything that we need to do here?
-        continue;
-      }
-
-      try {
-        SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, "aci=*").addAttribute("aci");
-        InternalSearchOperation internalSearch =
-            new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
-        LocalBackendSearchOperation localSearch = new LocalBackendSearchOperation(internalSearch);
-
-        configBackend.search(localSearch);
-
-        if (!internalSearch.getSearchEntries().isEmpty())
-        {
-          int validAcis =
-              aciList.addAci(internalSearch.getSearchEntries(), failedACIMsgs);
-          if (!failedACIMsgs.isEmpty())
-          {
-            aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
-          }
-          logger.debug(INFO_ACI_ADD_LIST_ACIS, validAcis, baseDN);
-        }
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = INFO_ACI_HANDLER_FAIL_PROCESS_ACI.get();
-        throw new InitializationException(message, e);
-      }
-    }
-  }
-
-
-
   /**
    * Process all global ACI attribute types found in the configuration
    * entry and adds them to that ACI list cache. It also logs messages
@@ -1105,7 +986,7 @@ public final class AciHandler extends
   {
     try
     {
-      final SortedSet<Aci> globalAcis = new TreeSet<Aci>();
+      final SortedSet<Aci> globalAcis = new TreeSet<>();
       for (String value : configuration.getGlobalACI())
       {
         globalAcis.add(Aci.decode(ByteString.valueOfUtf8(value), DN.rootDN()));
@@ -1124,8 +1005,6 @@ public final class AciHandler extends
     }
   }
 
-
-
   /**
    * Check to see if the specified entry has the specified privilege.
    *
@@ -1138,8 +1017,6 @@ public final class AciHandler extends
   {
     return ClientConnection.hasPrivilege(e, Privilege.BYPASS_ACL);
   }
-
-
 
   /**
    * Check to see if the client entry has BYPASS_ACL privileges for this
@@ -1155,8 +1032,6 @@ public final class AciHandler extends
     return operation.getClientConnection().hasPrivilege(
         Privilege.BYPASS_ACL, operation);
   }
-
-
 
   /**
    * Performs the test of the deny and allow access lists using the
@@ -1185,12 +1060,12 @@ public final class AciHandler extends
       final EnumEvalResult res = Aci.evaluate(evalCtx, denyAci);
       // Failure could be returned if a system limit is hit or
       // search fails
-      if (res.equals(EnumEvalResult.FAIL))
+      if (EnumEvalResult.FAIL.equals(res))
       {
         evalCtx.setEvaluationResult(EVALUATED_DENY_ACI, denyAci);
         return false;
       }
-      else if (res.equals(EnumEvalResult.TRUE))
+      else if (EnumEvalResult.TRUE.equals(res))
       {
         if (testAndSetTargAttrOperationMatches(evalCtx, denyAci, true))
         {
@@ -1204,7 +1079,7 @@ public final class AciHandler extends
     for (Aci allowAci : evalCtx.getAllowList())
     {
       final EnumEvalResult res = Aci.evaluate(evalCtx, allowAci);
-      if (res.equals(EnumEvalResult.TRUE))
+      if (EnumEvalResult.TRUE.equals(res))
       {
         if (testAndSetTargAttrOperationMatches(evalCtx, allowAci, false))
         {
@@ -1280,8 +1155,6 @@ public final class AciHandler extends
     }
     return true;
   }
-
-
 
   /**
    * Evaluate an entry to be added to see if it has any "aci" attribute

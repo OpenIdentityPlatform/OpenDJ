@@ -16,13 +16,18 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -31,13 +36,22 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.opends.server.types.operation.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.Modification;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.AccessControlMessages.*;
@@ -55,18 +69,11 @@ public class AciListenerManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
       "org.opends.server.authorization.dseecompat.AciListenerManager";
 
-
-
-  /**
-   * Internal plugin used for updating the cache before a response is
-   * sent to the client.
-   */
+  /** Internal plugin used for updating the cache before a response is sent to the client. */
   private final class AciChangeListenerPlugin extends
       InternalDirectoryServerPlugin
   {
@@ -83,9 +90,6 @@ public class AciListenerManager implements
           PluginType.POST_OPERATION_MODIFY_DN), true);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationAddOperation addOperation)
@@ -97,9 +101,6 @@ public class AciListenerManager implements
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationDeleteOperation deleteOperation)
@@ -111,9 +112,6 @@ public class AciListenerManager implements
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationModifyDNOperation modifyDNOperation)
@@ -125,9 +123,6 @@ public class AciListenerManager implements
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void doPostSynchronization(
         PostSynchronizationModifyOperation modifyOperation)
@@ -140,9 +135,6 @@ public class AciListenerManager implements
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationAddOperation addOperation)
@@ -158,9 +150,6 @@ public class AciListenerManager implements
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationDeleteOperation deleteOperation)
@@ -176,9 +165,6 @@ public class AciListenerManager implements
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationModifyDNOperation modifyDNOperation)
@@ -195,9 +181,6 @@ public class AciListenerManager implements
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public PostOperation doPostOperation(
         PostOperationModifyOperation modifyOperation)
@@ -214,8 +197,6 @@ public class AciListenerManager implements
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-
-
     private void doPostAdd(Entry addedEntry)
     {
       // This entry might have both global and aci attribute types.
@@ -231,8 +212,6 @@ public class AciListenerManager implements
       }
     }
 
-
-
     private void doPostDelete(Entry deletedEntry)
     {
       // This entry might have both global and aci attribute types.
@@ -243,14 +222,10 @@ public class AciListenerManager implements
       aciList.removeAci(deletedEntry, hasAci, hasGlobalAci);
     }
 
-
-
     private void doPostModifyDN(DN fromDN, DN toDN)
     {
       aciList.renameAci(fromDN, toDN);
     }
-
-
 
     private void doPostModify(List<Modification> mods, Entry oldEntry,
         Entry newEntry)
@@ -284,10 +259,7 @@ public class AciListenerManager implements
             hasGlobalAci);
       }
     }
-
   }
-
-
 
   /** The configuration DN. */
   private DN configurationDN;
@@ -300,15 +272,6 @@ public class AciListenerManager implements
 
   /** Search filter used in context search for "aci" attribute types. */
   private static SearchFilter aciFilter;
-
-  /**
-   * Internal plugin used for updating the cache before a response is
-   * sent to the client.
-   */
-  private final AciChangeListenerPlugin plugin;
-
-  /** The aci attribute type is operational so we need to specify it to be returned. */
-  private static LinkedHashSet<String> attrs = new LinkedHashSet<>();
   static
   {
     // Set up the filter used to search private and public contexts.
@@ -320,10 +283,10 @@ public class AciListenerManager implements
     {
       // TODO should never happen, error message?
     }
-    attrs.add("aci");
   }
 
-
+  /** Internal plugin used for updating the cache before a response is sent to the client. */
+  private final AciChangeListenerPlugin plugin;
 
   /**
    * Save the list created by the AciHandler routine. Registers as an
@@ -358,8 +321,6 @@ public class AciListenerManager implements
     DirectoryServer.registerAlertGenerator(this);
   }
 
-
-
   /**
    * Deregister from the change notification listener, the backend
    * initialization listener and the alert generator.
@@ -370,8 +331,6 @@ public class AciListenerManager implements
     DirectoryServer.deregisterBackendInitializationListener(this);
     DirectoryServer.deregisterAlertGenerator(this);
   }
-
-
 
   /**
    * {@inheritDoc} In this case, the server will search the backend to
@@ -393,9 +352,7 @@ public class AciListenerManager implements
 
     LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<>();
 
-    InternalClientConnection conn = getRootConnection();
-    // Add manageDsaIT control so any ACIs in referral entries will be
-    // picked up.
+    // Add manageDsaIT control so any ACIs in referral entries will be picked up.
     LDAPControl c1 = new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true);
     // Add group membership control to let a backend look for it and
     // decide if it would abort searches.
@@ -418,18 +375,17 @@ public class AciListenerManager implements
       SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, aciFilter)
           .addControl(c1)
           .addControl(c2)
-          .addAttribute(attrs);
+          .addAttribute("aci");
       InternalSearchOperation internalSearch =
-          new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
-      LocalBackendSearchOperation localInternalSearch =
-          new LocalBackendSearchOperation(internalSearch);
+          new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
+      LocalBackendSearchOperation localInternalSearch = new LocalBackendSearchOperation(internalSearch);
       try
       {
         backend.search(localInternalSearch);
       }
       catch (Exception e)
       {
-        logger.traceException(e);
+        logger.trace(INFO_ACI_HANDLER_FAIL_PROCESS_ACI, e);
         continue;
       }
       if (!internalSearch.getSearchEntries().isEmpty())
@@ -444,12 +400,11 @@ public class AciListenerManager implements
     }
   }
 
-
-
   /**
-   * {@inheritDoc} In this case, the server will remove all aci
-   * attribute type values associated with entries in the provided
-   * backend.
+   * {@inheritDoc}
+   * <p>
+   * In this case, the server will remove all aci attribute type values associated with entries in
+   * the provided backend.
    */
   @Override
   public void performBackendPostFinalizationProcessing(Backend<?> backend)
@@ -467,7 +422,6 @@ public class AciListenerManager implements
     // nothing to do.
   }
 
-
   /**
    * Retrieves the fully-qualified name of the Java class for this alert
    * generator implementation.
@@ -481,8 +435,6 @@ public class AciListenerManager implements
     return CLASS_NAME;
   }
 
-
-
   /**
    * Retrieves the DN of the configuration entry used to configure the
    * handler.
@@ -495,8 +447,6 @@ public class AciListenerManager implements
   {
     return this.configurationDN;
   }
-
-
 
   /**
    * Retrieves information about the set of alerts that this generator
@@ -536,11 +486,8 @@ public class AciListenerManager implements
     }
   }
 
-
-
   /**
-   * Send an WARN_ACI_ENTER_LOCKDOWN_MODE alert notification and put the
-   * server in lockdown mode.
+   * Send an WARN_ACI_ENTER_LOCKDOWN_MODE alert notification and put the server in lockdown mode.
    */
   private void setLockDownMode()
   {
@@ -554,7 +501,6 @@ public class AciListenerManager implements
           ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED, lockDownMsg);
       // Enter lockdown mode.
       DirectoryServer.setLockdownMode(true);
-
     }
   }
 }

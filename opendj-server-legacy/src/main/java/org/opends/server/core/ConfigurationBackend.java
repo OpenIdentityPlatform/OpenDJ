@@ -23,23 +23,28 @@ import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.server.config.server.ConfigFileHandlerBackendCfg;
+import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.core.ConfigurationBackend.ConfigurationBackendCfg;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
@@ -53,11 +58,79 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.BackupManager;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.StaticUtils;
 
 /** Back-end responsible for management of configuration entries. */
-public class ConfigurationBackend extends Backend<ConfigFileHandlerBackendCfg> implements Backupable
+public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> implements Backupable
 {
+  /**
+   * Dummy {@link BackendCfg} implementation for the {@link ConfigurationBackend}. No config is
+   * needed for this specific backend, but this class is required to behave like other backends
+   * during initialization.
+   */
+  public final class ConfigurationBackendCfg implements BackendCfg
+  {
+    private ConfigurationBackendCfg()
+    {
+      // let nobody instantiate it
+    }
+
+    @Override
+    public DN dn()
+    {
+      return getBaseDNs()[0];
+    }
+
+    @Override
+    public Class<? extends BackendCfg> configurationClass()
+    {
+      return this.getClass();
+    }
+
+    @Override
+    public String getBackendId()
+    {
+      return CONFIG_BACKEND_ID;
+    }
+
+    @Override
+    public SortedSet<DN> getBaseDN()
+    {
+      return Collections.unmodifiableSortedSet(CollectionUtils.newTreeSet(getBaseDNs()));
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+      return true;
+    }
+
+    @Override
+    public String getJavaClass()
+    {
+      return ConfigurationBackend.class.getName();
+    }
+
+    @Override
+    public WritabilityMode getWritabilityMode()
+    {
+      return WritabilityMode.ENABLED;
+    }
+
+    @Override
+    public void addChangeListener(ConfigurationChangeListener<BackendCfg> listener)
+    {
+      // no-op
+    }
+
+    @Override
+    public void removeChangeListener(ConfigurationChangeListener<BackendCfg> listener)
+    {
+      // no-op
+    }
+  }
+
   /**
    * The backend ID for the configuration backend.
    * <p>
@@ -114,6 +187,16 @@ public class ConfigurationBackend extends Backend<ConfigFileHandlerBackendCfg> i
     setBackendID(CONFIG_BACKEND_ID);
   }
 
+  /**
+   * Returns a new {@link ConfigurationBackendCfg} for this {@link ConfigurationBackend}.
+   *
+   * @return a new {@link ConfigurationBackendCfg} for this {@link ConfigurationBackend}
+   */
+  public ConfigurationBackendCfg getBackendCfg()
+  {
+    return new ConfigurationBackendCfg();
+  }
+
   @Override
   public void closeBackend()
   {
@@ -128,7 +211,7 @@ public class ConfigurationBackend extends Backend<ConfigFileHandlerBackendCfg> i
   }
 
   @Override
-  public void configureBackend(ConfigFileHandlerBackendCfg cfg,  ServerContext serverContext) throws ConfigException
+  public void configureBackend(ConfigurationBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     // No action is required.
   }
