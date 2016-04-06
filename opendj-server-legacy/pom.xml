@@ -19,14 +19,14 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock.opendj</groupId>
-    <artifactId>opendj-server-parent</artifactId>
+    <artifactId>opendj-parent</artifactId>
     <version>4.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
-  <name>OpenDJ</name>
+  <name>OpenDJ LDAP Directory Server</name>
   <description>
-    This module provides the OpenDJ server.
+    This module provides the OpenDJ LDAP Directory Server.
   </description>
   <inceptionYear>2010</inceptionYear>
 

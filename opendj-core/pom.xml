@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>opendj-sdk-parent</artifactId>
+        <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
@@ -171,7 +171,7 @@
                                     <groupId>${project.groupId}</groupId>
                                     <artifactId>opendj-ldap-sdk</artifactId>
                                     <!-- former name of this jar -->
-                                    <version>3.0.0-SNAPSHOT</version>
+                                    <version>3.0.0</version>
                                 </comparisonArtifact>
                             </comparisonArtifacts>
                             <excludes>

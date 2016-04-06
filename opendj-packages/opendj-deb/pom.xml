@@ -127,7 +127,7 @@
                             </goals>
                             <configuration>
                                 <target>
-                                    <apply executable="gzip"><!-- Must we also build these packages on Windows? -->
+                                    <apply executable="gzip" parallel="true">
                                         <arg value="-9" />
                                         <fileset dir="${manpage.dir}" />
                                     </apply>

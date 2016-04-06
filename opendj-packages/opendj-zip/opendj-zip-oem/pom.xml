@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj-server-legacy</artifactId>
-            <version>${opendj.server.archive.version}</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sleepycat</groupId>
@@ -68,7 +68,7 @@
             <plugin>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj-maven-plugin</artifactId>
-                <version>${opendj.server.archive.version}</version>
+                <version>${project.version}</version>
                 <configuration>
                     <productJarName>${product.name}</productJarName>
                     <supportedLocales>${product.locales}</supportedLocales>
