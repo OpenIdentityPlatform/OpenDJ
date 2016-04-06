@@ -16,6 +16,12 @@
  */
 package org.opends.server.replication.plugin;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.mockito.Mockito.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -26,10 +32,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -49,19 +56,12 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static java.util.concurrent.TimeUnit.*;
-
-import static org.mockito.Mockito.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Some tests to go through the DS state machine and validate we get the
@@ -998,26 +998,36 @@ public class StateMachineTest extends ReplicationTestCase
       String userEntryUUID = "11111111-1111-1111-1111-111111111111";
       long curId =  userId++;
       String userdn = "uid=user" + curId + "," + EXAMPLE_DN;
-      String entryWithUUIDldif = "dn: " + userdn + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" +
-        "uid: user" + curId + "\n" +
-        "homePhone: 951-245-7634\n" +
-        "description: This is the description for Aaccf Amar.\n" + "st: NC\n" +
-        "mobile: 027-085-0537\n" +
-        "postalAddress: Aaccf Amar$17984 Thirteenth Street" +
-        "$Rockford, NC  85762\n" + "mail: user.1@example.com\n" +
-        "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n" +
-        "street: 17984 Thirteenth Street\n" + "telephoneNumber: 216-564-6748\n" +
-        "employeeNumber: 1\n" + "sn: Amar\n" + "givenName: Aaccf\n" +
-        "postalCode: 85762\n" + "userPassword: password\n" + "initials: AA\n" +
-        "entryUUID: " + userEntryUUID + "\n";
-
       Entry personWithUUIDEntry = null;
       try
       {
-        personWithUUIDEntry = TestCaseUtils.entryFromLdifString(
-          entryWithUUIDldif);
+        // @Formatter:off
+        personWithUUIDEntry = TestCaseUtils.makeEntry(
+            "dn: " + userdn,
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalPerson",
+            "objectClass: inetOrgPerson",
+            "uid: user" + curId + "",
+            "homePhone: 951-245-7634",
+            "description: This is the description for Aaccf Amar.",
+            "st: NC",
+            "mobile: 027-085-0537",
+            "postalAddress: Aaccf Amar$17984 Thirteenth Street$Rockford, NC  85762",
+            "mail: user.1@example.com",
+            "cn: Aaccf Amar",
+            "l: Rockford",
+            "pager: 508-763-4246",
+            "street: 17984 Thirteenth Street",
+            "telephoneNumber: 216-564-6748",
+            "employeeNumber: 1",
+            "sn: Amar",
+            "givenName: Aaccf",
+            "postalCode: 85762",
+            "userPassword: password",
+            "initials: AA",
+            "entryUUID: " + userEntryUUID);
+        // @Formatter:on
       } catch (Exception e)
       {
         throw new RuntimeException(e);

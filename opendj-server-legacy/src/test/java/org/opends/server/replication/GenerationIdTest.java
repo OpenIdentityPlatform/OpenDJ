@@ -526,22 +526,33 @@ public class GenerationIdTest extends ReplicationTestCase
 
     String user1entryUUID = "33333333-3333-3333-3333-333333333333";
     String user1dn = "uid=user1,ou=People," + baseDnStr;
-    Entry personWithUUIDEntry = TestCaseUtils.entryFromLdifString(
-    "dn: "+ user1dn + "\n"
-    + "objectClass: top\n" + "objectClass: person\n"
-    + "objectClass: organizationalPerson\n"
-    + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-    + "homePhone: 951-245-7634\n"
-    + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-    + "mobile: 027-085-0537\n"
-    + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-    + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-    + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-    + "street: 17984 Thirteenth Street\n"
-    + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-    + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-    + "userPassword: password\n" + "initials: AA\n"
-    + "entryUUID: " + user1entryUUID + "\n");
+    // @formatter:off
+    Entry personWithUUIDEntry = TestCaseUtils.makeEntry(
+        "dn: "+ user1dn,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street$Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA",
+        "entryUUID: " + user1entryUUID);
+    // @formatter:on
 
     // Create and publish an update message to add an entry.
     return new AddMsg(gen.newCSN(),

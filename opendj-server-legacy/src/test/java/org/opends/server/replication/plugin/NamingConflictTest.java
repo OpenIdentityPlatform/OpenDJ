@@ -16,13 +16,16 @@
  */
 package org.opends.server.replication.plugin;
 
+
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.replication.ReplicationTestCase;
@@ -34,9 +37,7 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.RDN;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -196,29 +197,28 @@ public class NamingConflictTest extends ReplicationTestCase
 
   private Entry createAndAddEntry(String commonName) throws Exception
   {
-    Entry entry = TestCaseUtils.entryFromLdifString(
-        "dn: cn=" + commonName + ", " + TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n"
-        + "objectClass: person\n"
-        + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n"
-        + "uid: user.1\n"
-        + "description: This is the description for Aaccf Amar.\n"
-        + "st: NC\n"
-        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n"
-        + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n"
-        + "l: Rockford\n"
-        + "street: 17984 Thirteenth Street\n"
-        + "employeeNumber: 1\n"
-        + "sn: Amar\n"
-        + "givenName: Aaccf\n"
-        + "postalCode: 85762\n"
-        + "userPassword: password\n"
-        + "initials: AA\n");
-    TestCaseUtils.addEntry(entry);
-    return entry;
+    // @formatter:off
+    return TestCaseUtils.addEntry(
+        "dn: cn=" + commonName + ", " + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street$Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "street: 17984 Thirteenth Street",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA");
+    // @formatter:on
   }
 
   /**
@@ -331,35 +331,36 @@ public class NamingConflictTest extends ReplicationTestCase
 
   private Entry createParentEntry() throws Exception
   {
-    return TestCaseUtils.entryFromLdifString(
-        "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n");
+    return TestCaseUtils.makeEntry(
+        "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organizationalUnit");
   }
 
   private Entry createChildEntry() throws Exception
   {
-    return TestCaseUtils.entryFromLdifString(
-        "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n"
-        + "objectClass: person\n"
-        + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n"
-        + "uid: user.1\n"
-        + "description: This is the description for Aaccf Amar.\n"
-        + "st: NC\n"
-        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n"
-        + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n"
-        + "l: Rockford\n"
-        + "street: 17984 Thirteenth Street\n"
-        + "employeeNumber: 1\n"
-        + "sn: Amar\n"
-        + "givenName: Aaccf\n"
-        + "postalCode: 85762\n"
-        + "userPassword: password\n"
-        + "initials: AA\n");
+    // @formatter:off
+    return TestCaseUtils.makeEntry(
+        "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street$Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "street: 17984 Thirteenth Street",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA");
+    // @formatter:on
   }
 
   private void replayMsg(UpdateMsg updateMsg) throws InterruptedException

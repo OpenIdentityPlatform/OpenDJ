@@ -70,8 +70,9 @@ public class ReSyncTest extends ReplicationTestCase
     // data. So for this particular test, we use a classical backend. Let's
     // clear it and create the root entry
     TestCaseUtils.clearBackend("userRoot");
-    addEntry("dn: dc=example,dc=com\n" + "objectClass: top\n"
-        + "objectClass: domain\n");
+    addEntry("dn: dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: domain");
 
     // Change log
     String replServerLdif =
@@ -100,21 +101,22 @@ public class ReSyncTest extends ReplicationTestCase
     Thread.sleep(1000);
 
     // Create a dummy entry
-    addEntry("dn: dc=dummy," + EXAMPLE_DN + "\n"
-        + "objectClass: top\n" + "objectClass: domain\n");
+    addEntry("dn: dc=dummy," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: domain");
   }
 
   /**
    * Utility function. Can be used to create and add and entry
    * in the local DS from its ldif description.
    *
-   * @param entryString  The entry in ldif from.
+   * @param ldif  The entry in ldif from.
    * @return             The ResultCode of the operation.
    * @throws Exception   If something went wrong.
    */
-  private ResultCode addEntry(String entryString) throws Exception
+  private ResultCode addEntry(String... ldif) throws Exception
   {
-    Entry entry = TestCaseUtils.entryFromLdifString(entryString);
+    Entry entry = TestCaseUtils.makeEntry(ldif);
     AddOperation addOp = connection.processAdd(entry);
     entriesToCleanup.add(entry.getName());
     return addOp.getResultCode();
@@ -146,8 +148,9 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-task-backup-all: TRUE\n");
 
     debugInfo("testResyncAfterRestore: backup done");
-    addEntry("dn: dc=fooUniqueName1," + EXAMPLE_DN + "\n"
-        + "objectClass: top\n" + "objectClass: domain\n");
+    addEntry("dn: dc=fooUniqueName1," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: domain");
     debugInfo("testResyncAfterRestore: entry added");
 
     task("dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks\n"
@@ -193,8 +196,9 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-task-export-ldif-file: " + path + "\n");
 
     debugInfo("testResyncAfterImport: export done");
-    addEntry("dn: dc=fooUniqueName2," + EXAMPLE_DN + "\n"
-        + "objectClass: top\n" + "objectClass: domain\n");
+    addEntry("dn: dc=fooUniqueName2," + EXAMPLE_DN,
+        "objectClass: top",
+        "objectClass: domain");
     debugInfo("testResyncAfterImport: entry added");
 
     task("dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks\n"

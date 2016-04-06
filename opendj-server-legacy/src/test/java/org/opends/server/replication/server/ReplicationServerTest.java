@@ -787,11 +787,11 @@ public class ReplicationServerTest extends ReplicationTestCase
     String user1entryUUID = "33333333-3333-3333-3333-333333333333";
     String baseUUID  = "22222222-2222-2222-2222-222222222222";
 
-    Entry entry = TestCaseUtils.entryFromLdifString(
-        "dn: o=example," + TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n"
-        + "objectClass: domain\n"
-        + "entryUUID: " + user1entryUUID + "\n");
+    Entry entry = TestCaseUtils.makeEntry(
+        "dn: o=example," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: domain",
+        "entryUUID: " + user1entryUUID);
     return new AddMsg(csnGen.newCSN(), EXAMPLE_DN, user1entryUUID, baseUUID,
         entry.getObjectClassAttribute(), entry.getAttributes(), new ArrayList<Attribute>());
   }

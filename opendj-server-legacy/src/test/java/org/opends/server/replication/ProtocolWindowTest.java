@@ -24,6 +24,7 @@ import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -36,7 +37,6 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
@@ -90,17 +90,18 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     // suffix synchronized
     String testName = "protocolWindowTest";
-    String synchroServerLdif =
-      "dn: " + "cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-domain\n"
-        + "cn: " + testName + "\n"
-        + "ds-cfg-base-dn: " + TEST_ROOT_DN_STRING + "\n"
-        + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
-        + "ds-cfg-server-id: 1\n"
-        + "ds-cfg-receive-status: true\n"
-        + "ds-cfg-window-size: " + WINDOW_SIZE;
-    Entry repDomainEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
+    // @formatter:off
+    Entry repDomainEntry = TestCaseUtils.makeEntry(
+        "dn: " + "cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN,
+        "objectClass: top",
+        "objectClass: ds-cfg-replication-domain",
+        "cn: " + testName,
+        "ds-cfg-base-dn: " + TEST_ROOT_DN_STRING,
+        "ds-cfg-replication-server: localhost:" + replServerPort,
+        "ds-cfg-server-id: 1",
+        "ds-cfg-receive-status: true",
+        "ds-cfg-window-size: " + WINDOW_SIZE);
+    // @formatter:on
 
     // Configure replication domain
     DirectoryServer.getConfigurationHandler().addEntry(Converters.from(repDomainEntry));
@@ -251,21 +252,32 @@ public class ProtocolWindowTest extends ReplicationTestCase
     replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
         replServerPort, "protocolWindowTestDb", 0, 1, REPLICATION_QUEUE_SIZE, WINDOW_SIZE, null));
 
-    String personLdif = "dn: uid=user.windowTest," + TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n" + "objectClass: person\n"
-        + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-        + "homePhone: 951-245-7634\n"
-        + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-        + "mobile: 027-085-0537\n"
-        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-        + "street: 17984 Thirteenth Street\n"
-        + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-        + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n";
-    personEntry = TestCaseUtils.entryFromLdifString(personLdif);
+    // @formatter:off
+    personEntry = TestCaseUtils.makeEntry(
+        "dn: uid=user.windowTest," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street$Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA\n");
+    // @formatter:on
   }
 
   private void processModify(int count)

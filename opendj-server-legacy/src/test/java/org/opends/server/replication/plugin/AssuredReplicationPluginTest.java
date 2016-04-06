@@ -16,12 +16,25 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.assertj.core.data.MapEntry.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
@@ -39,18 +52,32 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.*;
-import org.opends.server.replication.protocol.*;
-import org.opends.server.types.*;
+import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.AckMsg;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.ServerStartMsg;
+import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.StartSessionMsg;
+import org.opends.server.replication.protocol.StopMsg;
+import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.data.MapEntry.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 /**
  * Test the client part (plugin) of the assured feature in both safe data and
@@ -147,20 +174,21 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     replServerPort = TestCaseUtils.findFreePort();
 
     // Create base dns for each tested modes
-    String topEntry = "dn: " + SAFE_DATA_DN + "\n" + "objectClass: top\n" +
-      "objectClass: organizationalUnit\n";
-    addEntry(TestCaseUtils.entryFromLdifString(topEntry));
-    topEntry = "dn: " + SAFE_READ_DN + "\n" + "objectClass: top\n" +
-      "objectClass: organizationalUnit\n";
-    addEntry(TestCaseUtils.entryFromLdifString(topEntry));
-    topEntry = "dn: " + NOT_ASSURED_DN + "\n" + "objectClass: top\n" +
-      "objectClass: organizationalUnit\n";
-    addEntry(TestCaseUtils.entryFromLdifString(topEntry));
+    addEntry("dn: " + SAFE_DATA_DN,
+        "objectClass: top" +
+        "objectClass: organizationalUnit");
+    addEntry("dn: " + SAFE_READ_DN,
+        "objectClass: top" +
+        "objectClass: organizationalUnit");
+    addEntry("dn: " + NOT_ASSURED_DN,
+        "objectClass: top",
+        "objectClass: organizationalUnit");
   }
 
   /** Add an entry in the database. */
-  private void addEntry(Entry entry) throws Exception
+  private void addEntry(String... ldifLines) throws Exception
   {
+    Entry entry = TestCaseUtils.makeEntry(ldifLines);
     debugInfo("AddEntry " + entry.getName());
     AddOperation addOp = connection.processAdd(entry);
     waitOpResult(addOp, ResultCode.SUCCESS);
@@ -232,23 +260,26 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private Entry createNotAssuredDomain() throws Exception
   {
     // Create a not assured config entry ldif
-    String configEntryLdif = "dn: cn=" + testName + ", cn=domains, " +
-      SYNCHRO_PLUGIN_DN + "\n" + "objectClass: top\n" +
-      "objectClass: ds-cfg-replication-domain\n" + "cn: " + testName + "\n" +
-      "ds-cfg-base-dn: " + NOT_ASSURED_DN + "\n" +
-      "ds-cfg-replication-server: localhost:" + replServerPort + "\n" +
-      "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n" +
-      // heartbeat = 10 min so no need to emulate heartbeat in fake RS: session
-      // not closed by client
-      "ds-cfg-heartbeat-interval: 600000ms\n" +
-      "ds-cfg-changetime-heartbeat-interval: 0ms\n";
-
-    Entry domainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
+    // @formatter:off
+    Entry domainCfgEntry = TestCaseUtils.makeEntry(
+        "dn: cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN,
+        "objectClass: top",
+        "objectClass: ds-cfg-replication-domain",
+        "cn: " + testName,
+        "ds-cfg-base-dn: " + NOT_ASSURED_DN,
+        "ds-cfg-replication-server: localhost:" + replServerPort,
+        "ds-cfg-server-id: 1",
+        "ds-cfg-receive-status: true",
+        // heartbeat = 10 min so no need to emulate heartbeat in fake RS: session
+        // not closed by client
+        "ds-cfg-heartbeat-interval: 600000ms",
+        "ds-cfg-changetime-heartbeat-interval: 0ms");
+    // @formatter:on
 
     // Add the config entry to create the replicated domain
     DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
-      "Unable to add the domain config entry: " + configEntryLdif);
+      "Unable to add the domain config entry: " + domainCfgEntry);
 
     return domainCfgEntry;
   }
@@ -729,10 +760,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Make an LDAP update (add an entry)
         startTime = System.currentTimeMillis(); // Time the update has been initiated
-        String entry = "dn: ou=assured-sd-timeout-entry" + rsGroupId + "," + SAFE_DATA_DN + "\n" +
-          "objectClass: top\n" +
-          "objectClass: organizationalUnit\n";
-        addEntry(TestCaseUtils.entryFromLdifString(entry));
+        addEntry("dn: ou=assured-sd-timeout-entry" + rsGroupId + "," + SAFE_DATA_DN,
+            "objectClass: top",
+            "objectClass: organizationalUnit");
       }
       else
       {
@@ -742,10 +772,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Make an LDAP update (add an entry)
         startTime = System.currentTimeMillis(); // Time the update has been initiated
-        String entry = "dn: ou=assured-sd-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-        addEntry(TestCaseUtils.entryFromLdifString(entry));
+        addEntry("dn: ou=assured-sd-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN,
+            "objectClass: top",
+            "objectClass: organizationalUnit");
       }
       long endTime = System.currentTimeMillis();
 
@@ -842,10 +871,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Make an LDAP update (add an entry)
         startTime = System.currentTimeMillis(); // Time the update has been initiated
-        String entry = "dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + SAFE_READ_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-        addEntry(TestCaseUtils.entryFromLdifString(entry));
+        addEntry("dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + SAFE_READ_DN,
+            "objectClass: top",
+            "objectClass: organizationalUnit");
       }
       else
       {
@@ -855,10 +883,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Make an LDAP update (add an entry)
         startTime = System.currentTimeMillis(); // Time the update has been initiated
-        String entry = "dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-        addEntry(TestCaseUtils.entryFromLdifString(entry));
+        addEntry("dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN,
+            "objectClass: top",
+            "objectClass: organizationalUnit");
       }
       long endTime = System.currentTimeMillis();
 
@@ -915,10 +942,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       waitForConnectionToRs(testcase, replicationServer);
 
       // Make an LDAP update (add an entry)
-      String entry = "dn: ou=not-assured-entry," + NOT_ASSURED_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: ou=not-assured-entry," + NOT_ASSURED_DN,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
 
       // Wait for entry received by RS
       waitForScenarioExecutedOnRs(testcase, replicationServer);
@@ -1001,10 +1027,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Make an LDAP update (add an entry)
       long startTime = System.currentTimeMillis(); // Time the update has been initiated
-      String entry = "dn: ou=assured-sd-no-timeout-entry," + SAFE_DATA_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: ou=assured-sd-no-timeout-entry," + SAFE_DATA_DN,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
 
       assertBlockedForLessThanTimeout(startTime, TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
@@ -1046,10 +1071,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Make an LDAP update (add an entry)
       long startTime = System.currentTimeMillis(); // Time the update has been initiated
-      String entry = "dn: ou=assured-sr-no-timeout-entry," + SAFE_READ_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: ou=assured-sr-no-timeout-entry," + SAFE_READ_DN,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
 
       assertBlockedForLessThanTimeout(startTime, TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
@@ -1092,10 +1116,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       /* Send an update from the RS and get the ack */
 
       // Make the RS send an assured add message
-      String entryStr = "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_READ_DN));
 
       try {
@@ -1178,10 +1202,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Make the RS send an assured add message: we expect a read timeout as
       // safe data should be ignored by DS
-      String entryStr = "dn: ou=assured-sd-reply-entry," + SAFE_DATA_DN + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn: ou=assured-sd-reply-entry," + SAFE_DATA_DN,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
       String parentUid = getEntryUUID(DN.valueOf(SAFE_DATA_DN));
 
       AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
@@ -1222,10 +1246,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Make a first LDAP update (add an entry)
       long startTime = System.currentTimeMillis(); // Time the update has been initiated
       String entryDn = "ou=assured-sd-many-errors-entry," + SAFE_DATA_DN;
-      String entry = "dn: " + entryDn + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: " + entryDn,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
 
       assertBlockedForLessThanTimeout(startTime, TIMEOUT);
 
@@ -1261,7 +1284,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Make a third LDAP update (re-add the entry)
       startTime = System.currentTimeMillis(); // Time the update has been initiated
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: " + entryDn,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
 
       assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
@@ -1330,10 +1355,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Make a first LDAP update (add an entry)
       long startTime = System.currentTimeMillis(); // Time the update has been initiated
       String entryDn = "ou=assured-sr-many-errors-entry," + SAFE_READ_DN;
-      String entry = "dn: " + entryDn + "\n" +
-        "objectClass: top\n" +
-        "objectClass: organizationalUnit\n";
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: " + entryDn,
+        "objectClass: top",
+        "objectClass: organizationalUnit");
 
       assertBlockedForLessThanTimeout(startTime, TIMEOUT);
 
@@ -1375,7 +1399,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Make a third LDAP update (re-add the entry)
       startTime = System.currentTimeMillis(); // Time the update has been initiated
-      addEntry(TestCaseUtils.entryFromLdifString(entry));
+      addEntry("dn: " + entryDn,
+          "objectClass: top",
+          "objectClass: organizationalUnit");
 
       assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());

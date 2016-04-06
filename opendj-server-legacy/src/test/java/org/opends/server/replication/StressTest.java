@@ -28,9 +28,9 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MonitorData;
-import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -148,11 +148,11 @@ public class StressTest extends ReplicationTestCase
     connection = InternalClientConnection.getRootConnection();
 
     // Create necessary backend top level entry
-    String topEntry = "dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    TestCaseUtils.addEntry(topEntry);
+    TestCaseUtils.addEntry(
+        "dn: ou=People," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "entryUUID: 11111111-1111-1111-1111-111111111111");
 
     replServerPort = TestCaseUtils.findFreePort();
 
@@ -177,21 +177,32 @@ public class StressTest extends ReplicationTestCase
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
 
-    String personLdif = "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING + "\n"
-        + "objectClass: top\n" + "objectClass: person\n"
-        + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-        + "homePhone: 951-245-7634\n"
-        + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-        + "mobile: 027-085-0537\n"
-        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-        + "street: 17984 Thirteenth Street\n"
-        + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-        + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n";
-    personEntry = TestCaseUtils.entryFromLdifString(personLdif);
+    // @formatter:off
+    personEntry = TestCaseUtils.makeEntry(
+        "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street$Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA");
+    // @formatter:on
 
     configureReplication(replServerLdif, synchroServerLdif);
   }

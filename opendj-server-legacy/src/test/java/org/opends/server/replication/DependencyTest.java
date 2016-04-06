@@ -114,11 +114,11 @@ public class DependencyTest extends ReplicationTestCase
        * - Configure replication server
        * - check that the last entry has been correctly added
        */
-      Entry entry = TestCaseUtils.entryFromLdifString(
-          "dn:" + TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organization\n"
-          + "entryuuid: " + stringUID(1) + "\n");
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn:" + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: organization",
+          "entryuuid: " + stringUID(1));
 
       replServer = newReplicationServer(replServerId, addSequenceLength * 5 + 100, "dependencyTestAddModDelDependencyTestDb");
 
@@ -243,10 +243,10 @@ public class DependencyTest extends ReplicationTestCase
     try
     {
       // Create replication server, replication domain and broker.
-      Entry entry = TestCaseUtils.entryFromLdifString(
-          "dn:" + TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organization\n");
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn:" + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: organization");
 
       CSNGenerator gen = new CSNGenerator(brokerId, 0L);
       int renamedEntryUuid = 100;
@@ -309,12 +309,12 @@ public class DependencyTest extends ReplicationTestCase
     TestCaseUtils.initializeTestBackend(false);
 
     // Create top entry with uuid
-    Entry topEntry = TestCaseUtils.entryFromLdifString(
-        "dn:" + TEST_ROOT_DN_STRING + "\n"
-         + "objectClass: top\n"
-         + "objectClass: organization\n"
-         + "o: test\n"
-         + "entryuuid: " + stringUID(1) + "\n");
+    Entry topEntry = TestCaseUtils.makeEntry(
+        "dn:" + TEST_ROOT_DN_STRING,
+         "objectClass: top",
+         "objectClass: organization",
+         "o: test",
+         "entryuuid: " + stringUID(1));
 
     MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
     memoryBackend.addEntry(topEntry, null);
@@ -343,10 +343,10 @@ public class DependencyTest extends ReplicationTestCase
 
     try
     {
-      Entry entry = TestCaseUtils.entryFromLdifString(
-          "dn:" + TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organization\n");
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn:" + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: organization");
 
       replServer = newReplicationServer(replServerId, 5 * addSequenceLength + 100, "dependencyTestAddDelAddDependencyTestDb");
 
@@ -447,10 +447,10 @@ public class DependencyTest extends ReplicationTestCase
 
     try
     {
-      Entry entry = TestCaseUtils.entryFromLdifString(
-          "dn:" + TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n"
-          + "objectClass: organization\n");
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn:" + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: organization");
 
       replServer = newReplicationServer(replServerId, 5 * addSequenceLength + 100, "dependencyTestAddModdnDependencyTestDb");
 

@@ -16,7 +16,11 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -24,6 +28,7 @@ import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
@@ -37,8 +42,12 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.FakeReplicationDomain;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -49,9 +58,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * Various tests around fractional replication
- */
+/** Various tests around fractional replication */
 @SuppressWarnings("javadoc")
 public class FractionalReplicationTest extends ReplicationTestCase {
 
@@ -151,7 +158,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-exclude configuration
    * attribute
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testExcludeNightlyProvider")
   private Object[][] testExcludeNightlyProvider()
   {
@@ -587,17 +593,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         first = false;
       }
 
-    Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
-
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(TestCaseUtils.entryFromLdifString(entryLdif), ENTRY_UUID));
   }
 
   /**
@@ -617,8 +614,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           // First string is the class
           Attribute attr =
             Attributes.create(fracCfgValue.toLowerCase(), fracCfgValue + "NewValue");
-          Modification mod = new Modification(ModificationType.REPLACE, attr);
-          mods.add(mod);
+          mods.add(new Modification(ModificationType.REPLACE, attr));
         }
         first = false;
       }
@@ -626,13 +622,11 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // Add modification for the special attribute (modified attribute)
       Attribute attr =
         Attributes.create(OPTIONAL_ATTR.toLowerCase(), OPTIONAL_ATTR + "NewValue");
-      Modification mod = new Modification(ModificationType.REPLACE, attr);
-      mods.add(mod);
+      mods.add(new Modification(ModificationType.REPLACE, attr));
 
       // Add modification for the synchro attribute (added attribute)
       attr = Attributes.create(SYNCHRO_OPTIONAL_ATTR.toLowerCase(), SYNCHRO_OPTIONAL_ATTR + "Value");
-      mod = new Modification(ModificationType.ADD, attr);
-      mods.add(mod);
+      mods.add(new Modification(ModificationType.ADD, attr));
 
       DN entryDn = DN.valueOf(firstBackend ? ENTRY_DN : ENTRY_DN2);
       ModifyMsg modifyMsg = new ModifyMsg(gen.newCSN(), entryDn, mods, ENTRY_UUID);
@@ -1219,24 +1213,22 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       // Perform add operation with forbidden attribute in RDN
-      String entryLdif = "dn: displayName=ValueToBeKept," +
-        TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" + "sn: snValue\n" + "cn: cnValue\n" +
-        "entryUUID: " + ENTRY_UUID + "\n" +
-        "displayName: ValueToBeKept\ndisplayName: displayNameValue\n";
-
-      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
+      // @formatter:off
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn: displayName=ValueToBeKept," + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "sn: snValue",
+          "cn: cnValue",
+          "entryUUID: " + ENTRY_UUID,
+          "displayName: ValueToBeKept",
+          "displayName: displayNameValue");
+      // @formatter:on
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(entry, ENTRY_UUID));
 
       /*
        * check that entry has been created and has attribute values from RDN
@@ -1254,25 +1246,24 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        */
 
       // Perform add operation with forbidden attribute in RDN
-      entryLdif = "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," +
-        TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" + "entryUUID: " + ENTRY_UUID2 + "\n" +
-        "sn: snValue\n" + "cn: cnValue\n" +
-        "displayName: ValueToBeKept\ndisplayName: displayNameValue\n" +
-        "description: descriptionValue\ndescription: ValueToBeKeptToo\n";
-
-      entry = TestCaseUtils.entryFromLdifString(entryLdif);
+      // @formatter:off
+      entry = TestCaseUtils.makeEntry(
+          "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "entryUUID: " + ENTRY_UUID2,
+          "sn: snValue",
+          "cn: cnValue",
+          "displayName: ValueToBeKept",
+          "displayName: displayNameValue",
+          "description: descriptionValue",
+          "description: ValueToBeKeptToo");
+      // @formatter:on
 
       // Create an update message to add an entry.
-      addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID2,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(entry, ENTRY_UUID2));
 
       /*
        * check that entry has been created and has attribute values from RDN
@@ -1312,27 +1303,23 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
-      // Perform add operation with forbidden attribute in RDN
-      String entryLdif = "dn: displayName=ValueToBeKept," +
-        TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" + "sn: snValue\n" + "cn: cnValue\n" +
-        "entryUUID: " + ENTRY_UUID + "\n" +
-        "displayName: ValueToBeKept\ndisplayName: displayNameValue\n" +
-        "carLicense: cirLicenseValue\n";
-
-
-      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
+      // @formatter:off
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn: displayName=ValueToBeKept," + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "sn: snValue",
+          "cn: cnValue",
+          "entryUUID: " + ENTRY_UUID,
+          "displayName: ValueToBeKept",
+          "displayName: displayNameValue",
+          "carLicense: cirLicenseValue");
+      // @formatter:on
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(entry, ENTRY_UUID));
 
       /*
        * check that entry has been created and has attribute values from RDN
@@ -1351,26 +1338,25 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        */
 
       // Perform add operation with forbidden attribute in RDN
-      entryLdif = "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," +
-        TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" + "sn: snValue\n" + "cn: cnValue\n" +
-        "entryUUID: " + ENTRY_UUID2 + "\n" +
-        "displayName: ValueToBeKept\ndisplayName: displayNameValue\n" +
-        "description: descriptionValue\ndescription: ValueToBeKeptToo\n" +
-        "carLicense: cirLicenseValue\n";
-
-      entry = TestCaseUtils.entryFromLdifString(entryLdif);
+      // @formatter:off
+      entry = TestCaseUtils.makeEntry(
+          "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," + TEST_ROOT_DN_STRING,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "sn: snValue",
+          "cn: cnValue",
+          "entryUUID: " + ENTRY_UUID2,
+          "displayName: ValueToBeKept",
+          "displayName: displayNameValue",
+          "description: descriptionValue",
+          "description: ValueToBeKeptToo",
+          "carLicense: cirLicenseValue");
+      // @formatter:on
 
       // Create an update message to add an entry.
-      addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID2,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(entry, ENTRY_UUID2));
 
       /*
        * check that entry has been created and has attribute values from RDN
@@ -1413,23 +1399,22 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Perform add operation with forbidden attribute in RDN
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
-      String entryLdif = "dn: " + entryName + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" + "sn: snValue\n" + "cn: cnValue\n" +
-        "entryUUID: " + ENTRY_UUID + "\n" +
-        "displayName: ValueToBeKept\ndescription: ValueToBeRemoved\n";
-
-      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
+      // @formatter:off
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn: " + entryName,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "sn: snValue",
+          "cn: cnValue",
+          "entryUUID: " + ENTRY_UUID,
+          "displayName: ValueToBeKept",
+          "description: ValueToBeRemoved");
+      // @formatter:on
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(entry, ENTRY_UUID));
 
       // check that entry has been created and has attribute values from RDN
       Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
@@ -1469,6 +1454,11 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     }
   }
 
+  private AddMsg newAddMsg(Entry e, String entryUUID)
+  {
+    return new AddMsg(gen.newCSN(), e.getName(), entryUUID, null, e.getObjectClassAttribute(), e.getAttributes(), null);
+  }
+
   /**
    * Tests modify dn operation on an entry with old RDN containing forbidden
    * attribute by fractional include configuration
@@ -1491,23 +1481,22 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Perform add operation with forbidden attribute in RDN
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
-      String entryLdif = "dn: " + entryName + "\n" + "objectClass: top\n" +
-        "objectClass: person\n" + "objectClass: organizationalPerson\n" +
-        "objectClass: inetOrgPerson\n" + "sn: snValue\n" + "cn: cnValue\n" +
-        "entryUUID: " + ENTRY_UUID + "\n" +
-        "displayName: ValueToBeKept\ndescription: ValueToBeRemoved\n";
-
-      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
+      // @formatter:off
+      Entry entry = TestCaseUtils.makeEntry(
+          "dn: " + entryName,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "sn: snValue",
+          "cn: cnValue",
+          "entryUUID: " + ENTRY_UUID,
+          "displayName: ValueToBeKept",
+          "description: ValueToBeRemoved");
+      // @formatter:on
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getName(),
-        ENTRY_UUID,
-        null,
-        entry.getObjectClassAttribute(),
-        entry.getAttributes(), new ArrayList<Attribute>());
-
-      replicationDomain.publish(addMsg);
+      replicationDomain.publish(newAddMsg(entry, ENTRY_UUID));
 
       // check that entry has been created and has attribute values from RDN
       Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
