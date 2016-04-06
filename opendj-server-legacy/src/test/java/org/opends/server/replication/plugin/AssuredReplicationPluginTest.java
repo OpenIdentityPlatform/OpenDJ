@@ -175,10 +175,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     // Create base dns for each tested modes
     addEntry("dn: " + SAFE_DATA_DN,
-        "objectClass: top" +
+        "objectClass: top",
         "objectClass: organizationalUnit");
     addEntry("dn: " + SAFE_READ_DN,
-        "objectClass: top" +
+        "objectClass: top",
         "objectClass: organizationalUnit");
     addEntry("dn: " + NOT_ASSURED_DN,
         "objectClass: top",
