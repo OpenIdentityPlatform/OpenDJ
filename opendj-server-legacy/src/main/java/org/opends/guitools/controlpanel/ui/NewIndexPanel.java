@@ -36,6 +36,13 @@ import javax.swing.JCheckBox;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -44,23 +51,11 @@ import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
-import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Schema;
 
-/**
- * Panel that appears when the user defines a new index.
- */
+/** Panel that appears when the user defines a new index. */
 public class NewIndexPanel extends AbstractIndexPanel
 {
   private static final long serialVersionUID = -3516011638125862137L;
@@ -399,13 +394,7 @@ public class NewIndexPanel extends AbstractIndexPanel
         if (!isServerRunning())
         {
           configHandlerUpdated = true;
-          getInfo().stopPooling();
-          if (getInfo().mustDeregisterConfig())
-          {
-            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-          }
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().setMustDeregisterConfig(true);
+          stopPoolingAndInitializeConfiguration();
         }
         else
         {
@@ -452,8 +441,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().startPooling();
+          startPoolingAndInitializeConfiguration();
         }
       }
     }

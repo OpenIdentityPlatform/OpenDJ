@@ -29,24 +29,21 @@ import java.util.TreeSet;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
-import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 
-/**
- * The task that is launched when an index must be deleted.
- */
+/** The task that is launched when an index must be deleted. */
 public class DeleteIndexTask extends Task
 {
   private final Set<String> backendSet;
@@ -135,13 +132,7 @@ public class DeleteIndexTask extends Task
       if (!isServerRunning())
       {
         configHandlerUpdated = true;
-        getInfo().stopPooling();
-        if (getInfo().mustDeregisterConfig())
-        {
-          DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-        }
-        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-        getInfo().setMustDeregisterConfig(true);
+        stopPoolingAndInitializeConfiguration();
       }
       boolean isFirst = true;
       for (final AbstractIndexDescriptor index : indexesToDelete)
@@ -218,8 +209,7 @@ public class DeleteIndexTask extends Task
     {
       if (configHandlerUpdated)
       {
-        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-        getInfo().startPooling();
+        startPoolingAndInitializeConfiguration();
       }
     }
   }

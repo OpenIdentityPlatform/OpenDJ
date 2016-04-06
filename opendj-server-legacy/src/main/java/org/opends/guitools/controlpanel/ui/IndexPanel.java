@@ -44,6 +44,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -53,15 +58,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
-import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 
 /**
  * The panel that displays an existing index (it appears on the right of the
@@ -85,9 +82,7 @@ public class IndexPanel extends AbstractIndexPanel
     createLayout();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -466,9 +461,7 @@ public class IndexPanel extends AbstractIndexPanel
     !String.valueOf(index.getEntryLimit()).equals(entryLimit.getText());
   }
 
-  /**
-   * The task in charge of modifying the index.
-   */
+  /** The task in charge of modifying the index. */
   protected class ModifyIndexTask extends Task
   {
     private Set<String> backendSet;
@@ -542,7 +535,7 @@ public class IndexPanel extends AbstractIndexPanel
     /**
      * Updates the configuration of the modified index.
      *
-     * @throws OpenDsException
+     * @throws Exception
      *           if there is an error updating the configuration.
      */
     private void updateConfiguration() throws Exception
@@ -553,13 +546,7 @@ public class IndexPanel extends AbstractIndexPanel
         if (!isServerRunning())
         {
           configHandlerUpdated = true;
-          getInfo().stopPooling();
-          if (getInfo().mustDeregisterConfig())
-          {
-            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-          }
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().setMustDeregisterConfig(true);
+          stopPoolingAndInitializeConfiguration();
         }
         else
         {
@@ -614,8 +601,7 @@ public class IndexPanel extends AbstractIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().startPooling();
+          startPoolingAndInitializeConfiguration();
         }
       }
     }
@@ -625,7 +611,7 @@ public class IndexPanel extends AbstractIndexPanel
      *
      * @param connWrapper
      *          the connection to be used to update the index configuration.
-     * @throws OpenDsException
+     * @throws Exception
      *           if there is an error updating the server.
      */
     private void modifyIndexOnline(final ConnectionWrapper connWrapper) throws Exception

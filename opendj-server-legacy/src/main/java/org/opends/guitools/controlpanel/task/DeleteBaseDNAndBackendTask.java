@@ -35,14 +35,11 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.admin.ads.util.ConnectionWrapper;
-import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
-import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
-import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
-import org.opends.guitools.controlpanel.ui.ProgressDialog;
-import org.opends.guitools.controlpanel.util.ConfigReader;
-import org.opends.guitools.controlpanel.util.Utilities;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -53,13 +50,15 @@ import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
+import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
+import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
+import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
+import org.opends.guitools.controlpanel.ui.ProgressDialog;
+import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LinkedAttribute;
-import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
 
@@ -225,13 +224,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       if (!isServerRunning())
       {
         configHandlerUpdated = true;
-        getInfo().stopPooling();
-        if (getInfo().mustDeregisterConfig())
-        {
-          DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-        }
-        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-        getInfo().setMustDeregisterConfig(true);
+        stopPoolingAndInitializeConfiguration();
       }
       boolean isFirst = true;
       for (final Set<BaseDNDescriptor> baseDNs : baseDNsToDelete.values())
@@ -395,8 +388,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     {
       if (configHandlerUpdated)
       {
-        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-        getInfo().startPooling();
+        startPoolingAndInitializeConfiguration();
       }
     }
   }
@@ -729,4 +721,3 @@ public class DeleteBaseDNAndBackendTask extends Task
     return args;
   }
 }
-

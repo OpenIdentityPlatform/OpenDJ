@@ -60,6 +60,7 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
@@ -80,7 +81,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
@@ -156,7 +156,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
   private final JComboBox ascendingOrder = Utilities.createComboBox();
 
   /** Combo box containing the sort order. */
-  protected DefaultListModel sortOrderModel;
+  protected DefaultListModel<VLVSortOrder> sortOrderModel;
 
   /** The list of labels. */
   private final JLabel[] labels = { lName, lBaseDN, lSearchScope, lFilter, lSortOrder, lBackend, lMaxBlockSize };
@@ -254,7 +254,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     List<VLVSortOrder> sortOrder = new ArrayList<>();
     for (int i = 0; i < sortOrderModel.getSize(); i++)
     {
-      sortOrder.add((VLVSortOrder) sortOrderModel.get(i));
+      sortOrder.add(sortOrderModel.get(i));
     }
     return sortOrder;
   }
@@ -936,8 +936,8 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         int[] indexes = sortOrder.getSelectedIndices();
         for (int i = 0; i < indexes.length; i++)
         {
-          Object o1 = sortOrderModel.elementAt(indexes[i] - 1);
-          Object o2 = sortOrderModel.elementAt(indexes[i]);
+          VLVSortOrder o1 = sortOrderModel.elementAt(indexes[i] - 1);
+          VLVSortOrder o2 = sortOrderModel.elementAt(indexes[i]);
           sortOrderModel.set(indexes[i] - 1, o2);
           sortOrderModel.set(indexes[i], o1);
 
@@ -955,8 +955,8 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         int[] indexes = sortOrder.getSelectedIndices();
         for (int i = 0; i < indexes.length; i++)
         {
-          Object o1 = sortOrderModel.elementAt(indexes[i] + 1);
-          Object o2 = sortOrderModel.elementAt(indexes[i]);
+          VLVSortOrder o1 = sortOrderModel.elementAt(indexes[i] + 1);
+          VLVSortOrder o2 = sortOrderModel.elementAt(indexes[i]);
           sortOrderModel.set(indexes[i] + 1, o2);
           sortOrderModel.set(indexes[i], o1);
 
@@ -978,7 +978,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
           DefaultComboBoxModel model = (DefaultComboBoxModel) attributes.getModel();
           for (int index : indexes)
           {
-            VLVSortOrder sortOrder = (VLVSortOrder) sortOrderModel.getElementAt(index);
+            VLVSortOrder sortOrder = sortOrderModel.getElementAt(index);
             String attrName = sortOrder.getAttributeName();
             boolean isCustom = customAttrNames.contains(attrName);
             boolean dealingWithCustom = true;

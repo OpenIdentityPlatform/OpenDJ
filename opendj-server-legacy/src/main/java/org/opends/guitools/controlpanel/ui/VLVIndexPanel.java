@@ -50,6 +50,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -61,12 +64,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
-import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.opends.server.core.DirectoryServer;
 
 /**
  * The panel that displays an existing VLV index (it appears on the right of the
@@ -132,6 +130,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   @Override
   public void okClicked()
   {
+    // no-op
   }
 
   /**
@@ -185,16 +184,13 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -521,9 +517,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     }
   }
 
-  /**
-   * The task in charge of modifying the VLV index.
-   */
+  /** The task in charge of modifying the VLV index. */
   protected class ModifyVLVIndexTask extends Task
   {
     private final Set<String> backendSet;
@@ -606,13 +600,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         if (!isServerRunning())
         {
           configHandlerUpdated = true;
-          getInfo().stopPooling();
-          if (getInfo().mustDeregisterConfig())
-          {
-            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-          }
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().setMustDeregisterConfig(true);
+          stopPoolingAndInitializeConfiguration();
         }
         else
         {
@@ -650,7 +638,6 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
           @Override
           public void run()
           {
@@ -662,8 +649,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().startPooling();
+          startPoolingAndInitializeConfiguration();
         }
       }
     }
@@ -673,7 +659,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
      *
      * @param ctx
      *          the connection to be used to update the index configuration.
-     * @throws OpenDsException
+     * @throws Exception
      *           if there is an error updating the server.
      */
     private void modifyVLVIndexOnline(ConnectionWrapper connWrapper) throws Exception

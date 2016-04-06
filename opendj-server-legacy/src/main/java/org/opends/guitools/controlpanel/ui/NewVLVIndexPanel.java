@@ -31,8 +31,13 @@ import java.util.TreeSet;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -41,18 +46,9 @@ import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
-import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.BackendVLVIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn;
-import org.opends.server.core.DirectoryServer;
 
-/**
- * Panel that appears when the user defines a new VLV index.
- */
+/** Panel that appears when the user defines a new VLV index. */
 class NewVLVIndexPanel extends AbstractVLVIndexPanel
 {
   private static final long serialVersionUID = 1554866540747530939L;
@@ -108,7 +104,6 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
     backendName.setText(backend.getBackendID());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -221,13 +216,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
         if (!isServerRunning())
         {
           configHandlerUpdated = true;
-          getInfo().stopPooling();
-          if (getInfo().mustDeregisterConfig())
-          {
-            DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-          }
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().setMustDeregisterConfig(true);
+          stopPoolingAndInitializeConfiguration();
         }
         else
         {
@@ -275,8 +264,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().startPooling();
+          startPoolingAndInitializeConfiguration();
         }
       }
     }
@@ -315,14 +303,7 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
 
     private String getConfigCommandLineName()
     {
-      if (isServerRunning())
-      {
-        return getCommandLinePath("dsconfig");
-      }
-      else
-      {
-        return null;
-      }
+      return isServerRunning() ? getCommandLinePath("dsconfig") : null;
     }
 
     @Override

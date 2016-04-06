@@ -61,6 +61,13 @@ import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -71,19 +78,10 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
-import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.BackendCreationHelper;
 import org.opends.server.tools.BackendCreationHelper.DefaultIndex;
 import org.opends.server.tools.BackendTypeHelper;
@@ -875,13 +873,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       boolean configHandlerUpdated = false;
       try
       {
-        getInfo().stopPooling();
-        if (getInfo().mustDeregisterConfig())
-        {
-          DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
-        }
-        DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-        getInfo().setMustDeregisterConfig(true);
+        stopPoolingAndInitializeConfiguration();
         configHandlerUpdated = true;
 
         performTask();
@@ -892,8 +884,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         if (configHandlerUpdated)
         {
-          DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
-          getInfo().startPooling();
+          startPoolingAndInitializeConfiguration();
         }
       }
     }

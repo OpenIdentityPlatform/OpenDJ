@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.task;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -51,8 +53,10 @@ import org.opends.guitools.controlpanel.util.ProcessReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
-import org.forgerock.opendj.ldap.DN;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
@@ -67,141 +71,76 @@ public abstract class Task
 {
   private static String localHostName = UserData.getDefaultHostName();
   private String binDir;
-  /**
-   * The different task types.
-   */
+
+  /** The different task types. */
   public enum Type
   {
-    /**
-     * New Base DN creation.
-     */
+    /** New Base DN creation. */
     NEW_BASEDN,
-    /**
-     * New index creation.
-     */
+    /** New index creation. */
     NEW_INDEX,
-    /**
-     * Modification of indexes.
-     */
+    /** Modification of indexes. */
     MODIFY_INDEX,
-    /**
-     * Deletion of indexes.
-     */
+    /** Deletion of indexes. */
     DELETE_INDEX,
-    /**
-     * Creation of VLV indexes.
-     */
+    /** Creation of VLV indexes. */
     NEW_VLV_INDEX,
-    /**
-     * Modification of VLV indexes.
-     */
+    /** Modification of VLV indexes. */
     MODIFY_VLV_INDEX,
-    /**
-     * Deletion of VLV indexes.
-     */
+    /** Deletion of VLV indexes. */
     DELETE_VLV_INDEX,
-    /**
-     * Import of an LDIF file.
-     */
+    /** Import of an LDIF file. */
     IMPORT_LDIF,
-    /**
-     * Export of an LDIF file.
-     */
+    /** Export of an LDIF file. */
     EXPORT_LDIF,
-    /**
-     * Backup.
-     */
+    /** Backup. */
     BACKUP,
-    /**
-     * Restore.
-     */
+    /** Restore. */
     RESTORE,
-    /**
-     * Verification of indexes.
-     */
+    /** Verification of indexes. */
     VERIFY_INDEXES,
-    /**
-     * Rebuild of indexes.
-     */
+    /** Rebuild of indexes. */
     REBUILD_INDEXES,
-    /**
-     * Enabling of Windows Service.
-     */
+    /** Enabling of Windows Service. */
     ENABLE_WINDOWS_SERVICE,
-    /**
-     * Disabling of Windows Service.
-     */
+    /** Disabling of Windows Service. */
     DISABLE_WINDOWS_SERVICE,
-    /**
-     * Starting the server.
-     */
+    /** Starting the server. */
     START_SERVER,
-    /**
-     * Stopping the server.
-     */
+    /** Stopping the server. */
     STOP_SERVER,
-    /**
-     * Updating the java settings for the different command-lines.
-     */
+    /** Updating the java settings for the different command-lines. */
     JAVA_SETTINGS_UPDATE,
-    /**
-     * Creating a new element in the schema.
-     */
+    /** Creating a new element in the schema. */
     NEW_SCHEMA_ELEMENT,
-    /**
-     * Deleting an schema element.
-     */
+    /** Deleting an schema element. */
     DELETE_SCHEMA_ELEMENT,
-    /**
-     * Modify an schema element.
-     */
+    /** Modify an schema element. */
     MODIFY_SCHEMA_ELEMENT,
-    /**
-     * Modifying an entry.
-     */
+    /** Modifying an entry. */
     MODIFY_ENTRY,
-    /**
-     * Creating an entry.
-     */
+    /** Creating an entry. */
     NEW_ENTRY,
-    /**
-     * Deleting an entry.
-     */
+    /** Deleting an entry. */
     DELETE_ENTRY,
-    /**
-     * Deleting a base DN.
-     */
+    /** Deleting a base DN. */
     DELETE_BASEDN,
-    /**
-     * Deleting a backend.
-     */
+    /** Deleting a backend. */
     DELETE_BACKEND,
-    /**
-     * Other task.
-     */
+    /** Other task. */
     OTHER
   }
 
-  /**
-   * The state on which the task can be.
-   */
+  /** The state on which the task can be. */
   public enum State
   {
-    /**
-     * The task is not started.
-     */
+    /** The task is not started. */
     NOT_STARTED,
-    /**
-     * The task is running.
-     */
+    /** The task is running. */
     RUNNING,
-    /**
-     * The task finished successfully.
-     */
+    /** The task finished successfully. */
     FINISHED_SUCCESSFULLY,
-    /**
-     * The task finished with error.
-     */
+    /** The task finished with error. */
     FINISHED_WITH_ERROR
   }
 
@@ -211,17 +150,11 @@ public abstract class Task
    */
   public abstract Set<String> getBackends();
 
-  /**
-   * The current state of the task.
-   */
+  /** The current state of the task. */
   protected State state = State.NOT_STARTED;
-  /**
-   * The return code of the task.
-   */
+  /** The return code of the task. */
   protected Integer returnCode;
-  /**
-   * The last exception encountered during the task execution.
-   */
+  /** The last exception encountered during the task execution. */
   protected Throwable lastException;
   /**
    * The progress logs of the task.  Note that the user of StringBuffer is not
@@ -229,22 +162,14 @@ public abstract class Task
    * StringBuffer instead of StringBuilder is required.
    */
   protected StringBuffer logs = new StringBuffer();
-  /**
-   * The error logs of the task.
-   */
+  /** The error logs of the task. */
   protected StringBuilder errorLogs = new StringBuilder();
-  /**
-   * The standard output logs of the task.
-   */
+  /** The standard output logs of the task. */
   protected StringBuilder outputLogs = new StringBuilder();
-  /**
-   * The print stream for the error logs.
-   */
+  /** The print stream for the error logs. */
   protected ApplicationPrintStream errorPrintStream =
     new ApplicationPrintStream();
-  /**
-   * The print stream for the standard output logs.
-   */
+  /** The print stream for the standard output logs. */
   protected ApplicationPrintStream outPrintStream =
     new ApplicationPrintStream();
 
@@ -310,6 +235,37 @@ public abstract class Task
   public ControlPanelInfo getInfo()
   {
     return info;
+  }
+
+  /**
+   * Stops the pooling and initializes the configuration.
+   *
+   * @throws DirectoryException
+   *           if the configuration cannot be deregistered
+   * @throws InitializationException
+   *           if a problem occurs during configuration initialization
+   */
+  protected void stopPoolingAndInitializeConfiguration() throws DirectoryException, InitializationException
+  {
+    getInfo().stopPooling();
+    if (getInfo().mustDeregisterConfig())
+    {
+      DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
+    }
+    DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
+    getInfo().setMustDeregisterConfig(true);
+  }
+
+  /**
+   * Initializes the configuration and starts the pooling.
+   *
+   * @throws InitializationException
+   *           if a problem occurs during configuration initialization
+   */
+  protected void startPoolingAndInitializeConfiguration() throws InitializationException
+  {
+    DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
+    getInfo().startPooling();
   }
 
   /**
@@ -408,6 +364,7 @@ public abstract class Task
    */
   public void postOperation()
   {
+    // no-op
   }
 
   /**
@@ -587,10 +544,7 @@ public abstract class Task
   public abstract boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons);
 
-  /**
-   * Execute the task.  This method is synchronous.
-   *
-   */
+  /** Execute the task. This method is synchronous. */
   public abstract void runTask();
 
   /**
@@ -598,7 +552,6 @@ public abstract class Task
    * @return the type of the task.
    */
   public abstract Type getType();
-
 
   /**
    * Returns the binary/script directory.
@@ -690,8 +643,6 @@ public abstract class Task
    * @return the list of command-line arguments.
    */
   protected abstract List<String> getCommandLineArguments();
-
-
 
   /**
    * Returns the list of obfuscated command-line arguments.  This is called
@@ -840,7 +791,6 @@ public abstract class Task
   }
 
   /**
-   *
    * Returns the print stream for the error logs.
    * @return the print stream for the error logs.
    */
@@ -850,7 +800,6 @@ public abstract class Task
   }
 
   /**
-  *
   * Returns the print stream for the output logs.
   * @return the print stream for the output logs.
   */
@@ -948,9 +897,7 @@ public abstract class Task
         sb.toString(), ColorAndFontConstants.progressFont));
   }
 
-  /**
-   * The separator used to link the lines of the resulting command-lines.
-   */
+  /** The separator used to link the lines of the resulting command-lines. */
   private static final String LINE_SEPARATOR = CommandBuilder.HTML_LINE_SEPARATOR;
 
   /**
