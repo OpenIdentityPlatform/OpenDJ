@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015 ForgeRock AS.
+-->
+<!--
+  This use of <informalexample> is mild tag abuse.
+  It serves as a single container element for all the elements here.
+-->
+<informalexample
+              xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+              xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+              xsi:schemaLocation='http://docbook.org/ns/docbook
+                                  http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+
+ <para>
+  This utility thus performs only part of the upgrade process,
+  which includes the following phases for a single server.
+ </para>
+
+ <orderedlist>
+  <listitem>
+   <para>
+    Get and unpack a newer version of OpenDJ directory server software.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    Stop the current OpenDJ directory server.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    Overwrite existing binary and script files with those of the newer version,
+    and then run this utility before restarting OpenDJ.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    Start the upgraded OpenDJ directory server.
+   </para>
+  </listitem>
+ </orderedlist>
+
+ <important>
+  <para>
+   This utility <emphasis>does not back up OpenDJ before you upgrade,
+   nor does it restore OpenDJ if the utility fails</emphasis>.
+   In order to revert a failed upgrade,
+   make sure you back up OpenDJ directory server
+   before you overwrite existing binary and script files.
+  </para>
+ </important>
+
+ <para>
+  By default this utility requests confirmation
+  before making important configuration changes.
+  You can use the <option>--no-prompt</option> option
+  to run the command non-interactively.
+ </para>
+
+ <para>
+  When using the <option>--no-prompt</option> option,
+  if this utility cannot complete
+  because it requires confirmation for a potentially very long or critical task,
+  then it exits with an error and
+  a message about how to finish making the changes.
+  You can add the <option>--force</option> option
+  to force a non-interactive upgrade to continue in this case,
+  also performing long running and critical tasks.
+ </para>
+
+ <para>
+  After upgrading, see the resulting <filename>upgrade.log</filename> file
+  for a full list of operations performed.
+ </para>
+</informalexample>
