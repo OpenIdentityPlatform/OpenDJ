@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2014-2016 ForgeRock AS.
+-->
+<differences>
+<!--
+For specifying ignored differences, see:
+  http://mojo.codehaus.org/clirr-maven-plugin/examples/ignored-differences.html
+
+path/methods/to/from matching can either use:
+- regex when surrounded with '%regex[]'
+- ant style path matching when surrounded with '%ant[]'
+- ant style path matching when not surrounded by anything
+
+For path/methods matching in maven-clirr-plugin see (change version numbers accordingly):
+  http://svn.codehaus.org/mojo/tags/clirr-maven-plugin-2.6.1/src/main/java/org/codehaus/mojo/clirr/Difference.java
+  http://grepcode.com/file/repo1.maven.org/maven2/org.codehaus.plexus/plexus-utils/3.0.7/org/codehaus/plexus/util/SelectorUtils.java
+For a description of ant style path expressions see:
+  http://ant.apache.org/manual/dirtasks.html#patterns
+
+Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to avoid the need to use \s* in the '<to>' tags.
+-->
+</differences>
