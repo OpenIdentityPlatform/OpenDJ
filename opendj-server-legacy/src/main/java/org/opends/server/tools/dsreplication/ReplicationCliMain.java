@@ -17,6 +17,25 @@
  */
 package org.opends.server.tools.dsreplication;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+import static java.util.Collections.*;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.ServerDescriptor.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.admin.ads.util.PreferredConnection.*;
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.*;
+import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -93,6 +112,7 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.admin.ads.util.PreferredConnection;
+import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -148,24 +168,6 @@ import com.forgerock.opendj.cli.TablePrinter;
 import com.forgerock.opendj.cli.TextTablePrinter;
 import com.forgerock.opendj.cli.ValidationCallback;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
-import static java.util.Collections.*;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.admin.ads.ServerDescriptor.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.admin.ads.util.PreferredConnection.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
-import static org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.*;
-import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
-import static org.opends.server.util.StaticUtils.*;
-
 /**
  * This class provides a tool that can be used to enable and disable replication
  * and also to initialize the contents of a replicated suffix with the contents
@@ -196,8 +198,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean forceNonInteractive;
 
   /** Always use SSL with the administration connector. */
-  private final boolean useSSL = true;
-  private final boolean useStartTLS = false;
+  private final Type connectiontype = LDAPS;
 
   /**
    * The enumeration containing the different options we display when we ask
@@ -1074,7 +1075,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws NamingException
    *           if there was an error establishing the connection.
    */
-  private InitialLdapContext createAdministrativeContext(HostPort hostPort,
+  private static InitialLdapContext createAdministrativeContext(HostPort hostPort,
       boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
       int connectTimeout, ApplicationTrustManager trustManager)
       throws NamingException
@@ -1100,24 +1101,6 @@ public class ReplicationCliMain extends ConsoleApplication
     return ctx;
   }
 
-  /**
-   * Creates an Initial LDAP Context interacting with the user if the
-   * application is interactive.
-   *
-   * @param ci
-   *          the LDAPConnectionConsoleInteraction object that is assumed to
-   *          have been already run.
-   * @return the initial LDAP context or <CODE>null</CODE> if the user did not
-   *         accept to trust the certificates.
-   * @throws ClientException
-   *           if there was an error establishing the connection.
-   */
-  private InitialLdapContext createInitialLdapContextInteracting(LDAPConnectionConsoleInteraction ci)
-      throws ClientException
-  {
-    return createInitialLdapContextInteracting(ci, isInteractive() && ci.isTrustStoreInMemory());
-  }
-
   private ConnectionWrapper createConnectionInteracting(LDAPConnectionConsoleInteraction ci)
       throws ClientException
   {
@@ -1137,22 +1120,6 @@ public class ReplicationCliMain extends ConsoleApplication
     return null;
   }
 
-  private ConnectionWrapper createConnectionInteracting(LDAPConnectionConsoleInteraction ci,
-      boolean promptForCertificate) throws ClientException
-  {
-    try
-    {
-      InitialLdapContext ctx= createInitialLdapContextInteracting(ci, promptForCertificate);
-      return new ConnectionWrapper(ctx, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, ci.getTrustManager());
-    }
-    catch (NamingException e)
-    {
-      String hostName = getHostNameForLdapUrl(ci.getHostName());
-      Integer portNumber = ci.getPortNumber();
-      throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, ERR_FAILED_TO_CONNECT.get(hostName, portNumber));
-    }
-  }
-
   /**
    * Creates an Initial LDAP Context interacting with the user if the
    * application is interactive.
@@ -1167,30 +1134,28 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ClientException
    *           if there was an error establishing the connection.
    */
-  private InitialLdapContext createInitialLdapContextInteracting(LDAPConnectionConsoleInteraction ci,
+  private ConnectionWrapper createConnectionInteracting(LDAPConnectionConsoleInteraction ci,
       boolean promptForCertificate) throws ClientException
   {
     // Interact with the user though the console to get
     // LDAP connection information
     String hostName = getHostNameForLdapUrl(ci.getHostName());
-    Integer portNumber = ci.getPortNumber();
+    int portNumber = ci.getPortNumber();
+    HostPort hostPort = new HostPort(hostName, portNumber);
     String bindDN = ci.getBindDN();
     String bindPassword = ci.getBindPassword();
     TrustManager trustManager = ci.getTrustManager();
     KeyManager keyManager = ci.getKeyManager();
 
-    InitialLdapContext ctx;
-
+    ConnectionWrapper conn;
     if (ci.useSSL())
     {
-      String ldapsUrl = "ldaps://" + hostName + ":" + portNumber;
       while (true)
       {
         try
         {
-          ctx = createLdapsContext(ldapsUrl, bindDN, bindPassword, ci.getConnectTimeout(),
-              null, trustManager, keyManager);
-          ctx.reconnect(null);
+          conn = new ConnectionWrapper(
+              hostPort, LDAPS, bindDN, bindPassword, ci.getConnectTimeout(), trustManager, keyManager);
           break;
         }
         catch (NamingException e)
@@ -1200,13 +1165,7 @@ public class ReplicationCliMain extends ConsoleApplication
             OpendsCertificateException oce = getCertificateRootException(e);
             if (oce != null)
             {
-              String authType = null;
-              if (trustManager instanceof ApplicationTrustManager)
-              {
-                ApplicationTrustManager appTrustManager =
-                    (ApplicationTrustManager) trustManager;
-                authType = appTrustManager.getLastRefusedAuthType();
-              }
+              String authType = getAuthType(trustManager);
               if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
               {
                 // If the certificate is trusted, update the trust manager.
@@ -1241,7 +1200,6 @@ public class ReplicationCliMain extends ConsoleApplication
                   ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
-          HostPort hostPort = new HostPort(hostName, portNumber);
           LocalizableMessage message = getMessageForException(e, hostPort.toString());
           throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
         }
@@ -1249,89 +1207,79 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else if (ci.useStartTLS())
     {
-      String ldapUrl = "ldap://" + hostName + ":" + portNumber;
       while (true)
       {
         try
         {
-          ctx = createStartTLSContext(ldapUrl, bindDN,
-                  bindPassword, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null,
-                  trustManager, keyManager, null);
-          ctx.reconnect(null);
-          break;
+          conn = new ConnectionWrapper(
+              hostPort, START_TLS, bindDN, bindPassword,
+              CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, trustManager, keyManager);
+          return conn;
         }
         catch (NamingException e)
         {
-          if (promptForCertificate)
+          if (!promptForCertificate)
           {
-            OpendsCertificateException oce = getCertificateRootException(e);
-            if (oce != null)
-            {
-              String authType = null;
-              if (trustManager instanceof ApplicationTrustManager)
-              {
-                ApplicationTrustManager appTrustManager =
-                    (ApplicationTrustManager) trustManager;
-                authType = appTrustManager.getLastRefusedAuthType();
-              }
-
-              if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
-              {
-                // If the certificate is trusted, update the trust manager.
-                trustManager = ci.getTrustManager();
-
-                // Try to connect again.
-                continue;
-              }
-              else
-              {
-                // Assume user cancelled.
-                return null;
-              }
-            }
-            else
-            {
-              LocalizableMessage message =
-                  ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
-              throw new ClientException(
-                  ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
-            }
+            throw failedToConnect(hostName, portNumber);
           }
-          LocalizableMessage message =
-              ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-              message);
+          OpendsCertificateException oce = getCertificateRootException(e);
+          if (oce == null)
+          {
+            throw failedToConnect(hostName, portNumber);
+          }
+          String authType = getAuthType(trustManager);
+          if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
+          {
+            // If the certificate is trusted, update the trust manager.
+            trustManager = ci.getTrustManager();
+
+            // Try to connect again.
+            continue;
+          }
+          else
+          {
+            // Assume user cancelled.
+            return null;
+          }
         }
       }
     }
     else
     {
-      String ldapUrl = "ldap://" + hostName + ":" + portNumber;
       while (true)
       {
         try
         {
-          ctx = createLdapContext(ldapUrl, bindDN, bindPassword,
-                  CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null);
-          ctx.reconnect(null);
-          break;
+          conn = new ConnectionWrapper(
+              hostPort, LDAP, bindDN, bindPassword, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null);
+          return conn;
         }
         catch (NamingException e)
         {
-          LocalizableMessage message =
-              ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-              message);
+          throw failedToConnect(hostName, portNumber);
         }
       }
     }
-    return ctx;
+    return conn;
+  }
+
+  private String getAuthType(TrustManager trustManager)
+  {
+    if (trustManager instanceof ApplicationTrustManager)
+    {
+      return ((ApplicationTrustManager) trustManager).getLastRefusedAuthType();
+    }
+    return null;
+  }
+
+  private ClientException failedToConnect(String hostName, Integer portNumber)
+  {
+    return new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, ERR_FAILED_TO_CONNECT.get(hostName, portNumber));
   }
 
   private ReplicationCliReturnCode purgeHistoricalRemotely(
       PurgeHistoricalUserData uData)
   {
-    // Connect to the provided server
     InitialLdapContext ctx = createAdministrativeContext(uData);
     if (ctx == null)
     {
@@ -1598,14 +1546,13 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      InitialLdapContext ctx = createAdministrativeContext(uData, bindDn);
-      if (ctx != null)
-      {
-        return new ConnectionWrapper(ctx, getConnectTimeout(), getTrustManager(sourceServerCI));
-      }
+      return new ConnectionWrapper(uData.getHostPort(), connectiontype, bindDn, uData.getAdminPwd(),
+          getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException e)
     {
+      errPrintln();
+      errPrintln(getMessageForException(e, uData.getHostPort().toString()));
       logger.error(LocalizableMessage.raw("Error when creating connection for:" + uData.getHostPort()));
     }
     return null;
@@ -1615,8 +1562,10 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      return createAdministrativeContext(uData.getHostPort(), useSSL, useStartTLS, bindDn,
-          uData.getAdminPwd(), getConnectTimeout(), getTrustManager(sourceServerCI));
+      boolean useStartTLS = START_TLS.equals(connectiontype);
+      boolean useSSL = LDAPS.equals(connectiontype);
+      return createAdministrativeContext(uData.getHostPort(), useSSL, useStartTLS,
+          bindDn, uData.getAdminPwd(), getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException ne)
     {
@@ -2076,20 +2025,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private ConnectionWrapper getConnection(PurgeHistoricalUserData uData)
   {
-    try
-    {
-      InitialLdapContext ctx = getInitialLdapContext(uData);
-      return new ConnectionWrapper(ctx, sourceServerCI.getConnectTimeout(), sourceServerCI.getTrustManager());
-    }
-    catch (NamingException ce)
-    {
-      logger.warn(LocalizableMessage.raw("An error occured " + ce));
-      return null;
-    }
-  }
-
-  private InitialLdapContext getInitialLdapContext(PurgeHistoricalUserData uData)
-  {
     boolean firstTry = true;
     Boolean serverRunning = null;
 
@@ -2128,15 +2063,15 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         sourceServerCI.run();
 
-        InitialLdapContext ctx = createInitialLdapContextInteracting(sourceServerCI);
-        if (ctx != null)
+        ConnectionWrapper conn = createConnectionInteracting(sourceServerCI);
+        if (conn != null)
         {
           uData.setOnline(true);
           uData.setHostPort(new HostPort(sourceServerCI.getHostName(), sourceServerCI.getPortNumber()));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
         }
-        return ctx;
+        return conn;
       }
       catch (ClientException ce)
       {
@@ -2999,17 +2934,15 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(InitializeAllReplicationUserData uData)
   {
-    InitialLdapContext ctx = null;
-    try
+    try (ConnectionWrapper conn = getConnection(uData))
     {
-      ctx = getInitialLdapContext(uData);
-      if (ctx == null)
+      if (conn == null)
       {
         return false;
       }
 
       List<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForInitializeReplication(suffixes, ctx, true);
+      checkSuffixesForInitializeReplication(suffixes, conn.getLdapContext(), true);
       if (suffixes.isEmpty())
       {
         return false;
@@ -3018,16 +2951,12 @@ public class ReplicationCliMain extends ConsoleApplication
 
       // Ask for confirmation to initialize.
       println();
-      if (!askConfirmation(getPrompt(uData, ctx), true))
+      if (!askConfirmation(getPrompt(uData, conn.getLdapContext()), true))
       {
         return false;
       }
       println();
       return true;
-    }
-    finally
-    {
-      close(ctx);
     }
   }
 
@@ -3086,20 +3015,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private ConnectionWrapper getConnection(MonoServerReplicationUserData uData)
   {
-    try
-    {
-      InitialLdapContext ctx = getInitialLdapContext(uData);
-      return new ConnectionWrapper(ctx, sourceServerCI.getConnectTimeout(), getTrustManager(sourceServerCI));
-    }
-    catch (NamingException ce)
-    {
-      logger.warn(LocalizableMessage.raw("An error occured " + ce));
-      return null;
-    }
-  }
-
-  private InitialLdapContext getInitialLdapContext(MonoServerReplicationUserData uData)
-  {
     // Try to connect to the server.
     while (true)
     {
@@ -3111,8 +3026,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         sourceServerCI.run();
 
-        InitialLdapContext ctx = createInitialLdapContextInteracting(sourceServerCI);
-        if (ctx != null)
+        ConnectionWrapper conn = createConnectionInteracting(sourceServerCI);
+        if (conn != null)
         {
           uData.setHostPort(new HostPort(sourceServerCI.getHostName(), sourceServerCI.getPortNumber()));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
@@ -3122,7 +3037,7 @@ public class ReplicationCliMain extends ConsoleApplication
             ((StatusReplicationUserData) uData).setScriptFriendly(argParser.isScriptFriendly());
           }
         }
-        return ctx;
+        return conn;
       }
       catch (ClientException ce)
       {
@@ -3429,7 +3344,8 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         InitialLdapContext ctx = createAdministrativeContext(server.getHostPort(),
-            useSSL, useStartTLS, adminDN, adminPwd, getConnectTimeout(), getTrustManager(sourceServerCI));
+            LDAPS.equals(connectiontype), START_TLS.equals(connectiontype), adminDN, adminPwd,
+            getConnectTimeout(), getTrustManager(sourceServerCI));
         server.setBindDn(adminDN);
         server.setPwd(adminPwd);
         ctx.close();
@@ -3605,6 +3521,19 @@ public class ReplicationCliMain extends ConsoleApplication
     HostPort hostPort = getHostPort(ctx1);
     boolean isSSL = isSSL(ctx1);
     boolean isStartTLS = isStartTLS(ctx1);
+    Type connectionType;
+    if (isSSL)
+    {
+      connectionType = LDAPS;
+    }
+    else if (isStartTLS)
+    {
+      connectionType = START_TLS;
+    }
+    else
+    {
+      connectionType = LDAP;
+    }
     if (getTrustManager(ci) == null)
     {
       // This is required when the user did  connect to the server using SSL or
@@ -3694,17 +3623,15 @@ public class ReplicationCliMain extends ConsoleApplication
                   close(ctx1);
                   try
                   {
-                    final InitialLdapContext ctx2 = createAdministrativeContext(hostPort, isSSL, isStartTLS,
-                        getAdministratorDN(adminUid), adminPwd, getConnectTimeout(), getTrustManager(ci));
-                    final ConnectionWrapper connWrapper2 =
-                        new ConnectionWrapper(ctx2, getConnectTimeout(), getTrustManager(ci));
+                    final ConnectionWrapper connWrapper2 = new ConnectionWrapper(
+                          hostPort, connectionType, getAdministratorDN(adminUid), adminPwd,
+                          getConnectTimeout(), getTrustManager(ci));
                     connWrapper.set(connWrapper2);
                     adsContext = new ADSContext(connWrapper2);
-                    cache = new TopologyCache(adsContext, getTrustManager(ci),
-                        getConnectTimeout());
+                    cache = new TopologyCache(adsContext, getTrustManager(ci), getConnectTimeout());
                     cache.getFilter().setSearchMonitoringInformation(false);
                     cache.getFilter().setSearchBaseDNInformation(false);
-                    cache.setPreferredConnections(getPreferredConnections(ctx2));
+                    cache.setPreferredConnections(getPreferredConnections(connWrapper2.getLdapContext()));
                     connected = true;
                   }
                   catch (Throwable t)
@@ -4178,34 +4105,15 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      InitialLdapContext ctx = createAdministrativeContext(server, errorMessages);
-      if (ctx != null)
-      {
-        return new ConnectionWrapper(ctx, getConnectTimeout(), getTrustManager(sourceServerCI));
-      }
+      return new ConnectionWrapper(server.getHostPort(), connectiontype, server.getBindDn(), server.getPwd(),
+          getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException e)
     {
+      errorMessages.add(getMessageForException(e, server.getHostPort().toString()));
       logger.error(LocalizableMessage.raw("Error when creating connection for:" + server.getHostPort()));
     }
     return null;
-  }
-
-  private InitialLdapContext createAdministrativeContext(EnableReplicationServerData server,
-      List<LocalizableMessage> errorMessages)
-  {
-    try
-    {
-      return createAdministrativeContext(
-          server.getHostPort(), useSSL, useStartTLS, server.getBindDn(), server.getPwd(),
-          getConnectTimeout(), getTrustManager(sourceServerCI));
-    }
-    catch (NamingException ne)
-    {
-      errorMessages.add(getMessageForException(ne, server.getHostPort().toString()));
-      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
-      return null;
-    }
   }
 
   /**
@@ -4396,7 +4304,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       return createAdministrativeContext(
-          server, useSSL, useStartTLS,
+          server, LDAPS.equals(connectiontype), START_TLS.equals(connectiontype),
           getAdministratorDN(uData.getAdminUid()), uData.getAdminPwd(),
           getConnectTimeout(), getTrustManager(sourceServerCI));
     }
@@ -7123,12 +7031,8 @@ public class ReplicationCliMain extends ConsoleApplication
     for (ServerDescriptor s : allServers)
     {
       logger.info(LocalizableMessage.raw("Configuring server "+server.getHostPort(true)));
-      InitialLdapContext ctx = null;
-      ConnectionWrapper conn = null;
-      try
+      try (ConnectionWrapper conn = getDirContextForServer(cache, s))
       {
-        ctx = getDirContextForServer(cache, s);
-        conn = new ConnectionWrapper(ctx, getConnectTimeout(), getTrustManager(sourceServerCI));
         if (serversToConfigureDomain.contains(s))
         {
           configureToReplicateBaseDN(conn, baseDN, repServers, usedIds);
@@ -7149,11 +7053,6 @@ public class ReplicationCliMain extends ConsoleApplication
         HostPort hostPort = getHostPort2(s, cache.getPreferredConnections());
         LocalizableMessage msg = getMessageForEnableException(hostPort, baseDN);
         throw new ReplicationCliException(msg, ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
-      }
-      finally
-      {
-        close(ctx);
-        close(conn);
       }
       alreadyConfiguredServers.add(s.getId());
       alreadyConfiguredReplicationServers.add(s.getId());
@@ -9603,16 +9502,9 @@ public class ReplicationCliMain extends ConsoleApplication
             logger.info(LocalizableMessage.raw("Seeding to replication server on "+
                 server.getHostPort(true)+" with certificates of "+
                 getHostPort(adsCtxSource.getDirContext())));
-            InitialLdapContext ctx = null;
-            try
+            try (ConnectionWrapper conn = getDirContextForServer(cacheDestination, server))
             {
-              ctx = getDirContextForServer(cacheDestination, server);
-              ServerDescriptor.seedAdsTrustStore(ctx,
-                  adsCtxSource.getTrustedCertificates());
-            }
-            finally
-            {
-              close(ctx);
+              ServerDescriptor.seedAdsTrustStore(conn.getLdapContext(), adsCtxSource.getTrustedCertificates());
             }
           }
         }
@@ -9735,7 +9627,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private InitialLdapContext getDirContextForServer(TopologyCache cache, ServerDescriptor server)
+  private ConnectionWrapper getDirContextForServer(TopologyCache cache, ServerDescriptor server)
       throws NamingException
   {
     String dn = getBindDN(cache.getAdsContext().getDirContext());
@@ -9746,7 +9638,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ServerLoader loader = new ServerLoader(server.getAdsProperties(),
         dn, pwd, getTrustManager(sourceServerCI), getConnectTimeout(),
         cache.getPreferredConnections(), filter);
-    return loader.createContext();
+    return loader.createConnectionWrapper();
   }
 
   /**

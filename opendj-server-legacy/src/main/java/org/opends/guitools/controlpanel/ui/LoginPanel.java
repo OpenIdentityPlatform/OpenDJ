@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
@@ -25,7 +24,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -33,6 +31,7 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
@@ -43,10 +42,10 @@ import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -190,19 +189,16 @@ public class LoginPanel extends StatusGenericPanel
       setEnabledCancel(false);
       displayMessage(INFO_CTRL_PANEL_VERIFYING_AUTHENTICATION_SUMMARY.get());
 
-      BackgroundTask<InitialLdapContext> worker =
-        new BackgroundTask<InitialLdapContext>()
+      BackgroundTask<ConnectionWrapper> worker = new BackgroundTask<ConnectionWrapper>()
       {
-        /** {@inheritDoc} */
         @Override
-        public InitialLdapContext processBackgroundTask() throws Throwable
+        public ConnectionWrapper processBackgroundTask() throws Throwable
         {
-          InitialLdapContext ctx = null;
+          ConnectionWrapper conn = null;
           try
           {
             usedUrl = getInfo().getAdminConnectorURL();
-            ctx = Utilities.getAdminDirContext(getInfo(), dn.getText(),
-                String.valueOf(pwd.getPassword()));
+            conn = Utilities.getAdminDirContext(getInfo(), dn.getText(), String.valueOf(pwd.getPassword()));
 
             if (getInfo().getConnection() != null)
             {
@@ -240,22 +236,19 @@ public class LoginPanel extends StatusGenericPanel
                     INFO_CTRL_PANEL_READING_CONFIGURATION_SUMMARY.get());
               }
             });
-            getInfo().setConnection(
-                new ConnectionWrapper(ctx, getInfo().getConnectTimeout(), getInfo().getTrustManager()));
+            getInfo().setConnection(conn);
             getInfo().setUserDataDirContext(null);
             getInfo().regenerateDescriptor();
-            return ctx;
+            return conn;
           } catch (Throwable t)
           {
-            StaticUtils.close(ctx);
+            StaticUtils.close(conn);
             throw t;
           }
         }
 
-        /** {@inheritDoc} */
         @Override
-        public void backgroundTaskCompleted(InitialLdapContext ctx,
-            Throwable throwable)
+        public void backgroundTaskCompleted(ConnectionWrapper conn, Throwable throwable)
         {
           boolean handleCertificateException = false;
           if (throwable != null)

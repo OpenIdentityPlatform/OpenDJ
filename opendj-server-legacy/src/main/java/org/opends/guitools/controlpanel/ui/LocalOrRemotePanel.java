@@ -44,6 +44,7 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -62,14 +63,14 @@ import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.monitors.VersionMonitorProvider;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
+
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -507,11 +508,10 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       setEnabledOK(false);
       displayMessage(INFO_CTRL_PANEL_VERIFYING_AUTHENTICATION_SUMMARY.get());
 
-      BackgroundTask<InitialLdapContext> worker =
-        new BackgroundTask<InitialLdapContext>()
+      BackgroundTask<ConnectionWrapper> worker = new BackgroundTask<ConnectionWrapper>()
       {
         @Override
-        public InitialLdapContext processBackgroundTask() throws Throwable
+        public ConnectionWrapper processBackgroundTask() throws Throwable
         {
           final ControlPanelInfo info = getInfo();
           info.stopPooling();
@@ -538,24 +538,21 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               return null;
             }
           }
-          InitialLdapContext ctx = null;
+          ConnectionWrapper conn = null;
           try
           {
             if (isLocal)
             {
               usedUrl = info.getAdminConnectorURL();
-              ctx = Utilities.getAdminDirContext(info, dn.getText(),
-                  String.valueOf(pwd.getPassword()));
+              conn = Utilities.getAdminDirContext(info, dn.getText(), String.valueOf(pwd.getPassword()));
             }
             else
             {
-              usedUrl = ConnectionUtils.getLDAPUrl(hostName.getText().trim(),
-                  Integer.valueOf(port.getText().trim()), true);
-              ctx = createLdapsContext(usedUrl, dn.getText(),
-                  String.valueOf(pwd.getPassword()),
-                  info.getConnectTimeout(), null,
-                  info.getTrustManager(), null);
-              checkVersion(ctx);
+              HostPort hostPort = new HostPort(hostName.getText().trim(), Integer.valueOf(port.getText().trim()));
+              usedUrl = ConnectionUtils.getLDAPUrl(hostPort, true);
+              conn = new ConnectionWrapper(hostPort, LDAPS, dn.getText(), String.valueOf(pwd.getPassword()),
+                  info.getConnectTimeout(), info.getTrustManager());
+              checkVersion(conn.getLdapContext());
             }
 
             StaticUtils.sleep(500);
@@ -569,20 +566,19 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             });
             closeInfoConnections();
             info.setIsLocal(isLocal);
-            info.setConnection(
-                new ConnectionWrapper(ctx, info.getConnectTimeout(), info.getTrustManager()));
+            info.setConnection(conn);
             info.setUserDataDirContext(null);
             info.regenerateDescriptor();
-            return ctx;
+            return conn;
           } catch (Throwable t)
           {
-            StaticUtils.close(ctx);
+            StaticUtils.close(conn);
             throw t;
           }
         }
 
         @Override
-        public void backgroundTaskCompleted(InitialLdapContext ctx, Throwable throwable)
+        public void backgroundTaskCompleted(ConnectionWrapper conn, Throwable throwable)
         {
           boolean handleCertificateException = false;
           boolean localServerErrorConnecting = false;

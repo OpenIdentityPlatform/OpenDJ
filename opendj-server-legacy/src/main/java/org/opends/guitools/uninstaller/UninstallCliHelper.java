@@ -18,8 +18,10 @@ package org.opends.guitools.uninstaller;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
@@ -48,6 +50,7 @@ import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.quicksetup.Application;
@@ -64,6 +67,7 @@ import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
@@ -94,8 +98,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   private ControlPanelInfo info;
 
   private boolean forceNonInteractive;
-  private boolean useSSL = true;
-  private boolean useStartTLS;
+  private Type connectionType = LDAPS;
 
   /** Default constructor. */
   public UninstallCliHelper()
@@ -120,9 +123,8 @@ public class UninstallCliHelper extends ConsoleApplication {
    *           If there is an error processing data in non-interactive mode and
    *           an error must be thrown (not in force on error mode).
    */
-  public UninstallUserData createUserData(UninstallerArgumentParser args,
-      String[] rawArguments)
-  throws UserDataException, ClientException
+  public UninstallUserData createUserData(UninstallerArgumentParser args, String[] rawArguments)
+      throws UserDataException, ClientException
   {
     parser = args;
     UninstallUserData userData = new UninstallUserData();
@@ -1134,7 +1136,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
     logger.info(LocalizableMessage.raw("Updating user data with remote servers."));
 
-    InitialLdapContext ctx = null;
+    ConnectionWrapper conn = null;
     try
     {
       info.setTrustManager(userData.getTrustManager());
@@ -1157,11 +1159,10 @@ public class UninstallCliHelper extends ConsoleApplication {
       {
         logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
       }
-      ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
-          pwd, getConnectTimeout(), userData.getTrustManager());
-      ConnectionWrapper connWrapper = new ConnectionWrapper(ctx, getConnectTimeout(), userData.getTrustManager());
+      conn = new ConnectionWrapper(new HostPort(host, port), connectionType, dn, pwd,
+          getConnectTimeout(), userData.getTrustManager());
 
-      ADSContext adsContext = new ADSContext(connWrapper);
+      ADSContext adsContext = new ADSContext(conn);
       if (interactive && userData.getTrustManager() == null)
       {
         // This is required when the user did  connect to the server using SSL
@@ -1208,7 +1209,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     finally
     {
-      StaticUtils.close(ctx);
+      StaticUtils.close(conn);
     }
     if (exceptionOccurred)
     {

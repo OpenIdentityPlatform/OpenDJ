@@ -24,7 +24,6 @@ import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.TimeLimitExceededException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -37,8 +36,6 @@ import org.opends.admin.ads.TopologyCacheException.Type;
 import org.opends.admin.ads.TopologyCacheFilter;
 
 import com.forgerock.opendj.cli.Utils;
-
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Class used to load the configuration of a server.  Basically the code
@@ -151,11 +148,11 @@ public class ServerLoader extends Thread
   public void run()
   {
     lastException = null;
-    InitialLdapContext ctx = null;
-    try
+    boolean connCreated = false;
+    try (ConnectionWrapper conn = createConnectionWrapper())
     {
-      ctx = createContext();
-      serverDescriptor = ServerDescriptor.createStandalone(ctx, filter);
+      connCreated = true;
+      serverDescriptor = ServerDescriptor.createStandalone(conn.getLdapContext(), filter);
       serverDescriptor.setAdsProperties(serverProperties);
       serverDescriptor.updateAdsPropertiesWithServerProperties();
     }
@@ -181,7 +178,7 @@ public class ServerLoader extends Thread
     {
       logger.warn(LocalizableMessage.raw(
           "NamingException error reading server: " + getLastLdapUrl(), e));
-      Type type = ctx != null
+      Type type = connCreated
           ? TopologyCacheException.Type.GENERIC_READING_SERVER
           : TopologyCacheException.Type.GENERIC_CREATING_CONNECTION;
       lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
@@ -200,21 +197,18 @@ public class ServerLoader extends Thread
     finally
     {
       isOver = true;
-      close(ctx);
     }
   }
 
   /**
-   * Create an InitialLdapContext based in the provide server properties and
-   * authentication data provided in the constructor.
-   * @return an InitialLdapContext based in the provide server properties and
-   * authentication data provided in the constructor.
-   * @throws NamingException if an error occurred while creating the
-   * InitialLdapContext.
+   * Returns a Connection Wrapper.
+   *
+   * @return the connection wrapper
+   * @throws NamingException
+   *           If an error occurs.
    */
-  public InitialLdapContext createContext() throws NamingException
+  public ConnectionWrapper createConnectionWrapper() throws NamingException
   {
-    InitialLdapContext ctx = null;
     if (trustManager != null)
     {
       trustManager.resetLastRefusedItems();
@@ -226,42 +220,16 @@ public class ServerLoader extends Thread
     /* Try to connect to the server in a certain order of preference.  If an
      * URL fails, we will try with the others.
      */
-    LinkedHashSet<PreferredConnection> conns = getLDAPURLsByPreference();
-
-    for (PreferredConnection connection : conns)
+    for (PreferredConnection connection : getLDAPURLsByPreference())
     {
-      if (ctx == null)
+      lastLdapUrl = connection.getLDAPURL();
+      ConnectionWrapper conn = new ConnectionWrapper(lastLdapUrl, connection.getType(), dn, pwd, timeout, trustManager);
+      if (conn.getLdapContext() != null)
       {
-        lastLdapUrl = connection.getLDAPURL();
-        switch (connection.getType())
-        {
-        case LDAPS:
-          ctx = ConnectionUtils.createLdapsContext(lastLdapUrl, dn, pwd,
-              timeout, null, trustManager, null);
-          break;
-        case START_TLS:
-          ctx = ConnectionUtils.createStartTLSContext(lastLdapUrl, dn, pwd,
-              timeout, null, trustManager, null, null);
-          break;
-        default:
-          ctx = ConnectionUtils.createLdapContext(lastLdapUrl, dn, pwd,
-              timeout, null);
-        }
+        return conn;
       }
     }
-    return ctx;
-  }
-
-  /**
-   * Returns a Connection Wrapper.
-   *
-   * @return the connection wrapper
-   * @throws NamingException
-   *            If an error occurs.
-   */
-  public ConnectionWrapper createConnectionWrapper() throws NamingException
-  {
-    return new ConnectionWrapper(createContext(), timeout, trustManager);
+    return null;
   }
 
   /**

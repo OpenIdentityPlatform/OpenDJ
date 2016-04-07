@@ -17,6 +17,7 @@
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
 import static com.forgerock.opendj.cli.Utils.*;
@@ -463,20 +464,16 @@ public class ControlPanelInfo
         // Try with previous credentials.
         try
         {
-          InitialLdapContext context = null;
           if (isLocal)
           {
-            context = Utilities.getAdminDirContext(this, lastWorkingBindDN, lastWorkingBindPwd);
+            connWrapper = Utilities.getAdminDirContext(this, lastWorkingBindDN, lastWorkingBindPwd);
           }
           else if (lastRemoteAdministrationURL != null)
           {
-            context = createLdapsContext(lastRemoteAdministrationURL,
-                lastWorkingBindDN,
-                lastWorkingBindPwd,
-                getConnectTimeout(), null,
-                getTrustManager(), null);
+            connWrapper = new ConnectionWrapper(
+                lastRemoteAdministrationURL, LDAPS, lastWorkingBindDN, lastWorkingBindPwd,
+                getConnectTimeout(), getTrustManager());
           }
-          connWrapper = new ConnectionWrapper(context, getConnectTimeout(), getTrustManager());
         }
         catch (ConfigReadException | NamingException cre)
         {

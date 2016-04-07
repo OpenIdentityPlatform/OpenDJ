@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
@@ -54,6 +53,7 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -75,7 +75,6 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
@@ -330,11 +329,9 @@ public class StatusCli extends ConsoleApplication
 
       if (mContext != null)
       {
-        InitialLdapContext ctx = null;
-        try {
-          ctx = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd);
-          controlInfo.setConnection(
-              new ConnectionWrapper(ctx, controlInfo.getConnectTimeout(), controlInfo.getTrustManager()));
+        try (ConnectionWrapper conn = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd))
+        {
+          controlInfo.setConnection(conn);
           controlInfo.regenerateDescriptor();
           writeStatus(controlInfo);
 
@@ -353,8 +350,6 @@ public class StatusCli extends ConsoleApplication
           println();
           println(cre.getMessageObject());
           return ReturnCode.ERROR_INITIALIZING_SERVER.get();
-        } finally {
-          StaticUtils.close(ctx);
         }
       } else {
         // The user did not provide authentication: just display the

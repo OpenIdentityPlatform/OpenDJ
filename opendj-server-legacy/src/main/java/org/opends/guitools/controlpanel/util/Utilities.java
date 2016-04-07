@@ -20,6 +20,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.quicksetup.Installation.*;
 
@@ -95,6 +96,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -2173,9 +2175,8 @@ public class Utilities
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
-  public static InitialLdapContext getAdminDirContext(
-      ControlPanelInfo controlInfo, String bindDN, String pwd)
-  throws NamingException, ConfigReadException
+  public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, String bindDN, String pwd)
+      throws NamingException, ConfigReadException
   {
     String usedUrl = controlInfo.getAdminConnectorURL();
     if (usedUrl == null)
@@ -2184,12 +2185,11 @@ public class Utilities
           ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
     }
 
-    InitialLdapContext ctx = createLdapsContext(usedUrl,
-        bindDN, pwd, controlInfo.getConnectTimeout(), null,
-        controlInfo.getTrustManager(), null);
     // Search for the config to check that it is the directory manager.
-    checkCanReadConfig(ctx);
-    return ctx;
+    ConnectionWrapper conn = new ConnectionWrapper(
+        usedUrl, LDAPS, bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
+    checkCanReadConfig(conn.getLdapContext());
+    return conn;
   }
 
 

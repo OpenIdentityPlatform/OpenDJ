@@ -27,7 +27,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -74,7 +73,7 @@ public class LoginDialog extends JDialog
 {
   private static final long serialVersionUID = 9049409381101152000L;
 
-  private JFrame parent;
+  private final JFrame parent;
 
   private JLabel lHostName;
   private JLabel lUid;
@@ -89,10 +88,8 @@ public class LoginDialog extends JDialog
 
   private boolean isCanceled = true;
 
-  private ApplicationTrustManager trustManager;
-  private int timeout;
-
-  private InitialLdapContext ctx;
+  private final ApplicationTrustManager trustManager;
+  private final int timeout;
 
   private ConnectionWrapper connWrapper;
 
@@ -187,15 +184,6 @@ public class LoginDialog extends JDialog
   public String getAdministratorPwd()
   {
     return tfPwd.getText();
-  }
-
-  /**
-   * Returns the connection we got with the provided authentication.
-   * @return the connection we got with the provided authentication.
-   */
-  public InitialLdapContext getContext()
-  {
-    return ctx;
   }
 
   /**
@@ -378,20 +366,15 @@ public class LoginDialog extends JDialog
     dispose();
   }
 
-  /**
-   * Method called when user clicks on OK.
-   *
-   */
+  /** Method called when user clicks on OK. */
   private void okClicked()
   {
     BackgroundTask<Boolean> worker = new BackgroundTask<Boolean>()
     {
       @Override
-      public Boolean processBackgroundTask() throws NamingException,
-      ApplicationException
+      public Boolean processBackgroundTask() throws NamingException, ApplicationException
       {
-        Boolean isServerRunning = Boolean.TRUE;
-        ctx = null;
+        connWrapper = null;
         try
         {
           ControlPanelInfo info = ControlPanelInfo.getInstance();
@@ -409,16 +392,15 @@ public class LoginDialog extends JDialog
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
                 ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
           }
-          ctx = org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(info, dn, pwd);
-          connWrapper = new ConnectionWrapper(ctx, info.getConnectTimeout(), info.getTrustManager());
-
+          connWrapper = org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(info, dn, pwd);
+          return true; // server is running
         } catch (NamingException ne)
         {
           if (isServerRunning())
           {
             throw ne;
           }
-          isServerRunning = Boolean.FALSE;
+          return false;
         } catch (ApplicationException | IllegalStateException e)
         {
           throw e;
@@ -426,7 +408,6 @@ public class LoginDialog extends JDialog
         {
           throw new IllegalStateException("Unexpected throwable.", t);
         }
-        return isServerRunning;
       }
 
       @Override

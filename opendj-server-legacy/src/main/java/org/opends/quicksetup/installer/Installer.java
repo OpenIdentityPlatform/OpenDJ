@@ -17,17 +17,20 @@
 package org.opends.quicksetup.installer;
 
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.admin.ads.util.PreferredConnection.*;
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
 import static org.opends.quicksetup.installer.InstallProgressStep.*;
 import static org.opends.quicksetup.util.Utils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
 
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
@@ -128,9 +131,9 @@ import org.opends.server.types.HostPort;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.Platform.KeyType;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.Platform.KeyType;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -2828,18 +2831,16 @@ public class Installer extends GuiApplication
     String dn = auth.getDn();
     String pwd = auth.getPwd();
 
-    InitialLdapContext context;
     if (auth.useSecureConnection())
     {
       ApplicationTrustManager trustManager = getTrustManager();
       trustManager.setHost(auth.getHostPort().getHost());
-      context = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, trustManager, null);
+      return new ConnectionWrapper(ldapUrl, LDAPS, dn, pwd, getConnectTimeout(), getTrustManager());
     }
     else
     {
-      context = createLdapContext(ldapUrl, dn, pwd, getConnectTimeout(), null);
+      return new ConnectionWrapper(ldapUrl, LDAP, dn, pwd, getConnectTimeout(), getTrustManager());
     }
-    return new ConnectionWrapper(context, getConnectTimeout(), getTrustManager());
   }
 
   /**
@@ -3470,8 +3471,7 @@ public class Installer extends GuiApplication
       throws UserDataException
   {
     host = getHostNameForLdapUrl(host);
-    String ldapUrl = "ldaps://" + host + ":" + port;
-    InitialLdapContext ctx = null;
+    HostPort hostPort = new HostPort(host, port);
     ConnectionWrapper conn = null;
 
     ApplicationTrustManager trustManager = getTrustManager();
@@ -3482,7 +3482,7 @@ public class Installer extends GuiApplication
       effectiveDn[0] = dn;
       try
       {
-        ctx = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, trustManager, null);
+        conn = new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
       }
       catch (Throwable t)
       {
@@ -3491,14 +3491,13 @@ public class Installer extends GuiApplication
           // Try using a global administrator
           dn = ADSContext.getAdministratorDN(dn);
           effectiveDn[0] = dn;
-          ctx = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, trustManager, null);
+          conn = new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
         }
         else
         {
           throw t;
         }
       }
-      conn = new ConnectionWrapper(ctx, getConnectTimeout(), trustManager);
       ADSContext adsContext = new ADSContext(conn);
       if (adsContext.hasAdminData())
       {
@@ -3573,7 +3572,7 @@ public class Installer extends GuiApplication
       }
       else
       {
-        updateUserDataWithSuffixesInServer(ctx);
+        updateUserDataWithSuffixesInServer(conn.getLdapContext());
       }
     }
     catch (UserDataException ude)
@@ -3637,7 +3636,6 @@ public class Installer extends GuiApplication
     }
     finally
     {
-      StaticUtils.close(ctx);
       StaticUtils.close(conn);
     }
   }
@@ -4009,11 +4007,8 @@ public class Installer extends GuiApplication
       type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
     }
     lastLoadedCache = new TopologyCache(adsContext, trustManager, getConnectTimeout());
-    LinkedHashSet<PreferredConnection> cnx = new LinkedHashSet<>();
-    cnx.add(PreferredConnection.getPreferredConnection(adsContext.getDirContext()));
-    // We cannot use getPreferredConnections since the user data has not been
-    // updated yet.
-    lastLoadedCache.setPreferredConnections(cnx);
+    // We cannot use getPreferredConnections since the user data has not been updated yet.
+    lastLoadedCache.setPreferredConnections(Collections.singleton(getPreferredConnection(adsContext.getDirContext())));
     lastLoadedCache.reloadTopology();
     Set<SuffixDescriptor> suffixes = lastLoadedCache.getSuffixes();
     Set<SuffixDescriptor> moreSuffixes = null;
@@ -4186,12 +4181,11 @@ public class Installer extends GuiApplication
 
   private ConnectionWrapper createLocalConnection() throws NamingException
   {
-    String ldapUrl =
-        "ldaps://" + getHostNameForLdapUrl(getUserData().getHostName()) + ":" + getUserData().getAdminConnectorPort();
-    String dn = getUserData().getDirectoryManagerDn();
-    String pwd = getUserData().getDirectoryManagerPwd();
-    InitialLdapContext context = createLdapsContext(ldapUrl, dn, pwd, getConnectTimeout(), null, null, null);
-    return new ConnectionWrapper(context, getConnectTimeout(), null);
+    UserData uData = getUserData();
+    HostPort hostPort = new HostPort(uData.getHostName(), uData.getAdminConnectorPort());
+    String dn = uData.getDirectoryManagerDn();
+    String pwd = uData.getDirectoryManagerPwd();
+    return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), null);
   }
 
   /**

@@ -30,7 +30,6 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -38,10 +37,10 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
@@ -441,15 +440,11 @@ public class TopologyCache
           "domain-name", "server-id"
         });
 
-    InitialLdapContext ctx = null;
     NamingEnumeration<SearchResult> monitorEntries = null;
-    try
+    ServerLoader loader = getServerLoader(replicationServer.getAdsProperties());
+    try (ConnectionWrapper conn = loader.createConnectionWrapper())
     {
-      ServerLoader loader =
-          getServerLoader(replicationServer.getAdsProperties());
-      ctx = loader.createContext();
-
-      monitorEntries = ctx.search(
+      monitorEntries = conn.getLdapContext().search(
           new LdapName("cn=monitor"), "(missing-changes=*)", ctls);
 
       while (monitorEntries.hasMore())
@@ -505,7 +500,6 @@ public class TopologyCache
               "Unexpected error closing enumeration on monitor entries" + t, t));
         }
       }
-      StaticUtils.close(ctx);
     }
   }
 
