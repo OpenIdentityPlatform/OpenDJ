@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2013-2015 ForgeRock AS.
+
+# Post install script
+# Install is launched with an empty second arg.
+# If the package is already installed, the second arg. is not empty.
+
+# Registers the service
+update-rc.d opendj defaults
+
+# Symlinks to process ID
+test -h "/var/run/opendj.pid" || ln -s ${deb.prefix}/logs/server.pid /var/run/opendj.pid
+
+# In this case, we are in upgrade mode.
+if [ "$1" = "configure" ] && [ ! -z "$2" ] ; then
+    # For being secure, we check the buildinfo file too.
+    if [ -f ${deb.prefix}/config/buildinfo ] ; then
+        echo *Starting upgrade...
+        ${deb.prefix}/./upgrade -n --force --acceptLicense
+        echo
+
+        if [ "$?" -eq 0 ] ; then
+            # Restarts the service if needed.
+            # If server is stopped by upgrade process, the server will restart after upgrade.
+            # If server is stopped before the upgrade process (eg. upgrade the new package), the server will not restart.
+            # Uses the flag for determining server status at this point.
+            if [ -f ${deb.prefix}/logs/status ] ; then
+                echo
+                echo "*Restarting server..."
+                ${deb.prefix}/./bin/start-ds
+                if [ "$?" -eq 0 ] ; then
+                    rm -f ${deb.prefix}/logs/status
+                else
+                    echo "start-ds failed with return code $?. Please read ${deb.prefix}/logs/status for more details."
+                fi
+            fi
+        else
+            # Upgrade fails - Requires mandatory user interaction.
+            # Nevertheless, exits successfully of the pkg process.
+            echo "upgrade failed with return code $?. Please read the installation guide for more information on the upgrade process."
+            exit 0
+        fi
+    else
+        echo "Invalid installation, could not find the build info file."
+        exit -1
+    fi
+fi
+
+
+# Add OpenDJ man pages to MANPATH
+MAN_CONFIG_FILE=/etc/manpath.config
+MANPATH_DIRECTIVE=MANDATORY_MANPATH
+grep -q "$MANPATH_DIRECTIVE.*opendj" $MAN_CONFIG_FILE 2> /dev/null
+if [ $? -ne 0 ]; then
+    echo "$MANPATH_DIRECTIVE ${deb.prefix}/share/man" >> $MAN_CONFIG_FILE
+fi
+# End post install script
+echo

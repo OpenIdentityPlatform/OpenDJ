@@ -1,0 +1,41 @@
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2013-2015 ForgeRock AS.
+
+# =============================
+# opendj rpm package changelog
+# =============================
+
+%changelog
+* Wed Dec  9 2015 ForgeRock
+- init.d service script now generates and removes a lockfile.
+
+* Thu Mar  5 2015 ForgeRock
+- Package is now build using maven.
+
+* Thu Aug 22 2013 ForgeRock
+- Modified init.d script.
+
+* Tue Aug 6 2013 ForgeRock
+- Added init.d service script.
+
+* Wed Jul 31 2013 ForgeRock
+- Fixed the doc's section.
+- Target no longer fails when build path contains spaces.
+
+* Thu Jul 18 2013 ForgeRock
+- Fixed the sections' order and added a new "clean" section.
+- Added '%doc' section.
+- Added '%changelog' at the end of the file.
+- Added license to header's files.
