@@ -16,7 +16,11 @@
  */
 package org.opends.server.types;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Objects;
@@ -370,6 +374,20 @@ public final class HostPort
    */
   @Override
   public String toString()
+  {
+    return toString(host, port);
+  }
+
+  /**
+   * Returns a string representation of the provided host and port. No validation is performed.
+   *
+   * @param host
+   *          the host name
+   * @param port
+   *          the port number
+   * @return A string representation of the provided host and port.
+   */
+  public static String toString(String host, int port)
   {
     if (host != null && host.contains(":"))
     {

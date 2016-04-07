@@ -60,19 +60,35 @@ import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.admin.ads.*;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
+import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
+import org.forgerock.opendj.server.config.meta.ReplicationSynchronizationProviderCfgDefn;
+import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContext.ServerProperty;
+import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.admin.ads.TopologyCache;
+import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.OpendsCertificateException;
@@ -80,7 +96,11 @@ import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
-import org.opends.guitools.controlpanel.util.*;
+import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
+import org.opends.guitools.controlpanel.util.ConfigFromFile;
+import org.opends.guitools.controlpanel.util.ControlPanelLog;
+import org.opends.guitools.controlpanel.util.ProcessReader;
+import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -91,17 +111,13 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
-import org.forgerock.opendj.server.config.client.*;
-import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
-import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
-import org.forgerock.opendj.server.config.meta.ReplicationSynchronizationProviderCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tools.dsreplication.EnableReplicationUserData.EnableReplicationServerData;
+import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.ServerArgs;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.tools.tasks.TaskScheduleInteraction;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
@@ -134,15 +150,15 @@ import com.forgerock.opendj.cli.TextTablePrinter;
 import com.forgerock.opendj.cli.ValidationCallback;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
 import static java.util.Collections.*;
+
 import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.*;
-import static org.opends.admin.ads.ServerDescriptor.getReplicationServer;
-import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -3219,7 +3235,6 @@ public class ReplicationCliMain extends ConsoleApplication
         adminPwd = sourceServerCI.getBindPassword();
 
         ctxSource = createConnectionInteracting(sourceServerCI);
-
         if (ctxSource == null)
         {
           cancelled = true;
@@ -3293,7 +3308,6 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!error)
         {
           ctxDestination = createConnectionInteracting(destinationServerCI, true);
-
           if (ctxDestination == null)
           {
             cancelled = true;
@@ -3315,26 +3329,24 @@ public class ReplicationCliMain extends ConsoleApplication
         cancelled = true;
       }
     }
+
     if (!cancelled)
     {
       uData.setHostNameDestination(hostDestination);
       uData.setPortDestination(portDestination);
-    }
 
-    if (!cancelled)
-    {
       List<String> suffixes = argParser.getBaseDNs();
       cancelled = serversOperations.continueAfterUserInput(
           suffixes, ctxSource.getLdapContext(), ctxDestination.getLdapContext(), true);
       uData.setBaseDNs(suffixes);
-    }
 
-    if (!cancelled)
-    {
-      println();
-      cancelled = serversOperations.confirmOperation(
-          uData, ctxSource.getLdapContext(), ctxDestination.getLdapContext(), true);
-      println();
+      if (!cancelled)
+      {
+        println();
+        cancelled = serversOperations.confirmOperation(
+            uData, ctxSource.getLdapContext(), ctxDestination.getLdapContext(), true);
+        println();
+      }
     }
 
     close(ctxSource, ctxDestination);
@@ -4003,9 +4015,9 @@ public class ReplicationCliMain extends ConsoleApplication
       println();
       print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
 
-      LinkedList<LocalizableMessage> errorMessages = new LinkedList<>();
-      ctx1 = createAdministrativeConnection(uData, true, errorMessages);
-      ctx2 = createAdministrativeConnection(uData, false, errorMessages);
+      List<LocalizableMessage> errorMessages = new LinkedList<>();
+      ctx1 = createAdministrativeConnection(uData.getServer1(), errorMessages);
+      ctx2 = createAdministrativeConnection(uData.getServer2(), errorMessages);
 
       if (!errorMessages.isEmpty())
       {
@@ -4080,7 +4092,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void checksForNonInteractiveMode(EnableReplicationUserData uData,
-      ConnectionWrapper connWrapper1, ConnectionWrapper connWrapper2, LinkedList<LocalizableMessage> errorMessages)
+      ConnectionWrapper connWrapper1, ConnectionWrapper connWrapper2, List<LocalizableMessage> errorMessages)
   {
     EnableReplicationServerData server1 = uData.getServer1();
     EnableReplicationServerData server2 = uData.getServer2();
@@ -4104,7 +4116,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private int checkReplicationPort(
-      ConnectionWrapper connWrapper, EnableReplicationServerData server, LinkedList<LocalizableMessage> errorMessages)
+      ConnectionWrapper connWrapper, EnableReplicationServerData server, List<LocalizableMessage> errorMessages)
   {
     int replPort = getReplicationPort(connWrapper);
     boolean hasReplicationPort = replPort > 0;
@@ -4126,7 +4138,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void checkAdminAndReplicationPortsAreDifferent(
-      int replPort, EnableReplicationServerData server, LinkedList<LocalizableMessage> errorMessages)
+      int replPort, EnableReplicationServerData server, List<LocalizableMessage> errorMessages)
   {
     if (replPort > 0 && replPort == server.getPort())
     {
@@ -4150,7 +4162,7 @@ public class ReplicationCliMain extends ConsoleApplication
     println();
   }
 
-  private void errPrintLn(LinkedList<LocalizableMessage> errorMessages)
+  private void errPrintLn(List<LocalizableMessage> errorMessages)
   {
     for (LocalizableMessage msg : errorMessages)
     {
@@ -4159,13 +4171,12 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private ConnectionWrapper createAdministrativeConnection(EnableReplicationUserData uData, boolean isFirstSetOfValues,
-      LinkedList<LocalizableMessage> errorMessages)
+  private ConnectionWrapper createAdministrativeConnection(EnableReplicationServerData server,
+      List<LocalizableMessage> errorMessages)
   {
-    EnableReplicationServerData server = isFirstSetOfValues ? uData.getServer1() : uData.getServer2();
     try
     {
-      return new ConnectionWrapper(createAdministrativeContext(uData, isFirstSetOfValues, errorMessages),
+      return new ConnectionWrapper(createAdministrativeContext(server, errorMessages),
           getConnectTimeout(), getTrustManager(sourceServerCI));
     }
     catch (NamingException e)
@@ -4175,10 +4186,9 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private InitialLdapContext createAdministrativeContext(EnableReplicationUserData uData, boolean isFirstSetOfValues,
-      LinkedList<LocalizableMessage> errorMessages)
+  private InitialLdapContext createAdministrativeContext(EnableReplicationServerData server,
+      List<LocalizableMessage> errorMessages)
   {
-    EnableReplicationServerData server = isFirstSetOfValues ? uData.getServer1() : uData.getServer2();
     try
     {
       return createAdministrativeContext(
@@ -5091,9 +5101,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * parameters to update the configuration.
    * @throws ReplicationCliException if there is an error.
    */
-  private void updateConfiguration(ConnectionWrapper ctx1,
-      ConnectionWrapper ctx2, EnableReplicationUserData uData)
-  throws ReplicationCliException
+  private void updateConfiguration(ConnectionWrapper ctx1, ConnectionWrapper ctx2, EnableReplicationUserData uData)
+      throws ReplicationCliException
   {
     final Set<String> twoReplServers = new LinkedHashSet<>();
     final Set<String> allRepServers = new LinkedHashSet<>();
@@ -5885,10 +5894,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    /**
-     * Try to figure out if we must explicitly disable replication on
-     * cn=admin data and cn=schema.
-     */
+    // Try to figure out if we must explicitly disable replication on cn=admin data and cn=schema.
     boolean forceDisableSchema = false;
     boolean forceDisableADS = false;
     boolean schemaReplicated = false;
@@ -8152,38 +8158,32 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return !forceNonInteractive && argParser.isInteractive();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isQuiet()
   {
     return argParser.isQuiet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return true;
@@ -9855,7 +9855,6 @@ public class ReplicationCliMain extends ConsoleApplication
 /** Class used to compare replication servers. */
 class ReplicationServerComparator implements Comparator<ServerDescriptor>
 {
-  /** {@inheritDoc} */
   @Override
   public int compare(ServerDescriptor s1, ServerDescriptor s2)
   {

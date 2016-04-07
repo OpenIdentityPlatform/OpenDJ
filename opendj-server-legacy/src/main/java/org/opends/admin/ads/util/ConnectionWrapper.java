@@ -134,7 +134,9 @@ public class ConnectionWrapper implements Closeable
   {
     try
     {
-      return new SSLContextBuilder().setTrustManager(trustManager).getSSLContext();
+      return new SSLContextBuilder()
+        .setTrustManager(trustManager != null ? trustManager : new BlindTrustManager())
+        .getSSLContext();
     }
     catch (GeneralSecurityException e)
     {

@@ -603,7 +603,7 @@ public class ServerDescriptor
       startTLSEnabled = Boolean.TRUE.equals(array.get(array.size() -1));
     }
     adsProperties.put(ADSContext.ServerProperty.STARTTLS_ENABLED, Boolean.toString(startTLSEnabled));
-    adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
+    adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true).toString());
     adsProperties.put(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
                       getInstancePublicKeyCertificate());
   }
@@ -1401,7 +1401,7 @@ public class ServerDescriptor
    */
   public static String getReplicationServer(String hostName, int replicationPort)
   {
-    return new HostPort(hostName, replicationPort).toString();
+    return HostPort.toString(hostName, replicationPort);
   }
 
   /**
