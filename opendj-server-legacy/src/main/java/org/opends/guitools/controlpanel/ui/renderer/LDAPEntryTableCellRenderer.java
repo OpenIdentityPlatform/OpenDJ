@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -36,10 +36,7 @@ import org.opends.guitools.controlpanel.ui.components.ObjectClassCellPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.types.Schema;
 
-/**
- * The renderer used by the table in the 'Attribute View' of the LDAP entry
- * browser.
- */
+/** The renderer used by the table in the 'Attribute View' of the LDAP entry browser. */
 public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
 {
   private static final long serialVersionUID = 3590456676685339618L;
@@ -51,10 +48,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
   private Schema schema;
   private Collection<String> requiredAttrs = new ArrayList<>();
 
-  /**
-   * Constructor of the cell renderer.
-   *
-   */
+  /** Constructor of the cell renderer. */
   public LDAPEntryTableCellRenderer()
   {
     binaryPanel = new BinaryCellPanel();
@@ -63,10 +57,9 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     ocPanel.setOpaque(true);
     GridBagConstraints gbc = new GridBagConstraints();
     add(lockLabel, gbc);
-
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     if (isRequired(table, row, column))
@@ -183,16 +176,13 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     {
       lockLabel.setIcon(null);
     }
+    else if (column == 1 && !table.isCellEditable(row, column))
+    {
+      lockLabel.setIcon(lockIcon);
+    }
     else
     {
-      if (column == 1 && !table.isCellEditable(row, column))
-      {
-        lockLabel.setIcon(lockIcon);
-      }
-      else
-      {
-        lockLabel.setIcon(null);
-      }
+      lockLabel.setIcon(null);
     }
     return this;
   }

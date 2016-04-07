@@ -113,7 +113,7 @@ public class ModifyEntryTask extends Task
     // Find password modifications
     for (ModificationItem mod : modifications)
     {
-      if (mod.getAttribute().getID().equalsIgnoreCase("userPassword"))
+      if ("userPassword".equalsIgnoreCase(mod.getAttribute().getID()))
       {
         passwordModification = mod;
         break;
@@ -138,37 +138,37 @@ public class ModifyEntryTask extends Task
     return hasModifications;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.MODIFY_ENTRY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_MODIFY_ENTRY_TASK_DESCRIPTION.get(oldEntry.getDN());
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<>();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -190,13 +190,13 @@ public class ModifyEntryTask extends Task
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean regenerateDescriptor()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -216,6 +216,7 @@ public class ModifyEntryTask extends Task
 
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               printEquivalentCommandToModify(newEntry.getName(), modifications,
@@ -231,6 +232,7 @@ public class ModifyEntryTask extends Task
 
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               getProgressDialog().appendProgressHtml(
@@ -257,7 +259,7 @@ public class ModifyEntryTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void postOperation()
   {
     if (lastException == null
@@ -340,6 +342,7 @@ public class ModifyEntryTask extends Task
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         printEquivalentRenameCommand(oldDN, newEntry.getName(), useAdminCtx);
@@ -357,6 +360,7 @@ public class ModifyEntryTask extends Task
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().appendProgressHtml(
@@ -370,13 +374,13 @@ public class ModifyEntryTask extends Task
       }
     });
 
-
     ModificationItem[] mods = new ModificationItem[originalMods.size()];
     originalMods.toArray(mods);
     if (mods.length > 0)
     {
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           DN dn = newEntry.getName();
@@ -392,6 +396,7 @@ public class ModifyEntryTask extends Task
 
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(

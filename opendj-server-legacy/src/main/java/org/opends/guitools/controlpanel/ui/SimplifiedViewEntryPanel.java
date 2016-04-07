@@ -251,46 +251,48 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     dropTargetListener = new DropTargetListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void dragEnter(DropTargetDragEvent e)
       {
+        // no-op
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dragExit(DropTargetEvent e)
       {
+        // no-op
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dragOver(DropTargetDragEvent e)
       {
+        // no-op
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dropActionChanged(DropTargetDragEvent e)
       {
+        // no-op
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void drop(DropTargetDropEvent e)
       {
         try {
@@ -364,7 +366,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     showOnlyAttrsWithValues.setSelected(displayOnlyWithAttrs);
     showOnlyAttrsWithValues.addActionListener(new ActionListener()
     {
-       /** {@inheritDoc} */
+       @Override
        public void actionPerformed(ActionEvent ev)
        {
          updateAttributeVisibility(!showOnlyAttrsWithValues.isSelected());
@@ -400,7 +402,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     add(scrollAttributes, gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
@@ -431,7 +433,6 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     hmDisplayedNames.clear();
     hmComponents.clear();
     requiredAttrs.clear();
-
 
     // Build the attributes panel.
     Collection<String> sortedAttributes = getSortedAttributes(sr, isReadOnly);
@@ -507,8 +508,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         JComponent comp = getReadWriteComponent(attr, values);
 
         gbc.weightx = 0.0;
-        if (attr.equalsIgnoreCase(
-            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+        if (ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attr))
         {
           int nOcs = 0;
           for (Object o : values)
@@ -599,7 +599,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         if (p != null && scrollAttributes.getViewport().contains(p))
@@ -706,8 +706,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
     }
     // Handle the root entry separately: most of its attributes are operational
-    // so we filter a list of harcoded attributes.
-    boolean isRootEntry = sr.getDN().equals("");
+    // so we filter a list of hardcoded attributes.
+    boolean isRootEntry = "".equals(sr.getDN());
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (isRootEntry)
     {
@@ -754,15 +754,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       // Now try to put first the attributes for which we have a friendly
       // name (the most common ones).
-      updateAttributes(attributes, requiredAttributes, entryAttrs,
-          attrsWithNoOptions, true);
-      updateAttributes(attributes, requiredAttributes, entryAttrs,
-          attrsWithNoOptions, false);
-      updateAttributes(attributes, allowedAttributes, entryAttrs,
-          attrsWithNoOptions, true);
-      updateAttributes(attributes, allowedAttributes, entryAttrs,
-          attrsWithNoOptions, false);
-
+      updateAttributes(attributes, requiredAttributes, entryAttrs, attrsWithNoOptions, true);
+      updateAttributes(attributes, requiredAttributes, entryAttrs, attrsWithNoOptions, false);
+      updateAttributes(attributes, allowedAttributes, entryAttrs, attrsWithNoOptions, true);
+      updateAttributes(attributes, allowedAttributes, entryAttrs, attrsWithNoOptions, false);
 
       attributes.addAll(entryAttrs);
       attributes.add("aci");
@@ -815,17 +810,13 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         {
           attributes.add(entryAttrs.get(index));
         }
+        else if (hasCertificateSyntax(attr, getInfo().getServerDescriptor().getSchema()))
+        {
+          attributes.add(attr + ";binary");
+        }
         else
         {
-          if (!hasCertificateSyntax(attr,
-              getInfo().getServerDescriptor().getSchema()))
-          {
-            attributes.add(attr);
-          }
-          else
-          {
-            attributes.add(attr+";binary");
-          }
+          attributes.add(attr);
         }
       }
     }
@@ -847,8 +838,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       gbc.weightx = 1.0;
       gbc.gridx = 0;
 
-      if (attrName.equalsIgnoreCase(
-          ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+      if (ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName))
       {
         ObjectClassCellPanel ocPanel = new ObjectClassCellPanel();
         Schema schema = getInfo().getServerDescriptor().getSchema();
@@ -898,7 +888,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         pane.setValue(binaryValue, isImage);
         pane.addEditActionListener(new ActionListener()
         {
-          /** {@inheritDoc} */
+          @Override
           public void actionPerformed(ActionEvent ev)
           {
             if (binaryDlg == null)
@@ -949,8 +939,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       gbc.fill = GridBagConstraints.HORIZONTAL;
       gbc.weightx = 1.0;
       gbc.gridx = 0;
-      if (attrName.equalsIgnoreCase(
-          ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+      if (ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName))
       {
         final ObjectClassCellPanel ocCellPanel = new ObjectClassCellPanel();
         Schema schema = getInfo().getServerDescriptor().getSchema();
@@ -967,7 +956,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         ocCellPanel.addEditActionListener(new ActionListener()
         {
           private ObjectClassValue newValue;
-          /** {@inheritDoc} */
+          @Override
           public void actionPerformed(ActionEvent ev)
           {
             if (editOcDlg == null)
@@ -1005,7 +994,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       else if (isPassword(attrName) || isConfirmPassword(attrName))
       {
         JPasswordField pf = Utilities.createPasswordField();
-        if (!o.equals(""))
+        if (!"".equals(o))
         {
           pf.setText(getPasswordStringValue(o));
         }
@@ -1059,7 +1048,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
             final JButton browse = Utilities.createButton(
                 INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
             browse.addActionListener(new AddBrowseClickedActionListener(ta, attrName));
-            if (attrName.equalsIgnoreCase(ServerConstants.ATTR_UNIQUE_MEMBER_LC))
+            if (ServerConstants.ATTR_UNIQUE_MEMBER_LC.equalsIgnoreCase(attrName))
             {
               browse.setText(
                   INFO_CTRL_PANEL_ADD_MEMBERS_BUTTON.get().toString());
@@ -1082,10 +1071,11 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         {
           pane.setValue(binaryValue, isImage);
         }
+
         pane.addEditActionListener(new ActionListener()
         {
           private BinaryValue newValue;
-          /** {@inheritDoc} */
+          @Override
           public void actionPerformed(ActionEvent ev)
           {
             if (editBinaryDlg == null)
@@ -1103,7 +1093,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
             {
               // We use an empty binary array to not breaking the logic:
               // it means that there is no value for the attribute.
-              if (binaryValue != null && binaryValue.length > 0)
+              if (binaryValue.length > 0)
               {
                 newValue = BinaryValue.createBase64(binaryValue);
                 editBinaryPanel.setValue(attrName, newValue);
@@ -1128,7 +1118,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         });
         pane.addDeleteActionListener(new ActionListener()
         {
-          /** {@inheritDoc} */
+          @Override
           public void actionPerformed(ActionEvent ev)
           {
             pane.setValue((byte[])null, false);
@@ -1181,18 +1171,16 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Entry getEntry() throws OpenDsException
   {
-    Entry entry = null;
-
-    ArrayList<LocalizableMessage> errors = new ArrayList<>();
+    final List<LocalizableMessage> errors = new ArrayList<>();
 
     try
     {
@@ -1207,7 +1195,6 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     {
       setPrimaryValid(hmLabels.get(attrName));
     }
-
 
     // Check passwords
     for (String attrName : lastUserPasswords.keySet())
@@ -1227,7 +1214,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     for (String attrName : requiredAttrs)
     {
-      if (!hasValue(attrName))
+      if (!!getValues(attrName).isEmpty())
       {
         setPrimaryInvalid(hmLabels.get(attrName));
         errors.add(ERR_CTRL_PANEL_ATTRIBUTE_REQUIRED.get(
@@ -1240,29 +1227,19 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       throw new CheckEntrySyntaxException(errors);
     }
 
-    LDIFImportConfig ldifImportConfig = null;
-    try
+    final String ldif = getLDIF();
+    try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+        LDIFReader reader = new LDIFReader(ldifImportConfig))
     {
-      String ldif = getLDIF();
-
-      ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-      LDIFReader reader = new LDIFReader(ldifImportConfig);
-      entry = reader.readEntry(checkSchema());
+      final Entry entry = reader.readEntry(checkSchema());
       addValuesInRDN(entry);
+      return entry;
     }
     catch (IOException ioe)
     {
       throw new OnlineUpdateException(
           ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe), ioe);
     }
-    finally
-    {
-      if (ldifImportConfig != null)
-      {
-        ldifImportConfig.close();
-      }
-    }
-    return entry;
   }
 
   private List<String> getDisplayedStringValues(String attrName)
@@ -1395,8 +1372,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean mustAddBrowseButton(String attrName)
   {
-    if (attrName.equalsIgnoreCase(ServerConstants.ATTR_UNIQUE_MEMBER_LC)
-        || attrName.equalsIgnoreCase("ds-target-group-dn"))
+    if (ServerConstants.ATTR_UNIQUE_MEMBER_LC.equalsIgnoreCase(attrName)
+        || "ds-target-group-dn".equalsIgnoreCase(attrName))
     {
       return true;
     }
@@ -1408,13 +1385,12 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       String syntaxName = attr.getSyntax().getName();
       if (syntaxName != null)
       {
-        return syntaxName.equalsIgnoreCase(SchemaConstants.SYNTAX_DN_NAME);
+        return SchemaConstants.SYNTAX_DN_NAME.equalsIgnoreCase(syntaxName);
       }
     }
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected List<Object> getValues(String attrName)
   {
@@ -1446,7 +1422,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getDisplayedDN()
   {
     StringBuilder sb = new StringBuilder();
@@ -1514,25 +1490,13 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         DN parent = oldDN.parent();
         if (!avas.isEmpty())
         {
-          RDN newRDN = new RDN(avas);
-
-          DN newDN;
-          if (parent == null)
-          {
-            newDN = DN.rootDN().child(newRDN);
-          }
-          else
-          {
-            newDN = parent.child(newRDN);
-          }
+          DN newParent = parent != null ? parent : DN.rootDN();
+          DN newDN = newParent.child(new RDN(avas));
           sb.append(newDN);
         }
-        else
+        else if (parent != null)
         {
-          if (parent != null)
-          {
-            sb.append(",").append(parent);
-          }
+          sb.append(",").append(parent);
         }
       }
     }
@@ -1578,12 +1542,12 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       previousTitle = browseEntriesPanel.getTitle();
       previousFilter = browseEntriesPanel.getFilter();
     }
-    if (attrName.equalsIgnoreCase(ServerConstants.ATTR_UNIQUE_MEMBER_LC))
+    if (ServerConstants.ATTR_UNIQUE_MEMBER_LC.equalsIgnoreCase(attrName))
     {
       title = INFO_CTRL_PANEL_ADD_MEMBERS_LABEL.get();
       filter = LDAPEntrySelectionPanel.Filter.USERS;
     }
-    else if (attrName.equalsIgnoreCase("ds-target-group-dn"))
+    else if ("ds-target-group-dn".equalsIgnoreCase(attrName))
     {
       title = INFO_CTRL_PANEL_CHOOSE_REFERENCE_GROUP.get();
       filter = LDAPEntrySelectionPanel.Filter.DYNAMIC_GROUPS;
@@ -1736,17 +1700,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       else
       {
-        List<EditorComponent> editors = hmEditors.get(attrName);
-        boolean hasValue = false;
-
-        for (EditorComponent editor : editors)
-        {
-          hasValue = hasValue(editor);
-          if (hasValue)
-          {
-            break;
-          }
-        }
+        boolean hasValue = hasValue(hmEditors.get(attrName));
         label.setVisible(hasValue);
         comp.setVisible(hasValue);
       }
@@ -1754,9 +1708,16 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     repaint();
   }
 
-  private boolean hasValue(String attrName)
+  private boolean hasValue(List<EditorComponent> editors)
   {
-    return !getValues(attrName).isEmpty();
+    for (EditorComponent editor : editors)
+    {
+      if (hasValue(editor))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean hasValue(EditorComponent editor)
@@ -1789,6 +1750,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       this.attrName = attrName;
     }
 
+    @Override
     public void actionPerformed(ActionEvent ev)
     {
       addBrowseClicked(attrName, tc);
@@ -1799,7 +1761,6 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
    * A class that makes an association between a component (JTextField, a
    * BinaryCellValue...) and the associated value that will be used to create
    * the modified entry corresponding to the contents of the panel.
-   *
    */
   class EditorComponent
   {
@@ -1814,19 +1775,19 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       comp = tf;
       tf.getDocument().addDocumentListener(new DocumentListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void insertUpdate(DocumentEvent ev)
         {
           notifyListeners();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void changedUpdate(DocumentEvent ev)
         {
           notifyListeners();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void removeUpdate(DocumentEvent ev)
         {
           notifyListeners();
@@ -1925,4 +1886,3 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
   }
 }
-

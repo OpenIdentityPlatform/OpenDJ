@@ -66,9 +66,7 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The panel displaying a table view of an LDAP entry.
- */
+/** The panel displaying a table view of an LDAP entry. */
 public class TableViewEntryPanel extends ViewEntryPanel
 {
   private static final long serialVersionUID = 2135331526526472175L;
@@ -83,25 +81,20 @@ public class TableViewEntryPanel extends ViewEntryPanel
   private JLabel requiredLabel;
   private JCheckBox showOnlyAttrsWithValues;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public TableViewEntryPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return table;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -122,7 +115,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     showOnlyAttrsWithValues.setSelected(displayOnlyWithAttrs);
     showOnlyAttrsWithValues.addActionListener(new ActionListener()
     {
-       /** {@inheritDoc} */
+       @Override
        public void actionPerformed(ActionEvent ev)
        {
          updateAttributeVisibility();
@@ -160,7 +153,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     add(scroll, gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
@@ -184,6 +177,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     Utilities.updateScrollMode(scroll, table);
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         if (p != null && scroll.getViewport().contains(p))
@@ -195,13 +189,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
     });
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Entry getEntry() throws OpenDsException
   {
     if (SwingUtilities.isEventDispatchThread())
@@ -214,41 +208,31 @@ public class TableViewEntryPanel extends ViewEntryPanel
       {
         SwingUtilities.invokeAndWait(new Runnable()
         {
+          @Override
           public void run()
           {
             editor.stopCellEditing();
           }
         });
       }
-      catch (Throwable t)
+      catch (Throwable ignore)
       {
+        // ignored
       }
     }
-    Entry entry = null;
-    LDIFImportConfig ldifImportConfig = null;
-    try
+    String ldif = getLDIF();
+    try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+        LDIFReader reader = new LDIFReader(ldifImportConfig))
     {
-      String ldif = getLDIF();
-
-      ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-      LDIFReader reader = new LDIFReader(ldifImportConfig);
-      entry = reader.readEntry(checkSchema());
+      Entry entry = reader.readEntry(checkSchema());
       addValuesInRDN(entry);
-
+      return entry;
     }
     catch (IOException ioe)
     {
       throw new OnlineUpdateException(
           ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe), ioe);
     }
-    finally
-    {
-      if (ldifImportConfig != null)
-      {
-        ldifImportConfig.close();
-      }
-    }
-    return entry;
   }
 
   /**
@@ -271,7 +255,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     return sb.toString();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getDisplayedDN()
   {
     StringBuilder sb = new StringBuilder();
@@ -315,10 +299,9 @@ public class TableViewEntryPanel extends ViewEntryPanel
             for (int i=0; i<table.getRowCount(); i++)
             {
               String attrName = (String)table.getValueAt(i, 0);
-              if (isPassword(attrName) ||
-                  attrName.equals(
-                      ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME) ||
-                  !table.isCellEditable(i, 1))
+              if (isPassword(attrName)
+                  || ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equals(attrName)
+                  || !table.isCellEditable(i, 1))
               {
                 continue;
               }
@@ -338,25 +321,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
         DN parent = oldDN.parent();
         if (!avas.isEmpty())
         {
-          RDN newRDN = new RDN(avas);
-
-          DN newDN;
-          if (parent == null)
-          {
-            newDN = DN.rootDN().child(newRDN);
-          }
-          else
-          {
-            newDN = parent.child(newRDN);
-          }
+          DN newParent = (parent != null) ? parent : DN.rootDN();
+          DN newDN = newParent.child(new RDN(avas));
           sb.append(newDN);
         }
-        else
+        else if (parent != null)
         {
-          if (parent != null)
-          {
-            sb.append(",").append(parent);
-          }
+          sb.append(",").append(parent);
         }
       }
     }
@@ -402,7 +373,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     tableModel.updateAttributeVisibility();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected List<Object> getValues(String attrName)
   {
     return tableModel.getValues(attrName);
@@ -436,13 +407,14 @@ public class TableViewEntryPanel extends ViewEntryPanel
      * Updates the table model contents and sorts its contents depending on the
      * sort options set by the user.
      */
+    @Override
     public void forceResort()
     {
       updateDataArray();
       fireTableDataChanged();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int compare(AttributeValuePair desc1, AttributeValuePair desc2)
     {
       int result;
@@ -472,19 +444,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
     {
       if (o1 == null)
       {
-        if (o2 == null)
-        {
-          return 0;
-        }
-        else
-        {
-          return -1;
-        }
+        return o2 == null ? 0 : -1;
       }
       else if (o2 == null)
       {
         return 1;
       }
+
       if (o1 instanceof ObjectClassValue)
       {
         o1 = renderer.getString((ObjectClassValue)o1);
@@ -509,6 +475,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
       {
         o2 = renderer.getString((byte[])o2);
       }
+
       if (o1.getClass().equals(o2.getClass()))
       {
         if (o1 instanceof String)
@@ -523,53 +490,40 @@ public class TableViewEntryPanel extends ViewEntryPanel
         {
           return ((Long)o1).compareTo((Long)o2);
         }
-        else
-        {
-          return String.valueOf(o1).compareTo(String.valueOf(o2));
-        }
       }
-      else
-      {
-        return String.valueOf(o1).compareTo(String.valueOf(o2));
-      }
+      return String.valueOf(o1).compareTo(String.valueOf(o2));
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int getColumnCount()
     {
       return COLUMN_NAMES.length;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int getRowCount()
     {
       return dataArray.size();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Object getValueAt(int row, int col)
     {
-      if (col == 0)
-      {
-        return dataArray.get(row).attrName;
-      }
-      else
-      {
-        return dataArray.get(row).value;
-      }
+      AttributeValuePair attrValuePair = dataArray.get(row);
+      return col == 0 ? attrValuePair.attrName : attrValuePair.value;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getColumnName(int col) {
       return COLUMN_NAMES[col];
     }
-
 
     /**
      * Returns whether the sort is ascending or descending.
      * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
      * otherwise.
      */
+    @Override
     public boolean isSortAscending()
     {
       return sortAscending;
@@ -579,6 +533,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
      * Sets whether to sort ascending of descending.
      * @param sortAscending whether to sort ascending or descending.
      */
+    @Override
     public void setSortAscending(boolean sortAscending)
     {
       this.sortAscending = sortAscending;
@@ -588,6 +543,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
      * Returns the column index used to sort.
      * @return the column index used to sort.
      */
+    @Override
     public int getSortColumn()
     {
       return sortColumn;
@@ -597,19 +553,20 @@ public class TableViewEntryPanel extends ViewEntryPanel
      * Sets the column index used to sort.
      * @param sortColumn column index used to sort..
      */
+    @Override
     public void setSortColumn(int sortColumn)
     {
       this.sortColumn = sortColumn;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isCellEditable(int row, int col) {
       return col != 0
           && !isReadOnly
           && !schemaReadOnlyAttributesLowerCase.contains(dataArray.get(row).attrName.toLowerCase());
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void setValueAt(Object value, int row, int col)
     {
       dataArray.get(row).value = value;
@@ -634,8 +591,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
       List<Object> ocs = null;
       for (String attrName : searchResult.getAttributeNames())
       {
-        if (attrName.equalsIgnoreCase(
-            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+        if (ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName))
         {
           if (schema != null)
           {
@@ -666,34 +622,19 @@ public class TableViewEntryPanel extends ViewEntryPanel
             for (AttributeType attr : objectClass.getRequiredAttributeChain())
             {
               String attrName = attr.getNameOrOID();
-              if (!addedAttrs.contains(attrName.toLowerCase()))
+              String lowerCase = attrName.toLowerCase();
+              if (!addedAttrs.contains(lowerCase))
               {
-                if (isBinary(attrName) || isPassword(attrName))
-                {
-                  allSortedValues.add(new AttributeValuePair(attrName,
-                      new byte[]{}));
-                }
-                else
-                {
-                  allSortedValues.add(new AttributeValuePair(attrName, ""));
-                }
+                allSortedValues.add(newAttributeValuePair(attrName));
               }
-              requiredAttrs.add(attrName.toLowerCase());
+              requiredAttrs.add(lowerCase);
             }
             for (AttributeType attr : objectClass.getOptionalAttributeChain())
             {
               String attrName = attr.getNameOrOID();
               if (!addedAttrs.contains(attrName.toLowerCase()))
               {
-                if (isBinary(attrName) || isPassword(attrName))
-                {
-                  allSortedValues.add(new AttributeValuePair(attrName,
-                      new byte[]{}));
-                }
-                else
-                {
-                  allSortedValues.add(new AttributeValuePair(attrName, ""));
-                }
+                allSortedValues.add(newAttributeValuePair(attrName));
               }
             }
           }
@@ -711,12 +652,23 @@ public class TableViewEntryPanel extends ViewEntryPanel
       renderer.setRequiredAttrs(requiredAttrs);
     }
 
+    private AttributeValuePair newAttributeValuePair(String attrName)
+    {
+      if (isBinary(attrName) || isPassword(attrName))
+      {
+        return new AttributeValuePair(attrName, new byte[] {});
+      }
+      else
+      {
+        return new AttributeValuePair(attrName, "");
+      }
+    }
+
     /**
      * Checks if we have to display all the attributes or only those that
      * contain a value and updates the contents of the model accordingly.  Note
      * that even if the required attributes have no value they will be
      * displayed.
-     *
      */
     void updateAttributeVisibility()
     {
@@ -844,11 +796,11 @@ public class TableViewEntryPanel extends ViewEntryPanel
       {
         if (value.value instanceof String)
         {
-          hasValue = ((String)value.value).length() > 0;
+          return ((String) value.value).length() > 0;
         }
         else if (value.value instanceof byte[])
         {
-          hasValue = ((byte[])value.value).length > 0;
+          return ((byte[]) value.value).length > 0;
         }
       }
       return hasValue;
@@ -859,17 +811,12 @@ public class TableViewEntryPanel extends ViewEntryPanel
    * A simple class that contains an attribute name and a single value.  It is
    * used by the table model to be able to retrieve more easily all the values
    * for a given attribute.
-   *
    */
-  class AttributeValuePair
+  static class AttributeValuePair
   {
-    /**
-     * The attribute name.
-     */
+    /** The attribute name. */
     String attrName;
-    /**
-     * The value.
-     */
+    /** The value. */
     Object value;
     /**
      * Constructor.
