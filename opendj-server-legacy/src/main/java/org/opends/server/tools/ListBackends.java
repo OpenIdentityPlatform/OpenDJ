@@ -16,10 +16,9 @@
  */
 package org.opends.server.tools;
 
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -30,20 +29,22 @@ import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.Entry;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
@@ -77,23 +78,6 @@ public class ListBackends
     }
   }
 
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to
-   * list the backend information.
-   *
-   * @param  args  The command-line arguments provided to this program.
-   *
-   * @return  A return code indicating whether the processing was successful.
-   */
-  public static int listBackends(String[] args)
-  {
-    return listBackends(args, true, System.out, System.err);
-  }
-
-
-
   /**
    * Parses the provided command-line arguments and uses that information to
    * list the backend information.
@@ -122,7 +106,6 @@ public class ListBackends
     StringArgument  backendID    = null;
     StringArgument  baseDN       = null;
     StringArgument  configFile   = null;
-
 
     // Create the command-line argument parser for use with this program.
     LocalizableMessage toolDescription = INFO_LISTBACKENDS_TOOL_DESCRIPTION.get();
@@ -168,7 +151,6 @@ public class ListBackends
       return 1;
     }
 
-
     // Parse the command-line arguments provided to this program.
     try
     {
@@ -180,14 +162,12 @@ public class ListBackends
       return 1;
     }
 
-
     // If we should just display usage or version information,
     // then it's already been done so just return.
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }
-
 
     // Make sure that the user did not provide both the backend ID and base DN
     // arguments.
@@ -212,7 +192,8 @@ public class ListBackends
     {
       try
       {
-        new DirectoryServer.InitializationBuilder(configFile.getValue());
+        new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .initialize();
       }
       catch (Exception e)
       {
@@ -221,9 +202,8 @@ public class ListBackends
       }
     }
 
-
     // Retrieve a list of the backends defined in the server.
-    TreeMap<String,TreeSet<DN>> backends;
+    Map<String, Set<DN>> backends;
     try
     {
       backends = getBackends();
@@ -239,7 +219,6 @@ public class ListBackends
       return 1;
     }
 
-
     // See what action we need to take based on the arguments provided.  If the
     // backend ID argument was present, then list the base DNs for that backend.
     // If the base DN argument was present, then list the backend for that base
@@ -247,9 +226,8 @@ public class ListBackends
     boolean invalidDn = false;
     if (baseDN.isPresent())
     {
-      // Create a map from the base DNs of the backends to the corresponding
-      // backend ID.
-      TreeMap<DN,String> baseToIDMap = new TreeMap<>();
+      // Create a map from the base DNs of the backends to the corresponding backend ID.
+      Map<DN, String> baseToIDMap = new TreeMap<>();
       for (String id : backends.keySet())
       {
         for (DN dn : backends.get(id))
@@ -257,7 +235,6 @@ public class ListBackends
           baseToIDMap.put(dn, id);
         }
       }
-
 
       // Iterate through the base DN values specified by the user.  Determine
       // the backend for that entry, and whether the provided DN is a base DN
@@ -274,7 +251,6 @@ public class ListBackends
           printWrappedText(err, ERR_LISTBACKENDS_INVALID_DN.get(dnStr, getExceptionMessage(e)));
           return 1;
         }
-
 
         String id = baseToIDMap.get(dn);
         if (id == null)
@@ -320,15 +296,15 @@ public class ListBackends
       int    backendIDLength = 10;
       int    baseDNLength    = 7;
 
-      Iterator<String> iterator = backendIDs.iterator();
-      while (iterator.hasNext())
+      Iterator<String> it = backendIDs.iterator();
+      while (it.hasNext())
       {
-        String id = iterator.next();
-        TreeSet<DN> baseDNs = backends.get(id);
+        String id = it.next();
+        Set<DN> baseDNs = backends.get(id);
         if (baseDNs == null)
         {
           printWrappedText(err, ERR_LISTBACKENDS_NO_SUCH_BACKEND.get(id));
-          iterator.remove();
+          it.remove();
         }
         else
         {
@@ -358,7 +334,7 @@ public class ListBackends
         table.appendCell(id);
         StringBuilder buf = new StringBuilder();
 
-        TreeSet<DN> baseDNs = backends.get(id);
+        Set<DN> baseDNs = backends.get(id);
         boolean isFirst = true;
         for (DN dn : baseDNs)
         {
@@ -386,12 +362,9 @@ public class ListBackends
       table.print(printer);
     }
 
-
     // If we've gotten here, then everything completed successfully.
     return invalidDn ? 1 : 0 ;
   }
-
-
 
   /**
    * Retrieves information about the backends configured in the Directory Server
@@ -402,8 +375,7 @@ public class ListBackends
    * @throws  ConfigException  If a problem occurs while reading the server
    *                           configuration.
    */
-  private static TreeMap<String,TreeSet<DN>> getBackends()
-          throws ConfigException
+  private static Map<String, Set<DN>> getBackends() throws ConfigException
   {
     // Get the base entry for all backend configuration.
     DN backendBaseDN = null;
@@ -419,7 +391,7 @@ public class ListBackends
     }
 
     // Iterate through the immediate children, attempting to parse them as backends.
-    TreeMap<String,TreeSet<DN>> backendMap = new TreeMap<>();
+    Map<String, Set<DN>> backendMap = new TreeMap<>();
     ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
     for (DN childrenDn : configHandler.getChildren(backendBaseDN))
     {
@@ -441,10 +413,9 @@ public class ListBackends
         throw new ConfigException(message, e);
       }
 
-
       // Get the base DN attribute from the entry.  If there isn't one, then
       // just skip this entry.
-      TreeSet<DN> baseDNs = new TreeSet<>();
+      Set<DN> baseDNs = new TreeSet<>();
       try
       {
         List<Attribute> attributes = configEntry.getAttribute(ATTR_BACKEND_BASE_DN);
@@ -470,4 +441,3 @@ public class ListBackends
     return backendMap;
   }
 }
-
