@@ -16,11 +16,12 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.quicksetup.Installation.*;
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -120,9 +121,9 @@ import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.SchemaUtils;
+import org.opends.server.util.SchemaUtils.PasswordType;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.SchemaUtils.PasswordType;
 
 /**
  * A static class that provides miscellaneous functions.
@@ -1467,16 +1468,6 @@ public class Utilities
   }
 
   /**
-   * Returns the attribute name with no options (or subtypes).
-   * @param attrName the complete attribute name.
-   * @return the attribute name with no options (or subtypes).
-   */
-  public static String getAttributeNameWithoutOptions(String attrName)
-  {
-    return AttributeDescription.valueOf(attrName).getNameOrOID();
-  }
-
-  /**
    * Strings any potential "separator" from a given string.
    * @param s string to strip
    * @param separator  the separator string to remove
@@ -1484,11 +1475,7 @@ public class Utilities
    */
   private static String stripStringToSingleLine(String s, String separator)
   {
-    if (s != null)
-    {
-      return s.replaceAll(separator, "");
-    }
-    return null;
+    return (s == null) ? null : s.replaceAll(separator, "");
   }
 
   /** The pattern for control characters. */
@@ -2088,17 +2075,19 @@ public class Utilities
    */
   public static boolean hasImageSyntax(String attrName, Schema schema)
   {
-    attrName = Utilities.getAttributeNameWithoutOptions(attrName);
-    if ("photo".equals(attrName))
+    if ("photo".equals(AttributeDescription.valueOf(attrName).getNameOrOID()))
     {
       return true;
     }
     // Check all the attributes that we consider binaries.
-    if (schema != null && schema.hasAttributeType(attrName))
+    if (schema != null)
     {
-      AttributeType attr = schema.getAttributeType(attrName);
-      String syntaxOID = attr.getSyntax().getOID();
-      return SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
+      AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
+      if (!attrType.isPlaceHolder())
+      {
+        String syntaxOID = attrType.getSyntax().getOID();
+        return SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
+      }
     }
     return false;
   }
@@ -2129,11 +2118,10 @@ public class Utilities
   {
     if (schema != null)
     {
-      attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
-      if (schema.hasAttributeType(attrName))
+      AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
+      if (!attrType.isPlaceHolder())
       {
-        AttributeType attr = schema.getAttributeType(attrName);
-        PasswordType passwordType = SchemaUtils.checkPasswordType(attr);
+        PasswordType passwordType = SchemaUtils.checkPasswordType(attrType);
         return passwordType.equals(PasswordType.USER_PASSWORD);
       }
     }
@@ -2144,11 +2132,10 @@ public class Utilities
   {
     if (schema != null)
     {
-      attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
-      if (schema.hasAttributeType(attrName))
+      AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
+      if (!attrType.isPlaceHolder())
       {
-        AttributeType attr = schema.getAttributeType(attrName);
-        return contains(oids, attr.getSyntax().getOID());
+        return contains(oids, attrType.getSyntax().getOID());
       }
     }
     return false;

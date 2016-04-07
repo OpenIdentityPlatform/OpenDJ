@@ -600,8 +600,8 @@ public class ModifyEntryTask extends Task
         continue;
       }
       List<Object> oldValues = oldEntry.getAttributeValues(attrName);
-      String attrNoOptions =
-        Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+      AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
+      String attrNoOptions = attrDesc.getNameOrOID().toLowerCase();
 
       List<org.opends.server.types.Attribute> attrs = newEntry.getAttribute(attrNoOptions);
       if (!find(attrs, attrName) && !oldValues.isEmpty())

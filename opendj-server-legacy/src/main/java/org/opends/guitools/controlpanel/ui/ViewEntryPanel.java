@@ -35,6 +35,7 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -462,7 +463,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     // Check all the attributes that we consider binaries.
     if (schema != null)
     {
-      String attributeName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+      String attributeName = AttributeDescription.valueOf(attrName).getNameOrOID().toLowerCase();
       if (schema.hasAttributeType(attributeName))
       {
         AttributeType attr = schema.getAttributeType(attributeName);
@@ -541,7 +542,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   public static boolean isEditable(String attrName, Schema schema)
   {
-    attrName = Utilities.getAttributeNameWithoutOptions(attrName);
+    attrName = AttributeDescription.valueOf(attrName).getNameOrOID();
     if (schema != null && schema.hasAttributeType(attrName))
     {
       AttributeType attrType = schema.getAttributeType(attrName);

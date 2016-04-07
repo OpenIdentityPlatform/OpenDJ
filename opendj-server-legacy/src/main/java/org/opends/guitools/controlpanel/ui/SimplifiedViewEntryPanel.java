@@ -71,6 +71,7 @@ import javax.swing.tree.TreePath;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
@@ -676,8 +677,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     ArrayList<String> attrsWithNoOptions = new ArrayList<>();
     for (String attr : entryAttrs)
     {
-      attrsWithNoOptions.add(
-            Utilities.getAttributeNameWithoutOptions(attr).toLowerCase());
+      AttributeDescription attrDesc = AttributeDescription.valueOf(attr);
+      attrsWithNoOptions.add(attrDesc.getNameOrOID().toLowerCase());
     }
 
     List<Object> values =
@@ -1151,20 +1152,23 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean isRequired(String attrName, CustomSearchResult sr)
   {
-    attrName = Utilities.getAttributeNameWithoutOptions(attrName);
 
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    if (schema != null && schema.hasAttributeType(attrName))
+    if (schema != null)
     {
-      AttributeType attr = schema.getAttributeType(attrName);
-      List<Object> ocs = sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-      for (Object o : ocs)
+      AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema.getSchemaNG());
+      AttributeType attrType = attrDesc.getAttributeType();
+      if (!attrType.isPlaceHolder())
       {
-        String oc = (String) o;
-        ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
-        if (objectClass != null && objectClass.isRequired(attr))
+        List<Object> ocs = sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+        for (Object o : ocs)
         {
-          return true;
+          String oc = (String) o;
+          ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
+          if (objectClass != null && objectClass.isRequired(attrType))
+          {
+            return true;
+          }
         }
       }
     }
@@ -1279,9 +1283,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private List<String> getNewPasswords(String attrName)
   {
-    String attr =
-      Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
-    return getDisplayedStringValues(attr);
+    AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
+    return getDisplayedStringValues(attrDesc.getNameOrOID());
   }
 
   private List<String> getConfirmPasswords(String attrName)
@@ -1291,8 +1294,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private String getConfirmPasswordKey(String attrName)
   {
-    return CONFIRM_PASSWORD+
-    Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+    AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
+    return CONFIRM_PASSWORD + attrDesc.getNameOrOID().toLowerCase();
   }
 
   private boolean isConfirmPassword(String key)
@@ -1476,10 +1479,11 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
                 Object o = comps.iterator().next().getValue();
                 if (o instanceof String)
                 {
-                  String aName = Utilities.getAttributeNameWithoutOptions(attrName);
-                  if (schema.hasAttributeType(aName))
+                  AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema.getSchemaNG());
+                  AttributeType attrType = attrDesc.getAttributeType();
+                  if (!attrType.isPlaceHolder())
                   {
-                    avas.add(new AVA(schema.getAttributeType(aName), aName, o));
+                    avas.add(new AVA(attrType, attrDesc.getNameOrOID(), o));
                   }
                   break;
                 }
@@ -1654,8 +1658,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       for (String attrName : hmEditors.keySet())
       {
-        String attrNoOptions =
-          Utilities.getAttributeNameWithoutOptions(attrName);
+        String attrNoOptions = AttributeDescription.valueOf(attrName).getNameOrOID();
         if (!attributes.contains(attrNoOptions))
         {
           continue;

@@ -28,6 +28,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
@@ -245,7 +246,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     {
       Object o = table.getValueAt(row, 0);
       return requiredAttrs.contains(
-          Utilities.getAttributeNameWithoutOptions((String)o).toLowerCase());
+          AttributeDescription.valueOf((String)o).getNameOrOID().toLowerCase());
     }
     return false;
   }
