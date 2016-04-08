@@ -99,7 +99,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
    */
   public static void checkVersionMismatch() throws InitializationException
   {
-    if (!BuildVersion.binaryVersion().toString().equals(BuildVersion.instanceVersion().toString()))
+    if (!BuildVersion.binaryVersion().equals(BuildVersion.instanceVersion()))
     {
       throw new InitializationException(
           ERR_BUILDVERSION_MISMATCH.get(BuildVersion.binaryVersion(), BuildVersion.instanceVersion()));
