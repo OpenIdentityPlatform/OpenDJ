@@ -56,7 +56,6 @@
     <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
     <docGuideRefUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideRefUrl>
     <docGuideAdminUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideAdminUrl>
-    <locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</locales>
 
     <!-- Other properties -->
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
@@ -452,6 +451,7 @@
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
+
         <executions>
           <execution>
             <id>generate-bootstrap-manifest</id>
@@ -459,30 +459,19 @@
               <goal>generate-manifest</goal>
             </goals>
             <configuration>
-              <classPathProperty>classpath.bootstrap</classPathProperty>
-              <productJarName>${product.name.lowercase}</productJarName>
-              <supportedLocales>${locales}</supportedLocales>
-              <excludes>
-                <exclude>org.slf4j:slf4j-jdk14</exclude>
-              </excludes>
               <additionalJars>
                  <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
                  <additionalJar>opendj-je-backend.jar</additionalJar>
               </additionalJars>
             </configuration>
           </execution>
+
           <execution>
             <id>generate-bootstrap-client-manifest</id>
             <goals>
               <goal>generate-manifest</goal>
             </goals>
             <configuration>
-              <classPathProperty>classpath.bootstrap-client</classPathProperty>
-              <productJarName>${product.name.lowercase}</productJarName>
-              <supportedLocales>${locales}</supportedLocales>
-              <excludes>
-                <exclude>org.slf4j:jul-to-slf4j</exclude>
-              </excludes>
               <additionalJars>
                  <additionalJar>opendj-je-backend.jar</additionalJar>
               </additionalJars>

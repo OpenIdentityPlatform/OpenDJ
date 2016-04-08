@@ -38,6 +38,7 @@
     <properties>
         <product.name>OpenDJ</product.name>
         <product.name.lowercase>opendj</product.name.lowercase>
+        <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <localized.jars.classifier>i18n</localized.jars.classifier>
 
         <site.distribution.url>
@@ -411,6 +412,44 @@
                     <groupId>org.forgerock.opendj</groupId>
                     <artifactId>opendj-maven-plugin</artifactId>
                     <version>${project.version}</version>
+                    <!-- bootstrap and bootstrap-clinet MANIFEST.MF files generation. -->
+                    <configuration>
+                        <productJarName>${product.name.lowercase}</productJarName>
+                        <supportedLocales>${product.locales}</supportedLocales>
+                    </configuration>
+
+                    <executions>
+                        <execution>
+                            <id>generate-bootstrap-manifest</id>
+                            <goals>
+                                <goal>generate-manifest</goal>
+                            </goals>
+                            <configuration>
+                                <classPathProperty>classpath.bootstrap</classPathProperty>
+                                <excludes>
+                                    <exclude>org.slf4j:slf4j-jdk14</exclude>
+                                    <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+                                </excludes>
+                                <additionalJars>
+                                    <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
+                                </additionalJars>
+                            </configuration>
+                        </execution>
+
+                        <execution>
+                            <id>generate-bootstrap-client-manifest</id>
+                            <goals>
+                                <goal>generate-manifest</goal>
+                            </goals>
+                            <configuration>
+                                <classPathProperty>classpath.bootstrap-client</classPathProperty>
+                                <excludes>
+                                    <exclude>org.slf4j:jul-to-slf4j</exclude>
+                                    <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>

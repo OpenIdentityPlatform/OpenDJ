@@ -41,7 +41,6 @@
             ${product.name.lowercase}/lib/opendj-je-backend.jar,
             ${product.name.lowercase}/legal-notices/THIRDPARTYREADME.txt
         </oem.file.exclusion.list>
-        <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <product.archive.name>${product.name.lowercase}-oem-${project.version}</product.archive.name>
     </properties>
 
@@ -61,50 +60,20 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Override scope for org.slf4j:slf4j-jdk14 to have it in the bootstrap-client.jar -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Generates bootstrap.jar and bootstrap-client.jar for OEM archive edition --> 
             <plugin>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj-maven-plugin</artifactId>
-                <version>${project.version}</version>
-                <configuration>
-                    <productJarName>${product.name}</productJarName>
-                    <supportedLocales>${product.locales}</supportedLocales>
-                </configuration>
-
-                <executions>
-                    <execution>
-                        <id>generate-bootstrap-manifest</id>
-                        <goals>
-                            <goal>generate-manifest</goal>
-                        </goals>
-                        <configuration>
-                            <classPathProperty>classpath.bootstrap</classPathProperty>
-                            <excludes>
-                                <exclude>org.slf4j:slf4j-jdk14</exclude>
-                                <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
-                            </excludes>
-                            <additionalJars>
-                                <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
-                            </additionalJars>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>generate-bootstrap-client-manifest</id>
-                        <goals>
-                            <goal>generate-manifest</goal>
-                        </goals>
-                        <configuration>
-                            <classPathProperty>classpath.bootstrap-client</classPathProperty>
-                            <excludes>
-                                <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
