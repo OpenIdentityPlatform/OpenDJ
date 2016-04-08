@@ -225,7 +225,7 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-persistit-core</artifactId>
-      <version>4.3.1</version>
+      <version>4.3.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>
