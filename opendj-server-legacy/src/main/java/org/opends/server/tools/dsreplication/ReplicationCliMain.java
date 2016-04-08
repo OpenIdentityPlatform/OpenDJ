@@ -6324,7 +6324,14 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<ServerDescriptor> serversWithNoReplica)
   {
     Set<ReplicaDescriptor> orderedReplicas = new LinkedHashSet<>();
-    Set<HostPort> hostPorts = new TreeSet<>();
+    Set<HostPort> hostPorts = new TreeSet<>(new Comparator<HostPort>()
+    {
+      @Override
+      public int compare(HostPort hp1, HostPort hp2)
+      {
+        return hp1.toString().compareTo(hp2.toString());
+      }
+    });
     Set<ServerDescriptor> notAddedReplicationServers = new TreeSet<>(new ReplicationServerComparator());
     for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
     {
