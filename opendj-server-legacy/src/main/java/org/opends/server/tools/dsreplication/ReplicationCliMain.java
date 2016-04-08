@@ -1599,14 +1599,17 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      return new ConnectionWrapper(createAdministrativeContext(uData, bindDn),
-          getConnectTimeout(), getTrustManager(sourceServerCI));
+      InitialLdapContext ctx = createAdministrativeContext(uData, bindDn);
+      if (ctx != null)
+      {
+        return new ConnectionWrapper(ctx, getConnectTimeout(), getTrustManager(sourceServerCI));
+      }
     }
     catch (NamingException e)
     {
       logger.error(LocalizableMessage.raw("Error when creating connection for:" + uData.getHostPort()));
-      return null;
     }
+    return null;
   }
 
   private InitialLdapContext createAdministrativeContext(MonoServerReplicationUserData uData, final String bindDn)
@@ -4176,14 +4179,17 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      return new ConnectionWrapper(createAdministrativeContext(server, errorMessages),
-          getConnectTimeout(), getTrustManager(sourceServerCI));
+      InitialLdapContext ctx = createAdministrativeContext(server, errorMessages);
+      if (ctx != null)
+      {
+        return new ConnectionWrapper(ctx, getConnectTimeout(), getTrustManager(sourceServerCI));
+      }
     }
     catch (NamingException e)
     {
       logger.error(LocalizableMessage.raw("Error when creating connection for:" + server.getHostPort()));
-      return null;
     }
+    return null;
   }
 
   private InitialLdapContext createAdministrativeContext(EnableReplicationServerData server,
