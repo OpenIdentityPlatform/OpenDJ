@@ -25,10 +25,21 @@
         <version>4.0.0-SNAPSHOT</version>
     </parent>
 
-    <modules>
-        <module>opendj-deb-standard</module>
-        <module>opendj-deb-oem</module>
-    </modules>
+    <profiles>
+        <profile>
+            <id>packages</id>
+            <modules>
+                <module>opendj-deb-standard</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>packages-oem</id>
+            <modules>
+                <module>opendj-deb-oem</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <artifactId>opendj-deb</artifactId>
     <name>OpenDJ Debian Packages Parent</name>

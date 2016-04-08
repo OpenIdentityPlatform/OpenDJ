@@ -551,6 +551,13 @@
         </profile>
 
         <profile>
+            <id>packages-oem</id>
+            <modules>
+                <module>opendj-packages</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>precommit</id>
             <build>
                 <plugins>

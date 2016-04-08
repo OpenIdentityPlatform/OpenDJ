@@ -32,8 +32,13 @@
         This module contains configuration and generic plugin call to build OpenDJ SVR4 packages.
     </description>
 
-    <modules>
-        <module>opendj-svr4-standard</module>
-    </modules>
+    <profiles>
+        <profile>
+            <id>packages</id>
+            <modules>
+                <module>opendj-svr4-standard</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

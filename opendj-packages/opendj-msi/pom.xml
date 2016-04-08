@@ -32,7 +32,12 @@
         This module contains configuration and generic plugin call to build OpenDJ MSI packages.
     </description>
 
-    <modules>
-        <module>opendj-msi-standard</module>
-    </modules>
+    <profiles>
+        <profile>
+            <id>packages</id>
+            <modules>
+                <module>opendj-msi-standard</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

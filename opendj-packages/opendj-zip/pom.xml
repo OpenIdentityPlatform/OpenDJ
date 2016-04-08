@@ -32,8 +32,13 @@
         This module contains configuration and generic plugin call to build OpenDJ ZIP packages.
     </description>
 
-    <modules>
-        <module>opendj-zip-oem</module>
-    </modules>
+    <profiles>
+        <profile>
+            <id>packages-oem</id>
+            <modules>
+                <module>opendj-zip-oem</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

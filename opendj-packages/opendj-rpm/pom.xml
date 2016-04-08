@@ -28,10 +28,21 @@
     <artifactId>opendj-rpm</artifactId>
     <name>OpenDJ RPM Packages Parent</name>
 
-    <modules>
-        <module>opendj-rpm-standard</module>
-        <module>opendj-rpm-oem</module>
-    </modules>
+    <profiles>
+        <profile>
+            <id>packages</id>
+            <modules>
+                <module>opendj-rpm-standard</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>packages-oem</id>
+            <modules>
+                <module>opendj-rpm-oem</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <description>
         This module contains configuration and generic plugin calls to generate RPM OpenDJ packages.
