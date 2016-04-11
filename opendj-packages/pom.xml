@@ -56,7 +56,7 @@
         <profile>
             <id>opendj-rpm</id>
             <activation>
-                <file><exists>/usr/bin/rpm</exists></file>
+                <file><exists>/bin/rpm</exists></file>
             </activation>
             <modules>
                 <module>opendj-rpm</module>
