@@ -13,6 +13,7 @@
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2016 Matthew Stevenson
  */
 
 package org.forgerock.opendj.ldif;
@@ -637,11 +638,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
 
         /*
          * Look at the character immediately after the colon. If there is none,
-         * then no value was specified. Throw an exception
+         * then no value was specified. Then return an empty value.
          */
         final int length = ldifLine.length();
         if (colonPos == length - 1) {
-            pair.key = null;
+            pair.value = "";
             return ldifLine;
         }
 

@@ -13,6 +13,7 @@
  *
  * Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2014 Manuel Gaupp
+ * Portions copyright 2016 Matthew Stevenson
  */
 
 package org.forgerock.opendj.ldif;
@@ -2486,4 +2487,26 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         assertThat(addRequest.getAttributeCount()).isEqualTo(10);
     }
 
+    /**
+     * Try to read a LDIF record with a empty first attribute
+     */
+    @Test
+    public void testValueOfLDIFRecordEmptyFirstAttrLDIF() {
+
+        // @formatter:off
+        LDIFChangeRecordReader.valueOfLDIFChangeRecord(
+                "version: 1",
+                "# Add a new entry",
+                "dn: cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com",
+                "description:",
+                "objectclass: top",
+                "objectclass: person",
+                "objectclass: organizationalPerson",
+                "cn: Fiona Jensen",
+                "sn: Jensen",
+                "uid: fiona",
+                "telephonenumber: +1 408 555 1212"
+        );
+        // @formatter:on
+    }
 }
