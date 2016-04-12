@@ -228,6 +228,7 @@
         <module>opendj-legacy</module>
         <module>opendj-server-legacy</module>
         <module>opendj-dsml-servlet</module>
+        <module>opendj-openidm-account-change-notification-handler</module>
     </modules>
 
     <build>

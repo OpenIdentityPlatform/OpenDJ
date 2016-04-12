@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="openidm-account-status-notification-handler"
+  plural-name="openidm-account-status-notification-handlers"
+  extends="account-status-notification-handler"
+  package="org.forgerock.openidm.accountchange"
+  parent-package="org.forgerock.opendj.server.config"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is an account status notification handler that listens to two kind of changes: 
+    password change and password reset. 
+    The changes are either immediately sent to OpenIDM or first stored locally and sent
+    later to OpenIDM at the provided interval.
+    The communication with OpenIDM is done through HTTP or HTTPS, with optional
+    SSL client authentication.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>
+        ds-cfg-openidm-account-status-notification-handler
+      </ldap:name>
+      <ldap:superior>
+        ds-cfg-account-status-notification-handler
+      </ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>org.forgerock.openidm.accountchange.OpenidmAccountStatusNotificationHandler</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="update-interval"
+    mandatory="true">
+    <adm:synopsis>
+      Specifies the interval when passwords update notifications are sent.
+    </adm:synopsis>
+    <adm:description>
+      If this value is 0, then updates are sent synchronously.
+      If this value is strictly superior to zero, then updates are first stored locally, 
+      then sent asynchronously by a background thread.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0 seconds</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-update-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="log-file" mandatory="true">
+    <adm:synopsis>
+      Specifies the log file location where the changed passwords are
+      written when the plug-in cannot contact OpenIDM.
+    </adm:synopsis>
+    <adm:description>
+      The default location is the logs directory of the server
+      instance, using the file name "pwsync".
+      Passwords in this file will be encrypted.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>logs/pwsync</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>FILE</adm:usage>
+          <adm:synopsis>
+            A path to an existing directory that is readable and writable by the server.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-file</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="password-attribute" mandatory="true">
+    <adm:synopsis>
+      Specifies the attribute type used to hold user passwords in JSON returned to OpenIDM.
+    </adm:synopsis>
+    <adm:description>
+      This attribute type must be defined in the managed object schema in OpenIDM, 
+      and it must have either the user password or auth password syntax.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>password</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            OpenIDM managed object attribute name.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-attribute</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="query-id" mandatory="true">
+    <adm:synopsis>
+      Specifies the query-id for the patch-by-query request.
+    </adm:synopsis>
+    <adm:description>
+      This must match the query ID defined in the managed object service in OpenIDM.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>for-userName</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            OpenIDM managed object query ID.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-query-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="attribute-type" multi-valued="true">
+    <adm:synopsis>
+      Specifies the attribute types that this plug-in will send along with
+      the password change.
+    </adm:synopsis>
+    <adm:description>
+      Zero or more attribute types can be specified.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no attribute types are specified, only the DN and the new
+          password of the user will be synchronized to OpenIDM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="openidm-url" mandatory="true">
+    <adm:synopsis>
+      Specifies the URL to OpenIDM endpoint. 
+    </adm:synopsis>
+    <adm:description>
+      The URL can be either HTTP or HTTPS.
+    </adm:description>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <!--adm:regex>(http|https)://(w+:{0,1}w*@)?(S+)(:[0-9]+)?(/|/([w#!:.?+=&amp;%@!-/]))?</adm:regex-->
+          <adm:regex>.*</adm:regex>
+          <adm:usage>URL</adm:usage>
+          <adm:synopsis>
+            OpenIDM sync service URL.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-openidm-url
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="openidm-compat-mode">
+      <adm:synopsis>
+          Specifies OpenIDM Compatibility Mode.
+      </adm:synopsis>
+      <adm:default-behavior>
+          <adm:defined>
+              <adm:value>V3</adm:value>
+          </adm:defined>
+      </adm:default-behavior>
+      <adm:syntax>
+        <adm:enumeration>
+          <adm:value name="V3">
+            <adm:synopsis>
+              Use version 3 OpenIDM Compatibility Mode.
+            </adm:synopsis>
+          </adm:value>
+          <adm:value name="V2">
+            <adm:synopsis>
+              Use version 2 OpenIDM Compatibility Mode.
+            </adm:synopsis>
+          </adm:value>
+        </adm:enumeration>
+      </adm:syntax>
+      <adm:profile name="ldap">
+          <ldap:attribute>
+              <ldap:name>
+                  ds-cfg-openidm-compat-mode
+              </ldap:name>
+          </ldap:attribute>
+      </adm:profile>
+  </adm:property>
+  <adm:property name="ssl-cert-nickname" mandatory="false">
+    <adm:synopsis>
+      Specifies the SSL certificate nickname, which is the alias under which is stored
+      the client certificate in the keystore. It must be provided to
+      activate SSL client authentication when requesting OpenIDM.
+    </adm:synopsis>
+    <adm:description>
+      The SSL certificate nickname is necessary to ensure that the appropriate client certificate
+      is retrieved from the keystore when SSL client authentication is required and
+      multiples certificates are present in the keystore.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-ssl-cert-nickname
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="openidm-username" mandatory="false">
+      <adm:synopsis>
+        Specifies the username to use for HTTP Basic Authentication.
+      </adm:synopsis>
+      <adm:description>
+        The username must be provided when client certification is not activated,
+        i.e. when no ssl-cert-nickname is provided.
+      </adm:description>
+      <adm:default-behavior>
+          <adm:undefined />
+      </adm:default-behavior>
+      <adm:syntax>
+          <adm:string/>
+      </adm:syntax>
+      <adm:profile name="ldap">
+          <ldap:attribute>
+              <ldap:name>
+                  ds-cfg-openidm-username
+              </ldap:name>
+          </ldap:attribute>
+      </adm:profile>
+  </adm:property>
+  <adm:property name="openidm-password" mandatory="false">
+      <adm:synopsis>
+        Specifies the password to use for HTTP Basic Authentication.
+      </adm:synopsis>
+      <adm:description>
+        The password must be provided when client certification is not activated,
+        i.e. when no ssl-cert-nickname is provided.
+      </adm:description>
+      <adm:default-behavior>
+          <adm:undefined />
+      </adm:default-behavior>
+      <adm:syntax>
+          <adm:string/>
+      </adm:syntax>
+      <adm:profile name="ldap">
+          <ldap:attribute>
+              <ldap:name>
+                  ds-cfg-openidm-password
+              </ldap:name>
+          </ldap:attribute>
+      </adm:profile>
+  </adm:property>
+  <adm:property name="private-key-alias" mandatory="true">
+    <adm:synopsis>
+      Specifies the alias of the private key that should be used by OpenIDM
+      to decrypt the encrypted JSON content of the requests.
+    </adm:synopsis>
+    <adm:description>
+      The encryption of the JSON content sent to OpenIDM requires this alias.   
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>openidm-localhost</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-private-key-alias
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+   <adm:property name="certificate-subject-dn" mandatory="true">
+    <adm:synopsis>
+      Specifies the subject DN of the certificate used by OpenIDM.
+    </adm:synopsis>
+    <adm:description>
+      The subject DN is used to retrieve the OpenIDM certificate
+      in the truststore. This certificate's public key is necessary 
+      to encrypt the JSON content sent to OpenIDM.
+    </adm:description>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-certificate-subject-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="key-manager-provider">
+    <adm:synopsis>
+      Specifies the name of the key manager that should be used with
+      this <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+        It must be provided when ssl-cert-nickname is provided, and must
+        contain a certificate corresponding to the nickname.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately, but
+          only for subsequent attempts to access the key manager
+          provider for associated client connections.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="key-manager-provider"
+        parent-path="/" managed-object-package="org.forgerock.opendj.server.config">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced key manager provider must be enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-key-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-manager-provider" mandatory="true">
+    <adm:synopsis>
+      Specifies the name of the trust manager that should be used with
+      the <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+        It must contain the OpenIDM certificate with the subject DN equals
+        to the certificate-subject-dn property.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately, but
+          only for subsequent attempts to access the trust manager
+          provider for associated client connections.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="trust-manager-provider"
+        parent-path="/" managed-object-package="org.forgerock.opendj.server.config">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced trust manager provider must be enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-trust-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

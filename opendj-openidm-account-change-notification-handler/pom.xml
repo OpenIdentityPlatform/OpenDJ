@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2014-2016 ForgeRock AS.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.forgerock.opendj</groupId>
+    <artifactId>opendj-parent</artifactId>
+    <version>4.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>opendj-openidm-account-change-notification-handler</artifactId>
+  <name>OpenDJ account change notification handler for OpenIDM</name>
+  <description>
+    An OpenDJ Server notification handler that notifies account changes to OpenIDM through REST.
+    </description>
+  <packaging>jar</packaging>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-config</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-slf4j</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-server-legacy</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>json-crypto-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.http</groupId>
+      <artifactId>chf-http-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.http</groupId>
+      <artifactId>chf-client-apache-async</artifactId>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-messages</goal>
+            </goals>
+            <configuration>
+              <resourceDirectory>${basedir}/src/main/resources</resourceDirectory>
+              <messageFiles>
+                <messageFile>org/forgerock/openidm/accountchange/openidm-account-status-notification-handler.properties</messageFile>
+              </messageFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-config</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-config</goal>
+            </goals>
+            <configuration>
+              <packageName>org.forgerock.openidm.accountchange</packageName>
+              <isExtension>true</isExtension>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Retrieve the SCM revision number and store it into the ${buildRevision} 
+        property and retrieve the build timestamp and store it into the ${buildDateTime} 
+        property -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <transformers>
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Extension-Name>OpenidmAccountStatusNotificationHandler</Extension-Name>
+                    <Implementation-Version>${project.version}</Implementation-Version>
+                    <Revision-Number>${buildRevision}</Revision-Number>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/main/assembly/descriptor.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependencies</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </reporting>
+  
+</project>

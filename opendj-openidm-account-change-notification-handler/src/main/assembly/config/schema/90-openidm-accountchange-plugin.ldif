@@ -1,0 +1,79 @@
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2011-2016 ForgeRock AS.
+
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.162
+    NAME 'ds-cfg-openidm-compat-mode' 
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.163
+    NAME 'ds-cfg-openidm-url'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.164
+    NAME 'ds-cfg-query-id'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.165
+    NAME 'ds-cfg-openidm-username'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.166
+    NAME 'ds-cfg-openidm-password'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.167
+    NAME 'ds-cfg-certificate-subject-dn'
+    EQUALITY distinguishedNameMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.168
+    NAME 'ds-cfg-private-key-alias'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+    SINGLE-VALUE
+    X-ORIGIN 'OpenDJ Directory Server' )
+# This OID should be incremented with each non-compatible schema change
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.35
+  NAME 'ds-cfg-openidm-account-status-notification-handler'
+  SUP ds-cfg-account-status-notification-handler STRUCTURAL
+  MUST ( ds-cfg-log-file $
+         ds-cfg-update-interval $
+         ds-cfg-openidm-url $
+         ds-cfg-attribute $
+         ds-cfg-query-id $
+         ds-cfg-certificate-subject-dn $
+         ds-cfg-trust-manager-provider $
+         ds-cfg-private-key-alias )
+  MAY (  ds-cfg-openidm-compat-mode $
+         ds-cfg-attribute-type $
+         ds-cfg-openidm-username $
+         ds-cfg-openidm-password $
+         ds-cfg-key-manager-provider $
+         ds-cfg-ssl-cert-nickname)
+  X-ORIGIN 'OpenDJ Directory Server' )

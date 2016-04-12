@@ -129,7 +129,7 @@ public class AccountStatusNotificationHandlerConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadNotificationHandler(className, configuration, true);
+        loadNotificationHandler(className, configuration, false);
       }
       catch (InitializationException ie)
       {
