@@ -16,6 +16,7 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -48,6 +49,7 @@ import org.forgerock.opendj.ldap.Matcher;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -699,16 +701,16 @@ public final class LDIF {
             public boolean hasNext() throws IOException {
                 if (nextEntry == null) {
                     final int sizeLimit = search.getSizeLimit();
-                    if (sizeLimit == 0 || entryCount < sizeLimit) {
-                        final DN baseDN = search.getName();
-                        final SearchScope scope = search.getScope();
-                        while (input.hasNext()) {
-                            final Entry entry = input.readEntry();
-                            if (entry.getName().isInScopeOf(baseDN, scope)
-                                    && matcher.matches(entry).toBoolean()) {
-                                nextEntry = filterEntry(entry);
-                                break;
-                            }
+                    if (sizeLimit != 0 && entryCount >= sizeLimit) {
+                        throw newLdapException(ResultCode.SIZE_LIMIT_EXCEEDED);
+                    }
+                    final DN baseDN = search.getName();
+                    final SearchScope scope = search.getScope();
+                    while (input.hasNext()) {
+                        final Entry entry = input.readEntry();
+                        if (entry.getName().isInScopeOf(baseDN, scope) && matcher.matches(entry).toBoolean()) {
+                            nextEntry = filterEntry(entry);
+                            break;
                         }
                     }
                 }

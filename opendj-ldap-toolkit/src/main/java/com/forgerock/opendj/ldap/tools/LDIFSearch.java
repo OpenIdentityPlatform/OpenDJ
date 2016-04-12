@@ -17,6 +17,7 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
@@ -38,6 +39,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -195,13 +197,13 @@ public final class LDIFSearch extends ConsoleApplication {
              final LDIFEntryWriter outputWriter = new LDIFEntryWriter(getLDIFToolOutputStream(this, outputFilename))) {
             outputWriter.setWrapColumn(computeWrapColumn(wrapColumn));
             LDIF.copyTo(LDIF.search(sourceReader, search), outputWriter);
+        } catch (final LdapException e) {
+            throw newToolException(
+                    e, e.getResult().getResultCode(), ERR_LDIFSEARCH_FAILED.get(e.getLocalizedMessage()));
         } catch (final IOException e) {
-            if (e instanceof LocalizableException) {
-                errPrintln(ERR_LDIFSEARCH_FAILED.get(((LocalizableException) e).getMessageObject()));
-            } else {
-                errPrintln(ERR_LDIFSEARCH_FAILED.get(e.getLocalizedMessage()));
-            }
-            return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
+            throw newToolException(e, ResultCode.CLIENT_SIDE_LOCAL_ERROR, ERR_LDIFSEARCH_FAILED.get(
+                    e instanceof LocalizableException ? ((LocalizableException) e).getMessageObject()
+                                                      : e.getLocalizedMessage()));
         } catch (final ArgumentException ae) {
             throw newToolParamException(ae, ae.getMessageObject());
         }
