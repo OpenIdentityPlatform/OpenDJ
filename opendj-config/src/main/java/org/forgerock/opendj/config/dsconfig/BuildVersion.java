@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -91,7 +91,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
     public static void checkVersionMismatch(final Connection connection) throws ConfigException {
         final BuildVersion binaryVersion = BuildVersion.binaryVersion(connection);
         final BuildVersion instanceVersion = BuildVersion.instanceVersion();
-        if (!binaryVersion.toString().equals(instanceVersion.toString())) {
+        if (!binaryVersion.equals(instanceVersion)) {
             throw new ConfigException(ERR_BUILDVERSION_MISMATCH.get(binaryVersion, instanceVersion));
         }
     }
@@ -182,7 +182,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
             return true;
         } else if (obj instanceof BuildVersion) {
             final BuildVersion other = (BuildVersion) obj;
-            return major == other.major && minor == other.minor && point == other.point && rev.equals(other.rev);
+            return major == other.major && minor == other.minor && point == other.point;
         } else {
             return false;
         }
