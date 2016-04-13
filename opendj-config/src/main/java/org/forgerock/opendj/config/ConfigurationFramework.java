@@ -17,8 +17,7 @@
 package org.forgerock.opendj.config;
 
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.EOL;
-import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -610,7 +609,7 @@ public final class ConfigurationFramework {
                 final LocalizableMessage message =
                         NOTE_LOG_EXTENSION_INFORMATION.get(jarFile.getName(), information[1],
                                 information[2]);
-                LocalizedLogger.getLocalizedLogger(message.resourceName()).error(message);
+                LocalizedLogger.getLocalizedLogger(message.resourceName()).info(message);
             } catch (final Exception e) {
                 // Do not log information for that extension
             }
