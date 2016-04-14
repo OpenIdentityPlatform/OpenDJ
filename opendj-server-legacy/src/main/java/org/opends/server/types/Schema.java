@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,6 +64,7 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.SomeSchemaElement;
+import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -2257,27 +2259,8 @@ public final class Schema
       // element list.
       for (StringBuilder buffer : lines)
       {
-        // Get the line and add the X-SCHEMA-FILE extension to the end
-        // of it.  All of them should end with " )" but some might
-        // have the parenthesis crammed up against the last character
-        // so deal with that as well.
         String line = buffer.toString().trim();
-        if (line.endsWith(" )"))
-        {
-         line = line.substring(0, line.length()-1) +
-                SCHEMA_PROPERTY_FILENAME + " '" + f.getName() + "' )";
-        }
-        else if (line.endsWith(")"))
-        {
-         line = line.substring(0, line.length()-1) + " " +
-                SCHEMA_PROPERTY_FILENAME + " '" + f.getName() + "' )";
-        }
-        else
-        {
-          continue;
-        }
-
-        parseSchemaLine(line, attributeTypes, objectClasses,
+        parseSchemaLine(line, f.getName(), attributeTypes, objectClasses,
             nameForms, ditContentRules, ditStructureRules, matchingRuleUses,
             ldapSyntaxes);
       }
@@ -2336,7 +2319,7 @@ public final class Schema
       {
         break;
       }
-      parseSchemaLine(line, attributeTypes, objectClasses,
+      parseSchemaLine(line, null, attributeTypes, objectClasses,
           nameForms, ditContentRules, ditStructureRules, matchingRuleUses,
           ldapSyntaxes);
     }
@@ -2344,79 +2327,80 @@ public final class Schema
     reader.close();
   }
 
-  /**
-   * Parse a line of a schema file into the provided sets.
-   *
-   * @param line                The current line of schema.
-   * @param  attributeTypes     The set into which to place the
-   *                            attribute type if the line represents
-   *                            one.
-   * @param  objectClasses      The set into which to place the object
-   *                            class if the line represents one.
-   * @param  nameForms          The set into which to place the name
-   *                            form if the line represents one.
-   * @param  ditContentRules    The set into which to place the DIT
-   *                            content rule if the line represents one.
-   * @param  ditStructureRules  The set into which to place the DIT
-   *                            structure rule if the line represents one.
-   * @param  matchingRuleUses   The set into which to place the
-   *                            matching rule use if the line represents
-   *                            one.
-   * @param ldapSyntaxes        The set into which to place the ldap
-   *                            syntax if the line represents one.
-   */
-
-  private static void parseSchemaLine(String line,
-                               Set<String> attributeTypes,
-                               Set<String> objectClasses,
-                               Set<String> nameForms,
-                               Set<String> ditContentRules,
-                               Set<String> ditStructureRules,
-                               Set<String> matchingRuleUses,
-                               Set<String> ldapSyntaxes)
+  private static void parseSchemaLine(String line, String fileName,
+      Set<String> attributeTypes,
+      Set<String> objectClasses,
+      Set<String> nameForms,
+      Set<String> ditContentRules,
+      Set<String> ditStructureRules,
+      Set<String> matchingRuleUses,
+      Set<String> ldapSyntaxes)
   {
-    String value;
     String lowerLine = toLowerCase(line);
-    if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
+
+    try
     {
-      value =
-          line.substring(ATTR_ATTRIBUTE_TYPES.length()+1).trim();
-      attributeTypes.add(value);
-    }
-    else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
+      if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
+      {
+        attributeTypes.add(getSchemaDefinition(line.substring(ATTR_ATTRIBUTE_TYPES_LC.length()), fileName));
+      }
+      else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
+      {
+        objectClasses.add(getSchemaDefinition(line.substring(ATTR_OBJECTCLASSES_LC.length()), fileName));
+      }
+      else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
+      {
+        nameForms.add(getSchemaDefinition(line.substring(ATTR_NAME_FORMS_LC.length()), fileName));
+      }
+      else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
+      {
+        ditContentRules.add(getSchemaDefinition(line.substring(ATTR_DIT_CONTENT_RULES_LC.length()), fileName));
+      }
+      else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
+      {
+        ditStructureRules.add(getSchemaDefinition(line.substring(ATTR_DIT_STRUCTURE_RULES_LC.length()), fileName));
+      }
+      else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
+      {
+        matchingRuleUses.add(getSchemaDefinition(line.substring(ATTR_MATCHING_RULE_USE_LC.length()), fileName));
+      }
+      else if (lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
+      {
+        ldapSyntaxes.add(getSchemaDefinition(line.substring(ATTR_LDAP_SYNTAXES_LC.length()), fileName));
+      }
+    } catch (ParseException pe)
     {
-      value = line.substring(ATTR_OBJECTCLASSES.length()+1).trim();
-      objectClasses.add(value);
+      logger.error(ERR_SCHEMA_PARSE_LINE.get(line, pe.getLocalizedMessage()));
     }
-    else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
+  }
+
+  private static String getSchemaDefinition(String line, String fileName) throws ParseException
+  {
+    if (line.startsWith("::"))
     {
-      value = line.substring(ATTR_NAME_FORMS.length()+1).trim();
-      nameForms.add(value);
+      line = ByteString.wrap(Base64.decode(line.substring(2).trim())).toString();
     }
-    else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
+    else if (line.startsWith(":"))
     {
-      value = line.substring(
-          ATTR_DIT_CONTENT_RULES.length()+1).trim();
-      ditContentRules.add(value);
+      line = line.substring(1).trim();
     }
-    else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
+    else
     {
-      value = line.substring(
-          ATTR_DIT_STRUCTURE_RULES.length()+1).trim();
-      ditStructureRules.add(value);
+      throw new ParseException(ERR_SCHEMA_COULD_NOT_PARSE_DEFINITION.get().toString(), 0);
     }
-    else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
+
+    if (fileName != null)
     {
-      value = line.substring(
-          ATTR_MATCHING_RULE_USE.length()+1).trim();
-      matchingRuleUses.add(value);
+      if (line.endsWith(" )"))
+      {
+        line = line.substring(0, line.length() - 1) + SCHEMA_PROPERTY_FILENAME + " '" + fileName + "' )";
+      }
+      else if (line.endsWith(")"))
+      {
+        line = line.substring(0, line.length() - 1) + " " + SCHEMA_PROPERTY_FILENAME + " '" + fileName + "' )";
+      }
     }
-    else if (lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
-    {
-      value = line.substring(
-          ATTR_LDAP_SYNTAXES.length()+1).trim();
-      ldapSyntaxes.add(value);
-    }
+    return line;
   }
 
   /**
