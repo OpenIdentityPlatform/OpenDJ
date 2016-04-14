@@ -19,6 +19,7 @@ package org.opends.server.replication.plugin;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.DN_DEFAULT_SCHEMA_ROOT;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
@@ -368,6 +369,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     "objectClass",
     "2.5.4.0" // objectClass OID
   };
+
+  private static final DN SET_PERMISSIVE_MODIFY_FOR_DN = DN.valueOf(DN_DEFAULT_SCHEMA_ROOT);
 
   /**
    * When true, this flag is used to force the domain status to be put in bad
@@ -2311,6 +2314,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           // Always add the ManageDSAIT control so that updates to referrals
           // are processed locally.
           op.addRequestControl(new LDAPControl(OID_MANAGE_DSAIT_CONTROL));
+
+          // Warning: specific processing ahead. See OPENDJ-2792
+          if (op instanceof ModifyOperation)
+          {
+            ModifyOperation modifyOperation = (ModifyOperation) op;
+            if (modifyOperation.getEntryDN().equals(SET_PERMISSIVE_MODIFY_FOR_DN))
+            {
+              op.addRequestControl(new LDAPControl(OID_PERMISSIVE_MODIFY_CONTROL));
+            }
+          }
 
           csn = OperationContext.getCSN(op);
           op.run();
