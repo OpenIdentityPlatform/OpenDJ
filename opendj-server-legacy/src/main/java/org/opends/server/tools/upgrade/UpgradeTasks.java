@@ -707,12 +707,13 @@ public final class UpgradeTasks
       }
 
       private void rebuildIndex(final LocalizableMessage infoMsg, final UpgradeContext context,
-          final Set<String> baseDNs, final List<String> args) throws ClientException
+          final Set<String> baseDNs, final List<String> baseArgs) throws ClientException
       {
         final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, infoMsg, 25);
         logger.debug(infoMsg);
         context.notifyProgress(pnc);
 
+        List<String> args = new ArrayList<>(baseArgs);
         args.add("--configFile");
         args.add(CONFIG_FILE_PATH);
         for (final String be : baseDNs)
