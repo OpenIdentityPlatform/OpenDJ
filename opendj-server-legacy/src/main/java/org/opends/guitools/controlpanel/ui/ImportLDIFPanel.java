@@ -45,7 +45,6 @@ import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -835,7 +834,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       args.add("--hostName");
       args.add(getInfo().getServerDescriptor().getHostname());
       args.add("--port");
-      args.add(String.valueOf(ConnectionUtils.getPort(getInfo().getConnection().getLdapContext())));
+      args.add(String.valueOf(getInfo().getConnection().getHostPort().getPort()));
       for (DN baseDN : replicatedBaseDNs)
       {
         args.add("--baseDN");

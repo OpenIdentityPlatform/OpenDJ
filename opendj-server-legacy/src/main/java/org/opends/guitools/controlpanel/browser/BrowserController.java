@@ -49,6 +49,7 @@ import javax.swing.tree.TreePath;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowserEvent;
@@ -65,7 +66,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
 
-import static org.opends.admin.ads.util.ConnectionUtils.getPort;
+import static org.opends.admin.ads.util.ConnectionUtils.isSSL;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -113,6 +114,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private int displayFlags;
   private String displayAttribute;
   private final boolean showAttributeName;
+  private ConnectionWrapper connConfig;
   private InitialLdapContext ctxConfiguration;
   private InitialLdapContext ctxUserData;
   private boolean followReferrals;
@@ -189,17 +191,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public void setConnections(
       ServerDescriptor server,
-      InitialLdapContext ctxConfiguration,
+      ConnectionWrapper ctxConfiguration,
       InitialLdapContext ctxUserData) throws NamingException {
     String rootNodeName;
     if (ctxConfiguration != null)
     {
-      this.ctxConfiguration = ctxConfiguration;
+      this.connConfig = ctxConfiguration;
+      this.ctxConfiguration = connConfig.getLdapContext();
       this.ctxUserData = ctxUserData;
 
       this.ctxConfiguration.setRequestControls(getConfigurationRequestControls());
       this.ctxUserData.setRequestControls(getRequestControls());
-      rootNodeName = new HostPort(server.getHostname(), getPort(ctxConfiguration)).toString();
+      rootNodeName = new HostPort(server.getHostname(), connConfig.getHostPort().getPort()).toString();
     }
     else {
       rootNodeName = "";
@@ -1044,7 +1047,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   LDAPURL findUrlForLocalEntry(BasicNode node) {
     if (node == rootNode) {
-      return LDAPConnectionPool.makeLDAPUrl(ctxConfiguration, "");
+      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", isSSL(ctxConfiguration));
     }
     final BasicNode parent = (BasicNode) node.getParent();
     if (parent != null)
@@ -1052,7 +1055,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       final LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
       return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN());
     }
-    return LDAPConnectionPool.makeLDAPUrl(ctxConfiguration, node.getDN());
+    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), isSSL(ctxConfiguration));
   }
 
 

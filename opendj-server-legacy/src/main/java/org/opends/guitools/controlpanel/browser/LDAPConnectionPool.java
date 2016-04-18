@@ -24,13 +24,13 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
-import org.forgerock.opendj.ldap.SearchScope;
 
 import com.forgerock.opendj.cli.CliConstants;
 
@@ -478,19 +478,20 @@ public class LDAPConnectionPool {
   }
 
   private LDAPURL makeLDAPUrl(InitialLdapContext ctx) {
-    return makeLDAPUrl(ctx, "");
+    return makeLDAPUrl(ConnectionUtils.getHostPort(ctx), "", isSSL(ctx));
   }
 
   /**
    * Make an url from the specified arguments.
-   * @param ctx the connection to the server.
+   * @param hostPort the host name and port of the server.
    * @param dn the base DN of the URL.
+   * @param isSSL whether the connection uses SSL
    * @return an LDAP URL from the specified arguments.
    */
-  public static LDAPURL makeLDAPUrl(InitialLdapContext ctx, String dn) {
-    HostPort hostPort = ConnectionUtils.getHostPort(ctx);
+  public static LDAPURL makeLDAPUrl(HostPort hostPort, String dn, boolean isSSL)
+  {
     return new LDAPURL(
-        isSSL(ctx) ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
+        isSSL ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
                hostPort.getHost(),
                hostPort.getPort(),
                dn,

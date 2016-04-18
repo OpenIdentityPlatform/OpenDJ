@@ -5367,8 +5367,8 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
 
-    addToSets(serverDesc1, uData.getServer1(), ctx1.getLdapContext(), twoReplServers, usedReplicationServerIds);
-    addToSets(serverDesc2, uData.getServer2(), ctx2.getLdapContext(), twoReplServers, usedReplicationServerIds);
+    addToSets(serverDesc1, uData.getServer1(), ctx1, twoReplServers, usedReplicationServerIds);
+    addToSets(serverDesc2, uData.getServer2(), ctx2, twoReplServers, usedReplicationServerIds);
 
     for (String baseDN : uData.getBaseDNs())
     {
@@ -5494,7 +5494,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void addToSets(ServerDescriptor serverDesc, EnableReplicationServerData serverData, InitialLdapContext ctx,
+  private void addToSets(ServerDescriptor serverDesc, EnableReplicationServerData serverData, ConnectionWrapper conn,
       final Set<String> twoReplServers, final Set<Integer> usedReplicationServerIds)
   {
     if (serverDesc.isReplicationServer())
@@ -5504,7 +5504,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else if (serverData.configureReplicationServer())
     {
-      twoReplServers.add(getReplicationServer(getHostName(ctx), serverData.getReplicationPort()));
+      twoReplServers.add(getReplicationServer(conn.getHostPort().getHost(), serverData.getReplicationPort()));
     }
   }
 
@@ -9091,7 +9091,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Collection<ReplicaDescriptor> replicas = getReplicas(ctxDomain.getLdapContext());
     int replicationPort = getReplicationPort(ctxOther);
     boolean isReplicationServerConfigured = replicationPort != -1;
-    String replicationServer = getReplicationServer(getHostName(ctxOther.getLdapContext()), replicationPort);
+    String replicationServer = getReplicationServer(ctxOther.getHostPort().getHost(), replicationPort);
     for (ReplicaDescriptor replica : replicas)
     {
       if (!isReplicationServerConfigured)
@@ -9128,11 +9128,11 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     int replicationPort1 = getReplicationPort(ctx1);
     boolean isReplicationServer1Configured = replicationPort1 != -1;
-    String replicationServer1 = getReplicationServer(getHostName(ctx1.getLdapContext()), replicationPort1);
+    String replicationServer1 = getReplicationServer(ctx1.getHostPort().getHost(), replicationPort1);
 
     int replicationPort2 = getReplicationPort(ctx2);
     boolean isReplicationServer2Configured = replicationPort2 != -1;
-    String replicationServer2 = getReplicationServer(getHostName(ctx2.getLdapContext()), replicationPort2);
+    String replicationServer2 = getReplicationServer(ctx2.getHostPort().getHost(), replicationPort2);
 
     TopologyCache cache1 = isReplicationServer1Configured ? createTopologyCache(ctx1) : null;
     TopologyCache cache2 = isReplicationServer2Configured ? createTopologyCache(ctx2) : null;

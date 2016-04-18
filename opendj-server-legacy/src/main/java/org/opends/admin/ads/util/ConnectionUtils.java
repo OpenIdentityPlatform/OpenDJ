@@ -398,17 +398,6 @@ public class ConnectionUtils
   }
 
   /**
-   * Returns the port number used in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return the port number used in the provided InitialLdapContext.
-   */
-  public static int getPort(InitialLdapContext ctx)
-  {
-    HostPort hp = getHostPort(ctx);
-    return hp != null ? hp.getPort() : -1;
-  }
-
-  /**
    * Returns the host port representation of the server to which this
    * context is connected.
    * @param ctx the context to analyze.

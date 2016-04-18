@@ -301,7 +301,7 @@ public class ControlPanelInfo
       InitialLdapContext ctx = connWrapper.getLdapContext();
       lastWorkingBindDN = ConnectionUtils.getBindDN(ctx);
       lastWorkingBindPwd = ConnectionUtils.getBindPassword(ctx);
-      lastRemoteHostName = ConnectionUtils.getHostName(ctx);
+      lastRemoteHostName = connWrapper.getHostPort().getHost();
       lastRemoteAdministrationURL = ConnectionUtils.getLdapUrl(ctx);
     }
   }
@@ -1190,7 +1190,7 @@ public class ControlPanelInfo
 
     if (getConnection() != null)
     {
-      adminPort2 = ConnectionUtils.getPort(getConnection().getLdapContext());
+      adminPort2 = getConnection().getHostPort().getPort();
     }
     return adminPort1 == adminPort2;
   }

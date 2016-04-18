@@ -70,6 +70,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -94,8 +96,6 @@ import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchFilter;
@@ -1214,9 +1214,9 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
               {
                 try
                 {
+                  ControlPanelInfo info = getInfo();
                   controller.setConnections(
-                      getInfo().getServerDescriptor(), getInfo().getConnection().getLdapContext(),
-                      getInfo().getUserDataDirContext());
+                      info.getServerDescriptor(), info.getConnection(), info.getUserDataDirContext());
                   applyButtonClicked();
                 }
                 catch (NamingException ne)
