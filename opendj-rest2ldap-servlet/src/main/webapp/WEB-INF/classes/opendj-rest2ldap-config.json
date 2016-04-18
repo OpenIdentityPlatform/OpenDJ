@@ -70,7 +70,7 @@
         }
     },
 
-    "authorization": { 
+    "authorization": {
 		// The authorization policies to use. Supported policies are "anonymous", "basic" and "oauth2".
         "policies": [ "basic" ],
 
@@ -114,7 +114,7 @@
 
 				// Authentication identity template containing a single %s which will be replaced by the authenticating
                 // user's name. (i.e: u:%s)
-				"authcIdTemplate": "u:%s"
+				"authzIdTemplate": "u:%s"
 			},
 			
 			// Bind to the LDAP server using the resulting DN of a search request. 
@@ -134,7 +134,108 @@
                 "filterTemplate" : "(&(uid=%s)(objectClass=inetOrgPerson))"
 			}
 			// TODO: support for HTTP sessions?
-		}
+		},
+
+        // Use OAuth2 authorization method. If used, LDAP requests will be performed with proxied authorization control.
+        // This field is optional.
+        "oauth2": {
+			// Access tokens associated realm.
+			// This attribute is optional and has a string syntax.
+			"realm": "myrealm",
+
+            // Defines the list of required scopes required to access the service.
+            // This field is required and cannot be empty.
+            "requiredScopes": [ "read", "write", "uid" ],
+
+			// Specify the resolver to use to resolve OAuth2 access token.
+			// This attribute is required and its value must be one of "openam", "rfc7662", "cts".
+			// Note that the JSON object corresponding to this attribute value must be present
+			// and well formed in the "oauth2" JSON attribute.
+			"resolver": "openam",
+
+            // The default authzIdTemplate demonstrates how an authorization DN may be constructed
+			// from the "uid" field in the following example OAuth2 token introspection response:
+            // {
+            //     "token": "access_token_string",
+            //     "uid" : "user.2",
+			//     "userName" : [ "user.2" ]
+            // }
+			// This attribute is required and has a string syntax.
+			// It must start with either 'dn:' or 'u:'.
+			// Note: For the CTS resolver, the following placeholder "{userName/0}" must be part of the template string,
+			//       e.g "authzIdTemplate": "dn:uid={userName/0},ou=People,dc=example,dc=com"
+            "authzIdTemplate": "dn:uid={uid},ou=People,dc=example,dc=com",
+
+            // Configures caching of access token introspection results.
+            // This attribute is optional, if it is not present, no token caching will be performed.
+            "accessTokenCache": {
+                // Indicates whether the access token caching should be used.
+                // This attribute is optional (default value is false) and must have a boolean syntax.
+                "enabled": false,
+
+                // Specifies the maximal caching duration for an access token.
+                // Once this delay is over, token will be refreshed from an access token resolver (see "oauth2/resolver")
+                // This attribute is optional, its default value is "5 minutes".
+                // The duration syntax supports all human readable notations from day ("days", "day", "d")
+                // to nanosecond ("nanoseconds", "nanosecond", "nanosec", "nanos", "nano", "ns")
+                // Any negative or zero values are incorrect.
+                "cacheExpiration": "5 minutes"
+            },
+
+            // The OpenAM access token resolver configuration.
+            // This attribute must be present if the "oauth2/resolver" is equal to "openam".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            "openam": {
+                // Defines the OpenAM endpoint URL where the request should be sent.
+                // This attribute is required and must have a string syntax.
+                "endpointURL": "http://openam.example.com:8080/openam/oauth2/tokeninfo"
+            },
+
+            // The RFC-7662 (see https://tools.ietf.org/html/rfc7662) access token resolver configuration.
+            // This attribute must be present if the "oauth2/resolver" is equal to "rfc7662".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            "rfc7662": {
+                // Defines the token introspection endpoint URL where the request should be sent.
+                // This attribute is required and must have a string syntax.
+                "endpointURL": "http:/example.com/introspect",
+
+				// Token introspect endpoint requires authentication.
+				// It should support HTTP basic authorization (a base64-encoded string of clientId:clientSecret)
+				// These attributes are mandatory.
+				"clientId": "client_id",
+				"clientSecret": "client_secret"
+            },
+
+            // The CTS access token resolver.
+            // This attribute must be present if the "oauth2/resolver" is equal to "cts".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+			// Note: You can use {userName/0} in authzIdTemplate configuration to access
+			//       user id from the default CTS access token content config.
+            "cts": {
+				// The connection factory to use to access CTS.
+				// This value is only used in gateway mode.
+				// This attribute must reference a connection factory defined in the "ldapConnectionFactories" section.
+				// Default value: "root" (i.e the root connection factory will be used to access the CTS).
+				"ldapConnectionFactory": "cts",
+
+                // The access token base DN.
+                // This attribute is required and must have a string syntax.
+                "baseDN": "ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com"
+            },
+
+            // ONLY FOR TEST PURPOSE: A File based access token resolver
+            // This attribute must be present if the "oauth2/resolver" is equal to "file".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            "file": {
+                // Directory containing token files.
+                // You can test the rest2ldap OAuth2 authorization support by providing some json token files under
+                // the directory set in the configuration below.
+                // File names must be equal to the token strings.
+				// The file content must a JSON object with the following attributes:
+				// 'scope', 'expireTime' and all the field(s) needed to resolve the authzIdTemplate.
+                "folderPath": "/path/to/test/folder"
+            }
+        }
     },
 
 

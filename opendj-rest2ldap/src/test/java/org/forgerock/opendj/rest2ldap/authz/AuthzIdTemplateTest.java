@@ -20,7 +20,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.json.JsonValue;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -35,46 +35,47 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
     @DataProvider
     public Object[][] templateData() {
         // @formatter:off
+        // [template as set in json configuration file]
+        // [excepted result after placeholders resolution]
+        // [Values to use to resolve the placeholders]
         return new Object[][] {
             {
                 "dn:uid={uid},ou={realm},dc=example,dc=com",
-                "dn:uid=test.user,ou=acme,dc=example,dc=com",
+                "uid=test.user,ou=acme,dc=example,dc=com",
                 map("uid", "test.user", "realm", "acme")
             },
             {
                 // Should perform DN quoting.
                 "dn:uid={uid},ou={realm},dc=example,dc=com",
-                "dn:uid=test.user,ou=test\\+cn=quoting,dc=example,dc=com",
+                "uid=test.user,ou=test\\+cn=quoting,dc=example,dc=com",
                 map("uid", "test.user", "realm", "test+cn=quoting")
             },
             {
-                // Should not perform DN quoting.
-                "dn:{dn}",
-                "dn:uid=test.user,ou=acme,dc=example,dc=com",
-                map("dn", "uid=test.user,ou=acme,dc=example,dc=com")
-            },
-            {
                 "u:{uid}@{realm}.example.com",
-                "u:test.user@acme.example.com",
+                "test.user@acme.example.com",
                 map("uid", "test.user", "realm", "acme")
             },
             {
                 // Should not perform any DN quoting.
                 "u:{uid}@{realm}.example.com",
-                "u:test.user@test+cn=quoting.example.com",
+                "test.user@test+cn=quoting.example.com",
                 map("uid", "test.user", "realm", "test+cn=quoting")
             },
+            {
+                // Should resolve boolean and numbers
+                "u:{uid}.{numericid}.{testboolean}@{realm}.example.com",
+                "test.42.true@test.example.com",
+                map("uid", "test", "numericid", 42, "testboolean", true, "realm", "test")
+            }
         };
         // @formatter:on
 
     }
 
     @Test(dataProvider = "templateData")
-    public void testTemplates(final String template, final String expected,
-            Map<String, Object> principals) throws Exception {
-        assertThat(
-                new AuthzIdTemplate(template)
-                        .formatAsAuthzId(principals, Schema.getDefaultSchema()))
+    public void testTemplates(final String template, final String expected, Map<String, Object> principals)
+            throws Exception {
+        assertThat(new AuthzIdTemplate(template).formatAsAuthzId(new JsonValue(principals)))
                 .isEqualTo(expected);
     }
 
@@ -103,7 +104,7 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
     @Test(dataProvider = "invalidTemplateData", expectedExceptions = IllegalArgumentException.class)
     public void testInvalidTemplateData(final String template, Map<String, Object> principals)
             throws Exception {
-        new AuthzIdTemplate(template).formatAsAuthzId(principals, Schema.getDefaultSchema());
+        new AuthzIdTemplate(template).formatAsAuthzId(new JsonValue(principals));
     }
 
     @DataProvider
@@ -122,10 +123,10 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
         new AuthzIdTemplate(template);
     }
 
-    private Map<String, Object> map(String... keyValues) {
+    private Map<String, Object> map(Object... keyValues) {
         Map<String, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < keyValues.length; i += 2) {
-            map.put(keyValues[i], keyValues[i + 1]);
+            map.put(keyValues[i].toString(), keyValues[i + 1]);
         }
         return map;
     }

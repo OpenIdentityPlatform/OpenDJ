@@ -15,15 +15,19 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.util.Utils.joinAsString;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.services.context.SecurityContext;
 
 /**
  * An authorization ID template used for mapping security context principals to
@@ -32,56 +36,77 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * <code>u:{uid}@{realm}.example.com</code>.
  */
 final class AuthzIdTemplate {
-    private static interface Impl {
-        String formatAsAuthzId(AuthzIdTemplate t, Object[] templateVariables, Schema schema);
+
+    private interface Impl {
+        String formatAsAuthzId(AuthzIdTemplate t, Object[] templateVariables);
     }
 
-    private static final Impl DN_IMPL = new Impl() {
-
-        @Override
-        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
-                final Schema schema) {
-            final String authzId = String.format(Locale.ENGLISH, t.formatString, templateVariables);
-            try {
-                // Validate the DN.
-                DN.valueOf(authzId.substring(3), schema);
-            } catch (final IllegalArgumentException e) {
-                throw new IllegalArgumentException(
-                        "The request could not be authorized because the required security principal "
-                        + "was not a valid LDAP DN");
-            }
-            return authzId;
-        }
-    };
-
-    private static final Pattern DN_PATTERN = Pattern.compile("^dn:\\{[^}]+\\}$");
-
     private static final Impl DN_TEMPLATE_IMPL = new Impl() {
-
         @Override
-        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
-                final Schema schema) {
-            return "dn:" + DN.format(t.dnFormatString, schema, templateVariables);
+        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables) {
+            // We're not interested in matching and place-holder attribute types can be tolerated,
+            // so we can just use the core schema.
+            return DN.format(t.formatString, Schema.getCoreSchema(), templateVariables).toString();
         }
-
     };
-
-    private static final Pattern KEY_RE = Pattern.compile("\\{([^}]+)\\}");
 
     private static final Impl UID_TEMPLATE_IMPL = new Impl() {
-
         @Override
-        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
-                final Schema schema) {
+        public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables) {
             return String.format(Locale.ENGLISH, t.formatString, templateVariables);
         }
-
     };
 
-    private final String dnFormatString;
+    private static final Pattern TEMPLATE_KEY_RE = Pattern.compile("\\{([^}]+)\\}");
+
+    private enum TemplateType {
+        DN ("dn:", SecurityContext.AUTHZID_DN, DN_TEMPLATE_IMPL),
+        UID ("u:", SecurityContext.AUTHZID_ID, UID_TEMPLATE_IMPL);
+
+        private final String key;
+        private final String securityContextId;
+        private final Impl impl;
+
+        TemplateType(final String key, final String securityContextId, final Impl impl) {
+            this.key = key;
+            this.securityContextId = securityContextId;
+            this.impl = impl;
+        }
+
+        private String getSecurityContextId() {
+            return securityContextId;
+        }
+
+        private Impl getImpl() {
+            return impl;
+        }
+
+        private static TemplateType parseTemplateType(final String template) {
+            for (final TemplateType type : TemplateType.values()) {
+                if (template.startsWith(type.key)) {
+                    return type;
+                }
+            }
+            throw new IllegalArgumentException("Invalid authorization ID template: '" + template + "'. Templates must "
+                       + "start with one of the following elements: " + joinAsString(",", getSupportedStartKeys()));
+        }
+
+        private static List<String> getSupportedStartKeys() {
+            final List<String> startKeys = new ArrayList<>();
+            for (final TemplateType type : TemplateType.values()) {
+                startKeys.add(type.key);
+            }
+            return startKeys;
+        }
+
+        private String removeTemplateKey(final String formattedString) {
+            return formattedString.substring(key.length()).trim();
+        }
+    }
+
+    private final TemplateType type;
     private final String formatString;
     private final List<String> keys = new ArrayList<>();
-    private final Impl pimpl;
     private final String template;
 
     /**
@@ -92,29 +117,22 @@ final class AuthzIdTemplate {
      * @throws IllegalArgumentException
      *             if template doesn't start with "u:" or "dn:"
      */
-    public AuthzIdTemplate(final String template) {
-        if (!template.startsWith("u:") && !template.startsWith("dn:")) {
-            throw new IllegalArgumentException("Invalid authorization ID template: " + template);
-        }
+    AuthzIdTemplate(final String template) {
+        this.type = TemplateType.parseTemplateType(template);
+        this.formatString = formatTemplate(template);
+        this.template = template;
+    }
 
+    private String formatTemplate(final String template) {
         // Parse the template keys and replace them with %s for formatting.
-        final Matcher matcher = KEY_RE.matcher(template);
+        final Matcher matcher = TEMPLATE_KEY_RE.matcher(template);
         final StringBuffer buffer = new StringBuffer(template.length());
         while (matcher.find()) {
             matcher.appendReplacement(buffer, "%s");
             keys.add(matcher.group(1));
         }
         matcher.appendTail(buffer);
-        this.formatString = buffer.toString();
-        this.template = template;
-
-        if (template.startsWith("dn:")) {
-            this.pimpl = DN_PATTERN.matcher(template).matches() ? DN_IMPL : DN_TEMPLATE_IMPL;
-            this.dnFormatString = formatString.substring(3);
-        } else {
-            this.pimpl = UID_TEMPLATE_IMPL;
-            this.dnFormatString = null;
-        }
+        return type.removeTemplateKey(buffer.toString());
     }
 
     @Override
@@ -122,41 +140,45 @@ final class AuthzIdTemplate {
         return template;
     }
 
+    String getSecurityContextID() {
+        return this.type.getSecurityContextId();
+    }
+
     /**
      * Return the template with all the variable replaced.
      *
      * @param principals
      *            Value to use to replace the variables.
-     * @param schema
-     *            Schema to perform validation.
      * @return The template with all the variable replaced.
      */
-    public String formatAsAuthzId(final Map<String, Object> principals, final Schema schema) {
+    String formatAsAuthzId(final JsonValue principals) {
         final String[] templateVariables = getPrincipalsForFormatting(principals);
-        return pimpl.formatAsAuthzId(this, templateVariables, schema);
+        return type.getImpl().formatAsAuthzId(this, templateVariables);
     }
 
-    private String[] getPrincipalsForFormatting(final Map<String, Object> principals) {
+    private String[] getPrincipalsForFormatting(final JsonValue principals) {
         final String[] values = new String[keys.size()];
         for (int i = 0; i < values.length; i++) {
             final String key = keys.get(i);
-            final Object value = principals.get(key);
-            if (isJSONPrimitive(value)) {
-                values[i] = String.valueOf(value);
-            } else if (value != null) {
-                throw new IllegalArgumentException(String.format(
-                        "The request could not be authorized because the required "
-                                + "security principal '%s' had an invalid data type", key));
-            } else {
+            final JsonValue value = principals.get(new JsonPointer(key));
+            if (value == null) {
                 throw new IllegalArgumentException(String.format(
                         "The request could not be authorized because the required "
                                 + "security principal '%s' could not be determined", key));
             }
+
+            final Object object = value.getObject();
+            if (!isJSONPrimitive(object)) {
+                throw new IllegalArgumentException(String.format(
+                        "The request could not be authorized because the required "
+                                + "security principal '%s' had an invalid data type", key));
+            }
+            values[i] = String.valueOf(object);
         }
         return values;
     }
 
-    static boolean isJSONPrimitive(final Object value) {
+    private boolean isJSONPrimitive(final Object value) {
         return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 }

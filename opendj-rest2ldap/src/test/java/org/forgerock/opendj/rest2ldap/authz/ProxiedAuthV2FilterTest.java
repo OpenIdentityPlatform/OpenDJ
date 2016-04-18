@@ -78,7 +78,7 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
     }
 
     @Test
-    public void testConnectionIsUsingProxiedAuthControlOnRequests() throws LdapException {
+    public void testConnectionIsUsingProxiedAuthControlOnRequests() throws Exception {
         final ConnectionFactory connectionFactory = mock(ConnectionFactory.class);
         when(connectionFactory.getConnectionAsync())
                 .thenReturn(Promises.<Connection, LdapException> newResultPromise(new CheckConnection() {

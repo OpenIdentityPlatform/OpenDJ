@@ -34,6 +34,7 @@
             org.forgerock.opendj.*;provide:=true,
             org.forgerock.json.*;provide:=true
         </opendj.osgi.import.additional>
+        <openig.version>5.0.0-SNAPSHOT</openig.version>
     </properties>
 
 
@@ -51,6 +52,22 @@
         <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource-http</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.commons</groupId>
+            <artifactId>forgerock-util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.openig</groupId>
+            <artifactId>openig-oauth2-resource-server-filter</artifactId>
+            <version>${openig.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.http</groupId>
+            <artifactId>chf-client-apache-async</artifactId>
         </dependency>
 
         <dependency>

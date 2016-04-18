@@ -11,15 +11,18 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.json.JsonValue.json;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.http.util.Json;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.ResourceResponse;
@@ -87,6 +90,28 @@ public final class TestUtils {
             result.add(new JsonPointer(field));
         }
         return result;
+    }
+
+    /**
+     * Return {@link JsonValue} corresponding to the provided json blob.
+     *
+     * @param jsonStr
+     *          JSON blob.
+     * @return A {@link JsonValue} corresponding to the provided json blob.
+     */
+    public static JsonValue parseJson(final String jsonStr) throws IOException {
+        return new JsonValue(Json.readJsonLenient(new StringReader(toValidJson(jsonStr))));
+    }
+
+    /**
+     * Allows usage of single quote character in json string used in unit tests.
+     *
+     * @param jsonStr
+     *          The json string to convert to valid json.
+     * @return A Json compliant string.
+     */
+    public static String toValidJson(final String jsonStr) {
+        return jsonStr.replace("'", "\"");
     }
 
     private TestUtils() {

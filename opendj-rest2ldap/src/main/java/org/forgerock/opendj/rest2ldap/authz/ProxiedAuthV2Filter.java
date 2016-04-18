@@ -71,12 +71,10 @@ final class ProxiedAuthV2Filter implements Filter {
      *
      * @param connectionFactory
      *            Factory used to get the {@link Connection}
-     * @param authzIdProvider
-     *            Function in charge of providing the authzid to use for the ProxiedAuth control
      * @throws NullPointerException
      *             If a parameter is null
      */
-    public ProxiedAuthV2Filter(final ConnectionFactory connectionFactory) {
+    ProxiedAuthV2Filter(final ConnectionFactory connectionFactory) {
         this.connectionFactory = checkNotNull(connectionFactory, "connectionFactory cannot be null");
     }
 
