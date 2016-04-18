@@ -12,7 +12,7 @@
  ! Header, with the fields enclosed by brackets [] replaced by your own identifying
  ! information: "Portions Copyright [year] [name of copyright owner]".
  !
- ! Copyright 2013-2015 ForgeRock AS.
+ ! Copyright 2013-2016 ForgeRock AS.
  ! -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" Codepage="1252" Language="1033" Manufacturer="ForgeRock"
@@ -51,8 +51,8 @@
       <UIRef Id="WixUI_InstallDir"/>
       <UIRef Id="WixUI_ErrorProgressText"/>
       <!-- Don't show the license agreement in the install, just in setup -->
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">1</Publish>
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Order="2" Value="WelcomeDlg">1</Publish>
     </UI>
   </Product>
 </Wix>
