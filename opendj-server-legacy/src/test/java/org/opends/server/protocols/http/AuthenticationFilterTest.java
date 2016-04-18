@@ -15,7 +15,6 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.mockito.Mockito.mock;
 import static org.opends.server.protocols.http.AuthenticationFilter.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -26,7 +25,6 @@ import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.json.resource.ResourceException;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.core.ServerContext;
 import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;

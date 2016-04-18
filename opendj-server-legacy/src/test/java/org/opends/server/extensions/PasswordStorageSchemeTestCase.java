@@ -30,7 +30,6 @@ import org.opends.server.core.PasswordPolicy;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

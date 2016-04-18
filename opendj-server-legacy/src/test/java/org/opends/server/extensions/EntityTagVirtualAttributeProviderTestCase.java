@@ -40,8 +40,6 @@ import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.ConflictB
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.Scope;
 import org.forgerock.opendj.server.config.server.EntityTagVirtualAttributeCfg;
 import org.forgerock.opendj.server.config.server.VirtualAttributeCfg;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.DirectoryServer;
