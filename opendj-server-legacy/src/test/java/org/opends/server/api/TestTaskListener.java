@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -20,11 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.BackupConfig;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.RestoreConfig;
-
-
 
 /**
  * This class provides a very simple implementation of an import, export,
@@ -45,11 +43,7 @@ public class TestTaskListener
   public static final AtomicInteger restoreBeginCount = new AtomicInteger(0);
   public static final AtomicInteger restoreEndCount   = new AtomicInteger(0);
 
-
-
-  /**
-   * Registers the task listeners with the Directory Server.
-   */
+  /** Registers the task listeners with the Directory Server. */
   public static void registerListeners()
   {
     DirectoryServer.registerBackupTaskListener(instance);
@@ -58,11 +52,7 @@ public class TestTaskListener
     DirectoryServer.registerImportTaskListener(instance);
   }
 
-
-
-  /**
-   * Deregisters the task listeners with the Directory Server.
-   */
+  /** Deregisters the task listeners with the Directory Server. */
   public static void deregisterListeners()
   {
     DirectoryServer.deregisterBackupTaskListener(instance);
@@ -71,72 +61,51 @@ public class TestTaskListener
     DirectoryServer.deregisterImportTaskListener(instance);
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processBackupBegin(Backend backend, BackupConfig config)
+  @Override
+  public void processBackupBegin(Backend<?> backend, BackupConfig config)
   {
     backupBeginCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processBackupEnd(Backend backend, BackupConfig config,
-                               boolean successful)
+  @Override
+  public void processBackupEnd(Backend<?> backend, BackupConfig config, boolean successful)
   {
     backupEndCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processRestoreBegin(Backend backend, RestoreConfig config)
+  @Override
+  public void processRestoreBegin(Backend<?> backend, RestoreConfig config)
   {
     restoreBeginCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processRestoreEnd(Backend backend, RestoreConfig config,
-                                boolean successful)
+  @Override
+  public void processRestoreEnd(Backend<?> backend, RestoreConfig config, boolean successful)
   {
     restoreEndCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processExportBegin(Backend backend, LDIFExportConfig config)
+  @Override
+  public void processExportBegin(Backend<?> backend, LDIFExportConfig config)
   {
     exportBeginCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processExportEnd(Backend backend, LDIFExportConfig config,
-                               boolean successful)
+  @Override
+  public void processExportEnd(Backend<?> backend, LDIFExportConfig config, boolean successful)
   {
     exportEndCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processImportBegin(Backend backend, LDIFImportConfig config)
+  @Override
+  public void processImportBegin(Backend<?> backend, LDIFImportConfig config)
   {
     importBeginCount.incrementAndGet();
   }
 
-
-
-  /** {@inheritDoc} */
-  public void processImportEnd(Backend backend, LDIFImportConfig config,
-                               boolean successful)
+  @Override
+  public void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful)
   {
     importEndCount.incrementAndGet();
   }
 }
-

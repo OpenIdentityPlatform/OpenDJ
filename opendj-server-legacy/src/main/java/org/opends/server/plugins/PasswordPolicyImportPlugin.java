@@ -59,7 +59,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SubEntry;
 import org.opends.server.util.SchemaUtils;
-import org.opends.server.util.SchemaUtils.PasswordType;
 
 /**
  * This class implements a Directory Server plugin that performs various
@@ -222,7 +221,7 @@ public final class PasswordPolicyImportPlugin
   }
 
   @Override
-  public void processImportBegin(Backend backend, LDIFImportConfig config)
+  public void processImportBegin(Backend<?> backend, LDIFImportConfig config)
   {
     // Find the set of attribute types with the auth password and user password
     // syntax defined in the schema.
@@ -230,14 +229,15 @@ public final class PasswordPolicyImportPlugin
     HashSet<AttributeType> userPWTypes = new HashSet<>();
     for (AttributeType t : DirectoryServer.getAttributeTypes())
     {
-      final PasswordType passwordType = SchemaUtils.checkPasswordType(t);
-      if (passwordType.equals(PasswordType.AUTH_PASSWORD))
+      switch (SchemaUtils.checkPasswordType(t))
       {
+      case AUTH_PASSWORD:
         authPWTypes.add(t);
-      }
-      else if (passwordType.equals(PasswordType.USER_PASSWORD))
-      {
+        break;
+
+      case USER_PASSWORD:
         userPWTypes.add(t);
+        break;
       }
     }
 
@@ -269,8 +269,7 @@ public final class PasswordPolicyImportPlugin
   }
 
   @Override
-  public void processImportEnd(Backend backend, LDIFImportConfig config,
-                               boolean successful)
+  public void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful)
   {
     // No implementation is required.
   }

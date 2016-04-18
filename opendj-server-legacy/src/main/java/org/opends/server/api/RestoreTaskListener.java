@@ -12,15 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
-
-
 import org.opends.server.types.RestoreConfig;
-
-
 
 /**
  * This interface defines a set of methods that may be used to notify
@@ -46,10 +42,7 @@ public interface RestoreTaskListener
    * @param  config   Configuration information about the restore to
    *                  be performed.
    */
-  void processRestoreBegin(Backend backend,
-                                  RestoreConfig config);
-
-
+  void processRestoreBegin(Backend<?> backend, RestoreConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -63,7 +56,5 @@ public interface RestoreTaskListener
    * @param  successful  Indicates whether the restore operation
    *                     completed successfully.
    */
-  void processRestoreEnd(Backend backend, RestoreConfig config,
-                                boolean successful);
+  void processRestoreEnd(Backend<?> backend, RestoreConfig config, boolean successful);
 }
-

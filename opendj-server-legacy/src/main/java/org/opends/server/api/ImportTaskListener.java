@@ -12,15 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
-
-
 import org.opends.server.types.LDIFImportConfig;
-
-
 
 /**
  * This interface defines a set of methods that may be used to notify
@@ -46,10 +42,7 @@ public interface ImportTaskListener
    * @param  config   Configuration information about the LDIF import
    *                  to be performed.
    */
-  void processImportBegin(Backend backend,
-                                 LDIFImportConfig config);
-
-
+  void processImportBegin(Backend<?> backend, LDIFImportConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -63,8 +56,5 @@ public interface ImportTaskListener
    * @param  successful  Indicates whether the import operation
    *                     completed successfully.
    */
-  void processImportEnd(Backend backend,
-                               LDIFImportConfig config,
-                               boolean successful);
+  void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful);
 }
-

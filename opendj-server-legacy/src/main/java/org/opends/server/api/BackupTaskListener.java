@@ -12,15 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
-
-
 import org.opends.server.types.BackupConfig;
-
-
 
 /**
  * This interface defines a set of methods that may be used to notify
@@ -47,10 +43,7 @@ public interface BackupTaskListener
    * @param  config   Configuration information about the backup to be
    *                  performed.
    */
-  void processBackupBegin(Backend backend,
-                                 BackupConfig config);
-
-
+  void processBackupBegin(Backend<?> backend, BackupConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -64,7 +57,5 @@ public interface BackupTaskListener
    * @param  successful  Indicates whether the backup operation
    *                     completed successfully.
    */
-  void processBackupEnd(Backend backend, BackupConfig config,
-                               boolean successful);
+  void processBackupEnd(Backend<?> backend, BackupConfig config, boolean successful);
 }
-
