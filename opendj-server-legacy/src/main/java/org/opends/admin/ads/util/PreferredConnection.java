@@ -96,11 +96,12 @@ public class PreferredConnection
   /**
    * Commodity method that returns a PreferredConnection object with the
    * information on a given InitialLdapContext.
-   * @param ctx the connection we retrieve the information from.
+   * @param conn the connection we retrieve the information from.
    * @return a preferred connection object.
    */
-  public static PreferredConnection getPreferredConnection(InitialLdapContext ctx)
+  public static PreferredConnection getPreferredConnection(ConnectionWrapper conn)
   {
+    InitialLdapContext ctx = conn.getLdapContext();
     String ldapUrl = ConnectionUtils.getLdapUrl(ctx);
     PreferredConnection.Type type;
     if (ConnectionUtils.isStartTLS(ctx))
@@ -121,11 +122,11 @@ public class PreferredConnection
   /**
    * Commodity method that generates a list of preferred connection (of just
    * one) with the information on a given InitialLdapContext.
-   * @param ctx the connection we retrieve the information from.
+   * @param conn the connection we retrieve the information from.
    * @return a list containing the preferred connection object.
    */
-  public static Set<PreferredConnection> getPreferredConnections(InitialLdapContext ctx)
+  public static Set<PreferredConnection> getPreferredConnections(ConnectionWrapper conn)
   {
-    return Collections.singleton(getPreferredConnection(ctx));
+    return Collections.singleton(getPreferredConnection(conn));
   }
 }

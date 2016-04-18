@@ -100,8 +100,7 @@ public class ConnectionWrapper implements Closeable
     }
     catch (URISyntaxException e)
     {
-      // FIXME JNR
-      throw new NamingException(e.getLocalizedMessage());
+      throw new NamingException(e.getLocalizedMessage() + ". LDAP URL was: \"" + ldapUrl + "\"");
     }
   }
 

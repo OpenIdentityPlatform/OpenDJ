@@ -24,7 +24,6 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.admin.ads.util.PreferredConnection.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
@@ -3964,7 +3963,7 @@ public class Installer extends GuiApplication
     }
     lastLoadedCache = new TopologyCache(adsContext, trustManager, getConnectTimeout());
     // We cannot use getPreferredConnections since the user data has not been updated yet.
-    lastLoadedCache.setPreferredConnections(Collections.singleton(getPreferredConnection(adsContext.getDirContext())));
+    lastLoadedCache.setPreferredConnections(PreferredConnection.getPreferredConnections(adsContext.getConnection()));
     lastLoadedCache.reloadTopology();
     Set<SuffixDescriptor> suffixes = lastLoadedCache.getSuffixes();
     Set<SuffixDescriptor> moreSuffixes = null;
