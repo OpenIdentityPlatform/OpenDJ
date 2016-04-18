@@ -16,9 +16,9 @@
  */
 package org.opends.quicksetup.installer;
 
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
@@ -82,7 +82,6 @@ import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.quicksetup.ApplicationException;
@@ -1792,7 +1791,6 @@ public class Installer extends GuiApplication
    */
   private void unconfigureRemote()
   {
-    ConnectionWrapper connectionWrapper = null;
     if (registeredNewServerOnRemote || createdAdministrator || createdRemoteAds)
     {
       // Try to connect
@@ -1802,10 +1800,8 @@ public class Installer extends GuiApplication
       {
         notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_ADS_ON_REMOTE.get(auth.getHostPort())));
       }
-      try
+      try (ConnectionWrapper connectionWrapper = createConnection(auth))
       {
-        connectionWrapper = createConnection(auth);
-
         ADSContext adsContext = new ADSContext(connectionWrapper);
         if (createdRemoteAds)
         {
@@ -1844,28 +1840,19 @@ public class Installer extends GuiApplication
       {
         notifyListeners(getFormattedError(t, true));
       }
-      finally
-      {
-        StaticUtils.close(connectionWrapper);
-      }
     }
     InstallerHelper helper = new InstallerHelper();
     for (ServerDescriptor server : hmConfiguredRemoteReplication.keySet())
     {
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_REPLICATION_REMOTE.get(getHostPort(server))));
-      try
+      try (ConnectionWrapper connectionWrapper =
+          getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
       {
-        connectionWrapper = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
-        helper.unconfigureReplication(connectionWrapper, hmConfiguredRemoteReplication.get(server),
-            ConnectionUtils.getHostPort(connectionWrapper.getLdapContext()));
+        helper.unconfigureReplication(connectionWrapper, hmConfiguredRemoteReplication.get(server));
       }
       catch (ApplicationException ae)
       {
         notifyListeners(getFormattedError(ae, true));
-      }
-      finally
-      {
-        StaticUtils.close(connectionWrapper);
       }
       notifyListeners(getFormattedDoneWithLineBreak());
     }
@@ -1961,15 +1948,12 @@ public class Installer extends GuiApplication
   private void createReplicatedBackends(final Map<String, Set<String>> hmBackendSuffix,
       final Map<String, BackendTypeUIAdapter> backendTypes) throws ApplicationException
   {
-    ConnectionWrapper connection = null;
-    try
+    try (ConnectionWrapper connection = createLocalConnection())
     {
-      connection = createLocalConnection();
       final InstallerHelper helper = new InstallerHelper();
       for (String backendName : hmBackendSuffix.keySet())
       {
         helper.createBackend(connection, backendName, hmBackendSuffix.get(backendName),
-            ConnectionUtils.getHostPort(connection.getLdapContext()),
             backendTypes.get(backendName).getBackend());
       }
     }
@@ -1977,10 +1961,6 @@ public class Installer extends GuiApplication
     {
       LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
-    }
-    finally
-    {
-      StaticUtils.close(connection);
     }
   }
 
@@ -2081,30 +2061,24 @@ public class Installer extends GuiApplication
     replicationServers.put(ADSContext.getAdministrationSuffixDN(), adsServers);
     replicationServers.put(Constants.SCHEMA_DN, new HashSet<String>(adsServers));
 
-    ConnectionWrapper connWrapper = null;
     long localTime = -1;
     long localTimeMeasureTime = -1;
     HostPort localServerDisplay = null;
-    try
+    try (ConnectionWrapper conn = createLocalConnection())
     {
-      connWrapper = createLocalConnection();
-      helper.configureReplication(connWrapper, replicationServers,
+      helper.configureReplication(conn, replicationServers,
           getUserData().getReplicationOptions().getReplicationPort(),
           getUserData().getReplicationOptions().useSecureReplication(),
-          getUserData().getHostPort(),
-          knownReplicationServerIds, knownServerIds);
+          knownReplicationServerIds,
+          knownServerIds);
       localTimeMeasureTime = System.currentTimeMillis();
-      localTime = Utils.getServerClock(connWrapper.getLdapContext());
-      localServerDisplay = ConnectionUtils.getHostPort(connWrapper.getLdapContext());
+      localTime = Utils.getServerClock(conn.getLdapContext());
+      localServerDisplay = conn.getHostPort();
     }
     catch (NamingException ne)
     {
       LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
-    }
-    finally
-    {
-      StaticUtils.close(connWrapper);
     }
     notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
@@ -2185,25 +2159,25 @@ public class Installer extends GuiApplication
           }
         }
 
-        connWrapper = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
-        InitialLdapContext ctx = connWrapper.getLdapContext();
-        ConfiguredReplication repl =
-            helper.configureReplication(connWrapper, remoteReplicationServers, replicationPort, enableSecureReplication,
-                ConnectionUtils.getHostPort(ctx), knownReplicationServerIds, knownServerIds);
-        long remoteTimeMeasureTime = System.currentTimeMillis();
-        long remoteTime = Utils.getServerClock(ctx);
-        if (localTime != -1
-            && remoteTime != -1
-            && Math.abs(localTime - remoteTime - localTimeMeasureTime + remoteTimeMeasureTime) >
-               THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000)
+        try (ConnectionWrapper conn = getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
         {
-          notifyListeners(getFormattedWarning(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(localServerDisplay,
-              ConnectionUtils.getHostPort(ctx), THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
+          ConfiguredReplication repl = helper.configureReplication(
+              conn, remoteReplicationServers, replicationPort, enableSecureReplication,
+              knownReplicationServerIds, knownServerIds);
+          long remoteTimeMeasureTime = System.currentTimeMillis();
+          long remoteTime = Utils.getServerClock(conn.getLdapContext());
+          if (localTime != -1
+              && remoteTime != -1
+              && Math.abs(localTime - remoteTime - localTimeMeasureTime + remoteTimeMeasureTime) >
+          THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000)
+          {
+            notifyListeners(getFormattedWarning(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
+                localServerDisplay, conn.getHostPort(), THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
+          }
+
+          hmConfiguredRemoteReplication.put(server, repl);
         }
 
-        hmConfiguredRemoteReplication.put(server, repl);
-
-        StaticUtils.close(connWrapper);
         notifyListeners(getFormattedDoneWithLineBreak());
         checkAbort();
       }
@@ -2339,19 +2313,13 @@ public class Installer extends GuiApplication
    */
   private void writeHostName()
   {
-    BufferedWriter writer = null;
-    try
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(getHostNameFile(), false)))
     {
-      writer = new BufferedWriter(new FileWriter(getHostNameFile(), false));
       writer.append(getUserData().getHostName());
     }
     catch (IOException ioe)
     {
       logger.warn(LocalizableMessage.raw("Error writing host name file: " + ioe, ioe));
-    }
-    finally
-    {
-      StaticUtils.close(writer);
     }
   }
 
@@ -2509,10 +2477,8 @@ public class Installer extends GuiApplication
     /* Initialize local ADS and schema contents using any replica. */
     {
       ServerDescriptor server = suffixes.iterator().next().getReplicas().iterator().next().getServer();
-      ConnectionWrapper remoteConn = null;
-      try
+      try (ConnectionWrapper remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
       {
-        remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
         TopologyCacheFilter filter = new TopologyCacheFilter();
         filter.setSearchMonitoringInformation(false);
         filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
@@ -2543,10 +2509,6 @@ public class Installer extends GuiApplication
           msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(getHostPort(server), ne.toString(true));
         }
         throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
-      }
-      finally
-      {
-        StaticUtils.close(remoteConn);
       }
     }
 
@@ -2585,10 +2547,8 @@ public class Installer extends GuiApplication
         if (replicationId == -1)
         {
           // This occurs if the remote server had not replication configured.
-          ConnectionWrapper remoteConn = null;
-          try
+          try (ConnectionWrapper remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
           {
-            remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections());
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
             filter.addBaseDNToSearch(dn);
@@ -2613,10 +2573,6 @@ public class Installer extends GuiApplication
               msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(getHostPort(server), ne.toString(true));
             }
             throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
-          }
-          finally
-          {
-            StaticUtils.close(remoteConn);
           }
         }
         if (replicationId == -1)

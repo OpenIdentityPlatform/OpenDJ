@@ -62,6 +62,7 @@ public class ConnectionWrapper implements Closeable
   private final LDAPConnectionFactory connectionFactory;
   private final Connection connection;
   private final InitialLdapContext ldapContext;
+  private final HostPort hostPort;
   private final int connectTimeout;
   private final TrustManager trustManager;
   private final KeyManager keyManager;
@@ -151,13 +152,14 @@ public class ConnectionWrapper implements Closeable
   public ConnectionWrapper(HostPort hostPort, PreferredConnection.Type connectionType, String bindDn, String bindPwd,
       int connectTimeout, TrustManager trustManager, KeyManager keyManager) throws NamingException
   {
+    this.hostPort = hostPort;
     this.connectTimeout = connectTimeout;
     this.trustManager = trustManager;
     this.keyManager = keyManager;
 
     final Options options = toOptions(connectionType, bindDn, bindPwd, connectTimeout, trustManager, keyManager);
-    ldapContext = createAdministrativeContext(hostPort, options);
-    connectionFactory = buildConnectionFactory(options, hostPort);
+    ldapContext = createAdministrativeContext(options);
+    connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
     connection = buildConnection();
   }
 
@@ -191,9 +193,9 @@ public class ConnectionWrapper implements Closeable
     }
   }
 
-  private InitialLdapContext createAdministrativeContext(HostPort hostPort, Options options) throws NamingException
+  private InitialLdapContext createAdministrativeContext(Options options) throws NamingException
   {
-    final InitialLdapContext ctx = createAdministrativeContext0(hostPort, options);
+    final InitialLdapContext ctx = createAdministrativeContext0(options);
     if (!connectedAsAdministrativeUser(ctx))
     {
       throw new NoPermissionException(ERR_NOT_ADMINISTRATIVE_USER.get().toString());
@@ -201,7 +203,7 @@ public class ConnectionWrapper implements Closeable
     return ctx;
   }
 
-  private InitialLdapContext createAdministrativeContext0(HostPort hostPort, Options options) throws NamingException
+  private InitialLdapContext createAdministrativeContext0(Options options) throws NamingException
   {
     SSLContext sslContext = options.get(SSL_CONTEXT);
     boolean useSSL = sslContext != null;
@@ -209,7 +211,7 @@ public class ConnectionWrapper implements Closeable
     SimpleBindRequest bindRequest = (SimpleBindRequest) options.get(AUTHN_BIND_REQUEST);
     String bindDn = bindRequest.getName();
     String bindPwd = new String(bindRequest.getPassword());
-    final String ldapUrl = getLDAPUrl(hostPort, useSSL);
+    final String ldapUrl = getLDAPUrl(getHostPort(), useSSL);
     if (useSSL)
     {
       return createLdapsContext(ldapUrl, bindDn, bindPwd, connectTimeout, null, trustManager, keyManager);
@@ -222,11 +224,6 @@ public class ConnectionWrapper implements Closeable
     {
       return createLdapContext(ldapUrl, bindDn, bindPwd, connectTimeout, null);
     }
-  }
-
-  private LDAPConnectionFactory buildConnectionFactory(Options options, HostPort hostPort)
-  {
-    return new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
   }
 
   private Connection buildConnection() throws NamingException
@@ -259,6 +256,16 @@ public class ConnectionWrapper implements Closeable
   public InitialLdapContext getLdapContext()
   {
     return ldapContext;
+  }
+
+  /**
+   * Returns the host name and port number of this connection.
+   *
+   * @return the hostPort of this connection
+   */
+  public HostPort getHostPort()
+  {
+    return hostPort;
   }
 
   /**

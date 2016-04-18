@@ -16,10 +16,10 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.admin.ads.util.ConnectionUtils.getHostPort;
+import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
+
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -31,7 +31,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -44,7 +43,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -53,14 +55,12 @@ import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser;
 import org.opends.server.tools.dsreplication.ReplicationCliException;
 import org.opends.server.tools.dsreplication.ReplicationCliMain;
-import org.forgerock.opendj.ldap.DN;
 
 /**
  * The panel where the user can import the contents of an LDIF file to the
@@ -818,12 +818,12 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
           INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_INITIALIZE_ALL.get()+ "<br><b>"+cmd+"</b><br><br>",
           ColorAndFontConstants.progressFont));
 
-      InitialLdapContext ctx = getInfo().getConnection().getLdapContext();
+      ConnectionWrapper conn = getInfo().getConnection();
       for (DN baseDN : replicatedBaseDNs)
       {
-        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, getHostPort(ctx));
+        LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, conn.getHostPort());
         getProgressDialog().appendProgressHtml(Utilities.applyFont(msg + "<br>", ColorAndFontConstants.progressFont));
-        repl.initializeAllSuffix(baseDN.toString(), ctx, true);
+        repl.initializeAllSuffix(baseDN.toString(), conn.getLdapContext(), true);
       }
     }
 

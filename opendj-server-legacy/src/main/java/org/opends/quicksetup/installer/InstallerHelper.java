@@ -47,7 +47,22 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
+import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
+import org.forgerock.opendj.server.config.meta.ReplicationSynchronizationProviderCfgDefn;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.BackendMessages;
@@ -60,28 +75,12 @@ import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.OutputReader;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.config.ManagedObjectDefinition;
-import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.config.PropertyException;
-import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
-import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
-import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
-import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
-import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
-import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
-import org.forgerock.opendj.server.config.meta.ReplicationSynchronizationProviderCfgDefn;
-import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.JavaPropertiesTool;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
@@ -348,26 +347,24 @@ public class InstallerHelper {
   /**
    * Creates a database backend on the server.
    *
-   * @param connWrapper
+   * @param conn
    *          the connection to the server.
    * @param backendName
    *          the name of the backend to be created.
    * @param baseDNs
    *          the list of base DNs to be defined on the server.
-   * @param serverDisplay
-   *          the server display.
    * @param backendType
    *          the backend type.
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  public void createBackend(ConnectionWrapper connWrapper, String backendName, Set<String> baseDNs,
-      HostPort serverDisplay, ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
+  public void createBackend(ConnectionWrapper conn, String backendName, Set<String> baseDNs,
+      ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
       throws ApplicationException
   {
     try
     {
-      RootCfgClient root = connWrapper.getRootConfiguration();
+      RootCfgClient root = conn.getRootConfiguration();
       BackendCfgClient backend = root.createBackend(backendType, backendName, null);
       backend.setEnabled(true);
       backend.setBaseDN(toByteStrings(baseDNs));
@@ -378,7 +375,7 @@ public class InstallerHelper {
     catch (Throwable t)
     {
       throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t), t);
+          ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(conn.getHostPort(), t), t);
     }
   }
 
@@ -421,7 +418,7 @@ public class InstallerHelper {
 
   /**
    * Configures the replication on a given server.
-   * @param connWrapper the connection to the server where we want to configure
+   * @param conn the connection to the server where we want to configure
    * the replication.
    * @param replicationServers a Map where the key value is the base dn and
    * the value is the list of replication servers for that base dn (or domain).
@@ -429,7 +426,6 @@ public class InstallerHelper {
    * configured (it might not exist and the user specified it in the setup).
    * @param useSecureReplication whether to encrypt connections with the
    * replication port or not.
-   * @param serverDisplay the server display.
    * @param usedReplicationServerIds the list of replication server ids that
    * are already used.
    * @param usedServerIds the list of server ids (domain ids) that
@@ -438,9 +434,9 @@ public class InstallerHelper {
    * @return a ConfiguredReplication object describing what has been configured.
    */
   public ConfiguredReplication configureReplication(
-      ConnectionWrapper connWrapper, Map<String,Set<String>> replicationServers,
-      int replicationPort, boolean useSecureReplication, HostPort serverDisplay,
-      Set<Integer> usedReplicationServerIds, Set<Integer> usedServerIds)
+      ConnectionWrapper conn, Map<String,Set<String>> replicationServers,
+      int replicationPort, boolean useSecureReplication, Set<Integer> usedReplicationServerIds,
+      Set<Integer> usedServerIds)
   throws ApplicationException
   {
     boolean synchProviderCreated;
@@ -449,7 +445,7 @@ public class InstallerHelper {
     boolean secureReplicationEnabled;
     try
     {
-      RootCfgClient root = connWrapper.getRootConfiguration();
+      RootCfgClient root = conn.getRootConfiguration();
 
       /*
        * Configure Synchronization plugin.
@@ -622,7 +618,7 @@ public class InstallerHelper {
     {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR,
-          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
+          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(conn.getHostPort(), t),
           t);
     }
   }
@@ -637,22 +633,19 @@ public class InstallerHelper {
   /**
    * Configures the replication on a given server.
    *
-   * @param connWrapper
+   * @param conn
    *          the connection to the server where we want to configure the
    *          replication.
    * @param replConf
    *          the object describing what was configured.
-   * @param serverDisplay
-   *          the server display.
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  public void unconfigureReplication(ConnectionWrapper connWrapper, ConfiguredReplication replConf,
-      HostPort serverDisplay) throws ApplicationException
+  public void unconfigureReplication(ConnectionWrapper conn, ConfiguredReplication replConf) throws ApplicationException
   {
     try
     {
-      RootCfgClient root = connWrapper.getRootConfiguration();
+      RootCfgClient root = conn.getRootConfiguration();
       final String syncProvider = "Multimaster Synchronization";
       // Unconfigure Synchronization plugin.
       if (replConf.isSynchProviderCreated())
@@ -739,7 +732,7 @@ public class InstallerHelper {
     catch (Throwable t)
     {
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-          serverDisplay, t), t);
+          conn.getHostPort(), t), t);
     }
   }
 

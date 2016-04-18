@@ -53,10 +53,10 @@ import javax.naming.ldap.Rdn;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.types.HostPort;
 
 /** Class used to update and read the contents of the Administration Data. */
 public class ADSContext
@@ -307,6 +307,16 @@ public class ADSContext
   public ConnectionWrapper getConnection()
   {
     return connectionWrapper;
+  }
+
+  /**
+   * Returns the host name and port number of this connection.
+   *
+   * @return the hostPort of this connection
+   */
+  public HostPort getHostPort()
+  {
+    return connectionWrapper.getHostPort();
   }
 
   /**
@@ -2189,8 +2199,7 @@ public class ADSContext
     }
     catch (ADSContextException adce)
     {
-      LocalizableMessage msg = ERR_ADS_MERGE.get(ConnectionUtils.getHostPort(getDirContext()),
-          ConnectionUtils.getHostPort(adsCtx.getDirContext()), adce.getMessageObject());
+      LocalizableMessage msg = ERR_ADS_MERGE.get(getHostPort(), adsCtx.getHostPort(), adce.getMessageObject());
       throw new ADSContextException(ErrorType.ERROR_MERGING, msg, adce);
     }
   }
@@ -2220,8 +2229,8 @@ public class ADSContext
     if (!notDefinedAdmins.isEmpty())
     {
       LocalizableMessage msg = ERR_ADS_ADMINISTRATOR_MERGE.get(
-          ConnectionUtils.getHostPort(adsCtx.getDirContext()), ConnectionUtils.getHostPort(getDirContext()),
-          joinAsString(Constants.LINE_SEPARATOR, notDefinedAdmins), ConnectionUtils.getHostPort(getDirContext()));
+          adsCtx.getHostPort(), getHostPort(),
+          joinAsString(Constants.LINE_SEPARATOR, notDefinedAdmins), getHostPort());
       throw new ADSContextException(ErrorType.ERROR_MERGING, msg, null);
     }
   }

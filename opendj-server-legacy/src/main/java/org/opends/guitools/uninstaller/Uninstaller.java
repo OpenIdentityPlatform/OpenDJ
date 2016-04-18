@@ -23,7 +23,15 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -33,6 +41,12 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
+import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
+import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ReplicaDescriptor;
@@ -40,23 +54,36 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.guitools.uninstaller.ui.ConfirmUninstallPanel;
 import org.opends.guitools.uninstaller.ui.LoginDialog;
-import org.opends.quicksetup.*;
-import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.CliApplication;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.Launcher;
+import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.Step;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.UserDataCertificateException;
+import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.WizardStep;
+import org.opends.quicksetup.ui.CertificateDialog;
+import org.opends.quicksetup.ui.FieldName;
+import org.opends.quicksetup.ui.FinishedPanel;
+import org.opends.quicksetup.ui.GuiApplication;
+import org.opends.quicksetup.ui.ProgressDialog;
+import org.opends.quicksetup.ui.ProgressPanel;
+import org.opends.quicksetup.ui.QuickSetup;
+import org.opends.quicksetup.ui.QuickSetupDialog;
+import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
-import org.forgerock.opendj.config.ConfigurationFramework;
-import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
-import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
-import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.DynamicConstants;
@@ -67,6 +94,7 @@ import com.forgerock.opendj.cli.ClientException;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -2064,9 +2092,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       if (adsContext.hasAdminData() && serverADSProperties != null)
       {
-        logger.info(LocalizableMessage.raw("Unregistering server on ADS of server "+
-            ConnectionUtils.getHostPort(connWrapper.getLdapContext())+".  Properties: "+
-            serverADSProperties));
+        logger.info(LocalizableMessage.raw("Unregistering server on ADS of server " + connWrapper.getHostPort()
+            + ".  Properties: " + serverADSProperties));
         adsContext.unregisterServer(serverADSProperties);
       }
     }
