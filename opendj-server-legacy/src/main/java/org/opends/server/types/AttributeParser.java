@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -461,9 +461,8 @@ public final class AttributeParser {
     public AttributeParser requireValue() throws NoSuchElementException {
         if (isEmpty(attribute)) {
             throw new NoSuchElementException();
-        } else {
-            return this;
         }
+        return this;
     }
 
     /**
@@ -476,15 +475,10 @@ public final class AttributeParser {
      * @return This attribute parser.
      */
     public AttributeParser usingSchema(final Schema schema) {
-        // Avoid modifying the null instance: a schema will not be needed
-        // anyway.
+        // Avoid modifying the null instance: a schema will not be needed anyway
         if (this != NULL_INSTANCE) {
             this.schema = schema;
         }
         return this;
-    }
-
-    private Schema getSchema() {
-        return schema == null ? Schema.getDefaultSchema() : schema;
     }
 }

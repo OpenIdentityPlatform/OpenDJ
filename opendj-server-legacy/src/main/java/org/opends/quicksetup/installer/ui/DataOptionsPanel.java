@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -87,7 +87,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     addActionListeners();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getFieldValue(FieldName fieldName)
   {
     if (fieldName == FieldName.DATA_OPTIONS)
@@ -116,7 +116,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void displayFieldInvalid(final FieldName fieldName, final boolean invalid)
   {
     final JLabel label = getLabel(fieldName);
@@ -137,7 +137,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -328,19 +328,19 @@ public class DataOptionsPanel extends QuickSetupStepPanel
     return Utilities.createBrowseButtonPanel(getLabel(fieldName), getField(fieldName), browseButton);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_DATA_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_DATA_OPTIONS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -488,18 +488,21 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   {
     final DocumentListener docListener = new DocumentListener()
     {
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         final LocalizableMessage newLabel =
-            INFO_CREATE_BASE_ENTRY_LABEL.get((String) getFieldValue(FieldName.DIRECTORY_BASE_DN));
+            INFO_CREATE_BASE_ENTRY_LABEL.get(getFieldValue(FieldName.DIRECTORY_BASE_DN));
         getRadioButton(NewSuffixOptions.Type.CREATE_BASE_ENTRY).setText(newLabel.toString());
       }
 
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -514,6 +517,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   {
     final FocusListener focusListener = new FocusListener()
     {
+      @Override
       public void focusGained(FocusEvent e)
       {
         lastFocusComponent = e.getComponent();
@@ -527,6 +531,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
         }
       }
 
+      @Override
       public void focusLost(FocusEvent e)
       {
       }
@@ -550,6 +555,7 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   {
     final ActionListener l = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent e)
       {
         checkEnablingState();

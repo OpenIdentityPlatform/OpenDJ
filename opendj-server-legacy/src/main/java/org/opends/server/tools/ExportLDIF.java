@@ -20,8 +20,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
@@ -46,8 +48,6 @@ import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.ExportTask;
 import org.opends.server.tools.tasks.TaskTool;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
@@ -462,20 +462,20 @@ public class ExportLDIF extends TaskTool {
     // through them, finding the one backend that should be used for the export,
     // and also finding backends with subordinate base DNs that should be
     // excluded from the export.
-    Backend       backend                = null;
+    Backend<?>    backend                = null;
     List<DN>      baseDNList             = null;
     List<DN>      defaultIncludeBranches = null;
     ArrayList<DN> excludeBranches        = null;
 
-    ArrayList<Backend>     backendList = new ArrayList<>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<>();
+    List<Backend<?>> backendList = new ArrayList<>();
+    List<BackendCfg> entryList = new ArrayList<>();
+    List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend b = backendList.get(i);
+      Backend<?> b = backendList.get(i);
       if (! backendID.getValue().equals(b.getBackendID()))
       {
         continue;

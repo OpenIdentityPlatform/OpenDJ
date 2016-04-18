@@ -965,14 +965,6 @@ class ReplicationEnvironment implements ChangelogStateProvider
     }
   }
 
-  private void debug(String message)
-  {
-    // Replication server may be null when testing
-    String monitorInstanceName = replicationServer != null ? replicationServer.getMonitorInstanceName() :
-      "no monitor [test]";
-    logger.trace("In %s, %s", monitorInstanceName, message);
-  }
-
   private int toServerId(final String serverIdName) throws ChangelogException
   {
     try

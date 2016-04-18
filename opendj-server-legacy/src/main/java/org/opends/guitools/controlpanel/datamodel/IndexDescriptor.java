@@ -24,7 +24,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 
 /**
  * The class used to describe the index configuration (the normal index: the one

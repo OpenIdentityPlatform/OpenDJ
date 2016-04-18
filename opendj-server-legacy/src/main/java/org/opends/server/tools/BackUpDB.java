@@ -21,8 +21,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -33,12 +33,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.util.Utils;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.util.Utils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
@@ -54,7 +56,6 @@ import org.opends.server.tasks.BackupTask;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
@@ -468,15 +469,15 @@ public class BackUpDB extends TaskTool
 
     // Get information about the backends defined in the server, and determine
     // whether we are backing up multiple backends or a single backend.
-    ArrayList<Backend>     backendList = new ArrayList<>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<>();
+    List<Backend<?>> backendList = new ArrayList<>();
+    List<BackendCfg> entryList = new ArrayList<>();
+    List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
     int numBackends = backendList.size();
 
     boolean multiple;
-    ArrayList<Backend<?>> backendsToArchive = new ArrayList<>(numBackends);
-    HashMap<String,BackendCfg> configEntries = new HashMap<>(numBackends);
+    List<Backend<?>> backendsToArchive = new ArrayList<>(numBackends);
+    Map<String, BackendCfg> configEntries = new HashMap<>(numBackends);
     if (backUpAll.isPresent())
     {
       for (int i=0; i < numBackends; i++)

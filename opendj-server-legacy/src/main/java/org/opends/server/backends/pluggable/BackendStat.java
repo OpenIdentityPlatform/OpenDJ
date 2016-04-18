@@ -37,10 +37,11 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.config.SizeUnit;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.util.Option;
-import org.forgerock.util.Options;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
+import org.forgerock.util.Option;
+import org.forgerock.util.Options;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -52,7 +53,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.BackendToolUtils;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
@@ -596,7 +596,7 @@ public class BackendStat
     {
       return listRootContainers();
     }
-    BackendImpl backend = getBackendById(subCommand.getArgument(BACKENDID_NAME));
+    BackendImpl<?> backend = getBackendById(subCommand.getArgument(BACKENDID_NAME));
     if (backend == null)
     {
       return 1;
@@ -639,16 +639,7 @@ public class BackendStat
     }
   }
 
-  private String getStartUpExceptionMessage(Exception e)
-  {
-    if (e instanceof ConfigException || e instanceof InitializationException)
-    {
-      return e.getMessage();
-    }
-    return getExceptionMessage(e).toString();
-  }
-
-  private int dumpTree(RootContainer rc, BackendImpl backend, SubCommand subCommand, boolean isBackendTree)
+  private int dumpTree(RootContainer rc, BackendImpl<?> backend, SubCommand subCommand, boolean isBackendTree)
       throws ArgumentException, DirectoryException
   {
     Options options = Options.defaultOptions();
@@ -730,8 +721,8 @@ public class BackendStat
     builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_BACKEND_ID.get());
     builder.appendHeading(INFO_LABEL_BACKEND_TOOL_STORAGE.get());
 
-    final Map<PluggableBackendCfg, BackendImpl> pluggableBackends = getPluggableBackends();
-    for (Map.Entry<PluggableBackendCfg, BackendImpl> backend : pluggableBackends.entrySet())
+    final Map<PluggableBackendCfg, BackendImpl<?>> pluggableBackends = getPluggableBackends();
+    for (Map.Entry<PluggableBackendCfg, BackendImpl<?>> backend : pluggableBackends.entrySet())
     {
       builder.startRow();
       builder.appendCell(backend.getValue().getBackendID());
@@ -837,7 +828,7 @@ public class BackendStat
     }
   }
 
-  private int listIndexes(RootContainer rc, BackendImpl backend, Argument baseDNArg) throws DirectoryException
+  private int listIndexes(RootContainer rc, BackendImpl<?> backend, Argument baseDNArg) throws DirectoryException
   {
     DN base = null;
     if (baseDNArg.isPresent())
@@ -886,7 +877,7 @@ public class BackendStat
     }
   }
 
-  private int printEntryContainerError(BackendImpl backend, DN base)
+  private int printEntryContainerError(BackendImpl<?> backend, DN base)
   {
     printWrappedText(err, ERR_BACKEND_DEBUG_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(base, backend.getBackendID()));
     return 1;
@@ -905,7 +896,7 @@ public class BackendStat
     }
   }
 
-  private RootContainer getAndLockRootContainer(BackendImpl backend)
+  private RootContainer getAndLockRootContainer(BackendImpl<?> backend)
   {
     try
     {
@@ -983,7 +974,7 @@ public class BackendStat
     }
   }
 
-  private void releaseExclusiveLock(BackendImpl backend)
+  private void releaseExclusiveLock(BackendImpl<?> backend)
   {
     try
     {
@@ -1001,12 +992,12 @@ public class BackendStat
     }
   }
 
-  private BackendImpl getBackendById(Argument backendIdArg)
+  private BackendImpl<?> getBackendById(Argument backendIdArg)
   {
     final String backendID = backendIdArg.getValue();
-    final Map<PluggableBackendCfg, BackendImpl> pluggableBackends = getPluggableBackends();
+    final Map<PluggableBackendCfg, BackendImpl<?>> pluggableBackends = getPluggableBackends();
 
-    for (Map.Entry<PluggableBackendCfg, BackendImpl> backend : pluggableBackends.entrySet())
+    for (Map.Entry<PluggableBackendCfg, BackendImpl<?>> backend : pluggableBackends.entrySet())
     {
       final BackendImpl b = backend.getValue();
       if (b.getBackendID().equalsIgnoreCase(backendID))
@@ -1028,7 +1019,7 @@ public class BackendStat
     return null;
   }
 
-  private int showIndexStatus(RootContainer rc, BackendImpl backend, Argument baseDNArg) throws DirectoryException
+  private int showIndexStatus(RootContainer rc, BackendImpl<?> backend, Argument baseDNArg) throws DirectoryException
   {
     DN base = getBaseDNFromArg(baseDNArg);
 
@@ -1194,7 +1185,7 @@ public class BackendStat
     }
   }
 
-  private int dumpStorageTree(RootContainer rc, BackendImpl backend, Argument treeNameArg, Options options)
+  private int dumpStorageTree(RootContainer rc, BackendImpl<?> backend, Argument treeNameArg, Options options)
   {
     TreeName targetTree = getStorageTreeName(treeNameArg, rc);
     if (targetTree == null)
@@ -1228,7 +1219,7 @@ public class BackendStat
     return null;
   }
 
-  private int dumpBackendTree(RootContainer rc, BackendImpl backend, Argument baseDNArg, Argument treeNameArg,
+  private int dumpBackendTree(RootContainer rc, BackendImpl<?> backend, Argument baseDNArg, Argument treeNameArg,
       Options options) throws DirectoryException
   {
     DN base = getBaseDNFromArg(baseDNArg);
@@ -1441,20 +1432,20 @@ public class BackendStat
     out.format(HEXDUMP_LINE_FORMAT, indentBuilder.toString(), hexDump.toString(), asciiDump.toString());
   }
 
-  private static Map<PluggableBackendCfg, BackendImpl> getPluggableBackends()
+  private static Map<PluggableBackendCfg, BackendImpl<?>> getPluggableBackends()
   {
-    ArrayList<Backend> backendList = new ArrayList<>();
-    ArrayList<BackendCfg> entryList = new ArrayList<>();
-    ArrayList<List<DN>> dnList = new ArrayList<>();
+    List<Backend<?>> backendList = new ArrayList<>();
+    List<BackendCfg> entryList = new ArrayList<>();
+    List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
-    final Map<PluggableBackendCfg, BackendImpl> pluggableBackends = new LinkedHashMap<>();
+    final Map<PluggableBackendCfg, BackendImpl<?>> pluggableBackends = new LinkedHashMap<>();
     for (int i = 0; i < backendList.size(); i++)
     {
       Backend<?> backend = backendList.get(i);
       if (backend instanceof BackendImpl)
       {
-        pluggableBackends.put((PluggableBackendCfg) entryList.get(i), (BackendImpl) backend);
+        pluggableBackends.put((PluggableBackendCfg) entryList.get(i), (BackendImpl<?>) backend);
       }
     }
     return pluggableBackends;

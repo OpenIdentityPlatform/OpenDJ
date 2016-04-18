@@ -62,7 +62,6 @@ import javax.management.MBeanServerFactory;
 
 import org.forgerock.http.routing.Router;
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.ConfigurationFramework;
@@ -1769,19 +1768,6 @@ public final class DirectoryServer
 
     // With server schema in place set compressed schema.
     compressedSchema = new DefaultCompressedSchema(serverContext);
-  }
-
-  private DN toDn(String dn) throws InitializationException
-  {
-    try
-    {
-      return DN.valueOf(dn);
-    }
-    catch (LocalizedIllegalArgumentException e)
-    {
-      // This should never happen, so we'll just re-throw it.
-      throw new InitializationException(e.getMessageObject(), e);
-    }
   }
 
   /**

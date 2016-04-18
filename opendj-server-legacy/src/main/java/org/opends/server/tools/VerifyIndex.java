@@ -17,8 +17,8 @@
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -63,7 +63,7 @@ public class VerifyIndex
    */
   public static void main(String[] args)
   {
-    int retCode = mainVerifyIndex(args, true, System.out, System.err);
+    int retCode = mainVerifyIndex(args, true, System.err);
     if(retCode != 0)
     {
       System.exit(filterExitCode(retCode));
@@ -76,15 +76,11 @@ public class VerifyIndex
    * @param  args              The command-line arguments provided to this
    *                           program.
    * @param  initializeServer  Indicates whether to initialize the server.
-   * @param  outStream         The output stream to use for standard output, or
-   *                           {@code null} if standard output is not needed.
    * @param  errStream         The output stream to use for standard error, or
    *                           {@code null} if standard error is not needed.
-   *
    * @return The error code.
    */
   public static int mainVerifyIndex(String[] args, boolean initializeServer,
-                                    OutputStream outStream,
                                     OutputStream errStream)
   {
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
@@ -219,9 +215,9 @@ public class VerifyIndex
 
     // Get information about the backends defined in the server.  Iterate
     // through them, finding the one backend to be verified.
-    ArrayList<Backend>     backendList = new ArrayList<>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<>();
-    ArrayList<List<DN>>    dnList      = new ArrayList<>();
+    List<Backend<?>> backendList = new ArrayList<>();
+    List<BackendCfg> entryList = new ArrayList<>();
+    List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     Backend<?> backend = null;

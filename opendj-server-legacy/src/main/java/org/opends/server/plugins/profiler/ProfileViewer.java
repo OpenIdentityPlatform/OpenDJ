@@ -29,13 +29,13 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
@@ -106,8 +106,7 @@ public class ProfileViewer
                             toolDescription, false);
 
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
+    // Initialize all the command-line argument types and register them with the parser
     try
     {
       fileNames =
@@ -150,7 +149,7 @@ public class ProfileViewer
     }
 
 
-    // If we should just display usage or versionn information,
+    // If we should just display usage or version information,
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
@@ -474,31 +473,6 @@ public class ProfileViewer
       parentNode.add(subNode);
     }
   }
-
-
-
-  /**
-   * Formats the provided count, padding with leading spaces as necessary.
-   *
-   * @param  count   The count value to be formatted.
-   * @param  length  The total length for the string to return.
-   *
-   * @return  The formatted count string.
-   */
-  private String formatCount(long count, int length)
-  {
-    StringBuilder buffer = new StringBuilder(length);
-
-    buffer.append(count);
-    while (buffer.length() < length)
-    {
-      buffer.insert(0, ' ');
-    }
-
-    return buffer.toString();
-  }
-
-
 
   /**
    * Indicates that a node in the tree has been selected or deselected and that

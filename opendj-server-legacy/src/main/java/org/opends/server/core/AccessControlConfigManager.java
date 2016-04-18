@@ -27,17 +27,17 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.AccessControlHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.AccessControlHandlerCfg;
+import org.forgerock.util.Utils;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AlertGenerator;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -60,25 +60,19 @@ public final class AccessControlConfigManager
   private static AccessControlConfigManager instance;
 
   /** The active access control implementation. */
-  private AtomicReference<AccessControlHandler> accessControlHandler;
+  private AtomicReference<AccessControlHandler<?>> accessControlHandler;
 
   /** The current configuration. */
   private AccessControlHandlerCfg currentConfiguration;
 
   private ServerContext serverContext;
 
-  /**
-   * Creates a new instance of this access control configuration
-   * manager.
-   */
+  /** Creates a new instance of this access control configuration manager. */
   private AccessControlConfigManager()
   {
-    this.accessControlHandler = new AtomicReference<AccessControlHandler>(
-        new DefaultAccessControlHandler());
+    this.accessControlHandler = new AtomicReference<AccessControlHandler<?>>(new DefaultAccessControlHandler());
     this.currentConfiguration = null;
   }
-
-
 
   /**
    * Get the single application-wide access control manager instance.
@@ -95,8 +89,6 @@ public final class AccessControlConfigManager
     return instance;
   }
 
-
-
   /**
    * Determine if access control is enabled according to the current
    * configuration.
@@ -108,8 +100,6 @@ public final class AccessControlConfigManager
   {
     return currentConfiguration.isEnabled();
   }
-
-
 
   /**
    * Get the active access control handler.
@@ -123,8 +113,6 @@ public final class AccessControlConfigManager
   {
     return accessControlHandler.get();
   }
-
-
 
   /**
    * Initializes the access control sub-system. This should only be called at
@@ -161,8 +149,6 @@ public final class AccessControlConfigManager
     // The configuration looks valid, so install it.
     updateConfiguration(accessControlConfiguration);
   }
-
-
 
   /**
    * Updates the access control configuration based on the contents of a
@@ -205,7 +191,7 @@ public final class AccessControlConfigManager
         String oldHandlerClass = currentConfiguration.getJavaClass();
         //Check if moving from not enabled to enabled state.
         if(!enabledOld) {
-           AccessControlHandler oldHandler =
+           AccessControlHandler<?> oldHandler =
                    accessControlHandler.getAndSet(getHandler(newHandlerClass,
                                                   newConfiguration, true,
                                                   true));
@@ -213,9 +199,8 @@ public final class AccessControlConfigManager
         } else {
           //Check if the class name is being changed.
           if(!newHandlerClass.equals(oldHandlerClass)) {
-           AccessControlHandler oldHandler =
-            accessControlHandler.getAndSet(getHandler(newHandlerClass,
-                    newConfiguration, true, true));
+            AccessControlHandler<?> oldHandler =
+                accessControlHandler.getAndSet(getHandler(newHandlerClass, newConfiguration, true, true));
             oldHandler.finalizeAccessControlHandler();
           } else {
             //Some other attribute has changed, try to get a new non-initialized
@@ -227,9 +212,8 @@ public final class AccessControlConfigManager
         //Access control has been disabled, switch to the default handler and
         //finalize the old handler.
         newHandlerClass = DefaultAccessControlHandler.class.getName();
-        AccessControlHandler oldHandler =
-                accessControlHandler.getAndSet(getHandler(newHandlerClass,
-                        newConfiguration, false, true));
+        AccessControlHandler<?> oldHandler =
+            accessControlHandler.getAndSet(getHandler(newHandlerClass, newConfiguration, false, true));
         oldHandler.finalizeAccessControlHandler();
       }
     }
@@ -289,8 +273,6 @@ public final class AccessControlConfigManager
     return newHandler;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       AccessControlHandlerCfg configuration,
@@ -315,9 +297,6 @@ public final class AccessControlConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AccessControlHandlerCfg configuration)
@@ -343,27 +322,18 @@ public final class AccessControlConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
     return currentConfiguration.dn();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return CLASS_NAME;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public LinkedHashMap<String,String> getAlerts()
   {
@@ -376,8 +346,6 @@ public final class AccessControlConfigManager
 
     return alerts;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a AccessControlHandler, and
@@ -440,4 +408,3 @@ public final class AccessControlConfigManager
     }
   }
 }
-

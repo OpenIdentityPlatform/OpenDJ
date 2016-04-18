@@ -22,22 +22,36 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn.StateUpdateFailurePolicy;
 import org.forgerock.opendj.server.config.server.PasswordPolicyCfg;
-import org.opends.server.api.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.api.AccountStatusNotificationHandler;
+import org.opends.server.api.AuthenticationPolicyFactory;
+import org.opends.server.api.PasswordGenerator;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.PasswordValidator;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.SchemaUtils.PasswordType;
 
@@ -54,11 +68,7 @@ public final class PasswordPolicyFactory implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /**
-   * Password policy implementation.
-   */
+  /** Password policy implementation. */
   private static final class PasswordPolicyImpl extends PasswordPolicy
       implements ConfigurationChangeListener<PasswordPolicyCfg>
   {
@@ -72,43 +82,28 @@ public final class PasswordPolicyFactory implements
 
     /** The set of account status notification handlers for this password policy. */
     private Map<DN, AccountStatusNotificationHandler<?>> notificationHandlers;
-
-    /**
-     * The set of password validators that will be used with this
-     * password policy.
-     */
+    /** The set of password validators that will be used with this password policy. */
     private Map<DN, PasswordValidator<?>> passwordValidators;
 
-    /**
-     * The set of default password storage schemes for this password policy.
-     */
+    /** The set of default password storage schemes for this password policy. */
     private List<PasswordStorageScheme<?>> defaultStorageSchemes;
-
-    /**
-     * The names of the deprecated password storage schemes for this password
-     * policy.
-     */
+    /** The names of the deprecated password storage schemes for this password policy. */
     private Set<String> deprecatedStorageSchemes;
 
     /** The password generator for use with this password policy. */
     private PasswordGenerator<?> passwordGenerator;
 
-    /**
-     * The the time by which all users will be required to change their
-     * passwords.
-     */
+    /** The the time by which all users will be required to change their passwords. */
     private long requireChangeByTime;
 
     private final ServerContext serverContext;
 
-    /** {@inheritDoc} */
     @Override
     public void finalizeAuthenticationPolicy()
     {
       configuration.removePasswordPolicyChangeListener(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(PasswordPolicyCfg configuration)
     {
@@ -137,7 +132,6 @@ public final class PasswordPolicyFactory implements
       return ccr;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(
         PasswordPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -165,8 +159,6 @@ public final class PasswordPolicyFactory implements
       return true;
     }
 
-
-
     /**
      * Creates a new password policy based on the configuration contained in the
      * provided configuration entry. Any parameters not included in the provided
@@ -190,8 +182,6 @@ public final class PasswordPolicyFactory implements
       updateConfiguration(configuration, true);
     }
 
-
-
     private void updateConfiguration(PasswordPolicyCfg configuration,
         boolean applyChanges) throws ConfigException,
         InitializationException
@@ -202,11 +192,11 @@ public final class PasswordPolicyFactory implements
       // user password or auth password syntax.
       final AttributeType passwordAttribute = configuration.getPasswordAttribute();
       final PasswordType passwordType = SchemaUtils.checkPasswordType(passwordAttribute);
-      if (passwordType.equals(PasswordType.AUTH_PASSWORD))
+      if (PasswordType.AUTH_PASSWORD.equals(passwordType))
       {
         authPasswordSyntax = true;
       }
-      else if (passwordType.equals(PasswordType.USER_PASSWORD))
+      else if (PasswordType.USER_PASSWORD.equals(passwordType))
       {
         authPasswordSyntax = false;
       }
@@ -331,16 +321,13 @@ public final class PasswordPolicyFactory implements
         catch (Exception e)
         {
           logger.traceException(e);
-
-          LocalizableMessage message = ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(configEntryDN, formatString);
-          throw new ConfigException(message);
+          throw new ConfigException(ERR_PWPOLICY_INVALID_LAST_LOGIN_TIME_FORMAT.get(configEntryDN, formatString));
         }
       }
 
       // Get the previous last login time formats. If specified, they must all
       // be valid format strings.
-      SortedSet<String> formatStrings = configuration
-          .getPreviousLastLoginTimeFormat();
+      SortedSet<String> formatStrings = configuration.getPreviousLastLoginTimeFormat();
       if (formatStrings != null)
       {
         for (String s : formatStrings)
@@ -352,10 +339,7 @@ public final class PasswordPolicyFactory implements
           catch (Exception e)
           {
             logger.traceException(e);
-
-            LocalizableMessage message =
-              ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT.get(configEntryDN, s);
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_PWPOLICY_INVALID_PREVIOUS_LAST_LOGIN_TIME_FORMAT.get(configEntryDN, s));
           }
         }
       }
@@ -390,7 +374,6 @@ public final class PasswordPolicyFactory implements
       if (applyChanges)
       {
         this.configuration = configuration;
-        this.authPasswordSyntax = authPasswordSyntax;
         this.defaultStorageSchemes = defaultStorageSchemes;
         this.deprecatedStorageSchemes = deprecatedStorageSchemes;
         this.notificationHandlers = notificationHandlers;
@@ -400,74 +383,59 @@ public final class PasswordPolicyFactory implements
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAuthPasswordSyntax()
     {
       return authPasswordSyntax;
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<PasswordStorageScheme<?>> getDefaultPasswordStorageSchemes()
     {
       return defaultStorageSchemes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Set<String> getDeprecatedPasswordStorageSchemes()
     {
       return deprecatedStorageSchemes;
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getDN()
     {
       return configuration.dn();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDefaultPasswordStorageScheme(String name)
     {
       for (PasswordStorageScheme<?> s : defaultStorageSchemes)
       {
-        if (authPasswordSyntax)
+        String schemeName = authPasswordSyntax
+            ? s.getAuthPasswordSchemeName()
+            : s.getStorageSchemeName();
+        if (schemeName.equalsIgnoreCase(name))
         {
-          if (s.getAuthPasswordSchemeName().equalsIgnoreCase(name))
-          {
-            return true;
-          }
-        }
-        else
-        {
-          if (s.getStorageSchemeName().equalsIgnoreCase(name))
-          {
-            return true;
-          }
+          return true;
         }
       }
 
       return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDeprecatedPasswordStorageScheme(String name)
     {
       return deprecatedStorageSchemes.contains(toLowerCase(name));
     }
 
-    /** {@inheritDoc} */
     @Override
     public Collection<PasswordValidator<?>> getPasswordValidators()
     {
       return passwordValidators.values();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Collection<AccountStatusNotificationHandler<?>>
       getAccountStatusNotificationHandlers()
@@ -475,21 +443,17 @@ public final class PasswordPolicyFactory implements
       return notificationHandlers.values();
     }
 
-    /** {@inheritDoc} */
     @Override
     public PasswordGenerator<?> getPasswordGenerator()
     {
       return passwordGenerator;
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getRequireChangeByTime()
     {
       return requireChangeByTime;
     }
-
-
 
     /**
      * Retrieves a string representation of this password policy.
@@ -503,8 +467,6 @@ public final class PasswordPolicyFactory implements
       toString(buffer);
       return buffer.toString();
     }
-
-
 
     /**
      * Appends a string representation of this password policy to the provided
@@ -713,24 +675,24 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
 
       buffer.append("Last Login Time Attribute:             ");
-      if (configuration.getLastLoginTimeAttribute() == null)
+      if (configuration.getLastLoginTimeAttribute() != null)
       {
-        buffer.append("{none specified}");
+        buffer.append(configuration.getLastLoginTimeAttribute().getNameOrOID());
       }
       else
       {
-        buffer.append(configuration.getLastLoginTimeAttribute().getNameOrOID());
+        buffer.append("{none specified}");
       }
       buffer.append(EOL);
 
       buffer.append("Last Login Time Format:                ");
-      if (configuration.getLastLoginTimeFormat() == null)
+      if (configuration.getLastLoginTimeFormat() != null)
       {
-        buffer.append("{none specified}");
+        buffer.append(configuration.getLastLoginTimeFormat());
       }
       else
       {
-        buffer.append(configuration.getLastLoginTimeFormat());
+        buffer.append("{none specified}");
       }
       buffer.append(EOL);
 
@@ -770,202 +732,172 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowExpiredPasswordChanges()
     {
       return configuration.isAllowExpiredPasswordChanges();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowMultiplePasswordValues()
     {
       return configuration.isAllowMultiplePasswordValues();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowPreEncodedPasswords()
     {
       return configuration.isAllowPreEncodedPasswords();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowUserPasswordChanges()
     {
       return configuration.isAllowUserPasswordChanges();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isExpirePasswordsWithoutWarning()
     {
       return configuration.isExpirePasswordsWithoutWarning();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isForceChangeOnAdd()
     {
       return configuration.isForceChangeOnAdd();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isForceChangeOnReset()
     {
       return configuration.isForceChangeOnReset();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getGraceLoginCount()
     {
       return configuration.getGraceLoginCount();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getIdleLockoutInterval()
     {
       return configuration.getIdleLockoutInterval();
     }
 
-    /** {@inheritDoc} */
     @Override
     public AttributeType getLastLoginTimeAttribute()
     {
       return configuration.getLastLoginTimeAttribute();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getLastLoginTimeFormat()
     {
       return configuration.getLastLoginTimeFormat();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getLockoutDuration()
     {
       return configuration.getLockoutDuration();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getLockoutFailureCount()
     {
       return configuration.getLockoutFailureCount();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getLockoutFailureExpirationInterval()
     {
       return configuration.getLockoutFailureExpirationInterval();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getMaxPasswordAge()
     {
       return configuration.getMaxPasswordAge();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getMaxPasswordResetAge()
     {
       return configuration.getMaxPasswordResetAge();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getMinPasswordAge()
     {
       return configuration.getMinPasswordAge();
     }
 
-    /** {@inheritDoc} */
     @Override
     public AttributeType getPasswordAttribute()
     {
       return configuration.getPasswordAttribute();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isPasswordChangeRequiresCurrentPassword()
     {
       return configuration.isPasswordChangeRequiresCurrentPassword();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getPasswordExpirationWarningInterval()
     {
       return configuration.getPasswordExpirationWarningInterval();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getPasswordHistoryCount()
     {
       return configuration.getPasswordHistoryCount();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getPasswordHistoryDuration()
     {
       return configuration.getPasswordHistoryDuration();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<String> getPreviousLastLoginTimeFormats()
     {
       return configuration.getPreviousLastLoginTimeFormat();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isRequireSecureAuthentication()
     {
       return configuration.isRequireSecureAuthentication();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isRequireSecurePasswordChanges()
     {
       return configuration.isRequireSecurePasswordChanges();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isSkipValidationForAdministrators()
     {
       return configuration.isSkipValidationForAdministrators();
     }
 
-    /** {@inheritDoc} */
     @Override
     public StateUpdateFailurePolicy getStateUpdateFailurePolicy()
     {
       return configuration.getStateUpdateFailurePolicy();
     }
-
   }
 
   private ServerContext serverContext;
 
-  /**
-   * Default constructor instantiated from authentication policy config manager.
-   */
+  /** Default constructor instantiated from authentication policy config manager. */
   public PasswordPolicyFactory()
   {
     // Nothing to do .
@@ -982,7 +914,6 @@ public final class PasswordPolicyFactory implements
     this.serverContext = serverContext;
   }
 
-  /** {@inheritDoc} */
   @Override
   public PasswordPolicy createAuthenticationPolicy(
       final PasswordPolicyCfg configuration) throws ConfigException,
@@ -993,7 +924,6 @@ public final class PasswordPolicyFactory implements
     return policy;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       final PasswordPolicyCfg configuration,
@@ -1014,5 +944,4 @@ public final class PasswordPolicyFactory implements
     // If we made it here, then the configuration is acceptable.
     return true;
   }
-
 }

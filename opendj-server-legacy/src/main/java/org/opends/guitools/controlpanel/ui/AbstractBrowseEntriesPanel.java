@@ -1010,7 +1010,6 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
       }
     }
 
-    @SuppressWarnings("unchecked")
     final DefaultComboBoxModel<CharSequence> model = (DefaultComboBoxModel<CharSequence>) filterAttribute.getModel();
     if (hasChanged(newElements, model))
     {

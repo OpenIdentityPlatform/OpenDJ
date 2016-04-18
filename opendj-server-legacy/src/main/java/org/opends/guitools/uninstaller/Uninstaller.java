@@ -102,11 +102,8 @@ import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
 
-/**
- * This class is in charge of performing the uninstallation of Open DS.
- */
+/** This class is in charge of performing the uninstallation of Open DS. */
 public class Uninstaller extends GuiApplication implements CliApplication {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private ProgressStep status = UninstallProgressStep.NOT_STARTED;
   private boolean runStarted;
@@ -155,14 +152,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     logger.info(LocalizableMessage.raw("Uninstaller is created."));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFrameTitle() {
     LocalizableMessage defaultVal = INFO_FRAME_UNINSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME);
     return Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE", defaultVal, LocalizableMessage.class);
   }
 
-  /** {@inheritDoc} */
   @Override
   public UserData createUserData() {
     UninstallUserData data = new UninstallUserData();
@@ -170,13 +165,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return data;
   }
 
-  /** {@inheritDoc} */
   @Override
   public WizardStep getFirstWizardStep() {
     return Step.CONFIRM_UNINSTALL;
   }
 
-  /** {@inheritDoc} */
   @Override
   public WizardStep getNextWizardStep(WizardStep step) {
     Step nextStep = null;
@@ -190,7 +183,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return nextStep;
   }
 
-  /** {@inheritDoc} */
   @Override
   public WizardStep getPreviousWizardStep(WizardStep step) {
     Step prevStep = null;
@@ -204,32 +196,27 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return prevStep;
   }
 
-  /** {@inheritDoc} */
   @Override
   public WizardStep getFinishedStep() {
     return Step.FINISHED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean finishOnLeft()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean canGoBack(WizardStep step) {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean canGoForward(WizardStep step) {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean canFinish(WizardStep step) {
     return step == Step.CONFIRM_UNINSTALL;
@@ -245,7 +232,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return step == Step.CONFIRM_UNINSTALL;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void nextClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -257,7 +243,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -277,10 +262,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * Update the UserData object according to the content of the review
-   * panel.
-   */
+  /** Update the UserData object according to the content of the review panel. */
   private void updateUserUninstallDataForConfirmUninstallPanel(QuickSetup qs)
           throws UserDataException {
     UninstallUserData uud = getUninstallUserData();
@@ -328,8 +310,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void quitClicked(WizardStep step, QuickSetup qs) {
     if (step == Step.PROGRESS) {
@@ -343,25 +323,21 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     qs.quit();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_UNINSTALL_TOOLTIP.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_UNINSTALL_TOOLTIP.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFinishButtonLabel() {
     return INFO_FINISH_BUTTON_UNINSTALL_LABEL.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -374,7 +350,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
       final LocalizableMessage newLogDetail)
@@ -400,7 +375,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.CONFIRM_UNINSTALL) {
@@ -527,13 +501,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateUserData(WizardStep step, QuickSetup qs) {
     // do nothing;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
@@ -548,22 +520,19 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public UserData createUserData(Launcher launcher) throws UserDataException,
       ApplicationException, ClientException
   {
     parser = (UninstallerArgumentParser) launcher.getArgumentParser();
-    return cliHelper.createUserData(parser, launcher.getArguments());
+    return cliHelper.createUserData(parser);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getInstallationPath() {
     return getInstallPathFromClasspath();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getInstancePath() {
     return getInstancePathFromInstallPath(getInstallPathFromClasspath());
@@ -581,15 +550,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return ue;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ReturnCode getReturnCode() {
     return null;
   }
 
-  /**
-   * Initialize the different map used in this class.
-   */
+  /** Initialize the different map used in this class. */
   private void initMaps() {
     hmSummary.put(UninstallProgressStep.NOT_STARTED,
             getFormattedSummary(INFO_SUMMARY_UNINSTALL_NOT_STARTED.get()));
@@ -714,13 +680,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     totalTime += hmTime.get(UninstallProgressStep.DELETING_INSTALLATION_FILES);
     steps.add(UninstallProgressStep.DELETING_INSTALLATION_FILES);
 
-    if (getUninstallUserData().getExternalDbsToRemove().size() > 0) {
+    if (!getUninstallUserData().getExternalDbsToRemove().isEmpty()) {
       totalTime += hmTime.get(
               UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES);
       steps.add(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES);
     }
 
-    if (getUninstallUserData().getExternalLogsToRemove().size() > 0) {
+    if (!getUninstallUserData().getExternalLogsToRemove().isEmpty()) {
       totalTime += hmTime.get(
               UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES);
       steps.add(UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES);
@@ -740,9 +706,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     hmRatio.put(UninstallProgressStep.FINISHED_WITH_ERROR, 100);
   }
 
-  /**
-   * Actually performs the uninstall in this thread.  The thread is blocked.
-   */
+  /** Actually performs the uninstall in this thread. The thread is blocked. */
   @Override
   public void run() {
     runStarted = true;
@@ -911,7 +875,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       } else {
         notifyListeners(null);
       }
-
     } catch (ApplicationException ex) {
       logger.error(LocalizableMessage.raw("Error: "+ex, ex));
       ue = ex;
@@ -934,7 +897,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ProgressStep getCurrentProgressStep() {
     return status;
@@ -966,7 +928,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return hmSummary.get(step);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isFinished() {
     return getCurrentProgressStep() ==
@@ -979,19 +940,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             UninstallProgressStep.FINISHED_WITH_ERROR_DELETING;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isCancellable() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancel() {
     // do nothing; not cancellable
   }
 
-  /** {@inheritDoc} */
   @Override
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
     if (dlg.getDisplayedStep() == PROGRESS ||
@@ -1004,13 +962,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ButtonName getInitialFocusButtonName() {
     return ButtonName.FINISH;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<? extends WizardStep> getWizardSteps() {
     Set<WizardStep> setSteps = new HashSet<>();
@@ -1020,7 +976,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return Collections.unmodifiableSet(setSteps);
   }
 
-  /** {@inheritDoc} */
   @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     if (step == Step.CONFIRM_UNINSTALL) {
@@ -1159,9 +1114,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
 
     if (rootFiles != null) {
-      /* The following is done to have a moving progress bar when we delete
-       * the installation files.
-       */
+      // The following is done to have a moving progress bar when we delete the installation files
       int totalRatio = 0;
       ArrayList<Integer> cumulatedRatio = new ArrayList<>();
       for (File f : rootFiles) {
@@ -1351,10 +1304,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     private boolean canDeleteClassesDir =
       !Utils.directoryExistsAndIsNotEmpty(classesDir.getAbsolutePath());
 
-
     private File installationPath = installation.getRootDirectory();
 
-    /** {@inheritDoc} */
     @Override
     public boolean accept(File file) {
       UninstallUserData userData = getUninstallUserData();
@@ -1421,7 +1372,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return isWindowsServiceEnabled.booleanValue();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ApplicationTrustManager getTrustManager()
   {
@@ -2236,4 +2186,3 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return getUserData().getConnectTimeout();
   }
 }
-

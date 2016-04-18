@@ -30,11 +30,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.CertificateMapperCfg;
 import org.forgerock.opendj.server.config.server.FingerprintCertificateMapperCfg;
 import org.opends.server.api.Backend;
@@ -43,12 +44,16 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -65,17 +70,10 @@ public class FingerprintCertificateMapper
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /** The DN of the configuration entry for this certificate mapper. */
-  private DN configEntryDN;
-
   /** The current configuration for this certificate mapper. */
   private FingerprintCertificateMapperCfg currentConfig;
-
   /** The algorithm that will be used to generate the fingerprint. */
   private String fingerprintAlgorithm;
-
   /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
@@ -101,8 +99,6 @@ public class FingerprintCertificateMapper
     configuration.addFingerprintChangeListener(this);
 
     currentConfig = configuration;
-    configEntryDN = configuration.dn();
-
 
     // Get the algorithm that will be used to generate the fingerprint.
     switch (configuration.getFingerprintAlgorithm())
@@ -127,7 +123,7 @@ public class FingerprintCertificateMapper
     AttributeType t = configuration.getFingerprintAttribute();
     for (DN baseDN : cfgBaseDNs)
     {
-      Backend b = DirectoryServer.getBackend(baseDN);
+      Backend<?> b = DirectoryServer.getBackend(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -350,7 +346,7 @@ public class FingerprintCertificateMapper
     AttributeType t = configuration.getFingerprintAttribute();
     for (DN baseDN : cfgBaseDNs)
     {
-      Backend b = DirectoryServer.getBackend(baseDN);
+      Backend<?> b = DirectoryServer.getBackend(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(

@@ -81,7 +81,6 @@ public class VerifyIndexTestCase
         "-f",configFilePath,
         "-b", "o=airius.com",
         "-i", "description" };
-    assertEquals(VerifyIndex.mainVerifyIndex(args, false, null, null), 1);
+    assertEquals(VerifyIndex.mainVerifyIndex(args, false, null), 1);
   }
 }
-

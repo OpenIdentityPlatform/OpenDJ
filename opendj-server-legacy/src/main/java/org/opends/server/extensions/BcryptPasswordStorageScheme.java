@@ -46,7 +46,6 @@ public class BcryptPasswordStorageScheme
     implements ConfigurationChangeListener<BcryptPasswordStorageSchemeCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private static final String CLASS_NAME = BcryptPasswordStorageScheme.class.getName();;
   /** The current configuration for this storage scheme. */
   private volatile BcryptPasswordStorageSchemeCfg config;
 

@@ -39,8 +39,6 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.DiskSpaceMonitorHandler;
@@ -48,8 +46,6 @@ import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -128,12 +124,6 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
 
     private void setLowThreshold(long lowThreshold) {
       this.lowThreshold = lowThreshold;
-    }
-
-    private Attribute attr(String name, Syntax syntax, Object value)
-    {
-      AttributeType attrType = DirectoryServer.getAttributeType(name, syntax);
-      return Attributes.create(attrType, String.valueOf(value));
     }
 
     private String getState()

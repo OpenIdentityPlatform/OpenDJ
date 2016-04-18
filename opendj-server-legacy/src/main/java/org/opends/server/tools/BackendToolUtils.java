@@ -21,16 +21,15 @@ import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.types.Entry;
 import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Entry;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -60,7 +59,7 @@ public class BackendToolUtils
    * @return 0 if everything went fine. 1 if an error occurred.
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public static int getBackends(final List<Backend> backendList, final List<BackendCfg> entryList,
+  public static int getBackends(final List<Backend<?>> backendList, final List<BackendCfg> entryList,
       final List<List<DN>> dnList)
   {
     try
@@ -191,24 +190,6 @@ public class BackendToolUtils
     catch (final Exception e)
     {
       logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getName(), getExceptionMessage(e));
-      throw e;
-    }
-  }
-
-  private static Entry getBaseEntry(final DN backendBaseDN) throws Exception
-  {
-    try
-    {
-      return DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (final ConfigException ce)
-    {
-      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, ce.getMessage());
-      throw ce;
-    }
-    catch (final Exception e)
-    {
-      logger.error(ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY, DN_BACKEND_BASE, getExceptionMessage(e));
       throw e;
     }
   }

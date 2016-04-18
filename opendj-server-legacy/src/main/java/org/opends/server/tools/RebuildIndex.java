@@ -19,8 +19,8 @@ package org.opends.server.tools;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -29,9 +29,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
@@ -48,7 +48,6 @@ import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.RebuildTask;
 import org.opends.server.tools.tasks.TaskTool;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
@@ -283,7 +282,7 @@ public class RebuildIndex extends TaskTool
   {
     if (initializeServer)
     {
-      final int init = initializeServer(out, err);
+      final int init = initializeServer(err);
       if (init != 0)
       {
         return init;
@@ -368,15 +367,12 @@ public class RebuildIndex extends TaskTool
   /**
    * Initializes the directory server.
    *
-   * @param out
-   *          The output stream to use for standard output, or {@code null} if
-   *          standard output is not needed.
    * @param err
    *          The output stream to use for standard error, or {@code null} if
    *          standard error is not needed.
    * @return The result code.
    */
-  private int initializeServer(final PrintStream out, final PrintStream err)
+  private int initializeServer(final PrintStream err)
   {
     try
     {
@@ -390,21 +386,6 @@ public class RebuildIndex extends TaskTool
       printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(ie.getLocalizedMessage()));
       return 1;
     }
-  }
-
-  private String toErrorMsg(Arg1<Object> errorMsg, Exception ex)
-  {
-    final LocalizableMessage message = getErrorMsg(ex, errorMsg);
-    return wrapText(message, MAX_LINE_WIDTH);
-  }
-
-  private LocalizableMessage getErrorMsg(Exception ex, Arg1<Object> errorMsg)
-  {
-    if (ex instanceof ConfigException || ex instanceof InitializationException)
-    {
-      return errorMsg.get(ex.getMessage());
-    }
-    return errorMsg.get(getExceptionMessage(ex));
   }
 
   /**
@@ -526,9 +507,9 @@ public class RebuildIndex extends TaskTool
    */
   private Backend<?> retrieveBackend(final DN selectedDN) throws ConfigException, Exception
   {
-    final ArrayList<Backend> backendList = new ArrayList<>();
-    final ArrayList<BackendCfg> entryList = new ArrayList<>();
-    final ArrayList<List<DN>> dnList = new ArrayList<>();
+    final List<Backend<?>> backendList = new ArrayList<>();
+    final List<BackendCfg> entryList = new ArrayList<>();
+    final List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     Backend<?> backend = null;
@@ -600,7 +581,7 @@ public class RebuildIndex extends TaskTool
 
       if (initializeServer)
       {
-        final int init = initializeServer(out, out);
+        final int init = initializeServer(out);
         if (init != 0)
         {
           return init;
