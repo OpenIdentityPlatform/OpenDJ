@@ -45,18 +45,18 @@ import com.forgerock.opendj.cli.Utils;
  */
 public class ServerLoader extends Thread
 {
-  private Map<ServerProperty,Object> serverProperties;
+  private final Map<ServerProperty, Object> serverProperties;
   private boolean isOver;
   private boolean isInterrupted;
   private String lastLdapUrl;
   private TopologyCacheException lastException;
   private ServerDescriptor serverDescriptor;
-  private ApplicationTrustManager trustManager;
-  private int timeout;
-  private String dn;
-  private String pwd;
+  private final ApplicationTrustManager trustManager;
+  private final int timeout;
+  private final String dn;
+  private final String pwd;
   private final LinkedHashSet<PreferredConnection> preferredLDAPURLs;
-  private TopologyCacheFilter filter;
+  private final TopologyCacheFilter filter;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -116,14 +116,13 @@ public class ServerLoader extends Thread
     return lastException;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void interrupt()
   {
     if (!isOver)
     {
       isInterrupted = true;
-      String ldapUrl = getLastLdapUrl();
+      String ldapUrl = lastLdapUrl;
       if (ldapUrl == null)
       {
         LinkedHashSet<PreferredConnection> urls = getLDAPURLsByPreference();
@@ -141,9 +140,7 @@ public class ServerLoader extends Thread
     super.interrupt();
   }
 
-  /**
-   * The method where we try to generate the ServerDescriptor object.
-   */
+  /** The method where we try to generate the ServerDescriptor object. */
   @Override
   public void run()
   {
@@ -158,40 +155,35 @@ public class ServerLoader extends Thread
     }
     catch (NoPermissionException e)
     {
-      logger.warn(LocalizableMessage.raw(
-          "Permissions error reading server: " + getLastLdapUrl(), e));
+      logger.warn(LocalizableMessage.raw("Permissions error reading server: " + lastLdapUrl, e));
       Type type = isAdministratorDn()
           ? TopologyCacheException.Type.NO_PERMISSIONS
           : TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR;
-      lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
+      lastException = new TopologyCacheException(type, e, trustManager, lastLdapUrl);
     }
     catch (AuthenticationException e)
     {
-      logger.warn(LocalizableMessage.raw(
-          "Authentication exception: " + getLastLdapUrl(), e));
+      logger.warn(LocalizableMessage.raw("Authentication exception: " + lastLdapUrl, e));
       Type type = isAdministratorDn()
           ? TopologyCacheException.Type.GENERIC_READING_SERVER
           : TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR;
-      lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
+      lastException = new TopologyCacheException(type, e, trustManager, lastLdapUrl);
     }
     catch (NamingException e)
     {
-      logger.warn(LocalizableMessage.raw(
-          "NamingException error reading server: " + getLastLdapUrl(), e));
+      logger.warn(LocalizableMessage.raw("NamingException error reading server: " + lastLdapUrl, e));
       Type type = connCreated
           ? TopologyCacheException.Type.GENERIC_READING_SERVER
           : TopologyCacheException.Type.GENERIC_CREATING_CONNECTION;
-      lastException = new TopologyCacheException(type, e, trustManager, getLastLdapUrl());
+      lastException = new TopologyCacheException(type, e, trustManager, lastLdapUrl);
     }
     catch (Throwable t)
     {
       if (!isInterrupted)
       {
-        logger.warn(LocalizableMessage.raw(
-            "Generic error reading server: "+getLastLdapUrl(), t));
-        logger.warn(LocalizableMessage.raw("server Properties: "+serverProperties));
-        lastException =
-            new TopologyCacheException(TopologyCacheException.Type.BUG, t);
+        logger.warn(LocalizableMessage.raw("Generic error reading server: " + lastLdapUrl, t));
+        logger.warn(LocalizableMessage.raw("server Properties: " + serverProperties));
+        lastException = new TopologyCacheException(TopologyCacheException.Type.BUG, t);
       }
     }
     finally
@@ -230,15 +222,6 @@ public class ServerLoader extends Thread
       }
     }
     return null;
-  }
-
-  /**
-   * Returns the last LDAP URL to which we tried to connect.
-   * @return the last LDAP URL to which we tried to connect.
-   */
-  private String getLastLdapUrl()
-  {
-    return lastLdapUrl;
   }
 
   /**

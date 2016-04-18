@@ -480,44 +480,7 @@ public class ConnectionUtils
     return "true".equalsIgnoreCase(getEnvProperty(ctx, STARTTLS_PROPERTY));
   }
 
-  /**
-   * Method used to know if we can connect as administrator in a server with a
-   * given password and dn.
-   * @param ldapUrl the LDAP URL of the server.
-   * @param dn the dn to be used.
-   * @param pwd the password to be used.
-   * @param timeout the timeout to establish the connection in milliseconds.
-   * Use {@code 0} to express no timeout.
-   * @return <CODE>true</CODE> if we can connect and read the configuration and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean canConnectAsAdministrativeUser(String ldapUrl,
-      String dn, String pwd, int timeout)
-  {
-    try
-    {
-      InitialLdapContext ctx;
-      if (ldapUrl.toLowerCase().startsWith("ldap:"))
-      {
-        ctx = createLdapContext(ldapUrl, dn, pwd, timeout,
-            null);
-      }
-      else
-      {
-        ctx = createLdapsContext(ldapUrl, dn, pwd, timeout,
-            null, null, null);
-      }
 
-      return connectedAsAdministrativeUser(ctx);
-    } catch (NamingException ne)
-    {
-      // Nothing to do.
-      return false;
-    } catch (Throwable t)
-    {
-      throw new IllegalStateException("Unexpected throwable.", t);
-    }
-  }
 
   /**
    * Method used to know if we are connected as administrator in a server with a

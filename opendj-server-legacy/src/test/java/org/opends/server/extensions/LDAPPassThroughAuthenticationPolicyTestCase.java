@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
@@ -45,11 +46,10 @@ import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
 import org.forgerock.opendj.server.config.server.AuthenticationPolicyCfg;
 import org.forgerock.opendj.server.config.server.LDAPPassThroughAuthenticationPolicyCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.core.DirectoryServer;
@@ -85,13 +85,10 @@ import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFa
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * Test LDAP authentication mappingPolicy implementation.
- */
+/** Test LDAP authentication mappingPolicy implementation. */
 public class LDAPPassThroughAuthenticationPolicyTestCase extends
     ExtensionsTestCase
 {
-
   static class CloseEvent extends Event<Void>
   {
     private final GetConnectionEvent getConnectionEvent;
@@ -101,7 +98,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.getConnectionEvent = getConnectionEvent;
     }
 
-    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -113,9 +109,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -124,14 +117,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       builder.append(')');
       return builder;
     }
-
   }
-
-
 
   static abstract class Event<T>
   {
-
     @Override
     public final boolean equals(final Object obj)
     {
@@ -142,16 +131,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
     @Override
     public final String toString()
     {
       final StringBuilder builder = new StringBuilder();
       return toString(builder).toString();
     }
-
-
 
     T getResult()
     {
@@ -162,8 +147,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     abstract StringBuilder toString(StringBuilder builder);
   }
-
-
 
   static class GetConnectionEvent extends Event<DirectoryException>
   {
@@ -182,7 +165,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.resultCode = resultCode;
     }
 
-    /** {@inheritDoc} */
     @Override
     DirectoryException getResult()
     {
@@ -193,9 +175,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return null;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -207,9 +186,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -218,17 +194,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       builder.append(')');
       return builder;
     }
-
   }
-
-
 
   static class GetLDAPConnectionFactoryEvent extends Event<Void>
   {
     private final String hostPort;
     private final LDAPPassThroughAuthenticationPolicyCfg options;
-
-
 
     GetLDAPConnectionFactoryEvent(final String hostPort,
         final LDAPPassThroughAuthenticationPolicyCfg options)
@@ -237,9 +208,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.options = options;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -253,9 +221,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -264,19 +229,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       builder.append(')');
       return builder;
     }
-
   }
-
-
 
   static final class MockConnection implements
       LDAPPassThroughAuthenticationPolicyFactory.Connection
   {
-
     private final GetConnectionEvent getConnectionEvent;
     private final MockProvider mockProvider;
-
-
 
     MockConnection(final MockProvider mockProvider,
         final GetConnectionEvent getConnectionEvent)
@@ -285,9 +244,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.getConnectionEvent = getConnectionEvent;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void close()
     {
@@ -295,9 +251,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       mockProvider.assertExpectedEventWasReceived(event);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public ByteString search(final DN baseDN, final SearchScope scope,
         final SearchFilter filter) throws DirectoryException
@@ -315,9 +268,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void simpleBind(final ByteString username, final ByteString password)
         throws DirectoryException
@@ -334,15 +284,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
   }
 
-
-
   static final class MockFactory implements
       LDAPPassThroughAuthenticationPolicyFactory.ConnectionFactory
   {
     private final GetLDAPConnectionFactoryEvent getLDAPConnectionFactoryEvent;
     private final MockProvider mockProvider;
-
-
 
     MockFactory(final MockProvider mockProvider,
         final GetLDAPConnectionFactoryEvent providerEvent)
@@ -351,18 +297,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.getLDAPConnectionFactoryEvent = providerEvent;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void close()
     {
       // Nothing to do.
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws DirectoryException
     {
@@ -375,15 +315,9 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       {
         throw e;
       }
-      else
-      {
-        return new MockConnection(mockProvider, event);
-      }
+      return new MockConnection(mockProvider, event);
     }
-
   }
-
-
 
   final class MockPolicyCfg implements LDAPPassThroughAuthenticationPolicyCfg
   {
@@ -401,17 +335,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private String mappedSearchBindPasswordProperty;
     private boolean usePasswordCaching;
 
-
-
-
     @Override
     public void addChangeListener(
         final ConfigurationChangeListener<AuthenticationPolicyCfg> listener)
     {
       // Do nothing.
     }
-
-
 
     @Override
     public void addLDAPPassThroughChangeListener(
@@ -420,15 +349,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       // Do nothing.
     }
 
-
-
     @Override
     public Class<? extends LDAPPassThroughAuthenticationPolicyCfg> configurationClass()
     {
       return LDAPPassThroughAuthenticationPolicyCfg.class;
     }
-
-
 
     @Override
     public DN dn()
@@ -436,20 +361,14 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return policyDN;
     }
 
-
-
     @Override
     public long getConnectionTimeout()
     {
       return timeoutMS;
     }
 
-
-
     @Override
     public InetAddress getSourceAddress() { return null; }
-
-
 
     @Override
     public String getJavaClass()
@@ -457,15 +376,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return LDAPPassThroughAuthenticationPolicyFactory.class.getName();
     }
 
-
-
     @Override
     public SortedSet<AttributeType> getMappedAttribute()
     {
       return mappedAttributes;
     }
-
-
 
     @Override
     public SortedSet<DN> getMappedSearchBaseDN()
@@ -473,15 +388,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return baseDNs;
     }
 
-
-
     @Override
     public DN getMappedSearchBindDN()
     {
       return mappedSearchBindDN;
     }
-
-
 
     @Override
     public String getMappedSearchBindPassword()
@@ -489,15 +400,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return mappedSearchBindPassword;
     }
 
-
-
     @Override
     public MappingPolicy getMappingPolicy()
     {
       return mappingPolicy;
     }
-
-
 
     @Override
     public SortedSet<String> getPrimaryRemoteLDAPServer()
@@ -505,15 +412,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return primaryServers;
     }
 
-
-
     @Override
     public SortedSet<String> getSecondaryRemoteLDAPServer()
     {
       return secondaryServers;
     }
-
-
 
     @Override
     public SortedSet<String> getSSLCipherSuite()
@@ -521,15 +424,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return new TreeSet<>();
     }
 
-
-
     @Override
     public SortedSet<String> getSSLProtocol()
     {
       return new TreeSet<>();
     }
-
-
 
     @Override
     public String getTrustManagerProvider()
@@ -537,15 +436,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return "ignored";
     }
 
-
-
     @Override
     public DN getTrustManagerProviderDN()
     {
       return trustManagerDN;
     }
-
-
 
     @Override
     public boolean isUseSSL()
@@ -553,23 +448,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
     @Override
     public boolean isUseTCPKeepAlive()
     {
       return false;
     }
 
-
-
     @Override
     public boolean isUseTCPNoDelay()
     {
       return false;
     }
-
-
 
     @Override
     public void removeChangeListener(
@@ -578,8 +467,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       // Do nothing.
     }
 
-
-
     @Override
     public void removeLDAPPassThroughChangeListener(
         final ConfigurationChangeListener<LDAPPassThroughAuthenticationPolicyCfg> listener)
@@ -587,15 +474,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       // Do nothing.
     }
 
-
-
     MockPolicyCfg withBaseDN(final String baseDN)
     {
       baseDNs.add(DN.valueOf(baseDN));
       return this;
     }
-
-
 
     MockPolicyCfg withConnectionTimeout(final int timeoutMS)
     {
@@ -603,15 +486,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockPolicyCfg withMappedAttribute(final String attrName)
     {
       mappedAttributes.add(DirectoryServer.getAttributeType(attrName));
       return this;
     }
-
-
 
     MockPolicyCfg withMappingPolicy(final MappingPolicy policy)
     {
@@ -619,15 +498,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockPolicyCfg withPrimaryServer(final String hostPort)
     {
       primaryServers.add(hostPort);
       return this;
     }
-
-
 
     MockPolicyCfg withSecondaryServer(final String hostPort)
     {
@@ -635,15 +510,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockPolicyCfg withMappedSearchBindDN(final DN value)
     {
       this.mappedSearchBindDN = value;
       return this;
     }
-
-
 
     MockPolicyCfg withMappedSearchBindPassword(final String value)
     {
@@ -651,15 +522,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockPolicyCfg withMappedSearchBindPasswordEnvironmentVariable(final String value)
     {
       this.mappedSearchBindPasswordEnvVar = value;
       return this;
     }
-
-
 
     MockPolicyCfg withMappedSearchBindPasswordFile(final String value)
     {
@@ -667,15 +534,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockPolicyCfg withMappedSearchBindPasswordProperty(final String value)
     {
       this.mappedSearchBindPasswordProperty = value;
       return this;
     }
-
-
 
     MockPolicyCfg withUsePasswordCaching(final boolean usePasswordCaching)
     {
@@ -683,45 +546,30 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public String getMappedSearchBindPasswordEnvironmentVariable()
     {
       return mappedSearchBindPasswordEnvVar;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public String getMappedSearchBindPasswordFile()
     {
       return mappedSearchBindPasswordFile;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public String getMappedSearchBindPasswordProperty()
     {
       return mappedSearchBindPasswordProperty;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public long getCachedPasswordTTL()
     {
       return 86400;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public String getCachedPasswordStorageScheme()
     {
@@ -734,9 +582,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return DN.valueOf("cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean isUsePasswordCaching()
     {
@@ -744,24 +589,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   static final class MockProvider implements
       LDAPPassThroughAuthenticationPolicyFactory.Provider
   {
-
     private final class MockScheduledFuture implements ScheduledFuture<Void>
     {
       private final Runnable runnable;
-
-
 
       MockScheduledFuture(final Runnable runnable)
       {
         this.runnable = runnable;
       }
-
-
 
       @Override
       public boolean cancel(final boolean mayInterruptIfRunning)
@@ -770,23 +608,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         return true;
       }
 
-
-
       @Override
       public int compareTo(final Delayed o)
       {
         return 0;
       }
 
-
-
       @Override
       public Void get() throws InterruptedException, ExecutionException
       {
         return null;
       }
-
-
 
       @Override
       public Void get(final long timeout, final TimeUnit unit)
@@ -795,15 +627,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         return null;
       }
 
-
-
       @Override
       public long getDelay(final TimeUnit unit)
       {
         return 0;
       }
-
-
 
       @Override
       public boolean isCancelled()
@@ -811,23 +639,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         return false;
       }
 
-
-
       @Override
       public boolean isDone()
       {
         return false;
       }
 
-
-
       Runnable getRunnable()
       {
         return runnable;
       }
     }
-
-
 
     private final Queue<Event<?>> expectedEvents = new LinkedList<>();
     private final List<MockScheduledFuture> monitorRunnables = new LinkedList<>();
@@ -844,15 +666,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public void execute(final Runnable command)
       {
         throw new UnsupportedOperationException();
       }
-
-
 
       @Override
       public <T> List<Future<T>> invokeAll(
@@ -862,8 +680,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public <T> List<Future<T>> invokeAll(
           final Collection<? extends Callable<T>> tasks, final long timeout,
@@ -872,16 +688,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public <T> T invokeAny(final Collection<? extends Callable<T>> tasks)
           throws InterruptedException, ExecutionException
       {
         throw new UnsupportedOperationException();
       }
-
-
 
       @Override
       public <T> T invokeAny(final Collection<? extends Callable<T>> tasks,
@@ -891,23 +703,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public boolean isShutdown()
       {
         return false;
       }
 
-
-
       @Override
       public boolean isTerminated()
       {
         return false;
       }
-
-
 
       @Override
       public <V> ScheduledFuture<V> schedule(final Callable<V> callable,
@@ -916,8 +722,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public ScheduledFuture<?> schedule(final Runnable command,
           final long delay, final TimeUnit unit)
@@ -925,16 +729,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public ScheduledFuture<?> scheduleAtFixedRate(final Runnable command,
           final long initialDelay, final long period, final TimeUnit unit)
       {
         throw new UnsupportedOperationException();
       }
-
-
 
       @Override
       public ScheduledFuture<?> scheduleWithFixedDelay(final Runnable command,
@@ -945,15 +745,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         return future;
       }
 
-
-
       @Override
       public void shutdown()
       {
         throw new UnsupportedOperationException();
       }
-
-
 
       @Override
       public List<Runnable> shutdownNow()
@@ -961,23 +757,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public <T> Future<T> submit(final Callable<T> task)
       {
         throw new UnsupportedOperationException();
       }
 
-
-
       @Override
       public Future<?> submit(final Runnable task)
       {
         throw new UnsupportedOperationException();
       }
-
-
 
       @Override
       public <T> Future<T> submit(final Runnable task, final T result)
@@ -986,9 +776,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     };
 
-
-
-    /** {@inheritDoc} */
     @Override
     public ConnectionFactory getLDAPConnectionFactory(final String host,
         final int port, final LDAPPassThroughAuthenticationPolicyCfg options)
@@ -999,27 +786,18 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return new MockFactory(this, event);
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public ScheduledExecutorService getScheduledExecutorService()
     {
       return mockScheduler;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public String getCurrentTime()
     {
       return currentTime;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public long getCurrentTimeMS()
     {
@@ -1034,31 +812,19 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
     void assertAllExpectedEventsReceived()
     {
       assertTrue(expectedEvents.isEmpty());
     }
 
-
-
     @SuppressWarnings("unchecked")
     <T> T assertExpectedEventWasReceived(final Event<T> actualEvent)
     {
       final Event<?> expectedEvent = expectedEvents.poll();
-      if (expectedEvent == null)
-      {
-        fail("Unexpected event: " + actualEvent);
-      }
-      else
-      {
-        assertEquals(actualEvent, expectedEvent);
-      }
+      assertNotNull(expectedEvent, "Unexpected event: " + actualEvent);
+      assertEquals(actualEvent, expectedEvent);
       return ((Event<T>) expectedEvent).getResult();
     }
-
-
 
     MockProvider expectEvent(final Event<?> expectedEvent)
     {
@@ -1066,15 +832,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockProvider withCurrentTime(final String currentTime)
     {
       this.currentTime = currentTime;
       return this;
     }
-
-
 
     void runMonitorTasks()
     {
@@ -1085,8 +847,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
 
   }
-
-
 
   final class MockServer
   {
@@ -1100,28 +860,20 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
     abstract class Action
     {
       abstract void run() throws Exception;
     }
-
-
 
     /** Blocks the server until it is released. */
     class BlockAction extends Action
     {
       private final CountDownLatch latch = new CountDownLatch(1);
 
-
-
       void release()
       {
         latch.countDown();
       }
-
-
 
       @Override
       void run() throws Exception
@@ -1129,8 +881,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         latch.await();
       }
     }
-
-
 
     /** Close the client socket. */
     class CloseAction extends Action
@@ -1142,23 +892,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
     /** Read the next message and check it matches the expected message. */
     class ReceiveAction extends Action
     {
       private final int messageID;
       private final ProtocolOp expectedOp;
 
-
-
       ReceiveAction(final int messageID, final ProtocolOp expectedOp)
       {
         this.messageID = messageID;
         this.expectedOp = expectedOp;
       }
-
-
 
       @Override
       void run() throws Exception
@@ -1182,23 +926,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
     /** Sends a message. */
     class SendAction extends Action
     {
       private final int messageID;
       private final ProtocolOp op;
 
-
-
       SendAction(final int messageID, final ProtocolOp op)
       {
         this.messageID = messageID;
         this.op = op;
       }
-
-
 
       @Override
       void run() throws Exception
@@ -1209,8 +947,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
     private final ServerSocket serverSocket;
     private final List<Action> actions = new LinkedList<>();
     private Socket socket;
@@ -1219,14 +955,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private final CountDownLatch stopLatch = new CountDownLatch(1);
     private final Queue<BlockAction> blockers = new LinkedList<>();
 
-
-
     MockServer(final ServerSocket serverSocket)
     {
       this.serverSocket = serverSocket;
     }
-
-
 
     void assertNoExceptions() throws Exception
     {
@@ -1236,20 +968,15 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
-
-
     int getPort()
     {
       return serverSocket.getLocalPort();
     }
 
-
-
     MockServer start()
     {
       serverThread = new Thread(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
@@ -1277,8 +1004,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     void stop() throws Exception
     {
       stopLatch.await(10, TimeUnit.SECONDS);
@@ -1290,15 +1015,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       assertNoExceptions();
     }
 
-
-
     MockServer thenAccept()
     {
       actions.add(new AcceptAction());
       return this;
     }
-
-
 
     MockServer thenBlock()
     {
@@ -1308,15 +1029,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockServer thenClose()
     {
       actions.add(new CloseAction());
       return this;
     }
-
-
 
     MockServer thenReceive(final int messageID, final ProtocolOp op)
     {
@@ -1324,15 +1041,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-
-
     MockServer thenSend(final int messageID, final ProtocolOp op)
     {
       actions.add(new SendAction(messageID, op));
       return this;
     }
-
-
 
     void unblock() throws Exception
     {
@@ -1341,24 +1054,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       action.release();
     }
 
-
-
     private Socket accept() throws IOException
     {
       socket = serverSocket.accept();
       return socket;
     }
 
-
-
     private Socket getSocket()
     {
       return socket;
     }
-
   }
-
-
 
   static class SearchEvent extends Event<Object>
   {
@@ -1369,15 +1075,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private final SearchScope scope;
     private final String username;
 
-
-
     SearchEvent(final GetConnectionEvent cevent, final String baseDN,
         final SearchScope scope, final String filter)
     {
       this(cevent, baseDN, scope, filter, null, ResultCode.SUCCESS);
     }
-
-
 
     SearchEvent(final GetConnectionEvent cevent, final String baseDN,
         final SearchScope scope, final String filter,
@@ -1386,15 +1088,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this(cevent, baseDN, scope, filter, null, resultCode);
     }
 
-
-
     SearchEvent(final GetConnectionEvent cevent, final String baseDN,
         final SearchScope scope, final String filter, final String username)
     {
       this(cevent, baseDN, scope, filter, username, ResultCode.SUCCESS);
     }
-
-
 
     private SearchEvent(final GetConnectionEvent cevent, final String baseDN,
         final SearchScope scope, final String filter, final String username,
@@ -1408,9 +1106,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.resultCode = resultCode;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     Object getResult()
     {
@@ -1418,9 +1113,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
           : new DirectoryException(resultCode, resultCode.getName());
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -1435,9 +1127,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -1452,10 +1141,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       builder.append(')');
       return builder;
     }
-
   }
-
-
 
   static class SimpleBindEvent extends Event<DirectoryException>
   {
@@ -1464,15 +1150,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private final ResultCode resultCode;
     private final String username;
 
-
-
     SimpleBindEvent(final GetConnectionEvent cevent, final String username,
         final String password)
     {
       this(cevent, username, password, ResultCode.SUCCESS);
     }
-
-
 
     SimpleBindEvent(final GetConnectionEvent cevent, final String username,
         final String password, final ResultCode resultCode)
@@ -1483,9 +1165,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       this.resultCode = resultCode;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     DirectoryException getResult()
     {
@@ -1497,9 +1176,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return null;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     boolean matchesEvent(final Event<?> event)
     {
@@ -1513,9 +1189,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return false;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     StringBuilder toString(final StringBuilder builder)
     {
@@ -1528,10 +1201,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       builder.append(')');
       return builder;
     }
-
   }
-
-
 
   private final String phost1 = "phost1:11";
   private final String phost2 = "phost2:22";
@@ -1547,8 +1217,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   private final String opendjDNString = "cn=test user,o=opendj";
   private Entry userEntry;
   private final String userPassword = "password";
-
-
 
   /**
    * Ensures that the Directory Server is running and creates a test backend
@@ -1578,8 +1246,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     );
   }
 
-
-
   /**
    * Tests that failures during the search are handled properly.
    * <p>
@@ -1591,7 +1257,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true, dataProvider = "testConnectionFailureDuringSearchData")
+  @Test(dataProvider = "testConnectionFailureDuringSearchData")
   public void testConnectionFailureDuringSearch(
       final ResultCode searchResultCode) throws Exception
   {
@@ -1661,8 +1327,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests that failures to authenticate a search connection are handled
    * properly.
@@ -1676,7 +1340,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true, dataProvider = "testConnectionFailureDuringSearchBindData")
+  @Test(dataProvider = "testConnectionFailureDuringSearchBindData")
   public void testConnectionFailureDuringSearchBind(
       final ResultCode bindResultCode) throws Exception
   {
@@ -1727,8 +1391,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     policy.finalizeAuthenticationPolicy();
   }
 
-
-
   /**
    * Returns test data for {@link #testConnectionFailureDuringSearchBind}.
    *
@@ -1745,8 +1407,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     };
     // @formatter:on
   }
-
-
 
   /**
    * Returns test data for {@link #testConnectionFailureDuringSearch}.
@@ -1766,8 +1426,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:on
   }
 
-
-
   /**
    * Tests that failures to obtain a search connection are handled properly.
    *
@@ -1776,7 +1434,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true, dataProvider = "testConnectionFailureDuringSearchGetConnectionData")
+  @Test(dataProvider = "testConnectionFailureDuringSearchGetConnectionData")
   public void testConnectionFailureDuringSearchGetConnection(
       final ResultCode connectResultCode) throws Exception
   {
@@ -1824,8 +1482,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     policy.finalizeAuthenticationPolicy();
   }
 
-
-
   /**
    * Returns test data for
    * {@link #testConnectionFailureDuringSearchGetConnection}.
@@ -1843,8 +1499,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:on
   }
 
-
-
   /**
    * Tests fail-over between 2 primary servers then to the secondary data
    * center.
@@ -1852,7 +1506,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testFailOverOnConnect() throws Exception
   {
     // Mock configuration.
@@ -1971,8 +1625,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests that searches which fail in one LB pool are automatically retried in
    * the secondary LB pool.
@@ -1980,7 +1632,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testFBRetrySearchOnFailure() throws Exception
   {
     // Mock configuration.
@@ -2113,8 +1765,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests configuration validation.
    *
@@ -2125,7 +1775,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true, dataProvider = "testIsConfigurationAcceptableData")
+  @Test(dataProvider = "testIsConfigurationAcceptableData")
   public void testIsConfigurationAcceptable(
       final LDAPPassThroughAuthenticationPolicyCfg cfg, final boolean isValid)
       throws Exception
@@ -2135,8 +1785,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         factory.isConfigurationAcceptable(cfg, new LinkedList<LocalizableMessage>()),
         isValid);
   }
-
-
 
   /**
    * Returns test data for {@link #testIsConfigurationAcceptable}.
@@ -2176,8 +1824,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:on
   }
 
-
-
   /**
    * Tests that searches which fail on one server are automatically retried on
    * another within the same LB.
@@ -2185,7 +1831,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLBRetrySearchOnFailure() throws Exception
   {
     // Mock configuration.
@@ -2323,8 +1969,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests valid bind which times out at the client. These should trigger a
    * CLIENT_SIDE_TIMEOUT result code.
@@ -2332,7 +1976,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryBindClientTimeout() throws Exception
   {
     // Mock configuration.
@@ -2366,8 +2010,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid bind which never receives a response because the server
    * abruptly closes the connection.
@@ -2375,7 +2017,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryBindConnectionClosed() throws Exception
   {
     // Mock configuration.
@@ -2409,8 +2051,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests bind which receives a disconnect notification. The error result code
    * should be passed back to the called.
@@ -2418,7 +2058,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryBindDisconnectNotification()
       throws Exception
   {
@@ -2455,8 +2095,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests bind with invalid credentials which should return a
    * INVALID_CREDENTIALS result code.
@@ -2464,7 +2102,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryBindInvalidCredentials()
       throws Exception
   {
@@ -2499,8 +2137,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests bind which returns an error result. The error result code should be
    * passed back to the caller.
@@ -2508,7 +2144,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryBindOtherError() throws Exception
   {
     // Mock configuration.
@@ -2541,15 +2177,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid bind returning success.
    *
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryBindSuccess() throws Exception
   {
     // Mock configuration.
@@ -2577,15 +2211,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests successful connect/unbind.
    *
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryConnectAndUnbind() throws Exception
   {
     // Mock configuration.
@@ -2609,8 +2241,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests that invalid ports are handled properly. These should trigger a
    * CLIENT_SIDE_CONNECT_ERROR result code.
@@ -2618,7 +2248,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryConnectPortNotInUse() throws Exception
   {
     final int port = TestCaseUtils.findFreePort();
@@ -2646,8 +2276,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests that unknown hosts are handled properly. These should trigger a
    * CLIENT_SIDE_CONNECT_ERROR result code.
@@ -2655,7 +2283,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactoryConnectUnknownHost() throws Exception
   {
     // Mock configuration.
@@ -2681,8 +2309,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search which times out at the client. These should trigger a
    * CLIENT_SIDE_TIMEOUT result code.
@@ -2690,7 +2316,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchClientTimeout() throws Exception
   {
     // Mock configuration.
@@ -2723,8 +2349,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search which never receives a response because the server
    * abruptly closes the connection.
@@ -2732,7 +2356,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchConnectionClosed()
       throws Exception
   {
@@ -2769,8 +2393,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search which receives a disconnect notification. The error
    * result code should be passed back to the called.
@@ -2778,7 +2400,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchDisconnectNotification()
       throws Exception
   {
@@ -2816,8 +2438,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search returning no results are handled properly. These should
    * trigger a CLIENT_SIDE_NO_RESULTS_RETURNED result code.
@@ -2825,7 +2445,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchNoResults() throws Exception
   {
     // Mock configuration.
@@ -2861,8 +2481,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests search returning no entries and an error result. The error result
    * code should be passed back to the caller.
@@ -2870,7 +2488,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchOtherError() throws Exception
   {
     // Mock configuration.
@@ -2906,8 +2524,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search returning a single entry followed by a size limit
    * exceeded error are handled properly. These should trigger a
@@ -2916,7 +2532,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchSizeLimit() throws Exception
   {
     // Mock configuration.
@@ -2953,15 +2569,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search returning a single entry works properly.
    *
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchSuccess() throws Exception
   {
     // Mock configuration.
@@ -2994,8 +2608,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search returning a single entry followed by a time limit
    * exceeded error are handled properly. These should trigger a
@@ -3004,7 +2616,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchTimeLimit() throws Exception
   {
     // Mock configuration.
@@ -3041,8 +2653,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests valid search returning many results are handled properly. These
    * should trigger a CLIENT_SIDE_MORE_RESULTS_TO_RETURN result code.
@@ -3050,7 +2660,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLDAPConnectionFactorySearchTooManyResults() throws Exception
   {
     // Mock configuration.
@@ -3088,15 +2698,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
   }
 
-
-
   /**
    * Tests load balancing across 3 servers.
    *
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testLoadBalancing() throws Exception
   {
     // Mock configuration.
@@ -3221,8 +2829,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests the different mapping policies: connection attempts will succeed, as
    * will any searches, but the final user bind may or may not succeed depending
@@ -3238,7 +2844,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true, dataProvider = "testMappingPolicyAuthenticationData")
+  @Test(dataProvider = "testMappingPolicyAuthenticationData")
   public void testMappingPolicyAuthentication(
       final MappingPolicy mappingPolicy, final ResultCode bindResultCode)
       throws Exception
@@ -3342,8 +2948,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Returns test data for {@link #testMappingPolicyAuthentication}.
    *
@@ -3370,15 +2974,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:on
   }
 
-
-
   /**
    * Tests that mapped PTA fails when no match attribute values are found.
    *
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testMissingMappingAttributes() throws Exception
   {
     // Mock configuration.
@@ -3435,8 +3037,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests that mapped PTA uses an appropriate filter when multiple match
    * attributes are defined.
@@ -3444,7 +3044,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testMultipleMappingAttributes() throws Exception
   {
     // Mock configuration.
@@ -3518,8 +3118,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests that mapped PTA uses an appropriate filter when multiple match
    * attribute values are found.
@@ -3527,7 +3125,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testMultipleMappingAttributeValues() throws Exception
   {
     // Mock configuration.
@@ -3600,8 +3198,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Tests that mapped PTA performs searches across multiple base DNs if
    * configured.
@@ -3609,7 +3205,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testMultipleSearchBaseDNs() throws Exception
   {
     // Mock configuration.
@@ -3675,8 +3271,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Test for issue OPENDJ-292
    * (https://bugster.forgerock.org/jira/browse/OPENDJ-292). This test checks
@@ -3686,7 +3280,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testIssueOPENDJ292_1() throws Exception
   {
     // Mock configuration.
@@ -3754,8 +3348,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Test for issue OPENDJ-292
    * (https://bugster.forgerock.org/jira/browse/OPENDJ-292). This test checks
@@ -3765,7 +3357,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testIssueOPENDJ292_2() throws Exception
   {
     // Mock configuration.
@@ -3873,8 +3465,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Test for issue OPENDJ-294
    * (https://bugster.forgerock.org/jira/browse/OPENDJ-294). Password
@@ -3884,7 +3474,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    *           If an unexpected exception occurred.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled = true)
+  @Test
   public void testIssueOPENDJ294() throws Exception
   {
     // Mock configurations.
@@ -4007,8 +3597,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Test for issue OPENDJ-290
    * (https://bugster.forgerock.org/jira/browse/OPENDJ-290).
@@ -4016,7 +3604,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true)
+  @Test
   public void testIssueOPENDJ290() throws Exception
   {
     // Mock configuration.
@@ -4095,8 +3683,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   /**
    * Returns test data for {@link #testPasswordCaching}.
    *
@@ -4124,8 +3710,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:on
   }
 
-
-
   /**
    * Tests password caching functionality.
    *
@@ -4141,7 +3725,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = true, dataProvider = "testPasswordCachingData")
+  @Test(dataProvider = "testPasswordCachingData")
   public void testPasswordCaching(String cacheState, boolean matchesCache,
       boolean matchesReal) throws Exception
   {
@@ -4310,22 +3894,16 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.assertAllExpectedEventsReceived();
   }
 
-
-
   MockPolicyCfg mockCfg()
   {
     return new MockPolicyCfg();
   }
-
-
 
   MockServer mockServer() throws IOException
   {
     final ServerSocket serverSocket = TestCaseUtils.bindFreePort();
     return new MockServer(serverSocket);
   }
-
-
 
   BindRequestProtocolOp newBindRequest(final String dn, final String password)
       throws LDAPException
@@ -4334,14 +3912,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         ByteString.valueOfUtf8(password));
   }
 
-
-
   BindResponseProtocolOp newBindResult(final ResultCode resultCode)
   {
     return new BindResponseProtocolOp(resultCode.intValue());
   }
-
-
 
   ExtendedResponseProtocolOp newDisconnectNotification(
       final ResultCode resultCode)
@@ -4350,15 +3924,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         null, OID_NOTICE_OF_DISCONNECTION, null);
   }
 
-
-
   SearchResultEntryProtocolOp newSearchEntry(final String dn)
       throws DirectoryException
   {
     return new SearchResultEntryProtocolOp(DN.valueOf(dn));
   }
-
-
 
   SearchRequestProtocolOp newSearchRequest(final String dn,
       final String filter, final LDAPPassThroughAuthenticationPolicyCfg cfg)
@@ -4370,8 +3940,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         true, RawFilter.create(filter),
         LDAPPassThroughAuthenticationPolicyFactory.NO_ATTRIBUTES);
   }
-
-
 
   SearchResultDoneProtocolOp newSearchResult(final ResultCode resultCode)
   {

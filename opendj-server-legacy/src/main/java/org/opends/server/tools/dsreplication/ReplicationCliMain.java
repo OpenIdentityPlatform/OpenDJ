@@ -83,10 +83,13 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.DecodingException;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.OperationsException;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
@@ -178,9 +181,9 @@ public class ReplicationCliMain extends ConsoleApplication
   /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = ReplicationCliMain.class.getName();
   /** Prefix for log files. */
-  public static final String LOG_FILE_PREFIX = "opendj-replication-";
+  private static final String LOG_FILE_PREFIX = "opendj-replication-";
   /** Suffix for log files. */
-  public static final String LOG_FILE_SUFFIX = ".log";
+  private static final String LOG_FILE_SUFFIX = ".log";
 
   /**
    * Property used to call the dsreplication script and ReplicationCliMain to
@@ -295,7 +298,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private LDAPConnectionConsoleInteraction sourceServerCI;
   private CommandBuilder firstServerCommandBuilder;
   /** The message formatter. */
-  private PlainTextProgressMessageFormatter formatter = new PlainTextProgressMessageFormatter();
+  private final PlainTextProgressMessageFormatter formatter = new PlainTextProgressMessageFormatter();
 
   /**
    * Constructor for the ReplicationCliMain object.
@@ -382,7 +385,7 @@ public class ReplicationCliMain extends ConsoleApplication
    *
    * @return The error code.
    */
-  public ReplicationCliReturnCode execute(String[] args, boolean initializeServer)
+  private ReplicationCliReturnCode execute(String[] args, boolean initializeServer)
   {
     // Create the command-line argument parser for use with this program.
     try
@@ -651,7 +654,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ClientException
    *           If the value could not be retrieved for some reason.
    */
-  public final int readInteger(
+  private final int readInteger(
       LocalizableMessage prompt, final int defaultValue) throws ClientException
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
@@ -1878,11 +1881,11 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(PurgeHistoricalUserData uData)
   {
-    ConnectionWrapper connWrapper = null;
+    ConnectionWrapper conn = null;
     try
     {
-      connWrapper = getConnection(uData);
-      if (connWrapper == null)
+      conn = getConnection(uData);
+      if (conn == null)
       {
         return false;
       }
@@ -1900,7 +1903,7 @@ public class ReplicationCliMain extends ConsoleApplication
       List<String> suffixes = argParser.getBaseDNs();
       if (uData.isOnline())
       {
-        checkSuffixesForPurgeHistorical(suffixes, connWrapper, true);
+        checkSuffixesForPurgeHistorical(suffixes, conn, true);
       }
       else
       {
@@ -1914,7 +1917,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (uData.isOnline())
       {
-        List<? extends TaskEntry> taskEntries = getAvailableTaskEntries(connWrapper);
+        List<? extends TaskEntry> taskEntries = getAvailableTaskEntries(conn);
 
         TaskScheduleInteraction interaction =
             new TaskScheduleInteraction(uData.getTaskSchedule(), argParser.taskArgs, this,
@@ -1935,7 +1938,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     finally
     {
-      close(connWrapper);
+      close(conn);
     }
   }
 
@@ -3365,26 +3368,18 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Returns the replication port of server to which the LdapContext is
-   * connected and -1 if the replication port could not be found.
-   * @param connWrapper the InitialLdapContext to be used.
-   * @return the replication port of server to which the LdapContext is
-   * connected and -1 if the replication port could not be found.
+   * Returns the replication port of server for which the connection is provided.
+   * @param conn the connection to be used.
+   * @return the server's replication port or -1 if the replication port could not be found
    */
-  private int getReplicationPort(ConnectionWrapper connWrapper)
+  private int getReplicationPort(ConnectionWrapper conn)
   {
     try
     {
-      RootCfgClient root = connWrapper.getRootConfiguration();
-
-      ReplicationSynchronizationProviderCfgClient sync =
-          (ReplicationSynchronizationProviderCfgClient)
-          root.getSynchronizationProvider("Multimaster Synchronization");
+      ReplicationSynchronizationProviderCfgClient sync = getMultimasterSynchronization(conn);
       if (sync.hasReplicationServer())
       {
-        ReplicationServerCfgClient replicationServer =
-          sync.getReplicationServer();
-        return replicationServer.getReplicationPort();
+        return sync.getReplicationServer().getReplicationPort();
       }
     }
     catch (Throwable t)
@@ -3403,7 +3398,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * accordingly.
    *
    * @param ci the LDAP connection to the server
-   * @param connWrapper the connection to be used in an array: note the connection
+   * @param conn the connection to be used in an array: note the connection
    * may be modified with the new credentials provided by the user.
    * @param uData the ReplicationUserData to be updated.
    * @param isFirstOrSourceServer whether this is the first server in the
@@ -3416,12 +3411,12 @@ public class ReplicationCliMain extends ConsoleApplication
    * messages.
    */
   private boolean loadADSAndAcceptCertificates(LDAPConnectionConsoleInteraction ci,
-      AtomicReference<ConnectionWrapper> connWrapper, ReplicationUserData uData, boolean isFirstOrSourceServer)
+      AtomicReference<ConnectionWrapper> conn, ReplicationUserData uData, boolean isFirstOrSourceServer)
   throws ReplicationCliException
   {
     boolean cancelled = false;
     boolean triedWithUserProvidedAdmin = false;
-    final ConnectionWrapper conn1 = connWrapper.get();
+    final ConnectionWrapper conn1 = conn.get();
     HostPort hostPort = conn1.getHostPort();
     Type connectionType = getConnectionType(conn1);
     if (getTrustManager(ci) == null)
@@ -3512,15 +3507,15 @@ public class ReplicationCliMain extends ConsoleApplication
                 close(conn1);
                   try
                   {
-                    final ConnectionWrapper connWrapper2 = new ConnectionWrapper(
+                    final ConnectionWrapper conn2 = new ConnectionWrapper(
                           hostPort, connectionType, getAdministratorDN(adminUid), adminPwd,
                           getConnectTimeout(), getTrustManager(ci));
-                    connWrapper.set(connWrapper2);
-                    adsContext = new ADSContext(connWrapper2);
+                    conn.set(conn2);
+                    adsContext = new ADSContext(conn2);
                     cache = new TopologyCache(adsContext, getTrustManager(ci), getConnectTimeout());
                     cache.getFilter().setSearchMonitoringInformation(false);
                     cache.getFilter().setSearchBaseDNInformation(false);
-                    cache.setPreferredConnections(getPreferredConnections(connWrapper2));
+                    cache.setPreferredConnections(getPreferredConnections(conn2));
                     connected = true;
                   }
                   catch (Throwable t)
@@ -3913,27 +3908,26 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void checkReplicationServerAlreadyConfigured(
-      ConnectionWrapper connWrapper, EnableReplicationServerData server)
+  private void checkReplicationServerAlreadyConfigured(ConnectionWrapper conn, EnableReplicationServerData server)
   {
-    int repPort = getReplicationPort(connWrapper);
+    int repPort = getReplicationPort(conn);
     if (!server.configureReplicationServer() && repPort > 0)
     {
-      println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(connWrapper.getHostPort(), repPort));
+      println(INFO_REPLICATION_SERVER_CONFIGURED_WARNING.get(conn.getHostPort(), repPort));
       println();
     }
   }
 
   private void checksForNonInteractiveMode(EnableReplicationUserData uData,
-      ConnectionWrapper connWrapper1, ConnectionWrapper connWrapper2, List<LocalizableMessage> errorMessages)
+      ConnectionWrapper conn1, ConnectionWrapper conn2, List<LocalizableMessage> errorMessages)
   {
     EnableReplicationServerData server1 = uData.getServer1();
     EnableReplicationServerData server2 = uData.getServer2();
     String host1 = server1.getHostName();
     String host2 = server2.getHostName();
 
-    int replPort1 = checkReplicationPort(connWrapper1, server1, errorMessages);
-    int replPort2 = checkReplicationPort(connWrapper2, server2, errorMessages);
+    int replPort1 = checkReplicationPort(conn1, server1, errorMessages);
+    int replPort2 = checkReplicationPort(conn2, server2, errorMessages);
     if (replPort1 > 0 && replPort1 == replPort2 && host1.equalsIgnoreCase(host2))
     {
       errorMessages.add(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replPort1, host1));
@@ -3949,9 +3943,9 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private int checkReplicationPort(
-      ConnectionWrapper connWrapper, EnableReplicationServerData server, List<LocalizableMessage> errorMessages)
+      ConnectionWrapper conn, EnableReplicationServerData server, List<LocalizableMessage> errorMessages)
   {
-    int replPort = getReplicationPort(connWrapper);
+    int replPort = getReplicationPort(conn);
     boolean hasReplicationPort = replPort > 0;
     if (replPort < 0 && server.configureReplicationServer())
     {
@@ -5343,8 +5337,7 @@ public class ReplicationCliMain extends ConsoleApplication
     else if (connSource != null && connDestination != null)
     {
       print(formatter.getFormattedWithPoints(
-INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
-          connDestination.getHostPort(), connSource.getHostPort())));
+          INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(connDestination.getHostPort(), connSource.getHostPort())));
 
       initializeSuffix(ADSContext.getAdministrationSuffixDN(), connSource, connDestination, false);
       print(formatter.getFormattedDone());
@@ -5368,7 +5361,7 @@ INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
       {
         PointAdder pointAdder = new PointAdder(this);
         println(INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-connDestination.getHostPort(), connSource.getHostPort()));
+            connDestination.getHostPort(), connSource.getHostPort()));
         pointAdder.start();
         try
         {
@@ -5383,8 +5376,7 @@ connDestination.getHostPort(), connSource.getHostPort()));
       else
       {
         print(formatter.getFormattedWithPoints(INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-connDestination
-            .getHostPort(), connSource.getHostPort())));
+            connDestination.getHostPort(), connSource.getHostPort())));
         initializeSuffix(Constants.SCHEMA_DN, connSource, connDestination, false);
       }
       print(formatter.getFormattedDone());
@@ -6625,20 +6617,19 @@ connDestination
     print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(conn.getHostPort())));
 
-    RootCfgClient root = conn.getRootConfiguration();
 
     /* Configure Synchronization plugin. */
     ReplicationSynchronizationProviderCfgClient sync = null;
     try
     {
-      sync = (ReplicationSynchronizationProviderCfgClient)
-      root.getSynchronizationProvider("Multimaster Synchronization");
+      sync = getMultimasterSynchronization(conn);
     }
     catch (ManagedObjectNotFoundException monfe)
     {
       logger.info(LocalizableMessage.raw(
           "Synchronization server does not exist in " + conn.getHostPort()));
     }
+    RootCfgClient root = conn.getRootConfiguration();
     if (sync == null)
     {
       ReplicationSynchronizationProviderCfgDefn provider =
@@ -6724,11 +6715,7 @@ connDestination
     print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(conn.getHostPort())));
 
-    RootCfgClient root = conn.getRootConfiguration();
-
-    ReplicationSynchronizationProviderCfgClient sync =
-      (ReplicationSynchronizationProviderCfgClient)
-    root.getSynchronizationProvider("Multimaster Synchronization");
+    ReplicationSynchronizationProviderCfgClient sync = getMultimasterSynchronization(conn);
     boolean mustCommit = false;
     ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
     Set<String> servers = replicationServer.getReplicationServer();
@@ -6812,10 +6799,7 @@ connDestination
           INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN, conn.getHostPort())));
     }
 
-    RootCfgClient root = conn.getRootConfiguration();
-    ReplicationSynchronizationProviderCfgClient sync =
-      (ReplicationSynchronizationProviderCfgClient)
-      root.getSynchronizationProvider("Multimaster Synchronization");
+    ReplicationSynchronizationProviderCfgClient sync = getMultimasterSynchronization(conn);
 
     String[] domainNames = sync.listReplicationDomains();
     if (domainNames == null)
@@ -7257,7 +7241,7 @@ connDestination
    * @throws PeerNotFoundException if the replication mechanism cannot find
    * a peer.
    */
-  public void initializeAllSuffixTry(String baseDN, ConnectionWrapper conn, boolean displayProgress)
+  private void initializeAllSuffixTry(String baseDN, ConnectionWrapper conn, boolean displayProgress)
       throws ClientException, PeerNotFoundException
   {
     boolean isOver = false;
@@ -7559,12 +7543,10 @@ connDestination
     try (ConnectionWrapper conn = loader.createConnectionWrapper())
     {
       hostPort = conn.getHostPort();
-      RootCfgClient root = conn.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
-        sync = (ReplicationSynchronizationProviderCfgClient)
-        root.getSynchronizationProvider("Multimaster Synchronization");
+        sync = getMultimasterSynchronization(conn);
       }
       catch (ManagedObjectNotFoundException monfe)
       {
@@ -7675,12 +7657,10 @@ connDestination
     HostPort hostPort = conn.getHostPort();
     try
     {
-      RootCfgClient root = conn.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
-        sync = (ReplicationSynchronizationProviderCfgClient)
-        root.getSynchronizationProvider("Multimaster Synchronization");
+        sync = getMultimasterSynchronization(conn);
       }
       catch (ManagedObjectNotFoundException monfe)
       {
@@ -7718,25 +7698,29 @@ connDestination
     }
   }
 
+  private ReplicationSynchronizationProviderCfgClient getMultimasterSynchronization(ConnectionWrapper conn)
+      throws DecodingException, OperationsException, LdapException
+  {
+    RootCfgClient root = conn.getRootConfiguration();
+    return (ReplicationSynchronizationProviderCfgClient) root.getSynchronizationProvider("Multimaster Synchronization");
+  }
+
   /**
    * Disables the replication server for a given server.
-   * @param connWrapper the connection to the server.
+   * @param conn the connection to the server.
    * @throws ReplicationCliException if there is an error updating the
    * configuration of the server.
    */
-  private void disableReplicationServer(ConnectionWrapper connWrapper)
-  throws ReplicationCliException
+  private void disableReplicationServer(ConnectionWrapper conn) throws ReplicationCliException
   {
-    HostPort hostPort = connWrapper.getHostPort();
+    HostPort hostPort = conn.getHostPort();
     try
     {
-      RootCfgClient root = connWrapper.getRootConfiguration();
       ReplicationSynchronizationProviderCfgClient sync = null;
       ReplicationServerCfgClient replicationServer = null;
       try
       {
-        sync = (ReplicationSynchronizationProviderCfgClient)
-        root.getSynchronizationProvider("Multimaster Synchronization");
+        sync = getMultimasterSynchronization(conn);
         if (sync.hasReplicationServer())
         {
           replicationServer = sync.getReplicationServer();

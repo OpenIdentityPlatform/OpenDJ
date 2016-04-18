@@ -1057,11 +1057,6 @@ public class TopologyViewTest extends ReplicationTestCase
       }
       return sb.toString();
     }
-
-    private TopologyViewTest getOuterType()
-    {
-      return TopologyViewTest.this;
-    }
   }
 
   private String getHostPort(int port)
