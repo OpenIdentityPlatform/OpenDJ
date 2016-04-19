@@ -28,14 +28,14 @@ import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.util.Utils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
@@ -346,27 +346,18 @@ public class RestoreDB extends TaskTool {
         out.println(message);
 
         byte[] hash = backupInfo.getUnsignedHash();
-
         message = INFO_RESTOREDB_LIST_HASHED.get(hash != null);
         out.println(message);
 
         byte[] signature = backupInfo.getSignedHash();
-
         message = INFO_RESTOREDB_LIST_SIGNED.get(signature != null);
         out.println(message);
 
         StringBuilder dependencyList = new StringBuilder();
-        HashSet<String> dependencyIDs = backupInfo.getDependencies();
+        Set<String> dependencyIDs = backupInfo.getDependencies();
         if (! dependencyIDs.isEmpty())
         {
-          Iterator<String> iterator = dependencyIDs.iterator();
-          dependencyList.append(iterator.next());
-
-          while (iterator.hasNext())
-          {
-            dependencyList.append(", ");
-            dependencyList.append(iterator.next());
-          }
+          Utils.joinAsString(dependencyList, ", ", dependencyIDs);
         }
         else
         {

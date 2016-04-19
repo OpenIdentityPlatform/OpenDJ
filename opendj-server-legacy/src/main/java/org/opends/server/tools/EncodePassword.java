@@ -17,10 +17,12 @@
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.INFO_CONFIGFILE_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_CONFIG_FILE;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -40,7 +42,9 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -355,8 +359,7 @@ public class EncodePassword
 
         if (clearPW == null)
         {
-          clearPW = getClearPW(out, err, argParser, clearPassword,
-              clearPasswordFile, interactivePassword);
+          clearPW = getClearPW(err, argParser, clearPassword, clearPasswordFile, interactivePassword);
           if (clearPW == null)
           {
             return OPERATIONS_ERROR;
@@ -424,8 +427,7 @@ public class EncodePassword
 
         if (clearPW == null)
         {
-          clearPW = getClearPW(out, err, argParser, clearPassword,
-              clearPasswordFile, interactivePassword);
+          clearPW = getClearPW(err, argParser, clearPassword, clearPasswordFile, interactivePassword);
           if (clearPW == null)
           {
             return OPERATIONS_ERROR;
@@ -473,8 +475,7 @@ public class EncodePassword
         {
           if (clearPW == null)
           {
-            clearPW = getClearPW(out, err, argParser, clearPassword,
-                clearPasswordFile, interactivePassword);
+            clearPW = getClearPW(err, argParser, clearPassword, clearPasswordFile, interactivePassword);
             if (clearPW == null)
             {
               return OPERATIONS_ERROR;
@@ -502,8 +503,7 @@ public class EncodePassword
         {
           if (clearPW == null)
           {
-            clearPW = getClearPW(out, err, argParser, clearPassword,
-                clearPasswordFile, interactivePassword);
+            clearPW = getClearPW(err, argParser, clearPassword, clearPasswordFile, interactivePassword);
             if (clearPW == null)
             {
               return OPERATIONS_ERROR;
@@ -571,7 +571,6 @@ public class EncodePassword
 
   /**
    * Get the clear password.
-   * @param out The output to ask password.
    * @param err The error output.
    * @param argParser The argument parser.
    * @param clearPassword the clear password
@@ -580,7 +579,7 @@ public class EncodePassword
    *        interactively.
    * @return the password or null if an error occurs.
    */
-  private static ByteString getClearPW(PrintStream out, PrintStream err,
+  private static ByteString getClearPW(PrintStream err,
       ArgumentParser argParser, StringArgument clearPassword,
       FileBasedArgument clearPasswordFile, BooleanArgument interactivePassword)
   {

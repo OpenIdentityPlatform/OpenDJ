@@ -78,7 +78,6 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public class BackUpDB extends TaskTool
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -153,7 +152,6 @@ public class BackUpDB extends TaskTool
             createArgParser("org.opends.server.tools.BackUpDB",
                             INFO_BACKUPDB_TOOL_DESCRIPTION.get());
     argParser.setShortToolDescription(REF_SHORT_DESC_BACKUP.get());
-
 
     // Initialize all the command-line argument types and register them with the parser.
     try
@@ -254,7 +252,6 @@ public class BackUpDB extends TaskTool
       return 1;
     }
 
-
     // If we should just display usage or version information,
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed())
@@ -328,7 +325,6 @@ public class BackUpDB extends TaskTool
       return 1;
     }
 
-
     // Checks the version - if upgrade required, the tool is unusable
     try
     {
@@ -341,10 +337,8 @@ public class BackUpDB extends TaskTool
     }
 
     return process(argParser, initializeServer, out, err);
-
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
@@ -379,24 +373,20 @@ public class BackUpDB extends TaskTool
         && !arg.getValue().equals(arg.getDefaultValue());
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getTaskObjectclass() {
     return "ds-task-backup";
   }
 
-  /** {@inheritDoc} */
   @Override
   public Class<?> getTaskClass() {
     return BackupTask.class;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
                            PrintStream err) {
-
     // Make sure that the backup directory exists.  If not, then create it.
     File backupDirFile = new File(backupDirectory.getValue());
     if (! backupDirFile.exists())
@@ -503,15 +493,15 @@ public class BackUpDB extends TaskTool
         Backend<?> b = backendList.get(i);
         if (requestedBackends.contains(b.getBackendID()))
         {
-          if (!b.supports(BackendOperation.BACKUP))
-          {
-            logger.warn(WARN_BACKUPDB_BACKUP_NOT_SUPPORTED, b.getBackendID());
-          }
-          else
+          if (b.supports(BackendOperation.BACKUP))
           {
             backendsToArchive.add(b);
             configEntries.put(b.getBackendID(), entryList.get(i));
             requestedBackends.remove(b.getBackendID());
+          }
+          else
+          {
+            logger.warn(WARN_BACKUPDB_BACKUP_NOT_SUPPORTED, b.getBackendID());
           }
         }
       }
@@ -526,11 +516,9 @@ public class BackUpDB extends TaskTool
         return 1;
       }
 
-
       // See if there are multiple backends to archive.
       multiple = backendsToArchive.size() > 1;
     }
-
 
     // If there are no backends to archive, then print an error and exit.
     if (backendsToArchive.isEmpty())
@@ -539,37 +527,20 @@ public class BackUpDB extends TaskTool
       return 1;
     }
 
-
     // Iterate through the backends to archive and back them up individually.
     boolean errorsEncountered = false;
     for (Backend<?> b : backendsToArchive)
     {
-      // Acquire a shared lock for this backend.
-      try
+      if (!acquireSharedLock(b))
       {
-        String        lockFile      = LockFileManager.getBackendLockFileName(b);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
-        {
-          logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), failureReason);
-          errorsEncountered = true;
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
         errorsEncountered = true;
         continue;
       }
 
-
       logger.info(NOTE_BACKUPDB_STARTING_BACKUP, b.getBackendID());
-
 
       // Get the config entry for this backend.
       BackendCfg configEntry = configEntries.get(b.getBackendID());
-
 
       // Get the path to the directory to use for this backup.  If we will be
       // backing up multiple backends (or if we are backing up all backends,
@@ -585,7 +556,6 @@ public class BackUpDB extends TaskTool
       {
         backupDirPath = backupDirectory.getValue();
       }
-
 
       // If the directory doesn't exist, then create it.  If it does exist, then
       // see if it has a backup descriptor file.
@@ -607,42 +577,14 @@ public class BackUpDB extends TaskTool
           {
             logger.error(ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR, descriptorPath, ce.getMessage());
             errorsEncountered = true;
-
-            try
-            {
-              String lockFile = LockFileManager.getBackendLockFileName(b);
-              StringBuilder failureReason = new StringBuilder();
-              if (! LockFileManager.releaseLock(lockFile, failureReason))
-              {
-                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-              }
-            }
-            catch (Exception e)
-            {
-              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
-            }
-
+            releaseSharedLock(b);
             continue;
           }
           catch (Exception e)
           {
             logger.error(ERR_BACKUPDB_CANNOT_PARSE_BACKUP_DESCRIPTOR, descriptorPath, getExceptionMessage(e));
             errorsEncountered = true;
-
-            try
-            {
-              String lockFile = LockFileManager.getBackendLockFileName(b);
-              StringBuilder failureReason = new StringBuilder();
-              if (! LockFileManager.releaseLock(lockFile, failureReason))
-              {
-                logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-              }
-            }
-            catch (Exception e2)
-            {
-              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
-            }
-
+            releaseSharedLock(b);
             continue;
           }
         }
@@ -661,27 +603,12 @@ public class BackUpDB extends TaskTool
         {
           logger.error(ERR_BACKUPDB_CANNOT_CREATE_BACKUP_DIR, backupDirPath, getExceptionMessage(e));
           errorsEncountered = true;
-
-          try
-          {
-            String lockFile = LockFileManager.getBackendLockFileName(b);
-            StringBuilder failureReason = new StringBuilder();
-            if (! LockFileManager.releaseLock(lockFile, failureReason))
-            {
-              logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-            }
-          }
-          catch (Exception e2)
-          {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
-          }
-
+          releaseSharedLock(b);
           continue;
         }
 
         backupDir = new BackupDirectory(backupDirPath, configEntry.dn());
       }
-
 
       // Create a backup configuration and determine whether the requested
       // backup can be performed using the selected backend.
@@ -697,24 +624,9 @@ public class BackUpDB extends TaskTool
       {
         logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID());
         errorsEncountered = true;
-
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(b);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
-        }
-
+        unlockBackend(b);
         continue;
       }
-
 
       // Perform the backup.
       try
@@ -725,81 +637,91 @@ public class BackUpDB extends TaskTool
       {
         logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), de.getMessageObject());
         errorsEncountered = true;
-
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(b);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-          }
-        }
-        catch (Exception e)
-        {
-          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
-        }
-
+        unlockBackend(b);
         continue;
       }
       catch (Exception e)
       {
         logger.error(ERR_BACKUPDB_ERROR_DURING_BACKUP, b.getBackendID(), getExceptionMessage(e));
         errorsEncountered = true;
-
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(b);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e2));
-        }
-
+        unlockBackend(b);
         continue;
       }
 
-
-      // Release the shared lock for the backend.
-      try
+      if (!releaseSharedLock(b))
       {
-        String lockFile = LockFileManager.getBackendLockFileName(b);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
-          errorsEncountered = true;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
         errorsEncountered = true;
       }
     }
 
-
     // Print a final completed message, indicating whether there were any errors
     // in the process.
-    int ret = 0;
     if (errorsEncountered)
     {
       logger.info(NOTE_BACKUPDB_COMPLETED_WITH_ERRORS);
-      ret = 1;
+      return 1;
     }
-    else
-    {
-      logger.info(NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY);
-    }
-    return ret;
+    logger.info(NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY);
+    return 0;
   }
 
-  /** {@inheritDoc} */
+  private boolean acquireSharedLock(Backend<?> b)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(b);
+      StringBuilder failureReason = new StringBuilder();
+      if (!LockFileManager.acquireSharedLock(lockFile, failureReason))
+      {
+        logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), failureReason);
+        return false;
+      }
+      return true;
+    }
+    catch (Exception e)
+    {
+      logger.error(ERR_BACKUPDB_CANNOT_LOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
+      return false;
+    }
+  }
+
+  private boolean releaseSharedLock(Backend<?> b)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(b);
+      StringBuilder failureReason = new StringBuilder();
+      if (!LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
+        return false;
+      }
+      return true;
+    }
+    catch (Exception e)
+    {
+      logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
+      return false;
+    }
+  }
+
+  private void unlockBackend(Backend<?> b)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(b);
+      StringBuilder failureReason = new StringBuilder();
+      if (!LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), failureReason);
+      }
+    }
+    catch (Exception e)
+    {
+      logger.warn(WARN_BACKUPDB_CANNOT_UNLOCK_BACKEND, b.getBackendID(), getExceptionMessage(e));
+    }
+  }
+
   @Override
   public String getTaskId() {
     return backupIDString != null ? backupIDString.getValue() : null;

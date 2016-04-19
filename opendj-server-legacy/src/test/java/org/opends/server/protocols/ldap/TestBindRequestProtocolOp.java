@@ -12,27 +12,26 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.types.LDAPException;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.testng.annotations.Test;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.LDAPException;
+import org.testng.annotations.Test;
+
+@SuppressWarnings("javadoc")
 public class TestBindRequestProtocolOp extends LdapTestCase {
   private static String dn="cn=some dn, dc=example, dc=com";
   private static String pwd="password";
-    private static String newPwd="newpassword";
-    private static String newDn="cn=new dn, dc=example,dc=com";
-    private static String creds="some creds";
 
   @Test
   public void testBindRequestEncodeDecode() throws Exception {
