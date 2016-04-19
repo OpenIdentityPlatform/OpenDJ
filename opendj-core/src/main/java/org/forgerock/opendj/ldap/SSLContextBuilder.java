@@ -16,6 +16,7 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Provider;
 import java.security.SecureRandom;
@@ -80,7 +81,11 @@ public final class SSLContextBuilder {
 
     /** Creates a new SSL context builder using default parameters. */
     public SSLContextBuilder() {
-        // Do nothing.
+        try {
+            keyManager = KeyManagers.useJvmDefaultKeyStore();
+        } catch (GeneralSecurityException | IOException ex) {
+            keyManager = null;
+        }
     }
 
     /**
@@ -101,7 +106,7 @@ public final class SSLContextBuilder {
 
         KeyManager[] km = null;
         if (keyManager != null) {
-            km = new KeyManager[] { keyManager };
+            km = new KeyManager[]{keyManager};
         }
 
         SSLContext sslContext;
@@ -118,12 +123,11 @@ public final class SSLContextBuilder {
     }
 
     /**
-     * Sets the key manager which the SSL context should use. By default, no key
-     * manager is specified indicating that no certificates will be used.
+     * Sets the key manager which the SSL context should use. By default, the JVM's key manager is used.
      *
      * @param keyManager
-     *            The key manager which the SSL context should use, which may be
-     *            {@code null} indicating that no certificates will be used.
+     *            The key manager which the SSL context should use, which may be {@code null} indicating that no
+     *            certificates will be used.
      * @return This SSL context builder.
      */
     public SSLContextBuilder setKeyManager(final KeyManager keyManager) {
