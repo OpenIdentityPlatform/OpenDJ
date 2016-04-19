@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.spi;
@@ -85,19 +85,16 @@ public final class PropertySet {
             activeValues.addAll(pendingValues);
         }
 
-        /** {@inheritDoc} */
         @Override
         public SortedSet<T> getActiveValues() {
             return Collections.unmodifiableSortedSet(activeValues);
         }
 
-        /** {@inheritDoc} */
         @Override
         public SortedSet<T> getDefaultValues() {
             return defaultValues;
         }
 
-        /** {@inheritDoc} */
         @Override
         public SortedSet<T> getEffectiveValues() {
             SortedSet<T> values = getPendingValues();
@@ -109,25 +106,21 @@ public final class PropertySet {
             return values;
         }
 
-        /** {@inheritDoc} */
         @Override
         public SortedSet<T> getPendingValues() {
             return Collections.unmodifiableSortedSet(pendingValues);
         }
 
-        /** {@inheritDoc} */
         @Override
         public PropertyDefinition<T> getPropertyDefinition() {
             return d;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isEmpty() {
             return pendingValues.isEmpty();
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isModified() {
             return activeValues.size() != pendingValues.size()
@@ -145,13 +138,11 @@ public final class PropertySet {
             pendingValues.addAll(c);
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             return getEffectiveValues().toString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean wasEmpty() {
             return activeValues.isEmpty();
@@ -205,7 +196,6 @@ public final class PropertySet {
         return (Property<T>) properties.get(d);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -220,9 +210,7 @@ public final class PropertySet {
         return builder.toString();
     }
 
-    /**
-     * Makes all pending values active.
-     */
+    /** Makes all pending values active. */
     void commit() {
         for (MyProperty<?> p : properties.values()) {
             p.commit();

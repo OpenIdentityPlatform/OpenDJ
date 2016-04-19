@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -53,19 +53,19 @@ public final class ContainsCondition implements Condition {
             this.value = value;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
             SortedSet<T> values = managedObject.getPropertyValues(pd);
             return values.contains(value);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
             SortedSet<T> values = managedObject.getPropertyValues(pd);
             return values.contains(value);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
             // Not used.
         }
@@ -100,12 +100,12 @@ public final class ContainsCondition implements Condition {
         this.propertyStringValue = stringValue;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         return impl.evaluate(context, managedObject);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         return impl.evaluate(managedObject);
     }
@@ -121,7 +121,7 @@ public final class ContainsCondition implements Condition {
         impl.setPropertyValue(managedObject);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         // Decode the property.
         buildImpl(d.getPropertyDefinition(propertyName));

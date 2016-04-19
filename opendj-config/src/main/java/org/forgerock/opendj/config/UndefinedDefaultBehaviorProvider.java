@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -26,14 +27,12 @@ package org.forgerock.opendj.config;
  */
 public final class UndefinedDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
-    /**
-     * Create an undefined default behavior provider.
-     */
+    /** Create an undefined default behavior provider. */
     public UndefinedDefaultBehaviorProvider() {
         // No implementation required.
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitUndefined(this, p);
     }

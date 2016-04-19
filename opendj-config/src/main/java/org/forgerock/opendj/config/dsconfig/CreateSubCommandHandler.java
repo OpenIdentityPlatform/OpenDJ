@@ -163,7 +163,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             return properties.keySet();
         }
 
-        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) {
@@ -200,9 +199,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
     }
 
-    /**
-     * A help call-back which displays help about available component types.
-     */
+    /** A help call-back which displays help about available component types. */
     private static final class TypeHelpCallback<C extends ConfigurationClient, S extends Configuration> implements
             HelpCallback {
 
@@ -214,7 +211,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             this.d = d;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void display(ConsoleApplication app) {
             app.println(INFO_DSCFG_CREATE_TYPE_HELP_HEADING.get(d.getUserFriendlyPluralName()));
@@ -454,9 +450,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         }
     }
 
-    /**
-     * Check that any referenced components are enabled if required.
-     */
+    /** Check that any referenced components are enabled if required. */
     private static MenuResult<Void> checkReferences(ConsoleApplication app, ManagementContext context,
             ManagedObject<?> mo, SubCommandHandler handler) throws ClientException {
         ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
@@ -948,13 +942,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         return relation;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {

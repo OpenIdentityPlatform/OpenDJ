@@ -11,16 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
-/**
- * An abstract class that all unit tests should extend.
- */
+/** An abstract class that all unit tests should extend. */
 @Test(groups = { "precommit", "config" })
 public abstract class ConfigTestCase extends ForgeRockTestCase {
    // no implementation

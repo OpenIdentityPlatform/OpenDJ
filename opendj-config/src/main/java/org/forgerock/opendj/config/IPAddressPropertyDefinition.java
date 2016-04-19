@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -22,15 +23,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
 
-/**
- * IP address property definition.
- */
+/** IP address property definition. */
 public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAddress> {
 
-    /**
-     * An interface for incrementally constructing IP address property
-     * definitions.
-     */
+    /** An interface for incrementally constructing IP address property definitions. */
     public static final class Builder extends AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
 
         /** Private constructor. */
@@ -38,7 +34,6 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
             super(d, propertyName);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected IPAddressPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -69,7 +64,6 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         super(d, InetAddress.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(InetAddress value) {
         Reject.ifNull(value);
@@ -77,7 +71,6 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         // No additional validation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public InetAddress decodeValue(String value) {
         Reject.ifNull(value);
@@ -90,7 +83,6 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String encodeValue(InetAddress value) {
         // We should return the host name if it is available, or the IP
@@ -108,19 +100,16 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitIPAddress(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, InetAddress value, P p) {
         return v.visitIPAddress(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(InetAddress o1, InetAddress o2) {
         return o1.getHostAddress().compareTo(o2.getHostAddress());

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -44,7 +44,7 @@ final class SubCommandHandlerFactory {
      */
     private final class Visitor implements RelationDefinitionVisitor<Void, ManagedObjectPath<?, ?>> {
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitInstantiable(
                 InstantiableRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
             try {
@@ -65,7 +65,7 @@ final class SubCommandHandlerFactory {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitOptional(
                 OptionalRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
             try {
@@ -86,7 +86,7 @@ final class SubCommandHandlerFactory {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitSet(SetRelationDefinition<C, S> rd,
                 ManagedObjectPath<?, ?> p) {
             try {
@@ -107,7 +107,7 @@ final class SubCommandHandlerFactory {
             return null;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitSingleton(
                 SingletonRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
             try {

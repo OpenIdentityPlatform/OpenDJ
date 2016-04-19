@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -53,7 +54,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends DefaultBe
         this.propertyName = propertyName;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitAbsoluteInherited(this, p);
     }
@@ -90,7 +91,6 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends DefaultBe
         return propertyName;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void initialize() throws Exception {
         // Decode the path.

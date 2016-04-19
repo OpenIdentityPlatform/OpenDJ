@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -29,9 +29,7 @@ import org.forgerock.opendj.server.config.server.GoverningStructureRuleVirtualAt
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.testng.annotations.Test;
 
-/**
- * Test case to ensure that ConfigurationMock class is correct.
- */
+/** Test case to ensure that ConfigurationMock class is correct. */
 @SuppressWarnings("javadoc")
 public class ConfigurationMockTest extends ConfigTestCase {
 

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -20,20 +20,13 @@ import java.util.ResourceBundle;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 
-/**
- * Common methods for hooking in the test components.
- */
+/** Common methods for hooking in the test components. */
 public final class TestCfg {
 
-    /**
-     * A one-to-many relation between the root and test-parent components.
-     */
+    /** A one-to-many relation between the root and test-parent components. */
     private static final InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_ONE_TO_MANY_PARENT;
 
-    /**
-     * A one-to-zero-or-one relation between the root and a test-parent
-     * component.
-     */
+    /** A one-to-zero-or-one relation between the root and a test-parent component. */
     // @Checkstyle:off
     private static final OptionalRelationDefinition<TestParentCfgClient, TestParentCfg>
         RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
@@ -83,9 +76,7 @@ public final class TestCfg {
         ManagedObjectDefinitionI18NResource.getInstance().setResourceBundle(definition, resourceBundle);
     }
 
-    /**
-     * Deregisters the test configurations from the administration framework.
-     */
+    /** Deregisters the test configurations from the administration framework. */
     public static synchronized void cleanup() {
         LDAPProfile.getInstance().popWrapper();
 

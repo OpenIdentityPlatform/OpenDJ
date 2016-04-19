@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -71,7 +71,6 @@ public final class ConfigurationMock {
 
         private static final long serialVersionUID = 1L;
 
-        /** {@inheritDoc} */
         @Override
         public Object answer(InvocationOnMock invocation) {
             try {
@@ -110,9 +109,7 @@ public final class ConfigurationMock {
             return definitionClass.getMethod(invokedMethodName.replaceAll("^is", "get") + "PropertyDefinition");
         }
 
-        /**
-         * Returns the type of values returned by the property.
-         */
+        /** Returns the type of values returned by the property. */
         private Class<?> getPropertyReturnType(Method getPropertyDefMethod) {
             Class<?> returnClass = getPropertyDefMethod.getReturnType();
             return ((ParameterizedType) returnClass.getGenericSuperclass())
@@ -182,23 +179,19 @@ public final class ConfigurationMock {
             this.propertyDef = propertyDef;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> provider, Void p) {
             // not handled
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> provider, Void p) {
             // not handled
             return null;
         }
 
-        /**
-         * Returns the default value for the property as a collection.
-         */
+        /** Returns the default value for the property as a collection. */
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> provider, Void p) {
             SortedSet<T> values = new TreeSet<>();
@@ -208,14 +201,12 @@ public final class ConfigurationMock {
             return values;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             // not handled
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             // not handled

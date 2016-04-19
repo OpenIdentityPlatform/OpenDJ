@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -28,18 +28,12 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ServerConstraintHandler;
 import org.forgerock.opendj.ldap.LdapException;
 
-/**
- * A mock constraint which can be configured to refuse various types of
- * operation.
- */
+/** A mock constraint which can be configured to refuse various types of operation. */
 public final class MockConstraint extends Constraint {
 
-    /**
-     * Mock client constraint handler.
-     */
+    /** Mock client constraint handler. */
     private class Handler extends ClientConstraintHandler {
 
-        /** {@inheritDoc} */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -50,7 +44,6 @@ public final class MockConstraint extends Constraint {
             return allowAdds;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
                 Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -61,7 +54,6 @@ public final class MockConstraint extends Constraint {
             return allowDeletes;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -99,12 +91,12 @@ public final class MockConstraint extends Constraint {
         this.allowDeletes = allowDeletes;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
         return Collections.<ClientConstraintHandler> singleton(new Handler());
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
         return Collections.emptySet();
     }

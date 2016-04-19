@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -105,10 +105,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         INSTANCE.registerPropertyDefinition(PROPDEF_MANDATORY_CLASS_PROPERTY);
     }
 
-    /**
-     * Build the "mandatory-read-only-attribute-type-property" property
-     * definition.
-     */
+    /** Build the "mandatory-read-only-attribute-type-property" property definition. */
     static {
         AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-read-only-attribute-type-property");
@@ -158,24 +155,22 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         return INSTANCE;
     }
 
-    /**
-     * Private constructor.
-     */
+    /** Private constructor. */
     private TestChildCfgDefn() {
         super("test-child", null);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public TestChildCfgClient createClientConfiguration(ManagedObject<? extends TestChildCfgClient> impl) {
         return new TestChildCfgClientImpl(impl);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public TestChildCfg createServerConfiguration(ServerManagedObject<? extends TestChildCfg> impl) {
         return new TestChildCfgServerImpl(impl);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Class<TestChildCfg> getServerConfigurationClass() {
         return TestChildCfg.class;
     }
@@ -255,9 +250,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         return PROPDEF_OPTIONAL_MULTI_VALUED_DN_PROPERTY2;
     }
 
-    /**
-     * Managed object client implementation.
-     */
+    /** Managed object client implementation. */
     private static class TestChildCfgClientImpl implements TestChildCfgClient {
 
         /** Private implementation. */
@@ -268,77 +261,77 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
             this.impl = impl;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public SortedSet<String> getAggregationProperty() {
             return impl.getPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setAggregationProperty(Collection<String> values) {
             impl.setPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition(), values);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Boolean isMandatoryBooleanProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setMandatoryBooleanProperty(boolean value) {
             impl.setPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition(), value);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public String getMandatoryClassProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setMandatoryClassProperty(String value) {
             impl.setPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition(), value);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
             impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public SortedSet<DN> getOptionalMultiValuedDNProperty1() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty1PropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setOptionalMultiValuedDNProperty1(Collection<DN> values) {
             impl.setPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty1PropertyDefinition(), values);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public SortedSet<DN> getOptionalMultiValuedDNProperty2() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty2PropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void setOptionalMultiValuedDNProperty2(Collection<DN> values) {
             impl.setPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty2PropertyDefinition(), values);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition() {
             return INSTANCE;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public PropertyProvider properties() {
             return impl;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
                 ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.commit();
@@ -346,9 +339,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
 
     }
 
-    /**
-     * Managed object server implementation.
-     */
+    /** Managed object server implementation. */
     private static class TestChildCfgServerImpl implements TestChildCfg {
 
         /** Private implementation. */
@@ -359,52 +350,52 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
             this.impl = impl;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void addChangeListener(ConfigurationChangeListener<TestChildCfg> listener) {
             impl.registerChangeListener(listener);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void removeChangeListener(ConfigurationChangeListener<TestChildCfg> listener) {
             impl.deregisterChangeListener(listener);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public SortedSet<String> getAggregationProperty() {
             return impl.getPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean isMandatoryBooleanProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public String getMandatoryClassProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public SortedSet<DN> getOptionalMultiValuedDNProperty1() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty1PropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public SortedSet<DN> getOptionalMultiValuedDNProperty2() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty2PropertyDefinition());
         }
 
-        /** {@inheritDoc} */
+        @Override
         public Class<? extends TestChildCfg> configurationClass() {
             return TestChildCfg.class;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public DN dn() {
             return impl.getDN();
         }

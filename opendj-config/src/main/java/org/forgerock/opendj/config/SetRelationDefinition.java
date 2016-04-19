@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -56,10 +56,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
         /** The plural name of the relation. */
         private final String pluralName;
 
-        /**
-         * The optional default managed objects associated with this
-         * set relation definition.
-         */
+        /** The optional default managed objects associated with this set relation definition. */
         private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects =
             new HashMap<>();
 
@@ -93,7 +90,6 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
                 defaultManagedObject);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected SetRelationDefinition<C, S> buildInstance(Common<C, S> common) {
             return new SetRelationDefinition<>(common, pluralName, defaultManagedObjects);
@@ -104,10 +100,7 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
     /** The plural name of the relation. */
     private final String pluralName;
 
-    /**
-     * The optional default managed objects associated with this
-     * set relation definition.
-     */
+    /** The optional default managed objects associated with this set relation definition. */
     private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects;
 
     /** Private constructor. */
@@ -118,7 +111,6 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
         this.defaultManagedObjects = defaultManagedObjects;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
         return v.visitSet(this, p);
@@ -188,7 +180,6 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
         return ManagedObjectDefinitionI18NResource.getInstance().getMessage(getParentDefinition(), property, locale);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         builder.append("name=");
@@ -199,7 +190,6 @@ public final class SetRelationDefinition<C extends ConfigurationClient, S extend
         builder.append(getChildDefinition().getName());
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void initialize() throws Exception {
         for (DefaultManagedObject<?, ?> dmo : defaultManagedObjects.values()) {

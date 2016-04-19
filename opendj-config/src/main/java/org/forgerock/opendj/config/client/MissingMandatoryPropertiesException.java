@@ -34,9 +34,7 @@ import org.forgerock.util.Reject;
  */
 public class MissingMandatoryPropertiesException extends OperationsException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = 6342522125252055588L;
 
     /** Create the message. */

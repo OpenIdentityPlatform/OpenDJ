@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -50,7 +50,7 @@ public final class DefinedDefaultBehaviorProvider<T> extends DefaultBehaviorProv
         this.values = Arrays.asList(values);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitDefined(this, p);
     }

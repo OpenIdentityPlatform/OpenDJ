@@ -176,7 +176,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
         return point;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
@@ -188,7 +188,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int compareTo(final BuildVersion version) {
         if (major == version.major) {
             if (minor == version.minor) {
@@ -219,7 +219,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
         return rev;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public int hashCode() {
         return Arrays.hashCode(new int[] { major, minor, point, rev.hashCode() });
     }
@@ -233,6 +233,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
      *
      * @return The string representation of the version.
      */
+    @Override
     public String toString() {
         return Utils.joinAsString(".", major, minor, point, rev);
     }

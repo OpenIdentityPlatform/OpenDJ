@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -36,9 +36,7 @@ import org.forgerock.opendj.config.SingletonRelationDefinition;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 
-/**
- * A strategy for creating <code>DN</code>s from managed object paths.
- */
+/** A strategy for creating <code>DN</code>s from managed object paths. */
 final class DNBuilder implements ManagedObjectPathSerializer {
 
     /**
@@ -113,7 +111,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         this.profile = profile;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             InstantiableRelationDefinition<? super C, ? super S> r,
             AbstractManagedObjectDefinition<C, S> d, String name) {
@@ -156,7 +154,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         return rdnsOfDn;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             OptionalRelationDefinition<? super C, ? super S> r,
             AbstractManagedObjectDefinition<C, S> d) {
@@ -164,7 +162,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         appendManagedObjectPathElement(r);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             SingletonRelationDefinition<? super C, ? super S> r,
             AbstractManagedObjectDefinition<C, S> d) {
@@ -172,7 +170,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         appendManagedObjectPathElement(r);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
         // Add the RDN sequence representing the relation.

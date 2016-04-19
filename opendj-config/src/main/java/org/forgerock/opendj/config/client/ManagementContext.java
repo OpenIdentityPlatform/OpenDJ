@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
@@ -33,9 +33,7 @@ import org.forgerock.opendj.config.SetRelationDefinition;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 
-/**
- * Client management connection context.
- */
+/** Client management connection context. */
 public interface ManagementContext extends Closeable {
 
     /**

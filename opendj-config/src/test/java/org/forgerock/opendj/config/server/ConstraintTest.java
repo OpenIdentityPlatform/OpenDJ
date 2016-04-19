@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2015 ForgeRock AS.
+ * Portions copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -43,18 +43,18 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test cases for constraints on the server-side.
- */
+/** Test cases for constraints on the server-side. */
 @SuppressWarnings("javadoc")
 public final class ConstraintTest extends AdminTestCase {
 
     private static class AddListener implements ConfigurationAddListener<TestChildCfg> {
 
+        @Override
         public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
 
+        @Override
         public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             return true;
@@ -63,10 +63,12 @@ public final class ConstraintTest extends AdminTestCase {
 
     private static class DeleteListener implements ConfigurationDeleteListener<TestChildCfg> {
 
+        @Override
         public ConfigChangeResult applyConfigurationDelete(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
 
+        @Override
         public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             return true;
@@ -76,10 +78,12 @@ public final class ConstraintTest extends AdminTestCase {
 
     private static class ChangeListener implements ConfigurationChangeListener<TestChildCfg> {
 
+        @Override
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
 
+        @Override
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             return true;
@@ -104,10 +108,7 @@ public final class ConstraintTest extends AdminTestCase {
         "objectclass: ds-cfg-branch",
         "cn: test children");
 
-    /**
-     * Parent 1 - uses default values for
-     * optional-multi-valued-dn-property.
-     */
+    /** Parent 1 - uses default values for optional-multi-valued-dn-property. */
     private static final Entry TEST_PARENT_1 = LDIF.makeEntry(
         "dn: cn=test parent 1,cn=test parents,cn=config",
         "objectclass: top",

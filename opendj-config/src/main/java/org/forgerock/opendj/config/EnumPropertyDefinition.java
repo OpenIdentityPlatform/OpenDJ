@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -66,7 +66,6 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
             this.enumClass = enumClass;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected EnumPropertyDefinition<E> buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -119,19 +118,16 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitEnum(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, E value, P p) {
         return v.visitEnum(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public E decodeValue(String value) {
         Reject.ifNull(value);
@@ -187,7 +183,6 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String normalizeValue(E value) {
         Reject.ifNull(value);
@@ -195,7 +190,6 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         return value.toString().trim().toLowerCase();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(E value) {
         Reject.ifNull(value);

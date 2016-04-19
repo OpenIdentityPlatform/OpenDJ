@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
@@ -29,9 +30,7 @@ import org.forgerock.opendj.config.AdminException;
  */
 public abstract class AdminClientException extends AdminException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = 4044747533980824456L;
 
     /**

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -183,13 +183,11 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         return path.getRelationDefinition();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {
@@ -294,6 +292,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
             DefaultBehaviorProviderVisitor<T, LocalizableMessage, Void> visitor
                 = new DefaultBehaviorProviderVisitor<T, LocalizableMessage, Void>() {
 
+                    @Override
                     public LocalizableMessage visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d,
                             Void p) {
                         // Should not happen - inherited default values are
@@ -301,6 +300,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
                         throw new IllegalStateException();
                     }
 
+                    @Override
                     public LocalizableMessage visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
                         if (app.isVerbose()) {
                             return d.getSynopsis();
@@ -308,12 +308,14 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
                         return null;
                     }
 
+                    @Override
                     public LocalizableMessage visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
                         // Should not happen - real default values are displayed as
                         // normal values.
                         throw new IllegalStateException();
                     }
 
+                    @Override
                     public LocalizableMessage visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d,
                             Void p) {
                         // Should not happen - inherited default values are
@@ -321,6 +323,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
                         throw new IllegalStateException();
                     }
 
+                    @Override
                     public LocalizableMessage visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
                         return null;
                     }

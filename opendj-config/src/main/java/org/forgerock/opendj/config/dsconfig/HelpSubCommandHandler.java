@@ -82,19 +82,19 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         private static class DefaultVisitor<T> implements
                 DefaultBehaviorProviderVisitor<T, LocalizableMessage, PropertyDefinition<T>> {
 
-            /** {@inheritDoc} */
+            @Override
             public LocalizableMessage visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d,
                     PropertyDefinition<T> p) {
                 return INFO_DSCFG_HELP_FIELD_INHERITED_ABS.get(d.getPropertyName(), d.getManagedObjectPath()
                         .getRelationDefinition().getUserFriendlyName());
             }
 
-            /** {@inheritDoc} */
+            @Override
             public LocalizableMessage visitAlias(AliasDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
                 return d.getSynopsis();
             }
 
-            /** {@inheritDoc} */
+            @Override
             public LocalizableMessage visitDefined(DefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
                 LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
                 PropertyValuePrinter printer = new PropertyValuePrinter(null, null, false);
@@ -111,7 +111,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                 return builder.toMessage();
             }
 
-            /** {@inheritDoc} */
+            @Override
             public LocalizableMessage visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d,
                     PropertyDefinition<T> p) {
                 if (d.getRelativeOffset() == 0) {
@@ -123,15 +123,13 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                 }
             }
 
-            /** {@inheritDoc} */
+            @Override
             public LocalizableMessage visitUndefined(UndefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
                 return INFO_DSCFG_HELP_FIELD_UNDEFINED.get();
             }
         }
 
-        /**
-         * Create a new default behavior printer.
-         */
+        /** Create a new default behavior printer. */
         public DefaultBehaviorPrinter() {
             // No implementation required.
         }
@@ -162,7 +160,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                 // No implementation required.
             }
 
-            /** {@inheritDoc} */
             @Override
             public <E extends Enum<E>> Void visitEnum(EnumPropertyDefinition<E> d, PrintStream p) {
                 displayUsage(p, INFO_DSCFG_HELP_FIELD_ENUM.get());
@@ -197,7 +194,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                 return null;
             }
 
-            /** {@inheritDoc} */
             @Override
             public Void visitString(StringPropertyDefinition d, PrintStream p) {
                 PropertyDefinitionUsageBuilder usageBuilder = new PropertyDefinitionUsageBuilder(false);
@@ -227,7 +223,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
                 return null;
             }
 
-            /** {@inheritDoc} */
             @Override
             public <T> Void visitUnknown(PropertyDefinition<T> d, PrintStream p) {
                 PropertyDefinitionUsageBuilder usageBuilder = new PropertyDefinitionUsageBuilder(true);
@@ -279,38 +274,20 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     /** Strings used in property help. */
     private static final String HEADING_SEPARATOR = " : ";
-
     /** Width of biggest heading (need to be careful of I18N). */
     private static final int HEADING_WIDTH;
 
-    /**
-     * The value for the long option category.
-     */
+    /** The value for the long option category. */
     private static final String OPTION_DSCFG_LONG_CATEGORY = "category";
-
-    /**
-     * The value for the long option inherited.
-     */
+    /** The value for the long option inherited. */
     private static final String OPTION_DSCFG_LONG_INHERITED = "inherited";
-
-    /**
-     * The value for the long option type.
-     */
+    /** The value for the long option type. */
     private static final String OPTION_DSCFG_LONG_TYPE = "type";
-
-    /**
-     * The value for the short option category.
-     */
+    /** The value for the short option category. */
     private static final Character OPTION_DSCFG_SHORT_CATEGORY = 'c';
-
-    /**
-     * The value for the short option inherited.
-     */
+    /** The value for the short option inherited. */
     private static final Character OPTION_DSCFG_SHORT_INHERITED = null;
-
-    /**
-     * The value for the short option type.
-     */
+    /** The value for the short option type. */
     private static final Character OPTION_DSCFG_SHORT_TYPE = 't';
 
     static {
@@ -577,14 +554,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         return b.toString();
     }
 
-    /**
-     * The argument which should be used to specify the category of managed object to be retrieved.
-     */
+    /** The argument which should be used to specify the category of managed object to be retrieved. */
     private final StringArgument categoryArgument;
 
-    /**
-     * A table listing all the available types of managed object indexed on their parent type.
-     */
+    /** A table listing all the available types of managed object indexed on their parent type. */
     private final Map<String, Map<String, AbstractManagedObjectDefinition<?, ?>>> categoryMap = new TreeMap<>();
 
     /** The argument which should be used to display inherited properties. */
@@ -593,14 +566,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     /** The sub-command associated with this handler. */
     private final SubCommand subCommand;
 
-    /**
-     * A table listing all the available types of managed object indexed on their tag(s).
-     */
+    /** A table listing all the available types of managed object indexed on their tag(s). */
     private final Map<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>> tagMap = new HashMap<>();
 
-    /**
-     * The argument which should be used to specify the sub-type of managed object to be retrieved.
-     */
+    /** The argument which should be used to specify the sub-type of managed object to be retrieved. */
     private final StringArgument typeArgument;
 
     /** Private constructor. */
@@ -634,7 +603,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         setCommandBuilderUseful(false);
     }
 
-    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;
@@ -689,7 +657,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {

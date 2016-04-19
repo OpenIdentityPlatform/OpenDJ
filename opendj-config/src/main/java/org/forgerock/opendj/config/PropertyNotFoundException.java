@@ -27,9 +27,7 @@ import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
  */
 public class PropertyNotFoundException extends OperationsException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = -895548482881819610L;
 
     /** The name of the property that could not be found. */

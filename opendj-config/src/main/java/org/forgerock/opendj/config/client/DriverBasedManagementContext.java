@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client;
 
@@ -33,14 +33,10 @@ import org.forgerock.opendj.config.client.spi.Driver;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 
-/**
- * Driver based client management connection context.
- */
+/** Driver based client management connection context. */
 public abstract class DriverBasedManagementContext implements ManagementContext {
 
-    /**
-     * Creates a new management context.
-     */
+    /** Creates a new management context. */
     protected DriverBasedManagementContext() {
         // No implementation required.
     }

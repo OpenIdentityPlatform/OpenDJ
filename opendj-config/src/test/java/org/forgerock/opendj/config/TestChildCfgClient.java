@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -35,6 +36,7 @@ public interface TestChildCfgClient extends ConfigurationClient {
      * @return Returns the configuration definition associated with this Test
      *         Child.
      */
+    @Override
     ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition();
 
     /**

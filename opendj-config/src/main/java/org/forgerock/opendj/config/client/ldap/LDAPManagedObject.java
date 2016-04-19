@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -63,9 +63,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
  */
 final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractManagedObject<T> {
 
-    /**
-     * A visitor which is used to encode property LDAP values.
-     */
+    /** A visitor which is used to encode property LDAP values. */
     private static final class ValueEncoder extends PropertyValueVisitor<Object, Void> {
 
         /** Prevent instantiation. */
@@ -73,7 +71,6 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             // No implementation required.
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
                 AggregationPropertyDefinition<C, S> pd, String v, Void p) {
@@ -83,7 +80,6 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             return reference.toDN().toString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public <P> Object visitUnknown(PropertyDefinition<P> propertyDef, P value, Void p) {
             return propertyDef.encodeValue(value);
@@ -117,7 +113,6 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         this.driver = driver;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void addNewManagedObject() throws LdapException, OperationRejectedException,
             ConcurrentModificationException, ManagedObjectAlreadyExistsException {
@@ -223,13 +218,11 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Driver getDriver() {
         return driver;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void modifyExistingManagedObject() throws ConcurrentModificationException, OperationRejectedException,
             LdapException {
@@ -265,7 +258,6 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected <M extends ConfigurationClient> ManagedObject<M> newInstance(ManagedObjectDefinition<M, ?> d,
             ManagedObjectPath<M, ?> path, PropertySet properties, boolean existsOnServer,
@@ -291,7 +283,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isModified() {
         ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
         for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.dsconfig;
@@ -27,9 +27,7 @@ import org.forgerock.opendj.config.ManagedObjectDefinitionResource;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.SetRelationDefinition;
 
-/**
- * This class is used to access CLI profile annotations.
- */
+/** This class is used to access CLI profile annotations. */
 final class CLIProfile {
 
     /** The singleton instance. */

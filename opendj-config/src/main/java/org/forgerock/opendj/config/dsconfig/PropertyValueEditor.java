@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -73,9 +73,7 @@ import com.forgerock.opendj.cli.TextTablePrinter;
 
 import static org.forgerock.opendj.config.dsconfig.DSConfig.*;
 
-/**
- * Common methods used for interactively editing properties.
- */
+/** Common methods used for interactively editing properties. */
 final class PropertyValueEditor {
 
     /**
@@ -88,14 +86,11 @@ final class PropertyValueEditor {
         /** The aggregation property definition. */
         private final AggregationPropertyDefinition<C, S> pd;
 
-        /**
-         * Creates a new component create call-back for the provided aggregation property definition.
-         */
+        /** Creates a new component create call-back for the provided aggregation property definition. */
         private CreateComponentCallback(AggregationPropertyDefinition<C, S> pd) {
             this.pd = pd;
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<String> invoke(ConsoleApplication app) throws ClientException {
             try {
@@ -144,9 +139,7 @@ final class PropertyValueEditor {
         }
     }
 
-    /**
-     * A help call-back which displays a description and summary of a component and its properties.
-     */
+    /** A help call-back which displays a description and summary of a component and its properties. */
     private static final class ComponentHelpCallback implements HelpCallback {
 
         /** The managed object being edited. */
@@ -161,7 +154,6 @@ final class PropertyValueEditor {
             this.properties = c;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void display(ConsoleApplication app) {
             app.println();
@@ -171,33 +163,18 @@ final class PropertyValueEditor {
         }
     }
 
-    /**
-     * A simple interface for querying and retrieving common default behavior properties.
-     */
+    /** A simple interface for querying and retrieving common default behavior properties. */
     private static final class DefaultBehaviorQuery<T> {
 
-        /**
-         * The type of default behavior.
-         */
+        /** The type of default behavior. */
         private enum Type {
-            /**
-             * Alias default behavior.
-             */
+            /** Alias default behavior. */
             ALIAS,
-
-            /**
-             * Defined default behavior.
-             */
+            /** Defined default behavior. */
             DEFINED,
-
-            /**
-             * Inherited default behavior.
-             */
+            /** Inherited default behavior. */
             INHERITED,
-
-            /**
-             * Undefined default behavior.
-             */
+            /** Undefined default behavior. */
             UNDEFINED;
         }
 
@@ -214,7 +191,6 @@ final class PropertyValueEditor {
             DefaultBehaviorProviderVisitor<T, DefaultBehaviorQuery<T>, PropertyDefinition<T>> visitor
                 = new DefaultBehaviorProviderVisitor<T, DefaultBehaviorQuery<T>, PropertyDefinition<T>>() {
 
-                    /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
@@ -226,21 +202,18 @@ final class PropertyValueEditor {
                         return new DefaultBehaviorQuery<>(Type.INHERITED, query.getAliasDescription());
                     }
 
-                    /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitAlias(AliasDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
                         return new DefaultBehaviorQuery<>(Type.ALIAS, d.getSynopsis());
                     }
 
-                    /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
                         return new DefaultBehaviorQuery<>(Type.DEFINED, null);
                     }
 
-                    /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
@@ -252,7 +225,6 @@ final class PropertyValueEditor {
                         return new DefaultBehaviorQuery<>(Type.INHERITED, query.getAliasDescription());
                     }
 
-                    /** {@inheritDoc} */
                     @Override
                     public DefaultBehaviorQuery<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
                             PropertyDefinition<T> p) {
@@ -263,9 +235,7 @@ final class PropertyValueEditor {
             return pd.getDefaultBehaviorProvider().accept(visitor, pd);
         }
 
-        /**
-         * The description of the behavior if it is an alias default behavior.
-         */
+        /** The description of the behavior if it is an alias default behavior. */
         private final LocalizableMessage aliasDescription;
 
         /** The type of behavior. */
@@ -326,9 +296,7 @@ final class PropertyValueEditor {
 
     }
 
-    /**
-     * A property definition visitor which initializes mandatory properties.
-     */
+    /** A property definition visitor which initializes mandatory properties. */
     private final class MandatoryPropertyInitializer extends PropertyDefinitionVisitor<MenuResult<Void>, Void>
             implements MenuCallback<Void> {
 
@@ -347,7 +315,6 @@ final class PropertyValueEditor {
             this.pd = pd;
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Void> invoke(ConsoleApplication app) throws ClientException {
             displayPropertyHeader(app, pd);
@@ -360,7 +327,6 @@ final class PropertyValueEditor {
             return result;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> MenuResult<Void> visitAggregation(
                 AggregationPropertyDefinition<C, S> d, Void p) {
@@ -431,7 +397,6 @@ final class PropertyValueEditor {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Void> visitBoolean(BooleanPropertyDefinition d, Void p) {
             MenuBuilder<Boolean> builder = new MenuBuilder<>(app);
@@ -470,7 +435,6 @@ final class PropertyValueEditor {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <E extends Enum<E>> MenuResult<Void> visitEnum(EnumPropertyDefinition<E> d, Void x) {
             MenuBuilder<E> builder = new MenuBuilder<>(app);
@@ -519,7 +483,6 @@ final class PropertyValueEditor {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> MenuResult<Void> visitUnknown(PropertyDefinition<T> d, Void p) {
             app.println();
@@ -541,9 +504,7 @@ final class PropertyValueEditor {
 
     }
 
-    /**
-     * A menu call-back for editing a modifiable multi-valued property.
-     */
+    /** A menu call-back for editing a modifiable multi-valued property. */
     private final class MultiValuedPropertyEditor extends PropertyDefinitionVisitor<MenuResult<Boolean>, Void>
             implements MenuCallback<Boolean> {
 
@@ -564,7 +525,6 @@ final class PropertyValueEditor {
             this.pd = pd;
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
             displayPropertyHeader(app, pd);
@@ -576,7 +536,6 @@ final class PropertyValueEditor {
             return result;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> MenuResult<Boolean> visitAggregation(
                 final AggregationPropertyDefinition<C, S> d, Void p) {
@@ -732,7 +691,6 @@ final class PropertyValueEditor {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T extends Enum<T>> MenuResult<Boolean> visitEnum(final EnumPropertyDefinition<T> d, Void p) {
             final SortedSet<T> defaultValues = mo.getPropertyDefaultValues(d);
@@ -868,7 +826,6 @@ final class PropertyValueEditor {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d, Void p) {
             app.println();
@@ -1228,9 +1185,7 @@ final class PropertyValueEditor {
         }
     }
 
-    /**
-     * A help call-back which displays a description and summary of a single property.
-     */
+    /** A help call-back which displays a description and summary of a single property. */
     private static final class PropertyHelpCallback implements HelpCallback {
 
         /** The managed object definition. */
@@ -1245,7 +1200,6 @@ final class PropertyValueEditor {
             this.pd = pd;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void display(ConsoleApplication app) {
             app.println();
@@ -1255,9 +1209,7 @@ final class PropertyValueEditor {
         }
     }
 
-    /**
-     * A menu call-back for viewing a read-only properties.
-     */
+    /** A menu call-back for viewing a read-only properties. */
     private final class ReadOnlyPropertyViewer extends PropertyDefinitionVisitor<MenuResult<Boolean>, Void> implements
             MenuCallback<Boolean> {
 
@@ -1276,7 +1228,6 @@ final class PropertyValueEditor {
             this.pd = pd;
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
             MenuResult<Boolean> result = pd.accept(this, null);
@@ -1286,7 +1237,6 @@ final class PropertyValueEditor {
             return result;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> MenuResult<Boolean> visitUnknown(PropertyDefinition<T> pd, Void p) {
             SortedSet<T> values = mo.getPropertyValues(pd);
@@ -1336,9 +1286,7 @@ final class PropertyValueEditor {
         }
     }
 
-    /**
-     * A menu call-back for editing a modifiable single-valued property.
-     */
+    /** A menu call-back for editing a modifiable single-valued property. */
     private final class SingleValuedPropertyEditor extends PropertyDefinitionVisitor<MenuResult<Boolean>, Void>
             implements MenuCallback<Boolean> {
 
@@ -1359,7 +1307,6 @@ final class PropertyValueEditor {
             this.pd = pd;
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Boolean> invoke(ConsoleApplication app) throws ClientException {
             displayPropertyHeader(app, pd);
@@ -1371,7 +1318,6 @@ final class PropertyValueEditor {
             return result;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> MenuResult<Boolean> visitAggregation(
                 AggregationPropertyDefinition<C, S> d, Void p) {
@@ -1439,7 +1385,6 @@ final class PropertyValueEditor {
             return runMenu(d, builder);
         }
 
-        /** {@inheritDoc} */
         @Override
         public MenuResult<Boolean> visitBoolean(BooleanPropertyDefinition d, Void p) {
             // Construct a menu of actions.
@@ -1495,7 +1440,6 @@ final class PropertyValueEditor {
             return runMenu(d, builder);
         }
 
-        /** {@inheritDoc} */
         @Override
         public <E extends Enum<E>> MenuResult<Boolean> visitEnum(EnumPropertyDefinition<E> d, Void p) {
             // Construct a menu of actions.
@@ -1545,7 +1489,6 @@ final class PropertyValueEditor {
             return runMenu(d, builder);
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d, Void p) {
             app.println();
@@ -1877,9 +1820,7 @@ final class PropertyValueEditor {
         }
     }
 
-    /**
-     * The threshold above which choice menus should be displayed in multiple columns.
-     */
+    /** The threshold above which choice menus should be displayed in multiple columns. */
     private static final int MULTI_COLUMN_THRESHOLD = 8;
 
     /** The application console. */
@@ -2212,9 +2153,7 @@ final class PropertyValueEditor {
         return mods;
     }
 
-    /**
-     * Clears the list of modifications.
-     */
+    /** Clears the list of modifications. */
     public void resetModifications() {
         mods.clear();
     }

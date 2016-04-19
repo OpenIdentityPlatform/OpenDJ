@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -22,9 +22,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Boolean property definition.
- */
+/** Boolean property definition. */
 public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean> {
 
     /**
@@ -39,9 +37,7 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         VALUE_MAP.put("true", Boolean.TRUE);
     }
 
-    /**
-     * An interface for incrementally constructing boolean property definitions.
-     */
+    /** An interface for incrementally constructing boolean property definitions. */
     public static final class Builder extends AbstractBuilder<Boolean, BooleanPropertyDefinition> {
 
         /** Private constructor. */
@@ -49,7 +45,6 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
             super(d, propertyName);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected BooleanPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -80,7 +75,6 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         super(d, Boolean.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(Boolean value) {
         Reject.ifNull(value);
@@ -88,7 +82,6 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         // No additional validation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public Boolean decodeValue(String value) {
         Reject.ifNull(value);
@@ -103,19 +96,16 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitBoolean(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Boolean value, P p) {
         return v.visitBoolean(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(Boolean o1, Boolean o2) {
         return o1.compareTo(o2);

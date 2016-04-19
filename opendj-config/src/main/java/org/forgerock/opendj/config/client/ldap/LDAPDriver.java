@@ -67,14 +67,10 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
-/**
- * The LDAP management context driver implementation.
- */
+/** The LDAP management context driver implementation. */
 final class LDAPDriver extends Driver {
 
-    /**
-     * A visitor which is used to decode property LDAP values.
-     */
+    /** A visitor which is used to decode property LDAP values. */
     private static final class ValueDecoder extends PropertyDefinitionVisitor<Object, String> {
         /**
          * Decodes the provided property LDAP value.
@@ -100,7 +96,6 @@ final class LDAPDriver extends Driver {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
             AggregationPropertyDefinition<C, S> d, String p) {
@@ -114,7 +109,6 @@ final class LDAPDriver extends Driver {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
@@ -126,10 +120,7 @@ final class LDAPDriver extends Driver {
 
     private final Connection connection;
 
-    /**
-     * The LDAP profile which should be used to construct LDAP
-     * requests and decode LDAP responses.
-     */
+    /** The LDAP profile which should be used to construct LDAP requests and decode LDAP responses. */
     private final LDAPProfile profile;
 
     /**
@@ -150,13 +141,11 @@ final class LDAPDriver extends Driver {
         this.context = context;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() {
         connection.close();
     }
 
-    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
         ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
@@ -272,14 +261,12 @@ final class LDAPDriver extends Driver {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
         return new LDAPManagedObject<>(this, RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
             new PropertySet(), true, null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
@@ -315,7 +302,6 @@ final class LDAPDriver extends Driver {
         return children.toArray(new String[children.size()]);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
@@ -351,7 +337,6 @@ final class LDAPDriver extends Driver {
         return children.toArray(new String[children.size()]);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
         LdapException {
@@ -369,7 +354,6 @@ final class LDAPDriver extends Driver {
         return entryExists(dn);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
         ManagedObjectPath<C, S> path) throws OperationRejectedException, LdapException {
@@ -387,7 +371,6 @@ final class LDAPDriver extends Driver {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     protected LDAPManagementContext getManagementContext() {
         return context;

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.server;
@@ -21,9 +22,7 @@ import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.ldap.DN;
 
-/**
- * A factory class for creating <code>DN</code>s from managed object paths.
- */
+/** A factory class for creating <code>DN</code>s from managed object paths. */
 final class DNBuilder {
 
     /**

@@ -27,14 +27,10 @@ import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
  */
 public class AuthenticationException extends AdminSecurityException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = 3544797197747686958L;
 
-    /**
-     * Creates an authentication exception with a default message.
-     */
+    /** Creates an authentication exception with a default message. */
     public AuthenticationException() {
         super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get());
     }

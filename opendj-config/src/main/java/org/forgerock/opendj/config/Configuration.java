@@ -12,15 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
 
 import org.forgerock.opendj.ldap.DN;
 
-/**
- * A common base interface for all server managed object configurations.
- */
+/** A common base interface for all server managed object configurations. */
 public interface Configuration {
 
     /**

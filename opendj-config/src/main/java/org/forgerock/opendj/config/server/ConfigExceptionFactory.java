@@ -23,9 +23,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.ldap.DN;
 
-/**
- * A utility class for converting admin exceptions to config exceptions.
- */
+/** A utility class for converting admin exceptions to config exceptions. */
 final class ConfigExceptionFactory {
 
     /** The singleton instance. */

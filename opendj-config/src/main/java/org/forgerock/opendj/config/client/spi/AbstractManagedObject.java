@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.spi;
 
@@ -65,10 +65,7 @@ import org.forgerock.opendj.ldap.LdapException;
  */
 public abstract class AbstractManagedObject<T extends ConfigurationClient> implements ManagedObject<T> {
 
-    /**
-     * Creates any default managed objects associated with a relation
-     * definition.
-     */
+    /** Creates any default managed objects associated with a relation definition. */
     private final class DefaultManagedObjectFactory implements RelationDefinitionVisitor<Void, Void> {
 
         /** Possible exceptions. */
@@ -78,7 +75,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         private OperationRejectedException ore;
         private LdapException ere;
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitInstantiable(
             InstantiableRelationDefinition<C, S> rd, Void p) {
@@ -97,7 +93,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitOptional(
             OptionalRelationDefinition<C, S> rd, Void p) {
@@ -110,7 +105,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitSingleton(
             SingletonRelationDefinition<C, S> rd, Void p) {
@@ -119,7 +113,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Void visitSet(SetRelationDefinition<C, S> rd,
             Void p) {
@@ -186,10 +179,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /**
-     * The managed object definition associated with this managed
-     * object.
-     */
+    /** The managed object definition associated with this managed object. */
     private final ManagedObjectDefinition<T, ? extends Configuration> definition;
 
     /**
@@ -234,7 +224,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         this.namingPropertyDefinition = namingPropertyDefinition;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
         ConcurrentModificationException, OperationRejectedException, LdapException {
@@ -305,7 +294,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
         InstantiableRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d, String name,
@@ -332,7 +320,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return createNewManagedObject(d, childPath, pd, name, exceptions);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
         OptionalRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
@@ -342,7 +329,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return createNewManagedObject(d, childPath, null, null, exceptions);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration, C1 extends C> ManagedObject<C1> createChild(
         SetRelationDefinition<C, S> r, ManagedObjectDefinition<C1, ? extends S> d,
@@ -353,7 +339,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return createNewManagedObject(d, childPath, null, null, exceptions);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         InstantiableRelationDefinition<C, S> r, String name) throws DefinitionDecodingException,
@@ -365,7 +350,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return ctx.getManagedObject(path.child(r, name));
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         OptionalRelationDefinition<C, S> r) throws DefinitionDecodingException, ManagedObjectDecodingException,
@@ -376,7 +360,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return ctx.getManagedObject(path.child(r));
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         SingletonRelationDefinition<C, S> r) throws DefinitionDecodingException, ManagedObjectDecodingException,
@@ -387,7 +370,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return ctx.getManagedObject(path.child(r));
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         SetRelationDefinition<C, S> r, String name) throws DefinitionDecodingException,
@@ -411,31 +393,26 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return ctx.getManagedObject(path.child(r, cd));
     }
 
-    /** {@inheritDoc} */
     @Override
     public final T getConfiguration() {
         return definition.createClientConfiguration(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final ManagedObjectDefinition<T, ? extends Configuration> getManagedObjectDefinition() {
         return definition;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final ManagedObjectPath<T, ? extends Configuration> getManagedObjectPath() {
         return path;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <P> SortedSet<P> getPropertyDefaultValues(PropertyDefinition<P> pd) {
         return new TreeSet<>(getProperty(pd).getDefaultValues());
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <P> P getPropertyValue(PropertyDefinition<P> pd) {
         Set<P> values = getProperty(pd).getEffectiveValues();
@@ -445,13 +422,11 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <P> SortedSet<P> getPropertyValues(PropertyDefinition<P> pd) {
         return new TreeSet<>(getProperty(pd).getEffectiveValues());
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> boolean hasChild(
         OptionalRelationDefinition<C, S> r) throws ConcurrentModificationException, LdapException {
@@ -464,20 +439,17 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final boolean isPropertyPresent(PropertyDefinition<?> pd) {
         return !getProperty(pd).isEmpty();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
         InstantiableRelationDefinition<C, S> r) throws ConcurrentModificationException, LdapException {
         return listChildren(r, r.getChildDefinition());
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
         InstantiableRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
@@ -491,14 +463,12 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
         SetRelationDefinition<C, S> r) throws ConcurrentModificationException, LdapException {
         return listChildren(r, r.getChildDefinition());
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
         SetRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
@@ -512,7 +482,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
         InstantiableRelationDefinition<C, S> r, String name) throws ManagedObjectNotFoundException,
@@ -532,7 +501,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
         OptionalRelationDefinition<C, S> r) throws ManagedObjectNotFoundException, OperationRejectedException,
@@ -552,7 +520,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
         SetRelationDefinition<C, S> r, String name) throws ManagedObjectNotFoundException,
@@ -572,7 +539,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <P> void setPropertyValue(PropertyDefinition<P> pd, P value) {
         if (value != null) {
@@ -582,7 +548,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final <P> void setPropertyValues(PropertyDefinition<P> pd, Collection<P> values) {
         if (pd.hasOption(PropertyOption.MONITORING)) {
@@ -603,7 +568,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -717,10 +681,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         ManagedObjectPath<M, ?> path, PropertySet properties, boolean existsOnServer,
         PropertyDefinition<?> namingPropertyDefinition);
 
-    /**
-     * Creates a new managed object with no active values, just default
-     * values.
-     */
+    /** Creates a new managed object with no active values, just default values. */
     private <M extends ConfigurationClient, P> ManagedObject<M> createNewManagedObject(
         ManagedObjectDefinition<M, ?> d, ManagedObjectPath<M, ?> p, PropertyDefinition<P> namingPropertyDefinition,
         String name, Collection<PropertyException> exceptions) {
@@ -773,10 +734,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
         }
     }
 
-    /**
-     * Validate that a relation definition belongs to this managed
-     * object.
-     */
+    /** Validate that a relation definition belongs to this managed object. */
     private void validateRelationDefinition(RelationDefinition<?, ?> rd) {
         ManagedObjectDefinition<T, ?> d = getManagedObjectDefinition();
         RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());

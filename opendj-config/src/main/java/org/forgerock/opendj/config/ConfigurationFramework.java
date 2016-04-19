@@ -74,9 +74,7 @@ public final class ConfigurationFramework {
      */
     private static final class MyURLClassLoader extends URLClassLoader {
 
-        /**
-         * Create a class loader with the default parent class loader.
-         */
+        /** Create a class loader with the default parent class loader. */
         public MyURLClassLoader() {
             super(new URL[0]);
         }
@@ -131,9 +129,7 @@ public final class ConfigurationFramework {
     /** Attribute name in jar's MANIFEST corresponding to the revision number. */
     private static final String REVISION_NUMBER = "Revision-Number";
 
-    /**
-     * The attribute names for build information is name, version and revision number.
-     */
+    /** The attribute names for build information is name, version and revision number. */
     private static final String[] BUILD_INFORMATION_ATTRIBUTE_NAMES = new String[] {
         Attributes.Name.EXTENSION_NAME.toString(),
         Attributes.Name.IMPLEMENTATION_VERSION.toString(), REVISION_NUMBER };

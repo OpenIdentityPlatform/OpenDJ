@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -39,9 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public abstract class ServerConstraintHandler {
 
-    /**
-     * Creates a new server constraint handler.
-     */
+    /** Creates a new server constraint handler. */
     protected ServerConstraintHandler() {
         // No implementation required.
     }

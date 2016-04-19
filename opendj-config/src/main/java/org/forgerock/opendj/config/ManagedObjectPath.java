@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -102,9 +102,7 @@ import org.forgerock.opendj.ldap.schema.Schema;
  */
 public final class ManagedObjectPath<C extends ConfigurationClient, S extends Configuration> {
 
-    /**
-     * A serialize which is used to generate the toDN representation.
-     */
+    /** A serialize which is used to generate the toDN representation. */
     private static final class DNSerializer implements ManagedObjectPathSerializer {
 
         /** The current DN. */
@@ -119,7 +117,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             this.profile = LDAPProfile.getInstance();
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
             String name) {
@@ -132,7 +130,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             dn = dn.child(new RDN(attrType, name));
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             // Add the RDN sequence representing the relation.
@@ -144,14 +142,14 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             dn = dn.child(new RDN(attrType, d.getName()));
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             // Add the RDN sequence representing the relation.
             appendManagedObjectPathElement(r);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             // Add the RDN sequence representing the relation.
@@ -170,9 +168,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         }
     }
 
-    /**
-     * Abstract path element.
-     */
+    /** Abstract path element. */
     private static abstract class Element<C extends ConfigurationClient, S extends Configuration> {
 
         /** The type of managed object referenced by this element. */
@@ -224,9 +220,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         public abstract void serialize(ManagedObjectPathSerializer serializer);
     }
 
-    /**
-     * A path element representing an instantiable managed object.
-     */
+    /** A path element representing an instantiable managed object. */
     private static final class InstantiableElement<C extends ConfigurationClient, S extends Configuration> extends
         Element<C, S> {
 
@@ -251,28 +245,23 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             this.name = name;
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getName() {
             return name;
         }
 
-        /** {@inheritDoc} */
         @Override
         public InstantiableRelationDefinition<? super C, ? super S> getRelationDefinition() {
             return r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void serialize(ManagedObjectPathSerializer serializer) {
             serializer.appendManagedObjectPathElement(r, getManagedObjectDefinition(), name);
         }
     }
 
-    /**
-     * A path element representing an optional managed object.
-     */
+    /** A path element representing an optional managed object. */
     private static final class OptionalElement<C extends ConfigurationClient, S extends Configuration> extends
         Element<C, S> {
 
@@ -292,22 +281,18 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             this.r = r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public OptionalRelationDefinition<? super C, ? super S> getRelationDefinition() {
             return r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void serialize(ManagedObjectPathSerializer serializer) {
             serializer.appendManagedObjectPathElement(r, getManagedObjectDefinition());
         }
     }
 
-    /**
-     * A path element representing an set managed object.
-     */
+    /** A path element representing an set managed object. */
     private static final class SetElement<C extends ConfigurationClient, S extends Configuration> extends
         Element<C, S> {
 
@@ -326,22 +311,18 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             this.r = r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public SetRelationDefinition<? super C, ? super S> getRelationDefinition() {
             return r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void serialize(ManagedObjectPathSerializer serializer) {
             serializer.appendManagedObjectPathElement(r, getManagedObjectDefinition());
         }
     }
 
-    /**
-     * A path element representing a singleton managed object.
-     */
+    /** A path element representing a singleton managed object. */
     private static final class SingletonElement<C extends ConfigurationClient, S extends Configuration> extends
         Element<C, S> {
 
@@ -361,22 +342,18 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             this.r = r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public SingletonRelationDefinition<? super C, ? super S> getRelationDefinition() {
             return r;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void serialize(ManagedObjectPathSerializer serializer) {
             serializer.appendManagedObjectPathElement(r, getManagedObjectDefinition());
         }
     }
 
-    /**
-     * A serialize which is used to generate the toString representation.
-     */
+    /** A serialize which is used to generate the toString representation. */
     private static final class StringSerializer implements ManagedObjectPathSerializer {
 
         /** Serialize to this string builder. */
@@ -387,7 +364,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             this.builder = builder;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
             InstantiableRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d,
             String name) {
@@ -398,19 +375,19 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             builder.append(name.replace("/", "//"));
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
             OptionalRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
             serializeElement(r, d);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
             SingletonRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
             serializeElement(r, d);
         }
 
-        /** {@inheritDoc} */
+        @Override
         public <M extends ConfigurationClient, N extends Configuration> void appendManagedObjectPathElement(
             SetRelationDefinition<? super M, ? super N> r, AbstractManagedObjectDefinition<M, N> d) {
             serializeElement(r, d);
@@ -543,10 +520,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         return create(elements, lastElement);
     }
 
-    /**
-     * Factory method required in order to allow generic wild-card
-     * construction of new paths.
-     */
+    /** Factory method required in order to allow generic wild-card construction of new paths. */
     private static <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S> create(
         LinkedList<Element<?, ?>> elements, Element<C, S> lastElement) {
         return new ManagedObjectPath<>(elements, lastElement.getRelationDefinition(),
@@ -900,7 +874,6 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         return child(r, r.getChildDefinition());
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -956,7 +929,6 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         return r;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return toString().hashCode();
@@ -1106,7 +1078,6 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         return serializer.toDN();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

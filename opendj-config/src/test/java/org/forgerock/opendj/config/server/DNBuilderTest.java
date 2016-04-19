@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -66,6 +66,7 @@ public final class DNBuilderTest extends AdminTestCase {
         final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> relationDef = builder.getInstance();
 
         LDAPProfile.Wrapper wrapper = new LDAPProfile.Wrapper() {
+            @Override
             public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
                 return (r == relationDef) ? "cn=singleton-test-child" : null;
             }

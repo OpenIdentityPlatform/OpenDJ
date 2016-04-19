@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -23,50 +23,43 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.ldap.LdapException;
 
-/**
- * This class consists exclusively of static methods that operate on or return
- * conditions.
- */
+/** This class consists exclusively of static methods that operate on or return conditions. */
 public final class Conditions {
 
-    /**
-     * A condition which always evaluates to <code>false</code>.
-     */
+    /** A condition which always evaluates to <code>false</code>. */
     public static final Condition FALSE = new Condition() {
 
-        /** {@inheritDoc} */
+        @Override
         public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
             return false;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
             return false;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
             // No implementation required.
         }
 
     };
 
-    /**
-     * A condition which always evaluates to <code>true</code>.
-     */
+    /** A condition which always evaluates to <code>true</code>. */
     public static final Condition TRUE = new Condition() {
 
-        /** {@inheritDoc} */
+        @Override
         public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
             return true;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
             return true;
         }
 
-        /** {@inheritDoc} */
+        @Override
         public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
             // No implementation required.
         }

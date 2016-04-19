@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -48,9 +49,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      */
     private final boolean allowUnlimited;
 
-    /**
-     * An interface for incrementally constructing integer property definitions.
-     */
+    /** An interface for incrementally constructing integer property definitions. */
     public static final class Builder extends AbstractBuilder<Integer, IntegerPropertyDefinition> {
 
         /** The lower limit of the property value. */
@@ -120,7 +119,6 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
             this.allowUnlimited = allowUnlimited;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected IntegerPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -216,7 +214,6 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return allowUnlimited;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(Integer value) {
         Reject.ifNull(value);
@@ -234,7 +231,6 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String encodeValue(Integer value) {
         Reject.ifNull(value);
@@ -247,7 +243,6 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return value.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Integer decodeValue(String value) {
         Reject.ifNull(value);
@@ -272,19 +267,16 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return i;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitInteger(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Integer value, P p) {
         return v.visitInteger(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -301,7 +293,6 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         builder.append(allowUnlimited);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(Integer o1, Integer o2) {
         return o1.compareTo(o2);

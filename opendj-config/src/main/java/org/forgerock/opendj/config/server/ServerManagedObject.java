@@ -952,7 +952,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         registerDeleteListener(baseDN, adaptor);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -1181,10 +1180,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    /**
-     * Register a delayed listener with the nearest existing parent
-     * entry to the provided base DN.
-     */
+    /** Register a delayed listener with the nearest existing parent entry to the provided base DN. */
     private void registerDelayedListener(DN baseDN, ConfigAddListener delayedListener) throws ConfigException {
         DN currentDN = baseDN.parent();
         DN previousDN = currentDN;

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -44,18 +45,14 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
         assertNotNull(builder);
     }
 
-    /**
-     * Tests that exception thrown when no enum class specified by builder.
-     */
+    /** Tests that exception thrown when no enum class specified by builder. */
     @Test
     public void testBuildInstance() {
         EnumPropertyDefinition<?> def = builder.getInstance();
         assertEquals(def.getEnumClass(), TestEnum.class);
     }
 
-    /**
-     * Tests that exception thrown when no enum class specified by builder.
-     */
+    /** Tests that exception thrown when no enum class specified by builder. */
     @Test(expectedExceptions = { IllegalStateException.class })
     public void testBuildInstanceWithoutEnumClassSpecified() {
         EnumPropertyDefinition.Builder<TestEnum> localBuilder = EnumPropertyDefinition.createBuilder(

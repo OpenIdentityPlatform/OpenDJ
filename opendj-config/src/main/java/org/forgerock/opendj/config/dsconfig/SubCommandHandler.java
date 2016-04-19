@@ -112,7 +112,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         /** The current result. */
         private MenuResult<ManagedObject<?>> result;
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
@@ -183,7 +182,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
@@ -222,7 +220,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
@@ -307,7 +304,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
@@ -472,7 +468,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             this.isCreate = isCreate;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
@@ -512,14 +507,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             sz--;
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
@@ -543,7 +536,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
@@ -596,7 +588,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         // No implementation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public final int compareTo(SubCommandHandler o) {
         String s1 = getSubCommand().getName();
@@ -605,7 +596,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         return s1.compareTo(s2);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final boolean equals(Object obj) {
         if (this == obj) {
@@ -670,7 +660,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         return tags;
     }
 
-    /** {@inheritDoc} */
     @Override
     public final int hashCode() {
         return getSubCommand().getName().hashCode();

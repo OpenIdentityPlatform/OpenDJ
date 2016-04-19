@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -31,9 +31,7 @@ import org.forgerock.opendj.config.PropertyDefinition;
  *            The type of the underlying property associated with the modification.
  */
 final class PropertyEditorModification<T> {
-    /**
-     * The enumeration that describes the different types of modifications that we can have.
-     */
+    /** The enumeration that describes the different types of modifications that we can have. */
     enum Type {
         /** The user chose to set values. */
         SET,
@@ -177,7 +175,6 @@ final class PropertyEditorModification<T> {
         return originalValues;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         return "Property name: " + getPropertyDefinition() + "\nMod type: " + getType() + "\nMod values: "

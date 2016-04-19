@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -46,10 +47,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      */
     private final boolean allowUnlimited;
 
-    /**
-     * An interface for incrementally constructing memory size property
-     * definitions.
-     */
+    /** An interface for incrementally constructing memory size property definitions. */
     public static final class Builder extends AbstractBuilder<Long, SizePropertyDefinition> {
 
         /** The lower limit of the property value in bytes. */
@@ -149,7 +147,6 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
             this.allowUnlimited = allowUnlimited;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected SizePropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -213,7 +210,6 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return allowUnlimited;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(Long value) {
         Reject.ifNull(value);
@@ -231,7 +227,6 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String encodeValue(Long value) {
         Reject.ifNull(value);
@@ -253,7 +248,6 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return builder.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Long decodeValue(String value) {
         Reject.ifNull(value);
@@ -279,19 +273,16 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return i;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitSize(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Long value, P p) {
         return v.visitSize(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -309,7 +300,6 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
 
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(Long o1, Long o2) {
         return o1.compareTo(o2);

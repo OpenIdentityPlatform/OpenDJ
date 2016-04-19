@@ -28,9 +28,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public final class PropertyException extends RuntimeException implements LocalizableException {
 
-    /**
-     * Version ID required by serializable classes.
-     */
+    /** Version ID required by serializable classes. */
     private static final long serialVersionUID = -8465109598081914482L;
 
     /**
@@ -139,10 +137,7 @@ public final class PropertyException extends RuntimeException implements Localiz
     /** LocalizableMessage that explains the problem. */
     private final LocalizableMessage message;
 
-    /**
-     * The property definition associated with the property that caused
-     * the exception.
-     */
+    /** The property definition associated with the property that caused the exception. */
     private final PropertyDefinition<?> pd;
 
     private PropertyException(final PropertyDefinition<?> pd, final LocalizableMessage message) {
@@ -158,7 +153,7 @@ public final class PropertyException extends RuntimeException implements Localiz
         this.pd = pd;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getMessageObject() {
         return message;
     }

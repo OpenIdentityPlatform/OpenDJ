@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -35,26 +35,15 @@ import org.forgerock.opendj.config.SizeUnit;
  */
 final class PropertyValuePrinter {
 
-    /**
-     * Perform property type specific print formatting.
-     */
+    /** Perform property type specific print formatting. */
     private static final class MyPropertyValueVisitor extends PropertyValueVisitor<LocalizableMessage, Void> {
 
-        /**
-         * The requested size unit (null if the property's unit should be used).
-         */
+        /** The requested size unit (null if the property's unit should be used). */
         private final SizeUnit sizeUnit;
-
-        /**
-         * The requested time unit (null if the property's unit should be used).
-         */
+        /** The requested time unit (null if the property's unit should be used). */
         private final DurationUnit timeUnit;
-
-        /**
-         * Whether or not values should be displayed in a script-friendly manner.
-         */
+        /** Whether or not values should be displayed in a script-friendly manner. */
         private final boolean isScriptFriendly;
-
         /** The formatter to use for numeric values. */
         private final NumberFormat numberFormat;
 
@@ -69,13 +58,11 @@ final class PropertyValuePrinter {
             numberFormat.setMaximumFractionDigits(2);
         }
 
-        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitBoolean(BooleanPropertyDefinition pd, Boolean v, Void p) {
             return v ? INFO_VALUE_TRUE.get() : INFO_VALUE_FALSE.get();
         }
 
-        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitDuration(DurationPropertyDefinition pd, Long v, Void p) {
             if (pd.getUpperLimit() == null && (v < 0 || v == Long.MAX_VALUE)) {
@@ -104,7 +91,6 @@ final class PropertyValuePrinter {
             return builder.toMessage();
         }
 
-        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitSize(SizePropertyDefinition pd, Long v, Void p) {
             if (pd.isAllowUnlimited() && v < 0) {
@@ -129,7 +115,6 @@ final class PropertyValuePrinter {
             return builder.toMessage();
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> pd, T v, Void p) {
             // For all other property definition types the default encoding

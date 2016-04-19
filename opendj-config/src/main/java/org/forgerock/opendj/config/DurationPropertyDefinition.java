@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -70,10 +71,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      */
     private final boolean allowUnlimited;
 
-    /**
-     * An interface for incrementally constructing duration property
-     * definitions.
-     */
+    /** An interface for incrementally constructing duration property definitions. */
     public static final class Builder extends AbstractBuilder<Long, DurationPropertyDefinition> {
 
         /** The base unit for this property definition. */
@@ -278,7 +276,6 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
             this.allowUnlimited = allowUnlimited;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected DurationPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -365,7 +362,6 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         return allowUnlimited;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(Long value) {
         Reject.ifNull(value);
@@ -384,7 +380,6 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String encodeValue(Long value) {
         Reject.ifNull(value);
@@ -402,7 +397,6 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         return builder.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Long decodeValue(String value) {
         Reject.ifNull(value);
@@ -436,19 +430,16 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitDuration(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Long value, P p) {
         return v.visitDuration(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -475,7 +466,6 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         builder.append(allowUnlimited);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(Long o1, Long o2) {
         return o1.compareTo(o2);

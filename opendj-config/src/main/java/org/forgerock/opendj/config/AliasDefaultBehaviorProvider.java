@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -32,16 +33,10 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public final class AliasDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
-    /**
-     * The managed object definition associated with this default
-     * behavior.
-     */
+    /** The managed object definition associated with this default behavior. */
     private final AbstractManagedObjectDefinition<?, ?> definition;
 
-    /**
-     * The name of the property definition associated with this default
-     * behavior.
-     */
+    /** The name of the property definition associated with this default behavior. */
     private final String propertyName;
 
     /**
@@ -59,7 +54,7 @@ public final class AliasDefaultBehaviorProvider<T> extends DefaultBehaviorProvid
         this.propertyName = propertyName;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitAlias(this, p);
     }

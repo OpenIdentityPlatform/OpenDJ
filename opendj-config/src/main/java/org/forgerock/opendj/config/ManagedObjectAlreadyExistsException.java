@@ -24,14 +24,10 @@ import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
  */
 public final class ManagedObjectAlreadyExistsException extends OperationsException {
 
-    /**
-     * Version ID required by serializable classes.
-     */
+    /** Version ID required by serializable classes. */
     private static final long serialVersionUID = -2344653674171609366L;
 
-    /**
-     * Create a managed object already exists exception.
-     */
+    /** Create a managed object already exists exception. */
     public ManagedObjectAlreadyExistsException() {
         super(ERR_MANAGED_OBJECT_ALREADY_EXISTS_EXCEPTION.get());
     }

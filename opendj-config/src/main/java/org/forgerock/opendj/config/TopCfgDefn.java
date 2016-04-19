@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -44,9 +45,7 @@ public final class TopCfgDefn extends AbstractManagedObjectDefinition<Configurat
         return INSTANCE;
     }
 
-    /**
-     * Private constructor.
-     */
+    /** Private constructor. */
     private TopCfgDefn() {
         super("top", null);
     }

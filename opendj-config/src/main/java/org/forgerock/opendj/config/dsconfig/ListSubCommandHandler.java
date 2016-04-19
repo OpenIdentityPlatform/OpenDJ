@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -163,13 +163,11 @@ final class ListSubCommandHandler extends SubCommandHandler {
         return relation;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -23,9 +23,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.ldap.LdapException;
 
-/**
- * An interface for evaluating conditions.
- */
+/** An interface for evaluating conditions. */
 public interface Condition {
 
     /**

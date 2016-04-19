@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2015 ForgeRock AS.
+ * Portions copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -47,15 +47,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-/**
- * Test default behavior on the server side, by checking values of configuration objects.
- */
+/** Test default behavior on the server side, by checking values of configuration objects. */
 public final class DefaultBehaviorTest extends AdminTestCase {
 
     private static class TestConfigurationAddListener implements ConfigurationAddListener<TestChildCfg> {
 
         private TestChildCfg childCfg;
 
+        @Override
         public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
@@ -67,6 +66,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
             return childCfg;
         }
 
+        @Override
         public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             childCfg = configuration;
@@ -78,6 +78,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
         private TestChildCfg childCfg;
 
+        @Override
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
@@ -89,6 +90,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
             return childCfg;
         }
 
+        @Override
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             childCfg = configuration;
@@ -243,10 +245,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
                 Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") } };
     }
 
-    /**
-     * Test that a child config have correct values when accessed from its
-     * parent config.
-     */
+    /** Test that a child config have correct values when accessed from its parent config. */
     @Test(dataProvider = "childConfigurationsValues")
     public void testChildValues(Entry testParent, Entry testBaseChild, Entry testChild,
         List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
@@ -262,10 +261,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
             valuesForOptionalDNProperty2);
     }
 
-    /**
-     * Test that a child config have correct values when accessed through an add
-     * listener.
-     */
+    /** Test that a child config have correct values when accessed through an add listener. */
     @Test(dataProvider = "childConfigurationsValues")
     public void testAddListenerChildValues(Entry testParent, Entry testBaseChild, Entry testChild,
         List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
@@ -343,9 +339,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
             { TEST_PARENT_2, Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") } };
     }
 
-    /**
-     * Tests that parent configuration has correct values.
-     */
+    /** Tests that parent configuration has correct values. */
     @Test(dataProvider = "parentConfigurationsValues")
     public void testParentValues(Entry parentEntry, List<String> valuesForOptionalDNProperty) throws Exception {
         ConfigurationRepository configRepository = createConfigRepositoryWithEntries(parentEntry);

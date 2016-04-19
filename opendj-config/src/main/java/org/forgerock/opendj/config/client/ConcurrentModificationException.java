@@ -28,14 +28,10 @@ import org.forgerock.opendj.config.OperationsException;
  */
 public class ConcurrentModificationException extends OperationsException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = -1467024486347612820L;
 
-    /**
-     * Create a concurrent modification exception with a default message.
-     */
+    /** Create a concurrent modification exception with a default message. */
     public ConcurrentModificationException() {
         super(ERR_CONCURRENT_MODIFICATION_EXCEPTION_DEFAULT.get());
     }

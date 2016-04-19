@@ -161,9 +161,7 @@ public class AggregationClientTest extends AdminTestCase {
         TestCfg.setUp();
     }
 
-    /**
-     * Tears down test environment.
-     */
+    /** Tears down test environment. */
     @AfterClass
     public void tearDown() {
         TestCfg.cleanup();

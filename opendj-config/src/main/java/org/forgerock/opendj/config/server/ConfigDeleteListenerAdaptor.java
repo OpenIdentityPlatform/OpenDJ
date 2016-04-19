@@ -141,7 +141,6 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
         this.cachedManagedObject = null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(Entry configEntry) {
         if (optionalRelation != null) {
@@ -177,7 +176,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
         return result;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         DN dn = configEntry.getName();
         String name = dn.rdn().getFirstAVA().getAttributeValue().toString().trim();

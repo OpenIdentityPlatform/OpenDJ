@@ -60,14 +60,10 @@ import static org.forgerock.opendj.config.dsconfig.DSConfig.*;
  */
 final class DeleteSubCommandHandler extends SubCommandHandler {
 
-    /**
-     * The value for the long option force.
-     */
+    /** The value for the long option force. */
     private static final String OPTION_DSCFG_LONG_FORCE = "force";
 
-    /**
-     * The value for the short option force.
-     */
+    /** The value for the short option force. */
     private static final char OPTION_DSCFG_SHORT_FORCE = 'f';
 
     /**
@@ -133,9 +129,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     /** The path of the managed object. */
     private final ManagedObjectPath<?, ?> path;
 
-    /**
-     * The relation which references the managed object to be deleted.
-     */
+    /** The relation which references the managed object to be deleted. */
     private final RelationDefinition<?, ?> relation;
 
     /** The sub-command associated with this handler. */
@@ -176,13 +170,11 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         return relation;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;
     }
 
-    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {

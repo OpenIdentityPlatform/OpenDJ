@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -22,24 +23,16 @@ import java.util.EnumSet;
 
 import org.forgerock.opendj.ldap.DN;
 
-/**
- * DN property definition.
- */
+/** DN property definition. */
 public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
-    /**
-     * Optional base DN which all valid values must be immediately
-     * subordinate to.
-     */
+    /** Optional base DN which all valid values must be immediately subordinate to. */
     private final DN baseDN;
 
     /** An interface for incrementally constructing DN property definitions. */
     public static final class Builder extends AbstractBuilder<DN, DNPropertyDefinition> {
 
-        /**
-         * Optional base DN which all valid values must be immediately
-         * subordinate to.
-         */
+        /** Optional base DN which all valid values must be immediately subordinate to. */
         private DN baseDN;
 
         /** Private constructor. */
@@ -72,7 +65,6 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
             this.baseDN = baseDN;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected DNPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -114,7 +106,6 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         return baseDN;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(DN value) {
         Reject.ifNull(value);
@@ -132,7 +123,6 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN decodeValue(String value) {
         Reject.ifNull(value);
@@ -146,19 +136,16 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitDN(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, DN value, P p) {
         return v.visitDN(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(DN o1, DN o2) {
         return o1.compareTo(o2);

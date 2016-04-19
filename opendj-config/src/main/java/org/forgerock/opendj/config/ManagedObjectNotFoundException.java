@@ -18,19 +18,13 @@ package org.forgerock.opendj.config;
 
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 
-/**
- * The requested managed object could not be located.
- */
+/** The requested managed object could not be located. */
 public class ManagedObjectNotFoundException extends OperationsException {
 
-    /**
-     * Version ID required by serializable classes.
-     */
+    /** Version ID required by serializable classes. */
     private static final long serialVersionUID = -477551786551892978L;
 
-    /**
-     * Create a managed object not found exception.
-     */
+    /** Create a managed object not found exception. */
     public ManagedObjectNotFoundException() {
         super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get());
     }

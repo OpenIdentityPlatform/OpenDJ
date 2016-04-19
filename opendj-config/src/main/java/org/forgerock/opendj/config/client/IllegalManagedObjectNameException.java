@@ -35,9 +35,7 @@ import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
  */
 public class IllegalManagedObjectNameException extends OperationsException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = 7491748228684293291L;
 
     /** Create the message. */

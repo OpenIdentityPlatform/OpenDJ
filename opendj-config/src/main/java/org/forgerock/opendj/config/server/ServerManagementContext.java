@@ -70,9 +70,7 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Server management connection context.
- */
+/** Server management connection context. */
 public final class ServerManagementContext {
 
     /**
@@ -87,10 +85,7 @@ public final class ServerManagementContext {
         /** Any exception that occurred whilst retrieving inherited default values. */
         private PropertyException exception;
 
-        /**
-         * Optional new configuration entry which does not yet exist in
-         * the configuration back-end.
-         */
+        /** Optional new configuration entry which does not yet exist in the configuration back-end. */
         private final Entry newConfigEntry;
 
         /** The path of the managed object containing the next property. */
@@ -104,7 +99,6 @@ public final class ServerManagementContext {
             this.newConfigEntry = newConfigEntry;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
@@ -116,13 +110,11 @@ public final class ServerManagementContext {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
@@ -140,7 +132,6 @@ public final class ServerManagementContext {
             return values;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
@@ -152,7 +143,6 @@ public final class ServerManagementContext {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
@@ -248,7 +238,6 @@ public final class ServerManagementContext {
             this.entry = entry;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
             String oc = LDAPProfile.getInstance().getObjectClass(d);
@@ -264,9 +253,7 @@ public final class ServerManagementContext {
         }
     }
 
-    /**
-     * A visitor which is used to decode property LDAP values.
-     */
+    /** A visitor which is used to decode property LDAP values. */
     private static final class ValueDecoder extends PropertyDefinitionVisitor<Object, String> {
 
         /**
@@ -292,7 +279,6 @@ public final class ServerManagementContext {
             // Do nothing.
         }
 
-        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
                 AggregationPropertyDefinition<C, S> d, String p) {
@@ -306,7 +292,6 @@ public final class ServerManagementContext {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
@@ -316,9 +301,7 @@ public final class ServerManagementContext {
 
     private static final Logger debugLogger = LoggerFactory.getLogger(ServerManagementContext.class);
 
-    /**
-     * The root server managed object, lazily initialized.
-     */
+    /** The root server managed object, lazily initialized. */
     private volatile ServerManagedObject<RootCfg> root;
 
     /** Repository of configuration entries. */
@@ -752,10 +735,7 @@ public final class ServerManagementContext {
         return configRepository;
     }
 
-    /**
-     * Gets a config entry required for a managed object and throws a
-     * config exception on failure.
-     */
+    /** Gets a config entry required for a managed object and throws a config exception on failure. */
     private Entry getManagedObjectConfigEntry(DN dn) throws ConfigException {
         Entry configEntry;
         try {

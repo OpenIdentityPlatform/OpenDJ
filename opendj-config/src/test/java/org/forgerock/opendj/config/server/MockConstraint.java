@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -25,18 +26,12 @@ import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
 import org.testng.Assert;
 
-/**
- * A mock constraint which can be configured to refuse various types of
- * operation.
- */
+/** A mock constraint which can be configured to refuse various types of operation. */
 public final class MockConstraint extends Constraint {
 
-    /**
-     * Mock server constraint handler.
-     */
+    /** Mock server constraint handler. */
     private class MockConstraintHandler extends ServerConstraintHandler {
 
-        /** {@inheritDoc} */
         @Override
         public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -47,7 +42,6 @@ public final class MockConstraint extends Constraint {
             return isDeleteAllowed;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean isUsable(ServerManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -58,7 +52,6 @@ public final class MockConstraint extends Constraint {
             return isUsable;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void performPostAdd(ServerManagedObject<?> managedObject) throws ConfigException {
             // Make sure that the associated config entry exists.
@@ -66,7 +59,6 @@ public final class MockConstraint extends Constraint {
             Assert.assertTrue(configRepository.hasEntry(targetDN));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void performPostDelete(ServerManagedObject<?> managedObject) throws ConfigException {
             // Make sure that the associated config entry does not exist.
@@ -74,7 +66,6 @@ public final class MockConstraint extends Constraint {
             Assert.assertTrue(configRepository.hasEntry(targetDN));
         }
 
-        /** {@inheritDoc} */
         @Override
         public void performPostModify(ServerManagedObject<?> managedObject) throws ConfigException {
             // Make sure that the associated config entry exists.
@@ -108,12 +99,12 @@ public final class MockConstraint extends Constraint {
         this.configRepository = configRepository;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
         return Collections.emptySet();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
         return Collections.<ServerConstraintHandler> singleton(new MockConstraintHandler());
     }

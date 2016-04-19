@@ -40,14 +40,10 @@ public final class ConfigChangeResult {
      */
     private boolean adminActionRequired;
 
-    /**
-     * The result code to return to the client from this configuration change.
-     */
+    /** The result code to return to the client from this configuration change. */
     private ResultCode resultCode = ResultCode.SUCCESS;
 
-    /**
-     * Creates a new config change result object with the provided information.
-     */
+    /** Creates a new config change result object with the provided information. */
     public ConfigChangeResult() {
         // nothing more to do
     }

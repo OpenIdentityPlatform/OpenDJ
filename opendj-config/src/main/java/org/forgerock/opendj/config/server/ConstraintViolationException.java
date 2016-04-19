@@ -34,9 +34,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  */
 public class ConstraintViolationException extends DecodingException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = -4902443848460011875L;
 
     /** The server managed object. */

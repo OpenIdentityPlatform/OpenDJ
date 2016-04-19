@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -46,10 +46,7 @@ public final class OptionalRelationDefinition<C extends ConfigurationClient, S e
     public static final class Builder<C extends ConfigurationClient, S extends Configuration> extends
         AbstractBuilder<C, S, OptionalRelationDefinition<C, S>> {
 
-        /**
-         * The optional default managed object associated with this
-         * optional relation.
-         */
+        /** The optional default managed object associated with this optional relation. */
         private DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
         /**
@@ -81,17 +78,13 @@ public final class OptionalRelationDefinition<C extends ConfigurationClient, S e
             this.defaultManagedObject = defaultManagedObject;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected OptionalRelationDefinition<C, S> buildInstance(Common<C, S> common) {
             return new OptionalRelationDefinition<>(common, defaultManagedObject);
         }
     }
 
-    /**
-     * The optional default managed object associated with this
-     * optional relation.
-     */
+    /** The optional default managed object associated with this optional relation. */
     private final DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
     /** Private constructor. */
@@ -101,7 +94,6 @@ public final class OptionalRelationDefinition<C extends ConfigurationClient, S e
         this.defaultManagedObject = defaultManagedObject;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
         return v.visitOptional(this, p);
@@ -119,7 +111,6 @@ public final class OptionalRelationDefinition<C extends ConfigurationClient, S e
         return defaultManagedObject;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         builder.append("name=");
@@ -130,7 +121,6 @@ public final class OptionalRelationDefinition<C extends ConfigurationClient, S e
         builder.append(getChildDefinition().getName());
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void initialize() throws Exception {
         if (defaultManagedObject != null) {

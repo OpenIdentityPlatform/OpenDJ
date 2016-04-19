@@ -36,9 +36,7 @@ import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
 
-/**
- * An LDAP management context factory for the DSConfig tool.
- */
+/** An LDAP management context factory for the DSConfig tool. */
 public final class LDAPManagementContextFactory {
 
     /** The management context. */
@@ -66,9 +64,7 @@ public final class LDAPManagementContextFactory {
         factory = cfp.getAuthenticatedConnectionFactory();
     }
 
-    /**
-     * Closes this management context.
-     */
+    /** Closes this management context. */
     public void close() {
         closeSilently(context);
     }

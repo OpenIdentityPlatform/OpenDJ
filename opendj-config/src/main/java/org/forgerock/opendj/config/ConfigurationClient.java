@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -22,9 +22,7 @@ import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.ldap.LdapException;
 
-/**
- * A common base interface for all managed object configuration clients.
- */
+/** A common base interface for all managed object configuration clients. */
 public interface ConfigurationClient {
 
     /**

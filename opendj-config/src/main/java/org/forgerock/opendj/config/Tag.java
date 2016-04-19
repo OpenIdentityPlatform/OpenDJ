@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -96,12 +96,11 @@ public final class Tag implements Comparable<Tag> {
         this.name = name;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public final int compareTo(Tag o) {
         return name.compareTo(o.name);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final boolean equals(Object obj) {
         if (this == obj) {
@@ -151,13 +150,11 @@ public final class Tag implements Comparable<Tag> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final int hashCode() {
         return name.hashCode();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final String toString() {
         return name;

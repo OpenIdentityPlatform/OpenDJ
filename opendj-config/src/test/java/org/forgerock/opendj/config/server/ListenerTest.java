@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -62,9 +63,7 @@ public class ListenerTest extends AdminTestCase {
             "cn: test parents");
     }
 
-    /**
-     * Create a mock of ConfigurationRepository with provided DNs registered.
-     */
+    /** Create a mock of ConfigurationRepository with provided DNs registered. */
     private ConfigurationRepository createConfigRepositoryWithDNs(DN... dns) throws ConfigException {
         ConfigurationRepository configRepository = mock(ConfigurationRepository.class);
         for (DN dn : dns) {
@@ -73,10 +72,7 @@ public class ListenerTest extends AdminTestCase {
         return configRepository;
     }
 
-    /**
-     * Register a listener for test parent entry and return the actual
-     * registered listener.
-     */
+    /** Register a listener for test parent entry and return the actual registered listener. */
     private ConfigAddListener registerAddListenerForTestParent(ConfigurationRepository configRepository,
         ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener) throws Exception {
         root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), parentListener);

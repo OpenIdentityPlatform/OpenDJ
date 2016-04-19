@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2015 ForgeRock AS.
+ * Portions copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -100,7 +100,6 @@ final class DelayedConfigAddListener implements ConfigAddListener {
         this.delayedDeleteListener = deleteListener;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(Entry configEntry) {
         if (configEntry.getName().equals(child)) {
@@ -129,7 +128,6 @@ final class DelayedConfigAddListener implements ConfigAddListener {
         return new ConfigChangeResult();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         // Always acceptable.

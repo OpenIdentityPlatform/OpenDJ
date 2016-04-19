@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * Thrown during the course of interactions with the Directory Server
- * configuration.
- */
+/** Thrown during the course of interactions with the Directory Server configuration. */
 public final class ConfigException extends Exception implements LocalizableException {
     private static final long serialVersionUID = -540463620272921157L;
     private final LocalizableMessage message;
@@ -31,6 +29,7 @@ public final class ConfigException extends Exception implements LocalizableExcep
      *
      * @return LocalizableMessage of the problem
      */
+    @Override
     public LocalizableMessage getMessageObject() {
         return message;
     }

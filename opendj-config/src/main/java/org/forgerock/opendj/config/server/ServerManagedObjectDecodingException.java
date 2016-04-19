@@ -36,9 +36,7 @@ import org.forgerock.util.Reject;
  */
 public class ServerManagedObjectDecodingException extends DecodingException {
 
-    /**
-     * Version ID required by serializable classes.
-     */
+    /** Version ID required by serializable classes. */
     private static final long serialVersionUID = 1598401431084729853L;
 
     /** Create the message. */

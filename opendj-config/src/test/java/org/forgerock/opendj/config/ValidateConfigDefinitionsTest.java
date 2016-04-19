@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -66,7 +66,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
     private static final List<String> CLASS_OBJECT_CLASS_EXCEPTIONS = Arrays.asList(new String[] {
         "org.forgerock.opendj.config.std.meta.RootCfgDefn", "org.forgerock.opendj.config.std.meta.GlobalCfgDefn", });
 
-    // TODO : does not work because can't retrieve object class objects
+    /** TODO : does not work because can't retrieve object class objects */
     @Test(enabled = false, dataProvider = "enumerateManageObjectDefns")
     public void validateConfigObjectDefinitions(AbstractManagedObjectDefinition<?, ?> objectDef) {
         String objName = objectDef.getName();
@@ -108,10 +108,7 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
     // e.g. "prop-name-ending-with-enabled"
     });
 
-    /**
-     * Exceptions to properties not starting with the name of their config
-     * object.
-     */
+    /** Exceptions to properties not starting with the name of their config object. */
     private static final List<String> OBJECT_PREFIX_PROPERTY_EXCEPTIONS = Arrays.asList(new String[] { "backend-id",
         "plugin-type", "replication-server-id", "network-group-id", "workflow-id", "workflow-element-id",
         "workflow-element"

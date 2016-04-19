@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -19,19 +20,13 @@ package org.forgerock.opendj.config;
 import java.util.Collection;
 import java.util.Collections;
 
-/**
- * An interface which can be used to initialize the contents of a managed
- * object.
- */
+/** An interface which can be used to initialize the contents of a managed object. */
 public interface PropertyProvider {
 
-    /**
-     * A property provider which always returns empty property values,
-     * indicating default behavior.
-     */
+    /** A property provider which always returns empty property values, indicating default behavior. */
     PropertyProvider DEFAULT_PROVIDER = new PropertyProvider() {
 
-        /** {@inheritDoc} */
+        @Override
         public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) {
             return Collections.<T> emptySet();
         }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -45,17 +45,17 @@ public final class NOTCondition implements Condition {
         this.condition = condition;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         return !condition.evaluate(context, managedObject);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         return !condition.evaluate(managedObject);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         condition.initialize(d);
     }

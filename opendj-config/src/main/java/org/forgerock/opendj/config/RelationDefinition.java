@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -318,7 +318,6 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
         return common.options.contains(option);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final String toString() {
         StringBuilder builder = new StringBuilder();

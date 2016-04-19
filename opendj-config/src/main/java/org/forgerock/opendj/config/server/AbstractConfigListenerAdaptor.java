@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -20,14 +21,10 @@ import java.util.Collection;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-/**
- * Common features of config listener adaptors.
- */
+/** Common features of config listener adaptors. */
 abstract class AbstractConfigListenerAdaptor {
 
-    /**
-     * Create a new config listener adaptor.
-     */
+    /** Create a new config listener adaptor. */
     protected AbstractConfigListenerAdaptor() {
         // No implementation required.
     }

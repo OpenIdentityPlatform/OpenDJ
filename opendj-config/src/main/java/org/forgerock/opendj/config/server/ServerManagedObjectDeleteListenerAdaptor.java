@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -44,7 +45,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration> im
         this.listener = listener;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationDelete(ServerManagedObject<? extends T> mo) {
         return listener.applyConfigurationDelete(mo.getConfiguration());
     }
@@ -59,7 +60,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration> im
         return listener;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isConfigurationDeleteAcceptable(ServerManagedObject<? extends T> mo,
             List<LocalizableMessage> unacceptableReasons) {
         return listener.isConfigurationDeleteAcceptable(mo.getConfiguration(), unacceptableReasons);

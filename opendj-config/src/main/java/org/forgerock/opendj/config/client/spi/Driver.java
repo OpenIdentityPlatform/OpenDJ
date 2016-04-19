@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.spi;
 
@@ -72,10 +72,7 @@ public abstract class Driver {
      */
     private final class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
-        /**
-         * Any exception that occurred whilst retrieving inherited default
-         * values.
-         */
+        /** Any exception that occurred whilst retrieving inherited default values. */
         private PropertyException exception;
 
         /** The path of the managed object containing the first property. */
@@ -96,7 +93,6 @@ public abstract class Driver {
             this.isCreate = isCreate;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
@@ -108,13 +104,11 @@ public abstract class Driver {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
@@ -132,7 +126,6 @@ public abstract class Driver {
             return values;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
@@ -144,7 +137,6 @@ public abstract class Driver {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();

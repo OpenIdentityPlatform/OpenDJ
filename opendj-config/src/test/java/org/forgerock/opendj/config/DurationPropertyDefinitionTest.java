@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -210,6 +211,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         builder.setAllowUnlimited(true);
         DurationPropertyDefinition def = buildTestDefinition(builder);
         PropertyDefinitionVisitor<Boolean, Void> v = new PropertyDefinitionVisitor<Boolean, Void>() {
+            @Override
             public Boolean visitDuration(DurationPropertyDefinition d, Void o) {
                 return true;
             }
@@ -253,6 +255,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
         builder.setAllowUnlimited(true);
         builder.setDefaultBehaviorProvider(new DefaultBehaviorProvider<Long>() {
+            @Override
             public <R, P> R accept(DefaultBehaviorProviderVisitor<Long, R, P> v, P p) {
                 return null;
             }

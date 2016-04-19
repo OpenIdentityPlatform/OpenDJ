@@ -12,23 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
 
-/**
- * A mock LDAP profile wrapper for testing purposes.
- */
+/** A mock LDAP profile wrapper for testing purposes. */
 public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
-    /**
-     * Creates a new mock LDAP profile.
-     */
+    /** Creates a new mock LDAP profile. */
     public MockLDAPProfile() {
         // No implementation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
 
@@ -70,7 +66,6 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getRelationChildRDNType(InstantiableRelationDefinition<?, ?> r) {
         if (r == TestCfg.getTestOneToManyParentRelationDefinition()
@@ -80,7 +75,6 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
         if (d == TestParentCfgDefn.getInstance()) {
@@ -93,7 +87,6 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
         if (r == TestCfg.getTestOneToManyParentRelationDefinition()) {

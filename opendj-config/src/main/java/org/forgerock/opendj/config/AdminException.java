@@ -12,22 +12,18 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.config;
 
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * Exceptions thrown when interacting with administration framework.
- */
+/** Exceptions thrown when interacting with administration framework. */
 public abstract class AdminException extends Exception implements LocalizableException {
     private final LocalizableMessage message;
 
-    /**
-     * Fake serialization ID.
-     */
+    /** Fake serialization ID. */
     private static final long serialVersionUID = 1L;
 
     /**

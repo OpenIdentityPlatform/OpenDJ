@@ -12,8 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.config;
 
 import org.forgerock.util.Reject;
@@ -23,15 +23,10 @@ import java.util.EnumSet;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 
-/**
- * Attribute type property definition.
- */
+/** Attribute type property definition. */
 public final class AttributeTypePropertyDefinition extends PropertyDefinition<AttributeType> {
 
-    /**
-     * An interface for incrementally constructing attribute type property
-     * definitions.
-     */
+    /** An interface for incrementally constructing attribute type property definitions. */
     public static final class Builder extends AbstractBuilder<AttributeType, AttributeTypePropertyDefinition> {
 
         /** Private constructor. */
@@ -39,7 +34,6 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
             super(d, propertyName);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected AttributeTypePropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -69,25 +63,21 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
         super(d, AttributeType.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitAttributeType(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, AttributeType value, P p) {
         return v.visitAttributeType(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(AttributeType o1, AttributeType o2) {
         return o1.getNameOrOID().compareToIgnoreCase(o2.getNameOrOID());
     }
 
-    /** {@inheritDoc} */
     @Override
     public AttributeType decodeValue(String value) {
         Reject.ifNull(value);
@@ -108,13 +98,11 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String encodeValue(AttributeType value) {
         return value.getNameOrOID();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(AttributeType value) {
         Reject.ifNull(value);

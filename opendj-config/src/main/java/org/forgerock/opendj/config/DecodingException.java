@@ -12,20 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The requested managed object was found but it could not be decoded.
- */
+/** The requested managed object was found but it could not be decoded. */
 public abstract class DecodingException extends OperationsException {
 
-    /**
-     * Fake serialization ID.
-     */
+    /** Fake serialization ID. */
     private static final long serialVersionUID = 1L;
 
     /**

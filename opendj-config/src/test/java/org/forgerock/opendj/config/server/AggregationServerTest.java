@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2008 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -54,37 +54,35 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * Test cases for aggregations on the server-side.
- */
+/** Test cases for aggregations on the server-side. */
 @Test(singleThreaded = true)
 @SuppressWarnings("javadoc")
 public final class AggregationServerTest extends AdminTestCase {
 
-    /**
-     * Dummy change listener for triggering change constraint call-backs.
-     */
+    /** Dummy change listener for triggering change constraint call-backs. */
     private static final class DummyChangeListener implements ConfigurationChangeListener<TestChildCfg> {
 
+        @Override
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
 
+        @Override
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             return true;
         }
     }
 
-    /**
-     * Dummy delete listener for triggering delete constraint call-backs.
-     */
+    /** Dummy delete listener for triggering delete constraint call-backs. */
     private static final class DummyDeleteListener implements ConfigurationDeleteListener<TestChildCfg> {
 
+        @Override
         public ConfigChangeResult applyConfigurationDelete(TestChildCfg configuration) {
             return new ConfigChangeResult();
         }
 
+        @Override
         public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
             List<LocalizableMessage> unacceptableReasons) {
             return true;
@@ -213,16 +211,11 @@ public final class AggregationServerTest extends AdminTestCase {
     // @Checkstyle:on
 
     // @Checkstyle:off
-    /**
-     * The default test child configuration "aggregation-property" property
-     * definition.
-     */
+    /** The default test child configuration "aggregation-property" property definition. */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         aggregationPropertyDefinitionDefault;
 
-    /**
-     * An aggregation where the target must be enabled if the source is enabled.
-     */
+    /** An aggregation where the target must be enabled if the source is enabled. */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         aggregationPropertyDefinitionTargetAndSourceMustBeEnabled;
 
@@ -578,9 +571,7 @@ public final class AggregationServerTest extends AdminTestCase {
         TestCfg.addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
     }
 
-    /**
-     * Put back the default aggregation definition.
-     */
+    /** Put back the default aggregation definition. */
     private void putBackDefaultAggregationDefinitionFromTargetAndSourceEnabled() {
         TestCfg.removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled.getSourceConstraint());
         TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
@@ -598,9 +589,7 @@ public final class AggregationServerTest extends AdminTestCase {
         TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
     }
 
-    /**
-     * Put back the default aggregation definition.
-     */
+    /** Put back the default aggregation definition. */
     private void putBackDefaultAggregationDefinitionFromTargetEnabled() {
         TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled.getSourceConstraint());
         TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -720,7 +720,6 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public final String toString() {
         StringBuilder builder = new StringBuilder();
@@ -920,10 +919,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
         apd.getRelationDefinition().getChildDefinition().reverseAggregationPropertyDefinitions.add(apd);
     }
 
-    /**
-     * Recursively descend definition hierarchy to find the best match
-     * definition.
-     */
+    /** Recursively descend definition hierarchy to find the best match definition. */
     private AbstractManagedObjectDefinition<? extends C, ? extends S> resolveManagedObjectDefinitionAux(
         AbstractManagedObjectDefinition<? extends C, ? extends S> d, DefinitionResolver r) {
         if (!r.matches(d)) {

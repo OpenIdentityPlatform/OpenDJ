@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -26,16 +27,12 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.testng.annotations.Test;
 
-/**
- * An abstract class that all admin unit tests should extend.
- */
+/** An abstract class that all admin unit tests should extend. */
 @SuppressWarnings("javadoc")
 @Test(groups = { "precommit", "admin" }, singleThreaded = true)
 public abstract class AdminTestCase extends ConfigTestCase {
 
-    /**
-     * Create a mock of ConfigurationRepository with provided entries registered.
-     */
+    /** Create a mock of ConfigurationRepository with provided entries registered. */
     protected final ConfigurationRepository createConfigRepositoryWithEntries(final Entry...entries) throws Exception {
         ConfigurationRepository configRepository = mock(ConfigurationRepository.class);
         for (Entry entry : entries) {

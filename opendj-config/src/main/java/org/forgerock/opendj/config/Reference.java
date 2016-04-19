@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -129,10 +129,7 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
     /** The path of the referenced managed object. */
     private final ManagedObjectPath<C, S> path;
 
-    /**
-     * The instantiable relation in the parent which contains the
-     * referenced managed object.
-     */
+    /** The instantiable relation in the parent which contains the referenced managed object. */
     private final InstantiableRelationDefinition<C, S> relation;
 
     /** Private constructor. */
@@ -170,15 +167,12 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
         return path.toDN();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String toString() {
         return name;
     }
 
-    /**
-     * Normalize a value using the specified naming property definition
-     * if defined.
-     */
+    /** Normalize a value using the specified naming property definition if defined. */
     private <T> String normalizeName(PropertyDefinition<T> pd) {
         if (pd != null) {
             try {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -47,7 +47,7 @@ public final class ORCondition implements Condition {
         this.conditions = Arrays.asList(conditions);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         for (Condition condition : conditions) {
             if (condition.evaluate(context, managedObject)) {
@@ -57,7 +57,7 @@ public final class ORCondition implements Condition {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         for (Condition condition : conditions) {
             if (condition.evaluate(managedObject)) {
@@ -67,7 +67,7 @@ public final class ORCondition implements Condition {
         return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         for (Condition condition : conditions) {
             condition.initialize(d);

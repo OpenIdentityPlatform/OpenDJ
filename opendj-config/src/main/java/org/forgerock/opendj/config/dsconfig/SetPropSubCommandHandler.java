@@ -74,64 +74,31 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
  */
 final class SetPropSubCommandHandler extends SubCommandHandler {
 
-    /**
-     * Type of modification being performed.
-     */
+    /** Type of modification being performed. */
     private static enum ModificationType {
-        /**
-         * Append a single value to the property.
-         */
+        /** Append a single value to the property. */
         ADD,
-
-        /**
-         * Remove a single value from the property.
-         */
+        /** Remove a single value from the property. */
         REMOVE,
-
-        /**
-         * Append a single value to the property (first invocation removes existing values).
-         */
+        /** Append a single value to the property (first invocation removes existing values). */
         SET;
     }
 
-    /**
-     * The value for the long option add.
-     */
+    /** The value for the long option add. */
     private static final String OPTION_DSCFG_LONG_ADD = "add";
-
-    /**
-     * The value for the long option remove.
-     */
+    /** The value for the long option remove. */
     private static final String OPTION_DSCFG_LONG_REMOVE = "remove";
-
-    /**
-     * The value for the long option reset.
-     */
+    /** The value for the long option reset. */
     private static final String OPTION_DSCFG_LONG_RESET = "reset";
-
-    /**
-     * The value for the long option set.
-     */
+    /** The value for the long option set. */
     private static final String OPTION_DSCFG_LONG_SET = "set";
-
-    /**
-     * The value for the short option add.
-     */
+    /** The value for the short option add. */
     private static final Character OPTION_DSCFG_SHORT_ADD = null;
-
-    /**
-     * The value for the short option remove.
-     */
+    /** The value for the short option remove. */
     private static final Character OPTION_DSCFG_SHORT_REMOVE = null;
-
-    /**
-     * The value for the short option reset.
-     */
+    /** The value for the short option reset. */
     private static final Character OPTION_DSCFG_SHORT_RESET = null;
-
-    /**
-     * The value for the short option set.
-     */
+    /** The value for the short option set. */
     private static final Character OPTION_DSCFG_SHORT_SET = null;
 
     /**
@@ -337,9 +304,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 || (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED));
     }
 
-    /**
-     * Check that any referenced components are enabled if required.
-     */
+    /** Check that any referenced components are enabled if required. */
     private static MenuResult<Void> checkReferences(ConsoleApplication app, ManagementContext context,
             ManagedObject<?> mo, SubCommandHandler handler) throws ClientException {
         ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
@@ -524,26 +489,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     /** The path of the managed object. */
     private final ManagedObjectPath<?, ?> path;
 
-    /**
-     * The argument which should be used to specify zero or more property value adds.
-     */
+    /** The argument which should be used to specify zero or more property value adds. */
     private final StringArgument propertyAddArgument;
-
-    /**
-     * The argument which should be used to specify zero or more property value removes.
-     */
+    /** The argument which should be used to specify zero or more property value removes. */
     private final StringArgument propertyRemoveArgument;
-
-    /**
-     * The argument which should be used to specify zero or more property value resets.
-     */
+    /** The argument which should be used to specify zero or more property value resets. */
     private final StringArgument propertyResetArgument;
-
-    /**
-     * The argument which should be used to specify zero or more property value assignments.
-     */
+    /** The argument which should be used to specify zero or more property value assignments. */
     private final StringArgument propertySetArgument;
-
     /** The sub-command associated with this handler. */
     private final SubCommand subCommand;
 
@@ -607,7 +560,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         return path.getRelationDefinition();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;

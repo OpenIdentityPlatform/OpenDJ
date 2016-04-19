@@ -12,8 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.config;
 
 import java.util.EnumSet;
@@ -21,14 +21,10 @@ import java.util.regex.Pattern;
 
 import org.forgerock.util.Reject;
 
-/**
- * ACI property definition.
- */
+/** ACI property definition. */
 public final class ACIPropertyDefinition extends PropertyDefinition<String> {
 
-    /**
-     * An interface for incrementally constructing ACI property definitions.
-     */
+    /** An interface for incrementally constructing ACI property definitions. */
     public static final class Builder extends AbstractBuilder<String, ACIPropertyDefinition> {
 
         /** Private constructor. */
@@ -36,7 +32,6 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
             super(d, propertyName);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected ACIPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
                 String propertyName, EnumSet<PropertyOption> options,
@@ -75,7 +70,6 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
         super(d, String.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(String value) {
         Reject.ifNull(value);
@@ -83,7 +77,6 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
         // No additional validation required.
     }
 
-    /** {@inheritDoc} */
     @Override
     public String decodeValue(String value) {
         Reject.ifNull(value);
@@ -101,19 +94,16 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
         throw PropertyException.illegalPropertyValueException(this, value);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitACI(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitACI(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compare(String o1, String o2) {
         return o1.compareTo(o2);

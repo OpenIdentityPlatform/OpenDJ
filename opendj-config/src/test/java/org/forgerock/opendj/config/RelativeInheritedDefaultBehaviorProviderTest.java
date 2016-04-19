@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -45,22 +45,27 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends ConfigTestCase
     public void testAccept() {
         defaultBehaviorProvider.accept(new DefaultBehaviorProviderVisitor<Boolean, Object, Object>() {
 
+            @Override
             public Object visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider d, Object o) {
                 return null;
             }
 
+            @Override
             public Object visitAlias(AliasDefaultBehaviorProvider d, Object o) {
                 return null;
             }
 
+            @Override
             public Object visitDefined(DefinedDefaultBehaviorProvider d, Object o) {
                 return null;
             }
 
+            @Override
             public Object visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider d, Object o) {
                 return null;
             }
 
+            @Override
             public Object visitUndefined(UndefinedDefaultBehaviorProvider d, Object o) {
                 return null;
             }

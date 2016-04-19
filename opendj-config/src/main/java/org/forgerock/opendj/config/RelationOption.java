@@ -12,14 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
 
-/**
- * This enumeration contains various options that can be associated with
- * relation definitions.
- */
+/** This enumeration contains various options that can be associated with relation definitions. */
 public enum RelationOption {
     /**
      * Use this option to identify relations which should be considered as

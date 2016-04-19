@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -61,10 +61,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         /** The plural name of the relation. */
         private final String pluralName;
 
-        /**
-         * The optional default managed objects associated with this
-         * instantiable relation definition.
-         */
+        /** The optional default managed objects associated with this instantiable relation definition. */
         private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects =
             new HashMap<>();
 
@@ -114,7 +111,6 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
             this.namingPropertyDefinition = namingPropertyDefinition;
         }
 
-        /** {@inheritDoc} */
         @Override
         protected InstantiableRelationDefinition<C, S> buildInstance(Common<C, S> common) {
             return new InstantiableRelationDefinition<>(common, pluralName, namingPropertyDefinition,
@@ -129,10 +125,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
     /** The plural name of the relation. */
     private final String pluralName;
 
-    /**
-     * The optional default managed objects associated with this
-     * instantiable relation definition.
-     */
+    /** The optional default managed objects associated with this instantiable relation definition. */
     private final Map<String, DefaultManagedObject<? extends C, ? extends S>> defaultManagedObjects;
 
     /** Private constructor. */
@@ -145,7 +138,6 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         this.defaultManagedObjects = defaultManagedObjects;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
         return v.visitInstantiable(this, p);
@@ -226,7 +218,6 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         return ManagedObjectDefinitionI18NResource.getInstance().getMessage(getParentDefinition(), property, locale);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         builder.append("name=");
@@ -237,7 +228,6 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         builder.append(getChildDefinition().getName());
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void initialize() throws Exception {
         for (DefaultManagedObject<?, ?> dmo : defaultManagedObjects.values()) {

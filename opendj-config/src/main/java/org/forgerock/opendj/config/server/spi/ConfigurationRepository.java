@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server.spi;
 
@@ -22,9 +22,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 
-/**
- * Provides configuration entries and listener registration on the entries.
- */
+/** Provides configuration entries and listener registration on the entries. */
 public interface ConfigurationRepository {
 
     /**

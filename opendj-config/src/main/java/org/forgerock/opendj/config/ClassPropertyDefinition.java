@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -58,10 +58,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         public final void addInstanceOf(String className) {
             Reject.ifNull(className);
 
-            /*
-             * Do some basic checks to make sure the string representation is
-             * valid.
-             */
+            /* Do some basic checks to make sure the string representation is valid. */
             String value = className.trim();
             if (!value.matches(CLASS_RE)) {
                 throw new IllegalArgumentException("\"" + value + "\" is not a valid Java class name");
@@ -70,7 +67,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
             instanceOfInterfaces.add(value);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected ClassPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -115,19 +111,16 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         this.instanceOfInterfaces = Collections.unmodifiableList(new LinkedList<String>(instanceOfInterfaces));
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitClass(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitClass(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String decodeValue(String value) {
         Reject.ifNull(value);
@@ -182,7 +175,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         return theClass.asSubclass(instanceOf);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String normalizeValue(String value) {
         Reject.ifNull(value);
@@ -190,7 +182,6 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         return value.trim();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(String value) {
         Reject.ifNull(value);
@@ -207,9 +198,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         }
     }
 
-    /**
-     * Do some basic checks to make sure the string representation is valid.
-     */
+    /** Do some basic checks to make sure the string representation is valid. */
     private void validateClassName(String className) {
         String nvalue = className.trim();
         if (!nvalue.matches(CLASS_RE)) {
@@ -217,10 +206,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         }
     }
 
-    /**
-     * Make sure that named class implements the interfaces named by this
-     * definition.
-     */
+    /** Make sure that named class implements the interfaces named by this definition. */
     private Class<?> validateClassInterfaces(String className, boolean initialize) {
         Class<?> theClass = loadClassForValidation(className, className, initialize);
         for (String i : instanceOfInterfaces) {

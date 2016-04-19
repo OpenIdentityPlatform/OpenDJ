@@ -26,14 +26,10 @@ import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
  */
 public class AuthenticationNotSupportedException extends AdminSecurityException {
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = 7387834052676291793L;
 
-    /**
-     * Creates an authentication not supported exception with a default message.
-     */
+    /** Creates an authentication not supported exception with a default message. */
     public AuthenticationNotSupportedException() {
         super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get());
     }

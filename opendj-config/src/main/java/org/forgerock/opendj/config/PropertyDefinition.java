@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -271,6 +271,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @return a negative integer, zero, or a positive integer as the first
      *         argument is less than, equal to, or greater than the second.
      */
+    @Override
     public int compare(T o1, T o2) {
         Reject.ifNull(o1);
         Reject.ifNull(o2);
@@ -296,6 +297,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *         property definition is less than, equal to, or greater than the
      *         specified property definition.
      */
+    @Override
     public final int compareTo(PropertyDefinition<?> o) {
         int rc = propertyName.compareTo(o.propertyName);
         if (rc == 0) {

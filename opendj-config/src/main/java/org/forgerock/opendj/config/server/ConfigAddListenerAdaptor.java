@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
- * Portions copyright 2015 ForgeRock AS.
+ * Portions copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config.server;
 
@@ -140,7 +140,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
         this.cachedManagedObject = null;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(Entry configEntry) {
         if (optionalRelation != null) {
             // Optional managed objects are located directly beneath the
@@ -174,7 +174,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
         return result;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         DN dn = configEntry.getName();
         String name = dn.rdn().getFirstAVA().getAttributeValue().toString().trim();

@@ -21,15 +21,10 @@ import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The requested managed object was found but its type could not be determined.
- */
+/** The requested managed object was found but its type could not be determined. */
 public class DefinitionDecodingException extends DecodingException {
 
-    /**
-     * An enumeration defining the reasons why the definition could not be
-     * resolved.
-     */
+    /** An enumeration defining the reasons why the definition could not be resolved. */
     public static enum Reason {
         /**
          * The managed object could be found but its type resolved to an
@@ -51,9 +46,7 @@ public class DefinitionDecodingException extends DecodingException {
 
     }
 
-    /**
-     * Version ID required by serializable classes.
-     */
+    /** Version ID required by serializable classes. */
     private static final long serialVersionUID = 3459033551415663416L;
 
     /** Create the message. */

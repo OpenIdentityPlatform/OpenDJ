@@ -39,29 +39,17 @@ import org.forgerock.util.Reject;
  */
 public class OperationRejectedException extends AdminClientException {
 
-    /**
-     * The type of operation that caused this exception.
-     */
+    /** The type of operation that caused this exception. */
     public enum OperationType {
-        /**
-         * A managed object could not be created.
-         */
+        /** A managed object could not be created. */
         CREATE,
-
-        /**
-         * A managed object could not be deleted.
-         */
+        /** A managed object could not be deleted. */
         DELETE,
-
-        /**
-         * A managed object could not be modified.
-         */
+        /** A managed object could not be modified. */
         MODIFY;
     }
 
-    /**
-     * Serialization ID.
-     */
+    /** Serialization ID. */
     private static final long serialVersionUID = 8547688890613079044L;
 
     /** Gets the default message. */

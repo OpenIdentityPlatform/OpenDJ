@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config;
@@ -27,29 +28,19 @@ import java.util.regex.PatternSyntaxException;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * String property definition.
- */
+/** String property definition. */
 public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
-    /**
-     * An interface for incrementally constructing string property definitions.
-     */
+    /** An interface for incrementally constructing string property definitions. */
     public static final class Builder extends AbstractBuilder<String, StringPropertyDefinition> {
 
-        /**
-         * Flag indicating whether values of this property are
-         * case-insensitive.
-         */
+        /** Flag indicating whether values of this property are case-insensitive. */
         private boolean isCaseInsensitive = true;
 
         /** Optional pattern which values of this property must match. */
         private Pattern pattern;
 
-        /**
-         * Pattern usage which provides a user-friendly summary of the
-         * pattern if present.
-         */
+        /** Pattern usage which provides a user-friendly summary of the pattern if present. */
         private String patternUsage;
 
         /** Private constructor. */
@@ -95,7 +86,6 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         protected StringPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -120,19 +110,13 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         return new Builder(d, propertyName);
     }
 
-    /**
-     * Flag indicating whether values of this property are
-     * case-insensitive.
-     */
+    /** Flag indicating whether values of this property are case-insensitive. */
     private final boolean isCaseInsensitive;
 
     /** Optional pattern which values of this property must match. */
     private final Pattern pattern;
 
-    /**
-     * Pattern usage which provides a user-friendly summary of the
-     * pattern if present.
-     */
+    /** Pattern usage which provides a user-friendly summary of the pattern if present. */
     private final String patternUsage;
 
     /** Private constructor. */
@@ -146,19 +130,16 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         this.patternUsage = patternUsage;
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitString(this, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitString(this, value, p);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String decodeValue(String value) {
         Reject.ifNull(value);
@@ -241,7 +222,6 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         return isCaseInsensitive;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String normalizeValue(String value) {
         Reject.ifNull(value);
@@ -253,7 +233,6 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void validateValue(String value) {
         Reject.ifNull(value);

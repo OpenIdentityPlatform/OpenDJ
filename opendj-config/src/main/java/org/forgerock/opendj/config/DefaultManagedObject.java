@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -128,6 +128,7 @@ public final class DefaultManagedObject<C extends ConfigurationClient, S extends
      *             If the property definition is not associated with this
      *             managed object's definition.
      */
+    @Override
     public <T> SortedSet<T> getPropertyValues(PropertyDefinition<T> pd) {
         // Validate the property definition.
         definition.getPropertyDefinition(pd.getName());
