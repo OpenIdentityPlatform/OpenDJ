@@ -58,9 +58,7 @@ import org.opends.server.types.SearchFilter;
  */
 public class ExportTask extends Task
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
 
   /** Stores mapping between configuration attribute name and its label. */
   private static Map<String,LocalizableMessage> argDisplayMap = new HashMap<>();
@@ -97,19 +95,16 @@ public class ExportTask extends Task
 
   private LDIFExportConfig exportConfig;
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_EXPORT_NAME.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeTask() throws DirectoryException
   {
@@ -126,7 +121,6 @@ public class ExportTask extends Task
                                      message);
       }
     }
-
 
     Entry taskEntry = getTaskEntry();
     AttributeType typeWrapColumn = getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN);
@@ -185,7 +179,6 @@ public class ExportTask extends Task
     return TaskUtils.getSingleValueString(attrs);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
@@ -199,13 +192,11 @@ public class ExportTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInterruptable() {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {
@@ -308,7 +299,6 @@ public class ExportTask extends Task
       }
     }
 
-
     ArrayList<DN> includeBranches;
     if (!includeBranchStrings.isEmpty())
     {
@@ -341,7 +331,6 @@ public class ExportTask extends Task
       includeBranches = defaultIncludeBranches;
     }
 
-
     // Create the LDIF export configuration to use when reading the LDIF.
     ExistingFileBehavior existingBehavior;
     if (appendToLDIF)
@@ -369,11 +358,9 @@ public class ExportTask extends Task
     // FIXME -- Should this be conditional?
     exportConfig.setInvokeExportPlugins(true);
 
-
     // Get the set of base DNs for the backend as an array.
     DN[] baseDNs = new DN[defaultIncludeBranches.size()];
     defaultIncludeBranches.toArray(baseDNs);
-
 
     // From here we must make sure we close the export config.
     try
@@ -394,7 +381,6 @@ public class ExportTask extends Task
         logger.error(ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
-
 
       // From here we must make sure we release the shared backend lock.
       try

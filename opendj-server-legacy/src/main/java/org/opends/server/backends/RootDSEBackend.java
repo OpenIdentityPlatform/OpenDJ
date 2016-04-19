@@ -127,8 +127,6 @@ public class RootDSEBackend
    */
   private ConcurrentHashMap<DN, Backend<?>> subordinateBaseDNs;
 
-
-
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
@@ -165,12 +163,10 @@ public class RootDSEBackend
     userDefinedAttributes = new ArrayList<>();
     addAllUserDefinedAttrs(userDefinedAttributes, configEntry);
 
-
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the root DSE.
     rootDSEDN    = DN.rootDN();
     baseDNs = Collections.singleton(rootDSEDN);
-
 
     // Create the set of subordinate base DNs.  If this is specified in the
     // configuration, then use that set.  Otherwise, use the set of non-private
@@ -189,13 +185,13 @@ public class RootDSEBackend
         for (DN baseDN : subDNs)
         {
           Backend<?> backend = DirectoryServer.getBackend(baseDN);
-          if (backend == null)
+          if (backend != null)
           {
-            logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, baseDN);
+            subordinateBaseDNs.put(baseDN, backend);
           }
           else
           {
-            subordinateBaseDNs.put(baseDN, backend);
+            logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, baseDN);
           }
         }
       }
@@ -209,11 +205,9 @@ public class RootDSEBackend
       throw new InitializationException(message, e);
     }
 
-
     // Determine whether all root DSE attributes should be treated as user
     // attributes.
     showAllAttributes = currentConfig.isShowAllAttributes();
-
 
     // Construct the set of "static" attributes that will always be present in
     // the root DSE.
@@ -240,11 +234,9 @@ public class RootDSEBackend
     }
     dseObjectClasses.put(rootDSEOC, OC_ROOT_DSE);
 
-
     // Set the backend ID for this backend. The identifier needs to be
     // specific enough to avoid conflict with user backend identifiers.
     setBackendID("__root.dse__");
-
 
     // Register as a change listener.
     currentConfig.addChangeListener(this);
@@ -283,8 +275,6 @@ public class RootDSEBackend
   {
     currentConfig.removeChangeListener(this);
   }
-
-
 
   /**
    * Indicates whether the provided attribute is one that is used in the
@@ -392,11 +382,9 @@ public class RootDSEBackend
       return getRootDSE();
     }
 
-
     // This method should never be used to get anything other than the root DSE.
     // If we got here, then that appears to be the case, so log a message.
     logger.warn(WARN_ROOTDSE_GET_ENTRY_NONROOT, entryDN);
-
 
     // Go ahead and check the subordinate backends to see if we can find the
     // entry there.  Note that in order to avoid potential loop conditions, this
@@ -413,12 +401,9 @@ public class RootDSEBackend
       }
     }
 
-
     // If we've gotten here, then we couldn't find the entry so return null.
     return null;
   }
-
-
 
   /**
    * Retrieves the root DSE entry for the Directory Server.
@@ -429,8 +414,6 @@ public class RootDSEBackend
   {
     return getRootDSE(null);
   }
-
-
 
   /**
    * Retrieves the root DSE entry for the Directory Server.
@@ -488,7 +471,6 @@ public class RootDSEBackend
     Attribute supportedAuthPWSchemesAttr = createAttribute(
         ATTR_SUPPORTED_AUTH_PW_SCHEMES, DirectoryServer.getAuthPasswordStorageSchemes().keySet());
     addAttribute(supportedAuthPWSchemesAttr, dseUserAttrs, dseOperationalAttrs);
-
 
     // Obtain TLS protocol and cipher support.
     Collection<String> supportedTlsProtocols;
@@ -604,7 +586,6 @@ public class RootDSEBackend
       return true;
     }
 
-
     // If it was not the null DN, then iterate through the associated
     // subordinate backends to make the determination.
     for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
@@ -664,7 +645,6 @@ public class RootDSEBackend
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     SearchFilter filter = searchOperation.getFilter();
     switch (searchOperation.getScope().asEnum())
     {
@@ -675,7 +655,6 @@ public class RootDSEBackend
           searchOperation.returnEntry(dseEntry, null);
         }
         break;
-
 
       case SINGLE_LEVEL:
         for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
@@ -691,7 +670,6 @@ public class RootDSEBackend
           }
         }
         break;
-
 
       case WHOLE_SUBTREE:
       case SUBORDINATES:
@@ -785,7 +763,7 @@ public class RootDSEBackend
   public boolean supports(BackendOperation backendOperation)
   {
     // We will only export the DSE entry itself.
-    return backendOperation.equals(BackendOperation.LDIF_EXPORT);
+    return BackendOperation.LDIF_EXPORT.equals(backendOperation);
   }
 
   @Override
@@ -807,7 +785,6 @@ public class RootDSEBackend
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
-
 
     // Write the root DSE entry itself to it.  Make sure to close the LDIF
     // writer when we're done.
@@ -872,7 +849,6 @@ public class RootDSEBackend
   {
     boolean configIsAcceptable = true;
 
-
     try
     {
       Set<DN> subDNs = cfg.getSubordinateBaseDN();
@@ -902,7 +878,6 @@ public class RootDSEBackend
       configIsAcceptable = false;
     }
 
-
     return configIsAcceptable;
   }
 
@@ -910,7 +885,6 @@ public class RootDSEBackend
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
 
     // Check to see if we should apply a new set of base DNs.
     ConcurrentHashMap<DN, Backend<?>> subBases;
@@ -952,9 +926,7 @@ public class RootDSEBackend
       subBases = null;
     }
 
-
     boolean newShowAll = cfg.isShowAllAttributes();
-
 
     // Check to see if there is a new set of user-defined attributes.
     ArrayList<Attribute> userAttrs = new ArrayList<>();
@@ -972,7 +944,6 @@ public class RootDSEBackend
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       subordinateBaseDNs = subBases;
@@ -987,7 +958,6 @@ public class RootDSEBackend
         ccr.addMessage(INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(basesStr));
       }
 
-
       if (showAllAttributes != newShowAll)
       {
         showAllAttributes = newShowAll;
@@ -995,11 +965,9 @@ public class RootDSEBackend
                 ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES, showAllAttributes));
       }
 
-
       userDefinedAttributes = userAttrs;
       ccr.addMessage(INFO_ROOTDSE_USING_NEW_USER_ATTRS.get());
     }
-
 
     return ccr;
   }

@@ -101,30 +101,22 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** The current configuration state. */
   private TrustStoreBackendCfg configuration;
-
   /** The set of base DNs for this backend. */
   private SortedSet<DN> baseDNs;
-
   /** The base entry. */
   private Entry baseEntry;
 
   /** The PIN needed to access the trust store backing file. */
   private char[] trustStorePIN;
-
   /** The path to the trust store backing file. */
   private String trustStoreFile;
-
   /** The type of trust store backing file to use. */
   private String trustStoreType;
 
   /** The certificate manager for the trust store. */
   private CertificateManager certificateManager;
-
-
 
   /**
    * Creates a new backend.  All backend
@@ -185,109 +177,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
           trustStoreType, configEntryDN, getExceptionMessage(kse)));
     }
 
+    trustStorePIN = getTrustStorePIN(configEntryDN);
 
-    // Get the PIN needed to access the contents of the trust store file.  We
-    // will offer several places to look for the PIN, and we will do so in the
-    // following order:
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    // In any case, the PIN must be in the clear.  If no PIN is provided, then
-    // it will be assumed that none is required to access the information in the
-    // trust store.
-    String pinProperty = configuration.getTrustStorePinProperty();
-    if (pinProperty == null)
-    {
-      String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
-      if (pinEnVar == null)
-      {
-        String pinFilePath = configuration.getTrustStorePinFile();
-        if (pinFilePath == null)
-        {
-          String pinStr = configuration.getTrustStorePin();
-          if (pinStr == null)
-          {
-            // This should be an Error. Otherwise, programs fails.
-            // Is there a Unit Test?
-            trustStorePIN = null;
-          }
-          else
-          {
-            trustStorePIN = pinStr.toCharArray();
-          }
-        }
-        else
-        {
-          File pinFile = getFileForPath(pinFilePath);
-          if (! pinFile.exists())
-          {
-            try
-            {
-              // Generate a PIN.
-              trustStorePIN = createKeystorePassword();
-
-              // Store the PIN in the pin file.
-              createPINFile(pinFile.getPath(), new String(trustStorePIN));
-            }
-            catch (Exception e)
-            {
-              throw new InitializationException(
-                  ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(pinFilePath, configEntryDN));
-            }
-          }
-          else
-          {
-            String pinStr;
-
-            BufferedReader br = null;
-            try
-            {
-              br = new BufferedReader(new FileReader(pinFile));
-              pinStr = br.readLine();
-            }
-            catch (IOException ioe)
-            {
-              LocalizableMessage message = ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.
-                  get(pinFilePath, configEntryDN, getExceptionMessage(ioe));
-              throw new InitializationException(message, ioe);
-            }
-            finally
-            {
-              close(br);
-            }
-
-            if (pinStr == null)
-            {
-              throw new InitializationException(
-                  ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(pinFilePath, configEntryDN));
-            }
-            trustStorePIN = pinStr.toCharArray();
-          }
-        }
-      }
-      else
-      {
-        String pinStr = System.getenv(pinEnVar);
-        if (pinStr == null)
-        {
-          throw new InitializationException(
-              ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinProperty, configEntryDN));
-        }
-        trustStorePIN = pinStr.toCharArray();
-      }
-    }
-    else
-    {
-      String pinStr = System.getProperty(pinProperty);
-      if (pinStr == null)
-      {
-        throw new InitializationException(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProperty, configEntryDN));
-      }
-      trustStorePIN = pinStr.toCharArray();
-    }
-
-    // Create a certificate manager.
     certificateManager =
          new CertificateManager(getFileForPath(trustStoreFile).getPath(),
                                 trustStoreType,
@@ -316,7 +207,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // Register this as a change listener.
     configuration.addTrustStoreChangeListener(this);
 
-
     // Register the trust store base as a private suffix.
     try
     {
@@ -329,7 +219,74 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * Get the PIN needed to access the contents of the trust store file. We will offer several places
+   * to look for the PIN, and we will do so in the following order:
+   * <ol>
+   * <li>In a specified Java property</li>
+   * <li>In a specified environment variable</li>
+   * <li>In a specified file on the server filesystem</li>
+   * <li>As the value of a configuration attribute</li>
+   * </ol>
+   * In any case, the PIN must be in the clear. If no PIN is provided, then it will be assumed that
+   * none is required to access the information in the trust store.
+   */
+  private char[] getTrustStorePIN(DN configEntryDN) throws InitializationException
+  {
+    final String pinProperty = configuration.getTrustStorePinProperty();
+    if (pinProperty != null)
+    {
+      String pinStr = System.getProperty(pinProperty);
+      if (pinStr == null)
+      {
+        throw new InitializationException(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProperty, configEntryDN));
+      }
+      return pinStr.toCharArray();
+    }
+
+    final String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
+    if (pinEnVar != null)
+    {
+      String pinStr = System.getenv(pinEnVar);
+      if (pinStr == null)
+      {
+        throw new InitializationException(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinProperty, configEntryDN));
+      }
+      return pinStr.toCharArray();
+    }
+
+    final String pinFilePath = configuration.getTrustStorePinFile();
+    if (pinFilePath != null)
+    {
+      File pinFile = getFileForPath(pinFilePath);
+      if (pinFile.exists())
+      {
+        String pinStr = readPinFromFile(pinFile, configEntryDN);
+        if (pinStr == null)
+        {
+          throw new InitializationException(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(pinFilePath, configEntryDN));
+        }
+        return pinStr.toCharArray();
+      }
+
+      try
+      {
+        // Generate and store the PIN in the pin file.
+        final char[] trustStorePIN = createKeystorePassword();
+        createPINFile(pinFile.getPath(), new String(trustStorePIN));
+        return trustStorePIN;
+      }
+      catch (Exception e)
+      {
+        throw new InitializationException(ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(pinFilePath, configEntryDN));
+      }
+    }
+
+    String pinStr = configuration.getTrustStorePin();
+    // else branch should be an Error. Otherwise, programs fails. Is there a Unit Test?
+    return pinStr != null ? pinStr.toCharArray() : null;
+  }
+
   @Override
   public void closeBackend()
   {
@@ -372,7 +329,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     return numEntries;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -380,7 +336,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
@@ -391,13 +346,11 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
-
     // If the requested entry was the backend base entry, then retrieve it.
     if (entryDN.equals(getBaseDN()))
     {
       return baseEntry.duplicate(true);
     }
-
 
     // See if the requested entry was one level below the backend base entry.
     // If so, then it must point to a trust store entry.
@@ -415,8 +368,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
     return null;
   }
-
-
 
   /**
    * Generates an entry for a certificate based on the provided DN.  The
@@ -476,20 +427,17 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
     userAttrs.put(t, Attributes.createAsList(t, v));
 
-
     t = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
     builder.add(certValue);
     userAttrs.put(t, builder.toAttributeList());
 
-
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
     e.processVirtualAttributes();
     return e;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
@@ -520,7 +468,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
@@ -541,7 +488,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     deleteCertificate(entryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
@@ -550,7 +496,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_MODIFY_NOT_SUPPORTED.get(oldEntry.getName(), getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
@@ -560,7 +505,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
@@ -569,7 +513,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // then this will throw an exception.
     DN    baseDN    = searchOperation.getBaseDN();
     Entry baseEntry = getEntry(baseDN);
-
 
     // Look at the base DN and see if it's the trust store base DN, or a
     // trust store entry DN.
@@ -603,7 +546,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         AttributeType certAliasType = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
         for (String alias : aliases)
         {
-          DN certDN = makeChildDN(this.getBaseDN(), certAliasType, alias);
+          DN certDN = makeChildDN(getBaseDN(), certAliasType, alias);
 
           Entry certEntry;
           try
@@ -623,7 +566,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         }
       }
     }
-    else if (this.getBaseDN().equals(DirectoryServer.getParentDNInSuffix(baseDN)))
+    else if (getBaseDN().equals(DirectoryServer.getParentDNInSuffix(baseDN)))
     {
       Entry certEntry = getCertEntry(baseDN);
 
@@ -640,28 +583,24 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
@@ -670,7 +609,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
@@ -679,7 +617,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig)
        throws DirectoryException
@@ -688,7 +625,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
@@ -698,7 +634,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
@@ -707,7 +642,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN)
       throws DirectoryException
@@ -716,7 +650,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         ERR_HAS_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
@@ -724,7 +657,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException
   {
@@ -732,14 +664,12 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        TrustStoreBackendCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    final DN cfgEntryDN = configuration.dn();
 
     // Get the path to the trust store file.
     String newTrustStoreFile = configuration.getTrustStoreFile();
@@ -748,18 +678,15 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       File f = getFileForPath(newTrustStoreFile);
       if (!f.exists() || !f.isFile())
       {
-        unacceptableReasons.add(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, cfgEntryDN));
-        configAcceptable = false;
+        ccr.addMessage(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, cfgEntryDN));
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      unacceptableReasons.add(ERR_TRUSTSTORE_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
-      configAcceptable = false;
+      ccr.addMessage(ERR_TRUSTSTORE_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
     }
-
 
     // Check to see if the trust store type is acceptable.
     String storeType = configuration.getTrustStoreType();
@@ -773,32 +700,25 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       {
         logger.traceException(kse);
 
-        unacceptableReasons.add(ERR_TRUSTSTORE_INVALID_TYPE.get(
-            storeType, cfgEntryDN, getExceptionMessage(kse)));
-        configAcceptable = false;
+        ccr.addMessage(ERR_TRUSTSTORE_INVALID_TYPE.get(storeType, cfgEntryDN, getExceptionMessage(kse)));
       }
     }
-
 
     // If there is a PIN property, then make sure the corresponding
     // property is set.
     String pinProp = configuration.getTrustStorePinProperty();
     if (pinProp != null && System.getProperty(pinProp) == null)
     {
-      unacceptableReasons.add(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN));
-      configAcceptable = false;
+      ccr.addMessage(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN));
     }
-
 
     // If there is a PIN environment variable, then make sure the corresponding
     // environment variable is set.
     String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
     if (pinEnVar != null && System.getenv(pinEnVar) == null)
     {
-      unacceptableReasons.add(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
-      configAcceptable = false;
+      ccr.addMessage(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
     }
-
 
     // If there is a PIN file, then make sure the file is readable if it exists.
     String pinFile = configuration.getTrustStorePinFile();
@@ -807,38 +727,19 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       File f = new File(pinFile);
       if (f.exists())
       {
-        String pinStr = null;
-
-        BufferedReader br = null;
-        try
-        {
-          br = new BufferedReader(new FileReader(pinFile));
-          pinStr = br.readLine();
-        }
-        catch (IOException ioe)
-        {
-          unacceptableReasons.add(ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(
-              pinFile, cfgEntryDN, getExceptionMessage(ioe)));
-          configAcceptable = false;
-        }
-        finally
-        {
-          close(br);
-        }
-
+        String pinStr = readPinFromFile2(f, cfgEntryDN, ccr);
         if (pinStr == null)
         {
-          unacceptableReasons.add(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(pinFile, cfgEntryDN));
-          configAcceptable = false;
+          ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(pinFile, cfgEntryDN));
         }
       }
     }
 
-
-    return configAcceptable;
+    final List<LocalizableMessage> messages = ccr.getMessages();
+    unacceptableReasons.addAll(messages);
+    return messages.isEmpty();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(TrustStoreBackendCfg cfg)
   {
@@ -853,7 +754,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
     }
-
 
     // Get the trust store type.  If none is specified, then use the default
     // type.
@@ -875,117 +775,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-
-    // Get the PIN needed to access the contents of the trust store file.  We
-    // will offer several places to look for the PIN, and we will do so in the
-    // following order:
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    // In any case, the PIN must be in the clear.  If no PIN is provided, then
-    // it will be assumed that none is required to access the information in the
-    // trust store.
-    char[] newPIN = null;
-    String newPINProperty = cfg.getTrustStorePinProperty();
-    if (newPINProperty == null)
-    {
-      String newPINEnVar = cfg.getTrustStorePinEnvironmentVariable();
-      if (newPINEnVar == null)
-      {
-        String newPINFile = cfg.getTrustStorePinFile();
-        if (newPINFile == null)
-        {
-          String pinStr = cfg.getTrustStorePin();
-          if (pinStr == null)
-          {
-            newPIN = null;
-          }
-          else
-          {
-            newPIN = pinStr.toCharArray();
-          }
-        }
-        else
-        {
-          File pinFile = getFileForPath(newPINFile);
-          if (! pinFile.exists())
-          {
-            try
-            {
-              // Generate a PIN.
-              newPIN = createKeystorePassword();
-
-              // Store the PIN in the pin file.
-              createPINFile(pinFile.getPath(), new String(newPIN));
-            }
-            catch (Exception e)
-            {
-              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(newPINFile, configEntryDN));
-            }
-          }
-          else
-          {
-            String pinStr = null;
-
-            BufferedReader br = null;
-            try
-            {
-              br = new BufferedReader(new FileReader(pinFile));
-              pinStr = br.readLine();
-            }
-            catch (IOException ioe)
-            {
-              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(
-                  newPINFile, configEntryDN, getExceptionMessage(ioe)));
-            }
-            finally
-            {
-              close(br);
-            }
-
-            if (pinStr == null)
-            {
-              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
-            }
-            else
-            {
-              newPIN = pinStr.toCharArray();
-            }
-          }
-        }
-      }
-      else
-      {
-        String pinStr = System.getenv(newPINEnVar);
-        if (pinStr == null)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
-        }
-        else
-        {
-          newPIN = pinStr.toCharArray();
-        }
-      }
-    }
-    else
-    {
-      String pinStr = System.getProperty(newPINProperty);
-      if (pinStr == null)
-      {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
-      }
-      else
-      {
-        newPIN = pinStr.toCharArray();
-      }
-    }
-
+    char[] newPIN = getTrustStorePIN2(cfg, ccr);
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
@@ -1003,6 +793,123 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   }
 
   /**
+   * Get the PIN needed to access the contents of the trust store file. We will offer several places
+   * to look for the PIN, and we will do so in the following order:
+   * <ol>
+   * <li>In a specified Java property</li>
+   * <li>In a specified environment variable</li>
+   * <li>In a specified file on the server filesystem.</li>
+   * <li>As the value of a configuration attribute.</li>
+   * </ol>
+   * In any case, the PIN must be in the clear. If no PIN is provided, then it will be assumed that
+   * none is required to access the information in the trust store.
+   */
+  private char[] getTrustStorePIN2(TrustStoreBackendCfg cfg, ConfigChangeResult ccr)
+  {
+    String newPINProperty = cfg.getTrustStorePinProperty();
+    if (newPINProperty == null)
+    {
+      String newPINEnVar = cfg.getTrustStorePinEnvironmentVariable();
+      if (newPINEnVar == null)
+      {
+        String newPINFile = cfg.getTrustStorePinFile();
+        if (newPINFile == null)
+        {
+          String pinStr = cfg.getTrustStorePin();
+          return pinStr != null ? pinStr.toCharArray() : null;
+        }
+        else
+        {
+          File pinFile = getFileForPath(newPINFile);
+          if (! pinFile.exists())
+          {
+            try
+            {
+              // Generate and store a PIN in the pin file.
+              final char[] newPIN = createKeystorePassword();
+              createPINFile(pinFile.getPath(), new String(newPIN));
+              return newPIN;
+            }
+            catch (Exception e)
+            {
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(newPINFile, cfg.dn()));
+            }
+          }
+          else
+          {
+            String pinStr = readPinFromFile2(pinFile, cfg.dn(), ccr);
+            if (pinStr == null)
+            {
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(newPINFile, cfg.dn()));
+            }
+            else
+            {
+              return pinStr.toCharArray();
+            }
+          }
+        }
+      }
+      else
+      {
+        String pinStr = System.getenv(newPINEnVar);
+        if (pinStr == null)
+        {
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(newPINEnVar, cfg.dn()));
+        }
+        else
+        {
+          return pinStr.toCharArray();
+        }
+      }
+    }
+    else
+    {
+      String pinStr = System.getProperty(newPINProperty);
+      if (pinStr == null)
+      {
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(newPINProperty, cfg.dn()));
+      }
+      else
+      {
+        return pinStr.toCharArray();
+      }
+    }
+    return null;
+  }
+
+  private String readPinFromFile(File pinFile, DN cfgEntryDN) throws InitializationException
+  {
+    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
+    {
+      return br.readLine();
+    }
+    catch (IOException ioe)
+    {
+      LocalizableMessage message =
+          ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(pinFile, cfgEntryDN, getExceptionMessage(ioe));
+      throw new InitializationException(message, ioe);
+    }
+  }
+
+  private String readPinFromFile2(File pinFile, DN cfgEntryDN, ConfigChangeResult ccr)
+  {
+    try (BufferedReader br = new BufferedReader(new FileReader(pinFile)))
+    {
+      return br.readLine();
+    }
+    catch (IOException ioe)
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(pinFile, cfgEntryDN, getExceptionMessage(ioe)));
+      return null;
+    }
+  }
+
+  /**
    * Create a new child DN from a given parent DN.  The child RDN is formed
    * from a given attribute type and string value.
    * @param parentDN The DN of the parent.
@@ -1017,7 +924,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     return parentDN.child(new RDN(rdnAttrType, attrValue));
   }
 
-
   /**
    * Retrieves a set of <CODE>KeyManager</CODE> objects that may be used for
    * interactions requiring access to a key manager.
@@ -1031,19 +937,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
-    final KeyStore keyStore;
-    try (final FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
-    {
-      keyStore = KeyStore.getInstance(trustStoreType);
-      keyStore.load(inputStream, trustStorePIN);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
-          trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
+    final KeyStore keyStore = loadKeyStore();
 
     try
     {
@@ -1064,6 +958,20 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 
+  private KeyStore loadKeyStore() throws DirectoryException
+  {
+    try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
+    {
+      final KeyStore keyStore = KeyStore.getInstance(trustStoreType);
+      keyStore.load(inputStream, trustStorePIN);
+      return keyStore;
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+  }
 
   /**
    * Retrieves a set of {@code TrustManager} objects that may be used
@@ -1078,30 +986,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
-    KeyStore trustStore;
-    FileInputStream inputStream = null;
-    try
-    {
-      trustStore = KeyStore.getInstance(trustStoreType);
-
-      inputStream =
-           new FileInputStream(getFileForPath(trustStoreFile));
-      trustStore.load(inputStream, trustStorePIN);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
-          trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      close(inputStream);
-    }
-
+    KeyStore trustStore = loadKeyStore();
 
     try
     {
@@ -1122,7 +1007,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
   }
 
-
   /**
    * Returns the key associated with the given alias, using the trust
    * store pin to recover it.
@@ -1137,29 +1021,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   public Key getKey(String alias)
          throws DirectoryException
   {
-    KeyStore trustStore;
-    FileInputStream inputStream = null;
-    try
-    {
-      trustStore = KeyStore.getInstance(trustStoreType);
-
-      inputStream =
-           new FileInputStream(getFileForPath(trustStoreFile));
-      trustStore.load(inputStream, trustStorePIN);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
-          trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      close(inputStream);
-    }
+    KeyStore trustStore = loadKeyStore();
 
     try
     {
@@ -1175,7 +1037,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
                                    message, e);
     }
   }
-
 
   private void addCertificate(Entry entry)
        throws DirectoryException
@@ -1268,15 +1129,9 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
                                               certAlias, tempDir);
           try
           {
-            FileOutputStream outputStream =
-                 new FileOutputStream(tempFile.getPath(), false);
-            try
+            try (FileOutputStream outputStream = new FileOutputStream(tempFile.getPath(), false))
             {
               certBytes.copyTo(outputStream);
-            }
-            finally
-            {
-              outputStream.close();
             }
 
             certificateManager.addCertificate(certAlias, tempFile);
@@ -1302,9 +1157,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       throw new DirectoryException(
            DirectoryServer.getServerErrorResultCode(), message, e);
     }
-
   }
-
 
   private void deleteCertificate(DN entryDN)
        throws DirectoryException
@@ -1337,7 +1190,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
            DirectoryServer.getServerErrorResultCode(), message, e);
     }
   }
-
 
   /**
    * Returns the validity period to be used to generate the ADS certificate.

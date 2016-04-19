@@ -85,7 +85,6 @@ public class ImportTask extends Task
     argDisplayMap.put(ATTR_IMPORT_CLEAR_BACKEND, INFO_IMPORT_ARG_CLEAR_BACKEND.get());
   }
 
-
   private boolean isCompressed;
   private boolean isEncrypted;
   private boolean overwrite;
@@ -133,7 +132,6 @@ public class ImportTask extends Task
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS, message);
       }
     }
-
 
     Entry taskEntry = getTaskEntry();
 
@@ -423,7 +421,6 @@ public class ImportTask extends Task
       }
     }
 
-
     // Get the backend into which the LDIF should be imported.
     Backend<?> backend = null;
     HashSet<DN> defaultIncludeBranches;
@@ -645,7 +642,6 @@ public class ImportTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-
     try
     {
       // Acquire an exclusive lock for the backend.
@@ -666,7 +662,6 @@ public class ImportTask extends Task
         logger.error(ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
         return TaskState.STOPPED_BY_ERROR;
       }
-
 
       // Launch the import.
       try
@@ -718,7 +713,6 @@ public class ImportTask extends Task
           logger.warn(WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
           return TaskState.COMPLETED_WITH_ERRORS;
         }
-
       }
     }
     finally
@@ -741,7 +735,6 @@ public class ImportTask extends Task
       }
       DirectoryServer.notifyImportEnded(backend, importConfig, true);
     }
-
 
     // Clean up after the import by closing the import config.
     importConfig.close();

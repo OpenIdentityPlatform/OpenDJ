@@ -163,7 +163,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(C cfg, ServerContext serverContext) throws ConfigException
   {
@@ -175,7 +174,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     storage = new TracedStorage(configureStorage(cfg, serverContext), cfg.getBackendId());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void openBackend() throws ConfigException, InitializationException
   {
@@ -218,7 +216,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     cfg.addPluggableChangeListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void closeBackend()
   {
@@ -279,7 +276,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
@@ -295,14 +291,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
@@ -315,7 +309,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
@@ -333,7 +326,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return -1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
@@ -366,7 +358,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException
   {
@@ -389,7 +380,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException
   {
@@ -428,7 +418,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean entryExists(final DN entryDN) throws DirectoryException
   {
@@ -449,7 +438,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
@@ -470,7 +458,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation) throws DirectoryException, CanceledOperationException
   {
@@ -492,7 +479,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
@@ -515,7 +501,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry, ModifyOperation modifyOperation)
       throws DirectoryException, CanceledOperationException
@@ -539,7 +524,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
       throws DirectoryException, CanceledOperationException
@@ -571,7 +555,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void search(SearchOperation searchOperation) throws DirectoryException, CanceledOperationException
   {
@@ -603,7 +586,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
       throws DirectoryException
@@ -644,7 +626,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return rootContainer == null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
@@ -721,7 +702,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return new OnDiskMergeImporter.StrategyImpl(serverContext, rootContainer, cfg);
   }
 
-  /** {@inheritDoc} */
   @Override
   public long verifyBackend(VerifyConfig verifyConfig)
       throws InitializationException, ConfigException, DirectoryException
@@ -767,7 +747,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void rebuildBackend(RebuildConfig rebuildConfig, ServerContext serverContext)
       throws InitializationException, ConfigException, DirectoryException
@@ -824,14 +803,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
     storage.createBackup(backupConfig);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
@@ -839,7 +816,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     storage.removeBackup(backupDirectory, backupID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
@@ -860,7 +836,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
    */
   protected abstract Storage configureStorage(C cfg, ServerContext serverContext) throws ConfigException;
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(C config, List<LocalizableMessage> unacceptableReasons,
       ServerContext serverContext)
@@ -868,14 +843,12 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(PluggableBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(final PluggableBackendCfg newCfg)
   {
@@ -1020,5 +993,4 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       throw new InitializationException(ERR_OPEN_ENV_FAIL.get(e.getMessage()), e);
     }
   }
-
 }

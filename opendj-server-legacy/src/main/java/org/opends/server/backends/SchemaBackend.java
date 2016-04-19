@@ -52,6 +52,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -64,13 +65,11 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.Entry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -96,6 +95,7 @@ import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
@@ -256,7 +256,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA, true);
     schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
 
-
     configEntryDN = configEntry.getName();
     baseDNs = cfg.getBaseDN();
 
@@ -272,7 +271,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         DirectoryServer.getSchema().getYoungestModificationTime();
     modifyTimestamp =
          GeneralizedTimeSyntax.createGeneralizedTimeValue(newModifyTime);
-
 
     // Get the set of user-defined attributes for the configuration entry.  Any
     // attributes that we don't recognize will be included directly in the
@@ -317,7 +315,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         throw new InitializationException(message, e);
       }
     }
-
 
     // Identify any differences that may exist between the concatenated schema
     // file from the last online modification and the current schema files.  If
@@ -417,7 +414,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       logger.error(ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES, getExceptionMessage(e));
     }
 
-
     // Register with the Directory Server as a configurable component.
     currentConfig.addSchemaChangeListener(this);
   }
@@ -439,8 +435,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
   }
-
-
 
   /**
    * Indicates whether the provided attribute is one that is used in the
@@ -522,7 +516,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return null;
   }
 
-
   /**
    * Generates and returns a schema entry for the Directory Server.
    *
@@ -571,9 +564,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    /*
-     * Add the schema definition attributes.
-     */
+    /* Add the schema definition attributes. */
     Schema schema = DirectoryServer.getSchema();
     buildSchemaAttribute(schema.getAttributeTypes(), userAttrs,
         operationalAttrs, attributeTypesType, includeSchemaFile,
@@ -642,8 +633,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return e;
   }
 
-
-
   private void addAttributeToSchemaEntry(Attribute attribute,
       Map<AttributeType, List<Attribute>> userAttrs,
       Map<AttributeType, List<Attribute>> operationalAttrs)
@@ -658,8 +647,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
     attrs.add(attribute);
   }
-
-
 
   private void buildSchemaAttribute(Collection<?> elements,
       Map<AttributeType, List<Attribute>> userAttrs,
@@ -676,10 +663,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     AttributeBuilder builder = new AttributeBuilder(schemaAttributeType);
     for (Object element : elements)
     {
-      /*
-       * Add the file name to the description of the element if this was
-       * requested by the caller.
-       */
+      /* Add the file name to the description of the element if this was requested by the caller. */
       String value;
       if (includeSchemaFile && element instanceof CommonSchemaElements)
       {
@@ -747,7 +731,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                                    message);
     }
-
 
     ArrayList<Modification> mods = new ArrayList<>(modifyOperation.getModifications());
     if (mods.isEmpty())
@@ -918,7 +901,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
           break;
 
-
         case DELETE:
           if (a.isEmpty())
           {
@@ -1073,7 +1055,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
           break;
 
-
         case REPLACE:
           if (!m.isInternal()
               && !modifyOperation.isSynchronizationOperation())
@@ -1100,14 +1081,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If we've gotten here, then everything looks OK, re-write all the
     // modified Schema Files.
     updateSchemaFiles(newSchema, modifiedSchemaFiles);
 
     // Finally set DirectoryServer to use the new Schema.
     DirectoryServer.setSchema(newSchema);
-
 
     DN authzDN = modifyOperation.getAuthorizationDN();
     if (authzDN == null)
@@ -1119,8 +1098,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
                            System.currentTimeMillis());
   }
-
-
 
   /**
    * Re-write all schema files using the provided new Schema and list of
@@ -1170,14 +1147,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       cleanUpTempSchemaFiles(tempSchemaFiles);
     }
 
-
     // Create a single file with all of the concatenated schema information
     // that we can use on startup to detect whether the schema files have been
     // edited with the server offline.
     Schema.writeConcatenatedSchema();
   }
-
-
 
   /**
    * Handles all processing required for adding the provided attribute type to
@@ -1460,8 +1434,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-
-
   /**
    * Handles all processing required for adding the provided objectclass to the
    * given schema, replacing an existing class if necessary, and ensuring
@@ -1512,7 +1484,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
-
 
     // Make sure that the new objectclass doesn't reference an undefined
     // superior class, or an undefined required or optional attribute type,
@@ -1565,7 +1536,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If there is no existing class, then we're adding a new objectclass.
     // Otherwise, we're replacing an existing one.
     if (existingClass == null)
@@ -1581,8 +1551,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       replaceExistingSchemaElement(modifiedSchemaFiles, objectClass, existingClass);
     }
   }
-
-
 
   /**
    * Handles all processing required to remove the provided objectclass from the
@@ -1626,7 +1594,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // See if there is another modification later to add the objectclass back
     // into the schema.  If so, then it's a replace and we should ignore the
     // remove because adding it back will handle the replace.
@@ -1667,7 +1634,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // Make sure that the objectclass isn't used as the superior class for any
     // other objectclass.
     for (ObjectClass oc : schema.getObjectClasses().values())
@@ -1683,7 +1649,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
     }
-
 
     // Make sure that the objectclass isn't used as the structural class for
     // any name form.
@@ -1701,7 +1666,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // Make sure that the objectclass isn't used as a structural or auxiliary
     // class for any DIT content rule.
     for (DITContentRule dcr : schema.getDITContentRules().values())
@@ -1715,7 +1679,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If we've gotten here, then it's OK to remove the objectclass from the
     // schema.
     schema.deregisterObjectClass(removeClass);
@@ -1725,8 +1688,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       modifiedSchemaFiles.add(schemaFile);
     }
   }
-
-
 
   /**
    * Handles all processing required for adding the provided name form to the
@@ -1777,7 +1738,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
-
 
     // Make sure that the new name form doesn't reference an undefined
     // structural class, or an undefined required or optional attribute type, or
@@ -1834,7 +1794,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If there is no existing class, then we're adding a new name form.
     // Otherwise, we're replacing an existing one.
     if (existingNF == null)
@@ -1850,8 +1809,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       replaceExistingSchemaElement(modifiedSchemaFiles, nameForm, existingNF);
     }
   }
-
-
 
   /**
    * Handles all processing required to remove the provided name form from the
@@ -1894,7 +1851,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // See if there is another modification later to add the name form back
     // into the schema.  If so, then it's a replace and we should ignore the
     // remove because adding it back will handle the replace.
@@ -1935,7 +1891,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // Make sure that the name form isn't referenced by any DIT structure
     // rule.
     DITStructureRule dsr = schema.getDITStructureRule(removeNF);
@@ -1946,7 +1901,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // If we've gotten here, then it's OK to remove the name form from the
     // schema.
     schema.deregisterNameForm(removeNF);
@@ -1956,8 +1910,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       modifiedSchemaFiles.add(schemaFile);
     }
   }
-
-
 
   /**
    * Handles all processing required for adding the provided DIT content rule to
@@ -2007,7 +1959,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // Get the structural class for the new DIT content rule and see if there's
     // already an existing rule that is associated with that class.  If there
     // is, then it will only be acceptable if it's the DIT content rule that we
@@ -2022,7 +1973,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
               existingRuleForClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
-
 
     // Make sure that the new DIT content rule doesn't reference an undefined
     // structural or auxiliary class, or an undefined required, optional, or
@@ -2118,7 +2068,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If there is no existing rule, then we're adding a new DIT content rule.
     // Otherwise, we're replacing an existing one.
     if (existingDCR == null)
@@ -2135,8 +2084,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           existingDCR);
     }
   }
-
-
 
   /**
    * Handles all processing required to remove the provided DIT content rule
@@ -2174,7 +2121,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // Since DIT content rules don't have any dependencies, then we don't need
     // to worry about the difference between a remove or a replace.  We can
     // just remove the DIT content rule now, and if it is added back later then
@@ -2186,8 +2132,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       modifiedSchemaFiles.add(schemaFile);
     }
   }
-
-
 
   /**
    * Handles all processing required for adding the provided DIT structure rule
@@ -2270,7 +2214,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // Make sure that the new DIT structure rule doesn't reference an undefined
     // name form or superior DIT structure rule.
     if (! schema.hasNameForm(nameForm.getOID()))
@@ -2286,7 +2229,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-
     // If there are any superior rules, then make sure none of them are marked
     // OBSOLETE.
     for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
@@ -2298,7 +2240,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
-
 
     // If there is no existing rule, then we're adding a new DIT structure rule.
     // Otherwise, we're replacing an existing one.
@@ -2316,8 +2257,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           existingDSR);
     }
   }
-
-
 
   /**
    * Handles all processing required to remove the provided DIT structure rule
@@ -2363,7 +2302,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // See if there is another modification later to add the DIT structure rule
     // back into the schema.  If so, then it's a replace and we should ignore
     // the remove because adding it back will handle the replace.
@@ -2404,7 +2342,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // Make sure that the DIT structure rule isn't the superior for any other
     // DIT structure rule.
     for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
@@ -2417,7 +2354,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If we've gotten here, then it's OK to remove the DIT structure rule from
     // the schema.
     schema.deregisterDITStructureRule(removeDSR);
@@ -2427,8 +2363,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       modifiedSchemaFiles.add(schemaFile);
     }
   }
-
-
 
   /**
    * Handles all processing required for adding the provided matching rule use
@@ -2482,7 +2416,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // Get the matching rule for the new matching rule use and see if there's
     // already an existing matching rule use that is associated with that
     // matching rule.  If there is, then it will only be acceptable if it's the
@@ -2506,7 +2439,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-
     // Make sure that the new matching rule use doesn't reference an undefined
     // attribute type.
     for (AttributeType at : matchingRuleUse.getAttributes())
@@ -2525,7 +2457,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-
     // If there is no existing matching rule use, then we're adding a new one.
     // Otherwise, we're replacing an existing matching rule use.
     if (existingMRU == null)
@@ -2542,8 +2473,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           existingMRU);
     }
   }
-
-
 
   /**
    * Handles all processing required to remove the provided matching rule use
@@ -2582,7 +2511,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           matchingRuleUse.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
-
 
     // Since matching rule uses don't have any dependencies, then we don't need
     // to worry about the difference between a remove or a replace.  We can
@@ -2661,8 +2589,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-
-
   /** Gets rid of the ldap syntax description. */
   private void removeLdapSyntaxDescription(String definition, Schema schema, Set<String> modifiedSchemaFiles)
       throws DirectoryException
@@ -2692,8 +2618,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-
-
   /**
    * Creates an empty entry that may be used as the basis for a new schema file.
    *
@@ -2720,9 +2644,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     return new Entry(dn, objectClasses,  userAttributes, operationalAttributes);
   }
-
-
-
 
   /**
    * Writes a temporary version of the specified schema file.
@@ -2790,7 +2711,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       schemaEntry.putAttribute(attributeTypesType, newArrayList(builder.toAttribute()));
     }
 
-
     // Add all of the appropriate objectclasses to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior classes in the
     // same file are written before the subordinate classes.
@@ -2811,7 +2731,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       builder.addAll(values);
       schemaEntry.putAttribute(objectClassesType, newArrayList(builder.toAttribute()));
     }
-
 
     // Add all of the appropriate name forms to the schema entry.  Since there
     // is no hierarchical relationship between name forms, we don't need to
@@ -2835,7 +2754,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       schemaEntry.putAttribute(nameFormsType, newArrayList(builder.toAttribute()));
     }
 
-
     // Add all of the appropriate DIT content rules to the schema entry.  Since
     // there is no hierarchical relationship between DIT content rules, we don't
     // need to worry about ordering.
@@ -2854,7 +2772,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       builder.addAll(values);
       schemaEntry.putAttribute(ditContentRulesType, newArrayList(builder.toAttribute()));
     }
-
 
     // Add all of the appropriate DIT structure rules to the schema entry.  We
     // need to be careful of the ordering to ensure that any superior rules in
@@ -2877,7 +2794,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       schemaEntry.putAttribute(ditStructureRulesType, newArrayList(builder.toAttribute()));
     }
 
-
     // Add all of the appropriate matching rule uses to the schema entry.  Since
     // there is no hierarchical relationship between matching rule uses, we
     // don't need to worry about ordering.
@@ -2897,7 +2813,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       schemaEntry.putAttribute(matchingRuleUsesType, newArrayList(builder.toAttribute()));
     }
 
-
     if (FILE_USER_SCHEMA_ELEMENTS.equals(schemaFile))
     {
       Map<String, Attribute> attributes = schema.getExtraAttributes();
@@ -2913,14 +2828,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(tempFile.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);
-    LDIFWriter ldifWriter = new LDIFWriter(exportConfig);
-    ldifWriter.writeEntry(schemaEntry);
-    ldifWriter.close();
+    try (LDIFWriter ldifWriter = new LDIFWriter(exportConfig))
+    {
+      ldifWriter.writeEntry(schemaEntry);
+    }
 
     return tempFile;
   }
-
-
 
   /**
    * Adds the definition for the specified attribute type to the provided set of
@@ -2970,8 +2884,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     addedTypes.add(attributeType);
   }
 
-
-
   /**
    * Adds the definition for the specified objectclass to the provided set of
    * attribute values, recursively adding superior classes as appropriate.
@@ -3019,8 +2931,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     values.add(ByteString.valueOfUtf8(objectClass.toString()));
     addedClasses.add(objectClass);
   }
-
-
 
   /**
    * Adds the definition for the specified DIT structure rule to the provided
@@ -3070,8 +2980,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     addedDSRs.add(ditStructureRule);
   }
 
-
-
   /**
    * Moves the specified temporary schema files in place of the active versions.
    * If an error occurs in the process, then this method will attempt to restore
@@ -3102,7 +3010,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       origFileList.add(new File(schemaInstanceDir, name + ".orig"));
     }
 
-
     // If there are any old ".orig" files laying around from a previous
     // attempt, then try to clean them up.
     for (File f : origFileList)
@@ -3112,7 +3019,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         f.delete();
       }
     }
-
 
     // Copy all of the currently-installed files with a ".orig" extension.  If
     // this fails, then try to clean up the copies.
@@ -3166,7 +3072,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
-
 
     // Try to copy all of the temporary files into place over the installed
     // files.  If this fails, then try to restore the originals.
@@ -3247,8 +3152,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-
-
   /**
    * Creates a copy of the specified file.
    *
@@ -3259,14 +3162,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private void copyFile(File from, File to) throws IOException
   {
-    byte[]           buffer        = new byte[4096];
-    FileInputStream  inputStream   = null;
-    FileOutputStream outputStream  = null;
-    try
+    try (FileInputStream inputStream = new FileInputStream(from);
+        FileOutputStream outputStream = new FileOutputStream(to, false))
     {
-      inputStream  = new FileInputStream(from);
-      outputStream = new FileOutputStream(to, false);
-
+      byte[] buffer = new byte[4096];
       int bytesRead = inputStream.read(buffer);
       while (bytesRead > 0)
       {
@@ -3274,13 +3173,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         bytesRead = inputStream.read(buffer);
       }
     }
-    finally
-    {
-      close(inputStream, outputStream);
-    }
   }
-
-
 
   /**
    * Performs any necessary cleanup in an attempt to delete any temporary schema
@@ -3332,7 +3225,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
               matchedDN, null);
     }
 
-
     // If it's a onelevel or subordinate subtree search, then we will never
     // match anything since there isn't anything below the schema.
     SearchScope scope = searchOperation.getScope();
@@ -3341,7 +3233,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       return;
     }
-
 
     // Get the schema entry and see if it matches the filter.  If so, then send
     // it to the client.
@@ -3384,7 +3275,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
-
 
     // Write the root schema entry to it.  Make sure to close the LDIF
     // writer when we're done.
@@ -3429,19 +3319,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
   {
-    LDIFReader reader;
-    try
-    {
-      reader = new LDIFReader(importConfig);
-    }
-    catch (Exception e)
-    {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(e), e);
-    }
-
-
-    try
+    try (LDIFReader reader = newLDIFReader(importConfig))
     {
       while (true)
       {
@@ -3481,12 +3359,20 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(e), e);
     }
-    finally
-    {
-      close(reader);
-    }
   }
 
+  private LDIFReader newLDIFReader(LDIFImportConfig importConfig) throws DirectoryException
+  {
+    try
+    {
+      return new LDIFReader(importConfig);
+    }
+    catch (Exception e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(e), e);
+    }
+  }
 
   /**
    * Import an entry in a new schema by :
@@ -3689,7 +3575,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Check to see if we should apply a new set of base DNs.
     Set<DN> newBaseDNs;
     try
@@ -3710,11 +3595,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       newBaseDNs = null;
     }
 
-
     // Check to see if we should change the behavior regarding whether to show
     // all schema attributes.
     boolean newShowAllAttributes = backendCfg.isShowAllAttributes();
-
 
     // Check to see if there is a new set of user-defined attributes.
     ArrayList<Attribute> newUserAttrs = new ArrayList<>();
@@ -3752,7 +3635,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           configEntryDN, stackTraceToSingleLineString(e)));
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
-
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
@@ -3802,21 +3684,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
 
-
       showAllAttributes = newShowAllAttributes;
-
 
       userDefinedAttributes = newUserAttrs;
       LocalizableMessage message = INFO_SCHEMA_USING_NEW_USER_ATTRS.get();
       ccr.addMessage(message);
     }
 
-
     currentConfig = backendCfg;
     return ccr;
   }
-
-
 
   /**
    * Indicates whether to treat common schema attributes like user attributes
@@ -3829,8 +3706,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     return showAllAttributes;
   }
-
-
 
   /**
    * Specifies whether to treat common schema attributes like user attributes

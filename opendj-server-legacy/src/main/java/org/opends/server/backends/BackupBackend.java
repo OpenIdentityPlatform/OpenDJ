@@ -88,8 +88,6 @@ public class BackupBackend
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** The current configuration state. */
   private BackupBackendCfg currentConfig;
 
@@ -158,7 +156,6 @@ public class BackupBackend
     }
   }
 
-
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
@@ -171,9 +168,6 @@ public class BackupBackend
     // Perform all initialization in initializeBackend.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void configureBackend(BackupBackendCfg config, ServerContext serverContext) throws ConfigException
   {
@@ -186,9 +180,6 @@ public class BackupBackend
     currentConfig = config;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void openBackend()
          throws ConfigException, InitializationException
@@ -210,7 +201,6 @@ public class BackupBackend
 
     this.baseDNs = Collections.singleton(backupBaseDN);
 
-
     // Determine the set of backup directories that we will use by default.
     Set<String> values = currentConfig.getBackupDirectory();
     backupDirectories = new LinkedHashMap<>(values.size());
@@ -219,7 +209,6 @@ public class BackupBackend
       File dir = getFileForPath(s);
       backupDirectories.put(dir, new CachedBackupDirectory(dir));
     }
-
 
     // Construct the backup base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
@@ -257,9 +246,6 @@ public class BackupBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void closeBackend()
   {
@@ -312,9 +298,6 @@ public class BackupBackend
     return numEntries;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -322,9 +305,6 @@ public class BackupBackend
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
@@ -336,14 +316,12 @@ public class BackupBackend
     return ConditionResult.valueOf(ret != 0);
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
     checkNotNull(baseDN, "baseDN must not be null");
     return getNumberOfSubordinates(baseDN, true) + 1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException {
     checkNotNull(parentDN, "parentDN must not be null");
@@ -430,7 +408,6 @@ public class BackupBackend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
@@ -442,13 +419,11 @@ public class BackupBackend
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
-
     // If the requested entry was the backend base entry, then retrieve it.
     if (entryDN.equals(backupBaseDN))
     {
       return backupBaseEntry.duplicate(true);
     }
-
 
     // See if the requested entry was one level below the backend base entry.
     // If so, then it must point to a backup directory.  Otherwise, it must be
@@ -475,8 +450,6 @@ public class BackupBackend
               message, backupBaseDN, null);
     }
   }
-
-
 
   /**
    * Generates an entry for a backup directory based on the provided DN.  The
@@ -505,7 +478,6 @@ public class BackupBackend
                                    backupBaseDN, null);
     }
 
-
     // Get a handle to the backup directory and the information that it
     // contains.
     BackupDirectory backupDirectory;
@@ -531,7 +503,6 @@ public class BackupBackend
                                    message);
     }
 
-
     // Construct the backup directory entry to return.
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
@@ -551,8 +522,6 @@ public class BackupBackend
     e.processVirtualAttributes();
     return e;
   }
-
-
 
   /**
    * Generates an entry for a backup based on the provided DN.  The DN must
@@ -694,7 +663,6 @@ public class BackupBackend
     return new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
@@ -703,9 +671,6 @@ public class BackupBackend
         ERR_BACKEND_ADD_NOT_SUPPORTED.get(entry.getName(), getBackendID()));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
@@ -714,9 +679,6 @@ public class BackupBackend
         ERR_BACKEND_DELETE_NOT_SUPPORTED.get(entryDN, getBackendID()));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
@@ -725,9 +687,6 @@ public class BackupBackend
         ERR_BACKEND_MODIFY_NOT_SUPPORTED.get(oldEntry.getName(), getBackendID()));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
@@ -737,9 +696,6 @@ public class BackupBackend
         ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
@@ -748,7 +704,6 @@ public class BackupBackend
     // then this will throw an exception.
     DN    baseDN    = searchOperation.getBaseDN();
     Entry baseEntry = getEntry(baseDN);
-
 
     // Look at the base DN and see if it's the backup base DN, a backup
     // directory entry DN, or a backup entry DN.
@@ -776,7 +731,6 @@ public class BackupBackend
           {
             continue;
           }
-
 
           DN backupDirDN = makeChildDN(backupBaseDN, backupPathType,
                                        dir.getAbsolutePath());
@@ -815,7 +769,6 @@ public class BackupBackend
       {
         searchOperation.returnEntry(backupDirEntry, null);
       }
-
 
       if (scope != SearchScope.BASE_OBJECT)
       {
@@ -907,7 +860,6 @@ public class BackupBackend
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext serverContext)
       throws DirectoryException
@@ -916,7 +868,6 @@ public class BackupBackend
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig)
   throws DirectoryException
@@ -925,7 +876,6 @@ public class BackupBackend
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
@@ -935,7 +885,6 @@ public class BackupBackend
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
@@ -944,7 +893,6 @@ public class BackupBackend
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        BackupBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -955,7 +903,6 @@ public class BackupBackend
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(BackupBackendCfg cfg)
   {

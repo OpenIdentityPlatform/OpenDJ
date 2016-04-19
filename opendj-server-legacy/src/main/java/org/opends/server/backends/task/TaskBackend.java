@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
@@ -43,9 +44,8 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Reject;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.TaskBackendCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.core.AddOperation;
@@ -85,29 +85,17 @@ public class TaskBackend
        extends Backend<TaskBackendCfg>
        implements ConfigurationChangeListener<TaskBackendCfg>, Backupable
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
 
   /** The current configuration state. */
   private TaskBackendCfg currentConfig;
-
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
 
-  /**
-   * The DN of the entry that will serve as the parent for all recurring task
-   * entries.
-   */
+  /** The DN of the entry that will serve as the parent for all recurring task entries. */
   private DN recurringTaskParentDN;
-
-  /**
-   * The DN of the entry that will serve as the parent for all scheduled task
-   * entries.
-   */
+  /** The DN of the entry that will serve as the parent for all scheduled task entries. */
   private DN scheduledTaskParentDN;
-
   /** The DN of the entry that will serve as the root for all task entries. */
   private DN taskRootDN;
 
@@ -125,11 +113,7 @@ public class TaskBackend
 
   /** The path to the task backing file. */
   private String taskBackingFile;
-
-  /**
-   * The task scheduler that will be responsible for actually invoking scheduled
-   * tasks.
-   */
+  /** The task scheduler that will be responsible for actually invoking scheduled tasks. */
   private TaskScheduler taskScheduler;
 
   private ServerContext serverContext;
@@ -145,8 +129,6 @@ public class TaskBackend
 
     // Perform all initialization in initializeBackend.
   }
-
-
 
   @Override
   public void configureBackend(TaskBackendCfg cfg, ServerContext serverContext) throws ConfigException
@@ -206,11 +188,9 @@ public class TaskBackend
       }
     }
 
-
     // Get the retention time that will be used to determine how long task
     // information stays around once the associated task is completed.
     retentionTime = cfg.getTaskRetentionTime();
-
 
     // Get the notification sender address.
     notificationSenderAddress = cfg.getNotificationSenderAddress();
@@ -227,16 +207,12 @@ public class TaskBackend
       }
     }
 
-
     // Get the path to the task data backing file.
     taskBackingFile = cfg.getTaskBackingFile();
 
     currentConfig = cfg;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void openBackend()
          throws ConfigException, InitializationException
@@ -245,10 +221,8 @@ public class TaskBackend
     taskScheduler = new TaskScheduler(serverContext, this);
     taskScheduler.start();
 
-
     // Register with the Directory Server as a configurable component.
     currentConfig.addTaskChangeListener(this);
-
 
     // Register the task base as a private suffix.
     try
@@ -265,9 +239,6 @@ public class TaskBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void closeBackend()
   {
@@ -321,9 +292,6 @@ public class TaskBackend
     return -1;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -331,9 +299,6 @@ public class TaskBackend
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
@@ -346,14 +311,12 @@ public class TaskBackend
     return ConditionResult.valueOf(ret != 0);
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfEntriesInBaseDN(DN baseDN) throws DirectoryException {
     checkNotNull(baseDN, "baseDN must not be null");
     return numSubordinates(baseDN, true) + 1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getNumberOfChildren(DN parentDN) throws DirectoryException {
     checkNotNull(parentDN, "parentDN must not be null");
@@ -411,9 +374,6 @@ public class TaskBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
@@ -466,9 +426,6 @@ public class TaskBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
@@ -510,9 +467,6 @@ public class TaskBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
@@ -534,7 +488,6 @@ public class TaskBackend
         LocalizableMessage message = ERR_TASKBE_DELETE_NO_SUCH_TASK.get(entryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
-
 
       // Look at the state of the task.  We will allow pending and completed
       // tasks to be removed, but not running tasks.
@@ -585,9 +538,6 @@ public class TaskBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
@@ -685,7 +635,7 @@ public class TaskBackend
               LocalizableMessage message = INFO_TASKBE_RUNNING_TASK_CANCELLED.get();
               t.interruptTask(TaskState.STOPPED_BY_ADMINISTRATOR, message);
             }
-              return;
+            return;
           }
           else
           {
@@ -719,8 +669,6 @@ public class TaskBackend
       }
     }
   }
-
-
 
   /**
    * Helper to determine if requested modifications are acceptable.
@@ -765,9 +713,6 @@ public class TaskBackend
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
@@ -777,9 +722,6 @@ public class TaskBackend
         ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException {
@@ -926,7 +868,6 @@ public class TaskBackend
       }
     }
 
-
     if (searchRoot)
     {
       Entry e = taskScheduler.getTaskRootEntry();
@@ -935,7 +876,6 @@ public class TaskBackend
         return;
       }
     }
-
 
     if (searchScheduledParent)
     {
@@ -946,13 +886,11 @@ public class TaskBackend
       }
     }
 
-
     if (searchScheduledTasks
         && !taskScheduler.searchScheduledTasks(searchOperation))
     {
       return;
     }
-
 
     if (searchRecurringParent)
     {
@@ -963,7 +901,6 @@ public class TaskBackend
       }
     }
 
-
     if (searchRecurringTasks
         && !taskScheduler.searchRecurringTasks(searchOperation))
     {
@@ -971,23 +908,18 @@ public class TaskBackend
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supports(BackendOperation backendOperation)
   {
@@ -1003,44 +935,15 @@ public class TaskBackend
     }
   }
 
-  /** {@inheritDoc} */
   @Override
-  public void exportLDIF(LDIFExportConfig exportConfig)
-         throws DirectoryException
+  public void exportLDIF(LDIFExportConfig exportConfig) throws DirectoryException
   {
     File taskFile = getFileForPath(taskBackingFile);
 
-    // Read from.
-    LDIFReader ldifReader;
-    try
+    try (LDIFReader ldifReader = newLDIFReader(taskFile);
+        LDIFWriter ldifWriter = newLDIFWriter(exportConfig))
     {
-      ldifReader = new LDIFReader(new LDIFImportConfig(taskFile.getPath()));
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-
-    // Write to.
-    LDIFWriter ldifWriter;
-    try
-    {
-      ldifWriter = new LDIFWriter(exportConfig);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(
-          stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
-
-    // Copy record by record.
-    try
-    {
+      // Copy record by record.
       while (true)
       {
         Entry e = null;
@@ -1054,7 +957,7 @@ public class TaskBackend
         }
         catch (LDIFException le)
         {
-          if (! le.canContinueReading())
+          if (!le.canContinueReading())
           {
             LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
             throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, le);
@@ -1068,13 +971,35 @@ public class TaskBackend
     {
       logger.traceException(e);
     }
-    finally
+  }
+
+  private LDIFReader newLDIFReader(File taskFile) throws DirectoryException
+  {
+    try
     {
-      close(ldifWriter, ldifReader);
+      return new LDIFReader(new LDIFImportConfig(taskFile.getPath()));
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
   }
 
-  /** {@inheritDoc} */
+  private LDIFWriter newLDIFWriter(LDIFExportConfig exportConfig) throws DirectoryException
+  {
+    try
+    {
+      return new LDIFWriter(exportConfig);
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+    }
+  }
+
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig, ServerContext sContext) throws DirectoryException
   {
@@ -1082,28 +1007,24 @@ public class TaskBackend
         ERR_BACKEND_IMPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
     new BackupManager(getBackendID()).createBackup(this, backupConfig);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID) throws DirectoryException
   {
     new BackupManager(getBackendID()).removeBackup(backupDirectory, backupID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
     new BackupManager(getBackendID()).restoreBackup(this, restoreConfig);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(TaskBackendCfg config,
                                            List<LocalizableMessage> unacceptableReasons,
@@ -1112,9 +1033,6 @@ public class TaskBackend
     return isConfigAcceptable(config, unacceptableReasons, null);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
                                             List<LocalizableMessage> unacceptableReasons)
@@ -1122,8 +1040,6 @@ public class TaskBackend
     return isConfigAcceptable(configEntry, unacceptableReasons,
                               taskBackingFile);
   }
-
-
 
   /**
    * Indicates whether the provided configuration is acceptable for this task
@@ -1145,7 +1061,6 @@ public class TaskBackend
                                             String taskBackingFile)
   {
     boolean configIsAcceptable = true;
-
 
     try
     {
@@ -1204,14 +1119,10 @@ public class TaskBackend
     return configIsAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(TaskBackendCfg configEntry)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
 
     String tmpBackingFile = taskBackingFile;
     try
@@ -1256,9 +1167,7 @@ public class TaskBackend
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-
     long tmpRetentionTime = configEntry.getTaskRetentionTime();
-
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
@@ -1270,7 +1179,6 @@ public class TaskBackend
         ccr.addMessage(INFO_TASKBE_UPDATED_RETENTION_TIME.get(retentionTime));
       }
 
-
       if (! taskBackingFile.equals(tmpBackingFile))
       {
         taskBackingFile = tmpBackingFile;
@@ -1279,7 +1187,6 @@ public class TaskBackend
         ccr.addMessage(INFO_TASKBE_UPDATED_BACKING_FILE.get(taskBackingFile));
       }
     }
-
 
     String tmpNotificationAddress = configEntry.getNotificationSenderAddress();
     if (tmpNotificationAddress == null)
@@ -1296,12 +1203,9 @@ public class TaskBackend
     }
     notificationSenderAddress = tmpNotificationAddress;
 
-
     currentConfig = configEntry;
     return ccr;
   }
-
-
 
   /**
    * Retrieves the DN of the configuration entry for this task backend.
@@ -1312,8 +1216,6 @@ public class TaskBackend
   {
     return configEntryDN;
   }
-
-
 
   /**
    * Retrieves the path to the backing file that will hold the scheduled and
@@ -1328,8 +1230,6 @@ public class TaskBackend
     return f.getPath();
   }
 
-
-
   /**
    * Retrieves the sender address that should be used for e-mail notifications
    * of task completion.
@@ -1341,8 +1241,6 @@ public class TaskBackend
   {
     return notificationSenderAddress;
   }
-
-
 
   /**
    * Retrieves the length of time in seconds that information for a task should
@@ -1356,8 +1254,6 @@ public class TaskBackend
     return retentionTime;
   }
 
-
-
   /**
    * Retrieves the DN of the entry that is the root for all task information in
    * the Directory Server.
@@ -1369,8 +1265,6 @@ public class TaskBackend
   {
     return taskRootDN;
   }
-
-
 
   /**
    * Retrieves the DN of the entry that is the immediate parent for all
@@ -1384,8 +1278,6 @@ public class TaskBackend
     return recurringTaskParentDN;
   }
 
-
-
   /**
    * Retrieves the DN of the entry that is the immediate parent for all
    * scheduled task information in the Directory Server.
@@ -1397,8 +1289,6 @@ public class TaskBackend
   {
     return scheduledTaskParentDN;
   }
-
-
 
   /**
    * Retrieves the scheduled task for the entry with the provided DN.
@@ -1412,8 +1302,6 @@ public class TaskBackend
   {
     return taskScheduler.getScheduledTask(taskEntryDN);
   }
-
-
 
   /**
    * Retrieves the recurring task for the entry with the provided DN.
@@ -1429,9 +1317,6 @@ public class TaskBackend
     return taskScheduler.getRecurringTask(taskEntryDN);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public File getDirectory()
   {
@@ -1450,21 +1335,18 @@ public class TaskBackend
     };
   }
 
-  /** {@inheritDoc} */
   @Override
   public ListIterator<Path> getFilesToBackup() throws DirectoryException
   {
     return BackupManager.getFiles(getDirectory(), getFilesToBackupFilter(), getBackendID()).listIterator();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isDirectRestore()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Path beforeRestore() throws DirectoryException
   {
@@ -1472,13 +1354,10 @@ public class TaskBackend
     return BackupManager.saveCurrentFilesToDirectory(this, getBackendID());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void afterRestore(Path restoreDirectory, Path saveDirectory) throws DirectoryException
   {
     // restore was successful, delete the save directory
     StaticUtils.recursiveDelete(saveDirectory.toFile());
   }
-
 }
-

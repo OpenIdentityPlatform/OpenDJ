@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.MonitorData;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.TimeThread;
@@ -105,7 +105,7 @@ class BackendMonitor extends MonitorProvider<MonitorProviderCfg>
     MonitorData monitorAttrs = new MonitorData(5);
 
     Collection<String> needReindexValues = createNeedReindexValues();
-    if (needReindexValues.size() > 0)
+    if (!needReindexValues.isEmpty())
     {
       monitorAttrs.add("need-reindex", needReindexValues);
     }
