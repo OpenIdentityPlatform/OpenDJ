@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -33,7 +33,6 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
  * the scrollpane if no scrollbars are visible.  So the code basically adds
  * a component listener to the scroll pane and depending on whether the scroll
  * bars are displayed or not some border to the scroll pane is added (or not).
- *
  */
 public class ScrollPaneBorderListener extends ComponentAdapter
 {
@@ -42,10 +41,7 @@ public class ScrollPaneBorderListener extends ComponentAdapter
   private Border etchedBorder = BorderFactory.createMatteBorder(0, 0, 1, 0,
       ColorAndFontConstants.defaultBorderColor);
 
-  /**
-   * Private constructor.
-   *
-   */
+  /** Private constructor. */
   private ScrollPaneBorderListener()
   {
   }
@@ -99,22 +95,19 @@ public class ScrollPaneBorderListener extends ComponentAdapter
     return listener;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void componentShown(ComponentEvent ev)
   {
     updateBorder();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void componentHidden(ComponentEvent ev)
   {
     updateBorder();
   }
 
-  /**
-   * Updates the border depending on whether the scroll bars are visible or not.
-   *
-   */
+  /** Updates the border depending on whether the scroll bars are visible or not. */
   public void updateBorder()
   {
     boolean displayBorder = scroll.getVerticalScrollBar().isVisible() ||

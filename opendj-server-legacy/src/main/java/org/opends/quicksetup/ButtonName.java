@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -22,33 +23,19 @@ package org.opends.quicksetup;
  */
 public enum ButtonName
 {
-  /**
-   * The Next button.
-   */
+  /** The Next button. */
   NEXT,
-  /**
-   * The Previous button.
-   */
+  /** The Previous button. */
   PREVIOUS,
-  /**
-   * The Quit button.
-   */
+  /** The Quit button. */
   QUIT,
-  /**
-   * The Continue with install button.
-   */
+  /** The Continue with install button. */
   CONTINUE_INSTALL,
-  /**
-   * The Close button.
-   */
+  /** The Close button. */
   CLOSE,
-  /**
-   * The Finish button.
-   */
+  /** The Finish button. */
   FINISH,
-  /**
-   * The Launch Status Panel button.
-   */
+  /** The Launch Status Panel button. */
   LAUNCH_STATUS_PANEL,
   /**
    * Input panel button.  This is used to identify generic buttons inside

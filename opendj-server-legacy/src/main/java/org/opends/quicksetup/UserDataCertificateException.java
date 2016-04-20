@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -25,7 +25,6 @@ import java.security.cert.X509Certificate;
  * be asked to accept it or not.
  * It will be thrown by the class that is in charge of validating the user data
  * (the Application class).
- *
  */
 public class UserDataCertificateException extends UserDataException
 {
@@ -34,19 +33,12 @@ public class UserDataCertificateException extends UserDataException
   private X509Certificate[] chain;
   private String authType;
   private Type type;
-  /**
-   * The enumeration for the different types of the exception.
-   */
+  /** The enumeration for the different types of the exception. */
   public enum Type
   {
-    /**
-     * The certificate was not trusted.
-     */
+    /** The certificate was not trusted. */
     NOT_TRUSTED,
-    /**
-     * The certificate's subject DN's value and the host name we tried to
-     * connect to do not match.
-     */
+    /** The certificate's subject DN's value and the host name we tried to connect to do not match. */
     HOST_NAME_MISMATCH
   }
 

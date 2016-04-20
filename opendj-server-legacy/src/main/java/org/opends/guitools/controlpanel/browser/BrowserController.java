@@ -80,15 +80,10 @@ import static org.opends.server.util.ServerConstants.*;
 public class BrowserController
 implements TreeExpansionListener, ReferralAuthenticationListener
 {
-  /**
-   * The mask used to display the number of ACIs or not.
-   */
+  /** The mask used to display the number of ACIs or not. */
   private static final int DISPLAY_ACI_COUNT = 0x01;
 
-  /**
-   * The list of attributes that are used to sort the entries (if the sorting
-   * option is used).
-   */
+  /** The list of attributes that are used to sort the entries (if the sorting option is used). */
   private static final String[] SORT_ATTRIBUTES =
       { "cn", "givenname", "o", "ou", "sn", "uid" };
 
@@ -98,9 +93,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   private static final String RDN_ATTRIBUTE = "rdn attribute";
 
-  /**
-   * The filter used to retrieve all the entries.
-   */
+  /** The filter used to retrieve all the entries. */
   public static final String ALL_OBJECTS_FILTER =
     "(|(objectClass=*)(objectClass=ldapsubentry))";
 
@@ -614,10 +607,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefreshNode(node, null, false);
   }
 
-  /**
-   * Notify this controller that authentication data have changed in the
-   * connection pool.
-   */
+  /** Notify this controller that authentication data have changed in the connection pool. */
   @Override
   public void notifyAuthDataChanged() {
     notifyAuthDataChanged(null);
@@ -658,10 +648,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefreshNode(node, null, true);
   }
 
-  /**
-   * Stop the current refreshing.
-   * Nodes being expanded are collapsed.
-   */
+  /** Stop the current refreshing. Nodes being expanded are collapsed. */
   private void stopRefresh() {
     stopRefreshNode(rootNode);
     // TODO: refresh must be stopped in a clean state.
@@ -1229,7 +1216,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * are not invoked directly by the task classes: they are
    * invoked using SwingUtilities.invokeAndWait() (each of the
    * methods XXX() below has a matching wrapper invokeXXX()).
-   *
    */
 
   /**
@@ -1338,8 +1324,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           updateNodeRendering(node, task.getDisplayedEntry());
           nodeChanged = true;
           if (node.isLeaf()) {
-            /* We didn't detect any child: remove the previously existing
-             * ones */
+            /* We didn't detect any child: remove the previously existing ones */
             removeAllChildNodes(node, false /* Remove suffixes */);
           }
         }
@@ -1995,9 +1980,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
 
 
-  /**
-   * Collection utilities
-   */
+  /** Collection utilities. */
   /**
    * Returns an array of integer from a Collection of Integer objects.
    * @param v the Collection of Integer objects.
@@ -2036,9 +2019,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   }
 
 
-  /**
-   * The default implementation of the BrowserNodeInfo interface.
-   */
+  /** The default implementation of the BrowserNodeInfo interface. */
   private class BrowserNodeInfoImpl implements BrowserNodeInfo
   {
     private BasicNode node;

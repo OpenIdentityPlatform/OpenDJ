@@ -61,10 +61,7 @@ import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser;
 import org.opends.server.tools.dsreplication.ReplicationCliException;
 import org.opends.server.tools.dsreplication.ReplicationCliMain;
 
-/**
- * The panel where the user can import the contents of an LDIF file to the
- * server.
- */
+/** The panel where the user can import the contents of an LDIF file to the server. */
 public class ImportLDIFPanel extends InclusionExclusionPanel
 {
   private static final long serialVersionUID = 1143246529610229229L;
@@ -98,10 +95,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
   private DocumentListener documentListener;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ImportLDIFPanel()
   {
     super();
@@ -129,9 +123,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -617,10 +609,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     return baseDNs;
   }
 
-  /**
-   * The class that performs the import.
-   *
-   */
+  /** The class that performs the import. */
   protected class ImportTask extends InclusionExclusionTask
   {
     private Set<String> backendSet;

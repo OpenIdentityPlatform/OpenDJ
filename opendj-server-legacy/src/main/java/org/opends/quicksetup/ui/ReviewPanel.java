@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
@@ -41,7 +41,7 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
    */
   protected abstract JPanel createFieldsPanel();
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = UIFactory.makeJPanel();

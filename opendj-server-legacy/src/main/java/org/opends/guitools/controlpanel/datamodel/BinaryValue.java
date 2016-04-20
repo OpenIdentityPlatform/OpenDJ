@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -28,7 +28,6 @@ import org.opends.server.util.Base64;
  * when the user wants to use the value in a file.  To be able to reflect
  * this this object is used: it contains the binary itself, the base 64
  * representation and the file that has been used.
- *
  */
 public class BinaryValue
 {
@@ -38,27 +37,16 @@ public class BinaryValue
   private File file;
   private int hashCode;
 
-  /**
-   * The type of the binary value.
-   *
-   */
+  /** The type of the binary value. */
   public enum Type
   {
-    /**
-     * The binary value is provided as Base 64 string.
-     */
+    /** The binary value is provided as Base 64 string. */
     BASE64_STRING,
-    /**
-     * The binary value is provided as a byte array.
-     */
+    /** The binary value is provided as a byte array. */
     BYTE_ARRAY
   }
 
-  /**
-   * This is done to force the use of the factory methods (createBase64 and
-   * createFromFile).
-   *
-   */
+  /** This is done to force the use of the factory methods (createBase64 and createFromFile). */
   private BinaryValue()
   {
   }
@@ -158,7 +146,7 @@ public class BinaryValue
     return file;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)
@@ -201,7 +189,7 @@ public class BinaryValue
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return hashCode;

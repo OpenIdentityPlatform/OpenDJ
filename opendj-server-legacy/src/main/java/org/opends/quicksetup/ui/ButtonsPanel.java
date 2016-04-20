@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
@@ -35,7 +35,6 @@ import java.util.HashSet;
  * This class contains the buttons in the bottom of the Install/Uninstall
  * dialog.  There is only one of this instances for the QuickSetupDialog.
  * The layout is updated calling setCurrentStep method.
- *
  */
 public class ButtonsPanel extends QuickSetupPanel
 {
@@ -181,10 +180,7 @@ public class ButtonsPanel extends QuickSetupPanel
 
   }
 
-  /**
-   * Do the layout of the panel.
-   *
-   */
+  /** Do the layout of the panel. */
   private void layoutButtons()
   {
     setLayout(new GridBagLayout());
@@ -276,6 +272,7 @@ public class ButtonsPanel extends QuickSetupPanel
 
     ActionListener actionListener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         ButtonEvent be = new ButtonEvent(ev.getSource(), fButtonName);

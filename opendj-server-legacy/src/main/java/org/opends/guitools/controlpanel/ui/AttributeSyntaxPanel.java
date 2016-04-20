@@ -41,10 +41,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Schema;
 
-/**
- * Panel containing information about an attribute syntax.
- *
- */
+/** Panel containing information about an attribute syntax. */
 public class AttributeSyntaxPanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = -2426247742251904863L;
@@ -55,45 +52,36 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
   private JLabel description = Utilities.createDefaultLabel();
   private JList usedByAttributes = new JList(new DefaultListModel());
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public AttributeSyntaxPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ATTRIBUTE_SYNTAX_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return usedByAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -160,7 +148,6 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
 
     KeyAdapter keyListener = new KeyAdapter()
     {
-      /** {@inheritDoc} */
       @Override
       public void keyTyped(KeyEvent ev)
       {

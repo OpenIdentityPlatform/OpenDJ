@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.event;
 
@@ -60,7 +60,7 @@ public class ComboKeySelectionManager implements KeySelectionManager
     list = new JList();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int selectionForKey(char key, ComboBoxModel model)
   {
     int selectedIndex = -1;

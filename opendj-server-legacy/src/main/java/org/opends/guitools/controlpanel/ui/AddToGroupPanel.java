@@ -69,10 +69,7 @@ public class AddToGroupPanel extends StatusGenericPanel
   private GenericDialog browseGroupDlg;
   private LDAPEntrySelectionPanel browseGroupPanel;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public AddToGroupPanel()
   {
     super();
@@ -109,19 +106,19 @@ public class AddToGroupPanel extends StatusGenericPanel
     packParentDialog();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return groups;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     final ArrayList<LocalizableMessage> errors = new ArrayList<>();
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /** {@inheritDoc} */
+      @Override
       public Void processBackgroundTask()
       {
         try
@@ -134,7 +131,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         updateErrors(errors);
         return null;
       }
-      /** {@inheritDoc} */
+      @Override
       public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
         if (t != null)
@@ -153,20 +150,18 @@ public class AddToGroupPanel extends StatusGenericPanel
     worker.startBackgroundTask();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ADD_TO_GROUP_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -214,7 +209,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     add(browse, gbc);
     browse.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         browseGroupsClicked();
@@ -223,27 +218,27 @@ public class AddToGroupPanel extends StatusGenericPanel
 
     DropTargetListener dropTargetlistener = new DropTargetListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void dragEnter(DropTargetDragEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dragExit(DropTargetEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dragOver(DropTargetDragEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void dropActionChanged(DropTargetDragEvent e)
       {
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void drop(DropTargetDropEvent e)
       {
         try {
@@ -323,7 +318,7 @@ public class AddToGroupPanel extends StatusGenericPanel
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         setPrimaryValid(lGroups);
@@ -371,7 +366,7 @@ public class AddToGroupPanel extends StatusGenericPanel
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           setPrimaryInvalid(lGroups);

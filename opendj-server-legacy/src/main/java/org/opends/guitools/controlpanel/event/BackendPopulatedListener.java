@@ -12,16 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
 
-/**
- * The listeners that receive notifications when a set of backends are
- * populated.
- *
- */
+/** The listeners that receive notifications when a set of backends are populated. */
 public interface BackendPopulatedListener
 {
   /**

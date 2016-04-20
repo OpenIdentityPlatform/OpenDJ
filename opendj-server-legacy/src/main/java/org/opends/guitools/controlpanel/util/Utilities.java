@@ -127,9 +127,7 @@ import org.opends.server.util.SchemaUtils.PasswordType;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-/**
- * A static class that provides miscellaneous functions.
- */
+/** A static class that provides miscellaneous functions. */
 public class Utilities
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -273,7 +271,6 @@ public class Utilities
    * @param msg the message to be displayed.
    * @return  <CODE>true</CODE> if the user accepts the message and
    * <CODE>false</CODE> otherwise.
-   *
    */
   public static boolean displayConfirmationDialog(Component parentComponent,
       LocalizableMessage title, LocalizableMessage msg)
@@ -1230,7 +1227,6 @@ public class Utilities
    *
    * @param comp the component to be centered.
    * @param ref the component to be used as reference.
-   *
    */
   public static void centerGoldenMean(Window comp, Component ref)
   {
@@ -1525,7 +1521,6 @@ public class Utilities
    * @param dn the DN as a String.
    * @return a Name object representing the DN.
    * @throws InvalidNameException if the provided DN value is not valid.
-   *
    */
   public static Name getJNDIName(String dn) throws InvalidNameException
   {
@@ -2804,9 +2799,7 @@ public class Utilities
     }
   }
 
-  /**
-   * Initialize the configuration framework.
-   */
+  /** Initialize the configuration framework. */
   public static void initializeConfigurationFramework()
   {
     if (!ConfigurationFramework.getInstance().isInitialized())

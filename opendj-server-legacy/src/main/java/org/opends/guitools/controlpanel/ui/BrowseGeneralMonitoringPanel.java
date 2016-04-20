@@ -213,6 +213,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
+      @Override
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (!ignoreSelectionEvents)
@@ -254,7 +255,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     entryPane.setInfo(info);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor server = ev.getNewDescriptor();
@@ -265,6 +266,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           String serverName = getServerName(lastServer);
@@ -333,6 +335,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
     final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         errorPane.setVisible(fDisplayErrorPane);

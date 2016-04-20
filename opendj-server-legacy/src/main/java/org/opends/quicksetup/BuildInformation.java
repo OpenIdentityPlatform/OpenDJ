@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -303,7 +303,6 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return values.get(REVISION);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -319,7 +318,6 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return sb.toString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int compareTo(BuildInformation bi) {
     if (getMajorVersion().equals(bi.getMajorVersion())) {
@@ -342,7 +340,6 @@ public class BuildInformation implements Comparable<BuildInformation> {
     return 1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -353,7 +350,6 @@ public class BuildInformation implements Comparable<BuildInformation> {
         && compareTo((BuildInformation)o) == 0;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode() {
     int hc = 11;

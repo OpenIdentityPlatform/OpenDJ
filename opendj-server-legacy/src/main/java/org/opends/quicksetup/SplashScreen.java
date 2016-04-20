@@ -71,13 +71,13 @@ public class SplashScreen extends Window
     screen.display(args);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void update(Graphics g)
   {
     paint(g);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void paint(Graphics g)
   {
     g.drawImage(image, 0, 0, this);
@@ -118,6 +118,7 @@ public class SplashScreen extends Window
       final String[] fArgs = args;
       Thread t = new Thread(new Runnable()
       {
+        @Override
         public void run()
         {
           mainOutsideEventThread(fArgs);
@@ -169,6 +170,7 @@ public class SplashScreen extends Window
     {
       SwingUtilities.invokeAndWait(new Runnable()
       {
+        @Override
         public void run()
         {
           setVisible(true);
@@ -217,6 +219,7 @@ public class SplashScreen extends Window
     {
       SwingUtilities.invokeAndWait(new Runnable()
       {
+        @Override
         public void run()
         {
           try
@@ -247,6 +250,7 @@ public class SplashScreen extends Window
     {
       SwingUtilities.invokeAndWait(new Runnable()
       {
+        @Override
         public void run()
         {
           setVisible(false);

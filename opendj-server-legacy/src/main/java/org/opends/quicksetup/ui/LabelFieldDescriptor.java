@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -43,38 +43,26 @@ public class LabelFieldDescriptor
   /**
    * This enum contains the different type of labels that can be associated with
    * this LabelFieldDescriptor.
-   *
    */
   public enum LabelType
   {
-    /**
-     * Primary label.
-     */
+    /** Primary label. */
     PRIMARY,
-    /**
-     * Secondary label.
-     */
+    /** Secondary label. */
     SECONDARY
   }
 
   /**
    * This enum contains the different type of fields that can be associated with
    * this LabelFieldDescriptor.
-   *
    */
   public enum FieldType
   {
-    /**
-     * Editable text field.
-     */
+    /** Editable text field. */
     TEXTFIELD,
-    /**
-     * Password field.
-     */
+    /** Password field. */
     PASSWORD,
-    /**
-     * Read only field.
-     */
+    /** Read only field. */
     READ_ONLY
   }
 

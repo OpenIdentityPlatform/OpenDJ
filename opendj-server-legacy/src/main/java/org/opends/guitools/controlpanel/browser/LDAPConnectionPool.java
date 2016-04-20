@@ -361,10 +361,7 @@ public class LDAPConnectionPool {
     }
   }
 
-  /**
-   * Notifies the listeners that a referral authentication change happened.
-   *
-   */
+  /** Notifies the listeners that a referral authentication change happened. */
   private void notifyListeners()
   {
     for (ReferralAuthenticationListener listener : listeners)
@@ -522,17 +519,13 @@ public class LDAPConnectionPool {
 
 }
 
-/**
- * A structure representing authentication data.
- */
+/** A structure representing authentication data. */
 class AuthRecord {
   String dn;
   String password;
 }
 
-/**
- * A structure representing an active connection.
- */
+/** A structure representing an active connection. */
 class ConnectionRecord {
   InitialLdapContext ctx;
   int counter;

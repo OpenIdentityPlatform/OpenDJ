@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -35,7 +35,6 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 /**
  * Renderer of the table that contains the list of backups (it is used in the
  * tables of the verify backup and restore panels).
- *
  */
 public class BackupTableCellRenderer extends DefaultTableCellRenderer
 {
@@ -49,10 +48,7 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
   private static final Border incrementalBorder =
     BorderFactory.createEmptyBorder(4, 4, 4, 4);
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BackupTableCellRenderer()
   {
     setForeground(ColorAndFontConstants.tableForeground);
@@ -69,7 +65,7 @@ public class BackupTableCellRenderer extends DefaultTableCellRenderer
     this.backupParentPath = backupParentPath;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column)
   {

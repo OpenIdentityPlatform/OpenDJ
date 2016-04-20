@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -135,19 +135,19 @@ public class DoubleAddRemovePanel<T> extends JPanel
 
     ListDataListener listDataListener = new ListDataListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void intervalRemoved(ListDataEvent ev)
       {
         listSelectionChanged();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void intervalAdded(ListDataEvent ev)
       {
         listSelectionChanged();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void contentsChanged(ListDataEvent ev)
       {
         listSelectionChanged();
@@ -155,7 +155,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     };
     MouseAdapter doubleClickListener = new MouseAdapter()
     {
-      /** {@inheritDoc} */
+      @Override
       public void mouseClicked(MouseEvent e) {
         if (isEnabled() && e.getClickCount() == 2)
         {
@@ -234,7 +234,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     add1.setOpaque(false);
     add1.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         addClicked(selectedListModel1);
@@ -251,6 +251,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       addAll1.setOpaque(false);
       addAll1.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(availableListModel, selectedListModel1);
@@ -265,6 +266,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     remove1.setOpaque(false);
     remove1.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         remove1Clicked();
@@ -282,7 +284,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       removeAll1.setOpaque(false);
       removeAll1.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(selectedListModel1, availableListModel);
@@ -311,7 +313,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     add2.setOpaque(false);
     add2.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         addClicked(selectedListModel2);
@@ -328,7 +330,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       addAll2.setOpaque(false);
       addAll2.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(availableListModel, selectedListModel2);
@@ -343,7 +345,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     remove2.setOpaque(false);
     remove2.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         remove2Clicked();
@@ -361,7 +363,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
       removeAll2.setOpaque(false);
       removeAll2.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           moveAll(selectedListModel2, availableListModel);
@@ -433,6 +435,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
         ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     ListSelectionListener listener = new ListSelectionListener()
     {
+      @Override
       public void valueChanged(ListSelectionEvent ev)
       {
         listSelectionChanged();
@@ -466,10 +469,7 @@ public class DoubleAddRemovePanel<T> extends JPanel
     selectedScroll2.setPreferredSize(d);
   }
 
-  /**
-   * Enables the state of the components in the panel.
-   * @param enable whether to enable the components in the panel or not.
-   */
+  @Override
   public void setEnabled(boolean enable)
   {
     super.setEnabled(enable);

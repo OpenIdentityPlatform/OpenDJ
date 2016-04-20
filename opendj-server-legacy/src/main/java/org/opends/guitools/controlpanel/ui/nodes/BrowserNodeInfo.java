@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -21,10 +21,7 @@ import javax.swing.tree.TreePath;
 
 import org.opends.server.types.LDAPURL;
 
-/**
- * Interface used in the LDAP entries browser code to deal with entries.
- *
- */
+/** Interface used in the LDAP entries browser code to deal with entries. */
 public interface BrowserNodeInfo {
 
   /**
@@ -60,7 +57,6 @@ public interface BrowserNodeInfo {
    * current server. An entry is declared 'remote' when the host/port of
    * getURL() is different from the host/port of the DirContext associated to
    * the browser controller. Returns <CODE>false</CODE> otherwise.
-   *
    */
   boolean isRemote();
 
@@ -140,9 +136,7 @@ public interface BrowserNodeInfo {
    */
   String[] getObjectClassValues();
 
-  /**
-   * Error types
-   */
+  /** Error types. */
   /** No error happened. */
   int ERROR_NONE          = 0;
   /** And error reading the entry occurred. */

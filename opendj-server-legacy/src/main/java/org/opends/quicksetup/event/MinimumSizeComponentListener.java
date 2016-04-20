@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.event;
@@ -27,7 +28,6 @@ import java.awt.event.ComponentListener;
  * just create the object and then we add it as ComponentListener of the object.
  *
  * This is used basically by the QuickSetupDialog dialog.
- *
  */
 public class MinimumSizeComponentListener implements ComponentListener
 {
@@ -44,13 +44,11 @@ public class MinimumSizeComponentListener implements ComponentListener
    * @param minWidth the minimum width for the component
    * @param minHeight the minimum height for the component
    */
-  public MinimumSizeComponentListener(Component comp, int minWidth,
-      int minHeight)
+  public MinimumSizeComponentListener(Component comp, int minWidth, int minHeight)
   {
     this.comp = comp;
     this.minWidth = minWidth + 2;
-    // It seems that we must add two points to the minWidth (the border of
-    // the frame)
+    // It seems that we must add two points to the minWidth (the border of the frame)
     if (comp instanceof Window)
     {
       this.minWidth += 2;
@@ -61,12 +59,13 @@ public class MinimumSizeComponentListener implements ComponentListener
 
   /**
    * ComponentListener implementation.
-   *
+   * <p>
    * When the method is called check the size and if it is below the minimum
    * size specified in the constructor, resize it to the minimum size.
    *
    * @param ev the component event.
    */
+  @Override
   public void componentResized(ComponentEvent ev)
   {
     int width = comp.getWidth();
@@ -88,33 +87,21 @@ public class MinimumSizeComponentListener implements ComponentListener
     }
   }
 
-  /**
-   * ComponentListener implementation.
-   *
-   * Empty implementation.
-   * @param ev the component event.
-   */
+  @Override
   public void componentMoved(ComponentEvent ev)
   {
+    // no-op
   }
 
-  /**
-   * ComponentListener implementation.
-   *
-   * Empty implementation.
-   * @param ev the component event.
-   */
+  @Override
   public void componentShown(ComponentEvent ev)
   {
+    // no-op
   }
 
-  /**
-   * ComponentListener implementation.
-   *
-   * Empty implementation.
-   * @param ev the component event.
-   */
+  @Override
   public void componentHidden(ComponentEvent ev)
   {
+    // no-op
   }
 }

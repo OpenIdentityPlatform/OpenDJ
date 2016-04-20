@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -34,10 +34,7 @@ import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.types.Schema;
 
-/**
- * The panel used to display a binary value.
- *
- */
+/** The panel used to display a binary value. */
 public class BinaryValuePanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2536360199438858665L;
@@ -50,10 +47,7 @@ public class BinaryValuePanel extends StatusGenericPanel
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BinaryValuePanel()
   {
     super();
@@ -71,7 +65,7 @@ public class BinaryValuePanel extends StatusGenericPanel
     lastBytes = bytes;
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /** {@inheritDoc} */
+      @Override
       public Void processBackgroundTask() throws Throwable
       {
         try
@@ -102,7 +96,7 @@ public class BinaryValuePanel extends StatusGenericPanel
         return null;
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
         displayMainPanel();
@@ -124,44 +118,42 @@ public class BinaryValuePanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return base64;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No OK Button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_VIEW_BINARY_ATTRIBUTE_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();

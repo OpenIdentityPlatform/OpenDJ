@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -33,7 +33,6 @@ import org.opends.guitools.controlpanel.ui.border.AccordionElementBorder;
  * The panel representing a category.  It contains a CategoryButton and a panel
  * that is displayed when the CategoryButton is in a certain state.  They
  * are used on the left side of the main Control Panel.
- *
  */
 public class CategoryPanel extends JPanel {
   private static final long serialVersionUID = 8941374689175404431L;
@@ -118,7 +117,7 @@ public class CategoryPanel extends JPanel {
     return expanded;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setForeground(Color foreground)
   {
     super.setForeground(foreground);
@@ -131,7 +130,7 @@ public class CategoryPanel extends JPanel {
   /** The custom listener used to display the child component. */
   private class CollapseListener implements ChangeListener
   {
-    /** {@inheritDoc} */
+    @Override
     public void stateChanged(ChangeEvent event) {
       setExpanded(expandButton.isSelected());
     }

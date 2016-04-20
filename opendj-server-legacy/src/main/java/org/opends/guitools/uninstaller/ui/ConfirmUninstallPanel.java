@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -43,7 +43,6 @@ import static org.opends.messages.AdminToolMessages.*;
  * This is the panel displayed when the user is uninstalling Open DS.  It is
  * basically a panel with the text informing of the consequences of uninstalling
  * the server and asking for confirmation.
- *
  */
 public class ConfirmUninstallPanel extends QuickSetupStepPanel
 {
@@ -60,7 +59,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
    * The constructor of this class.
    * @param application Application this panel represents
    * @param installStatus the object describing the current installation status.
-   *
    */
   public ConfirmUninstallPanel(GuiApplication application,
                                CurrentInstallStatus installStatus)
@@ -68,7 +66,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     super(application);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Object getFieldValue(FieldName fieldName)
   {
@@ -97,14 +94,12 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_CONFIRM_UNINSTALL_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Component createInputPanel()
   {
@@ -227,7 +222,6 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getInstructions()
   {

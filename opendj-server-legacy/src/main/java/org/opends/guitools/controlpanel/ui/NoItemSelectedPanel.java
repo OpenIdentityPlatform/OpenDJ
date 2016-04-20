@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -28,20 +28,14 @@ import javax.swing.JPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * A simple panel containing a message.
- *
- */
+/** A simple panel containing a message. */
 public class NoItemSelectedPanel extends JPanel
 {
   private JLabel l;
   private LocalizableMessage msg;
   private static final long serialVersionUID = -8288525745479095426L;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public NoItemSelectedPanel()
   {
     super(new GridBagLayout());

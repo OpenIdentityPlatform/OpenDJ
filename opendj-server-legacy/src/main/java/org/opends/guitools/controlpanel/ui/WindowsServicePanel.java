@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -43,11 +43,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ConfigureWindowsService;
 
-/**
- * The panel that displays the Windows Service panel configuration for the
- * server.
- *
- */
+/** The panel that displays the Windows Service panel configuration for the server. */
 public class WindowsServicePanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 6415350296295459469L;
@@ -59,25 +55,20 @@ public class WindowsServicePanel extends StatusGenericPanel
 
   private boolean isWindowsServiceEnabled;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public WindowsServicePanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_WINDOWS_SERVICE_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -130,7 +121,7 @@ public class WindowsServicePanel extends StatusGenericPanel
 
     ActionListener listener = new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         updateWindowsService();
@@ -152,13 +143,13 @@ public class WindowsServicePanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     if (!isWindowsServiceEnabled)
@@ -171,7 +162,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     boolean previousValue = isWindowsServiceEnabled;
@@ -183,7 +174,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       previousLocal = isLocal;
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           lState.setText(isWindowsServiceEnabled ?
@@ -207,7 +198,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // NO ok button
@@ -257,10 +248,7 @@ public class WindowsServicePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * The task in charge of updating the windows service configuration.
-   *
-   */
+  /** The task in charge of updating the windows service configuration. */
   protected class WindowsServiceTask extends Task
   {
     Set<String> backendSet;
@@ -280,7 +268,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       backendSet = new HashSet<>();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       if (enableService)
@@ -293,7 +281,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
       if (enableService)
@@ -306,7 +294,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -322,7 +310,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       return true;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -363,13 +351,13 @@ public class WindowsServicePanel extends StatusGenericPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<>();
@@ -386,7 +374,7 @@ public class WindowsServicePanel extends StatusGenericPanel
       return args;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return getCommandLinePath("windows-service");

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -49,10 +49,7 @@ import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 
-/**
- * The panel where the user specifies the runtime settings.
- *
- */
+/** The panel where the user specifies the runtime settings. */
 public class RuntimeOptionsPanel extends QuickSetupStepPanel
 {
   private static final long serialVersionUID = -8303034619200476754L;
@@ -91,7 +88,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     addFocusListeners();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -171,19 +168,18 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_JAVA_RUNTIME_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_JAVA_RUNTIME_OPTIONS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Object getFieldValue(FieldName fieldName)
   {
@@ -199,7 +195,6 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void beginDisplay(UserData uData)
   {
@@ -237,7 +232,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     updateWarningMessage(uData);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -246,24 +241,24 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addFocusListeners()
   {
     FocusListener l = new FocusListener()
     {
+      @Override
       public void focusGained(FocusEvent e)
       {
         lastFocusComponent = e.getComponent();
       }
 
+      @Override
       public void focusLost(FocusEvent e)
       {
       }
@@ -322,6 +317,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
         INFO_JAVA_RUNTIME_CHANGE_SERVER_TOOLTIP.get());
     bServer.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         changeServerClicked();
@@ -334,6 +330,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
         INFO_JAVA_RUNTIME_CHANGE_IMPORT_TOOLTIP.get());
     bImport.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         changeImportClicked();

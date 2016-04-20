@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -44,9 +44,7 @@ import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
 
-/**
- * The panel displaying an LDIF view of an entry.
- */
+/** The panel displaying an LDIF view of an entry. */
 public class LDIFViewEntryPanel extends ViewEntryPanel
 {
   /** Callback that sets the viewport's view position. */
@@ -61,7 +59,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       this.scroll = scroll;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -85,16 +82,13 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return editableAttributes;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -154,7 +148,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     add(readOnlyScroll, gbc);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
@@ -231,7 +224,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -239,7 +231,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   }
 
 
-  /** {@inheritDoc} */
   @Override
   protected String getDisplayedDN()
   {
@@ -258,14 +249,12 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     return dn;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected List<Object> getValues(String attrName)
   {
     throw new IllegalStateException("This method should not be called.");
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry() throws OpenDsException
   {

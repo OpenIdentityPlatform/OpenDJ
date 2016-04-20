@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -28,234 +28,140 @@ import org.opends.server.util.ServerConstants;
  */
 public enum BasicMonitoringAttributes implements MonitoringAttributes
 {
-  /**
-   * Start Date.
-   */
+  /** Start Date. */
   START_DATE(LocalizableMessage.EMPTY, ServerConstants.ATTR_START_TIME),
-  /**
-   * Current Date.
-   */
+  /** Current Date. */
   CURRENT_DATE(LocalizableMessage.EMPTY, ServerConstants.ATTR_CURRENT_TIME),
-  /**
-   * Current Connections.
-   */
+  /** Current Connections. */
   CURRENT_CONNECTIONS(LocalizableMessage.EMPTY, ServerConstants.ATTR_CURRENT_CONNS),
-  /**
-   * Maximum Connections.
-   */
+  /** Maximum Connections. */
   MAX_CONNECTIONS(LocalizableMessage.EMPTY, ServerConstants.ATTR_MAX_CONNS),
-  /**
-   * Total Connections.
-   */
+  /** Total Connections. */
   TOTAL_CONNECTIONS(LocalizableMessage.EMPTY, ServerConstants.ATTR_TOTAL_CONNS),
-  /**
-   * Average Request Backlog.
-   */
+  /** Average Request Backlog. */
   AVERAGE_REQUEST_BACKLOG(INFO_CTRL_PANEL_AVERAGE_REQUEST_BACKLOG.get(),
   TraditionalWorkQueueMonitor.ATTR_AVERAGE_BACKLOG),
-  /**
-   * Max Request Backlog.
-   */
+  /** Max Request Backlog. */
   MAX_REQUEST_BACKLOG(INFO_CTRL_PANEL_MAX_REQUEST_BACKLOG.get(),
   TraditionalWorkQueueMonitor.ATTR_MAX_BACKLOG),
-  /**
-   * Current Request Backlog.
-   */
+  /** Current Request Backlog. */
   CURRENT_REQUEST_BACKLOG(INFO_CTRL_PANEL_CURRENT_REQUEST_BACKLOG.get(),
   TraditionalWorkQueueMonitor.ATTR_CURRENT_BACKLOG),
-  /**
-   * Requests submitted.
-   */
+  /** Requests submitted. */
   REQUESTS_SUBMITTED(INFO_CTRL_PANEL_REQUESTS_SUBMITTED.get(),
   TraditionalWorkQueueMonitor.ATTR_OPS_SUBMITTED),
-  /**
-   * Requests rejected.
-   */
+  /** Requests rejected. */
   REQUESTS_REJECTED(INFO_CTRL_PANEL_REQUESTS_REJECTED.get(),
   TraditionalWorkQueueMonitor.ATTR_OPS_REJECTED_QUEUE_FULL),
-  /**
-   * Entry cache Hits.
-   */
+  /** Entry cache Hits. */
   ENTRY_CACHE_HITS(INFO_CTRL_PANEL_ENTRY_CACHE_HITS.get(),
   "entryCacheHits"),
-  /**
-   * Current entry cache count.
-   */
+  /** Current entry cache count. */
   CURRENT_ENTRY_CACHE_COUNT(INFO_CTRL_PANEL_CURRENT_ENTRY_CACHE_COUNT.get(),
   "currentEntryCacheCount"),
-  /**
-   * Entry cache tries.
-   */
+  /** Entry cache tries. */
   ENTRY_CACHE_TRIES(INFO_CTRL_PANEL_ENTRY_CACHE_TRIES.get(),
   "entryCacheTries"),
-  /**
-   * Entry cache hit ratio.
-   */
+  /** Entry cache hit ratio. */
   ENTRY_CACHE_HIT_RATIO(INFO_CTRL_PANEL_ENTRY_CACHE_HIT_RATIO.get(),
   "entryCacheHitRatio"),
-  /**
-   * Entry cache current size.
-   */
+  /** Entry cache current size. */
   CURRENT_ENTRY_CACHE_SIZE(INFO_CTRL_PANEL_CURRENT_ENTRY_CACHE_SIZE.get(),
   "currentEntryCacheSize"),
-  /**
-   * Entry cache max size.
-   */
+  /** Entry cache max size. */
   MAX_ENTRY_CACHE_SIZE(INFO_CTRL_PANEL_MAX_ENTRY_CACHE_SIZE.get(),
   "maxEntryCacheSize"),
-  /**
-   * Entry cache max count.
-   */
+  /** Entry cache max count. */
   MAX_ENTRY_CACHE_COUNT(INFO_CTRL_PANEL_MAX_ENTRY_CACHE_COUNT.get(),
   "maxEntryCacheCount"),
-  /**
-   * Available CPUs.
-   */
+  /** Available CPUs. */
   AVAILABLE_CPUS(INFO_CTRL_PANEL_AVAILABLE_CPUS.get(),
   "availableCPUs"),
-  /**
-   * System Name.
-   */
+  /** System Name. */
   SYSTEM_NAME(INFO_CTRL_PANEL_SYSTEM_NAME.get(),
   "systemName"),
-  /**
-   * Operating System.
-   */
+  /** Operating System. */
   OPERATING_SYSTEM(INFO_CTRL_PANEL_OPERATING_SYSTEM.get(),
   "operatingSystem"),
-  /**
-   * Free used memory.
-   */
+  /** Free used memory. */
   FREE_USED_MEMORY(INFO_CTRL_PANEL_FREE_USED_MEMORY.get(),
   "freeUsedMemory"),
-  /**
-   * Max memory.
-   */
+  /** Max memory. */
   MAX_MEMORY(INFO_CTRL_PANEL_MAX_MEMORY.get(),
   "maxMemory"),
-  /**
-   * Used memory.
-   */
+  /** Used memory. */
   USED_MEMORY(INFO_CTRL_PANEL_USED_MEMORY.get(),
   "usedMemory"),
-  /**
-   * Class path.
-   */
+  /** Class path. */
   CLASS_PATH(INFO_CTRL_PANEL_CLASS_PATH.get(),
   "classPath"),
-  /**
-   * Java Vendor.
-   */
+  /** Java Vendor. */
   JAVA_VENDOR(INFO_CTRL_PANEL_JAVA_VENDOR.get(),
   "javaVendor"),
-  /**
-   * JVM Vendor.
-   */
+  /** JVM Vendor. */
   JVM_VENDOR(INFO_CTRL_PANEL_JVM_VENDOR.get(),
   "javaVendor"),
-  /**
-   * Java Version.
-   */
+  /** Java Version. */
   JAVA_VERSION(INFO_CTRL_PANEL_JAVA_VERSION.get(),
   "javaVersion"),
-  /**
-   * JVM Version.
-   */
+  /** JVM Version. */
   JVM_VERSION(INFO_CTRL_PANEL_JVM_VERSION.get(),
   "jvmVersion"),
-  /**
-   * JVM Architecture.
-   */
+  /** JVM Architecture. */
   JVM_ARCHITECTURE(INFO_CTRL_PANEL_JVM_ARCHITECTURE.get(),
   "jvmArchitecture"),
-  /**
-   * JVM Arguments.
-   */
+  /** JVM Arguments. */
   JVM_ARGUMENTS(INFO_CTRL_PANEL_JVM_ARGUMENTS.get(),
   "jvmArguments"),
-  /**
-   * Add Request.
-   */
+  /** Add Request. */
   ADD_REQUESTS(INFO_CTRL_PANEL_ADD_REQUESTS_LABEL.get(),
   "addRequests"),
-  /**
-   * Add Responses.
-   */
+  /** Add Responses. */
   ADD_RESPONSES(INFO_CTRL_PANEL_ADD_RESPONSES_LABEL.get(),
   "addResponses"),
-  /**
-   * Bind Request.
-   */
+  /** Bind Request. */
   BIND_REQUESTS(INFO_CTRL_PANEL_BIND_REQUESTS_LABEL.get(),
   "bindRequests"),
-  /**
-   * Bind Responses.
-   */
+  /** Bind Responses. */
   BIND_RESPONSES(INFO_CTRL_PANEL_BIND_RESPONSES_LABEL.get(),
   "bindResponses"),
-  /**
-   * Compare Requests.
-   */
+  /** Compare Requests. */
   COMPARE_REQUESTS(INFO_CTRL_PANEL_COMPARE_REQUESTS_LABEL.get(),
   "compareRequests"),
-  /**
-   * Compare Responses.
-   */
+  /** Compare Responses. */
   COMPARE_RESPONSES(INFO_CTRL_PANEL_COMPARE_RESPONSES_LABEL.get(),
   "compareResponses"),
-  /**
-   * Delete Request.
-   */
+  /** Delete Request. */
   DELETE_REQUESTS(INFO_CTRL_PANEL_DELETE_REQUESTS_LABEL.get(),
   "deleteRequests"),
-  /**
-   * Delete Responses.
-   */
+  /** Delete Responses. */
   DELETE_RESPONSES(INFO_CTRL_PANEL_DELETE_RESPONSES_LABEL.get(),
   "deleteResponses"),
-  /**
-   * Extended Request.
-   */
+  /** Extended Request. */
   EXTENDED_REQUESTS(INFO_CTRL_PANEL_EXTENDED_REQUESTS_LABEL.get(),
   "extendedRequests"),
-  /**
-   * Extended Responses.
-   */
+  /** Extended Responses. */
   EXTENDED_RESPONSES(INFO_CTRL_PANEL_EXTENDED_RESPONSES_LABEL.get(),
   "extendedResponses"),
-  /**
-   * Modify DN Request.
-   */
+  /** Modify DN Request. */
   MOD_DN_REQUESTS(INFO_CTRL_PANEL_MOD_DN_REQUESTS_LABEL.get(),
   "modifyDNRequests"),
-  /**
-   * Modify DN Responses.
-   */
+  /** Modify DN Responses. */
   MOD_DN_RESPONSES(INFO_CTRL_PANEL_MOD_DN_RESPONSES_LABEL.get(),
   "modifyDNResponses"),
-  /**
-   * Modify Request.
-   */
+  /** Modify Request. */
   MOD_REQUESTS(INFO_CTRL_PANEL_MOD_REQUESTS_LABEL.get(),
   "modifyRequests"),
-  /**
-   * Modify Responses.
-   */
+  /** Modify Responses. */
   MOD_RESPONSES(INFO_CTRL_PANEL_MOD_RESPONSES_LABEL.get(),
   "modifyResponses"),
-  /**
-   * Search Request.
-   */
+  /** Search Request. */
   SEARCH_REQUESTS(INFO_CTRL_PANEL_SEARCH_REQUESTS_LABEL.get(),
   "searchRequests"),
-  /**
-   * Searches Done.
-   */
+  /** Searches Done. */
   SEARCH_DONE(INFO_CTRL_PANEL_SEARCH_DONE_LABEL.get(),
   "searchResultsDone"),
-  /**
-   * Unbind Request.
-   */
+  /** Unbind Request. */
   UNBIND_REQUESTS(INFO_CTRL_PANEL_UNBIND_REQUESTS_LABEL.get(),
   "unbindRequests"),;
 
@@ -284,55 +190,55 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
     this.attributeName = attributeName;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getMessage()
   {
     return msg;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getAttributeName()
   {
     return attributeName;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isAborted()
   {
     return isAborted;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isNumeric()
   {
     return isNumeric;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isTime()
   {
     return isTime;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isGMTDate()
   {
     return isGMTDate;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isValueInBytes()
   {
     return isValueInBytes;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canHaveAverage()
   {
     return canHaveAverage;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isNumericDate()
   {
     return false;

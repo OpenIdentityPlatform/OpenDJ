@@ -23,26 +23,17 @@ import org.forgerock.opendj.ldap.DN;
 /**
  * This class is used to represent a Base DN / Replica and is aimed to be
  * used by the classes in the BackendTableModel class.
- *
  */
 public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
 {
-  /**
-   * An enumeration describing the type of base DN for a given backend.
-   */
+  /** An enumeration describing the type of base DN for a given backend. */
   public enum Type
   {
-    /**
-     * The base DN is not replicated.
-     */
+    /** The base DN is not replicated. */
     NOT_REPLICATED,
-    /**
-     * The base DN is replicated.
-     */
+    /** The base DN is replicated. */
     REPLICATED,
-    /**
-     * Replication is disabled.
-     */
+    /** Replication is disabled. */
     DISABLED
   }
 
@@ -90,7 +81,6 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     return baseDn;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object v)
   {
@@ -120,14 +110,13 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
         && getBackend().getBackendID().equals(desc.getBackend().getBackendID());
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compareTo(BaseDNDescriptor desc)
   {
     int returnValue = desc.getDn().compareTo(getDn());
@@ -285,7 +274,6 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
    * Method called when one of the elements that affect the value of the
    * hashcode is modified.  It is used to minimize the time spent calculating
    * hashCode.
-   *
    */
   private void recalculateHashCode()
   {

@@ -66,7 +66,6 @@ import org.forgerock.util.Utils;
  * The panel displaying the general status of the server (started/stopped),
  * basic configuration (base DNs, connection listeners) and that allows to start
  * and stop the server.
- *
  */
 class StatusPanel extends StatusGenericPanel
 {
@@ -95,10 +94,7 @@ class StatusPanel extends StatusGenericPanel
   private ConnectionHandlerTableModel connectionHandlerTableModel;
   private JTable connectionHandlersTable;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public StatusPanel()
   {
     super();
@@ -148,7 +144,7 @@ class StatusPanel extends StatusGenericPanel
     inScrollPanel.add(Box.createVerticalGlue(), gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     if (startButton.isVisible())
@@ -162,7 +158,7 @@ class StatusPanel extends StatusGenericPanel
   }
 
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresBorder()
   {
     return false;
@@ -175,13 +171,13 @@ class StatusPanel extends StatusGenericPanel
     Utilities.updateTableSizes(connectionHandlersTable);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STATUS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(final ConfigurationChangeEvent ev)
   {
     if (SwingUtilities.isEventDispatchThread())
@@ -192,7 +188,7 @@ class StatusPanel extends StatusGenericPanel
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           updateContents(ev.getNewDescriptor());
@@ -201,7 +197,7 @@ class StatusPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
@@ -520,7 +516,7 @@ class StatusPanel extends StatusGenericPanel
     stopButton.setOpaque(false);
     stopButton.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         stopServer();
@@ -536,7 +532,7 @@ class StatusPanel extends StatusGenericPanel
     statusPanel.add(startButton, gbc);
     startButton.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         startServer();
@@ -549,7 +545,7 @@ class StatusPanel extends StatusGenericPanel
     restartButton.setOpaque(false);
     restartButton.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         restartServer();

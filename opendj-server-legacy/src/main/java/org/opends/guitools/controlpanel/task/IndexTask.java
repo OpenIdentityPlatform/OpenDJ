@@ -28,20 +28,12 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.forgerock.opendj.ldap.DN;
 
-/**
- * Abstract task used to factorize some code shared by different tasks involving
- * indexes.
- *
- */
+/** Abstract task used to factorize some code shared by different tasks involving indexes. */
 public abstract class IndexTask extends Task
 {
-  /**
-   * The set of backends that are affected by this task.
-   */
+  /** The set of backends that are affected by this task. */
   protected Set<String> backendSet;
-  /**
-   * The set of base DNs that are affected by this task.
-   */
+  /** The set of base DNs that are affected by this task. */
   protected Set<String> baseDNs;
 
   /**
@@ -112,7 +104,7 @@ public abstract class IndexTask extends Task
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;

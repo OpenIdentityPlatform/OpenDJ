@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui.renderer;
 
 import java.awt.BorderLayout;
@@ -35,25 +34,15 @@ import org.opends.guitools.controlpanel.ui.StatusGenericPanel;
  * A renderer used in the Control Panel that deals with
  * CategorizedComboBoxElement elements.  It can be used to render JList and
  * JComboBoxes.
- *
  */
 public class CustomListCellRenderer implements ListCellRenderer
 {
   private ListCellRenderer defaultRenderer;
-
-  /**
-   * The separator used to render a non-selectable separator in the combo box.
-   */
+  /** The separator used to render a non-selectable separator in the combo box. */
   protected Component separator;
-
-  /**
-   * The default font.
-   */
+  /** The default font. */
   protected Font defaultFont;
-
-  /**
-   * The category font.
-   */
+  /** The category font. */
   protected Font categoryFont;
 
   /**
@@ -84,7 +73,7 @@ public class CustomListCellRenderer implements ListCellRenderer
     ((JPanel)separator).setBorder(new EmptyBorder(5, 3, 5, 3));
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

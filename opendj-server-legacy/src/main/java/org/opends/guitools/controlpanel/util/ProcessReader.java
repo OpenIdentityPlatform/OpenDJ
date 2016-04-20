@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -22,10 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 
-/**
- * Class used to write the output and error of a given process in a printstream.
- *
- */
+/** Class used to write the output and error of a given process in a printstream. */
 public class ProcessReader
 {
   private BufferedReader reader;
@@ -58,7 +55,7 @@ public class ProcessReader
 
     readerThread = new Thread(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         String line;
@@ -78,10 +75,7 @@ public class ProcessReader
     });
   }
 
-  /**
-   * Starts reading the output (or error) of the process.
-   *
-   */
+  /** Starts reading the output (or error) of the process. */
   public void startReading()
   {
     readerThread.start();
@@ -90,7 +84,6 @@ public class ProcessReader
   /**
    * Interrupts the reading of the output (or error) of the process.  The method
    * does not return until the reading is over.
-   *
    */
   public void interrupt()
   {

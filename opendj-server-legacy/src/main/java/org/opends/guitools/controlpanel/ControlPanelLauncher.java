@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel;
 
@@ -43,7 +43,6 @@ import com.forgerock.opendj.cli.ArgumentException;
  * class basically displays a splash screen and then calls the methods in
  * ControlPanel.  It also is in charge of detecting whether there are issues
  * with the
- *
  */
 public class ControlPanelLauncher
 {
@@ -211,8 +210,7 @@ public class ControlPanelLauncher
     }
     catch (InterruptedException ie)
     {
-      /* An error occurred, so the return value will be -1.  We got nothing to
-      do with this exception. */
+      /* An error occurred, so the return value will be -1. We got nothing to do with this exception. */
     }
     System.setErr(printStream);
     return returnValue[0];
@@ -230,39 +228,23 @@ public class ControlPanelLauncher
 }
 
 
-/**
- * The enumeration containing the different return codes that the command-line
- * can have.
- *
- */
+/** The enumeration containing the different return codes that the command-line can have. */
 enum ErrorReturnCode
 {
-  /**
-   * Successful display of the status.
-   */
+  /** Successful display of the status. */
   SUCCESSFUL(0),
-  /**
-   * We did no have an error but the status was not displayed (displayed
-   * version or usage).
-   */
+  /** We did no have an error but the status was not displayed (displayed version or usage). */
   SUCCESSFUL_NOP(0),
-  /**
-   * Unexpected error (potential bug).
-   */
+  /** Unexpected error (potential bug). */
   ERROR_UNEXPECTED(1),
-  /**
-   * Cannot parse arguments.
-   */
+  /** Cannot parse arguments. */
   ERROR_PARSING_ARGS(2),
   /**
    * User cancelled (for instance not accepting the certificate proposed) or
    * could not use the provided connection parameters in interactive mode.
    */
   USER_CANCELLED_OR_DATA_ERROR(3),
-  /**
-   * This occurs for instance when the authentication provided by the user is
-   * not valid.
-   */
+  /** This occurs for instance when the authentication provided by the user is not valid. */
   ERROR_READING_CONFIGURATION_WITH_LDAP(4);
 
   private int returnCode;
@@ -281,10 +263,7 @@ enum ErrorReturnCode
   }
 }
 
-/**
- * The splash screen for the control panel.
- *
- */
+/** The splash screen for the control panel. */
 class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
 {
   private static final long serialVersionUID = 4472839063380302713L;

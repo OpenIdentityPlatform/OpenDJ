@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -43,6 +43,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -51,14 +52,9 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.ScheduleSummaryPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ExportLDIF;
 
-/**
- * The panel where the user can export the contents of the server to an LDIF
- * file.
- *
- */
+/** The panel where the user can export the contents of the server to an LDIF file. */
 public class ExportLDIFPanel extends InclusionExclusionPanel
 {
  private static final long serialVersionUID = 2256902594454214644L;
@@ -83,29 +79,26 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
 
   private ScheduleSummaryPanel schedulePanel;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ExportLDIFPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EXPORT_LDIF_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return file;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -114,9 +107,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -159,18 +150,18 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     file = Utilities.createTextField();
     documentListener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
         setEnabledOK(text != null && text.length() > 0 && !errorPane.isVisible());
       }
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -238,18 +229,12 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
 
     encryptData = Utilities.createCheckBox(
         INFO_CTRL_PANEL_ENCRYPT_DATA_LABEL.get());
-
-    /*
-    gbc.gridy ++;
-    gbc.insets.top = 5;
-    add(encryptData, gbc);
-*/
     generateSignedHash = Utilities.createCheckBox(
         INFO_CTRL_PANEL_EXPORT_GENERATE_SIGNED_HASH.get());
 
     encryptData.addChangeListener(new ChangeListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent ev)
       {
         generateSignedHash.setEnabled(encryptData.isSelected());
@@ -258,11 +243,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     encryptData.setSelected(false);
     generateSignedHash.setEnabled(false);
 
-    /*
-    gbc.gridy ++;
-    gbc.insets.left = 30;
-    add(generateSignedHash, gbc);
-*/
+    /* gbc.gridy ++; gbc.insets.left = 30; add(generateSignedHash, gbc); */
     wrapText = Utilities.createCheckBox(INFO_CTRL_PANEL_EXPORT_WRAP_TEXT.get());
     wrapText.setOpaque(false);
     gbc.insets.left = 10;
@@ -280,7 +261,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
 
     wrapText.addChangeListener(new ChangeListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent ev)
       {
         wrapColumn.setEnabled(wrapText.isSelected());
@@ -306,7 +287,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -319,6 +300,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         lRemoteFileHelp.setVisible(!isLocal());
@@ -327,13 +309,13 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     });
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkOKButtonEnable()
   {
     documentListener.changedUpdate(null);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(lBackend);
@@ -419,7 +401,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lBackend);
@@ -433,10 +415,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
     return schedulePanel.getSchedule();
   }
 
-  /**
-   * The class that performs the export.
-   *
-   */
+  /** The class that performs the export. */
   protected class ExportTask extends InclusionExclusionTask
   {
     private Set<String> backendSet;
@@ -454,20 +433,20 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       fileName = file.getText();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.EXPORT_LDIF;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_EXPORT_TASK_DESCRIPTION.get(
           backendSet.iterator().next(), fileName);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -486,7 +465,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       return canLaunch;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -523,13 +502,13 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<>();
@@ -570,7 +549,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
       return args;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return getCommandLinePath("export-ldif");

@@ -14,7 +14,6 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.uninstaller;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -81,7 +80,7 @@ public class UninstallLauncher extends Launcher {
     initializeParser();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void launch() {
     //  Validate user provided data
     try
@@ -109,9 +108,7 @@ public class UninstallLauncher extends Launcher {
     }
   }
 
-  /**
-   * Initialize the contents of the argument parser.
-   */
+  /** Initialize the contents of the argument parser. */
   protected void initializeParser()
   {
     argParser = new UninstallerArgumentParser(getClass().getName(),
@@ -136,47 +133,37 @@ public class UninstallLauncher extends Launcher {
                                   : ERR_UNINSTALL_LAUNCHER_GUI_LAUNCHED_FAILED.get());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ArgumentParser getArgumentParser() {
     return this.argParser;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void willLaunchGui() {
     System.out.println(INFO_UNINSTALL_LAUNCHER_LAUNCHING_GUI.get());
     System.setProperty("org.opends.quicksetup.Application.class",
             org.opends.guitools.uninstaller.Uninstaller.class.getName());
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected CliApplication createCliApplication() {
     return new Uninstaller();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
         INFO_FRAME_UNINSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
         LocalizableMessage.class);
   }
 
-  /**
-   * Indicates whether or not the launcher should print a usage
-   * statement based on the content of the arguments passed into
-   * the constructor.
-   * @return boolean where true indicates usage should be printed
-   */
+  @Override
   protected boolean shouldPrintUsage() {
     return argParser.isUsageArgumentPresent() &&
     !argParser.usageOrVersionDisplayed();
   }
 
-  /**
-   * Indicates whether or not the launcher should print a usage
-   * statement based on the content of the arguments passed into
-   * the constructor.
-   * @return boolean where true indicates usage should be printed
-   */
+  @Override
   protected boolean isQuiet() {
     return argParser.isQuiet();
   }
@@ -191,27 +178,14 @@ public class UninstallLauncher extends Launcher {
     return !argParser.isInteractive();
   }
 
-  /**
-   * Indicates whether or not the launcher should print a version
-   * statement based on the content of the arguments passed into
-   * the constructor.
-   * @return boolean where true indicates version should be printed
-   */
+  @Override
   protected boolean shouldPrintVersion() {
     return argParser.isVersionArgumentPresent() &&
     !argParser.usageOrVersionDisplayed();
   }
 
-  /**
-   * Indicates whether the launcher will launch a command line versus
-   * a graphical application based on the contents of the arguments
-   * passed into the constructor.
-   *
-   * @return boolean where true indicates that a CLI application
-   *         should be launched
-   */
+  @Override
   protected boolean isCli() {
     return argParser.isCli();
   }
-
 }

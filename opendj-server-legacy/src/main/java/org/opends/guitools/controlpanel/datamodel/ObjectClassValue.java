@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -70,13 +70,13 @@ public class ObjectClassValue
     return structural;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)

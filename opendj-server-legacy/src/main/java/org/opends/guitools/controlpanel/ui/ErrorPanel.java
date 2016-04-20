@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -26,10 +26,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-/**
- * Class used to display an collection of error messages.
- *
- */
+/** Class used to display an collection of error messages. */
 public class ErrorPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -4494826284037288552L;
@@ -46,7 +43,7 @@ public class ErrorPanel extends StatusGenericPanel
     createLayout(errors);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return title;
@@ -76,24 +73,24 @@ public class ErrorPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.OK;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     Utilities.getParentDialog(this).setVisible(false);

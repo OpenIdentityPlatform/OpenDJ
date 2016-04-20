@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -30,7 +30,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 /**
  * The renderer to be used to render AbstractIndexDescriptor objects in a list.
  * It marks the indexes that require to be rebuilt with a '*' character.
- *
  */
 public class IndexCellRenderer extends CustomListCellRenderer
 {
@@ -47,7 +46,7 @@ public class IndexCellRenderer extends CustomListCellRenderer
     this.info = info;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

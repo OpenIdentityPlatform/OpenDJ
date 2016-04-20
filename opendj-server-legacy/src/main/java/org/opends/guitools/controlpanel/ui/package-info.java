@@ -12,12 +12,10 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 
 
-/**
- * Contains the panels and dialogs displayed in the Control Panel.
- *
- */
+/** Contains the panels and dialogs displayed in the Control Panel. */
 package org.opends.guitools.controlpanel.ui;

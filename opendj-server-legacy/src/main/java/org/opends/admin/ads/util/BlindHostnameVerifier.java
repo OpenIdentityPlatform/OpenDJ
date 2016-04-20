@@ -12,20 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
-/**
- * A HostnameVerifier which verifies nothing.
- */
+/** A HostnameVerifier which verifies nothing. */
 class BlindHostnameVerifier implements HostnameVerifier
 {
-  /** {@inheritDoc} */
+  @Override
   public boolean verify(String hostname, SSLSession session)
   {
     return true;

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.nodes;
 
@@ -40,18 +40,16 @@ public class DndBrowserNodes implements Transferable {
   /** The component that contains the nodes. */
   private Component parent;
 
-  /**
+  /*
    * Transferable implementation
    * ============================================
    */
 
-  /** {@inheritDoc} */
   @Override
   public boolean isDataFlavorSupported(DataFlavor df) {
     return df.equals(INFO_FLAVOR);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Object getTransferData(DataFlavor df)
   throws UnsupportedFlavorException, IOException {
@@ -61,7 +59,6 @@ public class DndBrowserNodes implements Transferable {
     return this;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DataFlavor[] getTransferDataFlavors() {
     return FLAVORS;

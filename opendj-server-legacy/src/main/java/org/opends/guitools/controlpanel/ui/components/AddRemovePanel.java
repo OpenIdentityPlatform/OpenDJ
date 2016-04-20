@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -124,19 +124,19 @@ public class AddRemovePanel<T> extends JPanel
 
     ListDataListener listDataListener = new ListDataListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void intervalRemoved(ListDataEvent ev)
       {
         updateButtonEnabling();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void intervalAdded(ListDataEvent ev)
       {
         updateButtonEnabling();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void contentsChanged(ListDataEvent ev)
       {
         updateButtonEnabling();
@@ -144,7 +144,7 @@ public class AddRemovePanel<T> extends JPanel
     };
     MouseAdapter doubleClickListener = new MouseAdapter()
     {
-      /** {@inheritDoc} */
+      @Override
       public void mouseClicked(MouseEvent e) {
         if (isEnabled() && e.getClickCount() == 2)
         {
@@ -209,7 +209,7 @@ public class AddRemovePanel<T> extends JPanel
     add.setOpaque(false);
     add.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         addClicked();
@@ -225,7 +225,7 @@ public class AddRemovePanel<T> extends JPanel
       addAll.setOpaque(false);
       addAll.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           selectedListModel.addAll(availableListModel.getData());
@@ -245,7 +245,7 @@ public class AddRemovePanel<T> extends JPanel
     remove.setOpaque(false);
     remove.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         removeClicked();
@@ -262,7 +262,7 @@ public class AddRemovePanel<T> extends JPanel
       removeAll.setOpaque(false);
       removeAll.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           availableListModel.addAll(selectedListModel.getData());
@@ -298,6 +298,7 @@ public class AddRemovePanel<T> extends JPanel
         ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     ListSelectionListener listener = new ListSelectionListener()
     {
+      @Override
       public void valueChanged(ListSelectionEvent ev)
       {
         updateButtonEnabling();
@@ -326,6 +327,7 @@ public class AddRemovePanel<T> extends JPanel
    * Enables the state of the components in the panel.
    * @param enable whether to enable the components in the panel or not.
    */
+  @Override
   public void setEnabled(boolean enable)
   {
     super.setEnabled(enable);

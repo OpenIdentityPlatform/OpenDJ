@@ -12,14 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
-/**
- * Represents a suffix in the tree in the 'Manage Entries...' tree.
- *
- */
+/** Represents a suffix in the tree in the 'Manage Entries...' tree. */
 public class SuffixNode extends BasicNode {
 
   private static final long serialVersionUID = -58392395417985255L;

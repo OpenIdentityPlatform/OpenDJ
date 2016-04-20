@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -54,10 +54,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.RecurringTask;
 
-/**
- * The panel that allows the user to specify when a task will be launched.
- *
- */
+/** The panel that allows the user to specify when a task will be launched. */
 public class TaskToSchedulePanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 6855081932432566784L;
@@ -151,9 +148,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -204,6 +199,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
 
     scheduleType.addItemListener(new ItemListener()
     {
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         Object element = scheduleType.getSelectedItem();
@@ -265,7 +261,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     add(Box.createVerticalGlue(), gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     // Reset the schedule and the labels
@@ -288,13 +284,13 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_TASK_TO_SCHEDULE_TITLE.get(taskName);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     schedule = null;
@@ -715,12 +711,12 @@ public class TaskToSchedulePanel extends StatusGenericPanel
     return schedule == null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return scheduleType;

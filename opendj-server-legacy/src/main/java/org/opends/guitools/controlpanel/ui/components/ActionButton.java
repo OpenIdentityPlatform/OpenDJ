@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -208,7 +208,6 @@ public class ActionButton extends JButton
     repaint();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateUI() {
       super.updateUI();
@@ -216,7 +215,6 @@ public class ActionButton extends JButton
       setBorder(buttonBorder);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected void paintComponent(Graphics g) {
     setBorder(hasFocus() ? focusBorder : buttonBorder);

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -21,10 +21,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.JTextComponent;
 
-/**
- * Document filter used to update properly a text component displaying a
- * time.
- */
+/** Document filter used to update properly a text component displaying a time. */
 public class TimeDocumentFilter extends DocumentFilter
 {
   private JTextComponent tf;
@@ -38,7 +35,7 @@ public class TimeDocumentFilter extends DocumentFilter
     this.tf = tf;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void insertString(DocumentFilter.FilterBypass fb, int offset,
       String text, AttributeSet attr)
   throws BadLocationException
@@ -48,7 +45,7 @@ public class TimeDocumentFilter extends DocumentFilter
     trimPosition(fb, text, offset, previousLength);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void remove(DocumentFilter.FilterBypass fb, int offset,
       int length)
   throws BadLocationException
@@ -74,7 +71,7 @@ public class TimeDocumentFilter extends DocumentFilter
     updateCaretPosition(fb);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void replace(DocumentFilter.FilterBypass fb, int offset,
       int length, String text, AttributeSet attr)
   throws BadLocationException

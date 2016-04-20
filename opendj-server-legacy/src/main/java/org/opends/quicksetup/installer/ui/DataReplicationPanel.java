@@ -81,7 +81,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     addActionListeners();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -118,7 +118,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     JLabel label = getLabel(fieldName);
@@ -138,7 +138,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -249,19 +249,19 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_DATA_REPLICATION_OPTIONS_PANEL_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_DATA_REPLICATION_OPTIONS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -270,7 +270,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTextForIcon(UIFactory.IconType iconType)
   {
     if (iconType == UIFactory.IconType.WAIT &&
@@ -329,9 +329,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     return null;
   }
 
-  /**
-   * Creates the components and populates the Maps with them.
-   */
+  /** Creates the components and populates the Maps with them. */
   private void populateComponentMaps()
   {
     HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
@@ -420,9 +418,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     checkEnablingState();
   }
 
-  /**
-   * Adds all the required document listeners to the fields.
-   */
+  /** Adds all the required document listeners to the fields. */
   private void addDocumentListeners()
   {
     FieldName[] fields = {
@@ -434,6 +430,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     for (FieldName field : fields) {
       JTextComponent tf = getField(field);
       tf.getDocument().addDocumentListener(new DocumentListener() {
+        @Override
         public void changedUpdate(DocumentEvent ev) {
           if (!rbReplicated.isSelected()) {
             rbReplicated.setSelected(true);
@@ -443,10 +440,12 @@ public class DataReplicationPanel extends QuickSetupStepPanel
           }
         }
 
+        @Override
         public void insertUpdate(DocumentEvent ev) {
           changedUpdate(ev);
         }
 
+        @Override
         public void removeUpdate(DocumentEvent ev) {
           changedUpdate(ev);
         }
@@ -454,13 +453,12 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     }
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addFocusListeners()
   {
     final FocusListener l = new FocusListener()
     {
+      @Override
       public void focusGained(FocusEvent e)
       {
         lastFocusComponent = e.getComponent();
@@ -474,6 +472,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
         }
       }
 
+      @Override
       public void focusLost(FocusEvent e)
       {
       }
@@ -491,13 +490,12 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     lastFocusComponent = rbStandalone;
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addActionListeners()
   {
     final ActionListener l = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         checkEnablingState();
@@ -511,6 +509,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     cbTopologyExists.addActionListener(l);
     cbTopologyExists.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         if (cbTopologyExists.isSelected())
@@ -521,9 +520,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     });
   }
 
-  /**
-   * Enables/disables the fields.
-   */
+  /** Enables/disables the fields. */
   private void checkEnablingState()
   {
     boolean enableFields = rbReplicated.isSelected() &&

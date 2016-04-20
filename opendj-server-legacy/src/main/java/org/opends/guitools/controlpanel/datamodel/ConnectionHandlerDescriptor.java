@@ -185,21 +185,18 @@ public class ConnectionHandlerDescriptor
     this.monitoringEntries = Collections.unmodifiableSet(monitoringEntries);
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return toString;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {

@@ -12,13 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-/**
- * Class that describes the VLV sort order.
- */
+/** Class that describes the VLV sort order. */
 public class VLVSortOrder
 {
   private String attributeName;
@@ -56,13 +54,13 @@ public class VLVSortOrder
     return isAscending;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (o == this) {

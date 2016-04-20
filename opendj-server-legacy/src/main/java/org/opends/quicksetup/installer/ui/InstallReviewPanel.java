@@ -65,10 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-/**
- * This is the panel that contains the Review Panel.
- *
- */
+/** This is the panel that contains the Review Panel. */
 public class InstallReviewPanel extends ReviewPanel {
 
   private static final long serialVersionUID = -7356174829193265699L;
@@ -102,7 +99,6 @@ public class InstallReviewPanel extends ReviewPanel {
     populateLabelAndFieldsMap();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void beginDisplay(UserData userData)
   {
@@ -185,14 +181,12 @@ public class InstallReviewPanel extends ReviewPanel {
     return instructionsPanel;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Component createInputPanel()
   {
@@ -218,7 +212,6 @@ public class InstallReviewPanel extends ReviewPanel {
     return panel;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Object getFieldValue(FieldName fieldName)
   {
@@ -234,14 +227,12 @@ public class InstallReviewPanel extends ReviewPanel {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_REVIEW_PANEL_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getTitle()
   {
@@ -526,7 +517,6 @@ public class InstallReviewPanel extends ReviewPanel {
     return equivalentCommandPane;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected JComponent getBottomComponent()
   {

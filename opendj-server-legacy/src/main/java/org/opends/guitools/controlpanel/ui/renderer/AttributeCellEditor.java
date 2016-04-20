@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -40,11 +40,7 @@ import org.opends.guitools.controlpanel.ui.components.BinaryCellPanel;
 import org.opends.guitools.controlpanel.ui.components.ObjectClassCellPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
 
-/**
- * The cell editor used in the 'Attribute' View of the entries in the LDAP
- * entry browser.
- *
- */
+/** The cell editor used in the 'Attribute' View of the entries in the LDAP entry browser. */
 public class AttributeCellEditor extends AbstractCellEditor
 implements TableCellEditor
 {
@@ -78,16 +74,13 @@ implements TableCellEditor
   private String attrName;
 
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public AttributeCellEditor()
   {
     textField = Utilities.createTextField();
     textField.getDocument().addDocumentListener(new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         if (!textField.hasFocus())
@@ -96,13 +89,13 @@ implements TableCellEditor
         }
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -111,7 +104,7 @@ implements TableCellEditor
     passwordField = Utilities.createPasswordField();
     passwordField.getDocument().addDocumentListener(new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         if (!passwordField.hasFocus())
@@ -120,13 +113,13 @@ implements TableCellEditor
         }
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -137,7 +130,7 @@ implements TableCellEditor
     binaryPanel = new BinaryCellPanel();
     binaryPanel.addEditActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent e)
       {
         if (editBinaryDlg == null)
@@ -184,7 +177,7 @@ implements TableCellEditor
     ocPanel = new ObjectClassCellPanel();
     ocPanel.addEditActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         if (editOcDlg == null)
@@ -214,7 +207,7 @@ implements TableCellEditor
     });
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellEditorComponent(JTable table, Object value,
                    boolean isSelected, int row, int column)
   {
@@ -277,7 +270,7 @@ implements TableCellEditor
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getCellEditorValue()
   {
     if (binaryValue != null)

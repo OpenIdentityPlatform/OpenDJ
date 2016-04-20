@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -90,7 +90,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     final ArrayList<LocalizableMessage> errors = new ArrayList<>();
@@ -99,6 +99,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
     {
       BackgroundTask<Void> worker = new BackgroundTask<Void>()
       {
+        @Override
         public Void processBackgroundTask()
         {
           try
@@ -111,6 +112,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
           checkSyntax(errors);
           return null;
         }
+        @Override
         public void backgroundTaskCompleted(Void returnValue, Throwable t)
         {
           if (t != null)
@@ -190,6 +192,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
           Utilities.getParentDialog(this).setVisible(false);
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               dlg.toFront();
@@ -209,7 +212,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     updateErrorPaneIfServerRunningAndAuthRequired(ev.getNewDescriptor(),

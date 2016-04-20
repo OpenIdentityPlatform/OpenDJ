@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -27,10 +27,7 @@ import javax.swing.ListCellRenderer;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 
-/**
- * Class used to render elements of the class VLVSortOrder.
- *
- */
+/** Class used to render elements of the class VLVSortOrder. */
 public class VLVSortOrderRenderer implements ListCellRenderer
 {
   private ListCellRenderer defaultRenderer;
@@ -44,7 +41,7 @@ public class VLVSortOrderRenderer implements ListCellRenderer
     this.defaultRenderer = list.getCellRenderer();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -74,10 +74,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The pane that is displayed when the user clicks on 'Browse Indexes'.
- *
- */
+/** The pane that is displayed when the user clicks on 'Browse Indexes'. */
 public class BrowseIndexPanel extends StatusGenericPanel
 implements IndexModifiedListener
 {
@@ -118,29 +115,26 @@ implements IndexModifiedListener
 
   private boolean firstTreeRepopulate = true;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BrowseIndexPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -155,9 +149,7 @@ implements IndexModifiedListener
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     setBackground(ColorAndFontConstants.greyBackground);
@@ -185,7 +177,7 @@ implements IndexModifiedListener
     backends.setModel(new DefaultComboBoxModel(new String[]{}));
     ItemListener comboListener = new ItemListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         if (!ignoreSelectionEvents &&
@@ -209,7 +201,7 @@ implements IndexModifiedListener
     newIndex.setOpaque(false);
     newIndex.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newIndexClicked();
@@ -224,7 +216,7 @@ implements IndexModifiedListener
     newVLVIndex.setOpaque(false);
     newVLVIndex.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newVLVIndexClicked();
@@ -247,31 +239,31 @@ implements IndexModifiedListener
     add(createSplitPane(), gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MANAGE_INDEXES_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return backends;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void closeClicked()
   {
     super.closeClicked();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.CLOSE;
@@ -290,7 +282,7 @@ implements IndexModifiedListener
 
     entryPane.addIndexSelectionListener(new IndexSelectionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void indexSelected(IndexSelectionEvent ev)
       {
         AbstractIndexDescriptor index = ev.getIndex();
@@ -329,7 +321,7 @@ implements IndexModifiedListener
 
     treePane.getTree().addTreeSelectionListener(new TreeSelectionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void valueChanged(TreeSelectionEvent ev)
       {
         if (!ignoreSelectionEvents)
@@ -419,7 +411,7 @@ implements IndexModifiedListener
     return pane;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -428,7 +420,7 @@ implements IndexModifiedListener
     info.addIndexModifiedListener(this);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ignoreSelectionEvents = true;
@@ -438,10 +430,7 @@ implements IndexModifiedListener
     refreshContents(desc);
   }
 
-  /**
-   * Adds a pop up menu.
-   *
-   */
+  /** Adds a pop up menu. */
   private void addPopupMenu()
   {
     final JPopupMenu popup = new JPopupMenu();
@@ -449,7 +438,7 @@ implements IndexModifiedListener
         INFO_CTRL_PANEL_NEW_INDEX_MENU.get());
     menuItem.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newIndexClicked();
@@ -460,7 +449,7 @@ implements IndexModifiedListener
         INFO_CTRL_PANEL_NEW_VLV_INDEX_MENU.get());
     menuItem.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         newVLVIndexClicked();
@@ -472,7 +461,7 @@ implements IndexModifiedListener
         INFO_CTRL_PANEL_DELETE_INDEX_MENU.get());
     deleteMenuItem.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteClicked();
@@ -492,7 +481,7 @@ implements IndexModifiedListener
   {
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         repopulateTree(treePane.getTree());
@@ -518,13 +507,13 @@ implements IndexModifiedListener
     });
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void indexModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
     refreshContents(getInfo().getServerDescriptor());
@@ -662,6 +651,7 @@ implements IndexModifiedListener
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         if (firstTreeRepopulate)
@@ -678,10 +668,7 @@ implements IndexModifiedListener
     ignoreSelectionEvents = false;
   }
 
-  /**
-   * Updates the contents of the right panel.
-   *
-   */
+  /** Updates the contents of the right panel. */
   private void updateEntryPane()
   {
     ViewPositions pos = Utilities.getViewPositions(entryPane);
@@ -752,6 +739,7 @@ implements IndexModifiedListener
       newIndexPanel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
+            @Override
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
               Object o = ev.getConfigurationObject();
@@ -792,7 +780,7 @@ implements IndexModifiedListener
       newVLVIndexPanel.addConfigurationElementCreatedListener(
           new ConfigurationElementCreatedListener()
           {
-            /** {@inheritDoc} */
+            @Override
             public void elementCreated(ConfigurationElementCreatedEvent ev)
             {
               Object o = ev.getConfigurationObject();
@@ -914,7 +902,7 @@ implements IndexModifiedListener
 
     private static final long serialVersionUID = -6953837045703643228L;
 
-    /** {@inheritDoc} */
+    @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value,
         boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
         boolean hasFocus)

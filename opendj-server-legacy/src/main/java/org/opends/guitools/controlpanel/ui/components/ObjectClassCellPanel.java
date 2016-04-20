@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -43,7 +43,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * values of an entry.  It displays the structural and auxiliary object classes.
  * It does not allow to edit directly the object class value.  It is used for
  * instance in the entry editors (simplified and table views).
- *
  */
 public class ObjectClassCellPanel extends JPanel
 {
@@ -56,10 +55,7 @@ public class ObjectClassCellPanel extends JPanel
   private ImageIcon lockIcon =
     Utilities.createImageIcon(IconPool.IMAGE_PATH+"/field-locked.png");
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ObjectClassCellPanel()
   {
     super(new GridBagLayout());
@@ -124,10 +120,7 @@ public class ObjectClassCellPanel extends JPanel
     }
   }
 
-  /**
-   * Explicitly request the focus for the edit button of this panel.
-   *
-   */
+  /** Explicitly request the focus for the edit button of this panel. */
   public void requestFocusForButton()
   {
     editButton.requestFocusInWindow();
@@ -163,7 +156,7 @@ public class ObjectClassCellPanel extends JPanel
     editButton.setVisible(visible);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
       int condition, boolean pressed)
   {

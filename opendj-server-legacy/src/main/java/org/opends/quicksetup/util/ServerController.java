@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
@@ -42,9 +42,7 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
-/**
- * Class used to manipulate an OpenDS server.
- */
+/** Class used to manipulate an OpenDS server. */
 public class ServerController {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -180,9 +178,7 @@ public class ServerController {
             new BufferedReader(
                 new InputStreamReader(process.getInputStream()));
 
-          /* Create these objects to resend the stop process output to the
-           * details area.
-           */
+          /* Create these objects to resend the stop process output to the details area. */
           new StopReader(err, true);
           new StopReader(out, false);
 
@@ -242,10 +238,7 @@ public class ServerController {
           } else if (returnValue != 0) {
             if (stopTries <= 0)
             {
-              /*
-               * The return code is not the one expected, assume the server
-               * could not be stopped.
-               */
+              /* The return code is not the one expected, assume the server could not be stopped. */
               throw new ApplicationException(
                   ReturnCode.STOP_ERROR,
                   INFO_ERROR_STOPPING_SERVER_CODE.get(returnValue),
@@ -600,7 +593,6 @@ public class ServerController {
    *
    * When a new log message is found notifies the ProgressUpdateListeners
    * of it. If an error occurs it also notifies the listeners.
-   *
    */
   private class StartReader
   {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -36,7 +36,6 @@ import org.opends.quicksetup.util.ExtensionFileFilter;
  * in the buttons and text fields so that a file chooser will be displayed
  * when the user clicks on the button and if the user chooses a file or a
  * directory the text field will be updated accordingly.
- *
  */
 public class BrowseActionListener implements ActionListener
 {
@@ -48,40 +47,22 @@ public class BrowseActionListener implements ActionListener
 
   private BrowseType type;
 
-  /**
-   * Enumeration used to specify which kind of file browser dialog must be
-   * displayed.
-   *
-   */
+  /** Enumeration used to specify which kind of file browser dialog must be displayed. */
   public enum BrowseType
   {
-    /**
-     * The Browser is used to retrieve a directory.
-     */
+    /** The Browser is used to retrieve a directory. */
     LOCATION_DIRECTORY,
-    /**
-     * The Browser is used to retrieve an LDIF file.
-     */
+    /** The Browser is used to retrieve an LDIF file. */
     OPEN_LDIF_FILE,
-    /**
-     * The Browser is used to retrieve a .zip file.
-     */
+    /** The Browser is used to retrieve a .zip file. */
     OPEN_ZIP_FILE,
-    /**
-     * The Browser is used to retrieve a generic file.
-     */
+    /** The Browser is used to retrieve a generic file. */
     OPEN_GENERIC_FILE,
-    /**
-     * The Browser is used to create a generic file.
-     */
+    /** The Browser is used to create a generic file. */
     CREATE_GENERIC_FILE,
-    /**
-     * The Browser is used to create an LDIF file.
-     */
+    /** The Browser is used to create an LDIF file. */
     CREATE_LDIF_FILE,
-    /**
-     * The Browser is used to create a generic directory.
-     */
+    /** The Browser is used to create a generic directory. */
     CREATE_DIRECTORY
   }
 
@@ -178,8 +159,8 @@ public class BrowseActionListener implements ActionListener
    * dialog.
    *
    * @param e the ActionEvent we receive.
-   *
    */
+  @Override
   public void actionPerformed(ActionEvent e)
   {
     int returnVal;
@@ -242,10 +223,7 @@ public class BrowseActionListener implements ActionListener
     }
   }
 
-  /**
-   * The method that is called after the text field is updated.
-   *
-   */
+  /** The method that is called after the text field is updated. */
   protected void fieldUpdated()
   {
   }

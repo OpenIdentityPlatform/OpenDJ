@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui.renderer;
 
 import java.awt.Component;
@@ -24,22 +23,18 @@ import javax.swing.JTable;
 import org.opends.guitools.controlpanel.datamodel.BaseDNTableModel;
 import org.opends.guitools.controlpanel.util.Utilities;
 
-/**
- * Class used to render the base DN table cells.
- */
+/** Class used to render the base DN table cells. */
 public class BaseDNCellRenderer extends CustomCellRenderer
 {
   private static final long serialVersionUID = -256719167426289735L;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public BaseDNCellRenderer()
   {
     super();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     String text = (String)value;

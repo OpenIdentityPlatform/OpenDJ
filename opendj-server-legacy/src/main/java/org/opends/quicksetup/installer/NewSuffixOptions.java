@@ -12,17 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer;
 
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * This class is used to provide a data model for the Data Options panel of the
- * installer.
- */
+/** This class is used to provide a data model for the Data Options panel of the installer. */
 public class NewSuffixOptions
 {
   /**
@@ -31,21 +28,13 @@ public class NewSuffixOptions
    */
   public enum Type
   {
-    /**
-     * Create base entry.
-     */
+    /** Create base entry. */
     CREATE_BASE_ENTRY,
-    /**
-     * Do not add any entry to the suffix.
-     */
+    /** Do not add any entry to the suffix. */
     LEAVE_DATABASE_EMPTY,
-    /**
-     * Import data from an LDIF file.
-     */
+    /** Import data from an LDIF file. */
     IMPORT_FROM_LDIF_FILE,
-    /**
-     * Generate data and import it to the suffix.
-     */
+    /** Generate data and import it to the suffix. */
     IMPORT_AUTOMATICALLY_GENERATED_DATA
   }
 

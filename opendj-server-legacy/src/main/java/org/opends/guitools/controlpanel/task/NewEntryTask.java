@@ -91,37 +91,37 @@ public class NewEntryTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.NEW_ENTRY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_NEW_ENTRY_TASK_DESCRIPTION.get(dn);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<>();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -143,13 +143,13 @@ public class NewEntryTask extends Task
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean regenerateDescriptor()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -195,6 +195,7 @@ public class NewEntryTask extends Task
 
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           printEquivalentCommand();
@@ -210,6 +211,7 @@ public class NewEntryTask extends Task
 
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(
@@ -270,10 +272,7 @@ public class NewEntryTask extends Task
     }
   }
 
-  /**
-   * Prints the equivalent command-line in the progress dialog.
-   *
-   */
+  /** Prints the equivalent command-line in the progress dialog. */
   private void printEquivalentCommand()
   {
     ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -34,10 +34,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * Panel that appears when the user wants to change the password of a user.
- *
- */
+/** Panel that appears when the user wants to change the password of a user. */
 public class ResetUserPasswordPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 8733172823605832626L;
@@ -51,10 +48,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
   private BasicNode node;
   private BrowserController controller;
 
-  /**
-   * Constructor of the panel.
-   *
-   */
+  /** Constructor of the panel. */
   public ResetUserPasswordPanel()
   {
     super();
@@ -83,13 +77,13 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
     packParentDialog();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return password;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     final ArrayList<LocalizableMessage> errors = new ArrayList<>();
@@ -144,20 +138,18 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_RESET_USER_PASSWORD_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();

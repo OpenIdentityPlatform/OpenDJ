@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -29,10 +29,7 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import com.forgerock.opendj.cli.ClientException;
 
-/**
- * Class used by Launcher to start a CLI application.
- *
- */
+/** Class used by Launcher to start a CLI application. */
 public class QuickSetupCli {
 
   /** Arguments passed in the command line. */
@@ -85,6 +82,7 @@ public class QuickSetupCli {
         if (!userData.isQuiet()) {
           cliApp.addProgressUpdateListener(
                   new ProgressUpdateListener() {
+                    @Override
                     public void progressUpdate(ProgressUpdateEvent ev) {
                       LocalizableMessage newLogs = ev.getNewLogs();
                       if (newLogs != null) {

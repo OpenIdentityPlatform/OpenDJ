@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -27,13 +27,12 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * table that appears on the right side of the Manage Index dialog when the user
  * clicks on the node "VLV Indexes" and it gives a global view of the VLV
  * indexes defined on a given backend.
- *
  */
 public class VLVIndexTableModel extends AbstractIndexTableModel
 {
   private static final long serialVersionUID = 897379916278218775L;
 
-  /** {@inheritDoc} */
+  @Override
   protected String[] getColumnNames()
   {
     return new String[] {
@@ -55,6 +54,7 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
    * are equivalent in terms of sorting and -1 if the second descriptor must
    * be put before the first descriptor.
    */
+  @Override
   public int compare(AbstractIndexDescriptor index1,
       AbstractIndexDescriptor index2)
   {
@@ -84,7 +84,7 @@ public class VLVIndexTableModel extends AbstractIndexTableModel
     return result;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String[] getLine(AbstractIndexDescriptor index)
   {
     VLVIndexDescriptor i = (VLVIndexDescriptor)index;

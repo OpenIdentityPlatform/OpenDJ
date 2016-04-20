@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
@@ -70,167 +70,117 @@ public class UIFactory
 
   /** Specifies the horizontal insets between buttons. */
   public static final int HORIZONTAL_INSET_BETWEEN_BUTTONS = 5;
-
   /** Specifies the top inset for the steps. */
   public static final int TOP_INSET_STEP = 15;
-
   /** Specifies the left inset for the steps. */
   public static final int LEFT_INSET_STEP = 5;
-
   /** Specifies the extra left inset for the sub-steps. */
   public static final int LEFT_INSET_SUBSTEP = 20;
+
   /** Specifies the top inset for the instructions sub panel. */
   public static final int TOP_INSET_INSTRUCTIONS_SUBPANEL = 5;
-
   /** Specifies the top inset for input subpanel. */
   public static final int TOP_INSET_INPUT_SUBPANEL = 10;
-
   /** Specifies the top inset for a primary field. */
   public static final int TOP_INSET_PRIMARY_FIELD = 10;
-
   /** Specifies the top inset for a secondary field. */
   public static final int TOP_INSET_SECONDARY_FIELD = 5;
-
   /** Specifies the top inset for a radio button. */
   public static final int TOP_INSET_RADIOBUTTON = 0;
-
   /** Specifies the top inset for a radio button subordinate panel. */
   public static final int TOP_INSET_RADIO_SUBORDINATE = 0;
-
   /** Specifies the top inset for the progress bar. */
   public static final int TOP_INSET_PROGRESS_BAR = 5;
-
   /** Specifies the top inset for the progress text area. */
   public static final int TOP_INSET_PROGRESS_TEXTAREA = 4;
-
   /** Specifies the top inset for the background image. */
   public static final int TOP_INSET_BACKGROUND = 70;
-
   /** Specifies the top inset for the error message. */
   public static final int TOP_INSET_ERROR_MESSAGE = 10;
-
   /** Specifies the top inset for the browse button. */
   public static final int TOP_INSET_BROWSE = 5;
 
   /** Specifies the right inset for background image. */
   public static final int RIGHT_INSET_BACKGROUND = 20;
-
   /** Specifies the left inset for the primary field. */
   public static final int LEFT_INSET_PRIMARY_FIELD = 10;
-
   /** Specifies the left inset for the browse button. */
   public static final int LEFT_INSET_BROWSE = 10;
-
   /** Specifies the left inset for radio subordinate panel. */
   public static final int LEFT_INSET_RADIO_SUBORDINATE = 35;
-
   /** Specifies the left inset for the secondary field. */
   public static final int LEFT_INSET_SECONDARY_FIELD = 5;
-
   /** Specifies the left inset for the background image. */
   public static final int LEFT_INSET_BACKGROUND = 20;
-
   /** Specifies the left inset for the copy url button. */
   public static final int LEFT_INSET_COPY_BUTTON = 10;
-
   /** Specifies the left inset for a subordinate subpanel. */
   public static final int LEFT_INSET_SUBPANEL_SUBORDINATE = 30;
 
   /** Specifies the left inset for the progress bar. */
   public static final int BOTTOM_INSET_PROGRESS_BAR = 10;
-
   /** Specifies the bottom inset for the background image. */
   public static final int BOTTOM_INSET_BACKGROUND = 30;
-
   /** Specifies the top inset for a secondary field. */
   public static final int BOTTOM_INSET_SECONDARY_FIELD = 5;
 
   /** Specifies the number of columns of a text field for a path. */
   public static final int PATH_FIELD_SIZE = 20;
-
   /** Specifies the number of columns of a text field for a relative path. */
   public static final int RELATIVE_PATH_FIELD_SIZE = 10;
-
   /** Specifies the number of columns of a text field for a host name. */
   public static final int HOST_FIELD_SIZE = 20;
-
   /** Specifies the number of columns of a text field for a UID. */
   public static final int UID_FIELD_SIZE = 15;
-
   /** Specifies the number of columns of a text field for a port. */
   public static final int PORT_FIELD_SIZE = 5;
-
   /** Specifies the number of columns of a text field for a dn. */
   public static final int DN_FIELD_SIZE = 20;
-
   /** Specifies the number of columns of a text field for a password. */
   public static final int PASSWORD_FIELD_SIZE = 15;
-
-  /**
-   * Specifies the number of columns of a text field for the number of entries.
-   */
+  /** Specifies the number of columns of a text field for the number of entries. */
   public static final int NUMBER_ENTRIES_FIELD_SIZE = 7;
-
   /** Specifies the number of points for the width of the progress bar. */
   public static final int PROGRESS_BAR_SIZE = 220;
 
-  /**
-   * Specifies the number of extra points that we add to the minimum size of the
-   * dialog.
-   */
+  /** Specifies the number of extra points that we add to the minimum size of the dialog. */
   public static final int EXTRA_DIALOG_HEIGHT = 75;
 
   private static final Insets BUTTONS_PANEL_INSETS = new Insets(5, 0, 5, 10);
-
   private static final Insets STEPS_PANEL_INSETS = new Insets(15, 10, 5, 10);
-
   private static final Insets CURRENT_STEP_PANEL_INSETS = new Insets(15, 15, 15, 15);
-
   private static final Insets EMPTY_INSETS = new Insets(0, 0, 0, 0);
 
   /** Specifies the default background color. */
   public static final Color DEFAULT_BACKGROUND = getColor(INFO_DEFAULT_BACKGROUND_COLOR.get());
-
   /** Specifies the current step background color. */
   public static final Color CURRENT_STEP_PANEL_BACKGROUND = getColor(INFO_CURRENT_STEP_PANEL_BACKGROUND_COLOR.get());
-
   /** Specifies the default label color. */
   public static final Color DEFAULT_LABEL_COLOR = getColor(INFO_DEFAULT_LABEL_COLOR.get());
-
   /** Specifies the valid field color. */
   public static final Color FIELD_VALID_COLOR = getColor(INFO_FIELD_VALID_COLOR.get());
-
   /** Specifies the invalid field color. */
   public static final Color FIELD_INVALID_COLOR = getColor(INFO_FIELD_INVALID_COLOR.get());
-
   /** Specifies the read only text color. */
   public static final Color READ_ONLY_COLOR = getColor(INFO_READ_ONLY_COLOR.get());
-
   /** Specifies the check box text color. */
   public static final Color CHECKBOX_COLOR = getColor(INFO_CHECKBOX_COLOR.get());
-
   /** Specifies the progress text color. */
   public static final Color PROGRESS_COLOR = getColor(INFO_PROGRESS_COLOR.get());
-
   /** Specifies the instructions text color. */
   public static final Color INSTRUCTIONS_COLOR = getColor(INFO_INSTRUCTIONS_COLOR.get());
-
   /** Specifies the text field text color. */
   public static final Color TEXTFIELD_COLOR = getColor(INFO_TEXTFIELD_COLOR.get());
-
   /** Specifies the password field text color. */
   public static final Color PASSWORDFIELD_COLOR = getColor(INFO_PASSWORDFIELD_COLOR.get());
-
   /** Specifies the in-line help text color. */
   public static final Color INLINE_HELP_COLOR = getColor(INFO_INLINE_HELP_COLOR.get());
-
   /** Specifies the panel border color. */
   public static final Color PANEL_BORDER_COLOR = getColor(INFO_PANEL_BORDER_COLOR.get());
 
   /** Specifies the current step panel border. */
   public static final Border CURRENT_STEP_PANEL_BORDER =
       BorderFactory.createMatteBorder(0, 2, 2, 0, PANEL_BORDER_COLOR);
-
   /** Specifies the text area border. */
   public static final Border TEXT_AREA_BORDER =
       BorderFactory.createMatteBorder(1, 1, 1, 1, getColor(INFO_TEXT_AREA_BORDER_COLOR.get()));
@@ -251,86 +201,56 @@ public class UIFactory
     }
   }
 
-  /**
-   * Specifies the font for the step which is not the current one in the steps
-   * panel.
-   */
+  /** Specifies the font for the step which is not the current one in the steps panel. */
   public static final Font NOT_CURRENT_STEP_FONT = DEFAULT_FONT.deriveFont(14f);
-
-  /**
-   * Specifies the font for the step which is the current one in the steps
-   * panel.
-   */
+  /** Specifies the font for the step which is the current one in the steps panel. */
   public static final Font CURRENT_STEP_FONT = DEFAULT_FONT.deriveFont(14f).deriveFont(Font.BOLD);
-
   /** Specifies the font for the title of the current panel. */
   public static final Font TITLE_FONT = DEFAULT_FONT.deriveFont(14f).deriveFont(Font.BOLD);
-
   /** Specifies the font for the instructions of the current panel. */
   public static final Font INSTRUCTIONS_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the instructions of the current panel. */
   public static final Font INSTRUCTIONS_MONOSPACE_FONT = Font.decode("Monospaced-PLAIN-14");
-
   /** Specifies the font for the primary valid field. */
   public static final Font PRIMARY_FIELD_VALID_FONT = DEFAULT_FONT.deriveFont(Font.BOLD);
-
   /** Specifies the font for the secondary valid field. */
   public static final Font SECONDARY_FIELD_VALID_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the primary invalid field. */
   public static final Font PRIMARY_FIELD_INVALID_FONT = DEFAULT_FONT.deriveFont(Font.BOLD | Font.ITALIC);
-
   /** Specifies the font for the secondary invalid field. */
   public static final Font SECONDARY_FIELD_INVALID_FONT = DEFAULT_FONT.deriveFont(Font.ITALIC);
-
   /** Specifies the font for the secondary status field. */
   public static final Font SECONDARY_STATUS_FONT = DEFAULT_FONT.deriveFont(Font.ITALIC);
-
   /** Specifies the font for read only text. */
   public static final Font READ_ONLY_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the check box text. */
   public static final Font CHECKBOX_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the progress text. */
   public static final Font PROGRESS_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the text field text. */
   public static final Font TEXTFIELD_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the password field text. */
   public static final Font PASSWORD_FIELD_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the points '....' in the progress panel. */
   public static final Font PROGRESS_POINTS_FONT = DEFAULT_FONT.deriveFont(Font.BOLD);
-
   /** Specifies the font for the done text 'Done' in the progress panel. */
   public static final Font PROGRESS_DONE_FONT = PROGRESS_POINTS_FONT;
-
   /** Specifies the font for the log messages in the progress panel. */
   public static final Font PROGRESS_LOG_FONT = Font.decode("Monospaced-PLAIN-12");
-
   /** Specifies the font for the error log messages in the progress panel. */
   public static final Font PROGRESS_LOG_ERROR_FONT = Font.decode("Monospaced-PLAIN-12");
-
   /** Specifies the font for the error messages in the progress panel. */
   public static final Font PROGRESS_ERROR_FONT = DEFAULT_FONT.deriveFont(Font.BOLD);
-
   /** Specifies the font for the warning messages in the progress panel. */
   public static final Font PROGRESS_WARNING_FONT = DEFAULT_FONT.deriveFont(Font.BOLD);
-
   /** Specifies the font for the stack trace in the progress panel. */
   public static final Font STACK_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the text in the WebBrowserErrorDialog. */
   public static final Font ERROR_DIALOG_FONT = DEFAULT_FONT;
-
   /** Specifies the font for the text in the in-line help. */
   public static final Font INLINE_HELP_FONT = DEFAULT_FONT.deriveFont((float) (DEFAULT_FONT.getSize() - 2));
 
   private static final String SPAN_CLOSE = "</span>";
-
   private static final String DIV_CLOSE = "</div>";
 
   private static final String DIV_OPEN_ERROR_BACKGROUND =
@@ -1543,10 +1463,7 @@ class ProgressJEditorPane extends JEditorPane
   }
 }
 
-/**
- * A class used to be able to select the contents of the text field when it gets
- * the focus.
- */
+/** A class used to be able to select the contents of the text field when it gets the focus. */
 class TextFieldFocusListener implements FocusListener
 {
   private final JTextField tf;

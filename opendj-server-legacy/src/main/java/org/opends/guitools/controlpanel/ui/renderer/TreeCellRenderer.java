@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -30,23 +30,18 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 /**
  * An extension of the DefaultTreeCellRenderer that uses a customized border,
  * foreground and background.
- *
  */
 public class TreeCellRenderer extends DefaultTreeCellRenderer
 {
   private static final long serialVersionUID = 4045260951231311206L;
 
-  /**
-   * Background when the cell is not selected.
-   */
+  /** Background when the cell is not selected. */
   public static final Color nonselectionBackground =
     ColorAndFontConstants.background;
   private static final Color nonselectionForeground =
     ColorAndFontConstants.foreground;
 
-  /**
-   * Background when the cell is selected.
-   */
+  /** Background when the cell is selected. */
   public static final Color selectionBackground =
     ColorAndFontConstants.mouseOverBackground;
 
@@ -67,7 +62,7 @@ public class TreeCellRenderer extends DefaultTreeCellRenderer
     setFont(ColorAndFontConstants.treeFont);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTreeCellRendererComponent(JTree tree, Object value,
       boolean isSelected, boolean isExpanded, boolean isLeaf, int row,
       boolean hasFocus)

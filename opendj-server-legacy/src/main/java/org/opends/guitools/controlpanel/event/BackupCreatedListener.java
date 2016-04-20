@@ -12,15 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
 
-/**
- * The listeners that receive notifications when a backup is created.
- *
- */
+/** The listeners that receive notifications when a backup is created. */
 public interface BackupCreatedListener
 {
   /**

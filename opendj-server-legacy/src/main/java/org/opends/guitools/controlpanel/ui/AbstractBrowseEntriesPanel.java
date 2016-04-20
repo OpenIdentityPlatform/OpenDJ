@@ -160,9 +160,7 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
 
   private List<DN> otherBaseDns = new ArrayList<>();
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public AbstractBrowseEntriesPanel()
   {
     super();
@@ -571,14 +569,12 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     return buttonsPanel;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -781,7 +777,6 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
    */
   protected abstract Component createMainPanel();
 
-  /** {@inheritDoc} */
   @Override
   public void backendPopulated(BackendPopulatedEvent ev)
   {
@@ -937,7 +932,6 @@ public abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel impl
     controller.setMaxChildren(MAX_NUMBER_ENTRIES);
     controller.addBrowserEventListener(new BrowserEventListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void processBrowserEvent(BrowserEvent ev)
       {

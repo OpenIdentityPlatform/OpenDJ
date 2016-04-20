@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -33,7 +33,6 @@ import org.forgerock.i18n.LocalizableMessage;
 /**
  * The panel that displays the refresh options of the control panel.  Basically
  * it allows to set the refreshing period used by the control panel.
- *
  */
 public class RefreshOptionsPanel extends StatusGenericPanel
 {
@@ -45,25 +44,20 @@ public class RefreshOptionsPanel extends StatusGenericPanel
 
   private int MAX_VALUE = 5000;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public RefreshOptionsPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_REFRESH_PANEL_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -103,24 +97,24 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return period;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     isCanceled = true;
@@ -160,7 +154,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     return isCanceled;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     if (visible)

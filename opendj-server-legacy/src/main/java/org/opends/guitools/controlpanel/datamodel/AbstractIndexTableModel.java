@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
  * Table Model used to store information about indexes.  It is used basically
  * by the tables that appear on the right side of the 'Manage Indexes...'
  * dialog when the user clicks on 'Indexes' or 'VLV Indexes'.
- *
  */
 public abstract class AbstractIndexTableModel extends SortableTableModel
 implements Comparator<AbstractIndexDescriptor>
@@ -40,13 +39,9 @@ implements Comparator<AbstractIndexDescriptor>
   private ArrayList<String[]> dataArray = new ArrayList<>();
   private ArrayList<AbstractIndexDescriptor> indexArray = new ArrayList<>();
   private final String[] COLUMN_NAMES = getColumnNames();
-  /**
-   * The sort column of the table.
-   */
+  /** The sort column of the table. */
   protected int sortColumn;
-  /**
-   * Whether the sorting is ascending or descending.
-   */
+  /** Whether the sorting is ascending or descending. */
   protected boolean sortAscending = true;
   private ControlPanelInfo info;
 
@@ -70,6 +65,7 @@ implements Comparator<AbstractIndexDescriptor>
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
+  @Override
   public void forceResort()
   {
     updateDataArray();
@@ -78,25 +74,25 @@ implements Comparator<AbstractIndexDescriptor>
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public int getColumnCount()
   {
     return COLUMN_NAMES.length;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getColumnName(int col) {
     return COLUMN_NAMES[col];
   }
@@ -107,6 +103,7 @@ implements Comparator<AbstractIndexDescriptor>
    * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
    * otherwise.
    */
+  @Override
   public boolean isSortAscending()
   {
     return sortAscending;
@@ -116,6 +113,7 @@ implements Comparator<AbstractIndexDescriptor>
    * Sets whether to sort ascending of descending.
    * @param sortAscending whether to sort ascending or descending.
    */
+  @Override
   public void setSortAscending(boolean sortAscending)
   {
     this.sortAscending = sortAscending;
@@ -125,6 +123,7 @@ implements Comparator<AbstractIndexDescriptor>
    * Returns the column index used to sort.
    * @return the column index used to sort.
    */
+  @Override
   public int getSortColumn()
   {
     return sortColumn;
@@ -134,6 +133,7 @@ implements Comparator<AbstractIndexDescriptor>
    * Sets the column index used to sort.
    * @param sortColumn column index used to sort..
    */
+  @Override
   public void setSortColumn(int sortColumn)
   {
     this.sortColumn = sortColumn;
@@ -193,9 +193,7 @@ implements Comparator<AbstractIndexDescriptor>
     return getRebuildRequiredString(i1).compareTo(getRebuildRequiredString(i2));
   }
 
-  /**
-   * Updates the array data.  This includes resorting it.
-   */
+  /** Updates the array data. This includes resorting it. */
   private void updateDataArray()
   {
     TreeSet<AbstractIndexDescriptor> sortedSet = new TreeSet<>(this);

@@ -145,14 +145,12 @@ public class DeleteSchemaElementsTask extends Task
     this.attrsToDelete.addAll(allAttrsToDelete);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
@@ -170,14 +168,12 @@ public class DeleteSchemaElementsTask extends Task
     return canLaunch;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Type getType()
   {
     return Type.NEW_SCHEMA_ELEMENT;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void runTask()
   {
@@ -196,21 +192,18 @@ public class DeleteSchemaElementsTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTaskDescription()
   {

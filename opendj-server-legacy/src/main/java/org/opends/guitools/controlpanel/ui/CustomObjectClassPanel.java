@@ -139,26 +139,20 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   private boolean ignoreChangeEvents;
 
 
-  /**
-   * Default constructor of the panel.
-   *
-   */
+  /** Default constructor of the panel. */
   public CustomObjectClassPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CUSTOM_OBJECTCLASS_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   protected void createLayout()
   {
     JPanel p = new JPanel(new GridBagLayout());
@@ -190,7 +184,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     add(delete, gbc);
     delete.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void actionPerformed(ActionEvent ev)
       {
@@ -206,7 +199,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void actionPerformed(ActionEvent ev)
       {
@@ -226,7 +218,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     SuperiorObjectClassesChangedListener listener =
       new SuperiorObjectClassesChangedListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void parentObjectClassesChanged(
           SuperiorObjectClassesChangedEvent ev)
@@ -265,7 +256,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     attributes = new DoubleAddRemovePanel<>(0, AttributeType.class);
     Comparator<AttributeType> comparator = new Comparator<AttributeType>()
     {
-      /** {@inheritDoc} */
       @Override
       public int compare(AttributeType attr1, AttributeType attr2)
       {
@@ -365,7 +355,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     add(labels, comps, inlineHelps, p, gbc1);
     ChangeListener changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent e)
       {
@@ -378,21 +367,18 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     DocumentListener docListener = new DocumentListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void insertUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void removeUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void changedUpdate(DocumentEvent arg0)
       {
@@ -418,19 +404,16 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     ListDataListener dataListener = new ListDataListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void contentsChanged(ListDataEvent e)
       {
         checkEnableSaveChanges();
       }
-      /** {@inheritDoc} */
       @Override
       public void intervalAdded(ListDataEvent e)
       {
         checkEnableSaveChanges();
       }
-      /** {@inheritDoc} */
       @Override
       public void intervalRemoved(ListDataEvent e)
       {
@@ -547,7 +530,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     ignoreChangeEvents = false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -589,7 +571,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       @Override
       public void run()
       {
@@ -610,14 +591,12 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     });
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean mustCheckUnsavedChanges()
   {
     return saveChanges.isEnabled();
   }
 
-  /** {@inheritDoc} */
   @Override
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
@@ -644,14 +623,12 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     return result;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -1149,22 +1126,17 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   /**
    * A renderer for the attribute lists.  The renderer basically marks the
    * inherited attributes with an asterisk.
-   *
    */
   private class AttributeTypeCellRenderer implements ListCellRenderer
   {
     private ListCellRenderer defaultRenderer;
 
-    /**
-     * Renderer constructor.
-     *
-     */
+    /** Renderer constructor. */
     public AttributeTypeCellRenderer()
     {
       defaultRenderer = attributes.getAvailableList().getCellRenderer();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)

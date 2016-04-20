@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -35,17 +35,11 @@ import static org.opends.messages.AdminToolMessages.*;
  */
 public class IconPool {
 
-  /**
-   * Mask for the leaf node.
-   */
+  /** Mask for the leaf node. */
   public static final int MODIFIER_LEAF   = 0x01;
-  /**
-   * Mask for the referral node.
-   */
+  /** Mask for the referral node. */
   public static final int MODIFIER_REFERRAL = 0x02;
-  /**
-   * Mask for the node that has an error.
-   */
+  /** Mask for the node that has an error. */
   public static final int MODIFIER_ERROR    = 0x04;
 
   private final HashMap<String, ImageIcon> iconTable = new HashMap<>();
@@ -59,9 +53,7 @@ public class IconPool {
   private ImageIcon errorMaskIcon;
   private ImageIcon referralMaskIcon;
 
-  /**
-   * The path that contains the icons.
-   */
+  /** The path that contains the icons. */
   public static final String IMAGE_PATH =
     "org/opends/guitools/controlpanel/images";
 

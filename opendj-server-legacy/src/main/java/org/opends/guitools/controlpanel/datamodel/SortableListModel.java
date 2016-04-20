@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -31,17 +31,14 @@ import javax.swing.AbstractListModel;
  * of calls to the add/remove methods and a single call to notify that
  * things have changed is enough.
  *
- * @param <T>
+ * @param <T> type of the elements in this list model
  */
-public class SortableListModel<T> extends AbstractListModel
+public class SortableListModel<T> extends AbstractListModel<T>
 {
   private static final long serialVersionUID = 3241258779190228463L;
   private SortedSet<T> data = new TreeSet<>();
 
-  /**
-   * Returns the size of the list model.
-   * @return the size of the list model.
-   */
+  @Override
   public int getSize()
   {
     return data.size();
@@ -58,11 +55,7 @@ public class SortableListModel<T> extends AbstractListModel
     data.addAll(copy);
   }
 
-  /**
-   * Returns the element at the specified index.
-   * @param i the index of the element.
-   * @return the element at the specified index.
-   */
+  @Override
   public T getElementAt(int i)
   {
     int index = 0;
@@ -98,10 +91,7 @@ public class SortableListModel<T> extends AbstractListModel
     return data.remove(value);
   }
 
-  /**
-   * Clears the list model.
-   *
-   */
+  /** Clears the list model. */
   public void clear()
   {
     data.clear();
@@ -116,7 +106,7 @@ public class SortableListModel<T> extends AbstractListModel
     data.addAll(newData);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void fireContentsChanged(Object source, int index0, int index1)
   {
     super.fireContentsChanged(source, index0, index1);

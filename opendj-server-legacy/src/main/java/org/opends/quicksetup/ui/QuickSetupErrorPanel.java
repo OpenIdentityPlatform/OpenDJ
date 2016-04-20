@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -39,7 +39,6 @@ import static org.opends.messages.QuickSetupMessages.*;
  * This class is a panel that contains an error message and a quit button.
  * It is used for instance when we try to install Open DS but it is already
  * installed.
- *
  */
 public class QuickSetupErrorPanel extends QuickSetupPanel
 {
@@ -110,6 +109,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
 
     ActionListener quitListener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         ButtonEvent be = new ButtonEvent(ev.getSource(), fQuitButtonName);
@@ -128,6 +128,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
 
     ActionListener continueListener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         ButtonEvent be = new ButtonEvent(ev.getSource(), fContinueButtonName);

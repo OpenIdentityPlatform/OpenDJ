@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -31,7 +31,6 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
  * A table cell renderer that updates the rendering of the cells when the user
  * moves the mouse over the table.  This is done to provide a visual hint that
  * the table can be selected.
- *
  */
 public class SelectableTableCellRenderer extends CustomCellRenderer
 {
@@ -60,7 +59,6 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
   {
     MouseAdapter mouseListener = new MouseAdapter()
     {
-      /** {@inheritDoc} */
       @Override
       public void mousePressed(MouseEvent ev)
       {
@@ -68,14 +66,12 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
         table.repaint();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void mouseReleased(MouseEvent ev)
       {
         isBeingPressed = false;
       }
 
-      /** {@inheritDoc} */
       @Override
       public void mouseExited(MouseEvent ev)
       {
@@ -84,7 +80,6 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
         table.repaint();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void mouseEntered(MouseEvent ev)
       {
@@ -101,7 +96,6 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
     };
     MouseMotionAdapter mouseMotionAdapter = new MouseMotionAdapter()
     {
-      /** {@inheritDoc} */
       @Override
       public void mouseMoved(MouseEvent ev)
       {
@@ -109,7 +103,6 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
         table.repaint();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void mouseDragged(MouseEvent ev)
       {
@@ -121,7 +114,6 @@ public class SelectableTableCellRenderer extends CustomCellRenderer
     table.addMouseMotionListener(mouseMotionAdapter);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column)

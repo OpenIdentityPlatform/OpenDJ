@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -41,7 +41,6 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
  * browser, index browser or the LDAP entries browser).  It renders in a
  * different manner than the default tree (selection takes the whole width
  * of the tree, in a similar manner as happens with trees in Mac OS).
- *
  */
 public class CustomTree extends JTree
 {
@@ -50,16 +49,13 @@ public class CustomTree extends JTree
   private JPopupMenu popupMenu;
   private final int MAX_ICON_HEIGHT = 18;
 
-  /**
-   * Internal enumeration used to translate mouse events.
-   *
-   */
+  /** Internal enumeration used to translate mouse events. */
   private enum NewEventType
   {
     MOUSE_PRESSED, MOUSE_CLICKED, MOUSE_RELEASED
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void paintComponent(Graphics g)
   {
     int[] selectedRows = getSelectionRows();
@@ -131,7 +127,7 @@ public class CustomTree extends JTree
     MouseListener mouseListener = new MouseAdapter()
     {
       private boolean ignoreEvents;
-      /** {@inheritDoc} */
+      @Override
       public void mousePressed(MouseEvent ev)
       {
         if (ignoreEvents)
@@ -180,7 +176,7 @@ public class CustomTree extends JTree
         }
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void mouseReleased(MouseEvent ev)
       {
         if (ignoreEvents)
@@ -203,7 +199,7 @@ public class CustomTree extends JTree
         }
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void mouseClicked(MouseEvent ev)
       {
         if (ignoreEvents)
@@ -282,7 +278,7 @@ public class CustomTree extends JTree
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void addMouseListener(MouseListener mouseListener)
   {
     super.addMouseListener(mouseListener);
@@ -293,7 +289,7 @@ public class CustomTree extends JTree
     mouseListeners.add(mouseListener);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void removeMouseListener(MouseListener mouseListener)
   {
     super.removeMouseListener(mouseListener);

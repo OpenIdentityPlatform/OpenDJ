@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -29,10 +29,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The task called when we want to start the server.
- *
- */
+/** The task called when we want to start the server. */
 public class StopServerTask extends StartStopTask
 {
 
@@ -46,20 +43,20 @@ public class StopServerTask extends StartStopTask
     super(info, dlg);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.STOP_SERVER;
   }
 
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_STOP_SERVER_TASK_DESCRIPTION.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     super.runTask();
@@ -68,6 +65,7 @@ public class StopServerTask extends StartStopTask
       // Verify that the server is actually stopped
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont(
@@ -78,7 +76,7 @@ public class StopServerTask extends StartStopTask
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return getCommandLinePath("stop-ds");
@@ -88,6 +86,7 @@ public class StopServerTask extends StartStopTask
    * Method called just after calling the command-line.  To be overwritten
    * by the inheriting classes.
    */
+  @Override
   protected void postCommandLine()
   {
     if (returnCode != 0)
@@ -116,6 +115,7 @@ public class StopServerTask extends StartStopTask
       {
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().appendProgressHtml(

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
@@ -35,10 +35,7 @@ import org.opends.quicksetup.ProgressDescriptor;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
-/**
- * This panel is used to show the progress of the application.
- *
- */
+/** This panel is used to show the progress of the application. */
 public class ProgressPanel extends QuickSetupStepPanel
 {
   private static final long serialVersionUID = 8129425068163357170L;
@@ -64,7 +61,7 @@ public class ProgressPanel extends QuickSetupStepPanel
     super(application);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -88,6 +85,7 @@ public class ProgressPanel extends QuickSetupStepPanel
     CustomHTMLEditorKit htmlEditor = new CustomHTMLEditorKit();
     htmlEditor.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         // Assume is the authentication button.
@@ -123,6 +121,7 @@ public class ProgressPanel extends QuickSetupStepPanel
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
     detailsTextArea.addHyperlinkListener(new HyperlinkListener()
     {
+      @Override
       public void hyperlinkUpdate(HyperlinkEvent e)
       {
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
@@ -150,25 +149,25 @@ public class ProgressPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_PROGRESS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -177,7 +176,7 @@ public class ProgressPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void displayProgress(ProgressDescriptor descriptor)
   {
     ProgressStep status = descriptor.getProgressStep();
@@ -222,6 +221,7 @@ public class ProgressPanel extends QuickSetupStepPanel
                     INFO_CANCEL_BUTTON_LABEL.get(),
                     INFO_CANCEL_BUTTON_TOOLTIP.get());
     btnCancel.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         GuiApplication app = getApplication();
         QuickSetup qs = getQuickSetup();
@@ -266,18 +266,18 @@ public class ProgressPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addFocusListeners()
   {
     final FocusListener l = new FocusListener()
     {
+      @Override
       public void focusGained(FocusEvent e)
       {
         lastFocusComponent = e.getComponent();
       }
 
+      @Override
       public void focusLost(FocusEvent e)
       {
       }

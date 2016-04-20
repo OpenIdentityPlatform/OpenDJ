@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.opends.messages.AdminToolMessages.*;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -27,21 +29,19 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
-import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
-
-import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * An abstract class providing some common interface for the class that read
@@ -56,10 +56,7 @@ public abstract class ConfigReader
    */
   public static String configFile;
 
-  /**
-   * The error that occurred when setting the environment (null if no error
-   * occurred).
-   */
+  /** The error that occurred when setting the environment (null if no error occurred). */
   protected static OpenDsException environmentSettingException;
   static
   {
@@ -92,65 +89,36 @@ public abstract class ConfigReader
     logger.info(LocalizableMessage.raw("Environment initialized."));
   }
 
-  /**
-   * The exceptions that occurred reading the configuration.
-   */
+  /** The exceptions that occurred reading the configuration. */
   protected List<Exception> exceptions = Collections.emptyList();
 
-  /**
-   * Whether the configuration has already been read or not.
-   */
+  /** Whether the configuration has already been read or not. */
   protected boolean configRead;
 
-  /**
-   * The set of connection listeners.
-   */
+  /** The set of connection listeners. */
   protected Set<ConnectionHandlerDescriptor> listeners = Collections.emptySet();
-
-  /**
-   * The administration connector.
-   */
+  /** The administration connector. */
   protected ConnectionHandlerDescriptor adminConnector;
 
-  /**
-   * The set of backend descriptors.
-   */
+  /** The set of backend descriptors. */
   protected Set<BackendDescriptor> backends = Collections.emptySet();
-
-  /**
-   * The set of administrative users.
-   */
+  /** The set of administrative users. */
   protected Set<DN> administrativeUsers = Collections.emptySet();
 
-  /**
-   * The replication serve port (-1 if the replication server port is not
-   * defined).
-   */
+  /** The replication serve port (-1 if the replication server port is not defined). */
   protected int replicationPort = -1;
-
-  /**
-   * The java version used to run the server.
-   */
+  /** The java version used to run the server. */
   protected String javaVersion;
 
-  /**
-   * The number of connections opened on the server.
-   */
+  /** The number of connections opened on the server. */
   protected int numberConnections;
 
-  /**
-   * Whether the schema checking is enabled or not.
-   */
+  /** Whether the schema checking is enabled or not. */
   protected boolean isSchemaEnabled;
-
-  /**
-   * The schema used by the server.
-   */
+  /** The schema used by the server. */
   protected Schema schema;
 
-  /**
-   * The task entries.
-   **/
+  /** The task entries. */
   protected Set<TaskEntry> taskEntries = Collections.emptySet();
 
   /**

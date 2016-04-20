@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.event;
@@ -36,7 +36,6 @@ import static org.opends.messages.QuickSetupMessages.*;
  *
  * The class is used generally by adding it as ActionListener of a 'Browse'
  * button.
- *
  */
 public class BrowseActionListener implements ActionListener
 {
@@ -48,28 +47,16 @@ public class BrowseActionListener implements ActionListener
 
   private BrowseType type;
 
-  /**
-   * Enumeration used to specify which kind of file browser dialog must be
-   * displayed.
-   *
-   */
+  /** Enumeration used to specify which kind of file browser dialog must be displayed. */
   public enum BrowseType
   {
-    /**
-     * The Browser is used to retrieve a directory.
-     */
+    /** The Browser is used to retrieve a directory. */
     LOCATION_DIRECTORY,
-    /**
-     * The Browser is used to retrieve an LDIF file.
-     */
+    /** The Browser is used to retrieve an LDIF file. */
     OPEN_LDIF_FILE,
-    /**
-     * The Browser is used to retrieve a .zip file.
-     */
+    /** The Browser is used to retrieve a .zip file. */
     OPEN_ZIP_FILE,
-    /**
-     * The Browser is used to retrieve a generic file.
-     */
+    /** The Browser is used to retrieve a generic file. */
     GENERIC_FILE
   }
 
@@ -144,8 +131,8 @@ public class BrowseActionListener implements ActionListener
    * dialog.
    *
    * @param e the ActionEvent we receive.
-   *
    */
+  @Override
   public void actionPerformed(ActionEvent e)
   {
     int returnVal;

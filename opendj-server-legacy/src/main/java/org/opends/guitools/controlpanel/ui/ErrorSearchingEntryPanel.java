@@ -58,27 +58,23 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     errorPane.setVisible(true);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return errorPane;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {

@@ -12,18 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-/**
- * Abstract class with some common methods for all the nodes in the
- * 'Manage Schema' tree.
- *
- */
+/** Abstract class with some common methods for all the nodes in the 'Manage Schema' tree. */
 public abstract class SchemaElementTreeNode extends DefaultMutableTreeNode
 {
   private static final long serialVersionUID = 5832209952457633471L;
@@ -61,13 +57,13 @@ public abstract class SchemaElementTreeNode extends DefaultMutableTreeNode
     return schemaElement;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isRoot()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isLeaf()
   {
     return true;

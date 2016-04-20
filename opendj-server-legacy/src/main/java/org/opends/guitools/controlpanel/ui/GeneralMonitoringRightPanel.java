@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -32,10 +32,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
 
-/**
- * The panel on the right of the 'General Information' panel.
- *
- */
+/** The panel on the right of the 'General Information' panel. */
 public class GeneralMonitoringRightPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -4197460101279681042L;
@@ -85,13 +82,14 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
    * Displays a panel containing a message.
    * @param msg the message.
    */
+  @Override
   public void displayMessage(LocalizableMessage msg)
   {
     noEntryPanel.setMessage(msg);
     ((CardLayout)mainPanel.getLayout()).show(mainPanel, noEntryPanelTitle);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -131,31 +129,31 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
     add(mainPanel, gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return LocalizableMessage.EMPTY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }

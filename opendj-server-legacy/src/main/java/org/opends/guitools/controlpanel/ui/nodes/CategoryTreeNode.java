@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -25,7 +25,6 @@ import org.forgerock.i18n.LocalizableMessage;
  * The tree node that is used to represent a category.  It is used for instance
  * in the browse index tree to separate categories (index type) from the actual
  * index nodes.
- *
  */
 public class CategoryTreeNode extends DefaultMutableTreeNode
 {
@@ -40,13 +39,13 @@ public class CategoryTreeNode extends DefaultMutableTreeNode
     super(name);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isRoot()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isLeaf()
   {
     return getChildCount() == 0;

@@ -75,9 +75,8 @@ public abstract class Launcher {
   public abstract ArgumentParser getArgumentParser();
 
   /**
-   * Indicates whether or not the launcher should print a usage
-   * statement based on the content of the arguments passed into
-   * the constructor.
+   * Indicates whether the launcher should print a usage statement
+   * based on the content of the arguments passed into the constructor.
    * @return boolean where true indicates usage should be printed
    */
   protected boolean shouldPrintUsage() {
@@ -94,9 +93,8 @@ public abstract class Launcher {
   }
 
   /**
-   * Indicates whether or not the launcher should print a usage
-   * statement based on the content of the arguments passed into
-   * the constructor.
+   * Indicates whether the launcher should print a usage statement
+   * based on the content of the arguments passed into the constructor.
    * @return boolean where true indicates usage should be printed
    */
   protected boolean isQuiet() {
@@ -113,9 +111,8 @@ public abstract class Launcher {
   }
 
   /**
-   * Indicates whether or not the launcher should print a version
-   * statement based on the content of the arguments passed into
-   * the constructor.
+   * Indicates whether the launcher should print a version statement
+   * based on the content of the arguments passed into the constructor.
    * @return boolean where true indicates version should be printed
    */
   protected boolean shouldPrintVersion() {
@@ -191,6 +188,7 @@ public abstract class Launcher {
       { -1 };
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -234,8 +232,7 @@ public abstract class Launcher {
     }
     catch (InterruptedException ie)
     {
-      /* An error occurred, so the return value will be -1.  We got nothing to
-      do with this exception. */
+      /* An error occurred, so the return value will be -1. We got nothing to do with this exception. */
     }
     System.setErr(printStream);
     return returnValue[0];
@@ -276,9 +273,7 @@ public abstract class Launcher {
     return returnValue.getReturnCode();
   }
 
-  /**
-   * Prints the version statement to standard output terminal.
-   */
+  /** Prints the version statement to standard output terminal. */
   protected void printVersion()
   {
     System.out.print(PRINTABLE_VERSION_STRING);
@@ -324,9 +319,7 @@ public abstract class Launcher {
   /** Called if launching of the GUI failed. */
   protected abstract void guiLaunchFailed();
 
-  /**
-   * The main method which is called by the command lines.
-   */
+  /** The main method which is called by the command lines. */
   public void launch() {
     if (shouldPrintVersion()) {
       ArgumentParser parser = getArgumentParser();

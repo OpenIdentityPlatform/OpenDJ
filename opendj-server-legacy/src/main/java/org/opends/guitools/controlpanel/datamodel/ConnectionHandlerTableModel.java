@@ -12,13 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.messages.AdminToolMessages.*;
-
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,10 +24,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * The table model used by the table that displays the connection handlers.
- *
- */
+import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.State;
+
+/** The table model used by the table that displays the connection handlers. */
 public class ConnectionHandlerTableModel extends SortableTableModel
 implements Comparator<ConnectionHandlerDescriptor>
 {
@@ -40,9 +37,7 @@ implements Comparator<ConnectionHandlerDescriptor>
   private int sortColumn;
   private boolean sortAscending = true;
 
-  /**
-   * Constructor for this table model.
-   */
+  /** Constructor for this table model. */
   public ConnectionHandlerTableModel()
   {
     this(true);
@@ -92,6 +87,7 @@ implements Comparator<ConnectionHandlerDescriptor>
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
+  @Override
   public void forceResort()
   {
     updateDataArray();
@@ -107,6 +103,7 @@ implements Comparator<ConnectionHandlerDescriptor>
    * are equivalent in terms of sorting and -1 if the second descriptor must
    * be put before the first descriptor.
    */
+  @Override
   public int compare(ConnectionHandlerDescriptor desc1,
       ConnectionHandlerDescriptor desc2)
   {
@@ -176,62 +173,48 @@ implements Comparator<ConnectionHandlerDescriptor>
     return result;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int getColumnCount()
   {
     return 3;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getColumnName(int col) {
     return COLUMN_NAMES[col];
   }
 
-
-  /**
-   * Returns whether the sort is ascending or descending.
-   * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
-   * otherwise.
-   */
+  @Override
   public boolean isSortAscending()
   {
     return sortAscending;
   }
 
-  /**
-   * Sets whether to sort ascending of descending.
-   * @param sortAscending whether to sort ascending or descending.
-   */
+  @Override
   public void setSortAscending(boolean sortAscending)
   {
     this.sortAscending = sortAscending;
   }
 
-  /**
-   * Returns the column index used to sort.
-   * @return the column index used to sort.
-   */
+  @Override
   public int getSortColumn()
   {
     return sortColumn;
   }
 
-  /**
-   * Sets the column index used to sort.
-   * @param sortColumn column index used to sort..
-   */
+  @Override
   public void setSortColumn(int sortColumn)
   {
     this.sortColumn = sortColumn;
@@ -270,17 +253,13 @@ implements Comparator<ConnectionHandlerDescriptor>
 
   private String getProtocolString(ConnectionHandlerDescriptor desc)
   {
-    String returnValue;
     switch (desc.getProtocol())
     {
     case OTHER:
-      returnValue = desc.getName();
-      break;
+      return desc.getName();
     default:
-      returnValue = desc.getProtocol().getDisplayMessage().toString();
-      break;
+      return desc.getProtocol().getDisplayMessage().toString();
     }
-    return returnValue;
   }
 
   private void updateDataArray()
@@ -290,28 +269,26 @@ implements Comparator<ConnectionHandlerDescriptor>
     dataArray.clear();
     for (ConnectionHandlerDescriptor desc : sortedSet)
     {
-      String[] s = new String[3];
-      s[0] = getAddressPortString(desc);
-      s[1] = getProtocolString(desc);
+      dataArray.add(new String[] {
+        getAddressPortString(desc),
+        getProtocolString(desc),
+        toLabel(desc.getState())
+      });
+    }
+  }
 
-      switch (desc.getState())
-      {
-      case ENABLED:
-        s[2] = INFO_ENABLED_LABEL.get().toString();
-        break;
-
-      case DISABLED:
-        s[2] = INFO_DISABLED_LABEL.get().toString();
-        break;
-
-      case UNKNOWN:
-        s[2] = INFO_UNKNOWN_LABEL.get().toString();
-        break;
-
-      default:
-        throw new RuntimeException("Unknown state: "+desc.getState());
-      }
-      dataArray.add(s);
+  private String toLabel(State state)
+  {
+    switch (state)
+    {
+    case ENABLED:
+      return INFO_ENABLED_LABEL.get().toString();
+    case DISABLED:
+      return INFO_DISABLED_LABEL.get().toString();
+    case UNKNOWN:
+      return INFO_UNKNOWN_LABEL.get().toString();
+    default:
+      throw new RuntimeException("Unknown state: " + state);
     }
   }
 }

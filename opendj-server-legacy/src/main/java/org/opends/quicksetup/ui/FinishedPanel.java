@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 
-/**
- * This panel is used to show the application is finished.
- */
+/** This panel is used to show the application is finished. */
 public class FinishedPanel extends ProgressPanel
 {
   private static final long serialVersionUID = 8129325068133356170L;
@@ -35,7 +33,7 @@ public class FinishedPanel extends ProgressPanel
     super(application);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_FINISHED_PANEL_TITLE.get();

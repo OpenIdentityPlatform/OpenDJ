@@ -12,29 +12,25 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.net.InetAddress;
-import java.util.Map;
-import java.util.HashMap;
-
+import java.net.Socket;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLKeyException;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-/**
- * An implementation of SSLSocketFactory.
- */
+/** An implementation of SSLSocketFactory. */
 public class TrustedSocketFactory extends SSLSocketFactory
 {
   private static Map<Thread, TrustManager> hmTrustManager = new HashMap<>();
@@ -110,9 +106,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
     }
   }
 
-  //
   // SocketFactory implementation
-  //
   /**
    * Returns the default SSL socket factory. The default
    * implementation can be changed by setting the value of the
@@ -161,22 +155,21 @@ public class TrustedSocketFactory extends SSLSocketFactory
       {
         SocketFactory tmsf = hmDefaultFactoryTm.get(trustManager);
         SocketFactory kmsf = hmDefaultFactoryKm.get(keyManager);
-        if ( tmsf == null || kmsf == null)
+        if (tmsf == null || kmsf == null)
+        {
+          result = new TrustedSocketFactory(trustManager, keyManager);
+          hmDefaultFactoryTm.put(trustManager, result);
+          hmDefaultFactoryKm.put(keyManager, result);
+        }
+        else if (!tmsf.equals(kmsf))
         {
           result = new TrustedSocketFactory(trustManager, keyManager);
           hmDefaultFactoryTm.put(trustManager, result);
           hmDefaultFactoryKm.put(keyManager, result);
         }
         else
-        if ( !tmsf.equals(kmsf) )
         {
-          result = new TrustedSocketFactory(trustManager, keyManager);
-          hmDefaultFactoryTm.put(trustManager, result);
-          hmDefaultFactoryKm.put(keyManager, result);
-        }
-        else
-        {
-          result = tmsf ;
+          result = tmsf;
         }
       }
     }
@@ -184,40 +177,39 @@ public class TrustedSocketFactory extends SSLSocketFactory
     return result;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Socket createSocket(InetAddress address, int port) throws IOException {
     return getInnerFactory().createSocket(address, port);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Socket createSocket(InetAddress address, int port,
       InetAddress clientAddress, int clientPort) throws IOException
   {
-    return getInnerFactory().createSocket(address, port, clientAddress,
-        clientPort);
+    return getInnerFactory().createSocket(address, port, clientAddress, clientPort);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Socket createSocket(String host, int port) throws IOException
   {
     return getInnerFactory().createSocket(host, port);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Socket createSocket(String host, int port, InetAddress clientHost,
       int clientPort) throws IOException
   {
     return getInnerFactory().createSocket(host, port, clientHost, clientPort);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Socket createSocket(Socket s, String host, int port, boolean autoClose)
   throws IOException
   {
     return getInnerFactory().createSocket(s, host, port, autoClose);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String[] getDefaultCipherSuites()
   {
     try
@@ -230,7 +222,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String[] getSupportedCipherSuites()
   {
     try
@@ -247,11 +239,10 @@ public class TrustedSocketFactory extends SSLSocketFactory
     if (innerFactory == null)
     {
       String algorithm = "TLSv1";
-      SSLKeyException xx;
-      KeyManager[] km = null;
-      TrustManager[] tm = null;
 
       try {
+        KeyManager[] km = null;
+        TrustManager[] tm = null;
         SSLContext sslCtx = SSLContext.getInstance(algorithm);
         if (trustManager != null)
         {
@@ -265,8 +256,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
         innerFactory = sslCtx.getSocketFactory();
       }
       catch(GeneralSecurityException x) {
-        xx = new SSLKeyException("Failed to create SSLContext for " +
-            algorithm);
+        SSLKeyException xx = new SSLKeyException("Failed to create SSLContext for " + algorithm);
         xx.initCause(x);
         throw xx;
       }
@@ -274,4 +264,3 @@ public class TrustedSocketFactory extends SSLSocketFactory
     return innerFactory;
   }
 }
-

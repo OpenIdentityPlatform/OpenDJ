@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -20,14 +20,12 @@ package org.opends.quicksetup;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 
 /**
  * Represents information about the license file. NOTE: the license file
@@ -37,25 +35,14 @@ import org.opends.server.util.StaticUtils;
 public class LicenseFile
 {
   private static final String INSTALL_ROOT_SYSTEM_PROPERTY = "INSTALL_ROOT";
-
-  /**
-   * The license file name in Legal directory.
-   */
+  /** The license file name in Legal directory. */
   private static final String LICENSE_FILE_NAME = "Forgerock_License.txt";
-
-  /**
-   * The Legal folder which contains license file.
-   */
+  /** The Legal folder which contains license file. */
   private static final String LEGAL_FOLDER_NAME = "legal-notices";
-
-  /**
-   * The accepted license file name.
-   */
+  /** The accepted license file name. */
   private static final String ACCEPTED_LICENSE_FILE_NAME = "licenseAccepted";
 
-  /**
-   * Get the directory in which legal files are stored.
-   */
+  /** Get the directory in which legal files are stored. */
   private static String getInstallDirectory() {
     String installDirName = System.getProperty(INSTALL_ROOT_SYSTEM_PROPERTY);
     if (installDirName == null)
@@ -69,9 +56,7 @@ public class LicenseFile
     return installDirName;
   }
 
-  /**
-   * Get the directory in which approved legal files are stored.
-   */
+  /** Get the directory in which approved legal files are stored. */
   private static String getInstanceLegalDirectory()
   {
     String instanceLegalDirName = Utils.getInstancePathFromInstallPath(getInstallDirectory())
@@ -84,34 +69,24 @@ public class LicenseFile
     return instanceLegalDirName;
   }
 
-  /**
-   * The File object related to the license file.
-   */
-  private static File licFile;
-
-  /**
-   * The license file approval state.
-   */
+  /** The File object related to the license file. */
+  private static File licenceFile;
+  /** The license file approval state. */
   private static boolean approved;
-
-  /**
-   * Returns the license file name.
-   */
+  /** Returns the license file name. */
   private static String getName()
   {
     return getInstallDirectory() + File.separator + LEGAL_FOLDER_NAME + File.separator + LICENSE_FILE_NAME;
   }
 
-  /**
-   * Returns the license file object.
-   */
+  /** Returns the license file object. */
   private static File getFile()
   {
-    if (licFile == null)
+    if (licenceFile == null)
     {
-      licFile = new File(getName());
+      licenceFile = new File(getName());
     }
-    return licFile;
+    return licenceFile;
   }
 
   /**
@@ -133,39 +108,24 @@ public class LicenseFile
    */
   public static String getText()
   {
-    InputStream input;
-    try
-    {
-      input = new FileInputStream(getFile());
-    }
-    catch (FileNotFoundException e)
-    {
-      // Should not happen
-      return "";
-    }
-
     // Reads the inputstream content.
-    final StringBuilder sb = new StringBuilder();
-    try
+    try (InputStream input = new FileInputStream(getFile());
+        BufferedReader br = new BufferedReader(new InputStreamReader(input));)
     {
-      final BufferedReader br = new BufferedReader(new InputStreamReader(input));
-      String read = br.readLine();
-
-      while (read != null)
+      final StringBuilder sb = new StringBuilder();
+      String read;
+      while ((read = br.readLine()) != null)
       {
         sb.append(read);
         sb.append(ServerConstants.EOL);
-        read = br.readLine();
       }
+      return sb.toString();
     }
     catch (IOException ioe)
     {
       // Should not happen
       return "";
     }
-    StaticUtils.close(input);
-
-    return sb.toString();
   }
 
   /**

@@ -305,7 +305,6 @@ public class ServerDescriptor
     this.taskEntries = Collections.unmodifiableSet(taskEntries);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {
@@ -337,7 +336,6 @@ public class ServerDescriptor
         && desc.getTaskEntries().equals(getTaskEntries());
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {

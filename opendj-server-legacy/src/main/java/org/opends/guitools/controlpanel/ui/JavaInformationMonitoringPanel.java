@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -45,9 +45,7 @@ import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
-/**
- * The panel displaying the java monitoring information.
- */
+/** The panel displaying the java monitoring information. */
 public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563799969830L;
@@ -92,25 +90,20 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
   private List<JLabel> memoryLabels = new ArrayList<>();
   private JPanel memoryPanel;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public JavaInformationMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return generalMonitoringComps.get(0);
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -248,7 +241,6 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     }
     ChangeListener changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent e)
       {
@@ -259,7 +251,6 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 
     changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void stateChanged(ChangeEvent e)
       {
@@ -279,10 +270,7 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /**
-   * Updates the contents of the panel.
-   *
-   */
+  /** Updates the contents of the panel. */
   public void updateContents()
   {
     ServerDescriptor server = null;

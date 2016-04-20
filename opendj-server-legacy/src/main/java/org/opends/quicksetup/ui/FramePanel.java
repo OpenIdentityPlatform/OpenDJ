@@ -12,8 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import java.awt.AlphaComposite;
@@ -32,26 +32,22 @@ import javax.swing.JPanel;
  * This class is the panel that is displayed in the QuickSetupDialog.  It
  * contains 3 panels that are passed in the constructor: the steps panel,
  * the buttons panel and the current step panel (the main panel of the three).
- *
+ * <p>
  * The only remarkable thing of this class is that is responsible for
  * implementing the background.  The three subpanels are transparent and
- * this class sets a background (with the Open DS logo) and uses some basic
+ * this class sets a background (with the OpenDJ logo) and uses some basic
  * transparency effects.
- *
  */
 public class FramePanel extends JPanel
 {
   private static final long serialVersionUID = 7733658951410876078L;
 
   private Icon backgroundIcon;
-
   private Component stepsPanel;
-
   private Component buttonsPanel;
-
   private int buttonsPanelVerticalInsets;
-
   private int stepsPanelHorizontalInsets;
+
   /**
    * The constructor of the FramePanel.
    * @param stepsPanel the steps panel that on the top-left side of the
@@ -140,8 +136,9 @@ public class FramePanel extends JPanel
    * {@inheritDoc}
    *
    * This method has been overwritten to be able to have a transparency effect
-   * with the OpenDS logo background.
+   * with the OpenDJ logo background.
    */
+  @Override
   protected void paintComponent(Graphics g)
   {
       // paint background

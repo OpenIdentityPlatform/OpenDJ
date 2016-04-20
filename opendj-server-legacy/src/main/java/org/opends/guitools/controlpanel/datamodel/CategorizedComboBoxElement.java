@@ -12,25 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
-/**
- * Class used in the combo box models.  It is used to have special rendering in
- * the combo boxes.
- */
+/** Class used in the combo box models. It is used to have special rendering in the combo boxes. */
 public class CategorizedComboBoxElement
 {
   private Object value;
   private Type type;
   private int hashCode;
 
-  /**
-   * The type of the element.
-   *
-   */
+  /** The type of the element. */
   public enum Type
   {
     /**
@@ -38,9 +32,7 @@ public class CategorizedComboBoxElement
      * type category, for instance).
      */
     CATEGORY,
-    /**
-     * Regular type.
-     */
+    /** Regular type. */
     REGULAR
   }
 
@@ -74,7 +66,7 @@ public class CategorizedComboBoxElement
     return type;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
     if (o instanceof CategorizedComboBoxElement)
@@ -86,7 +78,7 @@ public class CategorizedComboBoxElement
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
     return hashCode;

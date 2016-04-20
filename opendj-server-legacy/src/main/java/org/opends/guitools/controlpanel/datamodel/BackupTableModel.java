@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -21,10 +21,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
-/**
- * The table used to display the backups.
- *
- */
+/** The table used to display the backups. */
 public class BackupTableModel extends AbstractTableModel
 {
   private static final long serialVersionUID = -3511425157550147124L;
@@ -45,7 +42,7 @@ public class BackupTableModel extends AbstractTableModel
     backups.add(backup);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int column)
   {
     switch (column)
@@ -63,19 +60,13 @@ public class BackupTableModel extends AbstractTableModel
     }
   }
 
-  /**
-   * Returns the row count.
-   * @return the row count.
-   */
+  @Override
   public int getRowCount()
   {
     return backups.size();
   }
 
-  /**
-   * Returns the column count.
-   * @return the column count.
-   */
+  @Override
   public int getColumnCount()
   {
     return 4;

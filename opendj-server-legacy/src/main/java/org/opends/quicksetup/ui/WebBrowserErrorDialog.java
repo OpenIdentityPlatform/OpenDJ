@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -44,7 +44,6 @@ import static org.opends.messages.QuickSetupMessages.*;
  * to copy it to the system clipboard.  This way (even if not ideal) the user
  * can view the contents of the URL we display by pasting manually the URL
  * in his/her browser.
- *
  */
 public class WebBrowserErrorDialog extends JDialog
 {
@@ -68,10 +67,7 @@ public class WebBrowserErrorDialog extends JDialog
     getContentPane().add(createPanel());
   }
 
-  /**
-   * Packs and displays this dialog.
-   *
-   */
+  /** Packs and displays this dialog. */
   public void packAndShow()
   {
     pack();
@@ -118,6 +114,7 @@ public class WebBrowserErrorDialog extends JDialog
             INFO_ERROR_BROWSER_COPY_BUTTON_TOOLTIP.get());
     copyButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         StringSelection s = new StringSelection(url);
@@ -148,6 +145,7 @@ public class WebBrowserErrorDialog extends JDialog
     p2.add(closeButton, gbc);
     closeButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         dispose();

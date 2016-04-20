@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -43,7 +43,6 @@ import org.opends.quicksetup.ui.UIFactory;
 /**
  * A text field with an icon with 'X' shape on the right.  When the user clicks
  * on that icon, the contents of the text field are cleared.
- *
  */
 public class FilterTextField extends JTextField
 {
@@ -60,9 +59,7 @@ public class FilterTextField extends JTextField
   private boolean mousePressed;
   private boolean displayRefreshIcon;
 
-  /**
-   * The time during which the refresh icon is displayed by default.
-   */
+  /** The time during which the refresh icon is displayed by default. */
   public static long DEFAULT_REFRESH_ICON_TIME = 750;
 
   private LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
@@ -84,13 +81,13 @@ public class FilterTextField extends JTextField
     constructorBorderSet = true;
     getDocument().addDocumentListener(new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent e)
       {
         insertUpdate(e);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent e)
       {
         boolean displayIcon = getText().length() > 0;
@@ -100,6 +97,7 @@ public class FilterTextField extends JTextField
           repaint();
         }
       }
+      @Override
       public void removeUpdate(DocumentEvent e)
       {
         insertUpdate(e);
@@ -108,7 +106,7 @@ public class FilterTextField extends JTextField
 
     addMouseListener(new MouseAdapter()
     {
-      /** {@inheritDoc} */
+      @Override
       public void mousePressed(MouseEvent ev)
       {
         boolean p = getClearIconRectangle().contains(ev.getPoint());
@@ -119,7 +117,7 @@ public class FilterTextField extends JTextField
         }
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void mouseReleased(MouseEvent ev)
       {
         if (mousePressed && getClearIconRectangle().contains(ev.getPoint()))
@@ -132,26 +130,19 @@ public class FilterTextField extends JTextField
     });
   }
 
-  /**
-   * Adds an action listener to this text field.  When the user clicks on the
-   * 'X' shaped icon the listeners are notified.
-   * @param listener the action listener.
-   */
+  @Override
   public void addActionListener(ActionListener listener)
   {
     listeners.add(listener);
   }
 
-  /**
-   * Removes an action listener to this text field.
-   * @param listener the action listener.
-   */
+  @Override
   public void removeActionListener(ActionListener listener)
   {
     listeners.remove(listener);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setBorder(Border border)
   {
     if (constructorBorderSet && border != null)
@@ -191,8 +182,7 @@ public class FilterTextField extends JTextField
    * Displays a refresh icon on the text field (this is used for instance in
    * the browsers that use this text field to specify a filter: the refresh
    * icon is displayed to show that the filter is being displayed).
-   * @param time the time (in miliseconds) that the icon will be displayed.
-   *
+   * @param time the time (in milliseconds) that the icon will be displayed.
    */
   public void displayRefreshIcon(final long time)
   {
@@ -200,6 +190,7 @@ public class FilterTextField extends JTextField
     repaint();
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -213,6 +204,7 @@ public class FilterTextField extends JTextField
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               displayRefreshIcon = false;
@@ -245,13 +237,10 @@ public class FilterTextField extends JTextField
         margin, icon.getIconWidth(), icon.getIconHeight());
   }
 
-  /**
-   * The border of this filter text field.
-   *
-   */
+  /** The border of this filter text field. */
   private class IconBorder implements Border
   {
-    /** {@inheritDoc} */
+    @Override
     public Insets getBorderInsets(Component c)
     {
       ImageIcon icon = getClearIcon();
@@ -267,7 +256,7 @@ public class FilterTextField extends JTextField
       return new Insets(0, 0, 0, rightInsets);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void paintBorder(Component c, Graphics g, int x, int y,
         int width, int height)
     {
@@ -294,7 +283,7 @@ public class FilterTextField extends JTextField
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isBorderOpaque()
     {
       return false;

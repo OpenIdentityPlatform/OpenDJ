@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -39,18 +39,18 @@ public abstract class GeneralMonitoringPanel extends StatusGenericPanel
   protected static LocalizableMessage NO_VALUE_SET =
     INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return LocalizableMessage.EMPTY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }

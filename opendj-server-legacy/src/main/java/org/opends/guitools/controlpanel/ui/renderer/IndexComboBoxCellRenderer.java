@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -27,7 +28,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * The renderer to be used to render CategorizedComboBoxElement objects whose
  * values are AbstraceIndexDescriptor objects.  It can be used with combo
  * boxes.
- *
  */
 public class IndexComboBoxCellRenderer extends CustomListCellRenderer
 {
@@ -45,6 +45,7 @@ public class IndexComboBoxCellRenderer extends CustomListCellRenderer
    * @param desc the combo box element.
    * @return the String value for a given CategorizedComboBoxElement.
    */
+  @Override
   protected String getStringValue(CategorizedComboBoxElement desc)
   {
     String v;

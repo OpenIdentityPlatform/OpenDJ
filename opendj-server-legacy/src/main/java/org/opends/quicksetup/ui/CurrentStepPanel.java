@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -41,7 +41,6 @@ import javax.swing.*;
  * There is only one instance of this class for a given QuickSetupDialog (and
  * there are only 1 instance of each of the panels that are contained in its
  * CardLayout).
- *
  */
 public class CurrentStepPanel extends QuickSetupPanel
 {
@@ -176,9 +175,11 @@ public class CurrentStepPanel extends QuickSetupPanel
       // taske a while to initialize.
       cl.show(this, LOADING_PANEL);
       new Thread(new Runnable() {
+        @Override
         public void run() {
           getPanel(step).beginDisplay(userData);
           SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
               cl.show(CurrentStepPanel.this, step.toString());
               getPanel(step).endDisplay();

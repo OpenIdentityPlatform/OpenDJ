@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
@@ -46,7 +46,6 @@ import static org.opends.messages.QuickSetupMessages.*;
  * the CardLayout of CurrentStepPanel.  All the panels that appear on the
  * top-right side of the dialog extend this class: WelcomePane, ReviewPanel,
  * etc.
- *
  */
 public abstract class QuickSetupStepPanel extends QuickSetupPanel
 implements HyperlinkListener
@@ -96,9 +95,7 @@ implements HyperlinkListener
   {
   }
 
-  /**
-   * Called just after the panel is shown: used to set focus properly.
-   */
+  /** Called just after the panel is shown: used to set focus properly. */
   public void endDisplay()
   {
   }
@@ -129,6 +126,7 @@ implements HyperlinkListener
    *
    * @param e the HyperlinkEvent.
    */
+  @Override
   public void hyperlinkUpdate(HyperlinkEvent e)
   {
     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
@@ -136,10 +134,7 @@ implements HyperlinkListener
       String url = e.getURL().toString();
       if (!isURLWorkerRunning(url))
       {
-        /*
-         * Only launch the worker if there is not already a worker trying to
-         * display this URL.
-         */
+        /* Only launch the worker if there is not already a worker trying to display this URL. */
         URLWorker worker = new URLWorker(this, url);
         startWorker(worker);
       }
@@ -270,10 +265,7 @@ implements HyperlinkListener
       l.buttonActionPerformed(ev);
     }
   }
-  /**
-   * Creates the layout of the panel.
-   *
-   */
+  /** Creates the layout of the panel. */
   protected void createLayout()
   {
     setLayout(new GridBagLayout());

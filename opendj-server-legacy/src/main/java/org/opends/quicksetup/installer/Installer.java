@@ -234,7 +234,7 @@ public class Installer extends GuiApplication
 
   private ApplicationException applicationException;
 
-  /** Actually performs the install in this thread.  The thread is blocked. */
+  /** Actually performs the install in this thread. The thread is blocked. */
   @Override
   public void run()
   {
@@ -469,7 +469,7 @@ public class Installer extends GuiApplication
     try
     {
       File newConfig = fm.copy(installation.getBaseConfigurationFile(),
-          installation.getConfigurationDirectory(), /*overwrite=*/ true);
+          installation.getConfigurationDirectory(), true);
       fm.rename(newConfig, installation.getCurrentConfigurationFile());
     }
     catch (ApplicationException ae)
@@ -864,16 +864,10 @@ public class Installer extends GuiApplication
       final QuickSetupDialog fDlg = dlg;
       errPanel.addButtonActionListener(new ButtonActionListener()
       {
-        /**
-         * ButtonActionListener implementation. It assumes that we are called in
-         * the event thread.
-         *
-         * @param ev
-         *          the ButtonEvent we receive.
-         */
         @Override
         public void buttonActionPerformed(ButtonEvent ev)
         {
+          // assumes that we are called in the event thread.
           // Simulate a close button event
           fDlg.notifyButtonEvent(ButtonName.QUIT);
         }
@@ -2682,12 +2676,6 @@ public class Installer extends GuiApplication
         notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
       }
       localConn = createLocalConnection();
-      //      if (isRemoteServer)
-      //      {
-      //        /* Create an empty ADS suffix on the local server. */
-      //        ADSContext localAdsContext = new ADSContext(localCtx);
-      //        localAdsContext.createAdministrationSuffix(null);
-      //      }
       if (!isRemoteServer)
       {
         /* Configure local server to have an ADS */
@@ -2802,8 +2790,7 @@ public class Installer extends GuiApplication
    * Tells whether we must create a suffix that we are not going to replicate
    * with other servers or not.
    *
-   * @return <CODE>true</CODE> if we must create a new suffix and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must create a new suffix and {@code false} otherwise.
    */
   protected boolean createNotReplicatedSuffix()
   {
@@ -2817,11 +2804,9 @@ public class Installer extends GuiApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if we must configure replication and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether we must configure replication.
    *
-   * @return <CODE>true</CODE> if we must configure replication and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must configure replication and {@code false} otherwise.
    */
   protected boolean mustConfigureReplication()
   {
@@ -2829,11 +2814,9 @@ public class Installer extends GuiApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if we must create the ADS and <CODE>false</CODE>
-   * otherwise.
+   * Returns whether we must create the ADS.
    *
-   * @return <CODE>true</CODE> if we must create the ADS and <CODE>false</CODE>
-   *         otherwise.
+   * @return {@code true} if we must create the ADS and {@code false} otherwise.
    */
   protected boolean mustCreateAds()
   {
@@ -2841,11 +2824,9 @@ public class Installer extends GuiApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if we must start the server and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether we must start the server.
    *
-   * @return <CODE>true</CODE> if we must start the server and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must start the server and {@code false} otherwise.
    */
   protected boolean mustStart()
   {
@@ -2853,13 +2834,12 @@ public class Installer extends GuiApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if the start server must be launched in verbose
-   * mode and <CODE>false</CODE> otherwise. The verbose flag is not enough
-   * because in the case where many entries have been imported, the startup
-   * phase can take long.
+   * Returns whether the start server must be launched in verbose mode.
+   * <p>
+   * The verbose flag is not enough because in the case where many entries have been imported,
+   * the startup phase can take long.
    *
-   * @return <CODE>true</CODE> if the start server must be launched in verbose
-   *         mode and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the start server must be launched in verbose mode and {@code false} otherwise.
    */
   protected boolean isStartVerbose()
   {
@@ -2896,13 +2876,12 @@ public class Installer extends GuiApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if we must stop the server and <CODE>false</CODE>
-   * otherwise. The server might be stopped if the user asked not to start it at
-   * the end of the installation and it was started temporarily to update its
-   * configuration.
+   * Returns whether we must stop the server.
+   * <p>
+   * The server might be stopped if the user asked not to start it at the end
+   * of the installation and it was started temporarily to update its configuration.
    *
-   * @return <CODE>true</CODE> if we must stop the server and <CODE>false</CODE>
-   *         otherwise.
+   * @return {@code true} if we must stop the server and {@code false} otherwise.
    */
   protected boolean mustStop()
   {
@@ -2910,11 +2889,9 @@ public class Installer extends GuiApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if we must initialize suffixes and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether we must initialize suffixes.
    *
-   * @return <CODE>true</CODE> if we must initialize suffixes and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must initialize suffixes and {@code false} otherwise.
    */
   protected boolean mustInitializeSuffixes()
   {
@@ -3924,10 +3901,7 @@ public class Installer extends GuiApplication
     return validBaseDn;
   }
 
-  /**
-   * Update the userData object according to the content of the runtime options
-   * panel.
-   */
+  /** Update the userData object according to the content of the runtime options panel. */
   private void updateUserDataForRuntimeOptionsPanel(QuickSetup qs)
   {
     getUserData().setJavaArguments(UserData.SERVER_SCRIPT_NAME,
@@ -4703,17 +4677,15 @@ public class Installer extends GuiApplication
 }
 
 /** Class used to be able to cancel long operations. */
-abstract class InvokeThread extends Thread implements Runnable
+abstract class InvokeThread extends Thread
 {
   protected boolean isOver;
   protected ApplicationException ae;
 
   /**
-   * Returns <CODE>true</CODE> if the thread is over and <CODE>false</CODE>
-   * otherwise.
+   * Returns whether the thread is over.
    *
-   * @return <CODE>true</CODE> if the thread is over and <CODE>false</CODE>
-   *         otherwise.
+   * @return {@code true} if the thread is over and {@code false} otherwise.
    */
   public boolean isOver()
   {
@@ -4730,7 +4702,6 @@ abstract class InvokeThread extends Thread implements Runnable
     return ae;
   }
 
-  /** Runnable implementation. */
   @Override
   public abstract void run();
 

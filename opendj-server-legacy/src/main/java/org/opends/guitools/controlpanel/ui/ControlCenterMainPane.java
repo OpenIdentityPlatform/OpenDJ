@@ -44,7 +44,6 @@ import org.forgerock.i18n.LocalizableMessage;
  * The main panel of the control panel.  It contains a split pane.  On the left
  * we have some actions and on the right some global information about the
  * server.
- *
  */
 public class ControlCenterMainPane extends JPanel
 {
@@ -87,7 +86,6 @@ public class ControlCenterMainPane extends JPanel
     info.addConfigChangeListener(new ConfigChangeListener()
     {
       private boolean lastStatusStopped;
-      /** {@inheritDoc} */
       @Override
       public void configurationChanged(final ConfigurationChangeEvent ev)
       {
@@ -109,7 +107,6 @@ public class ControlCenterMainPane extends JPanel
         }
         SwingUtilities.invokeLater(new Runnable()
         {
-          /** {@inheritDoc} */
           @Override
           public void run()
           {

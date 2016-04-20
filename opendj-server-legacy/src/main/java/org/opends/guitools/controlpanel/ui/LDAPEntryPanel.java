@@ -132,6 +132,7 @@ implements EntryReadListener
     add(delete, gbc);
     delete.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteEntry();
@@ -146,7 +147,7 @@ implements EntryReadListener
     add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         saveChanges(true);
@@ -175,7 +176,7 @@ implements EntryReadListener
 
     LDAPEntryChangedListener listener = new LDAPEntryChangedListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void entryChanged(LDAPEntryChangedEvent ev)
       {
         boolean enable = saveChanges.isVisible() &&
@@ -230,13 +231,13 @@ implements EntryReadListener
     cardLayout.show(mainPanel, NOTHING_SELECTED);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void entryRead(EntryReadEvent ev)
   {
     searchResult = ev.getSearchResult();
@@ -297,6 +298,7 @@ implements EntryReadListener
    * Displays a message informing that an error occurred reading the entry.
    * @param ev the entry read error event.
    */
+  @Override
   public void entryReadError(EntryReadErrorEvent ev)
   {
     searchResult = null;
@@ -358,31 +360,31 @@ implements EntryReadListener
     displayedEntryPanel = null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_LDAP_ENTRY_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return saveChanges;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         boolean isReadOnly = true;
@@ -399,7 +401,7 @@ implements EntryReadListener
     });
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);

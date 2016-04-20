@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -19,16 +20,12 @@ package org.opends.guitools.controlpanel.ui.nodes;
 /**
  * The root node of the tree in the 'Manage Entries...' tree.  It represents
  * the root entry of the directory.
- *
  */
 public class RootNode extends SuffixNode {
 
   private static final long serialVersionUID = 9030738910898224866L;
 
-  /**
-   * Constructor of the node.
-   *
-   */
+  /** Constructor of the node. */
   public RootNode() {
     super("");
     setLeaf(false);

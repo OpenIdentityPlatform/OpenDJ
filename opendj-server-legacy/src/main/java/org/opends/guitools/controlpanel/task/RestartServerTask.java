@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -29,10 +29,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The task called when we want to restart the server.
- *
- */
+/** The task called when we want to restart the server. */
 public class RestartServerTask extends StartStopTask
 {
   private boolean starting;
@@ -50,7 +47,7 @@ public class RestartServerTask extends StartStopTask
     startTask = new StartServerTask(info, dlg);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     if (starting)
@@ -63,13 +60,13 @@ public class RestartServerTask extends StartStopTask
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_RESTART_SERVER_TASK_DESCRIPTION.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
@@ -102,7 +99,7 @@ public class RestartServerTask extends StartStopTask
     return getCommandLinePath("stop-ds");
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -111,6 +108,7 @@ public class RestartServerTask extends StartStopTask
     final ProgressDialog dlg = getProgressDialog();
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         String cmdLine = getStopCommandLineName();
@@ -142,6 +140,7 @@ public class RestartServerTask extends StartStopTask
       {
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().getProgressBar().setIndeterminate(false);

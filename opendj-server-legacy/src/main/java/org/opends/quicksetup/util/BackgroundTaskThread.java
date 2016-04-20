@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
@@ -42,11 +42,8 @@ class BackgroundTaskThread<T>
     this.backgroundTask = backgroundTask;
   }
 
-
-
-  /**
-   * Performs the processing associated with the background task.
-   */
+  /** Performs the processing associated with the background task. */
+  @Override
   public void run()
   {
     try
@@ -54,6 +51,7 @@ class BackgroundTaskThread<T>
       final T returnValue = backgroundTask.processBackgroundTask();
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           backgroundTask.backgroundTaskCompleted(returnValue, null);
@@ -64,6 +62,7 @@ class BackgroundTaskThread<T>
     {
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           backgroundTask.backgroundTaskCompleted(null, t);

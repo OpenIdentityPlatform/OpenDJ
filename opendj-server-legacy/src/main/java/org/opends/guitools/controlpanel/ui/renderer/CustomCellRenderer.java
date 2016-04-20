@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -31,31 +31,23 @@ import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * Class used to render the tables.
- */
+/** Class used to render the tables. */
 public class CustomCellRenderer extends LabelWithHelpIcon
 implements TableCellRenderer
 {
   private static final long serialVersionUID = -8604332267021523835L;
-  /**
-   * The border of the first column.
-   */
+  /** The border of the first column. */
   protected static final Border column0Border =
     BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 1, 0, 0,
           ColorAndFontConstants.gridColor),
           BorderFactory.createEmptyBorder(4, 4, 4, 4));
-  /**
-   * The default border.
-   */
+  /** The default border. */
   public static final Border defaultBorder =
     BorderFactory.createEmptyBorder(4, 4, 4, 4);
   private static Border defaultFocusBorder;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public CustomCellRenderer()
   {
     super(LocalizableMessage.EMPTY, null);
@@ -66,7 +58,7 @@ implements TableCellRenderer
     setForeground(ColorAndFontConstants.treeForeground);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     if (value instanceof String)

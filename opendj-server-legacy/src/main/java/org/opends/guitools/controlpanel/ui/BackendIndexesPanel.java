@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -26,10 +26,7 @@ import org.opends.guitools.controlpanel.datamodel.IndexTableModel;
 import org.opends.messages.AdminToolMessages;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * Panel displaying a table containing the indexes of a backend.
- *
- */
+/** Panel displaying a table containing the indexes of a backend. */
 public class BackendIndexesPanel extends AbstractBackendIndexesPanel
 {
   private static final long serialVersionUID = 7214847636854721907L;
@@ -40,19 +37,19 @@ public class BackendIndexesPanel extends AbstractBackendIndexesPanel
     super();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return AdminToolMessages.INFO_CTRL_PANEL_BACKEND_INDEXES_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected AbstractIndexTableModel getIndexTableModel()
   {
     return new IndexTableModel();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void updateTableModel(BackendDescriptor backend)
   {
     tableModel.setData(

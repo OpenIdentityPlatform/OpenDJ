@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
@@ -42,7 +42,7 @@ public class ExtensionFileFilter extends FileFilter
     this.description = description;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean accept(File f)
   {
     boolean accept = false;
@@ -63,7 +63,7 @@ public class ExtensionFileFilter extends FileFilter
     return accept;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getDescription()
   {
     return description;

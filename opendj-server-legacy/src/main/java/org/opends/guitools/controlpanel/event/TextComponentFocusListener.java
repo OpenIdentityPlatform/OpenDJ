@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -22,11 +22,7 @@ import java.awt.event.FocusListener;
 
 import javax.swing.text.JTextComponent;
 
-/**
- * A class used to be able to select the contents of the text field when
- * it gets the focus.
- *
- */
+/** A class used to be able to select the contents of the text field when it gets the focus. */
 public class TextComponentFocusListener implements FocusListener
 {
   private JTextComponent tf;
@@ -40,7 +36,7 @@ public class TextComponentFocusListener implements FocusListener
     this.tf = tf;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void focusGained(FocusEvent e)
   {
     if (tf.getText() == null || "".equals(tf.getText()))
@@ -55,7 +51,7 @@ public class TextComponentFocusListener implements FocusListener
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void focusLost(FocusEvent e)
   {
   }

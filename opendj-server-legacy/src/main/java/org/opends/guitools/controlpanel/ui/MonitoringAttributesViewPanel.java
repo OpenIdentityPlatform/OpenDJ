@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -53,7 +54,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  private static final long serialVersionUID = 6462932163745559L;
 
  private LinkedHashSet<T> selectedAttributes = new LinkedHashSet<>();
- private LinkedHashSet<T> monitoringAttributes;
+ private Set<T> monitoringAttributes;
  private boolean isCanceled = true;
 
  /**
@@ -100,7 +101,6 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    return new MonitoringAttributesViewPanel<>(attributes);
  }
 
- /** {@inheritDoc} */
  @Override
  public boolean requiresScroll()
  {
@@ -110,7 +110,6 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  /**
   * Default constructor.
   * @param attributes the attributes that will be proposed to the user.
-  *
   */
  protected MonitoringAttributesViewPanel(LinkedHashSet<T> attributes)
  {
@@ -133,9 +132,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
  }
 
- /**
-  * Creates the layout of the panel (but the contents are not populated here).
-  */
+ /** Creates the layout of the panel (but the contents are not populated here). */
  private void createLayout()
  {
    GridBagConstraints gbc = new GridBagConstraints();
@@ -166,6 +163,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    selectAll = Utilities.createButton(INFO_CTRL_PANEL_SELECT_ALL_BUTTON.get());
    selectAll.addActionListener(new ActionListener()
    {
+     @Override
      public void actionPerformed(ActionEvent ev)
      {
        for (JCheckBox cb : checkboxes)
@@ -178,6 +176,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    selectNone = Utilities.createButton(INFO_CTRL_PANEL_CLEAR_SELECTION_BUTTON.get());
    selectNone.addActionListener(new ActionListener()
    {
+     @Override
      public void actionPerformed(ActionEvent ev)
      {
        for (JCheckBox cb : checkboxes)
@@ -242,24 +241,25 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
        new Dimension(checkBoxPanel.getPreferredSize().width + 15, preferredViewHeight));
  }
 
- /** {@inheritDoc} */
+ @Override
  public LocalizableMessage getTitle()
  {
    return INFO_CTRL_PANEL_ATTRIBUTE_VIEW_OPTIONS_TITLE.get();
  }
 
- /** {@inheritDoc} */
+ @Override
  public void configurationChanged(ConfigurationChangeEvent ev)
  {
+   // no-op
  }
 
- /** {@inheritDoc} */
+ @Override
  public Component getPreferredFocusComponent()
  {
    return checkboxes[0];
  }
 
- /** {@inheritDoc} */
+ @Override
  public void toBeDisplayed(boolean visible)
  {
    if (visible)
@@ -268,7 +268,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
  }
 
- /** {@inheritDoc} */
+ @Override
  public void okClicked()
  {
    // Check that at least one checkbox is selected.
@@ -293,7 +293,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
  }
 
- /** {@inheritDoc} */
+ @Override
  public GenericDialog.ButtonType getButtonType()
  {
    return GenericDialog.ButtonType.OK_CANCEL;
@@ -326,19 +326,17 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   */
  protected LocalizableMessage getMessage(T attribute)
  {
-   LocalizableMessage m;
    if (attribute instanceof MonitoringAttributes)
    {
-     m = ((MonitoringAttributes)attribute).getMessage();
+     return ((MonitoringAttributes)attribute).getMessage();
    }
    else if (attribute instanceof LocalizableMessage)
    {
-     m = (LocalizableMessage)attribute;
+     return (LocalizableMessage)attribute;
    }
    else
    {
-     m = LocalizableMessage.raw(attribute.toString());
+     return LocalizableMessage.raw(attribute.toString());
    }
-   return m;
  }
 }

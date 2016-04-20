@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -39,13 +39,12 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 /**
  * The panel displayed when the user clicks on 'Delete Backend...' in the
  * browse entries dialog.
- *
  */
 public class DeleteBackendPanel extends DeleteBaseDNPanel
 {
   private static final long serialVersionUID = 8744925738292396658L;
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DELETE_BACKEND_TITLE.get();
@@ -55,6 +54,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
    * Returns the no backend found label.
    * @return the no backend found label.
    */
+  @Override
   protected LocalizableMessage getNoElementsFoundLabel()
   {
     return INFO_CTRL_PANEL_NO_BACKENDS_FOUND_LABEL.get();
@@ -64,12 +64,13 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
    * Returns the list label.
    * @return the list label.
    */
+  @Override
   protected LocalizableMessage getListLabel()
   {
     return INFO_CTRL_PANEL_SELECT_BACKENDS_TO_DELETE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -88,7 +89,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     final LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();

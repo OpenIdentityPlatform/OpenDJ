@@ -12,52 +12,45 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.util;
 
-import java.security.cert.X509Certificate;
-
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
 
-/**
- * An application trust manager that accepts all the certificates.
- *
- */
+/** An application trust manager that accepts all the certificates. */
 public class BlindApplicationTrustManager extends ApplicationTrustManager
 {
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public BlindApplicationTrustManager()
   {
     super(null);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
+    // no-op
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void checkServerTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
+    // no-op
   }
 
-  /** {@inheritDoc} */
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return new X509Certificate[0];
   }
 
-  /**
-   * Creates a copy of this ApplicationTrustManager.
-   * @return a copy of this ApplicationTrustManager.
-   */
+  @Override
   public BlindApplicationTrustManager createCopy()
   {
     return new BlindApplicationTrustManager();

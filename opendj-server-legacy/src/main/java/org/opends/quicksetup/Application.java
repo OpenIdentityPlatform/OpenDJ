@@ -714,19 +714,14 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * The class just reads what is written to the standard error, obtains an
    * formatted representation of it and then notifies the
    * ProgressUpdateListeners with the formatted messages.
-   *
    */
   public class ErrorPrintStream extends ApplicationPrintStream {
 
-    /**
-     * Default constructor.
-     *
-     */
+    /** Default constructor. */
     public ErrorPrintStream() {
       super();
     }
 
-    /** {@inheritDoc} */
     @Override
     protected LocalizableMessage formatString(String s) {
       return getFormattedLogError(LocalizableMessage.raw(s));
@@ -743,20 +738,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * The class just reads what is written to the standard output, obtains an
    * formatted representation of it and then notifies the
    * ProgressUpdateListeners with the formatted messages.
-   *
    */
   public class OutputPrintStream extends ApplicationPrintStream
   {
 
-    /**
-     * Default constructor.
-     *
-     */
+    /** Default constructor. */
     public OutputPrintStream() {
       super();
     }
 
-    /** {@inheritDoc} */
     @Override
     protected LocalizableMessage formatString(String s) {
       return getFormattedLog(LocalizableMessage.raw(s));
@@ -779,17 +769,13 @@ public abstract class Application implements ProgressNotifier, Runnable {
      */
     protected abstract LocalizableMessage formatString(String string);
 
-    /**
-     * Default constructor.
-     *
-     */
+    /** Default constructor. */
     public ApplicationPrintStream()
     {
       super(new ByteArrayOutputStream(), true);
       isFirstLine = true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void println(String msg)
     {
@@ -806,7 +792,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
       isFirstLine = false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void write(byte[] b, int off, int len)
     {
@@ -826,26 +811,19 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
 
 
-  /**
-   * Class used to add points periodically to the end of the logs.
-   */
+  /** Class used to add points periodically to the end of the logs. */
   protected class PointAdder implements Runnable
   {
     private Thread t;
     private boolean stopPointAdder;
     private boolean pointAdderStopped;
 
-    /**
-     * Default constructor.
-     */
+    /** Default constructor. */
     public PointAdder()
     {
     }
 
-    /**
-     * Starts the PointAdder: points are added at the end of the logs
-     * periodically.
-     */
+    /** Starts the PointAdder: points are added at the end of the logs periodically. */
     public void start()
     {
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
@@ -862,10 +840,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
       t.start();
     }
 
-    /**
-     * Stops the PointAdder: points are no longer added at the end of the logs
-     * periodically.
-     */
+    /** Stops the PointAdder: points are no longer added at the end of the logs periodically. */
     public synchronized void stop()
     {
       stopPointAdder = true;
@@ -884,7 +859,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void run()
     {

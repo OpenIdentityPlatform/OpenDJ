@@ -23,61 +23,42 @@ public enum InstallProgressStep implements ProgressStep {
 
   /** Install not started. */
   NOT_STARTED,
-
   /** Configuring server. */
   CONFIGURING_SERVER(5),
-
   /** Creating base entry for the suffix. */
   CREATING_BASE_ENTRY(10),
-
   /** Importing the contents of an LDIF file into the suffix. */
   IMPORTING_LDIF(20),
-
   /** Importing generated data into the suffix. */
   IMPORTING_AUTOMATICALLY_GENERATED(20),
-
   /** Configuring replication. */
   CONFIGURING_REPLICATION(10),
-
   /** Starting Open DS server. */
   STARTING_SERVER(10),
-
   /** Stopping Open DS server. */
   STOPPING_SERVER(5),
-
   /** Initialize Replicated Suffixes. */
   INITIALIZE_REPLICATED_SUFFIXES(25),
-
   /** Configuring ADS. */
   CONFIGURING_ADS(5),
-
   /** Enabling Windows service. */
   ENABLING_WINDOWS_SERVICE,
-
-  /**
-   * User is waiting for current task to finish
-   * so that the operation can be canceled.
-   */
+  /** User is waiting for current task to finish so that the operation can be canceled. */
   WAITING_TO_CANCEL,
-
   /** Canceling install. */
   CANCELING,
-
   /** Installation finished successfully. */
   FINISHED_SUCCESSFULLY,
-
   /** User canceled installation. */
   FINISHED_CANCELED,
-
   /** Installation finished with an error. */
   FINISHED_WITH_ERROR;
 
   /**
-   * Contains the relative time that takes for the task to be
-   * accomplished.
-   * For instance if downloading takes twice the time of
-   * extracting, the value for downloading will be the double of the value for
-   * extracting.
+   * Contains the relative time that takes for the task to be accomplished.
+   * <p>
+   * For instance if downloading takes twice the time of extracting,
+   * the value for downloading will be the double of the value for extracting.
    */
   private final int relativeDuration;
 

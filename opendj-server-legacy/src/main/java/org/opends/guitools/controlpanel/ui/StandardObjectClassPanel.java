@@ -50,10 +50,7 @@ import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
-/**
- * The panel that displays a standard object class definition.
- *
- */
+/** The panel that displays a standard object class definition. */
 public class StandardObjectClassPanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 5561268287795223026L;
@@ -88,35 +85,29 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STANDARD_OBJECTCLASS_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return requiredAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   protected void createLayout()
   {
     createBasicLayout(this, new GridBagConstraints());
@@ -215,7 +206,6 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       final JList list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
-        /** {@inheritDoc} */
         @Override
         public void mouseClicked(MouseEvent ev)
         {
@@ -229,7 +219,6 @@ public class StandardObjectClassPanel extends SchemaElementPanel
 
       KeyAdapter keyListener = new KeyAdapter()
       {
-        /** {@inheritDoc} */
         @Override
         public void keyTyped(KeyEvent ev)
         {

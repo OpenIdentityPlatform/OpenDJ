@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -79,21 +79,22 @@ public enum Step implements WizardStep
    * @return String message key used to access a message catalog to
    * retrieve this step's display name
    */
+  @Override
   public LocalizableMessage getDisplayMessage() {
     return msg;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isProgressStep() {
     return this == PROGRESS;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isFinishedStep() {
     return this == FINISHED;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isLicenseStep() {
     return this == LICENSE;
   }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -46,23 +46,16 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * class are the two panels that appear on the right side of the
  * 'Manage Indexes...' dialog when the user clicks on 'Indexes' or
  * 'VLV Indexes'.
- *
  */
 public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2702054131388877743L;
   private String backendName;
-  /**
-   * The table model.
-   */
+  /** The table model. */
   protected AbstractIndexTableModel tableModel;
-  /**
-   * The table contained by this panel.
-   */
+  /** The table contained by this panel. */
   protected JTable table;
-  /**
-   * The scroll pane that contains the table.
-   */
+  /** The scroll pane that contains the table. */
   protected JScrollPane tableScroll;
   private Set<IndexSelectionListener> indexListeners = new HashSet<>();
   private int lastRowMouseOver = -1;
@@ -73,13 +66,13 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return table;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     update(backendName);
@@ -100,6 +93,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
       final BackendDescriptor b = backend;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           updateTableModel(b);
@@ -137,13 +131,13 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
    */
   protected abstract void updateTableModel(BackendDescriptor backend);
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No OK button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
@@ -173,10 +167,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
    */
   protected abstract AbstractIndexTableModel getIndexTableModel();
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   *
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -195,6 +186,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     table.addMouseListener(new MouseAdapter()
     {
+      @Override
       public void mouseReleased(MouseEvent ev)
       {
         int selectedRow = table.getSelectedRow();
@@ -205,6 +197,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
           SwingUtilities.invokeLater(new Runnable()
           {
             /** Call it this way to let the painting events happen. */
+            @Override
             public void run()
             {
               for (IndexSelectionListener listener : indexListeners)
@@ -218,12 +211,14 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
     });
     table.addMouseMotionListener(new MouseMotionAdapter()
     {
+      @Override
       public void mouseMoved(MouseEvent ev)
       {
         lastRowMouseOver = table.rowAtPoint(ev.getPoint());
 
       }
 
+      @Override
       public void mouseDragged(MouseEvent ev)
       {
         lastRowMouseOver = -1;

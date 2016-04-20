@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
 
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
 
-/**
- * The event used to notify that a backup has been created.
- *
- */
+/** The event used to notify that a backup has been created. */
 public class BackupCreatedEvent
 {
   private BackupDescriptor newBackup;

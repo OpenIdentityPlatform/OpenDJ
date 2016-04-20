@@ -76,7 +76,7 @@ implements Comparator<ServerDescriptor>
     super(application);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -102,7 +102,7 @@ implements Comparator<ServerDescriptor>
     return value;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     if (fieldName == FieldName.REMOTE_REPLICATION_PORT)
@@ -143,19 +143,19 @@ implements Comparator<ServerDescriptor>
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compare(ServerDescriptor desc1, ServerDescriptor desc2)
   {
     return desc1.getHostPort(true).toString().compareTo(desc2.getHostPort(true).toString());
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -178,19 +178,19 @@ implements Comparator<ServerDescriptor>
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_REMOTE_REPLICATION_PORT_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_REMOTE_REPLICATION_PORT_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void beginDisplay(UserData data)
   {
     TreeSet<ServerDescriptor> array = orderServers(
@@ -205,11 +205,13 @@ implements Comparator<ServerDescriptor>
       // Adds the required focus listeners to the fields.
       final FocusListener l = new FocusListener()
       {
+        @Override
         public void focusGained(FocusEvent e)
         {
           lastFocusComponent = e.getComponent();
         }
 
+        @Override
         public void focusLost(FocusEvent e)
         {
         }
@@ -285,7 +287,7 @@ implements Comparator<ServerDescriptor>
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void endDisplay()
   {
     if (lastFocusComponent != null)

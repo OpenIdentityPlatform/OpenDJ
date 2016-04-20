@@ -12,31 +12,29 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
 
+import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.util.Utils;
+
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
 
-import java.util.List;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-/**
- * Supports user interactions for a command line driven application.
- */
+/** Supports user interactions for a command line driven application. */
 public class CliUserInteraction extends ConsoleApplication
         implements UserInteraction {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -54,14 +52,14 @@ public class CliUserInteraction extends ConsoleApplication
     isForceOnError = ud != null && ud.isForceOnError();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object confirm(LocalizableMessage summary, LocalizableMessage details,
                         LocalizableMessage title, MessageType type, LocalizableMessage[] options,
                         LocalizableMessage def) {
     return confirm(summary, details, null, title, type, options, def, null);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object confirm(LocalizableMessage summary, LocalizableMessage details, LocalizableMessage fineDetails,
                         LocalizableMessage title, MessageType type, LocalizableMessage[] options,
                         LocalizableMessage def, LocalizableMessage viewDetailsOption) {
@@ -138,12 +136,12 @@ public class CliUserInteraction extends ConsoleApplication
     return returnValue;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String createUnorderedList(List<?> list) {
     StringBuilder sb = new StringBuilder();
     if (list != null) {
       for (Object o : list) {
-        sb.append(/*bullet=*/"* ");
+        sb.append("* ");
         sb.append(o);
         sb.append(Constants.LINE_SEPARATOR);
       }
@@ -158,44 +156,43 @@ public class CliUserInteraction extends ConsoleApplication
     getErrorStream().println(text);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isInteractive() {
     return isInteractive;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isQuiet() {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isVerbose() {
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isCLI()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isForceOnError() {
     return isForceOnError;
   }

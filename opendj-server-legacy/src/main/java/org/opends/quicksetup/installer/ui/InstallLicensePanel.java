@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -32,10 +32,7 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.LicenseFile;
 import org.opends.quicksetup.ButtonName;
 
-/**
- * This panel is used to show a welcome message.
- *
- */
+/** This panel is used to show a welcome message. */
 public class InstallLicensePanel extends QuickSetupStepPanel
 {
   private static final long serialVersionUID = 6209217138897900860L;
@@ -49,13 +46,13 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     super(app);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_LICENSE_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return null;
@@ -63,7 +60,7 @@ public class InstallLicensePanel extends QuickSetupStepPanel
 
   private JCheckBox acceptCheck;
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     // No input in this panel
@@ -115,19 +112,18 @@ public class InstallLicensePanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * Adds the required action listeners to the fields.
-   */
+  /** Adds the required action listeners to the fields. */
   private void addActionListeners()
   {
     final ActionListener l = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent e)
       {
         // Enable or disable Next button as user clicks approval button

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer;
 
@@ -31,17 +31,11 @@ public class DataReplicationOptions
    */
   public enum Type
   {
-    /**
-     * Standalone server.
-     */
+    /** Standalone server. */
     STANDALONE,
-    /**
-     * Replicate Contents and this is the first server in topology..
-     */
+    /** Replicate Contents and this is the first server in topology.. */
     FIRST_IN_TOPOLOGY,
-    /**
-     * Replicate Contents of the new Suffix with existing server.
-     */
+    /** Replicate Contents of the new Suffix with existing server. */
     IN_EXISTING_TOPOLOGY
   }
 
@@ -54,9 +48,7 @@ public class DataReplicationOptions
     authenticationData.setPort(4444);
   }
 
-  /**
-   * Private constructor for the DataReplicationOptions object.
-   */
+  /** Private constructor for the DataReplicationOptions object. */
   private DataReplicationOptions()
   {
   }

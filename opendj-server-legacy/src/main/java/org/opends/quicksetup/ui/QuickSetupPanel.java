@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -24,10 +25,7 @@ import javax.swing.JPanel;
 
 import org.opends.quicksetup.UserData;
 
-/**
- * This class is an abstract class that provides some commodity methods.
- *
- */
+/** This class is an abstract class that provides some commodity methods. */
 abstract class QuickSetupPanel extends JPanel
 {
   private static final long serialVersionUID = 2096518919339628055L;

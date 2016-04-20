@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -33,9 +33,7 @@ import org.opends.server.util.CollectionUtils;
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
-/**
- * The panel displaying the entry caches monitor panel.
- */
+/** The panel displaying the entry caches monitor panel. */
 public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
@@ -58,25 +56,20 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
     }
   }
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public EntryCachesMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return monitoringLabels.get(0);
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -121,10 +114,7 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /**
-   * Updates the contents of the panel.
-   *
-   */
+  /** Updates the contents of the panel. */
   public void updateContents()
   {
     ServerDescriptor server = null;

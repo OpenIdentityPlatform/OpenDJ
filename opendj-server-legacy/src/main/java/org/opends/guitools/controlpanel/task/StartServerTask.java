@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -25,10 +25,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The task called when we want to start the server.
- *
- */
+/** The task called when we want to start the server. */
 public class StartServerTask extends StartStopTask
 {
 
@@ -42,25 +39,25 @@ public class StartServerTask extends StartStopTask
     super(info, dlg);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.START_SERVER;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_START_SERVER_TASK_DESCRIPTION.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return getCommandLinePath("start-ds");
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     ArrayList<String> args = new ArrayList<>();

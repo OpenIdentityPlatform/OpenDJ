@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -34,20 +34,19 @@ import javax.swing.table.TableCellRenderer;
 /**
  * This class listens to events and displays a tooltip when the user clicks on
  * the object that registered this listener.
- *
  */
 public class ClickTooltipDisplayer extends MouseAdapter
 {
   private boolean isTooltipVisible;
   private Popup tipWindow;
 
-  /** {@inheritDoc} */
+  @Override
   public void mouseExited(MouseEvent event)
   {
     hideToolTip(event);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void mousePressed(MouseEvent event)
   {
     if (isTooltipVisible)

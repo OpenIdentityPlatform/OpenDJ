@@ -49,10 +49,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The class that is in charge of adding a set of entries to a set of static
- * groups.
- */
+/** The class that is in charge of adding a set of entries to a set of static groups. */
 public class AddToGroupTask extends Task
 {
   private Set<String> backendSet;
@@ -89,37 +86,37 @@ public class AddToGroupTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.MODIFY_ENTRY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return AdminToolMessages.INFO_CTRL_PANEL_ADD_TO_GROUP_TASK_DESCRIPTION.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<>();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -141,13 +138,13 @@ public class AddToGroupTask extends Task
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean regenerateDescriptor()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -167,6 +164,7 @@ public class AddToGroupTask extends Task
 
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               printEquivalentCommandToModify(groupDn, modifications, false);
@@ -182,6 +180,7 @@ public class AddToGroupTask extends Task
 
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               getProgressDialog().appendProgressHtml(

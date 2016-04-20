@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -31,25 +31,16 @@ import javax.swing.plaf.metal.MetalBorders;
 
 import org.opends.guitools.controlpanel.util.Utilities;
 
-/**
- * Class containing some Fonts and Colors used in the Control Panel.
- *
- */
+/** Class containing some Fonts and Colors used in the Control Panel. */
 public class ColorAndFontConstants
 {
-  /**
-   * Foreground color (the color of normal text).
-   */
+  /** Foreground color (the color of normal text). */
   public static final Color foreground =
     UIManager.getColor("TextField.foreground");
-  /**
-   * Background color (the color of the panels).
-   */
+  /** Background color (the color of the panels). */
   public static final Color background;
   private static Color toggleButtonColor;
-  /**
-   * The border to be used for a text area.
-   */
+  /** The border to be used for a text area. */
   public static final Border textAreaBorder;
   static
   {
@@ -97,18 +88,12 @@ public class ColorAndFontConstants
     textAreaBorder = border;
     background = bg;
   }
-  /**
-   * The text color of buttons.
-   */
+  /** The text color of buttons. */
   public static final Color buttonForeground =
     UIManager.getColor("Button.foreground");
-  /**
-   * The text color of the category items.
-   */
+  /** The text color of the category items. */
   public static final Color categoryForeground = foreground;
-  /**
-   * The text color of the BasicExpander components.
-   */
+  /** The text color of the BasicExpander components. */
   public static final Color expanderForeground = foreground;
   /**
    * The grey color background that is used for instance as background for the
@@ -118,33 +103,21 @@ public class ColorAndFontConstants
   UIManager.getColor("MenuBar.background") :
     UIManager.getColor("Panel.background");
 
-  /**
-   * The default border color.
-   */
+  /** The default border color. */
   public static final Color defaultBorderColor =
   Utilities.deriveColorHSB(toggleButtonColor, 0, 0, -.2f);
 
-  /**
-   * The grid color for the table.
-   */
+  /** The grid color for the table. */
   public static final Color gridColor =
   isMacOS() ? defaultBorderColor :
   UIManager.getColor("Table.gridColor");
-  /**
-   * The color of the text in the table.
-   */
+  /** The color of the text in the table. */
   public static final Color tableForeground = foreground;
-  /**
-   * The background color of the table.
-   */
+  /** The background color of the table. */
   public static final Color tableBackground = background;
-  /**
-   * The text color of the tree.
-   */
+  /** The text color of the tree. */
   public static final Color treeForeground = foreground;
-  /**
-   * The background color of the tree.
-   */
+  /** The background color of the tree. */
   public static final Color treeBackground = background;
   /**
    * The color of the background when the mouse is over (this is used in some
@@ -153,9 +126,7 @@ public class ColorAndFontConstants
    */
   public static final Color mouseOverBackground =
   UIManager.getColor("TextField.selectionBackground");
-  /**
-   * Text color indicating that a field is valid.
-   */
+  /** Text color indicating that a field is valid. */
   public static final Color validFontColor = foreground;
 
   /**
@@ -182,77 +153,43 @@ public class ColorAndFontConstants
     Utilities.deriveColorHSB(mouseOverForeground,
         0, 0, +.20f);
 
-  /**
-   * The default font of the labels.
-   */
+  /** The default font of the labels. */
   public static final Font defaultFont = UIManager.getFont("Label.font");
-  /**
-   * The font of the BasicExpander component.
-   */
+  /** The font of the BasicExpander component. */
   public static final Font expanderFont = defaultFont.deriveFont(Font.BOLD);
-  /**
-   * The in-line help font.
-   */
+  /** The in-line help font. */
   public static final Font inlineHelpFont = defaultFont.deriveFont(
   (float)(defaultFont.getSize() - 2));
-  /**
-   * The font of the table header.
-   */
+  /** The font of the table header. */
   public static final Font headerFont =
   UIManager.getFont("TableHeader.font").deriveFont(Font.BOLD);
-  /**
-   * The font to be used in the title of the error panes.
-   */
+  /** The font to be used in the title of the error panes. */
   public static final Font errorTitleFont =
   defaultFont.deriveFont(Font.BOLD).deriveFont(13f);
-  /**
-   * The font to be used in the CategoryButton component.
-   */
+  /** The font to be used in the CategoryButton component. */
   public static final Font categoryFont =
     UIManager.getFont("Label.font").deriveFont(Font.BOLD);
-  /**
-   * The top border of the accordion component.
-   */
+  /** The top border of the accordion component. */
   public static final Color topAccordionBorderColor = Utilities.deriveColorHSB(
       toggleButtonColor, 0, 0, .2f);
-  /**
-   * The font to be used in primary labels.
-   */
+  /** The font to be used in primary labels. */
   public static final Font primaryFont = defaultFont.deriveFont(Font.BOLD);
-  /**
-   * The font to be used in the tree.
-   */
+  /** The font to be used in the tree. */
   public static final Font treeFont = UIManager.getFont("Tree.font");
-  /**
-   * The font to be used in the table.
-   */
+  /** The font to be used in the table. */
   public static final Font tableFont = UIManager.getFont("Table.font");
-  /**
-   * The font to be used in the title of the TitlePanel component.
-   */
+  /** The font to be used in the title of the TitlePanel component. */
   public static final Font titleFont =
   defaultFont.deriveFont(Font.BOLD).deriveFont(14f);
-  /**
-   * Text color indicating that a field is not valid.
-   */
+  /** Text color indicating that a field is not valid. */
   public static final Color invalidFontColor = Color.red;
-  /**
-   * The font to be used when the field associated with a primary label is not
-   * valid.
-   */
+  /** The font to be used when the field associated with a primary label is not valid. */
   public static final Font primaryInvalidFont =
     primaryFont.deriveFont(Font.ITALIC);
-  /**
-   * The font to be used when the field associated with a normal label is not
-   * valid.
-   */
+  /** The font to be used when the field associated with a normal label is not valid. */
   public static final Font invalidFont = defaultFont.deriveFont(Font.ITALIC);
-  /**
-   * The font to be used in the progress dialog's 'Details' section.
-   */
+  /** The font to be used in the progress dialog's 'Details' section. */
   public static final Font progressFont = UIManager.getFont("EditorPane.font");
-  /**
-   * Specifies the font for the command-line output in the detail panel.
-   */
+  /** Specifies the font for the command-line output in the detail panel. */
   public static final Font outputFont = Font.decode("Monospaced-PLAIN-12");
 }

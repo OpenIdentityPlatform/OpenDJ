@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -46,10 +47,7 @@ public abstract class AbstractNodeTask implements Runnable {
   }
 
 
-  /**
-   * Cancels the searching/refreshing process.
-   *
-   */
+  /** Cancels the searching/refreshing process. */
   public void cancel() {
     cancelled = true;
   }
@@ -63,8 +61,7 @@ public abstract class AbstractNodeTask implements Runnable {
     return cancelled;
   }
 
-  /**
-   * The method that is called to refresh/search the node.
-   */
+  /** The method that is called to refresh/search the node. */
+  @Override
   public abstract void run();
 }

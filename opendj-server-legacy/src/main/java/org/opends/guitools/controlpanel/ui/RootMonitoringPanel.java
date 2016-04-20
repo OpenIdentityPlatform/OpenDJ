@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -35,9 +35,7 @@ import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.BackendMessages.*;
 
-/**
- * The panel displaying the root monitor panel.
- */
+/** The panel displaying the root monitor panel. */
 public class RootMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563746269830L;
@@ -56,16 +54,13 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return openConnections;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -124,10 +119,7 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /**
-   * Updates the contents of the panel.
-   *
-   */
+  /** Updates the contents of the panel. */
   public void updateContents()
   {
     ServerDescriptor server = null;

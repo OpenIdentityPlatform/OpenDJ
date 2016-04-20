@@ -74,20 +74,12 @@ public class UserData
 
   private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 
-  /**
-   * The script name to be used to get and set the java arguments for the
-   * server runtime.
-   */
+  /** The script name to be used to get and set the java arguments for the server runtime. */
   public final static String SERVER_SCRIPT_NAME = "start-ds";
-  /**
-   * The script name to be used to get and set the java arguments for the
-   * (off-line) import.
-   */
+  /** The script name to be used to get and set the java arguments for the (off-line) import. */
   public final static String IMPORT_SCRIPT_NAME = "import-ldif.offline";
 
-  /**
-   * Creates a user data object with default values.
-   */
+  /** Creates a user data object with default values. */
   public UserData() {
     interactive = true;
     startServer = true;

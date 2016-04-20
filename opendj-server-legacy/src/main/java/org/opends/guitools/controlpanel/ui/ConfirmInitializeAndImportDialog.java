@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -41,27 +41,17 @@ import org.forgerock.i18n.LocalizableMessage;
  * It proposes the user to save the changes, do not save them or cancel the
  * action that make the dialog appear (for instance when the user is editing
  * an entry and clicks on another node, this dialog appears).
- *
  */
 public class ConfirmInitializeAndImportDialog extends GenericDialog
 {
-  /**
-   * The different input that the user can provide.
-   *
-   */
+  /** The different input that the user can provide. */
   public enum Result
   {
-    /**
-     * The user asks to do the import and then the initialization.
-     */
+    /** The user asks to do the import and then the initialization. */
     INITIALIZE_ALL,
-    /**
-     * The user asks to only do the import locally.
-     */
+    /** The user asks to only do the import locally. */
     IMPORT_ONLY,
-    /**
-     * The user asks to cancel the operation that made this dialog to appear.
-     */
+    /** The user asks to cancel the operation that made this dialog to appear. */
     CANCEL
   }
   private static final long serialVersionUID = -442311801035162311L;
@@ -95,7 +85,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
     pack();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setVisible(boolean visible)
   {
     if (visible)
@@ -127,10 +117,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
     return panel;
   }
 
-  /**
-   * The panel to be displayed inside the dialog.
-   *
-   */
+  /** The panel to be displayed inside the dialog. */
   private static class ConfirmInitializeAndImportPanel
   extends StatusGenericPanel
   {
@@ -142,10 +129,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
 
     private Result result;
 
-    /**
-     * Default constructor.
-     *
-     */
+    /** Default constructor. */
     public ConfirmInitializeAndImportPanel()
     {
       super();
@@ -167,13 +151,13 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       add(createButtonsPanel(), gbc);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean requiresBorder()
     {
       return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean requiresScroll()
     {
       return false;
@@ -205,6 +189,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       buttonsPanel.add(initializeAllButton, gbc);
       initializeAllButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.INITIALIZE_ALL;
@@ -222,7 +207,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       buttonsPanel.add(importOnlyButton, gbc);
       importOnlyButton.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.IMPORT_ONLY;
@@ -238,7 +223,7 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       buttonsPanel.add(cancelButton, gbc);
       cancelButton.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.CANCEL;
@@ -252,29 +237,29 @@ public class ConfirmInitializeAndImportDialog extends GenericDialog
       return buttonsPanel;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Component getPreferredFocusComponent()
     {
       return initializeAllButton;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void okClicked()
     {
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTitle()
     {
       return INFO_CTRL_PANEL_CONFIRM_INITIALIZE_TITLE.get();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void configurationChanged(ConfigurationChangeEvent ev)
     {
     }
 
-    /** {@inheritDoc} */
+    @Override
     public GenericDialog.ButtonType getButtonType()
     {
       return GenericDialog.ButtonType.NO_BUTTON;

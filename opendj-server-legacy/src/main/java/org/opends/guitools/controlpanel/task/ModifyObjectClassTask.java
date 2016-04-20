@@ -71,20 +71,20 @@ public class ModifyObjectClassTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.MODIFY_SCHEMA_ELEMENT;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_MODIFY_OBJECTCLASS_TASK_DESCRIPTION.get(
         oldObjectClass.getNameOrOID());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -101,25 +101,25 @@ public class ModifyObjectClassTask extends Task
     return canLaunch;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     try
@@ -199,6 +199,7 @@ public class ModifyObjectClassTask extends Task
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().appendProgressHtml(Utilities.applyFont(
@@ -215,6 +216,7 @@ public class ModifyObjectClassTask extends Task
 
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",

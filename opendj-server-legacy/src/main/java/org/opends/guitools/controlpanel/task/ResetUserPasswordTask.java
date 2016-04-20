@@ -98,38 +98,38 @@ public class ResetUserPasswordTask extends Task
     useAdminCtx = controller.isConfigurationNode(node);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.MODIFY_ENTRY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_RESET_USER_PASSWORD_TASK_DESCRIPTION.get(
         node.getDN());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean regenerateDescriptor()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return getCommandLinePath("ldappasswordmodify");
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     ArrayList<String> args = new ArrayList<>();
@@ -150,7 +150,7 @@ public class ResetUserPasswordTask extends Task
     return args;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -172,7 +172,7 @@ public class ResetUserPasswordTask extends Task
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;

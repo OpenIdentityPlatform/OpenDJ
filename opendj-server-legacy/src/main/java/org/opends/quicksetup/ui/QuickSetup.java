@@ -125,10 +125,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     setCurrentStep(application.getFirstWizardStep());
   }
 
-  /**
-   * This method displays the setup dialog.
-   * This method must be called from the event thread.
-   */
+  /** This method displays the setup dialog. This method must be called from the event thread. */
   public void display()
   {
     getDialog().packAndShow();
@@ -141,6 +138,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    * @param ev
    *          the ButtonEvent we receive.
    */
+  @Override
   public void buttonActionPerformed(ButtonEvent ev)
   {
     switch (ev.getButtonName())
@@ -183,6 +181,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *          the ProgressUpdateEvent we receive.
    * @see #runDisplayUpdater()
    */
+  @Override
   public void progressUpdate(ProgressUpdateEvent ev)
   {
     synchronized (this)
@@ -231,6 +230,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
             SwingUtilities.invokeLater(new Runnable()
             {
+              @Override
               public void run()
               {
                 if (application.isFinished() && !getCurrentStep().isFinishedStep())
@@ -261,6 +261,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     BackgroundTask<?> worker = new BackgroundTask<Object>()
     {
+      @Override
       public Object processBackgroundTask() throws UserDataException
       {
         try
@@ -278,6 +279,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         return null;
       }
 
+      @Override
       public void backgroundTaskCompleted(Object returnValue, Throwable throwable)
       {
         getDialog().workerFinished();
@@ -364,6 +366,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     BackgroundTask<Object> worker = new BackgroundTask<Object>()
     {
+      @Override
       public Object processBackgroundTask() throws UserDataException
       {
         try
@@ -418,6 +421,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         return null;
       }
 
+      @Override
       public void backgroundTaskCompleted(Object returnValue, Throwable throwable)
       {
         getDialog().getFrame().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -473,6 +477,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     new Thread(application, "Application Thread").start();
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         runDisplayUpdater();
@@ -642,10 +647,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     return new ProgressDescriptor(status, ratio, newProgressLabel, LocalizableMessage.raw(progressDetails.toString()));
   }
 
-  /**
-   * This is a class used when the user clicks on next and that extends
-   * BackgroundTask.
-   */
+  /** This is a class used when the user clicks on next and that extends BackgroundTask. */
   private class NextClickedBackgroundTask extends BackgroundTask<Object>
   {
     private WizardStep cStep;
@@ -655,6 +657,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       this.cStep = cStep;
     }
 
+    @Override
     public Object processBackgroundTask() throws UserDataException
     {
       try
@@ -672,6 +675,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       return null;
     }
 
+    @Override
     public void backgroundTaskCompleted(Object returnValue, Throwable throwable)
     {
       getDialog().workerFinished();

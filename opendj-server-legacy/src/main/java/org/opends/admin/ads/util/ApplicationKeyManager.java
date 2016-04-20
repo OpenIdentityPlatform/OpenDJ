@@ -13,9 +13,8 @@
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2009 Parametric Technology Corporation (PTC)
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import java.net.Socket;
@@ -28,16 +27,14 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.Platform;
-
 
 /**
  * This class is in charge of checking whether the certificates that are
@@ -55,9 +52,7 @@ public class ApplicationKeyManager implements X509KeyManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The default keyManager.
-   */
+  /** The default keyManager. */
   private X509KeyManager keyManager;
 
   /**
@@ -116,14 +111,13 @@ public class ApplicationKeyManager implements X509KeyManager
         KeyManager kms[] = kmf.getKeyManagers();
         /*
          * Iterate over the returned keymanagers, look for an instance
-         * of X509KeyManager. If found, use that as our "default" key
-         * manager.
+         * of X509KeyManager. If found, use that as our "default" key manager.
          */
-        for (int j = 0; j < kms.length; j++)
+        for (KeyManager km : kms)
         {
           if (kms[i] instanceof X509KeyManager)
           {
-            keyManager = (X509KeyManager) kms[j];
+            keyManager = (X509KeyManager) km;
             break;
           }
         }
@@ -155,138 +149,39 @@ public class ApplicationKeyManager implements X509KeyManager
     }
   }
 
-
-  /**
-   * Choose an alias to authenticate the client side of a secure
-   * socket given the public key type and the list of certificate
-   * issuer authorities recognized by the peer (if any).
-   *
-   * @param keyType
-   *          the key algorithm type name(s), ordered with the
-   *          most-preferred key type first.
-   * @param issuers
-   *          the list of acceptable CA issuer subject names or null
-   *          if it does not matter which issuers are used.
-   * @param socket
-   *          the socket to be used for this connection. This
-   *          parameter can be null, in which case this method will
-   *          return the most generic alias to use.
-   * @return the alias name for the desired key, or null if there are
-   *         no matches.
-   */
-  public String chooseClientAlias(String[] keyType, Principal[] issuers,
-      Socket socket)
+  @Override
+  public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket)
   {
-    if (keyManager != null)
-    {
-      return keyManager.chooseClientAlias(keyType, issuers, socket);
-    }
-    return null;
+    return keyManager != null ? keyManager.chooseClientAlias(keyType, issuers, socket) : null;
   }
 
-  /**
-   * Choose an alias to authenticate the client side of a secure
-   * socket given the public key type and the list of certificate
-   * issuer authorities recognized by the peer (if any).
-   *
-   * @param keyType
-   *          the key algorithm type name(s), ordered with the
-   *          most-preferred key type first.
-   * @param issuers
-   *          the list of acceptable CA issuer subject names or null
-   *          if it does not matter which issuers are used.
-   * @param socket
-   *          the socket to be used for this connection. This
-   *          parameter can be null, in which case this method will
-   *          return the most generic alias to use.
-   * @return the alias name for the desired key, or null if there are
-   *         no matches.
-   */
-  public String chooseServerAlias(String keyType, Principal[] issuers,
-      Socket socket)
+  @Override
+  public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket)
   {
-    if (keyManager != null)
-    {
-      return keyManager.chooseServerAlias(keyType, issuers, socket);
-    }
-    return null;
+    return keyManager != null ? keyManager.chooseServerAlias(keyType, issuers, socket) : null;
   }
 
-  /**
-   * Returns the certificate chain associated with the given alias.
-   *
-   * @param alias
-   *          the alias name
-   * @return the certificate chain (ordered with the user's
-   *         certificate first and the root certificate authority
-   *         last), or null if the alias can't be found.
-   */
+  @Override
   public X509Certificate[] getCertificateChain(String alias)
   {
-    if (keyManager != null)
-    {
-      return keyManager.getCertificateChain(alias);
-    }
-    return null;
+    return keyManager != null ? keyManager.getCertificateChain(alias) : null;
   }
 
-  /**
-   * Get the matching aliases for authenticating the server side of a
-   * secure socket given the public key type and the list of
-   * certificate issuer authorities recognized by the peer (if any).
-   *
-   * @param keyType
-   *          the key algorithm type name
-   * @param issuers
-   *          the list of acceptable CA issuer subject names or null
-   *          if it does not matter which issuers are used.
-   * @return an array of the matching alias names, or null if there
-   *         were no matches.
-   */
+  @Override
   public String[] getClientAliases(String keyType, Principal[] issuers)
   {
-    if (keyManager != null)
-    {
-      return keyManager.getClientAliases(keyType, issuers);
-    }
-    return null;
+    return keyManager != null ? keyManager.getClientAliases(keyType, issuers) : null;
   }
 
-  /**
-   * Returns the key associated with the given alias.
-   *
-   * @param alias
-   *          the alias name
-   * @return the requested key, or null if the alias can't be found.
-   */
+  @Override
   public PrivateKey getPrivateKey(String alias)
   {
-    if (keyManager != null)
-    {
-      return keyManager.getPrivateKey(alias);
-    }
-    return null;
+    return keyManager != null ? keyManager.getPrivateKey(alias) : null;
   }
 
-  /**
-   * Get the matching aliases for authenticating the server side of a
-   * secure socket given the public key type and the list of
-   * certificate issuer authorities recognized by the peer (if any).
-   *
-   * @param keyType
-   *          the key algorithm type name
-   * @param issuers
-   *          the list of acceptable CA issuer subject names or null
-   *          if it does not matter which issuers are used.
-   * @return an array of the matching alias names, or null if there
-   *         were no matches.
-   */
+  @Override
   public String[] getServerAliases(String keyType, Principal[] issuers)
   {
-    if (keyManager != null)
-    {
-      return keyManager.getServerAliases(keyType, issuers);
-    }
-    return null;
+    return keyManager != null ? keyManager.getServerAliases(keyType, issuers) : null;
   }
 }

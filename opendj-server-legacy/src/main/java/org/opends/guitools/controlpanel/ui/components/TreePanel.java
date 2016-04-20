@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -30,29 +30,20 @@ import org.opends.guitools.controlpanel.ui.StatusGenericPanel;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * A basic panel containing a CustomTree.
- *
- */
+/** A basic panel containing a CustomTree. */
 public class TreePanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 5650902943430126109L;
   private JTree tree;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public TreePanel()
   {
     super();
     createLayout();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   *
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -79,31 +70,31 @@ public class TreePanel extends StatusGenericPanel
     return tree;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return tree;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }

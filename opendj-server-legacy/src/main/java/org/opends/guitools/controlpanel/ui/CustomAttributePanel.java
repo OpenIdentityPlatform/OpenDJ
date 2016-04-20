@@ -157,16 +157,13 @@ class CustomAttributePanel extends SchemaElementPanel
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CUSTOM_ATTRIBUTE_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -198,7 +195,6 @@ class CustomAttributePanel extends SchemaElementPanel
     add(delete, gbc);
     delete.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void actionPerformed(ActionEvent ev)
       {
@@ -214,7 +210,6 @@ class CustomAttributePanel extends SchemaElementPanel
     add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void actionPerformed(ActionEvent ev)
       {
@@ -333,7 +328,6 @@ class CustomAttributePanel extends SchemaElementPanel
       final BasicExpander expander = expanders[i];
       ChangeListener changeListener = new ChangeListener()
       {
-        /** {@inheritDoc} */
         @Override
         public void stateChanged(ChangeEvent e)
         {
@@ -347,7 +341,6 @@ class CustomAttributePanel extends SchemaElementPanel
 
     ItemListener itemListener = new ItemListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void itemStateChanged(ItemEvent ev)
       {
@@ -401,7 +394,6 @@ class CustomAttributePanel extends SchemaElementPanel
       final JList list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
-        /** {@inheritDoc} */
         @Override
         public void mouseClicked(MouseEvent ev)
         {
@@ -415,7 +407,6 @@ class CustomAttributePanel extends SchemaElementPanel
 
       KeyAdapter keyListener = new KeyAdapter()
       {
-        /** {@inheritDoc} */
         @Override
         public void keyTyped(KeyEvent ev)
         {
@@ -431,21 +422,18 @@ class CustomAttributePanel extends SchemaElementPanel
 
     DocumentListener docListener = new DocumentListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void insertUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void removeUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /** {@inheritDoc} */
       @Override
       public void changedUpdate(DocumentEvent arg0)
       {
@@ -482,14 +470,12 @@ class CustomAttributePanel extends SchemaElementPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean mustCheckUnsavedChanges()
   {
     return saveChanges.isEnabled();
   }
 
-  /** {@inheritDoc} */
   @Override
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
@@ -510,7 +496,6 @@ class CustomAttributePanel extends SchemaElementPanel
     return result;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
@@ -618,7 +603,6 @@ class CustomAttributePanel extends SchemaElementPanel
     ignoreChangeEvents = false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -687,7 +671,6 @@ class CustomAttributePanel extends SchemaElementPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
       @Override
       public void run()
       {
@@ -711,14 +694,12 @@ class CustomAttributePanel extends SchemaElementPanel
     return schema == null && s != null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {

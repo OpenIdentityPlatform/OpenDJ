@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -20,11 +20,7 @@ package org.opends.guitools.controlpanel.ui.nodes;
 import org.forgerock.opendj.ldap.schema.Syntax;
 
 
-/**
- * Class of the nodes that represent an attribute syntax in the 'Manage Schema'
- * tree.
- *
- */
+/** Class of the nodes that represent an attribute syntax in the 'Manage Schema' tree. */
 public class AttributeSyntaxTreeNode extends SchemaElementTreeNode
 {
   private static final long serialVersionUID = 2439971368723239776L;

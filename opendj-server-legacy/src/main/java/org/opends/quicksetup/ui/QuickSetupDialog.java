@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -44,7 +44,6 @@ import org.opends.quicksetup.ProgressDescriptor;
  *
  * If we are installing Open DS and the server has already been installed it
  * will display an error message.  In the other cases it will display a wizard.
- *
  */
 public class QuickSetupDialog
 {
@@ -88,6 +87,7 @@ public class QuickSetupDialog
     frame = new JFrame(String.valueOf(application.getFrameTitle()));
     frame.getContentPane().add(getFramePanel());
     frame.addWindowListener(new WindowAdapter() {
+      @Override
       public void windowClosing(WindowEvent e) {
         application.windowClosing(QuickSetupDialog.this, e);
       }
@@ -96,10 +96,7 @@ public class QuickSetupDialog
     Utilities.setFrameIcon(frame);
   }
 
-  /**
-   * Packs and displays this dialog.
-   *
-   */
+  /** Packs and displays this dialog. */
   public void packAndShow()
   {
     frame.pack();
@@ -243,12 +240,12 @@ public class QuickSetupDialog
    *
    * This method can be called from the event thread or outside the event
    * thread.
-   *
    */
   public void workerStarted()
   {
     Runnable r = new Runnable()
     {
+      @Override
       public void run()
       {
         displayWorkingProgressImage(true);
@@ -266,12 +263,12 @@ public class QuickSetupDialog
    *
    * This method can be called from the event thread or outside the event
    * thread.
-   *
    */
   public void workerFinished()
   {
     Runnable r = new Runnable()
     {
+      @Override
       public void run()
       {
         displayWorkingProgressImage(false);

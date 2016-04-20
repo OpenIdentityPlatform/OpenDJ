@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -46,10 +46,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.RestoreDB;
 
-/**
- * The panel that appears when the user wants to restore from a backup.
- *
- */
+/** The panel that appears when the user wants to restore from a backup. */
 public class RestorePanel extends BackupListPanel
 implements BackupCreatedListener
 {
@@ -58,23 +55,20 @@ implements BackupCreatedListener
   private JLabel lBackupID;
   private JTextField backupID;
 
-  /**
-   * Constructor of the panel.
-   *
-   */
+  /** Constructor of the panel. */
   public RestorePanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_RESTORE_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void backupCreated(BackupCreatedEvent ev)
   {
     boolean refreshList = false;
@@ -98,6 +92,7 @@ implements BackupCreatedListener
       // opened.
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           refreshList();
@@ -106,14 +101,14 @@ implements BackupCreatedListener
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
     info.addBackupCreatedListener(this);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -122,13 +117,13 @@ implements BackupCreatedListener
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         lBackupID.setVisible(!desc.isLocal());
@@ -141,7 +136,7 @@ implements BackupCreatedListener
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void verifyBackupClicked()
   {
     LinkedHashSet<LocalizableMessage> errors = new LinkedHashSet<>();
@@ -174,9 +169,7 @@ implements BackupCreatedListener
     }
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -208,6 +201,7 @@ implements BackupCreatedListener
 
     listener = new ListSelectionListener()
     {
+      @Override
       public void valueChanged(ListSelectionEvent ev)
       {
         BackupDescriptor backup = getSelectedBackup();
@@ -219,13 +213,13 @@ implements BackupCreatedListener
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkOKButtonEnable()
   {
     listener.valueChanged(null);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(lPath);
@@ -309,7 +303,7 @@ implements BackupCreatedListener
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lPath);
@@ -359,13 +353,13 @@ implements BackupCreatedListener
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.RESTORE;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
       if (verify)
@@ -378,7 +372,7 @@ implements BackupCreatedListener
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -397,7 +391,7 @@ implements BackupCreatedListener
       return canLaunch;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -458,13 +452,13 @@ implements BackupCreatedListener
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<>();
@@ -491,7 +485,7 @@ implements BackupCreatedListener
       return args;
     }
 
-    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return getCommandLinePath("restore");

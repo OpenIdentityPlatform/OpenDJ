@@ -12,32 +12,30 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.admin.ads.util;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+
 import javax.net.ssl.X509TrustManager;
 
-/**
- * An X509TrustManager which trusts everything.
- */
+/** An X509TrustManager which trusts everything. */
 public class BlindTrustManager implements X509TrustManager {
-
-  /** {@inheritDoc} */
-  public void checkClientTrusted(X509Certificate[] chain, String authType)
-  throws CertificateException
+  @Override
+  public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
   {
+    // no-op
   }
 
-  /** {@inheritDoc} */
-  public void checkServerTrusted(X509Certificate[] chain, String authType)
-  throws CertificateException
+  @Override
+  public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
   {
+    // no-op
   }
 
-  /** {@inheritDoc} */
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return new X509Certificate[0];

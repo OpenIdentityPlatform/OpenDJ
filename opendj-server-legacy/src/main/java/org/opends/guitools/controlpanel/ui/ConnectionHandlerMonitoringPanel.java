@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -72,10 +72,7 @@ import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-/**
- * Class that displays the monitoring information of connection handlers.
- *
- */
+/** Class that displays the monitoring information of connection handlers. */
 public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -6462932160985559830L;
@@ -126,19 +123,14 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   private LocalizableMessage ALL_CONNECTION_HANDLERS =
     INFO_CTRL_PANEL_ALL_CONNECTION_HANDLERS.get();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ConnectionHandlerMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -170,6 +162,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
         new IgnoreItemListener(connectionHandlers));
     connectionHandlers.addItemListener(new ItemListener()
     {
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         if (ev.getStateChange() == ItemEvent.SELECTED)
@@ -241,14 +234,12 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     updateTableSizes();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CONNECTION_HANDLER_MONITORING_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public JMenuBar getMenuBar()
   {
@@ -260,7 +251,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     return menuBar;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor server = ev.getNewDescriptor();
@@ -274,6 +265,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       new TreeSet<>(
           new Comparator<ConnectionHandlerDescriptor>()
           {
+            @Override
             public int compare(ConnectionHandlerDescriptor desc1,
                 ConnectionHandlerDescriptor desc2)
             {
@@ -359,7 +351,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
-      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         ViewPositions pos = Utilities.getViewPositions(
@@ -383,21 +375,18 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     });
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return connectionHandlers;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -405,14 +394,12 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   }
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
@@ -452,10 +439,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     return sb.toString();
   }
 
-  /**
-   * Displays a dialog allowing the user to select which operations to display.
-   *
-   */
+  /** Displays a dialog allowing the user to select which operations to display. */
   private void operationViewClicked()
   {
     if (operationViewDlg == null)
@@ -483,7 +467,6 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   /**
    * Updates the contents of the tables depending on whether the averages
    * must be displayed or not.
-   *
    */
   private void showAverageClicked()
   {
@@ -565,10 +548,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
             || ch.getProtocol() == Protocol.OTHER);
   }
 
-  /**
-   * The specific menu bar of this panel.
-   *
-   */
+  /** The specific menu bar of this panel. */
   class ConnectionHandlerMonitoringMenuBar extends MainMenuBar
   {
     private static final long serialVersionUID = 505187831116443370L;
@@ -582,7 +562,6 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       super(info);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void addMenus()
     {
@@ -606,6 +585,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       menu.add(viewOperations);
       viewOperations.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           operationViewClicked();
@@ -617,6 +597,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
       menu.add(showAveragesMenu);
       showAveragesMenu.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           showAverageClicked();

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -34,7 +34,6 @@ import org.opends.guitools.controlpanel.event.EntryReadListener;
  * A class that reads an entry on the background.  This is used in the LDAP
  * entries browser.  When the entry is read it notifies to the EntryReadListener
  * objects that have been registered.
- *
  */
 public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
 {
@@ -56,7 +55,6 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     this.notifyListeners = true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public CustomSearchResult processBackgroundTask() throws Throwable
   {
@@ -94,7 +92,6 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void backgroundTaskCompleted(CustomSearchResult sr,
       Throwable throwable)

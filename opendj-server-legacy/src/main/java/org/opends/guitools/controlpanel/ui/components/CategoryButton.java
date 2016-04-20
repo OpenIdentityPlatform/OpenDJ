@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -39,7 +39,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * A component that acts as a checkbox but uses some customized buttons to
  * indicate the selected and unselected states.  This component is used in the
  * 'Import LDIF' and 'Export LDIF' panels to hide parts of the dialog.
- *
  */
 class CategoryButton extends JCheckBox
 {
@@ -75,6 +74,7 @@ class CategoryButton extends JCheckBox
     setBorder(isSelected() ? buttonSelectedBorder : buttonUnselectedBorder);
     addChangeListener(new ChangeListener()
     {
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         setBorder(isSelected() ? buttonSelectedBorder : buttonUnselectedBorder);
@@ -85,7 +85,7 @@ class CategoryButton extends JCheckBox
     setFont(ColorAndFontConstants.categoryFont);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void updateUI()
   {
     super.updateUI();
@@ -93,7 +93,7 @@ class CategoryButton extends JCheckBox
     setBorder(isSelected() ? buttonSelectedBorder : buttonUnselectedBorder);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void paintComponent(Graphics g) {
     setBackground(backgroundColor);
     g.setColor(backgroundColor);

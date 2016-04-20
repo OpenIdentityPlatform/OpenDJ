@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -23,9 +23,7 @@ import javax.swing.table.TableCellRenderer;
 
 import org.opends.guitools.controlpanel.util.Utilities;
 
-/**
- * Class used to have components that provide a valid accessible name.
- */
+/** Class used to have components that provide a valid accessible name. */
 public class AccessibleTableHeaderRenderer implements TableCellRenderer
 {
   private TableCellRenderer renderer;
@@ -39,7 +37,7 @@ public class AccessibleTableHeaderRenderer implements TableCellRenderer
     this.renderer = renderer;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column)
   {

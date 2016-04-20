@@ -55,9 +55,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.ServerConstants;
 
-/**
- * The task that is launched when an entry must be deleted.
- */
+/** The task that is launched when an entry must be deleted. */
 public class DeleteEntryTask extends Task
 {
   private Set<String> backendSet;
@@ -113,37 +111,37 @@ public class DeleteEntryTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Type getType()
   {
     return Type.DELETE_ENTRY;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Set<String> getBackends()
   {
     return backendSet;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_DELETE_ENTRY_TASK_DESCRIPTION.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected ArrayList<String> getCommandLineArguments()
   {
     return new ArrayList<>();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -164,13 +162,13 @@ public class DeleteEntryTask extends Task
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean regenerateDescriptor()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -223,6 +221,7 @@ public class DeleteEntryTask extends Task
         toNotify.clear();
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             notifyEntriesDeleted(fToNotify);
@@ -299,6 +298,7 @@ public class DeleteEntryTask extends Task
       // Only display the first entry equivalent command-line.
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           if (!equivalentCommandWithoutControlPrinted)
@@ -373,6 +373,7 @@ public class DeleteEntryTask extends Task
         }
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -400,6 +401,7 @@ public class DeleteEntryTask extends Task
     //  Only display the first entry equivalent command-line.
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         if (!equivalentCommandWithControlPrinted)
@@ -456,6 +458,7 @@ public class DeleteEntryTask extends Task
     }
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().getProgressBar().setIndeterminate(false);

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -50,7 +50,6 @@ import static org.opends.messages.QuickSetupMessages.*;
 /**
  * This is the panel that contains the Server Settings: the port, the Directory
  * Manager DN, etc.
- *
  */
 public class ServerSettingsPanel extends QuickSetupStepPanel
 {
@@ -92,7 +91,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     addFocusListeners();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
@@ -133,7 +132,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     JLabel label = getLabel(fieldName);
@@ -151,7 +150,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     JPanel panel = new JPanel(new GridBagLayout());
@@ -274,19 +273,19 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     return panel;
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     return INFO_SERVER_SETTINGS_PANEL_INSTRUCTIONS.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_SERVER_SETTINGS_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void endDisplay()
   {
     if (lastFocusComponent != null)
@@ -363,9 +362,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     return value;
   }
 
-  /**
-   * Creates the components and populates the Maps with them.
-   */
+  /** Creates the components and populates the Maps with them. */
   private void populateLabelAndFieldMaps()
   {
     HashMap<FieldName, LabelFieldDescriptor> hm = new HashMap<>();
@@ -507,6 +504,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
       secureAccessButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           getConfigureSecureAccessDialog().display(securityOptions);
@@ -544,18 +542,18 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     return hmFields.get(fieldName);
   }
 
-  /**
-   * Adds the required focus listeners to the fields.
-   */
+  /** Adds the required focus listeners to the fields. */
   private void addFocusListeners()
   {
     final FocusListener l = new FocusListener()
     {
+      @Override
       public void focusGained(FocusEvent e)
       {
         lastFocusComponent = e.getComponent();
       }
 
+      @Override
       public void focusLost(FocusEvent e)
       {
       }

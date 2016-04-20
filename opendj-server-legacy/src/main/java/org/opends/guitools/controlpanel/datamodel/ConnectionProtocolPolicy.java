@@ -12,40 +12,26 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
 
- /**
-  * Policy to follow to choose the protocol to be used.
-  *
-  * */
+ /** Policy to follow to choose the protocol to be used. */
 public enum ConnectionProtocolPolicy
 {
-  /**
-   * Force to use Start TLS.
-   */
+  /** Force to use Start TLS. */
   USE_STARTTLS,
-  /**
-   * Force to use LDAP.
-   */
+  /** Force to use LDAP. */
   USE_LDAP,
-  /**
-   * Force to use LDAPs.
-   */
+  /** Force to use LDAPs. */
   USE_LDAPS,
-  /**
-   * Force to use the Administration Connector.
-   */
+  /** Force to use the Administration Connector. */
   USE_ADMIN,
-  /**
-   * Use the most secure available (LDAPs, StartTLS and finally LDAP).
-   */
+  /** Use the most secure available (LDAPs, StartTLS and finally LDAP). */
   USE_MOST_SECURE_AVAILABLE,
-  /**
-   * Use the less secure available (LDAP, and then LDAPs).
-   */
+  /** Use the less secure available (LDAP, and then LDAPs). */
   USE_LESS_SECURE_AVAILABLE;
 
   /**

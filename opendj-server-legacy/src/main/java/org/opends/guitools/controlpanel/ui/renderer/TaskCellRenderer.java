@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -26,29 +26,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 
-/**
- * Class used to render the task tables.
- */
+/** Class used to render the task tables. */
 public class TaskCellRenderer extends DefaultTableCellRenderer
 {
   private static final long serialVersionUID = -84332267021523835L;
-  /**
-   * The border of the first column.
-   * TODO: modify CustomCellRenderer to make this public.
-   */
+  /** The border of the first column. TODO: modify CustomCellRenderer to make this public. */
   protected static final Border column0Border =
     BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 1, 0, 0,
           ColorAndFontConstants.gridColor),
           BorderFactory.createEmptyBorder(4, 4, 4, 4));
-  /**
-   * The default border.
-   */
+  /** The default border. */
   public static final Border defaultBorder = CustomCellRenderer.defaultBorder;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public TaskCellRenderer()
   {
     setFont(ColorAndFontConstants.tableFont);
@@ -57,7 +48,7 @@ public class TaskCellRenderer extends DefaultTableCellRenderer
     setForeground(ColorAndFontConstants.treeForeground);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     super.getTableCellRendererComponent(table, value, isSelected, hasFocus,

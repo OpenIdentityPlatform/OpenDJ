@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -42,7 +42,6 @@ import org.opends.server.types.Schema;
 /**
  * This is the class used to edit the object class of a given entry, it displays
  * the structural objectclass of the entry and its auxiliary objectclasses.
- *
  */
 public class ObjectClassEditorPanel extends StatusGenericPanel
 {
@@ -54,10 +53,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
 
   private boolean valueChanged;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ObjectClassEditorPanel()
   {
     super();
@@ -116,13 +112,13 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
         availableListModel, 0, availableListModel.getSize());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return structural;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     valueChanged = false;
@@ -138,7 +134,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     return value;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     String struct = (String)  structural.getSelectedItem();
@@ -150,13 +146,13 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     Utilities.getParentDialog(this).setVisible(false);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_OBJECTCLASS_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final Schema schema = ev.getNewDescriptor().getSchema();
@@ -181,7 +177,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
 
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           String currentStruct = (String)structural.getSelectedItem();
@@ -245,7 +241,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
           ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           setEnabledOK(false);
@@ -265,15 +261,13 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     return valueChanged;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();

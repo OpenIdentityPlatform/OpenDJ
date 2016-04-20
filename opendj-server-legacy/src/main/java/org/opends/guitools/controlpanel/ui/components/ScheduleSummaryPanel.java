@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -109,6 +110,7 @@ public class ScheduleSummaryPanel extends JPanel
     change = Utilities.createButton(INFO_CTRL_PANEL_CHANGE_SCHEDULE.get());
     change.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         changeButtonClicked();

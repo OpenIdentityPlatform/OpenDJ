@@ -407,6 +407,7 @@ public class JavaArgumentsDialog extends JDialog
     buttonsPanel.add(okButton, gbc);
     okButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         okClicked();
@@ -421,6 +422,7 @@ public class JavaArgumentsDialog extends JDialog
     buttonsPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         cancelClicked();
@@ -430,20 +432,14 @@ public class JavaArgumentsDialog extends JDialog
     return buttonsPanel;
   }
 
-  /**
-   * Method called when user clicks on cancel.
-   *
-   */
+  /** Method called when user clicks on cancel. */
   private void cancelClicked()
   {
     isCanceled = true;
     dispose();
   }
 
-  /**
-   * Method called when user clicks on OK.
-   *
-   */
+  /** Method called when user clicks on OK. */
   private void okClicked()
   {
     BackgroundTask<ArrayList<LocalizableMessage>> worker =
@@ -599,11 +595,7 @@ public class JavaArgumentsDialog extends JDialog
     toFront();
   }
 
-  /**
-   * Updates the widgets on the dialog with the contents of the securityOptions
-   * object.
-   *
-   */
+  /** Updates the widgets on the dialog with the contents of the securityOptions object. */
   private void updateContents()
   {
     if (javaArguments.getInitialMemory() > 0)
@@ -653,6 +645,7 @@ public class JavaArgumentsDialog extends JDialog
   {
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         UIFactory.setTextStyle(comp,

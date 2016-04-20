@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -26,10 +26,7 @@ import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 
-/**
- * The renderer used to render the nodes in the LDAP entry browser.
- *
- */
+/** The renderer used to render the nodes in the LDAP entry browser. */
 public class BrowserCellRenderer extends TreeCellRenderer {
 
   private static final long serialVersionUID = 6756291700611741513L;
@@ -52,7 +49,7 @@ public class BrowserCellRenderer extends TreeCellRenderer {
     inspectedNode = node;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getTreeCellRendererComponent(
       JTree tree,
       Object value,

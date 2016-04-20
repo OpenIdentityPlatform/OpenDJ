@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -25,7 +25,7 @@ import java.util.Comparator;
  */
 public class LowerCaseComparator implements Comparator<String>
 {
-  /** {@inheritDoc} */
+  @Override
   public int compare(String s1, String s2)
   {
     if (s1 != null && s2 != null)

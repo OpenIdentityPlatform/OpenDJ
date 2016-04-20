@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -29,9 +29,7 @@ import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.CommonSchemaElements;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 
-/**
- * The cell renderer to be used to render schema elements in a combo box.
- */
+/** The cell renderer to be used to render schema elements in a combo box. */
 public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
 {
   /**
@@ -52,7 +50,7 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
     super(list);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getListCellRendererComponent(JList list, Object value,
       int index, boolean isSelected, boolean cellHasFocus)
   {

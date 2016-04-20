@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.util;
@@ -32,18 +32,13 @@ import java.util.Enumeration;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-/**
- * Class used to get the KeyStore that the graphical utilities use.
- *
- */
+/** Class used to get the KeyStore that the graphical utilities use. */
 public class UIKeyStore extends KeyStore
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static KeyStore keyStore;
 
-  /**
-   * This should never be called.
-   */
+  /** This should never be called. */
   private UIKeyStore()
   {
     super(null, null, null);

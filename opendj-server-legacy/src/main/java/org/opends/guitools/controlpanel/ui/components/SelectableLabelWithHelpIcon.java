@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -29,35 +29,28 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A panel containing a label an a help icon.  A customized tool tip is used,
  * the tool tip is also displayed when the user clicks on the help icon.
  * The main difference with {@code LabelWithHelpIcon} is that this uses
  * a {@code JEditorPane} as label.
- *
  */
 public class SelectableLabelWithHelpIcon extends JPanel
 {
   private static final long serialVersionUID = 4502977901098910797L;
-  /**
-   * The label with the text.
-   */
+  /** The label with the text. */
   private JTextComponent label = Utilities.makeHtmlPane("",
       ColorAndFontConstants.defaultFont);
-  /**
-   * The label with the icon.
-   */
+  /** The label with the icon. */
   private JLabel iconLabel = new JLabel(icon);
   private static final ImageIcon icon =
     Utilities.createImageIcon("org/opends/quicksetup/images/help_small.gif");
 
-  /**
-   * The left inset of the help icon.
-   */
+  /** The left inset of the help icon. */
   private final int INSET_WITH_ICON= 3;
 
   /**
@@ -111,10 +104,7 @@ public class SelectableLabelWithHelpIcon extends JPanel
     return label.getText();
   }
 
-  /**
-   * Sets the font to be used in this panel.
-   * @param font the font.
-   */
+  @Override
   public void setFont(Font font)
   {
     // This is called by the constructor of JPanel.
@@ -161,10 +151,7 @@ public class SelectableLabelWithHelpIcon extends JPanel
     }
   }
 
-  /**
-   * Sets the foreground color for the text in this panel.
-   * @param color the foreground color for the text in this panel.
-   */
+  @Override
   public void setForeground(Color color)
   {
     super.setForeground(color);
@@ -175,19 +162,11 @@ public class SelectableLabelWithHelpIcon extends JPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getToolTipText(MouseEvent ev)
   {
     int x = ev.getPoint().x;
     boolean display = x > label.getPreferredSize().width - 10;
-
-    if (display)
-    {
-      return getHelpTooltip();
-    }
-    else
-    {
-      return null;
-    }
+    return display ? getHelpTooltip() : null;
   }
 }

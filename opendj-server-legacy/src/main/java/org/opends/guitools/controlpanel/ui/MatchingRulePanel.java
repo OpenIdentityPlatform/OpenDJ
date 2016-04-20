@@ -40,10 +40,7 @@ import org.opends.server.types.Schema;
 
 import static org.opends.messages.AdminToolMessages.*;
 
-/**
- * Class displaying the contents of a matching rule.
- *
- */
+/** Class displaying the contents of a matching rule. */
 public class MatchingRulePanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 2440493955626646008L;
@@ -55,44 +52,36 @@ public class MatchingRulePanel extends SchemaElementPanel
   private JLabel syntax = Utilities.createDefaultLabel();
   private JList usedByAttributes = new JList(new DefaultListModel());
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public MatchingRulePanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MATCHING_RULE_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return usedByAttributes;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -149,7 +138,6 @@ public class MatchingRulePanel extends SchemaElementPanel
 
     MouseAdapter clickListener = new MouseAdapter()
     {
-      /** {@inheritDoc} */
       @Override
       public void mouseClicked(MouseEvent ev)
       {
@@ -163,7 +151,6 @@ public class MatchingRulePanel extends SchemaElementPanel
 
     KeyAdapter keyListener = new KeyAdapter()
     {
-      /** {@inheritDoc} */
       @Override
       public void keyTyped(KeyEvent ev)
       {

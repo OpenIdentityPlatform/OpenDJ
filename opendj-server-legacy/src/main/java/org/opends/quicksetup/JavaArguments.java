@@ -27,9 +27,7 @@ import org.opends.quicksetup.util.Utils;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
-/**
- * A class used to describe the java arguments for a given command-line.
- */
+/** A class used to describe the java arguments for a given command-line. */
 public class JavaArguments
 {
   private int maxMemory = -1;
@@ -99,7 +97,6 @@ public class JavaArguments
     this.additionalArguments = additionalArguments;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {
@@ -117,7 +114,6 @@ public class JavaArguments
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -129,7 +125,6 @@ public class JavaArguments
     return hashCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

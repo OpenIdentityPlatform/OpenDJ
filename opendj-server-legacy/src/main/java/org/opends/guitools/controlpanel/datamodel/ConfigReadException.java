@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -20,10 +20,7 @@ package org.opends.guitools.controlpanel.datamodel;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
-/**
- * Exception that occurs reading the server configuration.
- *
- */
+/** Exception that occurs reading the server configuration. */
 public class ConfigReadException extends OpenDsException
 {
   private static final long serialVersionUID = 1266482779183126905L;

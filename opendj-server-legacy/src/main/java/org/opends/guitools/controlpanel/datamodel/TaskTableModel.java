@@ -12,13 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,57 +29,45 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.tasks.TaskEntry;
 
-/**
- * The table used to display the tasks.
- *
- */
+/** The table used to display the tasks. */
 public class TaskTableModel  extends SortableTableModel
 implements Comparator<TaskEntry>
 {
   private static final long serialVersionUID = -351142550147124L;
-  private Set<TaskEntry> data = new HashSet<>();
-  private ArrayList<TaskEntry> dataSourceArray = new ArrayList<>();
+  private final Set<TaskEntry> data = new HashSet<>();
+  private final List<TaskEntry> dataSourceArray = new ArrayList<>();
 
-  LinkedHashSet<LocalizableMessage> displayedAttributes = new LinkedHashSet<>();
-  final LinkedHashSet<LocalizableMessage> defaultAttributes = new LinkedHashSet<>();
-  {
-    defaultAttributes.add(INFO_TASKINFO_FIELD_ID.get());
-    defaultAttributes.add(INFO_TASKINFO_FIELD_TYPE.get());
-    defaultAttributes.add(INFO_TASKINFO_FIELD_STATUS.get());
-    defaultAttributes.add(INFO_CTRL_PANEL_TASK_CANCELABLE.get());
-  }
-  LinkedHashSet<LocalizableMessage> allAttributes = new LinkedHashSet<>();
-  {
-    allAttributes.addAll(defaultAttributes);
-    allAttributes.add(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
-    allAttributes.add(INFO_TASKINFO_FIELD_ACTUAL_START.get());
-    allAttributes.add(INFO_TASKINFO_FIELD_COMPLETION_TIME.get());
-    allAttributes.add(INFO_TASKINFO_FIELD_DEPENDENCY.get());
-    allAttributes.add(INFO_TASKINFO_FIELD_FAILED_DEPENDENCY_ACTION.get());
-    allAttributes.add(INFO_TASKINFO_FIELD_NOTIFY_ON_COMPLETION.get());
-    allAttributes.add(INFO_TASKINFO_FIELD_NOTIFY_ON_ERROR.get());
-  }
+  private final Set<LocalizableMessage> displayedAttributes = new LinkedHashSet<>();
+  private final Set<LocalizableMessage> defaultAttributes = newLinkedHashSet(
+      INFO_TASKINFO_FIELD_ID.get(),
+      INFO_TASKINFO_FIELD_TYPE.get(),
+      INFO_TASKINFO_FIELD_STATUS.get(),
+      INFO_CTRL_PANEL_TASK_CANCELABLE.get()
+  );
+  private LinkedHashSet<LocalizableMessage> allAttributes = newLinkedHashSet(
+      INFO_TASKINFO_FIELD_SCHEDULED_START.get(),
+      INFO_TASKINFO_FIELD_ACTUAL_START.get(),
+      INFO_TASKINFO_FIELD_COMPLETION_TIME.get(),
+      INFO_TASKINFO_FIELD_DEPENDENCY.get(),
+      INFO_TASKINFO_FIELD_FAILED_DEPENDENCY_ACTION.get(),
+      INFO_TASKINFO_FIELD_NOTIFY_ON_COMPLETION.get(),
+      INFO_TASKINFO_FIELD_NOTIFY_ON_ERROR.get()
+  );
 
   private String[] columnNames = {};
 
-  /**
-   * The sort column of the table.
-   */
+  /** The sort column of the table. */
   private int sortColumn;
-  /**
-   * Whether the sorting is ascending or descending.
-   */
+  /** Whether the sorting is ascending or descending. */
   private boolean sortAscending = true;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public TaskTableModel()
   {
     super();
@@ -104,6 +93,7 @@ implements Comparator<TaskEntry>
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
+  @Override
   public void forceResort()
   {
     updateDataArray();
@@ -121,9 +111,7 @@ implements Comparator<TaskEntry>
     fireTableDataChanged();
   }
 
-  /**
-   * Updates the array data.  This includes resorting it.
-   */
+  /** Updates the array data. This includes resorting it. */
   private void updateDataArray()
   {
     TreeSet<TaskEntry> sortedSet = new TreeSet<>(this);
@@ -136,7 +124,7 @@ implements Comparator<TaskEntry>
    * Sets the operations displayed by this table model.
    * @param attributes the attributes displayed by this table model.
    */
-  public void setAttributes(LinkedHashSet<LocalizableMessage> attributes)
+  public void setAttributes(Set<LocalizableMessage> attributes)
   {
     if (!allAttributes.containsAll(attributes))
     {
@@ -155,18 +143,18 @@ implements Comparator<TaskEntry>
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Class<?> getColumnClass(int column)
   {
     return LocalizableMessage.class;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getColumnName(int col) {
     return columnNames[col];
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int column)
   {
     LocalizableMessage value;
@@ -225,6 +213,7 @@ implements Comparator<TaskEntry>
    * Returns the row count.
    * @return the row count.
    */
+  @Override
   public int getRowCount()
   {
     return dataSourceArray.size();
@@ -234,6 +223,7 @@ implements Comparator<TaskEntry>
    * Returns the column count.
    * @return the column count.
    */
+  @Override
   public int getColumnCount()
   {
     return columnNames.length;
@@ -253,7 +243,7 @@ implements Comparator<TaskEntry>
    * Returns the set of attributes ordered.
    * @return the set of attributes ordered.
    */
-  public LinkedHashSet<LocalizableMessage> getDisplayedAttributes()
+  public Set<LocalizableMessage> getDisplayedAttributes()
   {
     return displayedAttributes;
   }
@@ -267,7 +257,7 @@ implements Comparator<TaskEntry>
     return allAttributes;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int compare(TaskEntry desc1, TaskEntry desc2)
   {
     int result;
@@ -298,38 +288,25 @@ implements Comparator<TaskEntry>
     return result;
   }
 
-  /**
-   * Returns whether the sort is ascending or descending.
-   * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
-   * otherwise.
-   */
+  @Override
   public boolean isSortAscending()
   {
     return sortAscending;
   }
 
-  /**
-   * Sets whether to sort ascending of descending.
-   * @param sortAscending whether to sort ascending or descending.
-   */
+  @Override
   public void setSortAscending(boolean sortAscending)
   {
     this.sortAscending = sortAscending;
   }
 
-  /**
-   * Returns the column index used to sort.
-   * @return the column index used to sort.
-   */
+  @Override
   public int getSortColumn()
   {
     return sortColumn;
   }
 
-  /**
-   * Sets the column index used to sort.
-   * @param sortColumn column index used to sort..
-   */
+  @Override
   public void setSortColumn(int sortColumn)
   {
     this.sortColumn = sortColumn;
@@ -362,24 +339,15 @@ implements Comparator<TaskEntry>
 
   private LocalizableMessage getValue(List<String> values, LocalizableMessage valueIfEmpty)
   {
-    LocalizableMessage msg;
     if (values.isEmpty())
     {
-      msg = valueIfEmpty;
+      return valueIfEmpty;
     }
-    else
+    String s = joinAsString("<br>", values);
+    if (values.size() <= 1)
     {
-      String s = joinAsString("<br>", values);
-      if (values.size() > 1)
-      {
-        msg = LocalizableMessage.raw(
-            "<html>"+Utilities.applyFont(s, ColorAndFontConstants.tableFont));
-      }
-      else
-      {
-        msg = LocalizableMessage.raw(s);
-      }
+      return LocalizableMessage.raw(s);
     }
-    return msg;
+    return LocalizableMessage.raw("<html>" + Utilities.applyFont(s, ColorAndFontConstants.tableFont));
   }
 }

@@ -15,8 +15,8 @@
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup;
-import org.forgerock.i18n.LocalizableMessage;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -37,11 +37,9 @@ public class ApplicationException extends OpenDsException {
    * @param e Exception cause
    * @return ApplicationException with Type property being FILE_SYSTEM_ERROR
    */
-  public static ApplicationException createFileSystemException(LocalizableMessage msg,
-      Exception e)
+  public static ApplicationException createFileSystemException(LocalizableMessage msg, Exception e)
   {
-    return new ApplicationException(ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
-        msg, e);
+    return new ApplicationException(ReturnCode.FILE_SYSTEM_ACCESS_ERROR, msg, e);
   }
 
   /**
@@ -70,7 +68,7 @@ public class ApplicationException extends OpenDsException {
     return type;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String toString()
   {
     return getMessage();

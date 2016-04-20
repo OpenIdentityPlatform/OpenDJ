@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -24,7 +24,6 @@ import javax.swing.JScrollPane;
 /**
  * A class used to be able to update the scroll position in different panels.
  * It basically contains two lists of scrollbars and points.
- *
  */
 public class ViewPositions
 {
@@ -51,10 +50,7 @@ public class ViewPositions
     points.add(p);
   }
 
-  /**
-   * Clears the contents of both lists.
-   *
-   */
+  /** Clears the contents of both lists. */
   public void clear()
   {
     scrolls.clear();

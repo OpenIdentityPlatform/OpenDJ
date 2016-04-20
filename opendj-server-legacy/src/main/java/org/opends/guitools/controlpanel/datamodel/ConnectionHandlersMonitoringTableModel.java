@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -28,17 +28,13 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.Pr
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
-/**
- * The table model used to display the monitoring information of connection
- * handlers.
- */
+/** The table model used to display the monitoring information of connection handlers. */
 public class ConnectionHandlersMonitoringTableModel extends
 MonitoringTableModel<ConnectionHandlerDescriptor,
 AddressConnectionHandlerDescriptor>
 {
   private static final long serialVersionUID = -8891998773191495L;
 
-  /** {@inheritDoc} */
   @Override
   protected Set<AddressConnectionHandlerDescriptor> convertToInternalData(
       Set<ConnectionHandlerDescriptor> newData)
@@ -63,7 +59,6 @@ AddressConnectionHandlerDescriptor>
     return newAddresses;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int compare(AddressConnectionHandlerDescriptor desc1,
       AddressConnectionHandlerDescriptor desc2)
@@ -105,7 +100,6 @@ AddressConnectionHandlerDescriptor>
     return getName(ach1).compareTo(getName(ach2));
   }
 
-  /** {@inheritDoc} */
   @Override
   protected CustomSearchResult getMonitoringEntry(
       AddressConnectionHandlerDescriptor ach)
@@ -113,7 +107,6 @@ AddressConnectionHandlerDescriptor>
     return ach.getMonitoringEntry();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected String getName(AddressConnectionHandlerDescriptor ach)
   {
@@ -168,7 +161,6 @@ AddressConnectionHandlerDescriptor>
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected LocalizableMessage getNameHeader()
   {
@@ -179,7 +171,6 @@ AddressConnectionHandlerDescriptor>
 /**
  * The table model has one line per address, this object represents that
  * address and all the associated monitoring information.
- *
  */
 class AddressConnectionHandlerDescriptor
 {
@@ -240,14 +231,12 @@ class AddressConnectionHandlerDescriptor
     return monitoringEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return hashCode;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {

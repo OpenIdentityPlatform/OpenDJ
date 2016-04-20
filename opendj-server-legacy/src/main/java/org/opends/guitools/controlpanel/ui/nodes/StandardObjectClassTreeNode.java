@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -19,11 +20,7 @@ package org.opends.guitools.controlpanel.ui.nodes;
 import org.opends.server.types.ObjectClass;
 
 
-/**
- * Class of the nodes that represent a standard object class in the 'Manage
- * Schema' tree.
- *
- */
+/** Class of the nodes that represent a standard object class in the 'Manage Schema' tree. */
 public class StandardObjectClassTreeNode extends SchemaElementTreeNode
 {
   private static final long serialVersionUID = 3266062905133766539L;

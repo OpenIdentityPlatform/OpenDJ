@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -29,33 +29,26 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A panel containing a label an a help icon.  A customized tool tip is used,
  * the tool tip is also displayed when the user clicks on the help icon.
- *
  */
 public class LabelWithHelpIcon extends JPanel
 {
   private static final long serialVersionUID = 4502977901538910797L;
-  /**
-   * The label with the text.
-   */
+  /** The label with the text. */
   protected JLabel label = Utilities.createDefaultLabel();
-  /**
-   * The label with the icon.
-   */
+  /** The label with the icon. */
   protected JLabel iconLabel = new JLabel(icon);
   private static final ImageIcon icon =
     Utilities.createImageIcon("org/opends/quicksetup/images/help_small.gif");
 
 
-  /**
-   * The left inset of the help icon.
-   */
+  /** The left inset of the help icon. */
   protected final int INSET_WITH_ICON= 3;
 
   /**
@@ -121,10 +114,7 @@ public class LabelWithHelpIcon extends JPanel
     return label.getText();
   }
 
-  /**
-   * Sets the font to be used in this panel.
-   * @param font the font.
-   */
+  @Override
   public void setFont(Font font)
   {
     // This is call by the constructor of JPanel.
@@ -172,10 +162,7 @@ public class LabelWithHelpIcon extends JPanel
     }
   }
 
-  /**
-   * Sets the foreground color for the text in this panel.
-   * @param color the foreground color for the text in this panel.
-   */
+  @Override
   public void setForeground(Color color)
   {
     super.setForeground(color);
@@ -186,20 +173,12 @@ public class LabelWithHelpIcon extends JPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getToolTipText(MouseEvent ev)
   {
     int x = ev.getPoint().x;
     boolean display = x > label.getPreferredSize().width - 10;
-
-    if (display)
-    {
-      return getHelpTooltip();
-    }
-    else
-    {
-      return null;
-    }
+    return display ? getHelpTooltip() : null;
   }
 
   private void updateAccessibleContext()

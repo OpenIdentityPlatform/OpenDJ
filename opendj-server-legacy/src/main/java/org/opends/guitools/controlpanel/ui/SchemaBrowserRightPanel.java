@@ -38,10 +38,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
-/**
- * The panel on the right of the 'Manage Schema' panel.
- *
- */
+/** The panel on the right of the 'Manage Schema' panel. */
 public class SchemaBrowserRightPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 5294502011852239497L;
@@ -77,10 +74,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
 
   private SchemaElementPanel schemaElementPanel;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public SchemaBrowserRightPanel()
   {
     super();
@@ -90,8 +84,8 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
   /**
    * Displays a panel containing a message.
    * @param msg the message.
-   *
    */
+  @Override
   public void displayMessage(LocalizableMessage msg)
   {
     schemaElementPanel = null;
@@ -99,7 +93,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
     ((CardLayout)mainPanel.getLayout()).show(mainPanel, NOTHING_SELECTED);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -139,6 +133,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    * Adds a configuration element created listener.
    * @param listener the listener.
    */
+  @Override
   public void addConfigurationElementCreatedListener(
       ConfigurationElementCreatedListener listener)
   {
@@ -153,6 +148,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
    * Removes a configuration element created listener.
    * @param listener the listener.
    */
+  @Override
   public void removeConfigurationElementCreatedListener(
       ConfigurationElementCreatedListener listener)
   {
@@ -269,9 +265,7 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
         attributeSyntaxPanel.getTitle().toString());
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -313,31 +307,31 @@ public class SchemaBrowserRightPanel extends StatusGenericPanel
     add(mainPanel, gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_SCHEMA_BROWSER_RIGHT_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }

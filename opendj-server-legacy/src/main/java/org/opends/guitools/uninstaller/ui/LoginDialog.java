@@ -138,7 +138,6 @@ public class LoginDialog extends JDialog
     return isCanceled;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setVisible(boolean visible)
   {
@@ -356,10 +355,7 @@ public class LoginDialog extends JDialog
     return p;
   }
 
-  /**
-   * Method called when user clicks on cancel.
-   *
-   */
+  /** Method called when user clicks on cancel. */
   private void cancelClicked()
   {
     isCanceled = true;

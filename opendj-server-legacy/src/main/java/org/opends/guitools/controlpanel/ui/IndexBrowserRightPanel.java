@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -32,10 +32,7 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.IndexSelectionListener;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The panel on the right of the 'Manage Indexes' panel.
- *
- */
+/** The panel on the right of the 'Manage Indexes' panel. */
 public class IndexBrowserRightPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -6904674789074101772L;
@@ -49,29 +46,20 @@ public class IndexBrowserRightPanel extends StatusGenericPanel
   private static final String NOTHING_SELECTED = "Nothing Selected";
   private static final String MULTIPLE_SELECTED = "Multiple Selected";
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public IndexBrowserRightPanel()
   {
     super();
     createLayout();
   }
 
-  /**
-   * Displays a panel informing that no item is selected.
-   *
-   */
+  /** Displays a panel informing that no item is selected. */
   public void displayVoid()
   {
     ((CardLayout)mainPanel.getLayout()).show(mainPanel, NOTHING_SELECTED);
   }
 
-  /**
-   * Displays a panel informing that multiple items are selected.
-   *
-   */
+  /** Displays a panel informing that multiple items are selected. */
   public void displayMultiple()
   {
     ((CardLayout)mainPanel.getLayout()).show(mainPanel, MULTIPLE_SELECTED);
@@ -97,7 +85,7 @@ public class IndexBrowserRightPanel extends StatusGenericPanel
     backendVLVIndexesPanel.removeIndexSelectionListener(listener);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     super.setInfo(info);
@@ -154,9 +142,7 @@ public class IndexBrowserRightPanel extends StatusGenericPanel
         backendVLVIndexesPanel.getTitle().toString());
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -189,32 +175,32 @@ public class IndexBrowserRightPanel extends StatusGenericPanel
     add(mainPanel, gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     // No ok button
   }
 
-  /** {@inheritDoc} */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_INDEX_BROWSER_RIGHT_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     // TODO
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }

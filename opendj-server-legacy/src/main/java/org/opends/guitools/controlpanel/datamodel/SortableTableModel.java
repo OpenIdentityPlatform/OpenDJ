@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -27,9 +27,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.ServerConstants;
 
-/**
- * A generic interface that must implement table models that are sortable.
- */
+/** A generic interface that must implement table models that are sortable. */
 public abstract class SortableTableModel extends AbstractTableModel
 {
   private static final long serialVersionUID = 123129879083L;

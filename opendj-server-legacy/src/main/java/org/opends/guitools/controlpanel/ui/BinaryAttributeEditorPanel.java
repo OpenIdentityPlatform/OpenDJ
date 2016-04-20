@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -72,10 +72,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BinaryAttributeEditorPanel()
   {
     super();
@@ -94,7 +91,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
 //  Read the file or encode the base 64 content.
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {
-      /** {@inheritDoc} */
       @Override
       public Void processBackgroundTask() throws Throwable
       {
@@ -159,7 +155,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
         return null;
       }
 
-      /** {@inheritDoc} */
       @Override
       public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
@@ -205,14 +200,12 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return file;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -229,7 +222,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     return value;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -311,7 +303,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
       // Read the file or encode the base 64 content.
       BackgroundTask<BinaryValue> worker = new BackgroundTask<BinaryValue>()
       {
-        /** {@inheritDoc} */
         @Override
         public BinaryValue processBackgroundTask() throws Throwable
         {
@@ -377,7 +368,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
           return returnValue;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void backgroundTaskCompleted(BinaryValue returnValue, Throwable t)
         {
@@ -423,14 +413,12 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_EDIT_BINARY_ATTRIBUTE_TITLE.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -446,16 +434,13 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     return valueChanged;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return true;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -538,7 +523,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     add(Box.createHorizontalGlue(), gbc);
     refreshButton.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void actionPerformed(ActionEvent ev)
       {
@@ -570,10 +554,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     useBase64.addActionListener(listener);
   }
 
-  /**
-   * Updates the enabling state of all the components in the panel.
-   *
-   */
+  /** Updates the enabling state of all the components in the panel. */
   private void updateEnabling()
   {
     base64.setEnabled(useBase64.isSelected());
@@ -644,7 +625,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
    * Class used to refresh automatically the contents in the panel after the
    * user provides a path value through the JFileChooser associated with the
    * browse button.
-   *
    */
   class CustomBrowseActionListener extends BrowseActionListener
   {
@@ -661,7 +641,6 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
       super(field, type, parent);
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void fieldUpdated()
     {
@@ -675,10 +654,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * Called when the refresh button is clicked by the user.
-   *
-   */
+  /** Called when the refresh button is clicked by the user. */
   private void refreshButtonClicked()
   {
     refresh(false, true);

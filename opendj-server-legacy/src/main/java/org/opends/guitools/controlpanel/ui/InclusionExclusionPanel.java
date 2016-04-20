@@ -24,6 +24,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,6 +35,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -41,70 +44,40 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPException;
 
-/**
- * Abstract class used to refactor some code used by the import LDIF and export
- * LDIF panels.
- *
- */
+/** Abstract class used to refactor some code used by the import LDIF and export LDIF panels. */
 public abstract class InclusionExclusionPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -3826176895778069011L;
-  /**
-   * The DNs to exclude.
-   */
+  /** The DNs to exclude. */
   protected JTextArea dnsToExclude;
-  /**
-   * The attributes to exclude.
-   */
+  /** The attributes to exclude. */
   protected JTextField attributesToExclude;
-  /**
-   * The exclusion filter.
-   */
+  /** The exclusion filter. */
   protected JTextField exclusionFilter;
-  /**
-   * The DNs to include.
-   */
+  /** The DNs to include. */
   protected JTextArea dnsToInclude;
-  /**
-   * The attributes to include.
-   */
+  /** The attributes to include. */
   protected JTextField attributesToInclude;
-  /**
-   * The inclusion filter.
-   */
+  /** The inclusion filter. */
   protected JTextField inclusionFilter;
 
-  /**
-   * The DNs to include.
-   */
+  /** The DNs to include. */
   protected JLabel lDnsToInclude;
-  /**
-   * The attributes to include.
-   */
+  /** The attributes to include. */
   protected JLabel lAttributesToInclude;
-  /**
-   * The inclusion filter label.
-   */
+  /** The inclusion filter label. */
   protected JLabel lInclusionFilter;
-  /**
-   * The DNs to exclude label.
-   */
+  /** The DNs to exclude label. */
   protected JLabel lDnsToExclude;
-  /**
-   * The attributes to exclude label.
-   */
+  /** The attributes to exclude label. */
   protected JLabel lAttributesToExclude;
-  /**
-   * The exclusion filter label.
-   */
+  /** The exclusion filter label. */
   protected JLabel lExclusionFilter;
 
-  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lDnsToInclude);
@@ -212,7 +185,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
 
     ChangeListener changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         lDnsToInclude.setVisible(expander.isSelected());
@@ -330,7 +303,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
 
     ChangeListener changeListener = new ChangeListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         lDnsToExclude.setVisible(expander.isSelected());
@@ -536,7 +509,6 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
    * Abstract class that provides some methods that can be used to generate the
    * equivalent command-line arguments for some of the things that are contained
    * in the inclusion/exclusion panels.
-   *
    */
   protected abstract class InclusionExclusionTask extends Task
   {
@@ -556,27 +528,28 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
      * @return the command line arguments corresponding to the elements
      * displayed in the inclusion/exclusion panels.
      */
-    protected ArrayList<String> getCommandLineArguments()
+    @Override
+    protected List<String> getCommandLineArguments()
     {
-      ArrayList<String> args = new ArrayList<>();
+      List<String> args = new ArrayList<>();
       String s = dnsToInclude.getText();
       if (s.trim().length() > 0)
       {
         String[] dnArray = s.split("\n");
-        for (int i=0; i<dnArray.length; i++)
+        for (String dn : dnArray)
         {
           args.add("--includeBranch");
-          args.add(dnArray[i]);
+          args.add(dn);
         }
       }
       s = attributesToInclude.getText();
       if (s.trim().length() > 0)
       {
         String[] attrArray = s.split(",");
-        for (int i=0; i<attrArray.length; i++)
+        for (String attr : attrArray)
         {
           args.add("--includeAttribute");
-          args.add(attrArray[i]);
+          args.add(attr);
         }
       }
       s = inclusionFilter.getText();
@@ -590,20 +563,20 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
       if (s.trim().length() > 0)
       {
         String[] dnArray = s.split("\n");
-        for (int i=0; i<dnArray.length; i++)
+        for (String dn : dnArray)
         {
           args.add("--excludeBranch");
-          args.add(dnArray[i]);
+          args.add(dn);
         }
       }
       s = attributesToExclude.getText();
       if (s.trim().length() > 0)
       {
         String[] attrArray = s.split(",");
-        for (int i=0; i<attrArray.length; i++)
+        for (String attr : attrArray)
         {
           args.add("--excludeAttribute");
-          args.add(attrArray[i]);
+          args.add(attr);
         }
       }
       s = exclusionFilter.getText();

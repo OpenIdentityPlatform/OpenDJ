@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -99,28 +99,24 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
     fireTableDataChanged();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getColumnCount()
   {
     return columnNames.length;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getColumnName(int col) {
     return columnNames[col];
@@ -220,9 +216,7 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
     }
   }
 
-  /**
-   * Updates the array data.  This includes resorting it.
-   */
+  /** Updates the array data. This includes resorting it. */
   private void updateDataArray()
   {
     TreeSet<P> sortedSet = new TreeSet<>(this);

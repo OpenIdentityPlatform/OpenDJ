@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2011 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -140,7 +140,6 @@ public class BackendDescriptor
     return entries;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object o)
   {
@@ -170,7 +169,6 @@ public class BackendDescriptor
     return monitoringEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
@@ -207,7 +205,6 @@ public class BackendDescriptor
    * @param baseDns the base DNs associated with the Backend.
    * @param indexes the indexes defined in the backend.
    * @param vlvIndexes the VLV indexes defined in the backend.
-   *
    */
   private void updateBaseDnsAndIndexes(Set<BaseDNDescriptor> baseDns,
       Set<IndexDescriptor> indexes, Set<VLVIndexDescriptor> vlvIndexes)

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -42,10 +42,7 @@ import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 
-/**
- * This panel is used to show the progress of the start/stop/restart operations.
- *
- */
+/** This panel is used to show the progress of the start/stop/restart operations. */
 public class ProgressDialog extends JDialog
 {
   private static final long serialVersionUID = 8635080171100378470L;
@@ -79,15 +76,11 @@ public class ProgressDialog extends JDialog
     createLayout();
   }
 
-  /**
-   * Prepares size for this dialog.
-   *
-   */
+  /** Prepares size for this dialog. */
+  @Override
   public void pack()
   {
-    /*
-     * TODO: find a way to calculate this dynamically.
-     */
+    /* TODO: find a way to calculate this dynamically. */
     setPreferredSize(new Dimension(500, 300));
     addComponentListener(new MinimumSizeComponentListener(this, 500, 300));
     super.pack();
@@ -163,10 +156,7 @@ public class ProgressDialog extends JDialog
     return formatter;
   }
 
-  /**
-   * Creates the layout of the dialog panel.
-   *
-   */
+  /** Creates the layout of the dialog panel. */
   private void createLayout()
   {
     /* Create title panel */
@@ -227,6 +217,7 @@ public class ProgressDialog extends JDialog
         UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
     detailsTextArea.addHyperlinkListener(new HyperlinkListener()
     {
+      @Override
       public void hyperlinkUpdate(HyperlinkEvent e)
       {
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
@@ -266,6 +257,7 @@ public class ProgressDialog extends JDialog
     buttonsPanel.add(closeButton, gbc);
     closeButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         dispose();

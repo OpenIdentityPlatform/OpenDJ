@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -45,7 +45,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * A simple panel used in the LDAP entry viewers to display a binary value.
  * It does not allow to edit the binary value.  It is used for instance in the
  * tables.
- *
  */
 public class BinaryCellPanel extends JPanel
 {
@@ -66,10 +65,7 @@ public class BinaryCellPanel extends JPanel
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BinaryCellPanel()
   {
     super(new GridBagLayout());
@@ -274,10 +270,7 @@ public class BinaryCellPanel extends JPanel
     return value;
   }
 
-  /**
-   * Explicitly request the focus for the edit button of this panel.
-   *
-   */
+  /** Explicitly request the focus for the edit button of this panel. */
   public void requestFocusForButton()
   {
     editButton.requestFocusInWindow();
@@ -325,7 +318,7 @@ public class BinaryCellPanel extends JPanel
     deleteButton.removeActionListener(listener);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
       int condition, boolean pressed)
   {

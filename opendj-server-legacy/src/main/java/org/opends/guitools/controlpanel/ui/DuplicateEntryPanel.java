@@ -70,29 +70,26 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   private CustomSearchResult entryToDuplicate;
   private String rdnAttribute;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public DuplicateEntryPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean requiresScroll()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setParent(BasicNode parentNode, BrowserController controller)
   {
     throw new IllegalArgumentException("this method must not be called");
@@ -145,15 +142,13 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_DUPLICATE_ENTRY_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -207,7 +202,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     add(browse, gbc);
     browse.addActionListener(new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         browseClicked();
@@ -267,19 +262,19 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
 
     DocumentListener listener = new DocumentListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         updateDNValue();
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
       }
 
-      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         insertUpdate(ev);
@@ -291,7 +286,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected void checkSyntax(ArrayList<LocalizableMessage> errors)
   {
     int origSize = errors.size();
@@ -341,7 +336,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected String getLDIF()
   {
     String dn = this.dn.getText();
@@ -447,6 +442,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     BackgroundTask<CustomSearchResult> task =
       new BackgroundTask<CustomSearchResult>()
     {
+      @Override
       public CustomSearchResult processBackgroundTask() throws Throwable
       {
         InitialLdapContext ctx =
@@ -456,6 +452,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         return reader.processBackgroundTask();
       }
 
+      @Override
       public void backgroundTaskCompleted(CustomSearchResult sr,
           Throwable throwable)
       {

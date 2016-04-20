@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -84,7 +84,6 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
           TreeSelectionModel.SINGLE_TREE_SELECTION);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -95,14 +94,12 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return title;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -139,14 +136,12 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
     return dns;
   }
 
-  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getBrowseButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Component createMainPanel()
   {
@@ -156,7 +151,6 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
     tree.getSelectionModel().addTreeSelectionListener(
     new TreeSelectionListener()
     {
-      /** {@inheritDoc} */
       @Override
       public void valueChanged(TreeSelectionEvent ev)
       {
@@ -165,7 +159,6 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
       }
     });
     MouseListener mouseListener = new MouseAdapter() {
-      /** {@inheritDoc} */
       @Override
       public void mousePressed(MouseEvent e) {
         int selRow = tree.getRowForLocation(e.getX(), e.getY());

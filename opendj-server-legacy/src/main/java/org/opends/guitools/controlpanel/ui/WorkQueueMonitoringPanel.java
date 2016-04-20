@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -32,9 +32,7 @@ import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 
-/**
- * The panel displaying the work queue monitor panel.
- */
+/** The panel displaying the work queue monitor panel. */
 public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
@@ -54,24 +52,20 @@ public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
     }
   }
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public WorkQueueMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return monitoringLabels.get(0);
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -117,10 +111,7 @@ public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /**
-   * Updates the contents of the panel.
-   *
-   */
+  /** Updates the contents of the panel. */
   public void updateContents()
   {
     ServerDescriptor server = null;

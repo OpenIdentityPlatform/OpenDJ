@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -55,9 +55,7 @@ import org.opends.guitools.controlpanel.ui.GenericDialog.ButtonType;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.DynamicConstants;
 
-/**
- * The generic frame of the Control Panel.  It contains a StatusGenericPanel.
- */
+/** The generic frame of the Control Panel. It contains a StatusGenericPanel. */
 public class GenericFrame extends JFrame
 {
   private static final long serialVersionUID = -2643144936460484112L;
@@ -117,7 +115,7 @@ public class GenericFrame extends JFrame
     KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     ActionListener actionListener = new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         setVisible(false);
@@ -128,7 +126,7 @@ public class GenericFrame extends JFrame
 
     FocusListener focusListener = new FocusAdapter()
     {
-      /** {@inheritDoc} */
+      @Override
       public void focusGained(FocusEvent ev)
       {
         lastComponentWithFocus = ev.getComponent();
@@ -137,7 +135,7 @@ public class GenericFrame extends JFrame
     addFocusListener(focusListener, panel);
 
     addWindowListener(new WindowAdapter() {
-      /** {@inheritDoc} */
+      @Override
       public void windowClosing(WindowEvent e) {
         GenericFrame.this.panel.closeClicked();
       }
@@ -180,7 +178,7 @@ public class GenericFrame extends JFrame
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setVisible(boolean visible)
   {
     if (visible && lastComponentWithFocus == null)
@@ -224,10 +222,7 @@ public class GenericFrame extends JFrame
     closeButton.setEnabled(enable);
   }
 
-  /**
-   * Updates the title of the frame using the title of the panel.
-   *
-   */
+  /** Updates the title of the frame using the title of the panel. */
   public void updateTitle()
   {
     if (panel.getTitle() != null)
@@ -268,6 +263,7 @@ public class GenericFrame extends JFrame
       buttonsPanel.add(okButton, gbc);
       okButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.okClicked();
@@ -281,6 +277,7 @@ public class GenericFrame extends JFrame
       cancelButton.setOpaque(false);
       cancelButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.cancelClicked();
@@ -302,6 +299,7 @@ public class GenericFrame extends JFrame
       buttonsPanel.add(okButton, gbc);
       okButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.okClicked();
@@ -321,6 +319,7 @@ public class GenericFrame extends JFrame
       buttonsPanel.add(closeButton, gbc);
       closeButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.closeClicked();

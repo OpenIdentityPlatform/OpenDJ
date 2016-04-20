@@ -49,9 +49,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
-/**
- * The panel that appears when the user is asked to provide authentication.
- */
+/** The panel that appears when the user is asked to provide authentication. */
 public class LoginPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 5051556513294844797L;
@@ -63,26 +61,20 @@ public class LoginPanel extends StatusGenericPanel
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public LoginPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_LOGIN_PANEL_TITLE.get();
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -122,20 +114,17 @@ public class LoginPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return pwd;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -146,7 +135,6 @@ public class LoginPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -378,7 +366,6 @@ public class LoginPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {

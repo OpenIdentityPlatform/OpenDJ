@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -29,10 +29,7 @@ import java.util.TreeSet;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * The table model used to display all the base DNs.
- *
- */
+/** The table model used to display all the base DNs. */
 public class BaseDNTableModel extends SortableTableModel
 implements Comparator<BaseDNDescriptor>
 {
@@ -47,22 +44,14 @@ implements Comparator<BaseDNDescriptor>
   private boolean sortAscending = true;
   private boolean displayReplicationInformation;
 
-  /**
-   * Key value to identify the case of a value not available because the server
-   * is down.
-   */
+  /** Key value to identify the case of a value not available because the server is down. */
   public static String NOT_AVAILABLE_SERVER_DOWN = "NOT_AVAILABLE_SERVER_DOWN";
 
-  /**
-   * Key value to identify the case of a value not available because
-   * authentication is required.
-   */
+  /** Key value to identify the case of a value not available because authentication is required. */
   public static String NOT_AVAILABLE_AUTHENTICATION_REQUIRED =
     "NOT_AVAILABLE_AUTHENTICATION_REQUIRED";
 
-  /**
-   * Key value to identify the case of a value not available.
-   */
+  /** Key value to identify the case of a value not available. */
   public static String NOT_AVAILABLE = "NOT_AVAILABLE";
 
   /**
@@ -133,6 +122,7 @@ implements Comparator<BaseDNDescriptor>
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
+  @Override
   public void forceResort()
   {
     updateDataArray();
@@ -148,6 +138,7 @@ implements Comparator<BaseDNDescriptor>
    * are equivalent in terms of sorting and -1 if the second descriptor must
    * be put before the first descriptor.
    */
+  @Override
   public int compare(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
     int result = 0;
@@ -336,25 +327,25 @@ implements Comparator<BaseDNDescriptor>
     return result;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int getColumnCount()
   {
     return displayReplicationInformation ? 6 : 4;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /** Updates the array data.  This includes resorting it. */
+  /** Updates the array data. This includes resorting it. */
   private void updateDataArray()
   {
     TreeSet<BaseDNDescriptor> sortedSet = new TreeSet<>(this);
@@ -373,43 +364,30 @@ implements Comparator<BaseDNDescriptor>
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getColumnName(int col) {
     return COLUMN_NAMES[col];
   }
 
-  /**
-   * Returns whether the sort is ascending or descending.
-   * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
-   * otherwise.
-   */
+  @Override
   public boolean isSortAscending()
   {
     return sortAscending;
   }
 
-  /**
-   * Sets whether to sort ascending of descending.
-   * @param sortAscending whether to sort ascending or descending.
-   */
+  @Override
   public void setSortAscending(boolean sortAscending)
   {
     this.sortAscending = sortAscending;
   }
 
-  /**
-   * Returns the column index used to sort.
-   * @return the column index used to sort.
-   */
+  @Override
   public int getSortColumn()
   {
     return sortColumn;
   }
 
-  /**
-   * Sets the column index used to sort.
-   * @param sortColumn column index used to sort..
-   */
+  @Override
   public void setSortColumn(int sortColumn)
   {
     this.sortColumn = sortColumn;

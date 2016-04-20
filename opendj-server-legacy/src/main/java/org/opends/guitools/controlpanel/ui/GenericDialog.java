@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -55,9 +55,7 @@ import javax.swing.text.JTextComponent;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.DynamicConstants;
 
-/**
- * The generic dialog of the Control Panel.  It contains a StatusGenericPanel.
- */
+/** The generic dialog of the Control Panel. It contains a StatusGenericPanel. */
 public class GenericDialog extends JDialog
 {
   private static final long serialVersionUID = -2643144936460484112L;
@@ -131,7 +129,7 @@ public class GenericDialog extends JDialog
     KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     ActionListener actionListener = new ActionListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         setVisible(false);
@@ -142,7 +140,7 @@ public class GenericDialog extends JDialog
 
     FocusListener focusListener = new FocusAdapter()
     {
-      /** {@inheritDoc} */
+      @Override
       public void focusGained(FocusEvent ev)
       {
         lastComponentWithFocus = ev.getComponent();
@@ -151,7 +149,7 @@ public class GenericDialog extends JDialog
     addFocusListener(focusListener, panel);
 
     addWindowListener(new WindowAdapter() {
-      /** {@inheritDoc} */
+      @Override
       public void windowClosing(WindowEvent e) {
         GenericDialog.this.panel.closeClicked();
       }
@@ -193,7 +191,7 @@ public class GenericDialog extends JDialog
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setVisible(boolean visible)
   {
     if (visible && lastComponentWithFocus == null)
@@ -280,6 +278,7 @@ public class GenericDialog extends JDialog
       buttonsPanel.add(okButton, gbc);
       okButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.okClicked();
@@ -293,6 +292,7 @@ public class GenericDialog extends JDialog
       cancelButton.setOpaque(false);
       cancelButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.cancelClicked();
@@ -314,6 +314,7 @@ public class GenericDialog extends JDialog
       buttonsPanel.add(okButton, gbc);
       okButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.okClicked();
@@ -333,6 +334,7 @@ public class GenericDialog extends JDialog
       buttonsPanel.add(closeButton, gbc);
       closeButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           panel.closeClicked();

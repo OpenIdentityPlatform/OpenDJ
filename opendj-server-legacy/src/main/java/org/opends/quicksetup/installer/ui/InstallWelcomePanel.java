@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -29,9 +29,7 @@ import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.util.Utils;
 
-/**
- * This panel is used to show a welcome message.
- */
+/** This panel is used to show a welcome message. */
 public class InstallWelcomePanel extends QuickSetupStepPanel
 {
   private static final long serialVersionUID = 6209217138897900860L;
@@ -45,13 +43,13 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
     super(app);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getTitle()
   {
     return INFO_WELCOME_PANEL_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected LocalizableMessage getInstructions()
   {
     /*
@@ -69,7 +67,7 @@ public class InstallWelcomePanel extends QuickSetupStepPanel
           LocalizableMessage.class);
   }
 
-  /** {@inheritDoc} */
+  @Override
   protected Component createInputPanel()
   {
     // No input in this panel

@@ -12,16 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.event;
 
-/**
- * Interface that must be implemented by the objects that want to receive
- * browse events.
- *
- */
+/** Interface that must be implemented by the objects that want to receive browse events. */
 public interface BrowserEventListener extends java.util.EventListener {
 
   /**

@@ -47,10 +47,7 @@ import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
-/**
- * The panel that displays a standard attribute definition.
- *
- */
+/** The panel that displays a standard attribute definition. */
 public class StandardAttributePanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = -7922968631524763675L;
@@ -72,41 +69,36 @@ public class StandardAttributePanel extends SchemaElementPanel
   private JList requiredBy = new JList(new DefaultListModel());
   private JList optionalBy = new JList(new DefaultListModel());
 
-  /**
-   * Default constructor of the panel.
-   *
-   */
+  /** Default constructor of the panel. */
   public StandardAttributePanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STANDARD_ATTRIBUTE_TITLE.get();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return requiredBy;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   protected void createLayout()
   {
     createBasicLayout(this, new GridBagConstraints());
@@ -203,7 +195,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       final JList list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
-        /** {@inheritDoc} */
+        @Override
         public void mouseClicked(MouseEvent ev)
         {
           if (ev.getClickCount() == 1)
@@ -216,7 +208,7 @@ public class StandardAttributePanel extends SchemaElementPanel
 
       KeyAdapter keyListener = new KeyAdapter()
       {
-        /** {@inheritDoc} */
+        @Override
         public void keyTyped(KeyEvent ev)
         {
           if (ev.getKeyChar() == KeyEvent.VK_SPACE ||

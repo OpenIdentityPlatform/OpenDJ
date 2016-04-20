@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -41,7 +41,7 @@ public class NumericLimitedSizeDocumentFilter extends DocumentFilter
     this.maxSize = maxSize;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void insertString(DocumentFilter.FilterBypass fb, int offset,
       String text, AttributeSet attr)
   throws BadLocationException
@@ -73,7 +73,7 @@ public class NumericLimitedSizeDocumentFilter extends DocumentFilter
     updateCaretPosition(fb);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void replace(DocumentFilter.FilterBypass fb, int offset,
       int length, String text, AttributeSet attr)
   throws BadLocationException

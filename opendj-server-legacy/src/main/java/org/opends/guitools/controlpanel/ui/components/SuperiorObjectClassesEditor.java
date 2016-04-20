@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -52,9 +52,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
-/**
- * A panel that can be used to select one (or several) object classes.
- */
+/** A panel that can be used to select one (or several) object classes. */
 public class SuperiorObjectClassesEditor extends JPanel
 {
   private static final long serialVersionUID = 123123973933568L;
@@ -82,9 +80,7 @@ public class SuperiorObjectClassesEditor extends JPanel
 
   private Schema schema;
 
-  /**
-   * Default constructor for this panel.
-   */
+  /** Default constructor for this panel. */
   public SuperiorObjectClassesEditor()
   {
     super(new CardLayout());
@@ -103,15 +99,14 @@ public class SuperiorObjectClassesEditor extends JPanel
     updateWithSchema(schema);
   }
 
-  /**
-   * Creates the layout of this panel.
-   */
+  /** Creates the layout of this panel. */
   private void createLayout()
   {
     bSpecifyMultiple.setToolTipText(
         INFO_CTRL_PANEL_SPECIFY_MULTIPLE_SUPERIORS_TOOLTIP.get().toString());
     bSpecifyMultiple.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         specifyMultipleClicked();
@@ -121,6 +116,7 @@ public class SuperiorObjectClassesEditor extends JPanel
         INFO_CTRL_PANEL_UPDATE_MULTIPLE_SUPERIORS_TOOLTIP.get().toString());
     bUpdateMultiple.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         updateMultipleClicked();
@@ -133,7 +129,7 @@ public class SuperiorObjectClassesEditor extends JPanel
     singleSuperior.setRenderer(renderer);
     ItemListener itemListener = new ItemListener()
     {
-      /** {@inheritDoc} */
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         notifyListeners();

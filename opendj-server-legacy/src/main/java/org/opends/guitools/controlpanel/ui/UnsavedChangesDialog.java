@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -41,27 +41,17 @@ import org.forgerock.i18n.LocalizableMessage;
  * It proposes the user to save the changes, do not save them or cancel the
  * action that make the dialog appear (for instance when the user is editing
  * an entry and clicks on another node, this dialog appears).
- *
  */
 public class UnsavedChangesDialog extends GenericDialog
 {
-  /**
-   * The different input that the user can provide.
-   *
-   */
+  /** The different input that the user can provide. */
   public enum Result
   {
-    /**
-     * The user asks to save the changes.
-     */
+    /** The user asks to save the changes. */
     SAVE,
-    /**
-     * The user asks to not to save the changes.
-     */
+    /** The user asks to not to save the changes. */
     DO_NOT_SAVE,
-    /**
-     * The user asks to cancel the operation that made this dialog to appear.
-     */
+    /** The user asks to cancel the operation that made this dialog to appear. */
     CANCEL
   }
   private static final long serialVersionUID = -4436794801035162388L;
@@ -95,7 +85,7 @@ public class UnsavedChangesDialog extends GenericDialog
     pack();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void setVisible(boolean visible)
   {
     if (visible)
@@ -126,10 +116,7 @@ public class UnsavedChangesDialog extends GenericDialog
     return panel;
   }
 
-  /**
-   * The panel to be displayed inside the dialog.
-   *
-   */
+  /** The panel to be displayed inside the dialog. */
   private static class UnsavedChangesPanel extends StatusGenericPanel
   {
     private static final long serialVersionUID = -1528939816762604059L;
@@ -140,10 +127,7 @@ public class UnsavedChangesDialog extends GenericDialog
 
     private Result result;
 
-    /**
-     * Default constructor.
-     *
-     */
+    /** Default constructor. */
     public UnsavedChangesPanel()
     {
       super();
@@ -165,13 +149,13 @@ public class UnsavedChangesDialog extends GenericDialog
       add(createButtonsPanel(), gbc);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean requiresBorder()
     {
       return false;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean requiresScroll()
     {
       return false;
@@ -194,6 +178,7 @@ public class UnsavedChangesDialog extends GenericDialog
       buttonsPanel.add(doNotSaveButton, gbc);
       doNotSaveButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.DO_NOT_SAVE;
@@ -217,7 +202,7 @@ public class UnsavedChangesDialog extends GenericDialog
       buttonsPanel.add(cancelButton, gbc);
       cancelButton.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.CANCEL;
@@ -233,7 +218,7 @@ public class UnsavedChangesDialog extends GenericDialog
       buttonsPanel.add(saveButton, gbc);
       saveButton.addActionListener(new ActionListener()
       {
-        /** {@inheritDoc} */
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           result = Result.SAVE;
@@ -247,35 +232,35 @@ public class UnsavedChangesDialog extends GenericDialog
       return buttonsPanel;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Component getPreferredFocusComponent()
     {
       return doNotSaveButton;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void okClicked()
     {
     }
 
-    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTitle()
     {
       return INFO_CTRL_PANEL_UNSAVED_CHANGES_DIALOG_TITLE.get();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void configurationChanged(ConfigurationChangeEvent ev)
     {
     }
 
-    /** {@inheritDoc} */
+    @Override
     public GenericDialog.ButtonType getButtonType()
     {
       return GenericDialog.ButtonType.NO_BUTTON;
     }
 
-    /** {@inheritDoc} */
+    @Override
     public boolean isDisposeOnClose()
     {
       return true;

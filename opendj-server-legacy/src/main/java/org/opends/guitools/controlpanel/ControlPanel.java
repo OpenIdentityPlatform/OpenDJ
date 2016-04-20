@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel;
@@ -80,6 +80,7 @@ public class ControlPanel
     final ControlPanel test = new ControlPanel();
     test.initialize(args);
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run() {
         test.createAndDisplayGUI();
       }
@@ -119,9 +120,7 @@ public class ControlPanel
     info.setConnectTimeout(argParser.getConnectTimeout());
   }
 
-  /**
-   * Creates the main Control Panel dialog and displays it.
-   */
+  /** Creates the main Control Panel dialog and displays it. */
   public void createAndDisplayGUI()
   {
     LocalOrRemotePanel localOrRemotePanel = new LocalOrRemotePanel();
@@ -144,7 +143,7 @@ public class ControlPanel
 
     ComponentListener listener = new ComponentAdapter()
     {
-      /** {@inheritDoc} */
+      @Override
       public void componentHidden(ComponentEvent e)
       {
         handleWindowClosed(localOrRemote, info);
@@ -170,6 +169,7 @@ public class ControlPanel
     // calling pack.
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         // Create and set up the content pane.
@@ -179,6 +179,7 @@ public class ControlPanel
         dlg.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         final MainMenuBar menuBar = new MainMenuBar(info);
         dlg.addWindowListener(new WindowAdapter() {
+          @Override
           public void windowClosing(WindowEvent e) {
             menuBar.quitClicked();
           }

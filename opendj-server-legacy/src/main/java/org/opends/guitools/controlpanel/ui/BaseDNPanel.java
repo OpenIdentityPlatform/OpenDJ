@@ -39,17 +39,14 @@ public class BaseDNPanel extends StatusGenericPanel
   private JLabel dnLabel;
   private String baseDn;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public BaseDNPanel()
   {
     super();
     createLayout();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_OTHER_BASE_DN_TITLE.get();
@@ -64,9 +61,7 @@ public class BaseDNPanel extends StatusGenericPanel
     return baseDn;
   }
 
-  /**
-   * Creates the layout of the panel (but the contents are not populated here).
-   */
+  /** Creates the layout of the panel (but the contents are not populated here). */
   private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
@@ -89,18 +84,18 @@ public class BaseDNPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return dn;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(dnLabel);
@@ -137,7 +132,7 @@ public class BaseDNPanel extends StatusGenericPanel
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(dnLabel);
@@ -145,7 +140,7 @@ public class BaseDNPanel extends StatusGenericPanel
     super.cancelClicked();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);

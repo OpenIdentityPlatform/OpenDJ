@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.border;
@@ -34,19 +34,19 @@ public class SelectedCategoryBorder implements Border
   public SelectedCategoryBorder() {
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Insets getBorderInsets(Component c)
   {
     return insets;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isBorderOpaque()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void paintBorder(Component c, Graphics g, int x, int y, int width, int height)
   {
     // render shadow on bottom

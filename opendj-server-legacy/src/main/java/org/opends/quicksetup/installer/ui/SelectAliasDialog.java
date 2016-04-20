@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -71,6 +71,7 @@ public class SelectAliasDialog extends JDialog
 
     addWindowListener(new WindowAdapter()
     {
+      @Override
       public void windowClosing(WindowEvent e)
       {
         cancelClicked();
@@ -177,6 +178,7 @@ public class SelectAliasDialog extends JDialog
           INFO_SELECT_ALIAS_OK_BUTTON_TOOLTIP.get());
     okButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         okClicked();
@@ -193,6 +195,7 @@ public class SelectAliasDialog extends JDialog
     p2.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         cancelClicked();
@@ -213,20 +216,14 @@ public class SelectAliasDialog extends JDialog
     return p;
   }
 
-  /**
-   * Method called when user clicks on cancel.
-   *
-   */
+  /** Method called when user clicks on cancel. */
   private void cancelClicked()
   {
     isCanceled = true;
     dispose();
   }
 
-  /**
-   * Method called when user clicks on OK.
-   *
-   */
+  /** Method called when user clicks on OK. */
   private void okClicked()
   {
     isCanceled = false;

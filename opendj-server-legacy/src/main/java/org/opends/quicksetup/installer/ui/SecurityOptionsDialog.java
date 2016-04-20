@@ -12,10 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
-
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import java.awt.Component;
@@ -340,6 +338,7 @@ public class SecurityOptionsDialog extends JDialog
 
     ActionListener l = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         updateEnablingState();
@@ -619,6 +618,7 @@ public class SecurityOptionsDialog extends JDialog
     buttonsPanel.add(okButton, gbc);
     okButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         okClicked();
@@ -633,6 +633,7 @@ public class SecurityOptionsDialog extends JDialog
     buttonsPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         cancelClicked();
@@ -642,20 +643,14 @@ public class SecurityOptionsDialog extends JDialog
     return buttonsPanel;
   }
 
-  /**
-   * Method called when user clicks on cancel.
-   *
-   */
+  /** Method called when user clicks on cancel. */
   private void cancelClicked()
   {
     isCanceled = true;
     dispose();
   }
 
-  /**
-   * Method called when user clicks on OK.
-   *
-   */
+  /** Method called when user clicks on OK. */
   private void okClicked()
   {
     BackgroundTask<ArrayList<LocalizableMessage>> worker =
@@ -752,11 +747,7 @@ public class SecurityOptionsDialog extends JDialog
     toFront();
   }
 
-  /**
-   * Updates the widgets on the dialog with the contents of the securityOptions
-   * object.
-   *
-   */
+  /** Updates the widgets on the dialog with the contents of the securityOptions object. */
   private void updateContents()
   {
     cbEnableSSL.setSelected(securityOptions.getEnableSSL());
@@ -1091,6 +1082,7 @@ public class SecurityOptionsDialog extends JDialog
   {
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         UIFactory.setTextStyle(comp,

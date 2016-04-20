@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 
-/**
- * A node representing a VLV index.  It is used in the 'Manage Index' tree.
- *
- */
+/** A node representing a VLV index. It is used in the 'Manage Index' tree. */
 public class VLVIndexTreeNode extends AbstractIndexTreeNode
 {
   private static final long serialVersionUID = -4067198828465569689L;

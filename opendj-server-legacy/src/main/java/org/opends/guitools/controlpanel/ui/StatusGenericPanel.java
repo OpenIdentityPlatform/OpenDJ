@@ -111,14 +111,10 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
 {
   private static final long serialVersionUID = -9123358652232556732L;
 
-  /**
-   * The string to be used as combo separator.
-   */
+  /** The string to be used as combo separator. */
   public static final String COMBO_SEPARATOR = "----------";
 
-  /**
-   * The not applicable message.
-   */
+  /** The not applicable message. */
   protected static final LocalizableMessage NOT_APPLICABLE = INFO_NOT_APPLICABLE_LABEL.get();
 
   private static final LocalizableMessage AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
@@ -242,9 +238,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
     return true;
   }
 
-  /**
-   * Constructor.
-   */
+  /** Constructor. */
   protected StatusGenericPanel()
   {
     super(new GridBagLayout());
@@ -371,9 +365,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
     p.add(errorPane, gbc);
   }
 
-  /**
-   * Creates the error pane.
-   */
+  /** Creates the error pane. */
   protected void createErrorPane()
   {
     errorPane = Utilities.makeHtmlPane("", ColorAndFontConstants.progressFont);
@@ -532,9 +524,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
     comp.setFont(ColorAndFontConstants.defaultFont);
   }
 
-  /**
-   * Packs the parent dialog.
-   */
+  /** Packs the parent dialog. */
   protected void packParentDialog()
   {
     Window dlg = Utilities.getParentDialog(this);
@@ -966,7 +956,6 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
           errorPane, title, ColorAndFontConstants.errorTitleFont, mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /** {@inheritDoc} */
         @Override
         public void run()
         {
