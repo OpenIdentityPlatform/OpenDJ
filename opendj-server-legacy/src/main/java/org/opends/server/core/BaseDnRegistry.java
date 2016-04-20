@@ -16,32 +16,31 @@
  */
 package org.opends.server.core;
 
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.CoreMessages.*;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.Backend;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.CoreMessages.*;
 
 /**
  * Registry for maintaining the set of registered base DN's, associated backends
  * and naming context information.
  */
 public class BaseDnRegistry {
-
   /** The set of base DNs registered with the server. */
-  private final TreeMap<DN, Backend> baseDNs = new TreeMap<>();
+  private final TreeMap<DN, Backend<?>> baseDNs = new TreeMap<>();
   /** The set of private naming contexts registered with the server. */
-  private final TreeMap<DN, Backend> privateNamingContexts = new TreeMap<>();
+  private final TreeMap<DN, Backend<?>> privateNamingContexts = new TreeMap<>();
   /** The set of public naming contexts registered with the server. */
-  private final TreeMap<DN, Backend> publicNamingContexts = new TreeMap<>();
+  private final TreeMap<DN, Backend<?>> publicNamingContexts = new TreeMap<>();
 
   /**
    * Indicates whether or not this base DN registry is in test mode.
@@ -73,7 +72,6 @@ public class BaseDnRegistry {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // Check to see if the backend is already registered with the server for
     // any other base DN(s).  The new base DN must not have any hierarchical
     // relationship with any other base Dns for the same backend.
@@ -94,7 +92,6 @@ public class BaseDnRegistry {
       }
     }
 
-
     // Check to see if the new base DN is subordinate to any other base DN
     // already defined.  If it is, then any other base DN(s) for the same
     // backend must also be subordinate to the same base DN.
@@ -105,7 +102,6 @@ public class BaseDnRegistry {
           get(baseDN, backend.getBackendID(), backend.getParentBackend().getBackendID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
-
 
     // Check to see if the new base DN should be the superior base DN for any
     // other base DN(s) already defined.
@@ -132,7 +128,6 @@ public class BaseDnRegistry {
       }
     }
 
-
     // If we've gotten here, then the new base DN is acceptable.  If we should
     // actually apply the changes then do so now.
     final List<LocalizableMessage> errors = new LinkedList<>();
@@ -151,7 +146,6 @@ public class BaseDnRegistry {
       errors.add(WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
           get(superiorBackend.getBackendID(), baseDN, backend.getBackendID()));
     }
-
 
     baseDNs.put(baseDN, backend);
 
@@ -228,7 +222,6 @@ public class BaseDnRegistry {
     return superiorBackend;
   }
 
-
   /**
    * Deregisters a base DN with this registry.
    *
@@ -253,7 +246,6 @@ public class BaseDnRegistry {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-
     // Check to see if the backend has a parent backend, and whether it has
     // any subordinates with base DNs that are below the base DN to remove.
     Backend<?>             superiorBackend     = backend.getParentBackend();
@@ -273,7 +265,6 @@ public class BaseDnRegistry {
       }
     }
 
-
     // See if there are any other base DNs registered within the same backend.
     LinkedList<DN> otherBaseDNs = new LinkedList<>();
     for (DN dn : baseDNs.keySet())
@@ -289,7 +280,6 @@ public class BaseDnRegistry {
         otherBaseDNs.add(dn);
       }
     }
-
 
     // If we've gotten here, then it's OK to make the changes.
 
@@ -334,7 +324,6 @@ public class BaseDnRegistry {
         superiorBackend.removeSubordinateBackend(backend);
       }
 
-
       // If there are any subordinate backends, then they need to be made
       // subordinate to the parent backend.  Also, we should log a warning
       // message indicating that there may be inconsistent search results
@@ -361,10 +350,7 @@ public class BaseDnRegistry {
     return errors;
   }
 
-
-  /**
-   * Creates a default instance.
-   */
+  /** Creates a default instance. */
   BaseDnRegistry()
   {
     this(false);
@@ -384,7 +370,6 @@ public class BaseDnRegistry {
     return registry;
   }
 
-
   /**
    * Creates a parameterized instance.
    *
@@ -396,16 +381,15 @@ public class BaseDnRegistry {
     this.testOnly = testOnly;
   }
 
-
   /**
    * Gets the mapping of registered base DNs to their associated backend.
    *
    * @return mapping from base DN to backend
    */
-  Map<DN,Backend> getBaseDnMap() {
+  Map<DN, Backend<?>> getBaseDnMap()
+  {
     return this.baseDNs;
   }
-
 
   /**
    * Gets the mapping of registered public naming contexts to their
@@ -413,10 +397,10 @@ public class BaseDnRegistry {
    *
    * @return mapping from naming context to backend
    */
-  Map<DN,Backend> getPublicNamingContextsMap() {
+  Map<DN, Backend<?>> getPublicNamingContextsMap()
+  {
     return this.publicNamingContexts;
   }
-
 
   /**
    * Gets the mapping of registered private naming contexts to their
@@ -424,12 +408,10 @@ public class BaseDnRegistry {
    *
    * @return mapping from naming context to backend
    */
-  Map<DN,Backend> getPrivateNamingContextsMap() {
+  Map<DN, Backend<?>> getPrivateNamingContextsMap()
+  {
     return this.privateNamingContexts;
   }
-
-
-
 
   /**
    * Indicates whether the specified DN is contained in this registry as
@@ -445,14 +427,10 @@ public class BaseDnRegistry {
     return privateNamingContexts.containsKey(dn) || publicNamingContexts.containsKey(dn);
   }
 
-
-  /**
-   * Clear and nullify this registry's internal state.
-   */
+  /** Clear and nullify this registry's internal state. */
   void clear() {
     baseDNs.clear();
     privateNamingContexts.clear();
     publicNamingContexts.clear();
   }
-
 }

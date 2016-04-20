@@ -27,13 +27,13 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
@@ -68,7 +68,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
    */
   protected JmxConnectionHandler getJmxConnectionHandler() throws Exception
   {
-    List<ConnectionHandler> handlers = DirectoryServer.getConnectionHandlers();
+    List<ConnectionHandler<?>> handlers = DirectoryServer.getConnectionHandlers();
     assertNotNull(handlers);
     JmxConnectionHandler jmxConnectionHandler = getJmxConnectionHandler(handlers);
     if (jmxConnectionHandler == null)
@@ -96,7 +96,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
     return jmxConnectionHandler;
   }
 
-  private JmxConnectionHandler getJmxConnectionHandler(List<ConnectionHandler> handlers)
+  private JmxConnectionHandler getJmxConnectionHandler(List<ConnectionHandler<?>> handlers)
   {
     for (ConnectionHandler<?> handler : handlers)
     {

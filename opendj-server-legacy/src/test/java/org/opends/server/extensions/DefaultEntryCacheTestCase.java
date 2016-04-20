@@ -16,26 +16,27 @@
  */
 package org.opends.server.extensions;
 
+import static org.testng.Assert.*;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.opends.server.TestCaseUtils;
-import org.testng.annotations.BeforeClass;
-import org.forgerock.opendj.server.config.meta.*;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.FIFOEntryCacheCfgDefn;
+import org.forgerock.opendj.server.config.meta.SoftReferenceEntryCacheCfgDefn;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterGroups;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for default entry cache implementation.
@@ -73,7 +74,7 @@ public class DefaultEntryCacheTestCase
     TestCaseUtils.startServer();
 
     // Get default cache.
-    super.cache = DirectoryServer.getEntryCache();
+    super.cache = (EntryCache<EntryCacheCfg>) DirectoryServer.getEntryCache();
 
     // Configure and initialize all entry cache implementations.
     softRefCache = new SoftReferenceEntryCache();
@@ -114,11 +115,12 @@ public class DefaultEntryCacheTestCase
     // Plug all cache implementations into default entry cache.
     final Method[] defaultCacheMethods =
         super.cache.getClass().getDeclaredMethods();
-    for (int i = 0; i < defaultCacheMethods.length; ++i) {
-      if (defaultCacheMethods[i].getName().equals("setCacheOrder")) {
-        defaultCacheMethods[i].setAccessible(true);
+    for (Method defaultCacheMethod : defaultCacheMethods)
+    {
+      if (defaultCacheMethod.getName().equals("setCacheOrder")) {
+        defaultCacheMethod.setAccessible(true);
         Object arglist[] = new Object[] { cacheOrderMap };
-        defaultCacheMethods[i].invoke(cache, arglist);
+        defaultCacheMethod.invoke(cache, arglist);
       }
     }
 
@@ -194,11 +196,12 @@ public class DefaultEntryCacheTestCase
     SortedMap<Integer, EntryCache<? extends EntryCacheCfg>> emptyCacheOrderMap = new TreeMap<>();
     final Method[] defaultCacheMethods =
         super.cache.getClass().getDeclaredMethods();
-    for (int i = 0; i < defaultCacheMethods.length; ++i) {
-      if (defaultCacheMethods[i].getName().equals("setCacheOrder")) {
-        defaultCacheMethods[i].setAccessible(true);
+    for (Method defaultCacheMethod : defaultCacheMethods)
+    {
+      if (defaultCacheMethod.getName().equals("setCacheOrder")) {
+        defaultCacheMethod.setAccessible(true);
         Object arglist[] = new Object[] { emptyCacheOrderMap };
-        defaultCacheMethods[i].invoke(cache, arglist);
+        defaultCacheMethod.invoke(cache, arglist);
       }
     }
 
@@ -405,8 +408,7 @@ public class DefaultEntryCacheTestCase
 
 
   @BeforeGroups(groups = "testDefaultCacheConcurrency")
-  public void cacheConcurrencySetup()
-         throws Exception
+  public void cacheConcurrencySetup() throws Exception
   {
     assertNull(cache.toVerboseString(),
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
@@ -416,8 +418,7 @@ public class DefaultEntryCacheTestCase
 
 
   @AfterGroups(groups = "testDefaultCacheConcurrency")
-  public void cacheConcurrencyCleanup()
-         throws Exception
+  public void cacheConcurrencyCleanup() throws Exception
   {
     // Clear the cache so that other tests can start from scratch.
     super.cache.clear();

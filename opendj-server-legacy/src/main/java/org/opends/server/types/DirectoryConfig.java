@@ -62,8 +62,6 @@ public final class DirectoryConfig
     return DirectoryServer.getCryptoManager();
   }
 
-
-
   /**
    * Retrieves the operating system on which the Directory Server is
    * running.
@@ -88,8 +86,6 @@ public final class DirectoryConfig
     return DirectoryServer.getServerRoot();
   }
 
-
-
   /**
    * Retrieves the time that the Directory Server was started, in
    * milliseconds since the epoch.
@@ -101,8 +97,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getStartTime();
   }
-
-
 
   /**
    * Retrieves the time that the Directory Server was started,
@@ -116,8 +110,6 @@ public final class DirectoryConfig
     return DirectoryServer.getStartTimeUTC();
   }
 
-
-
   /**
    * Retrieves a reference to the Directory Server schema.
    *
@@ -127,8 +119,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getSchema();
   }
-
-
 
   /**
    * Retrieves the set of matching rules registered with the Directory
@@ -141,8 +131,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getMatchingRules();
   }
-
-
 
   /**
    * Retrieves the matching rule with the specified name or OID.
@@ -157,8 +145,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getMatchingRule(lowerName);
   }
-
-
 
   /**
    * Retrieves the approximate matching rule with the specified name
@@ -177,8 +163,6 @@ public final class DirectoryConfig
     return DirectoryServer.getMatchingRule(lowerName);
   }
 
-
-
   /**
    * Retrieves the equality matching rule with the specified name or
    * OID.
@@ -195,8 +179,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getMatchingRule(lowerName);
   }
-
-
 
   /**
    * Retrieves the ordering matching rule with the specified name or
@@ -215,8 +197,6 @@ public final class DirectoryConfig
     return DirectoryServer.getMatchingRule(lowerName);
   }
 
-
-
   /**
    * Retrieves the substring matching rule with the specified name or
    * OID.
@@ -234,8 +214,6 @@ public final class DirectoryConfig
     return DirectoryServer.getMatchingRule(lowerName);
   }
 
-
-
   /**
    * Retrieves the set of objectclasses registered with the Directory
    * Server.  The mapping will be between the lowercase name or OID
@@ -251,8 +229,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getObjectClasses();
   }
-
-
 
   /**
    * Retrieves the objectclass for the provided lowercase name or OID.
@@ -276,8 +252,6 @@ public final class DirectoryConfig
     return DirectoryServer.getObjectClass(lowerName, returnDefault);
   }
 
-
-
   /**
    * Retrieves the "top" objectClass, which should be the topmost
    * objectclass in the inheritance chain for most other
@@ -289,8 +263,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getTopObjectClass();
   }
-
-
 
   /**
    * Retrieves the set of attribute type definitions that have been
@@ -318,8 +290,6 @@ public final class DirectoryConfig
     return DirectoryServer.getObjectClassAttributeType();
   }
 
-
-
   /**
    * Retrieves the set of attribute syntaxes defined in the Directory
    * Server.
@@ -346,8 +316,6 @@ public final class DirectoryConfig
     return DirectoryServer.getDefaultBinarySyntax();
   }
 
-
-
   /**
    * Retrieves the default attribute syntax that should be used for
    * attributes that are not defined in the server schema and are
@@ -361,8 +329,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getDefaultBooleanSyntax();
   }
-
-
 
   /**
    * Retrieves the default attribute syntax that should be used for
@@ -378,8 +344,6 @@ public final class DirectoryConfig
     return DirectoryServer.getDefaultDNSyntax();
   }
 
-
-
   /**
    * Retrieves the default attribute syntax that should be used for
    * attributes that are not defined in the server schema and are
@@ -393,8 +357,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getDefaultIntegerSyntax();
   }
-
-
 
   /**
    * Retrieves the default attribute syntax that should be used for
@@ -410,8 +372,6 @@ public final class DirectoryConfig
     return DirectoryServer.getDefaultStringSyntax();
   }
 
-
-
   /**
    * Retrieves the set of matching rule uses defined in the Directory
    * Server.  The mapping will be between the matching rule and its
@@ -426,8 +386,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getMatchingRuleUses();
   }
-
-
 
   /**
    * Retrieves the matching rule use associated with the provided
@@ -445,8 +403,6 @@ public final class DirectoryConfig
     return DirectoryServer.getMatchingRuleUse(matchingRule);
   }
 
-
-
   /**
    * Retrieves the set of DIT content rules defined in the Directory
    * Server.  The mapping will be between the structural objectclass
@@ -461,8 +417,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getDITContentRules();
   }
-
-
 
   /**
    * Retrieves the DIT content rule associated with the specified
@@ -480,8 +434,6 @@ public final class DirectoryConfig
     return DirectoryServer.getDITContentRule(objectClass);
   }
 
-
-
   /**
    * Retrieves the set of DIT structure rules defined in the Directory
    * Server.  The mapping will be between the name form and its
@@ -497,8 +449,6 @@ public final class DirectoryConfig
     return DirectoryServer.getDITStructureRules();
   }
 
-
-
   /**
    * Retrieves the DIT structure rule associated with the provided
    * rule ID.
@@ -513,8 +463,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getDITStructureRule(ruleID);
   }
-
-
 
   /**
    * Retrieves the DIT structure rule associated with the provided
@@ -532,8 +480,6 @@ public final class DirectoryConfig
     return DirectoryServer.getDITStructureRule(nameForm);
   }
 
-
-
   /**
    * Retrieves the set of name forms defined in the Directory Server.
    * The mapping will be between the structural objectclass and its
@@ -546,8 +492,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getNameForms();
   }
-
-
 
   /**
    * Retrieves the list of name forms associated with the specified
@@ -563,8 +507,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getNameForm(objectClass);
   }
-
-
 
   /**
    * Retrieves the name form associated with the specified name or
@@ -592,8 +534,6 @@ public final class DirectoryConfig
     DirectoryServer.registerAlertGenerator(alertGenerator);
   }
 
-
-
   /**
    * Deregisters the provided alert generator with the Directory
    * Server.
@@ -605,8 +545,6 @@ public final class DirectoryConfig
   {
     DirectoryServer.deregisterAlertGenerator(alertGenerator);
   }
-
-
 
   /**
    * Sends an alert notification with the provided information.
@@ -626,8 +564,6 @@ public final class DirectoryConfig
             alertMessage);
   }
 
-
-
   /**
    * Retrieves the result code that should be used when the Directory
    * Server encounters an internal server error.
@@ -639,8 +575,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getServerErrorResultCode();
   }
-
-
 
   /**
    * Retrieves the entry with the requested DN.  It will first
@@ -662,8 +596,6 @@ public final class DirectoryConfig
     return DirectoryServer.getEntry(entryDN);
   }
 
-
-
   /**
    * Indicates whether the specified entry exists in the Directory
    * Server.  The caller is not required to hold any locks when
@@ -684,8 +616,6 @@ public final class DirectoryConfig
     return DirectoryServer.entryExists(entryDN);
   }
 
-
-
   /**
    * Retrieves the set of OIDs for the supported controls registered
    * with the Directory Server.
@@ -697,8 +627,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getSupportedControls();
   }
-
-
 
   /**
    * Indicates whether the specified OID is registered with the
@@ -716,8 +644,6 @@ public final class DirectoryConfig
     return DirectoryServer.isSupportedControl(controlOID);
   }
 
-
-
   /**
    * Registers the provided OID as a supported control for the
    * Directory Server.  This will have no effect if the specified
@@ -730,8 +656,6 @@ public final class DirectoryConfig
   {
     DirectoryServer.registerSupportedControl(controlOID);
   }
-
-
 
   /**
    * Deregisters the provided OID as a supported control for the
@@ -747,8 +671,6 @@ public final class DirectoryConfig
     DirectoryServer.deregisterSupportedControl(controlOID);
   }
 
-
-
   /**
    * Retrieves the set of OIDs for the supported features registered
    * with the Directory Server.
@@ -760,8 +682,6 @@ public final class DirectoryConfig
   {
     return DirectoryServer.getSupportedFeatures();
   }
-
-
 
   /**
    * Indicates whether the specified OID is registered with the
@@ -779,8 +699,6 @@ public final class DirectoryConfig
     return DirectoryServer.isSupportedFeature(featureOID);
   }
 
-
-
   /**
    * Registers the provided OID as a supported feature for the
    * Directory Server.  This will have no effect if the specified
@@ -793,8 +711,6 @@ public final class DirectoryConfig
   {
     DirectoryServer.registerSupportedFeature(featureOID);
   }
-
-
 
   /**
    * Deregisters the provided OID as a supported feature for the
@@ -810,8 +726,6 @@ public final class DirectoryConfig
     DirectoryServer.deregisterSupportedFeature(featureOID);
   }
 
-
-
   /**
    * Retrieves the set of extended operations that may be processed by
    * the Directory Server.  The mapping will be between the OID and
@@ -822,13 +736,10 @@ public final class DirectoryConfig
    * @return  The set of extended operations that may be processed by
    *          the Directory Server.
    */
-  public static Map<String,ExtendedOperationHandler>
-                     getSupportedExtensions()
+  public static Map<String, ExtendedOperationHandler<?>> getSupportedExtensions()
   {
     return DirectoryServer.getSupportedExtensions();
   }
-
-
 
   /**
    * Retrieves the handler for the extended operation for the provided
@@ -839,13 +750,10 @@ public final class DirectoryConfig
    * @return  The handler for the specified extended operation, or
    *          <CODE>null</CODE> if there is none.
    */
-  public static ExtendedOperationHandler
-       getExtendedOperationHandler(String oid)
+  public static ExtendedOperationHandler<?> getExtendedOperationHandler(String oid)
   {
     return DirectoryServer.getExtendedOperationHandler(oid);
   }
-
-
 
   /**
    * Registers the provided extended operation handler with the
@@ -855,13 +763,10 @@ public final class DirectoryConfig
    * @param  handler  The extended operation handler to register with
    *                  the Directory Server.
    */
-  public static void registerSupportedExtension(String oid,
-                          ExtendedOperationHandler handler)
+  public static void registerSupportedExtension(String oid, ExtendedOperationHandler<?> handler)
   {
     DirectoryServer.registerSupportedExtension(oid, handler);
   }
-
-
 
   /**
    * Deregisters the provided extended operation handler with the
@@ -874,8 +779,6 @@ public final class DirectoryConfig
     DirectoryServer.deregisterSupportedExtension(oid);
   }
 
-
-
   /**
    * Retrieves the set of SASL mechanisms that are supported by the
    * Directory Server.  The mapping will be between the mechanism name
@@ -885,13 +788,10 @@ public final class DirectoryConfig
    * @return  The set of SASL mechanisms that are supported by the
    *          Directory Server.
    */
-  public static Map<String,SASLMechanismHandler>
-                     getSupportedSASLMechanisms()
+  public static Map<String, SASLMechanismHandler<?>> getSupportedSASLMechanisms()
   {
     return DirectoryServer.getSupportedSASLMechanisms();
   }
-
-
 
   /**
    * Retrieves the handler for the specified SASL mechanism.
@@ -901,13 +801,10 @@ public final class DirectoryConfig
    * @return  The handler for the specified SASL mechanism, or
    *          <CODE>null</CODE> if there is none.
    */
-  public static SASLMechanismHandler
-       getSASLMechanismHandler(String name)
+  public static SASLMechanismHandler<?> getSASLMechanismHandler(String name)
   {
     return DirectoryServer.getSASLMechanismHandler(name);
   }
-
-
 
   /**
    * Registers the provided SASL mechanism handler with the Directory
@@ -917,14 +814,10 @@ public final class DirectoryConfig
    * @param  handler  The SASL mechanism handler to register with the
    *                  Directory Server.
    */
-  public static void
-       registerSASLMechanismHandler(String name,
-                                    SASLMechanismHandler handler)
+  public static void registerSASLMechanismHandler(String name, SASLMechanismHandler<?> handler)
   {
     DirectoryServer.registerSASLMechanismHandler(name, handler);
   }
-
-
 
   /**
    * Deregisters the provided SASL mechanism handler with the
@@ -950,8 +843,6 @@ public final class DirectoryConfig
     DirectoryServer.registerShutdownListener(listener);
   }
 
-
-
   /**
    * Deregisters the provided shutdown listener with the Directory
    * Server.
@@ -965,8 +856,6 @@ public final class DirectoryConfig
     DirectoryServer.deregisterShutdownListener(listener);
   }
 
-
-
   /**
    * Retrieves the full version string for the Directory Server.
    *
@@ -977,4 +866,3 @@ public final class DirectoryConfig
     return DirectoryServer.getVersionString();
   }
 }
-

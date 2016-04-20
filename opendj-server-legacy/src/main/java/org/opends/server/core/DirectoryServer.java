@@ -293,11 +293,11 @@ public final class DirectoryServer
   private ConfigurationHandler configurationHandler;
 
   /** The set of account status notification handlers defined in the server. */
-  private ConcurrentMap<DN, AccountStatusNotificationHandler>
+  private ConcurrentMap<DN, AccountStatusNotificationHandler<?>>
                accountStatusNotificationHandlers;
 
   /** The set of certificate mappers registered with the server. */
-  private ConcurrentMap<DN, CertificateMapper> certificateMappers;
+  private ConcurrentMap<DN, CertificateMapper<?>> certificateMappers;
 
   /** The set of alternate bind DNs for the root users. */
   private ConcurrentMap<DN, DN> alternateRootBindDNs;
@@ -306,23 +306,23 @@ public final class DirectoryServer
    * The set of identity mappers registered with the server (mapped between the
    * configuration entry Dn and the mapper).
    */
-  private ConcurrentMap<DN, IdentityMapper> identityMappers;
+  private ConcurrentMap<DN, IdentityMapper<?>> identityMappers;
 
   /**
    * The set of JMX MBeans that have been registered with the server (mapped
    * between the associated configuration entry DN and the MBean).
    */
-  private ConcurrentHashMap<DN,JMXMBean> mBeans;
+  private ConcurrentHashMap<DN, JMXMBean> mBeans;
 
   /** The set of key manager providers registered with the server. */
-  private ConcurrentMap<DN, KeyManagerProvider> keyManagerProviders;
+  private ConcurrentMap<DN, KeyManagerProvider<?>> keyManagerProviders;
 
   /**
    * The set of password generators registered with the Directory Server, as a
    * mapping between the DN of the associated configuration entry and the
    * generator implementation.
    */
-  private ConcurrentMap<DN, PasswordGenerator> passwordGenerators;
+  private ConcurrentMap<DN, PasswordGenerator<?>> passwordGenerators;
 
   /**
    * The set of authentication policies registered with the Directory Server, as
@@ -336,90 +336,79 @@ public final class DirectoryServer
    * mapping between the DN of the associated configuration entry and the
    * validator implementation.
    */
-  private ConcurrentMap<DN, PasswordValidator<? extends PasswordValidatorCfg>>
-               passwordValidators;
+  private ConcurrentMap<DN, PasswordValidator<? extends PasswordValidatorCfg>> passwordValidators;
 
   /** The set of trust manager providers registered with the server. */
-  private ConcurrentMap<DN, TrustManagerProvider> trustManagerProviders;
+  private ConcurrentMap<DN, TrustManagerProvider<?>> trustManagerProviders;
 
   /**
    * The set of log rotation policies registered with the Directory Server, as a
    * mapping between the DN of the associated configuration entry and the policy
    * implementation.
    */
-  private ConcurrentMap<DN, RotationPolicy> rotationPolicies;
+  private ConcurrentMap<DN, RotationPolicy<?>> rotationPolicies;
 
   /**
    * The set of log retention policies registered with the Directory Server, as
    * a mapping between the DN of the associated configuration entry and the
    * policy implementation.
    */
-  private ConcurrentMap<DN, RetentionPolicy> retentionPolicies;
+  private ConcurrentMap<DN, RetentionPolicy<?>> retentionPolicies;
 
   /** The set supported LDAP protocol versions. */
-  private ConcurrentMap<Integer, List<ConnectionHandler>>
-               supportedLDAPVersions;
+  private ConcurrentMap<Integer, List<ConnectionHandler<?>>> supportedLDAPVersions;
 
   /**
    * The set of extended operation handlers registered with the server (mapped
    * between the OID of the extended operation and the handler).
    */
-  private ConcurrentMap<String, ExtendedOperationHandler>
-               extendedOperationHandlers;
+  private ConcurrentMap<String, ExtendedOperationHandler<?>> extendedOperationHandlers;
 
   /**
    * The set of monitor providers registered with the Directory Server, as a
    * mapping between the monitor name and the corresponding implementation.
    */
-  private ConcurrentMap<String, MonitorProvider<? extends MonitorProviderCfg>>
-               monitorProviders;
+  private ConcurrentMap<String, MonitorProvider<? extends MonitorProviderCfg>> monitorProviders;
 
   /**
    * The set of password storage schemes defined in the server (mapped between
    * the lowercase scheme name and the storage scheme) that support the
    * authentication password syntax.
    */
-  private ConcurrentHashMap<String,PasswordStorageScheme>
-               authPasswordStorageSchemes;
+  private ConcurrentHashMap<String, PasswordStorageScheme<?>> authPasswordStorageSchemes;
 
   /**
    * The set of password storage schemes defined in the server (mapped between
    * the lowercase scheme name and the storage scheme).
    */
-  private ConcurrentHashMap<String,PasswordStorageScheme>
-               passwordStorageSchemes;
+  private ConcurrentHashMap<String, PasswordStorageScheme<?>> passwordStorageSchemes;
 
   /**
    * The set of password storage schemes defined in the server (mapped between
    * the DN of the configuration entry and the storage scheme).
    */
-  private ConcurrentMap<DN, PasswordStorageScheme>
-               passwordStorageSchemesByDN;
+  private ConcurrentMap<DN, PasswordStorageScheme<?>> passwordStorageSchemesByDN;
 
   /**
    * The set of SASL mechanism handlers registered with the server (mapped
    * between the mechanism name and the handler).
    */
-  private ConcurrentMap<String, SASLMechanismHandler> saslMechanismHandlers;
+  private ConcurrentMap<String, SASLMechanismHandler<?>> saslMechanismHandlers;
 
   /** The connection handler configuration manager for the Directory Server. */
   private ConnectionHandlerConfigManager connectionHandlerConfigManager;
 
   /** The set of alert handlers registered with the Directory Server. */
-  private List<AlertHandler> alertHandlers;
+  private List<AlertHandler<?>> alertHandlers;
+  /** The set of connection handlers registered with the Directory Server. */
+  private List<ConnectionHandler<?>> connectionHandlers;
 
   /** The set of backup task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
-
-  /** The set of connection handlers registered with the Directory Server. */
-  private List<ConnectionHandler> connectionHandlers;
-
   /** The set of export task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<ExportTaskListener> exportTaskListeners;
-
   /** The set of import task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<ImportTaskListener> importTaskListeners;
-
   /** The set of restore task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<RestoreTaskListener> restoreTaskListeners;
 
@@ -427,8 +416,7 @@ public final class DirectoryServer
    * The set of initialization completed listeners that have been registered
    * with the Directory Server.
    */
-  private List<InitializationCompletedListener>
-          initializationCompletedListeners;
+  private List<InitializationCompletedListener> initializationCompletedListeners;
 
   /** The set of shutdown listeners that have been registered with the Directory Server. */
   private List<ServerShutdownListener> shutdownListeners;
@@ -468,7 +456,7 @@ public final class DirectoryServer
   private DN schemaDN;
 
   /** The Directory Server entry cache. */
-  private EntryCache entryCache;
+  private EntryCache<?> entryCache;
 
   /** The configuration manager for the entry cache. */
   private EntryCacheConfigManager entryCacheConfigManager;
@@ -646,7 +634,7 @@ public final class DirectoryServer
   private final VirtualAttributeConfigManager virtualAttributeConfigManager;
 
   /** The work queue that will be used to service client requests. */
-  private WorkQueue workQueue;
+  private WorkQueue<?> workQueue;
 
   /** The writability mode for the Directory Server. */
   private WritabilityMode writabilityMode;
@@ -1170,7 +1158,7 @@ public final class DirectoryServer
       // matching rules and attribute syntaxes.
       try
       {
-        directoryServer.setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema()));
+        setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema()));
       }
       catch (DirectoryException unexpected)
       {
@@ -2325,7 +2313,7 @@ public final class DirectoryServer
    * @param  lowerName  The lowercase name or OID for the matching rule to
    *                    retrieve.
    *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no such
+   * @return  The requested matching rule, or {@code null} if no such
    *          matching rule has been defined in the server.
    */
   public static MatchingRule getMatchingRule(String lowerName)
@@ -2382,7 +2370,7 @@ public final class DirectoryServer
    * @param  lowerName  The lowercase name or OID for the objectclass to
    *                    retrieve.
    *
-   * @return  The requested objectclass, or <CODE>null</CODE> if there is no
+   * @return  The requested objectclass, or {@code null} if there is no
    *          such objectclass defined in the server schema.
    */
   public static ObjectClass getObjectClass(String lowerName)
@@ -2401,7 +2389,7 @@ public final class DirectoryServer
    *                        the requested objectclass is not defined in the
    *                        server schema.
    *
-   * @return  The objectclass type, or <CODE>null</CODE> if there is no
+   * @return  The objectclass type, or {@code null} if there is no
    *          objectclass with the specified name or OID defined in the server
    *          schema and a default class should not be returned.
    */
@@ -2734,7 +2722,7 @@ public final class DirectoryServer
    *                       rule use.
    *
    * @return  The matching rule use for the provided matching rule, or
-   *          <CODE>null</CODE> if none is defined.
+   *          {@code null} if none is defined.
    */
   public static MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
@@ -2791,7 +2779,7 @@ public final class DirectoryServer
    * @param  objectClass  The objectclass for which to retrieve the associated
    *                      DIT content rule.
    *
-   * @return  The requested DIT content rule, or <CODE>null</CODE> if no such
+   * @return  The requested DIT content rule, or {@code null} if no such
    *          rule is defined in the schema.
    */
   public static DITContentRule getDITContentRule(ObjectClass objectClass)
@@ -2848,7 +2836,7 @@ public final class DirectoryServer
    * @param  ruleID  The rule ID for which to retrieve the associated DIT
    *                 structure rule.
    *
-   * @return  The requested DIT structure rule, or <CODE>null</CODE> if no such
+   * @return  The requested DIT structure rule, or {@code null} if no such
    *          rule is defined.
    */
   public static DITStructureRule getDITStructureRule(int ruleID)
@@ -2862,7 +2850,7 @@ public final class DirectoryServer
    * @param  nameForm  The name form for which to retrieve the associated DIT
    *                   structure rule.
    *
-   * @return  The requested DIT structure rule, or <CODE>null</CODE> if no such
+   * @return  The requested DIT structure rule, or {@code null} if no such
    *          rule is defined.
    */
   public static DITStructureRule getDITStructureRule(NameForm nameForm)
@@ -2920,7 +2908,7 @@ public final class DirectoryServer
    * @param  objectClass  The objectclass for which to retrieve the associated
    *                      name form.
    *
-   * @return  The requested name forms, or <CODE>null</CODE> if no such name
+   * @return  The requested name forms, or {@code null} if no such name
    *           form is defined in the schema.
    */
   public static List<NameForm> getNameForm(ObjectClass objectClass)
@@ -2934,7 +2922,7 @@ public final class DirectoryServer
    * @param  lowerName  The name or OID of the name form to retrieve, formatted
    *                    in all lowercase characters.
    *
-   * @return  The requested name form, or <CODE>null</CODE> if no such name form
+   * @return  The requested name form, or {@code null} if no such name form
    *          is defined in the schema.
    */
   public static NameForm getNameForm(String lowerName)
@@ -3057,7 +3045,7 @@ public final class DirectoryServer
    *                        retrieve the associated JMX MBean.
    *
    * @return  The JMX MBean associated with the specified entry in the Directory
-   *          Server configuration, or <CODE>null</CODE> if there is no MBean
+   *          Server configuration, or {@code null} if there is no MBean
    *          for the specified entry.
    */
   public static JMXMBean getJMXMBean(DN configEntryDN)
@@ -3108,7 +3096,7 @@ public final class DirectoryServer
    * @return  The set of alert handlers that have been registered with the
    *          Directory Server.
    */
-  public static List<AlertHandler> getAlertHandlers()
+  public static List<AlertHandler<?>> getAlertHandlers()
   {
     return directoryServer.alertHandlers;
   }
@@ -3118,7 +3106,7 @@ public final class DirectoryServer
    *
    * @param  alertHandler  The alert handler to register.
    */
-  public static void registerAlertHandler(AlertHandler alertHandler)
+  public static void registerAlertHandler(AlertHandler<?> alertHandler)
   {
     directoryServer.alertHandlers.add(alertHandler);
   }
@@ -3128,7 +3116,7 @@ public final class DirectoryServer
    *
    * @param  alertHandler  The alert handler to deregister.
    */
-  public static void deregisterAlertHandler(AlertHandler alertHandler)
+  public static void deregisterAlertHandler(AlertHandler<?> alertHandler)
   {
     directoryServer.alertHandlers.remove(alertHandler);
   }
@@ -3138,7 +3126,7 @@ public final class DirectoryServer
    *
    * @param  generator     The alert generator that created the alert.
    * @param  alertType     The alert type name for this alert.
-   * @param  alertMessage  A message (possibly <CODE>null</CODE>) that can
+   * @param  alertMessage  A message (possibly {@code null}) that can
    */
   public static void sendAlertNotification(AlertGenerator generator,
                                            String alertType,
@@ -3171,7 +3159,9 @@ public final class DirectoryServer
         AlertHandlerCfg config = alertHandler.getAlertHandlerConfiguration();
         Set<String> enabledAlerts = config.getEnabledAlertType();
         Set<String> disabledAlerts = config.getDisabledAlertType();
-        if (enabledAlerts == null || enabledAlerts.isEmpty())
+        if (enabledAlerts == null
+            || enabledAlerts.isEmpty()
+            || enabledAlerts.contains(alertType))
         {
           if (disabledAlerts != null && disabledAlerts.contains(alertType))
           {
@@ -3180,17 +3170,7 @@ public final class DirectoryServer
         }
         else
         {
-          if (enabledAlerts.contains(alertType))
-          {
-            if (disabledAlerts != null && disabledAlerts.contains(alertType))
-            {
-              continue;
-            }
-          }
-          else
-          {
-            continue;
-          }
+          continue;
         }
 
         alertHandler.sendAlertNotification(generator, alertType, alertMessage);
@@ -3224,8 +3204,7 @@ public final class DirectoryServer
    * @return  The set of password storage schemes defined in the Directory
    *          Server.
    */
-  public static ConcurrentHashMap<String,PasswordStorageScheme>
-                     getPasswordStorageSchemes()
+  public static ConcurrentHashMap<String, PasswordStorageScheme<?>> getPasswordStorageSchemes()
   {
     return directoryServer.passwordStorageSchemes;
   }
@@ -3236,10 +3215,10 @@ public final class DirectoryServer
    * @param  lowerName  The name of the password storage scheme to retrieve,
    *                    formatted in all lowercase characters.
    *
-   * @return  The requested password storage scheme, or <CODE>null</CODE> if no
+   * @return  The requested password storage scheme, or {@code null} if no
    *          such scheme is defined.
    */
-  public static PasswordStorageScheme getPasswordStorageScheme(String lowerName)
+  public static PasswordStorageScheme<?> getPasswordStorageScheme(String lowerName)
   {
     return directoryServer.passwordStorageSchemes.get(lowerName);
   }
@@ -3252,8 +3231,7 @@ public final class DirectoryServer
    * @return  The set of authentication password storage schemes defined in the
    *          Directory Server.
    */
-  public static ConcurrentHashMap<String,PasswordStorageScheme>
-                     getAuthPasswordStorageSchemes()
+  public static ConcurrentHashMap<String, PasswordStorageScheme<?>> getAuthPasswordStorageSchemes()
   {
     return directoryServer.authPasswordStorageSchemes;
   }
@@ -3265,9 +3243,9 @@ public final class DirectoryServer
    *               storage scheme to retrieve.
    *
    * @return  The requested authentication password storage scheme, or
-   *          <CODE>null</CODE> if no such scheme is defined.
+   *          {@code null} if no such scheme is defined.
    */
-  public static PasswordStorageScheme getAuthPasswordStorageScheme(String name)
+  public static PasswordStorageScheme<?> getAuthPasswordStorageScheme(String name)
   {
     return directoryServer.authPasswordStorageSchemes.get(name);
   }
@@ -3282,8 +3260,7 @@ public final class DirectoryServer
    * @param  scheme         The password storage scheme to register with the
    *                        Directory Server.
    */
-  public static void registerPasswordStorageScheme(DN configEntryDN,
-                                                   PasswordStorageScheme scheme)
+  public static void registerPasswordStorageScheme(DN configEntryDN, PasswordStorageScheme<?> scheme)
   {
     directoryServer.passwordStorageSchemesByDN.put(configEntryDN, scheme);
 
@@ -3307,8 +3284,7 @@ public final class DirectoryServer
    */
   public static void deregisterPasswordStorageScheme(DN configEntryDN)
   {
-    PasswordStorageScheme scheme =
-         directoryServer.passwordStorageSchemesByDN.remove(configEntryDN);
+    PasswordStorageScheme<?> scheme = directoryServer.passwordStorageSchemesByDN.remove(configEntryDN);
 
     if (scheme != null)
     {
@@ -3345,7 +3321,7 @@ public final class DirectoryServer
    * @param  configEntryDN  The DN of the configuration entry for which to
    *                        retrieve the associated password validator.
    *
-   * @return  The requested password validator, or <CODE>null</CODE> if no such
+   * @return  The requested password validator, or {@code null} if no such
    *          validator is defined.
    */
   public static PasswordValidator<? extends PasswordValidatorCfg>
@@ -3391,7 +3367,7 @@ public final class DirectoryServer
    * @return  The set of account status notification handlers defined in the
    *          Directory Server.
    */
-  public static ConcurrentMap<DN, AccountStatusNotificationHandler>
+  public static ConcurrentMap<DN, AccountStatusNotificationHandler<?>>
                      getAccountStatusNotificationHandlers()
   {
     return directoryServer.accountStatusNotificationHandlers;
@@ -3405,9 +3381,9 @@ public final class DirectoryServer
    *                    account status notification handler to retrieve.
    *
    * @return  The requested account status notification handler, or
-   *          <CODE>null</CODE> if no such handler is defined in the server.
+   *          {@code null} if no such handler is defined in the server.
    */
-  public static AccountStatusNotificationHandler
+  public static AccountStatusNotificationHandler<?>
                      getAccountStatusNotificationHandler(DN handlerDN)
   {
     return directoryServer.accountStatusNotificationHandlers.get(handlerDN);
@@ -3423,7 +3399,7 @@ public final class DirectoryServer
    *                    the Directory Server.
    */
   public static void registerAccountStatusNotificationHandler(DN handlerDN,
-                          AccountStatusNotificationHandler handler)
+      AccountStatusNotificationHandler<?> handler)
   {
     directoryServer.accountStatusNotificationHandlers.put(handlerDN, handler);
   }
@@ -3448,7 +3424,7 @@ public final class DirectoryServer
    * @return  The set of password generators that have been registered for use
    *          with the Directory Server.
    */
-  public static ConcurrentMap<DN, PasswordGenerator> getPasswordGenerators()
+  public static ConcurrentMap<DN, PasswordGenerator<?>> getPasswordGenerators()
   {
     return directoryServer.passwordGenerators;
   }
@@ -3460,10 +3436,10 @@ public final class DirectoryServer
    * @param  configEntryDN  The DN of the configuration entry for which to
    *                        retrieve the associated password generator.
    *
-   * @return  The requested password generator, or <CODE>null</CODE> if no such
+   * @return  The requested password generator, or {@code null} if no such
    *          generator is defined.
    */
-  public static PasswordGenerator getPasswordGenerator(DN configEntryDN)
+  public static PasswordGenerator<?> getPasswordGenerator(DN configEntryDN)
   {
     return directoryServer.passwordGenerators.get(configEntryDN);
   }
@@ -3477,8 +3453,7 @@ public final class DirectoryServer
    * @param  generator      The password generator to register with the
    *                        Directory Server.
    */
-  public static void registerPasswordGenerator(DN configEntryDN,
-                                               PasswordGenerator generator)
+  public static void registerPasswordGenerator(DN configEntryDN, PasswordGenerator<?> generator)
   {
     directoryServer.passwordGenerators.put(configEntryDN, generator);
   }
@@ -3518,7 +3493,7 @@ public final class DirectoryServer
    *          The DN of the configuration entry for which to retrieve the
    *          associated authentication policy.
    * @return The authentication policy registered for the provided configuration
-   *         entry, or <CODE>null</CODE> if there is no such policy.
+   *         entry, or {@code null} if there is no such policy.
    */
   public static AuthenticationPolicy getAuthenticationPolicy(DN configEntryDN)
   {
@@ -3668,9 +3643,9 @@ public final class DirectoryServer
    *                        retrieve the associated rotation policy.
    *
    * @return  The rotation policy registered for the provided configuration
-   *          entry, or <CODE>null</CODE> if there is no such policy.
+   *          entry, or {@code null} if there is no such policy.
    */
-  public static RotationPolicy getRotationPolicy(DN configEntryDN)
+  public static RotationPolicy<?> getRotationPolicy(DN configEntryDN)
   {
     Reject.ifNull(configEntryDN);
 
@@ -3686,8 +3661,7 @@ public final class DirectoryServer
    *                        password policy.
    * @param  policy         The rotation policy to register with the server.
    */
-  public static void registerRotationPolicy(DN configEntryDN,
-                                            RotationPolicy policy)
+  public static void registerRotationPolicy(DN configEntryDN, RotationPolicy<?> policy)
   {
     Reject.ifNull(configEntryDN, policy);
 
@@ -3716,9 +3690,9 @@ public final class DirectoryServer
    *                        retrieve the associated retention policy.
    *
    * @return  The retention policy registered for the provided configuration
-   *          entry, or <CODE>null</CODE> if there is no such policy.
+   *          entry, or {@code null} if there is no such policy.
    */
-  public static RetentionPolicy getRetentionPolicy(DN configEntryDN)
+  public static RetentionPolicy<?> getRetentionPolicy(DN configEntryDN)
   {
     Reject.ifNull(configEntryDN);
 
@@ -3734,8 +3708,7 @@ public final class DirectoryServer
    *                        password policy.
    * @param  policy         The retention policy to register with the server.
    */
-  public static void registerRetentionPolicy(DN configEntryDN,
-                                            RetentionPolicy policy)
+  public static void registerRetentionPolicy(DN configEntryDN, RetentionPolicy<?> policy)
   {
     Reject.ifNull(configEntryDN, policy);
 
@@ -3777,7 +3750,7 @@ public final class DirectoryServer
    * @param  lowerName  The name of the monitor provider to retrieve, in all
    *                    lowercase characters.
    *
-   * @return  The requested resource monitor, or <CODE>null</CODE> if none
+   * @return  The requested resource monitor, or {@code null} if none
    *          exists with the specified name.
    */
   public static MonitorProvider<? extends MonitorProviderCfg>
@@ -3861,7 +3834,7 @@ public final class DirectoryServer
    *
    * @return  The entry cache for the Directory Server.
    */
-  public static EntryCache getEntryCache()
+  public static EntryCache<?> getEntryCache()
   {
     return directoryServer.entryCache;
   }
@@ -3872,7 +3845,7 @@ public final class DirectoryServer
    *
    * @param  entryCache  The entry cache for the Directory Server.
    */
-  public static void setEntryCache(EntryCache entryCache)
+  public static void setEntryCache(EntryCache<?> entryCache)
   {
     synchronized (directoryServer)
     {
@@ -3887,7 +3860,7 @@ public final class DirectoryServer
    * @return  The set of key manager providers registered with the Directory
    *          Server.
    */
-  public static Map<DN,KeyManagerProvider> getKeyManagerProviders()
+  public static Map<DN, KeyManagerProvider<?>> getKeyManagerProviders()
   {
     return directoryServer.keyManagerProviders;
   }
@@ -3902,7 +3875,7 @@ public final class DirectoryServer
    *          {@code null} if there is no such key manager provider registered
    *          with the server.
    */
-  public static KeyManagerProvider getKeyManagerProvider(DN providerDN)
+  public static KeyManagerProvider<?> getKeyManagerProvider(DN providerDN)
   {
     return directoryServer.keyManagerProviders.get(providerDN);
   }
@@ -3914,7 +3887,7 @@ public final class DirectoryServer
    * @param  provider    The key manager provider to register with the server.
    */
   public static void registerKeyManagerProvider(DN providerDN,
-                                                KeyManagerProvider provider)
+      KeyManagerProvider<?> provider)
   {
     directoryServer.keyManagerProviders.put(providerDN, provider);
   }
@@ -3937,7 +3910,7 @@ public final class DirectoryServer
    * @return  The set of trust manager providers registered with the Directory
    *          Server.
    */
-  public static Map<DN,TrustManagerProvider> getTrustManagerProviders()
+  public static Map<DN, TrustManagerProvider<?>> getTrustManagerProviders()
   {
     return directoryServer.trustManagerProviders;
   }
@@ -3952,7 +3925,7 @@ public final class DirectoryServer
    *          or {@code null} if there is no such trust manager provider
    *          registered with the server.
    */
-  public static TrustManagerProvider getTrustManagerProvider(DN providerDN)
+  public static TrustManagerProvider<?> getTrustManagerProvider(DN providerDN)
   {
     return directoryServer.trustManagerProviders.get(providerDN);
   }
@@ -3964,8 +3937,7 @@ public final class DirectoryServer
    *                     provider.
    * @param  provider    The trust manager provider to register with the server.
    */
-  public static void registerTrustManagerProvider(DN providerDN,
-                                                  TrustManagerProvider provider)
+  public static void registerTrustManagerProvider(DN providerDN, TrustManagerProvider<?> provider)
   {
     directoryServer.trustManagerProviders.put(providerDN, provider);
   }
@@ -3988,7 +3960,7 @@ public final class DirectoryServer
    * @return  The set of certificate mappers registered with the Directory
    *          Server.
    */
-  public static Map<DN,CertificateMapper> getCertificateMappers()
+  public static Map<DN, CertificateMapper<?>> getCertificateMappers()
   {
     return directoryServer.certificateMappers;
   }
@@ -4002,7 +3974,7 @@ public final class DirectoryServer
    *          {@code null} if there is no such certificate mapper registered
    *          with the server.
    */
-  public static CertificateMapper getCertificateMapper(DN mapperDN)
+  public static CertificateMapper<?> getCertificateMapper(DN mapperDN)
   {
     return directoryServer.certificateMappers.get(mapperDN);
   }
@@ -4013,8 +3985,7 @@ public final class DirectoryServer
    * @param  mapperDN  The DN with which to register the certificate mapper.
    * @param  mapper    The certificate mapper to register with the server.
    */
-  public static void registerCertificateMapper(DN mapperDN,
-                                               CertificateMapper mapper)
+  public static void registerCertificateMapper(DN mapperDN, CertificateMapper<?> mapper)
   {
     directoryServer.certificateMappers.put(mapperDN, mapper);
   }
@@ -4110,7 +4081,7 @@ public final class DirectoryServer
    *                              retrieve the real entry DN.
    *
    * @return  The real entry DN for the root user with the provided alternate
-   *          bind DN, or <CODE>null</CODE> if no such mapping has been defined.
+   *          bind DN, or {@code null} if no such mapping has been defined.
    */
   public static DN getActualRootBindDN(DN alternateRootBindDN)
   {
@@ -4151,7 +4122,7 @@ public final class DirectoryServer
    * @param  alternateRootBindDN  The alternate root bind DN to be deregistered.
    *
    * @return  The actual root entry DN to which the provided alternate bind DN
-   *          was mapped, or <CODE>null</CODE> if there was no mapping for the
+   *          was mapped, or {@code null} if there was no mapping for the
    *          provided DN.
    */
   public static DN deregisterAlternateRootBindDN(DN alternateRootBindDN)
@@ -4355,9 +4326,9 @@ public final class DirectoryServer
    * @return  The set of backends that have been registered with the Directory
    *          Server.
    */
-  public static Map<String, Backend> getBackends()
+  public static Map<String, Backend<?>> getBackends()
   {
-    return new TreeMap<String, Backend>(directoryServer.backends);
+    return new TreeMap<>(directoryServer.backends);
   }
 
   /**
@@ -4414,26 +4385,24 @@ public final class DirectoryServer
         LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
-      else
+
+      newBackends.put(backendID, backend);
+      directoryServer.backends = newBackends;
+
+      for (String oid : backend.getSupportedControls())
       {
-        newBackends.put(backendID, backend);
-        directoryServer.backends = newBackends;
-
-        for (String oid : backend.getSupportedControls())
-        {
-          registerSupportedControl(oid);
-        }
-
-        for (String oid : backend.getSupportedFeatures())
-        {
-          registerSupportedFeature(oid);
-        }
-
-        BackendMonitor monitor = new BackendMonitor(backend);
-        monitor.initializeMonitorProvider(null);
-        backend.setBackendMonitor(monitor);
-        registerMonitorProvider(monitor);
+        registerSupportedControl(oid);
       }
+
+      for (String oid : backend.getSupportedFeatures())
+      {
+        registerSupportedFeature(oid);
+      }
+
+      BackendMonitor monitor = new BackendMonitor(backend);
+      monitor.initializeMonitorProvider(null);
+      backend.setBackendMonitor(monitor);
+      registerMonitorProvider(monitor);
     }
   }
 
@@ -4479,7 +4448,7 @@ public final class DirectoryServer
    *
    * @return  The entire set of base DNs registered with the Directory Server.
    */
-  public static Map<DN,Backend> getBaseDNs()
+  public static Map<DN, Backend<?>> getBaseDNs()
   {
     return directoryServer.baseDnRegistry.getBaseDnMap();
   }
@@ -4516,7 +4485,7 @@ public final class DirectoryServer
       return directoryServer.rootDSEBackend;
     }
 
-    Map<DN,Backend> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
+    Map<DN, Backend<?>> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
     Backend<?> b = baseDNs.get(entryDN);
     while (b == null)
     {
@@ -4606,7 +4575,6 @@ public final class DirectoryServer
     ifNull(baseDN);
 
     synchronized(directoryServer) {
-
       List<LocalizableMessage> warnings =
               directoryServer.baseDnRegistry.deregisterBaseDN(baseDN);
 
@@ -4630,7 +4598,7 @@ public final class DirectoryServer
    *
    * @return  The set of public naming contexts defined in the Directory Server.
    */
-  public static Map<DN,Backend> getPublicNamingContexts()
+  public static Map<DN, Backend<?>> getPublicNamingContexts()
   {
     return directoryServer.baseDnRegistry.getPublicNamingContextsMap();
   }
@@ -4642,7 +4610,7 @@ public final class DirectoryServer
    * @return  The set of private naming contexts defined in the Directory
    *          Server.
    */
-  public static Map<DN,Backend> getPrivateNamingContexts()
+  public static Map<DN, Backend<?>> getPrivateNamingContexts()
   {
     return directoryServer.baseDnRegistry.getPrivateNamingContextsMap();
   }
@@ -4705,7 +4673,7 @@ public final class DirectoryServer
    * Retrieves the DN of the entry containing the server schema definitions.
    *
    * @return  The DN of the entry containing the server schema definitions, or
-   *          <CODE>null</CODE> if none has been defined (e.g., if no schema
+   *          {@code null} if none has been defined (e.g., if no schema
    *          backend has been configured).
    */
   public static DN getSchemaDN()
@@ -4731,7 +4699,7 @@ public final class DirectoryServer
    *
    * @param entryDN
    *          The DN of the entry to retrieve.
-   * @return The requested entry, or <CODE>null</CODE> if it does not exist.
+   * @return The requested entry, or {@code null} if it does not exist.
    * @throws DirectoryException
    *           If a problem occurs while attempting to retrieve the entry.
    */
@@ -4897,8 +4865,7 @@ public final class DirectoryServer
    * @return  The set of extended operations that may be processed by the
    *         Directory Server.
    */
-  public static ConcurrentMap<String, ExtendedOperationHandler>
-                     getSupportedExtensions()
+  public static ConcurrentMap<String, ExtendedOperationHandler<?>> getSupportedExtensions()
   {
     return directoryServer.extendedOperationHandlers;
   }
@@ -4909,9 +4876,9 @@ public final class DirectoryServer
    * @param  oid  The OID of the extended operation to retrieve.
    *
    * @return  The handler for the specified extended operation, or
-   *          <CODE>null</CODE> if there is none.
+   *          {@code null} if there is none.
    */
-  public static ExtendedOperationHandler getExtendedOperationHandler(String oid)
+  public static ExtendedOperationHandler<?> getExtendedOperationHandler(String oid)
   {
     return directoryServer.extendedOperationHandlers.get(oid);
   }
@@ -4924,8 +4891,7 @@ public final class DirectoryServer
    * @param  handler  The extended operation handler to register with the
    *                  Directory Server.
    */
-  public static void registerSupportedExtension(String oid,
-                          ExtendedOperationHandler handler)
+  public static void registerSupportedExtension(String oid, ExtendedOperationHandler<?> handler)
   {
     directoryServer.extendedOperationHandlers.put(toLowerCase(oid), handler);
   }
@@ -4948,8 +4914,7 @@ public final class DirectoryServer
    * @return  The set of SASL mechanisms that are supported by the Directory
    *          Server.
    */
-  public static ConcurrentMap<String, SASLMechanismHandler>
-                     getSupportedSASLMechanisms()
+  public static ConcurrentMap<String, SASLMechanismHandler<?>> getSupportedSASLMechanisms()
   {
     return directoryServer.saslMechanismHandlers;
   }
@@ -4959,10 +4924,10 @@ public final class DirectoryServer
    *
    * @param  name  The name of the SASL mechanism to retrieve.
    *
-   * @return  The handler for the specified SASL mechanism, or <CODE>null</CODE>
+   * @return  The handler for the specified SASL mechanism, or {@code null}
    *          if there is none.
    */
-  public static SASLMechanismHandler getSASLMechanismHandler(String name)
+  public static SASLMechanismHandler<?> getSASLMechanismHandler(String name)
   {
     return directoryServer.saslMechanismHandlers.get(name);
   }
@@ -4974,8 +4939,7 @@ public final class DirectoryServer
    * @param  handler  The SASL mechanism handler to register with the Directory
    *                  Server.
    */
-  public static void registerSASLMechanismHandler(String name,
-                                                  SASLMechanismHandler handler)
+  public static void registerSASLMechanismHandler(String name, SASLMechanismHandler<?> handler)
   {
     // FIXME -- Should we force this name to be lowercase?  If so, then will
     // that cause the lower name to be used in the root DSE?
@@ -5016,12 +4980,14 @@ public final class DirectoryServer
    */
   public static synchronized void registerSupportedLDAPVersion(
                                        int supportedLDAPVersion,
-                                       ConnectionHandler connectionHandler)
+                                       ConnectionHandler<?> connectionHandler)
   {
-    List<ConnectionHandler> handlers = directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
+    List<ConnectionHandler<?>> handlers = directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
     if (handlers == null)
     {
-      directoryServer.supportedLDAPVersions.put(supportedLDAPVersion, newLinkedList(connectionHandler));
+      handlers = new LinkedList<>();
+      handlers.add(connectionHandler);
+      directoryServer.supportedLDAPVersions.put(supportedLDAPVersion, handlers);
     }
     else if (!handlers.contains(connectionHandler))
     {
@@ -5039,10 +5005,9 @@ public final class DirectoryServer
    */
   public static synchronized void deregisterSupportedLDAPVersion(
                                        int supportedLDAPVersion,
-                                       ConnectionHandler connectionHandler)
+      ConnectionHandler<?> connectionHandler)
   {
-    List<ConnectionHandler> handlers =
-         directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
+    List<ConnectionHandler<?>> handlers = directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
     if (handlers != null)
     {
       handlers.remove(connectionHandler);
@@ -5061,7 +5026,7 @@ public final class DirectoryServer
    * @return  The set of identity mappers defined in the Directory Server
    *          configuration.
    */
-  public static ConcurrentMap<DN, IdentityMapper> getIdentityMappers()
+  public static ConcurrentMap<DN, IdentityMapper<?>> getIdentityMappers()
   {
     return directoryServer.identityMappers;
   }
@@ -5073,11 +5038,11 @@ public final class DirectoryServer
    * @param  configEntryDN  The DN of the configuration entry for the identity
    *                        mapper to retrieve.
    *
-   * @return  The requested identity mapper, or <CODE>null</CODE> if the
+   * @return  The requested identity mapper, or {@code null} if the
    *          provided entry DN is not associated with an active identity
    *          mapper.
    */
-  public static IdentityMapper getIdentityMapper(DN configEntryDN)
+  public static IdentityMapper<?> getIdentityMapper(DN configEntryDN)
   {
     return directoryServer.identityMappers.get(configEntryDN);
   }
@@ -5089,8 +5054,7 @@ public final class DirectoryServer
    *                         identity mapper definition resides.
    * @param  identityMapper  The identity mapper to be registered.
    */
-  public static void registerIdentityMapper(DN configEntryDN,
-                                            IdentityMapper identityMapper)
+  public static void registerIdentityMapper(DN configEntryDN, IdentityMapper<?> identityMapper)
   {
     directoryServer.identityMappers.put(configEntryDN, identityMapper);
   }
@@ -5112,7 +5076,7 @@ public final class DirectoryServer
    *
    * @return  The DN of the configuration entry for the identity mapper that
    *          should be used in conjunction with proxied authorization V2
-   *          controls, or <CODE>null</CODE> if none is defined.
+   *          controls, or {@code null} if none is defined.
    */
   public static DN getProxiedAuthorizationIdentityMapperDN()
   {
@@ -5142,17 +5106,12 @@ public final class DirectoryServer
    *
    * @return  The identity mapper that should be used to resolve authorization
    *          IDs contained in proxied authorization V2 controls, or
-   *          <CODE>null</CODE> if none is defined.
+   *          {@code null} if none is defined.
    */
-  public static IdentityMapper getProxiedAuthorizationIdentityMapper()
+  public static IdentityMapper<?> getProxiedAuthorizationIdentityMapper()
   {
-    if (directoryServer.proxiedAuthorizationIdentityMapperDN == null)
-    {
-      return null;
-    }
-
-    return directoryServer.identityMappers.get(
-                directoryServer.proxiedAuthorizationIdentityMapperDN);
+    DN dnMapper = directoryServer.proxiedAuthorizationIdentityMapperDN;
+    return dnMapper != null ? directoryServer.identityMappers.get(dnMapper) : null;
   }
 
   /**
@@ -5161,7 +5120,7 @@ public final class DirectoryServer
    *
    * @return  The set of connection handlers configured in the Directory Server.
    */
-  public static List<ConnectionHandler> getConnectionHandlers()
+  public static List<ConnectionHandler<?>> getConnectionHandlers()
   {
     return directoryServer.connectionHandlers;
   }
@@ -5172,8 +5131,7 @@ public final class DirectoryServer
    * @param  handler  The connection handler to register with the Directory
    *                  Server.
    */
-  public static void registerConnectionHandler(ConnectionHandler<? extends ConnectionHandlerCfg>
-                               handler)
+  public static void registerConnectionHandler(ConnectionHandler<? extends ConnectionHandlerCfg> handler)
   {
     synchronized (directoryServer.connectionHandlers)
     {
@@ -5192,7 +5150,7 @@ public final class DirectoryServer
    * @param  handler  The connection handler to deregister with the Directory
    *                  Server.
    */
-  public static void deregisterConnectionHandler(ConnectionHandler handler)
+  public static void deregisterConnectionHandler(ConnectionHandler<?> handler)
   {
     synchronized (directoryServer.connectionHandlers)
     {
@@ -5250,7 +5208,7 @@ public final class DirectoryServer
     }
 
     // At this point, we should be ready to go.
-    for (ConnectionHandler handler : connectionHandlers)
+    for (ConnectionHandler<?> handler : connectionHandlers)
     {
       handler.start();
     }
@@ -5261,7 +5219,7 @@ public final class DirectoryServer
    *
    * @return  A reference to the Directory Server work queue.
    */
-  public static WorkQueue getWorkQueue()
+  public static WorkQueue<?> getWorkQueue()
   {
     return directoryServer.workQueue;
   }
@@ -5367,12 +5325,9 @@ public final class DirectoryServer
               }
             }
 
-            user = clientConnection.getAuthenticationInfo()
-                .getAuthorizationDN();
-            message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD
-                .get(user != null ? user : "anonymous");
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+            user = clientConnection.getAuthenticationInfo().getAuthorizationDN();
+            message = ERR_ENQUEUE_MUST_CHANGE_PASSWORD.get(user != null ? user : "anonymous");
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
           }
 
           break;
@@ -5446,13 +5401,11 @@ public final class DirectoryServer
   }
 
   /**
-   * Deregisters the provided synchronization provider with the Directory
-   * Server.
+   * Deregisters the provided synchronization provider with the Directory Server.
    *
    * @param  provider  The synchronization provider to deregister.
    */
-  public static void deregisterSynchronizationProvider(SynchronizationProvider
-                                                            provider)
+  public static void deregisterSynchronizationProvider(SynchronizationProvider<?> provider)
   {
     directoryServer.synchronizationProviders.remove(provider);
   }
@@ -5942,12 +5895,11 @@ public final class DirectoryServer
     shutdownMonitor.start();
 
     // Shut down the connection handlers.
-    for (ConnectionHandler handler : directoryServer.connectionHandlers)
+    for (ConnectionHandler<?> handler : directoryServer.connectionHandlers)
     {
       try
       {
-        handler.finalizeConnectionHandler(
-                INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
+        handler.finalizeConnectionHandler(INFO_CONNHANDLER_CLOSED_BY_SHUTDOWN.get());
       }
       catch (Exception e)
       {
@@ -5963,8 +5915,7 @@ public final class DirectoryServer
     }
 
     // shutdown replication
-    for (SynchronizationProvider provider :
-         directoryServer.synchronizationProviders)
+    for (SynchronizationProvider<?> provider : directoryServer.synchronizationProviders)
     {
       provider.finalizeSynchronizationProvider();
     }
@@ -6002,7 +5953,7 @@ public final class DirectoryServer
     }
 
     // Shut down all of the alert handlers.
-    for (AlertHandler alertHandler : directoryServer.alertHandlers)
+    for (AlertHandler<?> alertHandler : directoryServer.alertHandlers)
     {
       alertHandler.finalizeAlertHandler();
     }
@@ -6010,7 +5961,7 @@ public final class DirectoryServer
     // Deregister all of the JMX MBeans.
     if (directoryServer.mBeanServer != null)
     {
-      Set mBeanSet = directoryServer.mBeanServer.queryMBeans(null, null);
+      Set<?> mBeanSet = directoryServer.mBeanServer.queryMBeans(null, null);
       for (Object o : mBeanSet)
       {
         if (o instanceof DirectoryServerMBean)
@@ -6029,8 +5980,7 @@ public final class DirectoryServer
     }
 
     // Finalize all of the SASL mechanism handlers.
-    for (SASLMechanismHandler handler :
-         directoryServer.saslMechanismHandlers.values())
+    for (SASLMechanismHandler<?> handler : directoryServer.saslMechanismHandlers.values())
     {
       try
       {
@@ -6043,8 +5993,7 @@ public final class DirectoryServer
     }
 
     // Finalize all of the extended operation handlers.
-    for (ExtendedOperationHandler handler :
-         directoryServer.extendedOperationHandlers.values())
+    for (ExtendedOperationHandler<?> handler : directoryServer.extendedOperationHandlers.values())
     {
       try
       {
@@ -6070,7 +6019,7 @@ public final class DirectoryServer
     }
 
     // Finalize the access control handler
-    AccessControlHandler accessControlHandler =
+    AccessControlHandler<?> accessControlHandler =
         AccessControlConfigManager.getInstance().getAccessControlHandler();
     if (accessControlHandler != null)
     {
@@ -6093,7 +6042,7 @@ public final class DirectoryServer
     // NYI
 
     // Shut down the monitor providers.
-    for (MonitorProvider monitor : directoryServer.monitorProviders.values())
+    for (MonitorProvider<?> monitor : directoryServer.monitorProviders.values())
     {
       try
       {
@@ -7229,7 +7178,7 @@ public final class DirectoryServer
    * @param provider The monitor provider for which a DN is desired.
    * @return The DN of the monitor provider entry.
    */
-  public static DN getMonitorProviderDN(MonitorProvider provider)
+  public static DN getMonitorProviderDN(MonitorProvider<?> provider)
   {
     // Get a complete DN which could be a tree naming schema
     return DN.valueOf("cn=" + provider.getMonitorInstanceName() + "," + DN_MONITOR_ROOT);
@@ -7291,7 +7240,6 @@ public final class DirectoryServer
    */
   private static int checkStartability(ArgumentParser argParser)
   {
-    int returnValue;
     boolean isServerRunning;
 
     BooleanArgument noDetach =
@@ -7335,70 +7283,57 @@ public final class DirectoryServer
       isServerRunning = true;
     }
 
-    boolean configuredAsService = isRunningAsWindowsService();
-
+    final boolean configuredAsWindowsService = isRunningAsWindowsService();
     if (isServerRunning)
     {
-      if (configuredAsService && !windowsNetStartPresent)
+      if (configuredAsWindowsService && !windowsNetStartPresent)
       {
-        returnValue = START_AS_WINDOWS_SERVICE;
+        return START_AS_WINDOWS_SERVICE;
       }
       else
       {
-        returnValue = SERVER_ALREADY_STARTED;
+        return SERVER_ALREADY_STARTED;
       }
+    }
+    else if (configuredAsWindowsService)
+    {
+      if (noDetachPresent)
+      {
+        // Conflicting arguments
+        System.err.println(ERR_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE.get());
+        return CHECK_ERROR;
+      }
+      else if (windowsNetStartPresent)
+      {
+        // start-ds.bat is being called through net start, so return
+        // START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE so that the batch
+        // file actually starts the server.
+        return START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE;
+      }
+      else
+      {
+        return START_AS_WINDOWS_SERVICE;
+      }
+    }
+    else if (noDetachPresent)
+    {
+      if (quietMode.isPresent())
+      {
+        return START_AS_NON_DETACH_QUIET;
+      }
+      else
+      {
+        return START_AS_NON_DETACH;
+      }
+    }
+    else if (quietMode.isPresent())
+    {
+      return START_AS_DETACH_QUIET;
     }
     else
     {
-      if (configuredAsService)
-      {
-        if (noDetachPresent)
-        {
-          // Conflicting arguments
-          returnValue = CHECK_ERROR;
-          LocalizableMessage message = ERR_DSCORE_ERROR_NODETACH_AND_WINDOW_SERVICE.get();
-          System.err.println(message);
-
-        }
-        else
-        {
-          if (windowsNetStartPresent)
-          {
-            // start-ds.bat is being called through net start, so return
-            // START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE so that the batch
-            // file actually starts the server.
-            returnValue = START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE;
-          }
-          else
-          {
-            returnValue = START_AS_WINDOWS_SERVICE;
-          }
-        }
-      }
-      else
-      {
-        if (noDetachPresent)
-        {
-          if (quietMode.isPresent())
-          {
-            returnValue = START_AS_NON_DETACH_QUIET;
-          }
-          else
-          {
-            returnValue = START_AS_NON_DETACH;
-          }
-        }
-        else if (quietMode.isPresent())
-        {
-          returnValue = START_AS_DETACH_QUIET;
-        }
-        else
-        {
-          returnValue = START_AS_DETACH;
-        }
-      }
+      return START_AS_DETACH;
     }
-    return returnValue;
   }
 
   /**

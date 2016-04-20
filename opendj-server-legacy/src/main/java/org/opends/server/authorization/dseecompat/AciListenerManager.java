@@ -309,9 +309,10 @@ public class AciListenerManager implements
     this.plugin = new AciChangeListenerPlugin();
 
     // Process ACI from already registered backends.
-    Map<String, Backend> backendMap = DirectoryServer.getBackends();
+    Map<String, Backend<?>> backendMap = DirectoryServer.getBackends();
     if (backendMap != null) {
-      for (Backend backend : backendMap.values()) {
+      for (Backend<?> backend : backendMap.values())
+      {
         performBackendPreInitializationProcessing(backend);
       }
     }
