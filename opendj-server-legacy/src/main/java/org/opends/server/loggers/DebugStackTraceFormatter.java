@@ -16,7 +16,7 @@
  */
 package org.opends.server.loggers;
 
-import static org.opends.server.util.ServerConstants.EOL;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * A DebugStackTraceFormatter converts an exception's stack trace into a String
@@ -26,13 +26,12 @@ class DebugStackTraceFormatter
 {
   /** The stack depth value to indicate the entire stack should be printed. */
   public static final int COMPLETE_STACK = Integer.MAX_VALUE;
-  /** A nested frame filter that removes debug and trailing no OpenDS frames. */
+  /** A nested frame filter that removes debug and trailing no OpenDJ frames. */
   public static final FrameFilter SMART_FRAME_FILTER = new SmartFrameFilter();
 
   /** A FrameFilter provides stack frame filtering used during formatting. */
   interface FrameFilter
   {
-
     /**
      * Filters out all undesired stack frames from the given Throwable's stack
      * trace.
@@ -44,25 +43,21 @@ class DebugStackTraceFormatter
     StackTraceElement[] getFilteredStackTrace(StackTraceElement[] frames);
   }
 
-  /** A basic FrameFilter that filters out frames from the debug logging and non OpenDS classes. */
+  /** A basic FrameFilter that filters out frames from the debug logging and non OpenDJ classes. */
   private static class SmartFrameFilter implements FrameFilter
   {
-
-    private boolean isFrameForPackage(StackTraceElement frame,
-        String packageName)
+    private boolean isFrameForPackage(StackTraceElement frame, String packageName)
     {
-      boolean isContained = false;
+      return frame != null ? startsWith(frame.getClassName(), packageName) : false;
+    }
 
-      if (frame != null)
-      {
-        String className = frame.getClassName();
-        isContained = className != null && className.startsWith(packageName);
-      }
-      return isContained;
+    private boolean startsWith(String className, String packageName)
+    {
+      return className != null && className.startsWith(packageName);
     }
 
     /**
-     * Return the stack trace of an exception with debug and trailing non OpenDS
+     * Return the stack trace of an exception with debug and trailing non OpenDJ
      * frames filtered out.
      *
      * @param frames
@@ -84,7 +79,7 @@ class DebugStackTraceFormatter
           firstFrame++;
         }
 
-        // Skip trailing frames not in OpenDS classes
+        // Skip trailing frames not in OpenDJ classes
         int lastFrame = frames.length - 1;
         while (lastFrame > firstFrame
             && !isFrameForPackage(frames[lastFrame], "org.opends"))
@@ -220,7 +215,6 @@ class DebugStackTraceFormatter
       int frameLimit = Math.min(maxDepth, stackTrace.length);
       if (frameLimit > 0)
       {
-
         for (int i = 0; i < frameLimit; i++)
         {
           buffer.append("  ");
