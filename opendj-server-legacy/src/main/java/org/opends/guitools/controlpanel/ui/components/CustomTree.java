@@ -14,7 +14,6 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui.components;
 
 import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
@@ -98,9 +97,9 @@ public class CustomTree extends JTree
 
   private boolean isRowSelected(int[] selectedRows, int i)
   {
-    for (int j=0; j<selectedRows.length; j++)
+    for (int selectedRow : selectedRows)
     {
-      if (selectedRows[j] == i)
+      if (selectedRow == i)
       {
         return true;
       }

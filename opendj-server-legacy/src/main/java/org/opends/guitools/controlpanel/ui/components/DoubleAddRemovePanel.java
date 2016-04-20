@@ -36,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -557,15 +558,13 @@ public class DoubleAddRemovePanel<T> extends JPanel
         int[] indexes = list.getSelectedIndices();
         if (indexes != null)
         {
-          for (int i=0; i<indexes.length; i++)
+          for (int index : indexes)
           {
             // This check is necessary since the selection model might not
             // be in sync with the list model.
-            if (indexes[i] < list.getModel().getSize() &&
-                list.getModel().getElementAt(indexes[i]).equals(element))
+            if (selectionAndListModelAreInSync(list, element, index))
             {
-              list.getSelectionModel().removeIndexInterval(indexes[i],
-                  indexes[i]);
+              list.getSelectionModel().removeIndexInterval(index, index);
             }
           }
         }
@@ -591,6 +590,13 @@ public class DoubleAddRemovePanel<T> extends JPanel
     {
       removeAll2.setEnabled(isEnabled(selectedListModel2));
     }
+  }
+
+  private boolean selectionAndListModelAreInSync(JList<T> list, T element, int index)
+  {
+    final ListModel<T> listModel = list.getModel();
+    return index < listModel.getSize()
+        && listModel.getElementAt(index).equals(element);
   }
 
   private boolean isEnabled(JList<T> list, SortableListModel<T> model)

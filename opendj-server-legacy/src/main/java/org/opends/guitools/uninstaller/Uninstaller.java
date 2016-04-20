@@ -979,7 +979,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     if (step == Step.CONFIRM_UNINSTALL) {
-      return new ConfirmUninstallPanel(this, installStatus);
+      return new ConfirmUninstallPanel(this);
     } else if (step == Step.PROGRESS) {
       return new ProgressPanel(this);
     } else if (step == Step.FINISHED) {

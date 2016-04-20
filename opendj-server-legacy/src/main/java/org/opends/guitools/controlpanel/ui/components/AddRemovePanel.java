@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -230,10 +231,8 @@ public class AddRemovePanel<T> extends JPanel
         {
           selectedListModel.addAll(availableListModel.getData());
           availableListModel.clear();
-          selectedListModel.fireContentsChanged(selectedListModel, 0,
-              selectedListModel.getSize());
-          availableListModel.fireContentsChanged(availableListModel, 0,
-              availableListModel.getSize());
+          fireContentsChanged(selectedListModel);
+          fireContentsChanged(availableListModel);
         }
       });
       gbc.gridy ++;
@@ -267,10 +266,8 @@ public class AddRemovePanel<T> extends JPanel
         {
           availableListModel.addAll(selectedListModel.getData());
           selectedListModel.clear();
-          selectedListModel.fireContentsChanged(selectedListModel, 0,
-              selectedListModel.getSize());
-          availableListModel.fireContentsChanged(availableListModel, 0,
-              availableListModel.getSize());
+          fireContentsChanged(selectedListModel);
+          fireContentsChanged(availableListModel);
         }
       });
       gbc.gridy ++;
@@ -417,33 +414,32 @@ public class AddRemovePanel<T> extends JPanel
 
   private void addClicked()
   {
-    @SuppressWarnings("deprecation")
-    Object[] selectedObjects = availableList.getSelectedValues();
-    for (int i=0; i<selectedObjects.length; i++)
+    List<?> selectedObjects = availableList.getSelectedValuesList();
+    for (Object selectedObject : selectedObjects)
     {
-      T value = AddRemovePanel.this.theClass.cast(selectedObjects[i]);
+      T value = AddRemovePanel.this.theClass.cast(selectedObject);
       selectedListModel.add(value);
       availableListModel.remove(value);
     }
-    selectedListModel.fireContentsChanged(selectedListModel, 0,
-        selectedListModel.getSize());
-    availableListModel.fireContentsChanged(availableListModel, 0,
-        availableListModel.getSize());
+    fireContentsChanged(selectedListModel);
+    fireContentsChanged(availableListModel);
   }
 
   private void removeClicked()
   {
-    @SuppressWarnings("deprecation")
-    Object[] selectedObjects = selectedList.getSelectedValues();
-    for (int i=0; i<selectedObjects.length; i++)
+    List<?> selectedObjects = selectedList.getSelectedValuesList();
+    for (Object selectedObject : selectedObjects)
     {
-      T value = AddRemovePanel.this.theClass.cast(selectedObjects[i]);
+      T value = AddRemovePanel.this.theClass.cast(selectedObject);
       availableListModel.add(value);
       selectedListModel.remove(value);
     }
-    selectedListModel.fireContentsChanged(selectedListModel, 0,
-        selectedListModel.getSize());
-    availableListModel.fireContentsChanged(availableListModel, 0,
-        availableListModel.getSize());
+    fireContentsChanged(selectedListModel);
+    fireContentsChanged(availableListModel);
+  }
+
+  private void fireContentsChanged(SortableListModel<T> listModel)
+  {
+    listModel.fireContentsChanged(listModel, 0, listModel.getSize());
   }
 }

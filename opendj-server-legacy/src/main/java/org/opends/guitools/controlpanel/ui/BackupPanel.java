@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -32,9 +31,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -48,6 +44,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -443,9 +441,9 @@ public class BackupPanel extends BackupListPanel
     };
     setEnabledOK(false);
     setEnabledCancel(false);
-    for (int i=0; i<components.length; i++)
+    for (JComponent component : components)
     {
-      components[i].setEnabled(false);
+      component.setEnabled(false);
     }
     final String id = backupID.getText();
     final String path = parentDirectory.getText();
@@ -512,12 +510,11 @@ public class BackupPanel extends BackupListPanel
         return null;
       }
       @Override
-      public void backgroundTaskCompleted(Void returnValue,
-          Throwable t)
+      public void backgroundTaskCompleted(Void returnValue, Throwable t)
       {
-        for (int i=0; i<components.length; i++)
+        for (JComponent component : components)
         {
-          components[i].setEnabled(true);
+          component.setEnabled(true);
         }
         setEnabledOK(true);
         setEnabledCancel(true);
