@@ -52,7 +52,6 @@ public class GetConnectionIDExtendedOperation
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeExtendedOperationHandler(
                    GetConnectionIdExtendedOperationHandlerCfg config)
@@ -61,7 +60,6 @@ public class GetConnectionIDExtendedOperation
     super.initializeExtendedOperationHandler(config);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
@@ -70,8 +68,6 @@ public class GetConnectionIDExtendedOperation
          encodeResponseValue(operation.getConnectionID()));
     operation.setResultCode(ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Encodes the provided connection ID in an octet string suitable for use as
@@ -98,8 +94,6 @@ public class GetConnectionIDExtendedOperation
     return builder.toByteString();
   }
 
-
-
   /**
    * Decodes the provided ASN.1 octet string to extract the connection ID.
    *
@@ -125,14 +119,12 @@ public class GetConnectionIDExtendedOperation
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationOID()
   {
     return OID_GET_CONNECTION_ID_EXTOP;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {

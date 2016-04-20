@@ -39,91 +39,78 @@ public abstract class BindOperationWrapper extends
     super(bind);
   }
 
-  /** {@inheritDoc} */
   @Override
   public AuthenticationInfo getAuthenticationInfo()
   {
     return getOperation().getAuthenticationInfo();
   }
 
-  /** {@inheritDoc} */
   @Override
   public AuthenticationType getAuthenticationType()
   {
     return getOperation().getAuthenticationType();
   }
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getAuthFailureReason()
   {
     return getOperation().getAuthFailureReason();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getBindDN()
   {
     return getOperation().getBindDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawBindDN()
   {
     return getOperation().getRawBindDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getSASLAuthUserEntry()
   {
     return getOperation().getSASLAuthUserEntry();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getSASLCredentials()
   {
     return getOperation().getSASLCredentials();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getSASLMechanism()
   {
     return getOperation().getSASLMechanism();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getServerSASLCredentials()
   {
     return getOperation().getServerSASLCredentials();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getSimplePassword()
   {
     return getOperation().getSimplePassword();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getUserEntryDN()
   {
     return getOperation().getUserEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
     getOperation().setAuthenticationInfo(authInfo);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setAuthFailureReason(LocalizableMessage reason)
   {
@@ -137,21 +124,18 @@ public abstract class BindOperationWrapper extends
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawBindDN(ByteString rawBindDN)
   {
     getOperation().setRawBindDN(rawBindDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
     getOperation().setSASLAuthUserEntry(saslAuthUserEntry);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setSASLCredentials(String saslMechanism,
       ByteString saslCredentials)
@@ -159,45 +143,38 @@ public abstract class BindOperationWrapper extends
     getOperation().setSASLCredentials(saslMechanism, saslCredentials);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setServerSASLCredentials(ByteString serverSASLCredentials)
   {
     getOperation().setServerSASLCredentials(serverSASLCredentials);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setSimplePassword(ByteString simplePassword)
   {
     getOperation().setSimplePassword(simplePassword);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setUserEntryDN(DN userEntryDN){
     getOperation().setUserEntryDN(userEntryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProtocolVersion(String protocolVersion)
   {
     getOperation().setProtocolVersion(protocolVersion);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getProtocolVersion()
   {
     return getOperation().getProtocolVersion();
   }
-
 }

@@ -31,9 +31,7 @@ import org.opends.server.types.InitializationException;
 public class RDNTag
        extends Tag
 {
-  /**
-   * Creates a new instance of this RDN tag.
-   */
+  /** Creates a new instance of this RDN tag. */
   public RDNTag()
   {
     // No implementation required.
@@ -46,6 +44,7 @@ public class RDNTag
    *
    * @return  The name for this tag.
    */
+  @Override
   public String getName()
   {
     return "RDN";
@@ -60,6 +59,7 @@ public class RDNTag
    * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
    *          or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean allowedInBranch()
   {
     return true;
@@ -82,6 +82,7 @@ public class RDNTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
                                   List<LocalizableMessage> warnings)
@@ -112,6 +113,7 @@ public class RDNTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
@@ -136,6 +138,7 @@ public class RDNTag
    *
    * @return  The result of generating content for this tag.
    */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -39,17 +39,11 @@ public class IdleTimeLimitThread
   /** The debug log tracer for this object. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** Shutdown monitor state. */
   private volatile boolean shutdownRequested;
   private final Object shutdownLock = new Object();
 
-
-
-  /**
-   * Creates a new instance of this idle time limit thread.
-   */
+  /** Creates a new instance of this idle time limit thread. */
   public IdleTimeLimitThread()
   {
     super("Idle Time Limit Thread");
@@ -59,12 +53,8 @@ public class IdleTimeLimitThread
     DirectoryServer.registerShutdownListener(this);
   }
 
-
-
-  /**
-   * Operates in a loop, teriminating any client connections that have been idle
-   * for too long.
-   */
+  /** Operates in a loop, teriminating any client connections that have been idle for too long. */
+  @Override
   public void run()
   {
     LocalizableMessage disconnectMessage = INFO_IDLETIME_LIMIT_EXCEEDED.get();
@@ -154,17 +144,13 @@ public class IdleTimeLimitThread
     }
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public String getShutdownListenerName()
   {
     return "Idle Time Limit Thread";
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
     synchronized (shutdownLock)
@@ -174,4 +160,3 @@ public class IdleTimeLimitThread
     }
   }
 }
-

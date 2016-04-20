@@ -55,7 +55,6 @@ public class ConnectionHandlerConfigManager implements
     ConfigurationChangeListener<ConnectionHandlerCfg> {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
   /**
    * The mapping between configuration entry DNs and their corresponding
    * connection handler implementations.
@@ -75,7 +74,6 @@ public class ConnectionHandlerConfigManager implements
     connectionHandlers = new ConcurrentHashMap<>();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       ConnectionHandlerCfg configuration) {
@@ -117,9 +115,6 @@ public class ConnectionHandlerConfigManager implements
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       ConnectionHandlerCfg configuration) {
@@ -176,7 +171,6 @@ public class ConnectionHandlerConfigManager implements
             .deregisterConnectionHandler(connectionHandler);
         connectionHandlers.remove(dn);
 
-
         connectionHandler.finalizeConnectionHandler(
                 INFO_CONNHANDLER_CLOSED_BY_DISABLE.get());
       }
@@ -185,9 +179,6 @@ public class ConnectionHandlerConfigManager implements
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       ConnectionHandlerCfg configuration) {
@@ -209,8 +200,6 @@ public class ConnectionHandlerConfigManager implements
     return ccr;
   }
 
-
-
   /**
    * Initializes the configuration associated with the Directory
    * Server connection handlers. This should only be called at
@@ -230,7 +219,6 @@ public class ConnectionHandlerConfigManager implements
     connectionHandlers.clear();
 
     initializeAdministrationConnectorConfig();
-
 
     RootCfg root = serverContext.getRootConfig();
     root.addConnectionHandlerAddListener(this);
@@ -265,8 +253,6 @@ public class ConnectionHandlerConfigManager implements
     }
   }
 
-
-
   private void initializeAdministrationConnectorConfig()
     throws ConfigException, InitializationException {
     AdministrationConnectorCfg administrationConnectorCfg =
@@ -284,8 +270,6 @@ public class ConnectionHandlerConfigManager implements
     DirectoryServer.registerConnectionHandler(connectionHandler);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       ConnectionHandlerCfg configuration,
@@ -294,9 +278,6 @@ public class ConnectionHandlerConfigManager implements
         || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       ConnectionHandlerCfg configuration,
@@ -305,9 +286,6 @@ public class ConnectionHandlerConfigManager implements
         || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       ConnectionHandlerCfg configuration,
@@ -315,8 +293,6 @@ public class ConnectionHandlerConfigManager implements
     // A delete should always be acceptable, so just return true.
     return true;
   }
-
-
 
   /** Load and initialize the connection handler named in the config. */
   private <T extends ConnectionHandlerCfg> ConnectionHandler<T> getConnectionHandler(
@@ -344,12 +320,7 @@ public class ConnectionHandlerConfigManager implements
     }
   }
 
-
-
-  /**
-   * Determines whether or not the new configuration's implementation
-   * class is acceptable.
-   */
+  /** Determines whether or not the new configuration's implementation class is acceptable. */
   private boolean isJavaClassAcceptable(
       ConnectionHandlerCfg config,
       List<LocalizableMessage> unacceptableReasons) {

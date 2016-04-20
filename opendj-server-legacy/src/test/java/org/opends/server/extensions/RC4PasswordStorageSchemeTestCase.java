@@ -29,6 +29,7 @@ public class RC4PasswordStorageSchemeTestCase
     super("cn=RC4,cn=Password Storage Schemes,cn=config");
   }
 
+  @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     return InitializationUtils.initializePasswordStorageScheme(

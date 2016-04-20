@@ -48,15 +48,10 @@ public class MonitorConfigManager
        implements ConfigurationChangeListener<MonitorProviderCfg>,
                   ConfigurationAddListener<MonitorProviderCfg>,
                   ConfigurationDeleteListener<MonitorProviderCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated monitor
-   * providers.
-   */
+  /** A mapping between the DNs of the config entries and the associated monitor providers. */
   private final ConcurrentHashMap<DN,MonitorProvider<?>> monitors;
 
   private final ServerContext serverContext;
@@ -91,7 +86,6 @@ public class MonitorConfigManager
     rootConfiguration.addMonitorProviderAddListener(this);
     rootConfiguration.addMonitorProviderDeleteListener(this);
 
-
     //Initialize the existing monitor providers.
     for (String name : rootConfiguration.listMonitorProviders())
     {
@@ -118,9 +112,6 @@ public class MonitorConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       MonitorProviderCfg configuration,
@@ -146,9 +137,6 @@ public class MonitorConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  MonitorProviderCfg configuration)
@@ -186,9 +174,6 @@ public class MonitorConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       MonitorProviderCfg configuration,
@@ -198,9 +183,6 @@ public class MonitorConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  MonitorProviderCfg configuration)
@@ -217,9 +199,6 @@ public class MonitorConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       MonitorProviderCfg configuration,
@@ -245,9 +224,6 @@ public class MonitorConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MonitorProviderCfg configuration)
@@ -273,7 +249,6 @@ public class MonitorConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the monitor provider.  If the monitor is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -310,8 +285,6 @@ public class MonitorConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a monitor provider, and
@@ -358,4 +331,3 @@ public class MonitorConfigManager
     }
   }
 }
-

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -26,21 +26,16 @@ import org.opends.server.types.AccountStatusNotification;
 public class NotificationMessageNotificationMessageTemplateElement
        extends NotificationMessageTemplateElement
 {
-  /**
-   * Creates a new notification message notification message template element.
-   */
+  /** Creates a new notification message notification message template element. */
   public NotificationMessageNotificationMessageTemplateElement()
   {
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {
     buffer.append(notification.getMessage());
   }
 }
-

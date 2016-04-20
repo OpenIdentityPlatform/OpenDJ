@@ -44,11 +44,7 @@ public class UniqueCharactersPasswordValidator
   /** The current configuration for this password validator. */
   private UniqueCharactersPasswordValidatorCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this unique characters password validator.
-   */
+  /** Creates a new instance of this unique characters password validator. */
   public UniqueCharactersPasswordValidator()
   {
     super();
@@ -57,9 +53,6 @@ public class UniqueCharactersPasswordValidator
     // performed in the initializePasswordValidator() method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    UniqueCharactersPasswordValidatorCfg configuration)
@@ -68,18 +61,12 @@ public class UniqueCharactersPasswordValidator
     currentConfig = configuration;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeUniqueCharactersChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -95,8 +82,6 @@ public class UniqueCharactersPasswordValidator
       // We don't need to check anything, so the password will be acceptable.
       return true;
     }
-
-
 
     // Create a set that will be used to keep track of the unique characters
     // contained in the proposed password.
@@ -129,9 +114,7 @@ public class UniqueCharactersPasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       UniqueCharactersPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -141,9 +124,7 @@ public class UniqueCharactersPasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                       UniqueCharactersPasswordValidatorCfg configuration)
   {
@@ -156,4 +137,3 @@ public class UniqueCharactersPasswordValidator
     return ccr;
   }
 }
-

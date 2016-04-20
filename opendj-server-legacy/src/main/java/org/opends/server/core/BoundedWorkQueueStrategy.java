@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -28,11 +28,7 @@ import org.opends.server.types.Operation;
  */
 public class BoundedWorkQueueStrategy implements QueueingStrategy
 {
-
-  /**
-   * The number of concurrently running operations for this
-   * BoundedWorkQueueStrategy.
-   */
+  /** The number of concurrently running operations for this BoundedWorkQueueStrategy. */
   private final AtomicInteger nbRunningOperations = new AtomicInteger(0);
   /** Maximum number of concurrent operations. 0 means "unlimited". */
   private final int maxNbConcurrentOperations;
@@ -70,7 +66,6 @@ public class BoundedWorkQueueStrategy implements QueueingStrategy
     return DirectoryServer.getWorkQueue().getNumWorkerThreads();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void enqueueRequest(final Operation operation)
       throws DirectoryException

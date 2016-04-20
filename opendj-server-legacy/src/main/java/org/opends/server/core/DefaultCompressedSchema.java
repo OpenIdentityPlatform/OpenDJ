@@ -49,8 +49,6 @@ public final class DefaultCompressedSchema extends CompressedSchema
   /** Synchronizes calls to save. */
   private final Object saveLock = new Object();
 
-
-
   /**
    * Creates a new instance of this compressed schema manager.
    *
@@ -63,9 +61,6 @@ public final class DefaultCompressedSchema extends CompressedSchema
     load();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,
       final String attributeName, final Iterable<String> attributeOptions)
@@ -74,9 +69,6 @@ public final class DefaultCompressedSchema extends CompressedSchema
     save();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   protected void storeObjectClasses(final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames) throws DirectoryException
@@ -84,11 +76,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
     save();
   }
 
-
-
-  /**
-   * Loads the compressed schema information from disk.
-   */
+  /** Loads the compressed schema information from disk. */
   private void load()
   {
     FileInputStream inputStream = null;
@@ -168,8 +156,6 @@ public final class DefaultCompressedSchema extends CompressedSchema
       close(inputStream);
     }
   }
-
-
 
   /**
    * Writes the compressed schema information to disk.
@@ -276,5 +262,4 @@ public final class DefaultCompressedSchema extends CompressedSchema
       }
     }
   }
-
 }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -104,6 +104,7 @@ public class IntermediateResponseProtocolOp
    *
    * @return  The BER type for this protocol op.
    */
+  @Override
   public byte getType()
   {
     return OP_TYPE_INTERMEDIATE_RESPONSE;
@@ -116,6 +117,7 @@ public class IntermediateResponseProtocolOp
    *
    * @return  The name for this protocol op type.
    */
+  @Override
   public String getProtocolOpName()
   {
     return "Intermediate Response";
@@ -127,6 +129,7 @@ public class IntermediateResponseProtocolOp
    * @param stream The ASN.1 output stream to write to.
    * @throws IOException If a problem occurs while writing to the stream.
    */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
@@ -152,6 +155,7 @@ public class IntermediateResponseProtocolOp
    *
    * @param  buffer  The buffer to which the string should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("IntermediateResponse(oid=").append(oid);
@@ -172,6 +176,7 @@ public class IntermediateResponseProtocolOp
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

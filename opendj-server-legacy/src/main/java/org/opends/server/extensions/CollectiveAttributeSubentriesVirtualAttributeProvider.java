@@ -38,10 +38,7 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
         extends VirtualAttributeProvider<
         CollectiveAttributeSubentriesVirtualAttributeCfg>
 {
-  /**
-   * Creates a new instance of this collectiveAttributeSubentries
-   * virtual attribute provider.
-   */
+  /** Creates a new instance of this collectiveAttributeSubentries virtual attribute provider. */
   public CollectiveAttributeSubentriesVirtualAttributeProvider()
   {
     super();
@@ -50,18 +47,15 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-
     AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
@@ -80,7 +74,6 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
     return builder.toAttribute();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -89,7 +82,6 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

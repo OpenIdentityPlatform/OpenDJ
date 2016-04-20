@@ -42,11 +42,7 @@ public class LengthBasedPasswordValidator extends
   /** The current configuration for this password validator. */
   private LengthBasedPasswordValidatorCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this password validator.
-   */
+  /** Creates a new instance of this password validator. */
   public LengthBasedPasswordValidator()
   {
     super();
@@ -55,9 +51,6 @@ public class LengthBasedPasswordValidator extends
     // method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    LengthBasedPasswordValidatorCfg configuration)
@@ -79,18 +72,12 @@ public class LengthBasedPasswordValidator extends
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeLengthBasedChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -118,9 +105,6 @@ public class LengthBasedPasswordValidator extends
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -130,9 +114,7 @@ public class LengthBasedPasswordValidator extends
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       LengthBasedPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -152,9 +134,7 @@ public class LengthBasedPasswordValidator extends
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               LengthBasedPasswordValidatorCfg configuration)
   {

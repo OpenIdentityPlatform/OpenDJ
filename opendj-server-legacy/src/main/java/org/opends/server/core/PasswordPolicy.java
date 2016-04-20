@@ -34,19 +34,14 @@ import org.opends.server.types.Entry;
  */
 public abstract class PasswordPolicy extends AuthenticationPolicy
 {
-
   /** Creates a new password policy. */
   protected PasswordPolicy()
   {
     // Nothing to do.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public abstract DN getDN();
-
-
 
   /**
    * Indicates whether the associated password attribute uses the auth password
@@ -56,8 +51,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    *         auth password syntax, or <CODE>false</CODE> if not.
    */
   public abstract boolean isAuthPasswordSyntax();
-
-
 
   /**
    * Retrieves the default set of password storage schemes that will be used for
@@ -69,8 +62,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract List<PasswordStorageScheme<?>>
     getDefaultPasswordStorageSchemes();
-
-
 
   /**
    * Gets the "deprecated-password-storage-scheme" property.
@@ -88,8 +79,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract Set<String> getDeprecatedPasswordStorageSchemes();
 
-
-
   /**
    * Indicates whether the specified storage scheme is a default scheme for this
    * password policy.
@@ -102,8 +91,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isDefaultPasswordStorageScheme(String name);
 
-
-
   /**
    * Indicates whether the specified storage scheme is deprecated.
    *
@@ -115,8 +102,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isDeprecatedPasswordStorageScheme(String name);
 
-
-
   /**
    * Retrieves the set of password validators for this password policy. The
    * returned list should not be altered by the caller.
@@ -124,8 +109,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return The set of password validators for this password policy.
    */
   public abstract Collection<PasswordValidator<?>> getPasswordValidators();
-
-
 
   /**
    * Retrieves the set of account status notification handlers that should be
@@ -138,8 +121,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
   public abstract Collection<AccountStatusNotificationHandler<?>>
     getAccountStatusNotificationHandlers();
 
-
-
   /**
    * Retrieves the password generator that will be used with this password
    * policy.
@@ -148,8 +129,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    *         or <CODE>null</CODE> if there is none.
    */
   public abstract PasswordGenerator<?> getPasswordGenerator();
-
-
 
   /**
    * Retrieves the time by which all users will be required to change their
@@ -164,8 +143,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract long getRequireChangeByTime();
 
-
-
   /**
    * Gets the "allow-expired-password-changes" property.
    * <p>
@@ -175,8 +152,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "allow-expired-password-changes" property.
    */
   public abstract boolean isAllowExpiredPasswordChanges();
-
-
 
   /**
    * Gets the "allow-multiple-password-values" property.
@@ -193,8 +168,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isAllowMultiplePasswordValues();
 
-
-
   /**
    * Gets the "allow-pre-encoded-passwords" property.
    * <p>
@@ -209,8 +182,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isAllowPreEncodedPasswords();
 
-
-
   /**
    * Gets the "allow-user-password-changes" property.
    * <p>
@@ -222,8 +193,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "allow-user-password-changes" property.
    */
   public abstract boolean isAllowUserPasswordChanges();
-
-
 
   /**
    * Gets the "expire-passwords-without-warning" property.
@@ -241,8 +210,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isExpirePasswordsWithoutWarning();
 
-
-
   /**
    * Gets the "force-change-on-add" property.
    * <p>
@@ -253,8 +220,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "force-change-on-add" property.
    */
   public abstract boolean isForceChangeOnAdd();
-
-
 
   /**
    * Gets the "force-change-on-reset" property.
@@ -269,8 +234,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isForceChangeOnReset();
 
-
-
   /**
    * Gets the "grace-login-count" property.
    * <p>
@@ -282,8 +245,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "grace-login-count" property.
    */
   public abstract int getGraceLoginCount();
-
-
 
   /**
    * Gets the "idle-lockout-interval" property.
@@ -301,8 +262,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract long getIdleLockoutInterval();
 
-
-
   /**
    * Gets the "last-login-time-attribute" property.
    * <p>
@@ -317,8 +276,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract AttributeType getLastLoginTimeAttribute();
 
-
-
   /**
    * Gets the "last-login-time-format" property.
    * <p>
@@ -331,8 +288,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "last-login-time-format" property.
    */
   public abstract String getLastLoginTimeFormat();
-
-
 
   /**
    * Gets the "lockout-duration" property.
@@ -348,8 +303,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract long getLockoutDuration();
 
-
-
   /**
    * Gets the "lockout-failure-count" property.
    * <p>
@@ -362,8 +315,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "lockout-failure-count" property.
    */
   public abstract int getLockoutFailureCount();
-
-
 
   /**
    * Gets the "lockout-failure-expiration-interval" property.
@@ -381,8 +332,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract long getLockoutFailureExpirationInterval();
 
-
-
   /**
    * Gets the "max-password-age" property.
    * <p>
@@ -398,8 +347,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract long getMaxPasswordAge();
 
-
-
   /**
    * Gets the "max-password-reset-age" property.
    * <p>
@@ -412,8 +359,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "max-password-reset-age" property.
    */
   public abstract long getMaxPasswordResetAge();
-
-
 
   /**
    * Gets the "min-password-age" property.
@@ -430,8 +375,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract long getMinPasswordAge();
 
-
-
   /**
    * Gets the "password-attribute" property.
    * <p>
@@ -444,8 +387,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract AttributeType getPasswordAttribute();
 
-
-
   /**
    * Gets the "password-change-requires-current-password" property.
    * <p>
@@ -457,8 +398,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    *         "password-change-requires-current-password" property.
    */
   public abstract boolean isPasswordChangeRequiresCurrentPassword();
-
-
 
   /**
    * Gets the "password-expiration-warning-interval" property.
@@ -475,8 +414,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    *         property.
    */
   public abstract long getPasswordExpirationWarningInterval();
-
-
 
   /**
    * Gets the "password-history-count" property.
@@ -496,8 +433,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract int getPasswordHistoryCount();
 
-
-
   /**
    * Gets the "password-history-duration" property.
    * <p>
@@ -514,8 +449,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    * @return Returns the value of the "password-history-duration" property.
    */
   public abstract long getPasswordHistoryDuration();
-
-
 
   /**
    * Gets the "previous-last-login-time-format" property.
@@ -534,8 +467,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract SortedSet<String> getPreviousLastLoginTimeFormats();
 
-
-
   /**
    * Gets the "require-secure-authentication" property.
    * <p>
@@ -550,8 +481,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isRequireSecureAuthentication();
 
-
-
   /**
    * Gets the "require-secure-password-changes" property.
    * <p>
@@ -564,8 +493,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract boolean isRequireSecurePasswordChanges();
 
-
-
   /**
    * Gets the "skip-validation-for-administrators" property.
    * <p>
@@ -576,8 +503,6 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    *         property.
    */
   public abstract boolean isSkipValidationForAdministrators();
-
-
 
   /**
    * Gets the "state-update-failure-policy" property.
@@ -598,17 +523,13 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract StateUpdateFailurePolicy getStateUpdateFailurePolicy();
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isPasswordPolicy()
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public PasswordPolicyState createAuthenticationPolicyState(Entry userEntry,
       long time) throws DirectoryException
   {

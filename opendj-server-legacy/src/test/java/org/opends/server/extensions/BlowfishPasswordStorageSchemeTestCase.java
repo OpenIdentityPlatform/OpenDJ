@@ -19,21 +19,15 @@ package org.opends.server.extensions;
 import org.forgerock.opendj.server.config.meta.BlowfishPasswordStorageSchemeCfgDefn;
 import org.opends.server.api.PasswordStorageScheme;
 
-/**
- * A set of test cases for the Blowfish password storage scheme.
- */
+/** A set of test cases for the Blowfish password storage scheme. */
 public class BlowfishPasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /**
-   * Creates a new instance of this storage scheme test case.
-   */
+  /** Creates a new instance of this storage scheme test case. */
   public BlowfishPasswordStorageSchemeTestCase()
   {
     super("cn=Blowfish,cn=Password Storage Schemes,cn=config");
   }
-
-
 
   /**
    * Retrieves an initialized instance of this password storage scheme.
@@ -42,6 +36,7 @@ public class BlowfishPasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     return InitializationUtils.initializePasswordStorageScheme(

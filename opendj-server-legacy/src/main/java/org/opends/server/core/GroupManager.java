@@ -99,23 +99,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * Used by group instances to determine if new groups have been registered or
-   * groups deleted.
-   */
+  /** Used by group instances to determine if new groups have been registered or groups deleted. */
   private volatile long refreshToken;
 
-  /**
-   * A mapping between the DNs of the config entries and the associated group
-   * implementations.
-   */
+  /** A mapping between the DNs of the config entries and the associated group implementations. */
   private ConcurrentMap<DN, Group<?>> groupImplementations;
 
-  /**
-   * A mapping between the DNs of all group entries and the corresponding group
-   * instances.
-   */
+  /** A mapping between the DNs of all group entries and the corresponding group instances. */
   private DITCacheMap<Group<?>> groupInstances;
 
   /** Lock to protect internal data structures. */
@@ -155,8 +145,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     DirectoryServer.registerBackendInitializationListener(this);
   }
 
-
-
   /**
    * Initializes all group implementations currently defined in the Directory
    * Server configuration.  This should only be called at Directory Server
@@ -175,7 +163,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addGroupImplementationAddListener(this);
     rootConfiguration.addGroupImplementationDeleteListener(this);
-
 
     //Initialize the existing group implementations.
     for (String name : rootConfiguration.listGroupImplementations())
@@ -200,9 +187,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       GroupImplementationCfg configuration,
@@ -223,9 +207,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  GroupImplementationCfg configuration)
@@ -260,9 +241,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       GroupImplementationCfg configuration,
@@ -273,9 +251,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  GroupImplementationCfg configuration)
@@ -309,9 +284,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       GroupImplementationCfg configuration,
@@ -332,9 +304,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  GroupImplementationCfg configuration)
@@ -377,7 +346,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
       return ccr;
     }
 
-
     // Get the class for the group implementation.  If the group is already
     // enabled, then we shouldn't do anything with it although if the class has
     // changed then we'll at least need to indicate that administrative action
@@ -414,8 +382,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     // server before returning.
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a group implementation, and
@@ -473,12 +439,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
-  /**
-   * Performs any cleanup work that may be needed when the server is shutting
-   * down.
-   */
+  /** Performs any cleanup work that may be needed when the server is shutting down. */
   public void finalizeGroupManager()
   {
     DirectoryServer.deregisterInternalPlugin(this);
@@ -494,8 +455,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     groupImplementations.clear();
   }
 
-
-
   /**
    * Retrieves an {@code Iterable} object that may be used to cursor across the
    * group implementations defined in the server.
@@ -507,8 +466,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
   {
     return groupImplementations.values();
   }
-
-
 
   /**
    * Retrieves an {@code Iterable} object that may be used to cursor across the
@@ -531,8 +488,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
   /**
    * Retrieves the group instance defined in the entry with the specified DN.
    *
@@ -554,8 +509,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
       lock.readLock().unlock();
     }
   }
-
-
 
   /**
    * {@inheritDoc}  In this case, the server will search the backend to find
@@ -586,7 +539,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
         continue;
       }
 
-
       for (DN baseDN : backend.getBaseDNs())
       {
         try
@@ -601,7 +553,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
           logger.traceException(e);
           continue;
         }
-
 
         SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
             .addControl(control);
@@ -647,8 +598,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
   /**
    * {@inheritDoc}  In this case, the server will de-register all group
    * instances associated with entries in the provided backend.
@@ -686,7 +635,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     // Nothing to do.
   }
 
-
   /**
    * In this case, each entry is checked to see if it contains
    * a group definition, and if so it will be instantiated and
@@ -701,8 +649,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
     createAndRegisterGroup(entry);
   }
-
-
 
   private static boolean hasGroupMembershipUpdateControl(PluginOperation operation)
   {
@@ -719,8 +665,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     return false;
   }
-
-
 
   /**
    * In this case, if the entry is associated with a registered
@@ -747,8 +691,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
   /**
    * Scan the list of provided modifications looking for any changes to the objectClass,
    * which might change the entry to another kind of group, or even to a non-group.
@@ -768,8 +710,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     return false;
   }
-
-
 
   /**
    * In this case, if the entry is associated with a registered
@@ -831,8 +771,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
   /**
    * In this case, if the entry is associated with a registered
    * group instance, then that instance will be recreated from
@@ -873,9 +811,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
@@ -891,7 +826,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
@@ -907,7 +841,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
@@ -926,7 +859,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
@@ -944,7 +876,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationAddOperation addOperation)
@@ -956,7 +887,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationDeleteOperation deleteOperation)
@@ -968,7 +898,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyOperation modifyOperation)
@@ -981,7 +910,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyDNOperation modifyDNOperation)
@@ -993,8 +921,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
       doPostModifyDN(modifyDNOperation, oldEntry, newEntry);
     }
   }
-
-
 
   /**
    * Attempts to create a group instance from the provided entry, and if that is
@@ -1032,8 +958,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-
-
   /**
    * Removes all group instances that might happen to be registered with the
    * group manager.  This method is only intended for testing purposes and
@@ -1051,7 +975,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
       lock.writeLock().unlock();
     }
   }
-
 
   /**
    * Compare the specified token against the current group manager
@@ -1077,4 +1000,3 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return this.refreshToken;
   }
 }
-

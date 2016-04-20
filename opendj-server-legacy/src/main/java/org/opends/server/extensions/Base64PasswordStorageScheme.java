@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
@@ -32,8 +30,6 @@ import org.opends.server.util.Base64;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 
-
-
 /**
  * This class defines a Directory Server password storage scheme that will store
  * the values in base64-encoded form.  This is a reversible algorithm that
@@ -45,8 +41,6 @@ public class Base64PasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /**
    * Creates a new instance of this password storage scheme.  Note that no
    * initialization should be performed here, as all initialization should be
@@ -57,9 +51,6 @@ public class Base64PasswordStorageScheme
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    Base64PasswordStorageSchemeCfg configuration)
@@ -68,18 +59,12 @@ public class Base64PasswordStorageScheme
     // No initialization is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_BASE64;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -87,9 +72,6 @@ public class Base64PasswordStorageScheme
     return ByteString.valueOfUtf8(Base64.encode(plaintext));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -103,9 +85,6 @@ public class Base64PasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -115,18 +94,12 @@ public class Base64PasswordStorageScheme
     return userString.equals(storedString);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -145,9 +118,6 @@ public class Base64PasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -155,9 +125,6 @@ public class Base64PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -167,9 +134,6 @@ public class Base64PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -178,9 +142,6 @@ public class Base64PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -191,9 +152,6 @@ public class Base64PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -202,4 +160,3 @@ public class Base64PasswordStorageScheme
     return false;
   }
 }
-

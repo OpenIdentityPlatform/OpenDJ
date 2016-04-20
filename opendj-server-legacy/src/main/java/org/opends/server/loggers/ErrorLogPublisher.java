@@ -47,10 +47,7 @@ public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
   private static final LocalizedLogger logger = LocalizedLogger
       .getLoggerForThisClass();
 
-  /**
-   * The hash map that will be used to define specific log severities for the
-   * various categories.
-   */
+  /** The hash map that will be used to define specific log severities for the various categories. */
   protected Map<String, Set<Severity>> definedSeverities = new HashMap<>();
 
   /**
@@ -59,7 +56,6 @@ public abstract class ErrorLogPublisher<T extends ErrorLogPublisherCfg>
    */
   protected Set<Severity> defaultSeverities = new HashSet<>();
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
       List<LocalizableMessage> unacceptableReasons)

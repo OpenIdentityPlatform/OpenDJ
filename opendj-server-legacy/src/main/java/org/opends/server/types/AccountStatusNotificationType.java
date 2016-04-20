@@ -12,13 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements an enumeration that holds the possible event
@@ -37,36 +35,23 @@ public enum AccountStatusNotificationType
    * many failed attempts.
    */
   ACCOUNT_TEMPORARILY_LOCKED("account-temporarily-locked"),
-
-
-
   /**
    * Indicates that an account status message should be generated
    * whenever a user account has been permanently locked after too
    * many failed attempts.
    */
-  ACCOUNT_PERMANENTLY_LOCKED(
-       "account-permanently-locked"),
-
-
-
+  ACCOUNT_PERMANENTLY_LOCKED("account-permanently-locked"),
   /**
    * Indicates that an account status message should be generated
    * whenever a user account has been unlocked by an administrator.
    */
   ACCOUNT_UNLOCKED("account-unlocked"),
-
-
-
   /**
    * Indicates that an account status message should be generated
    * whenever a user account has been locked because it was idle for
    * too long.
    */
   ACCOUNT_IDLE_LOCKED("account-idle-locked"),
-
-
-
   /**
    * Indicates that an account status message should be generated
    * whenever a user account has been locked because it the password
@@ -74,25 +59,16 @@ public enum AccountStatusNotificationType
    * within the required interval.
    */
   ACCOUNT_RESET_LOCKED("account-reset-locked"),
-
-
-
   /**
    * Indicates that an account status message should be generated
    * whenever a user account has been disabled by an administrator.
    */
   ACCOUNT_DISABLED("account-disabled"),
-
-
-
   /**
    * Indicates that an account status message should be generated
    * whenever a user account has been enabled by an administrator.
    */
   ACCOUNT_ENABLED("account-enabled"),
-
-
-
   /**
    * Indicates that an account status message should be generated
    * whenever a user authentication has failed because the account
@@ -100,48 +76,32 @@ public enum AccountStatusNotificationType
    */
   ACCOUNT_EXPIRED("account-expired"),
 
-
-
   /**
    * Indicates that an account status notification message should be
    * generated whenever a user authentication has failed because the
    * password has expired.
    */
   PASSWORD_EXPIRED("password-expired"),
-
-
-
-
   /**
    * Indicates that an account status notification message should be
    * generated the first time that a password expiration warning is
    * encountered for a user password.
    */
   PASSWORD_EXPIRING("password-expiring"),
-
-
-
   /**
    * Indicates that an account status notification message should be
    * generated whenever a user's password is reset by an
    * administrator.
    */
   PASSWORD_RESET("password-reset"),
-
-
-
   /**
    * Indicates whether an account status notification message should
    * be generated whenever a user changes his/her own password.
    */
   PASSWORD_CHANGED("password-changed");
 
-
-
   /** The notification type name. */
   private String name;
-
-
 
   /**
    * Creates a new account status notification type with the provided
@@ -153,8 +113,6 @@ public enum AccountStatusNotificationType
   {
     this.name = name;
   }
-
-
 
   /**
    * Retrieves the account status notification type with the specified
@@ -169,62 +127,36 @@ public enum AccountStatusNotificationType
    */
   public static AccountStatusNotificationType typeForName(String name)
   {
-    String lowerName = toLowerCase(name);
-    if (lowerName.equals("account-temporarily-locked"))
+    switch (toLowerCase(name))
     {
+    case "account-temporarily-locked":
       return ACCOUNT_TEMPORARILY_LOCKED;
-    }
-    else if (lowerName.equals("account-permanently-locked"))
-    {
+    case "account-permanently-locked":
       return ACCOUNT_PERMANENTLY_LOCKED;
-    }
-    else if (lowerName.equals("account-unlocked"))
-    {
+    case "account-unlocked":
       return ACCOUNT_UNLOCKED;
-    }
-    else if (lowerName.equals("account-idle-locked"))
-    {
+    case "account-idle-locked":
       return ACCOUNT_IDLE_LOCKED;
-    }
-    else if (lowerName.equals("account-reset-locked"))
-    {
+    case "account-reset-locked":
       return ACCOUNT_RESET_LOCKED;
-    }
-    else if (lowerName.equals("account-disabled"))
-    {
+    case "account-disabled":
       return ACCOUNT_DISABLED;
-    }
-    else if (lowerName.equals("account-enabled"))
-    {
+    case "account-enabled":
       return ACCOUNT_ENABLED;
-    }
-    else if (lowerName.equals("account-expired"))
-    {
+    case "account-expired":
       return ACCOUNT_EXPIRED;
-    }
-    else if (lowerName.equals("password-expired"))
-    {
+    case "password-expired":
       return PASSWORD_EXPIRED;
-    }
-    else if (lowerName.equals("password-expiring"))
-    {
+    case "password-expiring":
       return PASSWORD_EXPIRING;
-    }
-    else if (lowerName.equals("password-reset"))
-    {
+    case "password-reset":
       return PASSWORD_RESET;
-    }
-    else if (lowerName.equals("password-changed"))
-    {
+    case "password-changed":
       return PASSWORD_CHANGED;
-    }
-    else
-    {
+    default:
       return null;
     }
   }
-
-
 
   /**
    * Retrieves the name for this account status notification type.
@@ -236,18 +168,9 @@ public enum AccountStatusNotificationType
     return name;
   }
 
-
-
-  /**
-   * Retrieves a string representation of this account status
-   * notification type.
-   *
-   * @return  A string representation of this account status
-   *          notification type.
-   */
+  @Override
   public String toString()
   {
     return name;
   }
 }
-

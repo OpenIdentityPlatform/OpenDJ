@@ -178,11 +178,7 @@ public class PluginConfigManager
   private DirectoryServerPlugin[] subordinateDeletePlugins;
   private DirectoryServerPlugin[] intermediateResponsePlugins;
 
-
-  /**
-   * The mapping between the DN of a plugin entry and the plugin instance loaded
-   * from that entry.
-   */
+  /** The mapping between the DN of a plugin entry and the plugin instance loaded from that entry. */
   private ConcurrentHashMap<DN,
                DirectoryServerPlugin<? extends PluginCfg>>
                     registeredPlugins;
@@ -202,10 +198,7 @@ public class PluginConfigManager
   /** The plugin root configuration read at server startup. */
   private PluginRootCfg pluginRootConfig;
 
-  /**
-   * The lock that will provide threadsafe access to the sets of registered
-   * plugins.
-   */
+  /** The lock that will provide threadsafe access to the sets of registered plugins. */
   private ReentrantLock pluginLock;
 
   private final ServerContext serverContext;
@@ -278,8 +271,6 @@ public class PluginConfigManager
     skippedPreOperationPlugins = new ConcurrentHashMap<>();
   }
 
-
-
   /**
    * Initializes this plugin configuration manager. This should only be called
    * at Directory Server startup and before user plugins are loaded.
@@ -296,8 +287,6 @@ public class PluginConfigManager
     pluginRootConfig.addPluginAddListener(this);
     pluginRootConfig.addPluginDeleteListener(this);
   }
-
-
 
   /**
    * Initializes any plugins defined in the directory server
@@ -364,8 +353,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Loads the specified class, instantiates it as a plugin, and optionally
    * initializes that plugin.
@@ -430,8 +417,6 @@ public class PluginConfigManager
       throw new InitializationException(message, e);
     }
   }
-
-
 
   /**
    * Gets the OpenDS plugin type object that corresponds to the configuration
@@ -506,11 +491,7 @@ public class PluginConfigManager
     }
   }
 
-
-
-  /**
-   * Finalizes all plugins that are registered with the Directory Server.
-   */
+  /** Finalizes all plugins that are registered with the Directory Server. */
   public void finalizePlugins()
   {
     pluginLock.lock();
@@ -537,8 +518,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Retrieves the set of plugins that have been registered with the Directory
    * Server.
@@ -553,8 +532,6 @@ public class PluginConfigManager
     return registeredPlugins;
   }
 
-
-
   /**
    * Retrieves the plugin with the specified configuration entry DN.
    *
@@ -568,8 +545,6 @@ public class PluginConfigManager
   {
     return registeredPlugins.get(pluginDN);
   }
-
-
 
   /**
    * Registers the provided internal plugin with this plugin config
@@ -592,8 +567,6 @@ public class PluginConfigManager
       pluginLock.unlock();
     }
   }
-
-
 
   /**
    * Register a plugin in the appropriate tables.
@@ -885,8 +858,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Registers the provided plugin with this plugin config manager and
    * ensures that it will be invoked in the specified ways.
@@ -914,8 +885,6 @@ public class PluginConfigManager
       pluginLock.unlock();
     }
   }
-
-
 
   /**
    * Adds the provided plugin to the given array.  The provided array will not
@@ -1043,7 +1012,6 @@ public class PluginConfigManager
         }
       }
 
-
       // Parse the array of already registered plugins to sort them accordingly.
       HashMap<String,DirectoryServerPlugin> initialPlugins = new HashMap<>(initialPluginNames.size());
       HashMap<String,DirectoryServerPlugin> finalPlugins = new HashMap<>(finalPluginNames.size());
@@ -1066,7 +1034,6 @@ public class PluginConfigManager
         }
       }
 
-
       // Get the name of the provided plugin from its RDN value and put it in
       // the correct category.
       DN dn = plugin.getPluginEntryDN();
@@ -1083,7 +1050,6 @@ public class PluginConfigManager
       {
         otherPlugins.add(plugin);
       }
-
 
       // Compile a list of all the plugins in the correct order, convert it to
       // an array, and return it.
@@ -1115,8 +1081,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Deregisters the provided internal plugin.
    *
@@ -1136,8 +1100,6 @@ public class PluginConfigManager
       pluginLock.unlock();
     }
   }
-
-
 
   /**
    * Deregisters the plugin with the provided configuration entry DN.
@@ -1164,8 +1126,6 @@ public class PluginConfigManager
       pluginLock.unlock();
     }
   }
-
-
 
   /**
    * Deregisters the provided plugin.
@@ -1384,8 +1344,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Removes the provided plugin from the given array.  The provided array will
    * not itself be modified, but rather a new array will be created with one
@@ -1417,13 +1375,11 @@ public class PluginConfigManager
       return pluginArray;
     }
 
-
     // If it was the only element in the array, then return an empty array.
     if (length == 0)
     {
       return new DirectoryServerPlugin[0];
     }
-
 
     // Create an array that's one element smaller and copy the remaining "good"
     // elements into it.
@@ -1440,8 +1396,6 @@ public class PluginConfigManager
 
     return newPlugins;
   }
-
-
 
   /**
    * Invokes the set of startup plugins that have been registered with the
@@ -1494,8 +1448,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of shutdown plugins that have been configured in the
    * Directory Server.
@@ -1517,8 +1469,6 @@ public class PluginConfigManager
       }
     }
   }
-
-
 
   /**
    * Invokes the set of post-connect plugins that have been configured in the
@@ -1554,7 +1504,6 @@ public class PluginConfigManager
             DisconnectReason.SERVER_ERROR, true, message);
       }
 
-
       if (result == null)
       {
         LocalizableMessage message = ERR_PLUGIN_POST_CONNECT_PLUGIN_RETURNED_NULL.
@@ -1579,8 +1528,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of post-disconnect plugins that have been configured in the
@@ -1618,7 +1565,6 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
       }
 
-
       if (result == null)
       {
         logger.error(ERR_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL,
@@ -1641,8 +1587,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of LDIF import plugins that have been configured in the
@@ -1700,8 +1644,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the LDIF import session finalization of LDIF import plugins that
    * have been configured in the Directory Server.
@@ -1718,8 +1660,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Invokes the LDIF import session initialization of LDIF import plugins that
    * have been configured in the Directory Server.
@@ -1735,8 +1675,6 @@ public class PluginConfigManager
       p.doLDIFImportBegin(importConfig);
     }
   }
-
-
 
   /**
    * Invokes the set of LDIF export plugins that have been configured in the
@@ -1796,8 +1734,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-parse abandon plugins that have been configured in
    * the Directory Server.
@@ -1848,7 +1784,6 @@ public class PluginConfigManager
     return result;
   }
 
-
   private PluginResult.PreParse handlePreParseException(
       Exception e, PreParseOperation operation, DirectoryServerPlugin plugin)
   {
@@ -1877,7 +1812,6 @@ public class PluginConfigManager
     return PluginResult.PreParse.stopProcessing(DirectoryServer
         .getServerErrorResultCode(), message);
   }
-
 
   /**
    * Invokes the set of pre-parse add plugins that have been configured in the
@@ -1935,8 +1869,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-parse bind plugins that have been configured in
    * the Directory Server.
@@ -1986,8 +1918,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-parse compare plugins that have been configured in
@@ -2045,8 +1975,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-parse delete plugins that have been configured in
    * the Directory Server.
@@ -2102,8 +2030,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-parse extended plugins that have been configured in
@@ -2161,8 +2087,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-parse modify plugins that have been configured in
    * the Directory Server.
@@ -2218,8 +2142,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-parse modify DN plugins that have been configured in
@@ -2277,8 +2199,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-parse search plugins that have been configured in
    * the Directory Server.
@@ -2335,8 +2255,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-parse unbind plugins that have been configured in
    * the Directory Server.
@@ -2386,8 +2304,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-operation add plugins that have been configured in
@@ -2450,8 +2366,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-operation bind plugins that have been configured in
    * the Directory Server.
@@ -2507,8 +2421,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-operation compare plugins that have been configured
@@ -2568,8 +2480,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-operation delete plugins that have been configured
@@ -2669,8 +2579,6 @@ public class PluginConfigManager
         .getServerErrorResultCode(), message);
   }
 
-
-
   /**
    * Invokes the set of pre-operation extended plugins that have been configured
    * in the Directory Server.
@@ -2734,8 +2642,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-operation modify plugins that have been configured
    * in the Directory Server.
@@ -2797,8 +2703,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of pre-operation modify DN plugins that have been
@@ -2862,8 +2766,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of pre-operation search plugins that have been configured
    * in the Directory Server.
@@ -2926,8 +2828,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of post-operation abandon plugins that have been configured
    * in the Directory Server.
@@ -2988,8 +2888,6 @@ public class PluginConfigManager
 
     return finalResult;
   }
-
-
 
   /**
    * Invokes the set of post-operation add plugins that have been configured in
@@ -3056,8 +2954,6 @@ public class PluginConfigManager
     return finalResult;
   }
 
-
-
   /**
    * Invokes the set of post-operation bind plugins that have been configured
    * in the Directory Server.
@@ -3122,8 +3018,6 @@ public class PluginConfigManager
 
     return finalResult;
   }
-
-
 
   /**
    * Invokes the set of post-operation compare plugins that have been configured
@@ -3265,8 +3159,6 @@ public class PluginConfigManager
     return finalResult;
   }
 
-
-
   /**
    * Invokes the set of post-operation extended plugins that have been
    * configured in the Directory Server.
@@ -3332,8 +3224,6 @@ public class PluginConfigManager
     return finalResult;
   }
 
-
-
   /**
    * Invokes the set of post-operation modify plugins that have been configured
    * in the Directory Server.
@@ -3397,8 +3287,6 @@ public class PluginConfigManager
     }
     return finalResult;
   }
-
-
 
   /**
    * Invokes the set of post-operation modify DN plugins that have been
@@ -3465,8 +3353,6 @@ public class PluginConfigManager
     return finalResult;
   }
 
-
-
   /**
    * Invokes the set of post-operation search plugins that have been configured
    * in the Directory Server.
@@ -3531,8 +3417,6 @@ public class PluginConfigManager
 
     return finalResult;
   }
-
-
 
   /**
    * Invokes the set of post-operation unbind plugins that have been configured
@@ -3599,8 +3483,6 @@ public class PluginConfigManager
     return finalResult;
   }
 
-
-
   /**
    * Invokes the set of post-response add plugins that have been configured in
    * the Directory Server.
@@ -3651,8 +3533,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of post-response bind plugins that have been configured in
    * the Directory Server.
@@ -3702,8 +3582,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of post-response compare plugins that have been configured
@@ -3804,8 +3682,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of post-response extended plugins that have been configured
    * in the Directory Server.
@@ -3855,8 +3731,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of post-response modify plugins that have been configured
@@ -3908,8 +3782,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of post-response modify DN plugins that have been
    * configured in the Directory Server.
@@ -3959,8 +3831,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of post-response search plugins that have been configured
@@ -4055,8 +3925,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Invokes the set of post-synchronization delete plugins that have been
    * configured in the Directory Server.
@@ -4103,8 +3971,6 @@ public class PluginConfigManager
     }
   }
 
-
-
   /**
    * Invokes the set of post-synchronization modify DN plugins that have been
    * configured in the Directory Server.
@@ -4127,8 +3993,6 @@ public class PluginConfigManager
       }
     }
   }
-
-
 
   /**
    * Invokes the set of search result entry plugins that have been configured
@@ -4202,8 +4066,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of search result reference plugins that have been
    * configured in the Directory Server.
@@ -4275,8 +4137,6 @@ public class PluginConfigManager
 
     return result;
   }
-
-
 
   /**
    * Invokes the set of subordinate modify DN plugins that have been configured
@@ -4355,8 +4215,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of subordinate delete plugins that have been configured
    * in the Directory Server.
@@ -4427,8 +4285,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
   /**
    * Invokes the set of intermediate response plugins that have been configured
    * in the Directory Server.
@@ -4493,9 +4349,6 @@ public class PluginConfigManager
     return result;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(PluginCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -4521,9 +4374,6 @@ public class PluginConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PluginCfg configuration)
@@ -4560,9 +4410,6 @@ public class PluginConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       PluginCfg configuration,
@@ -4572,9 +4419,6 @@ public class PluginConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  PluginCfg configuration)
@@ -4586,9 +4430,6 @@ public class PluginConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PluginCfg configuration,
@@ -4615,20 +4456,15 @@ public class PluginConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PluginCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing plugin if it's already enabled.
     DirectoryServerPlugin existingPlugin =
          registeredPlugins.get(configuration.dn());
-
 
     // If the new configuration has the plugin disabled, then deregister it if
     // it is enabled, or do nothing if it's already disabled.
@@ -4641,7 +4477,6 @@ public class PluginConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the identity mapper.  If the mapper is already enabled,
     // then we shouldn't do anything with it although if the class has changed

@@ -15,22 +15,23 @@
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-import java.io.IOException;
-
-import org.forgerock.opendj.io.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class implements the entry change notification control defined in
@@ -40,13 +41,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class EntryChangeNotificationControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<EntryChangeNotificationControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public EntryChangeNotificationControl decode(
         boolean isCritical, ByteString value) throws DirectoryException
     {
@@ -103,6 +102,7 @@ public class EntryChangeNotificationControl
           previousDN, changeNumber);
     }
 
+    @Override
     public String getOID()
     {
       return OID_ENTRY_CHANGE_NOTIFICATION;
@@ -110,9 +110,7 @@ public class EntryChangeNotificationControl
 
   }
 
-  /**
-   * The ControlDecoder that can be used to decode this control.
-   */
+  /** The ControlDecoder that can be used to decode this control. */
   public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -216,15 +214,7 @@ public class EntryChangeNotificationControl
     this(false, changeType, previousDN, changeNumber);
   }
 
-
-
-  /**
-   * Writes this control value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
+  @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
@@ -282,14 +272,7 @@ public class EntryChangeNotificationControl
     return changeNumber;
   }
 
-
-
-  /**
-   * Appends a string representation of this entry change notification control
-   * to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("EntryChangeNotificationControl(changeType=");
@@ -309,4 +292,3 @@ public class EntryChangeNotificationControl
     buffer.append(")");
   }
 }
-

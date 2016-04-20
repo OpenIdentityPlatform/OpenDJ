@@ -12,12 +12,10 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import static org.opends.messages.CoreMessages.*;
 /**
@@ -29,57 +27,26 @@ import static org.opends.messages.CoreMessages.*;
  */
 public class LDAPResultCode
 {
-  /**
-   * The LDAP result code for successful operations.
-   */
+  /** The LDAP result code for successful operations. */
   public static final int SUCCESS = 0;
 
-
-
-  /**
-   * The LDAP result code for operations that fail due to an operations error.
-   */
+  /** The LDAP result code for operations that fail due to an operations error. */
   public static final int OPERATIONS_ERROR = 1;
 
-
-
-  /**
-   * The LDAP result code for operations that fail due to a protocol error.
-   */
+  /** The LDAP result code for operations that fail due to a protocol error. */
   public static final int PROTOCOL_ERROR = 2;
 
-
-
-  /**
-   * The LDAP result code for operations that fail as a result of exceeding a
-   * time limit.
-   */
+  /** The LDAP result code for operations that fail as a result of exceeding a time limit. */
   public static final int TIME_LIMIT_EXCEEDED = 3;
 
-
-
-  /**
-   * The LDAP result code for operations that fail as a result of exceeding a
-   * size limit.
-   */
+  /** The LDAP result code for operations that fail as a result of exceeding a size limit. */
   public static final int SIZE_LIMIT_EXCEEDED = 4;
 
-
-
-  /**
-   * The LDAP result code for compare operations in which the assertion is
-   * false.
-   */
+  /** The LDAP result code for compare operations in which the assertion is false. */
   public static final int COMPARE_FALSE = 5;
 
-
-
-  /**
-   * The LDAP result code for compare operations in which the assertion is true.
-   */
+  /** The LDAP result code for compare operations in which the assertion is true. */
   public static final int COMPARE_TRUE = 6;
-
-
 
   /**
    * The LDAP result code for operations that fail because the requested
@@ -87,22 +54,11 @@ public class LDAPResultCode
    */
   public static final int AUTH_METHOD_NOT_SUPPORTED = 7;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because strong authentication
-   * is required.
-   */
+  /** The LDAP result code for operations that fail because strong authentication is required. */
   public static final int STRONG_AUTH_REQUIRED = 8;
 
-
-
-  /**
-   * The LDAP result code for operations that encountered a referral.
-   */
+  /** The LDAP result code for operations that encountered a referral. */
   public static final int REFERRAL = 10;
-
-
 
   /**
    * The LDAP result code for operations that fail as a result of exceeding an
@@ -110,39 +66,20 @@ public class LDAPResultCode
    */
   public static final int ADMIN_LIMIT_EXCEEDED = 11;
 
-
-
   /**
    * The LDAP result code for operations that fail because they contain an
    * unavailable critical extension.
    */
   public static final int UNAVAILABLE_CRITICAL_EXTENSION = 12;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because confidentiality is
-   * required.
-   */
+  /** The LDAP result code for operations that fail because confidentiality is required. */
   public static final int CONFIDENTIALITY_REQUIRED = 13;
 
-
-
-  /**
-   * The LDAP result code used for multi-stage SASL bind operations that are not
-   * yet complete.
-   */
+  /** The LDAP result code used for multi-stage SASL bind operations that are not yet complete. */
   public static final int SASL_BIND_IN_PROGRESS = 14;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because a specified attribute
-   * does not exist.
-   */
+  /** The LDAP result code for operations that fail because a specified attribute does not exist. */
   public static final int NO_SUCH_ATTRIBUTE = 16;
-
-
 
   /**
    * The LDAP result code for operations that fail because a specified attribute
@@ -150,15 +87,11 @@ public class LDAPResultCode
    */
   public static final int UNDEFINED_ATTRIBUTE_TYPE = 17;
 
-
-
   /**
    * The LDAP result code for operations that fail as a result of attempting an
    * inappropriate form of matching on an attribute.
    */
   public static final int INAPPROPRIATE_MATCHING = 18;
-
-
 
   /**
    * The LDAP result code for operations that fail because a defined constraint
@@ -166,31 +99,17 @@ public class LDAPResultCode
    */
   public static final int CONSTRAINT_VIOLATION = 19;
 
-
-
   /**
    * The LDAP result code for operations that fail because of a conflict with an
    * existing attribute or value.
    */
   public static final int ATTRIBUTE_OR_VALUE_EXISTS = 20;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because of an invalid
-   * attribute syntax.
-   */
+  /** The LDAP result code for operations that fail because of an invalid attribute syntax. */
   public static final int INVALID_ATTRIBUTE_SYNTAX = 21;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because a targeted entry does
-   * not exist.
-   */
+  /** The LDAP result code for operations that fail because a targeted entry does not exist. */
   public static final int NO_SUCH_OBJECT = 32;
-
-
 
   /**
    * The LDAP result code for operations that fail because the an alias was
@@ -198,23 +117,14 @@ public class LDAPResultCode
    */
   public static final int ALIAS_PROBLEM = 33;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because the request included
-   * a malformed DN.
-   */
+  /** The LDAP result code for operations that fail because the request included a malformed DN. */
   public static final int INVALID_DN_SYNTAX = 34;
-
-
 
   /**
    * The LDAP result code for operations that fail because a problem occurred
    * while attempting to dereference an alias.
    */
   public static final int ALIAS_DEREFERENCING_PROBLEM = 36;
-
-
 
   /**
    * The LDAP result code for operations that fail because the user attempted to
@@ -223,15 +133,11 @@ public class LDAPResultCode
    */
   public static final int INAPPROPRIATE_AUTHENTICATION = 48;
 
-
-
   /**
    * The LDAP result code for operations that fail because the user supplied
    * invalid credentials for an authentication attempt.
    */
   public static final int INVALID_CREDENTIALS = 49;
-
-
 
   /**
    * The LDAP result code for operations that fail because the client does not
@@ -239,15 +145,8 @@ public class LDAPResultCode
    */
   public static final int INSUFFICIENT_ACCESS_RIGHTS = 50;
 
-
-
-  /**
-   * The LDAP result code for operations that fail because the server was too
-   * busy to process it.
-   */
+  /** The LDAP result code for operations that fail because the server was too busy to process it. */
   public static final int BUSY = 51;
-
-
 
   /**
    * The LDAP result code for operations that fail because the server or a
@@ -255,15 +154,11 @@ public class LDAPResultCode
    */
   public static final int UNAVAILABLE = 52;
 
-
-
   /**
    * The LDAP result code for operations that fail because the server was
    * unwilling to perform the requested operation.
    */
   public static final int UNWILLING_TO_PERFORM = 53;
-
-
 
   /**
    * The LDAP result code for operations that fail because a referral or
@@ -271,15 +166,11 @@ public class LDAPResultCode
    */
   public static final int LOOP_DETECT = 54;
 
-
-
   /**
    * The LDAP result code for operations that fail because the request included
    * a VLV request control without a server-side sort control.
    */
   public static final int SORT_CONTROL_MISSING = 60;
-
-
 
   /**
    * The LDAP result code for operations that fail because the request included
@@ -287,14 +178,8 @@ public class LDAPResultCode
    */
   public static final int OFFSET_RANGE_ERROR = 61;
 
-
-
-  /**
-   * The LDAP result code for operations that fail due to a naming violation.
-   */
+  /** The LDAP result code for operations that fail due to a naming violation. */
   public static final int NAMING_VIOLATION = 64;
-
-
 
   /**
    * The LDAP result code for operations that fail because the requested
@@ -302,23 +187,17 @@ public class LDAPResultCode
    */
   public static final int OBJECTCLASS_VIOLATION = 65;
 
-
-
   /**
    * The LDAP result code for operations that fail because the requested
    * operation is not allowed on non-leaf entries.
    */
   public static final int NOT_ALLOWED_ON_NONLEAF = 66;
 
-
-
   /**
    * The LDAP result code for operations that fail because the requested
    * operation is not allowed on an RDN attribute.
    */
   public static final int NOT_ALLOWED_ON_RDN = 67;
-
-
 
   /**
    * The LDAP result code for operations that fail because the requested
@@ -327,15 +206,11 @@ public class LDAPResultCode
    */
   public static final int ENTRY_ALREADY_EXISTS = 68;
 
-
-
   /**
    * The LDAP result code for operations that fail because the requested
    * operation attempted to modify objectclass values in an illegal manner.
    */
   public static final int OBJECTCLASS_MODS_PROHIBITED = 69;
-
-
 
   /**
    * The LDAP result code for operations that fail because the requested
@@ -343,23 +218,17 @@ public class LDAPResultCode
    */
   public static final int AFFECTS_MULTIPLE_DSAS = 71;
 
-
-
   /**
    * The LDAP result code for operations that fail due to an error in
    * virtual list view processing.
    */
   public static final int VIRTUAL_LIST_VIEW_ERROR = 76;
 
-
-
   /**
    * The LDAP result code for use in cases in which none of the other defined
    * result codes are appropriate.
    */
   public static final int OTHER = 80;
-
-
 
   /**
    * The client-side result code that indicates that a previously-established
@@ -368,16 +237,12 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_SERVER_DOWN = 81;
 
-
-
   /**
    * The client-side result code that indicates that a local error occurred that
    * had nothing to do with interaction with the server.  This is for
    * client-side use only and should never be transferred over protocol.
    */
   public static final int CLIENT_SIDE_LOCAL_ERROR = 82;
-
-
 
   /**
    * The client-side result code that indicates that an error occurred while
@@ -386,16 +251,12 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_ENCODING_ERROR = 83;
 
-
-
   /**
    * The client-side result code that indicates that an error occurred while
    * decoding a response from the server.  This is for client-side use only and
    * should never be transferred over protocol.
    */
   public static final int CLIENT_SIDE_DECODING_ERROR = 84;
-
-
 
   /**
    * The client-side result code that indicates that the client did not receive
@@ -404,16 +265,12 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_TIMEOUT = 85;
 
-
-
   /**
    * The client-side result code that indicates that the user requested an
    * unknown or unsupported authentication mechanism.  This is for client-side
    * use only and should never be transferred over protocol.
    */
   public static final int CLIENT_SIDE_AUTH_UNKNOWN = 86;
-
-
 
   /**
    * The client-side result code that indicates that the filter provided by the
@@ -422,16 +279,12 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_FILTER_ERROR = 87;
 
-
-
   /**
    * The client-side result code that indicates that the user cancelled an
    * operation.  This is for client-side use only and should never be
    * transferred over protocol.
    */
   public static final int CLIENT_SIDE_USER_CANCELLED = 88;
-
-
 
   /**
    * The client-side result code that indicates that there was a problem with
@@ -440,16 +293,12 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_PARAM_ERROR = 89;
 
-
-
   /**
    * The client-side result code that indicates that the client application was
    * not able to allocate enough memory for the requested operation.  This is
    * for client-side use only and should never be transferred over protocol.
    */
   public static final int CLIENT_SIDE_NO_MEMORY = 90;
-
-
 
   /**
    * The client-side result code that indicates that the client was not able to
@@ -458,16 +307,12 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_CONNECT_ERROR = 91;
 
-
-
   /**
    * The client-side result code that indicates that the user requested an
    * operation that is not supported.  This is for client-side use only and
    * should never be transferred over protocol.
    */
   public static final int CLIENT_SIDE_NOT_SUPPORTED = 92;
-
-
 
   /**
    * The client-side result code that indicates that the client expected a
@@ -477,8 +322,6 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_CONTROL_NOT_FOUND = 93;
 
-
-
   /**
    * The client-side result code that indicates that the server did not return
    * any results for a search operation that was expected to match at least one
@@ -486,8 +329,6 @@ public class LDAPResultCode
    * over protocol.
    */
   public static final int CLIENT_SIDE_NO_RESULTS_RETURNED = 94;
-
-
 
   /**
    * The client-side result code that indicates that the server has returned
@@ -497,8 +338,6 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_MORE_RESULTS_TO_RETURN = 95;
 
-
-
   /**
    * The client-side result code that indicates that the client detected a
    * referral loop caused by servers referencing each other in a circular
@@ -506,8 +345,6 @@ public class LDAPResultCode
    * over protocol.
    */
   public static final int CLIENT_SIDE_CLIENT_LOOP = 96;
-
-
 
   /**
    * The client-side result code that indicates that the client reached the
@@ -518,15 +355,11 @@ public class LDAPResultCode
    */
   public static final int CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED = 97;
 
-
-
   /**
    * The LDAP result code for cancel operations that are successful, or for
    * operations that are canceled.
    */
   public static final int CANCELED = 118;
-
-
 
   /**
    * The LDAP result code for cancel operations that fail because the specified
@@ -534,15 +367,11 @@ public class LDAPResultCode
    */
   public static final int NO_SUCH_OPERATION = 119;
 
-
-
   /**
    * The LDAP result code for cancel operations that fail because the specified
    * operation has already progressed too far to be canceled.
    */
   public static final int TOO_LATE = 120;
-
-
 
   /**
    * The LDAP result code for cancel operations that fail because the specified
@@ -550,23 +379,17 @@ public class LDAPResultCode
    */
   public static final int CANNOT_CANCEL = 121;
 
-
-
   /**
    * The LDAP result code for operations that are rejected because the
    * filter in the LDAP assertion control did not match the target entry.
    */
   public static final int ASSERTION_FAILED = 122;
 
-
-
   /**
    * The LDAP result code for operations that fail because the server refused
    * the client's requested authorization.
    */
   public static final int AUTHORIZATION_DENIED = 123;
-
-
 
   /**
    * The LDAP result code for operations in which no action is taken because the
@@ -581,8 +404,6 @@ public class LDAPResultCode
    */
   public static final int NO_OPERATION = 16654;
 
-
-
   /**
    * Retrieves a string representation of the provided LDAP result code.
    *
@@ -593,211 +414,145 @@ public class LDAPResultCode
    */
   public static String toString(int resultCode)
   {
-    LocalizableMessage message;
+    return toLocalizableMessage(resultCode).toString();
+  }
 
+  private static LocalizableMessage toLocalizableMessage(int resultCode)
+  {
     switch (resultCode)
     {
       case SUCCESS:
-        message = INFO_RESULT_SUCCESS.get();
-        break;
+        return INFO_RESULT_SUCCESS.get();
       case OPERATIONS_ERROR:
-        message = INFO_RESULT_OPERATIONS_ERROR.get();
-        break;
+        return INFO_RESULT_OPERATIONS_ERROR.get();
       case PROTOCOL_ERROR:
-        message = INFO_RESULT_PROTOCOL_ERROR.get();
-        break;
+        return INFO_RESULT_PROTOCOL_ERROR.get();
       case TIME_LIMIT_EXCEEDED:
-        message = INFO_RESULT_TIME_LIMIT_EXCEEDED.get();
-        break;
+        return INFO_RESULT_TIME_LIMIT_EXCEEDED.get();
       case SIZE_LIMIT_EXCEEDED:
-        message = INFO_RESULT_SIZE_LIMIT_EXCEEDED.get();
-        break;
+        return INFO_RESULT_SIZE_LIMIT_EXCEEDED.get();
       case COMPARE_FALSE:
-        message = INFO_RESULT_COMPARE_FALSE.get();
-        break;
+        return INFO_RESULT_COMPARE_FALSE.get();
       case COMPARE_TRUE:
-        message = INFO_RESULT_COMPARE_TRUE.get();
-        break;
+        return INFO_RESULT_COMPARE_TRUE.get();
       case AUTH_METHOD_NOT_SUPPORTED:
-        message = INFO_RESULT_AUTH_METHOD_NOT_SUPPORTED.get();
-        break;
+        return INFO_RESULT_AUTH_METHOD_NOT_SUPPORTED.get();
       case STRONG_AUTH_REQUIRED:
-        message = INFO_RESULT_STRONG_AUTH_REQUIRED.get();
-        break;
+        return INFO_RESULT_STRONG_AUTH_REQUIRED.get();
       case REFERRAL:
-        message = INFO_RESULT_REFERRAL.get();
-        break;
+        return INFO_RESULT_REFERRAL.get();
       case ADMIN_LIMIT_EXCEEDED:
-        message = INFO_RESULT_ADMIN_LIMIT_EXCEEDED.get();
-        break;
+        return INFO_RESULT_ADMIN_LIMIT_EXCEEDED.get();
       case UNAVAILABLE_CRITICAL_EXTENSION:
-        message = INFO_RESULT_UNAVAILABLE_CRITICAL_EXTENSION.get();
-        break;
+        return INFO_RESULT_UNAVAILABLE_CRITICAL_EXTENSION.get();
       case CONFIDENTIALITY_REQUIRED:
-        message = INFO_RESULT_CONFIDENTIALITY_REQUIRED.get();
-        break;
+        return INFO_RESULT_CONFIDENTIALITY_REQUIRED.get();
       case SASL_BIND_IN_PROGRESS:
-        message = INFO_RESULT_SASL_BIND_IN_PROGRESS.get();
-        break;
+        return INFO_RESULT_SASL_BIND_IN_PROGRESS.get();
       case NO_SUCH_ATTRIBUTE:
-        message = INFO_RESULT_NO_SUCH_ATTRIBUTE.get();
-        break;
+        return INFO_RESULT_NO_SUCH_ATTRIBUTE.get();
       case UNDEFINED_ATTRIBUTE_TYPE:
-        message = INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get();
-        break;
+        return INFO_RESULT_UNDEFINED_ATTRIBUTE_TYPE.get();
       case INAPPROPRIATE_MATCHING:
-        message = INFO_RESULT_INAPPROPRIATE_MATCHING.get();
-        break;
+        return INFO_RESULT_INAPPROPRIATE_MATCHING.get();
       case CONSTRAINT_VIOLATION:
-        message = INFO_RESULT_CONSTRAINT_VIOLATION.get();
-        break;
+        return INFO_RESULT_CONSTRAINT_VIOLATION.get();
       case ATTRIBUTE_OR_VALUE_EXISTS:
-        message = INFO_RESULT_ATTRIBUTE_OR_VALUE_EXISTS.get();
-        break;
+        return INFO_RESULT_ATTRIBUTE_OR_VALUE_EXISTS.get();
       case INVALID_ATTRIBUTE_SYNTAX:
-        message = INFO_RESULT_INVALID_ATTRIBUTE_SYNTAX.get();
-        break;
+        return INFO_RESULT_INVALID_ATTRIBUTE_SYNTAX.get();
       case NO_SUCH_OBJECT:
-        message = INFO_RESULT_NO_SUCH_OBJECT.get();
-        break;
+        return INFO_RESULT_NO_SUCH_OBJECT.get();
       case ALIAS_PROBLEM:
-        message = INFO_RESULT_ALIAS_PROBLEM.get();
-        break;
+        return INFO_RESULT_ALIAS_PROBLEM.get();
       case INVALID_DN_SYNTAX:
-        message = INFO_RESULT_INVALID_DN_SYNTAX.get();
-        break;
+        return INFO_RESULT_INVALID_DN_SYNTAX.get();
       case ALIAS_DEREFERENCING_PROBLEM:
-        message = INFO_RESULT_ALIAS_DEREFERENCING_PROBLEM.get();
-        break;
+        return INFO_RESULT_ALIAS_DEREFERENCING_PROBLEM.get();
       case INAPPROPRIATE_AUTHENTICATION:
-        message = INFO_RESULT_INAPPROPRIATE_AUTHENTICATION.get();
-        break;
+        return INFO_RESULT_INAPPROPRIATE_AUTHENTICATION.get();
       case INVALID_CREDENTIALS:
-        message = INFO_RESULT_INVALID_CREDENTIALS.get();
-        break;
+        return INFO_RESULT_INVALID_CREDENTIALS.get();
       case INSUFFICIENT_ACCESS_RIGHTS:
-        message = INFO_RESULT_INSUFFICIENT_ACCESS_RIGHTS.get();
-        break;
+        return INFO_RESULT_INSUFFICIENT_ACCESS_RIGHTS.get();
       case BUSY:
-        message = INFO_RESULT_BUSY.get();
-        break;
+        return INFO_RESULT_BUSY.get();
       case UNAVAILABLE:
-        message = INFO_RESULT_UNAVAILABLE.get();
-        break;
+        return INFO_RESULT_UNAVAILABLE.get();
       case UNWILLING_TO_PERFORM:
-        message = INFO_RESULT_UNWILLING_TO_PERFORM.get();
-        break;
+        return INFO_RESULT_UNWILLING_TO_PERFORM.get();
       case LOOP_DETECT:
-        message = INFO_RESULT_LOOP_DETECT.get();
-        break;
+        return INFO_RESULT_LOOP_DETECT.get();
       case SORT_CONTROL_MISSING:
-        message = INFO_RESULT_SORT_CONTROL_MISSING.get();
-        break;
+        return INFO_RESULT_SORT_CONTROL_MISSING.get();
       case OFFSET_RANGE_ERROR:
-        message = INFO_RESULT_OFFSET_RANGE_ERROR.get();
-        break;
+        return INFO_RESULT_OFFSET_RANGE_ERROR.get();
       case NAMING_VIOLATION:
-        message = INFO_RESULT_NAMING_VIOLATION.get();
-        break;
+        return INFO_RESULT_NAMING_VIOLATION.get();
       case OBJECTCLASS_VIOLATION:
-        message = INFO_RESULT_OBJECTCLASS_VIOLATION.get();
-        break;
+        return INFO_RESULT_OBJECTCLASS_VIOLATION.get();
       case NOT_ALLOWED_ON_NONLEAF:
-        message = INFO_RESULT_NOT_ALLOWED_ON_NONLEAF.get();
-        break;
+        return INFO_RESULT_NOT_ALLOWED_ON_NONLEAF.get();
       case NOT_ALLOWED_ON_RDN:
-        message = INFO_RESULT_NOT_ALLOWED_ON_RDN.get();
-        break;
+        return INFO_RESULT_NOT_ALLOWED_ON_RDN.get();
       case ENTRY_ALREADY_EXISTS:
-        message = INFO_RESULT_ENTRY_ALREADY_EXISTS.get();
-        break;
+        return INFO_RESULT_ENTRY_ALREADY_EXISTS.get();
       case OBJECTCLASS_MODS_PROHIBITED:
-        message = INFO_RESULT_OBJECTCLASS_MODS_PROHIBITED.get();
-        break;
+        return INFO_RESULT_OBJECTCLASS_MODS_PROHIBITED.get();
       case AFFECTS_MULTIPLE_DSAS:
-        message = INFO_RESULT_AFFECTS_MULTIPLE_DSAS.get();
-        break;
+        return INFO_RESULT_AFFECTS_MULTIPLE_DSAS.get();
       case VIRTUAL_LIST_VIEW_ERROR:
-        message = INFO_RESULT_VIRTUAL_LIST_VIEW_ERROR.get();
-        break;
+        return INFO_RESULT_VIRTUAL_LIST_VIEW_ERROR.get();
       case CLIENT_SIDE_SERVER_DOWN:
-        message = INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_SERVER_DOWN.get();
       case CLIENT_SIDE_LOCAL_ERROR:
-        message = INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_LOCAL_ERROR.get();
       case CLIENT_SIDE_ENCODING_ERROR:
-        message = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       case CLIENT_SIDE_DECODING_ERROR:
-        message = INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_DECODING_ERROR.get();
       case CLIENT_SIDE_TIMEOUT:
-        message = INFO_RESULT_CLIENT_SIDE_TIMEOUT.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_TIMEOUT.get();
       case CLIENT_SIDE_AUTH_UNKNOWN:
-        message = INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_AUTH_UNKNOWN.get();
       case CLIENT_SIDE_FILTER_ERROR:
-        message = INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_FILTER_ERROR.get();
       case CLIENT_SIDE_USER_CANCELLED:
-        message = INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_USER_CANCELLED.get();
       case CLIENT_SIDE_PARAM_ERROR:
-        message = INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_PARAM_ERROR.get();
       case CLIENT_SIDE_NO_MEMORY:
-        message = INFO_RESULT_CLIENT_SIDE_NO_MEMORY.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_NO_MEMORY.get();
       case CLIENT_SIDE_CONNECT_ERROR:
-        message = INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_CONNECT_ERROR.get();
       case CLIENT_SIDE_NOT_SUPPORTED:
-        message = INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_NOT_SUPPORTED.get();
       case CLIENT_SIDE_CONTROL_NOT_FOUND:
-        message = INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_CONTROL_NOT_FOUND.get();
       case CLIENT_SIDE_NO_RESULTS_RETURNED:
-        message = INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_NO_RESULTS_RETURNED.get();
       case CLIENT_SIDE_MORE_RESULTS_TO_RETURN:
-        message = INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_MORE_RESULTS_TO_RETURN.get();
       case CLIENT_SIDE_CLIENT_LOOP:
-        message = INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_CLIENT_LOOP.get();
       case CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED:
-        message = INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.get();
-        break;
+        return INFO_RESULT_CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.get();
       case CANCELED:
-        message = INFO_RESULT_CANCELED.get();
-        break;
+        return INFO_RESULT_CANCELED.get();
       case NO_SUCH_OPERATION:
-        message = INFO_RESULT_NO_SUCH_OPERATION.get();
-        break;
+        return INFO_RESULT_NO_SUCH_OPERATION.get();
       case TOO_LATE:
-        message = INFO_RESULT_TOO_LATE.get();
-        break;
+        return INFO_RESULT_TOO_LATE.get();
       case CANNOT_CANCEL:
-        message = INFO_RESULT_CANNOT_CANCEL.get();
-        break;
+        return INFO_RESULT_CANNOT_CANCEL.get();
       case ASSERTION_FAILED:
-        message = INFO_RESULT_ASSERTION_FAILED.get();
-        break;
+        return INFO_RESULT_ASSERTION_FAILED.get();
       case AUTHORIZATION_DENIED:
-        message = INFO_RESULT_AUTHORIZATION_DENIED.get();
-        break;
+        return INFO_RESULT_AUTHORIZATION_DENIED.get();
       case NO_OPERATION:
-        message = INFO_RESULT_NO_OPERATION.get();
-        break;
+        return INFO_RESULT_NO_OPERATION.get();
       default:
-        message = INFO_RESULT_OTHER.get();
-        break;
+        return INFO_RESULT_OTHER.get();
     }
-
-    return message.toString();
   }
 }
-

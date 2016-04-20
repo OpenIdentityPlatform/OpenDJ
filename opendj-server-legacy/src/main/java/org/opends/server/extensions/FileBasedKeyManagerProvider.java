@@ -95,7 +95,6 @@ public class FileBasedKeyManagerProvider
     }
   }
 
-  /** Performs any finalization that may be necessary for this key manager provider. */
   @Override
   public void finalizeKeyManagerProvider()
   {

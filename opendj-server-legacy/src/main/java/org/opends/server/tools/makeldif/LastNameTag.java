@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -27,10 +27,7 @@ import static org.opends.messages.ToolMessages.*;
 
 
 
-/**
- * This class defines a tag that is used to include a last name in the
- * attribute value.
- */
+/** This class defines a tag that is used to include a last name in the attribute value. */
 public class LastNameTag
        extends Tag
 {
@@ -39,9 +36,7 @@ public class LastNameTag
 
 
 
-  /**
-   * Creates a new instance of this last name tag.
-   */
+  /** Creates a new instance of this last name tag. */
   public LastNameTag()
   {
     // No implementation required.
@@ -54,6 +49,7 @@ public class LastNameTag
    *
    * @return  The name for this tag.
    */
+  @Override
   public String getName()
   {
     return "Last";
@@ -68,6 +64,7 @@ public class LastNameTag
    * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
    *          or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean allowedInBranch()
   {
     return false;
@@ -90,6 +87,7 @@ public class LastNameTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
@@ -116,6 +114,7 @@ public class LastNameTag
    *
    * @return  The result of generating content for this tag.
    */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {

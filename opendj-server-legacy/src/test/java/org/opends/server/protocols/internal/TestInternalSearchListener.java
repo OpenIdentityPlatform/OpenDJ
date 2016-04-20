@@ -12,19 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.internal;
-
-
 
 import java.util.ArrayList;
 
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-
-
-
 
 /**
  * This class provides an internal search listener that may be used for testing
@@ -39,37 +34,27 @@ public class TestInternalSearchListener
   /** The list of search result references returned. */
   private ArrayList<SearchResultReference> searchReferences;
 
-
-
-  /**
-   * Creates a new instance of this test internal search listener.
-   */
+  /** Creates a new instance of this test internal search listener. */
   public TestInternalSearchListener()
   {
     searchEntries    = new ArrayList<>();
     searchReferences = new ArrayList<>();
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
                                         SearchResultEntry searchEntry)
   {
     searchEntries.add(searchEntry);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,
                    SearchResultReference searchReference)
   {
     searchReferences.add(searchReference);
   }
-
-
 
   /**
    * Retrieves the set of search result entries returned for the search.
@@ -81,8 +66,6 @@ public class TestInternalSearchListener
     return searchEntries;
   }
 
-
-
   /**
    * Retrieves the set of search result references returned for the search.
    *
@@ -93,4 +76,3 @@ public class TestInternalSearchListener
     return searchReferences;
   }
 }
-

@@ -87,8 +87,6 @@ public class SMTPAccountStatusNotificationHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** A mapping between the notification types and the message template. */
   private HashMap<AccountStatusNotificationType,
                   List<NotificationMessageTemplateElement>> templateMap;
@@ -99,20 +97,12 @@ public class SMTPAccountStatusNotificationHandler
   /** The current configuration for this account status notification handler. */
   private SMTPAccountStatusNotificationHandlerCfg currentConfig;
 
-
-
-  /**
-   * Creates a new, uninitialized instance of this account status notification
-   * handler.
-   */
+  /** Creates a new, uninitialized instance of this account status notification handler. */
   public SMTPAccountStatusNotificationHandler()
   {
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeStatusNotificationHandler(
                    SMTPAccountStatusNotificationHandlerCfg configuration)
@@ -142,8 +132,6 @@ public class SMTPAccountStatusNotificationHandler
       throw new ConfigException(ERR_SMTP_ASNH_NO_RECIPIENTS.get(configuration.dn()));
     }
   }
-
-
 
   /**
    * Examines the provided configuration and parses the message subject
@@ -196,8 +184,6 @@ public class SMTPAccountStatusNotificationHandler
 
     return map;
   }
-
-
 
   /**
    * Examines the provided configuration and parses the message template
@@ -265,8 +251,6 @@ public class SMTPAccountStatusNotificationHandler
 
     return map;
   }
-
-
 
   /**
    * Parses the specified template file into a list of notification message
@@ -439,7 +423,6 @@ public class SMTPAccountStatusNotificationHandler
           }
         }
 
-
         // We need to put a CRLF at the end of the line, as per the SMTP spec.
         elementList.add(new TextNotificationMessageTemplateElement("\r\n"));
       }
@@ -459,9 +442,6 @@ public class SMTPAccountStatusNotificationHandler
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg
@@ -473,9 +453,6 @@ public class SMTPAccountStatusNotificationHandler
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleStatusNotification(AccountStatusNotification notification)
   {
@@ -483,7 +460,6 @@ public class SMTPAccountStatusNotificationHandler
     HashMap<AccountStatusNotificationType,String> subjects = subjectMap;
     HashMap<AccountStatusNotificationType,
             List<NotificationMessageTemplateElement>> templates = templateMap;
-
 
     // First, see if the notification type is one that we handle.  If not, then
     // return without doing anything.
@@ -501,7 +477,6 @@ public class SMTPAccountStatusNotificationHandler
 
       return;
     }
-
 
     // It is a notification that should be handled, so we can start generating
     // the e-mail message.  First, check to see if there are any mail attributes
@@ -553,7 +528,6 @@ public class SMTPAccountStatusNotificationHandler
       }
     }
 
-
     // Next, add any explicitly-defined recipients.
     if (recipientAddrs != null)
     {
@@ -567,7 +541,6 @@ public class SMTPAccountStatusNotificationHandler
 
       recipients.addAll(recipientAddrs);
     }
-
 
     // Get the message subject to use.  If none is defined, then use a generic
     // subject.
@@ -586,15 +559,12 @@ public class SMTPAccountStatusNotificationHandler
       logger.trace("Using per-type subject of " + subject);
     }
 
-
-
     // Generate the message body.
     LocalizableMessageBuilder messageBody = new LocalizableMessageBuilder();
     for (NotificationMessageTemplateElement e : templateElements)
     {
       e.generateValue(messageBody, notification);
     }
-
 
     // Create and send the e-mail message.
     EMailMessage message = new EMailMessage(config.getSenderAddress(),
@@ -609,7 +579,6 @@ public class SMTPAccountStatusNotificationHandler
     {
       logger.trace("Set message body of " + messageBody);
     }
-
 
     try
     {
@@ -629,16 +598,12 @@ public class SMTPAccountStatusNotificationHandler
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SMTPAccountStatusNotificationHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
-
 
     // Make sure that the Directory Server is configured with information about
     // one or more mail servers.
@@ -648,7 +613,6 @@ public class SMTPAccountStatusNotificationHandler
       unacceptableReasons.add(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));
       configAcceptable = false;
     }
-
 
     // Make sure that either an explicit recipient list or a set of email
     // address attributes were provided.
@@ -688,9 +652,6 @@ public class SMTPAccountStatusNotificationHandler
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SMTPAccountStatusNotificationHandlerCfg configuration)

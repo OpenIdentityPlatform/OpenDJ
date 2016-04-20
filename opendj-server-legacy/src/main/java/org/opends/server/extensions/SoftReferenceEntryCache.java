@@ -67,10 +67,7 @@ public class SoftReferenceEntryCache
   /** The mapping between backend+ID and their corresponding entries. */
   private ConcurrentMap<String, ConcurrentMap<Long, Reference<CacheEntry>>> idMap;
 
-  /**
-   * The reference queue that will be used to notify us whenever a soft
-   * reference is freed.
-   */
+  /** The reference queue that will be used to notify us whenever a soft reference is freed. */
   private ReferenceQueue<CacheEntry> referenceQueue;
 
   /** Currently registered configuration object. */
@@ -78,8 +75,6 @@ public class SoftReferenceEntryCache
 
   private Thread cleanerThread;
   private volatile boolean shutdown;
-
-
 
   /**
    * Creates a new instance of this soft reference entry cache.  All
@@ -98,7 +93,6 @@ public class SoftReferenceEntryCache
     referenceQueue = new ReferenceQueue<>();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeEntryCache(
       SoftReferenceEntryCacheCfg configuration
@@ -129,7 +123,6 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public synchronized void finalizeEntryCache()
   {
@@ -152,14 +145,12 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean containsEntry(DN entryDN)
   {
     return entryDN != null && dnMap.containsKey(entryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   {
@@ -182,7 +173,6 @@ public class SoftReferenceEntryCache
     return cacheEntry.getEntry();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryID(DN entryDN)
   {
@@ -195,7 +185,6 @@ public class SoftReferenceEntryCache
     return -1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN(String backendID, long entryID)
   {
@@ -213,7 +202,6 @@ public class SoftReferenceEntryCache
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void putEntry(Entry entry, String backendID, long entryID)
   {
@@ -244,7 +232,6 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean putEntryIfAbsent(Entry entry, String backendID, long entryID)
   {
@@ -253,7 +240,6 @@ public class SoftReferenceEntryCache
     {
       return false;
     }
-
 
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backendID, entryID);
@@ -276,7 +262,6 @@ public class SoftReferenceEntryCache
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeEntry(DN entryDN)
   {
@@ -309,7 +294,6 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clear()
   {
@@ -317,7 +301,6 @@ public class SoftReferenceEntryCache
     idMap.clear();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearBackend(String backendID)
   {
@@ -340,7 +323,6 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearSubtree(DN baseDN)
   {
@@ -356,7 +338,6 @@ public class SoftReferenceEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void handleLowMemory()
   {
@@ -365,7 +346,6 @@ public class SoftReferenceEntryCache
     // FIXME -- Do we need to do anything at all here?
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -375,7 +355,6 @@ public class SoftReferenceEntryCache
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       SoftReferenceEntryCacheCfg configuration,
@@ -393,7 +372,6 @@ public class SoftReferenceEntryCache
     return errorHandler.getIsAcceptable();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(SoftReferenceEntryCacheCfg configuration)
   {
@@ -414,8 +392,6 @@ public class SoftReferenceEntryCache
     changeResult.getMessages().addAll(errorHandler.getErrorMessages());
     return changeResult;
   }
-
-
 
   /**
    * Parses the provided configuration and configure the entry cache.
@@ -555,7 +531,6 @@ public class SoftReferenceEntryCache
     return Long.valueOf(dnMap.size());
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toVerboseString()
   {

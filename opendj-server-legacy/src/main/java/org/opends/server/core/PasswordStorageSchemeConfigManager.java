@@ -50,10 +50,7 @@ public class PasswordStorageSchemeConfigManager
           ConfigurationAddListener    <PasswordStorageSchemeCfg>,
           ConfigurationDeleteListener <PasswordStorageSchemeCfg>
 {
-  /**
-   * A mapping between the DNs of the config entries and the associated password
-   * storage schemes.
-   */
+  /** A mapping between the DNs of the config entries and the associated password storage schemes. */
   private final ConcurrentHashMap<DN,PasswordStorageScheme> storageSchemes;
 
   private final ServerContext serverContext;
@@ -69,8 +66,6 @@ public class PasswordStorageSchemeConfigManager
     this.serverContext = serverContext;
     storageSchemes = new ConcurrentHashMap<>();
   }
-
-
 
   /**
    * Initializes all password storage schemes currently defined in the Directory
@@ -113,9 +108,6 @@ public class PasswordStorageSchemeConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       PasswordStorageSchemeCfg configuration,
@@ -145,9 +137,6 @@ public class PasswordStorageSchemeConfigManager
     return status;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       PasswordStorageSchemeCfg configuration
@@ -204,9 +193,6 @@ public class PasswordStorageSchemeConfigManager
     return changeResult;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       PasswordStorageSchemeCfg configuration,
@@ -245,9 +231,6 @@ public class PasswordStorageSchemeConfigManager
     return status;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       PasswordStorageSchemeCfg configuration
@@ -279,9 +262,6 @@ public class PasswordStorageSchemeConfigManager
     return changeResult;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       PasswordStorageSchemeCfg configuration,
@@ -292,9 +272,6 @@ public class PasswordStorageSchemeConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       PasswordStorageSchemeCfg configuration
@@ -306,8 +283,6 @@ public class PasswordStorageSchemeConfigManager
 
     return changeResult;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a password storage scheme,
@@ -339,7 +314,6 @@ public class PasswordStorageSchemeConfigManager
     storageSchemes.put (configEntryDN, schemeClass);
     DirectoryServer.registerPasswordStorageScheme (configEntryDN, schemeClass);
   }
-
 
   /**
    * Loads the specified class, instantiates it as a password storage scheme,
@@ -399,7 +373,6 @@ public class PasswordStorageSchemeConfigManager
     }
   }
 
-
   /**
    * Remove a password storage that has been installed in the server.
    *
@@ -419,4 +392,3 @@ public class PasswordStorageSchemeConfigManager
     }
   }
 }
-

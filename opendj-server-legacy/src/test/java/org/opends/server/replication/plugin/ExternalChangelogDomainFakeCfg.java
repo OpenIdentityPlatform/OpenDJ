@@ -19,8 +19,8 @@ package org.opends.server.replication.plugin;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 
 /**
@@ -30,7 +30,6 @@ import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 public class ExternalChangelogDomainFakeCfg
   implements ExternalChangelogDomainCfg
 {
-
   /** The value of the "ecl-include" property. */
   private SortedSet<String> pECLInclude;
 
@@ -55,7 +54,6 @@ public class ExternalChangelogDomainFakeCfg
     this.pECLIncludeForDeletes = eclIncludeForDeletes != null ? eclIncludeForDeletes : new TreeSet<String>();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Class<? extends ExternalChangelogDomainCfg> configurationClass()
   {
@@ -73,8 +71,6 @@ public class ExternalChangelogDomainFakeCfg
       ConfigurationChangeListener<ExternalChangelogDomainCfg> listener)
   {}
 
-
-
   /**
    * Deregister an existing External Changelog Domain configuration change listener.
    *
@@ -85,8 +81,6 @@ public class ExternalChangelogDomainFakeCfg
   public void removeChangeListener(
       ConfigurationChangeListener<ExternalChangelogDomainCfg> listener)
   {}
-
-
 
   @Override
   public SortedSet<String> getECLInclude()
@@ -100,7 +94,6 @@ public class ExternalChangelogDomainFakeCfg
     return this.pECLIncludeForDeletes;
   }
 
-
   /**
    * Set enabled.
    * @param enabled a.
@@ -109,7 +102,6 @@ public class ExternalChangelogDomainFakeCfg
   {
     this.pEnabled = enabled;
   }
-
 
   /**
    * Gets the "enabled" property.
@@ -125,6 +117,7 @@ public class ExternalChangelogDomainFakeCfg
     return this.pEnabled;
   }
 
+  @Override
   public DN dn()
   {
     return pDN;
@@ -134,5 +127,4 @@ public class ExternalChangelogDomainFakeCfg
   {
     this.pDN = dn;
   }
-
 }

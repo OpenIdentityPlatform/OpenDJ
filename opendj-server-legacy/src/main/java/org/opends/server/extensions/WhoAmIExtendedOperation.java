@@ -54,7 +54,6 @@ public class WhoAmIExtendedOperation
     super(newHashSet(OID_PROXIED_AUTH_V1, OID_PROXIED_AUTH_V2));
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeExtendedOperationHandler(
                    WhoAmIExtendedOperationHandlerCfg config)
@@ -63,7 +62,6 @@ public class WhoAmIExtendedOperation
     super.initializeExtendedOperationHandler(config);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
@@ -123,7 +121,6 @@ public class WhoAmIExtendedOperation
       return;
     }
 
-
     // Get the authorization DN for the operation and add it to the response
     // value.
     String authzID;
@@ -143,14 +140,12 @@ public class WhoAmIExtendedOperation
     operation.setResultCode(ResultCode.SUCCESS);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationOID()
   {
     return OID_WHO_AM_I_REQUEST;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {

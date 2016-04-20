@@ -92,9 +92,7 @@ public class BindOperationBasis
   /** The SASL mechanism used for SASL authentication. */
   private String saslMechanism;
 
-  /**
-   * A string representation of the protocol version for this bind operation.
-   */
+  /** A string representation of the protocol version for this bind operation. */
   private String protocolVersion;
 
   /**
@@ -127,8 +125,6 @@ public class BindOperationBasis
 
     cancelResult = getBindCancelResult();
   }
-
-
 
   /**
    * Creates a new SASL bind operation with the provided information.
@@ -195,8 +191,6 @@ public class BindOperationBasis
 
     cancelResult = getBindCancelResult();
   }
-
-
 
   /**
    * Creates a new SASL bind operation with the provided information.
@@ -246,34 +240,29 @@ public class BindOperationBasis
     return new CancelResult(CANNOT_CANCEL, ERR_CANNOT_CANCEL_BIND.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public final AuthenticationType getAuthenticationType()
   {
     return authType;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawBindDN()
   {
     return rawBindDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawBindDN(ByteString rawBindDN)
   {
@@ -315,7 +304,6 @@ public class BindOperationBasis
     return simplePassword;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setSimplePassword(ByteString simplePassword)
   {
@@ -333,21 +321,18 @@ public class BindOperationBasis
     saslCredentials = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final String getSASLMechanism()
   {
     return saslMechanism;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getSASLCredentials()
   {
     return saslCredentials;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setSASLCredentials(String saslMechanism,
                                        ByteString saslCredentials)
@@ -359,42 +344,36 @@ public class BindOperationBasis
     simplePassword = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getServerSASLCredentials()
   {
     return serverSASLCredentials;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setServerSASLCredentials(ByteString serverSASLCredentials)
   {
     this.serverSASLCredentials = serverSASLCredentials;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Entry getSASLAuthUserEntry()
   {
     return saslAuthUserEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
     this.saslAuthUserEntry = saslAuthUserEntry;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final LocalizableMessage getAuthFailureReason()
   {
     return authFailureReason;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setAuthFailureReason(LocalizableMessage message)
   {
@@ -408,28 +387,24 @@ public class BindOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final DN getUserEntryDN()
   {
     return userEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final AuthenticationInfo getAuthenticationInfo()
   {
     return authInfo;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
     this.authInfo = authInfo;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -438,28 +413,24 @@ public class BindOperationBasis
     return OperationType.BIND;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -478,28 +449,24 @@ public class BindOperationBasis
     buffer.append(")");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setUserEntryDN(DN userEntryDN)
   {
     this.userEntryDN = userEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getProtocolVersion()
   {
     return protocolVersion;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProtocolVersion(String protocolVersion)
   {
     this.protocolVersion = protocolVersion;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void run()
   {
@@ -520,7 +487,6 @@ public class BindOperationBasis
     CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
     clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
 
-
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
     try
@@ -530,7 +496,6 @@ public class BindOperationBasis
       {
         return;
       }
-
 
       // Process the bind DN to convert it from the raw form as provided by the
       // client into the form required for the rest of the bind processing.
@@ -616,7 +581,6 @@ public class BindOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateOperationErrMsgAndResCode()
   {

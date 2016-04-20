@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 
@@ -44,8 +42,6 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
-
-
 
 /**
  * This class defines a data structure for storing and interacting with the
@@ -112,24 +108,16 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   /** The queue that will be used to actually hold the pending operations. */
   private LinkedBlockingQueue<Operation> opQueue;
 
-  /**
-   * The lock used to provide threadsafe access for the queue, used for
-   * non-config changes.
-   */
+  /** The lock used to provide threadsafe access for the queue, used for non-config changes. */
   private final ReadLock queueReadLock;
 
-  /**
-   * The lock used to provide threadsafe access for the queue, used for config
-   * changes.
-   */
+  /** The lock used to provide threadsafe access for the queue, used for config changes. */
   private final WriteLock queueWriteLock;
   {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     queueReadLock = lock.readLock();
     queueWriteLock = lock.writeLock();
   }
-
-
 
   /**
    * Creates a new instance of this work queue. All initialization should be
@@ -140,9 +128,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     // No implementation should be performed here.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeWorkQueue(TraditionalWorkQueueCfg configuration)
       throws ConfigException, InitializationException
@@ -206,9 +191,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
@@ -262,8 +244,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
   }
 
-
-
   /**
    * Indicates whether this work queue has received a request to shut down.
    *
@@ -283,8 +263,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
   }
 
-
-
   /**
    * Submits an operation to be processed by one of the worker threads
    * associated with this work queue.
@@ -302,7 +280,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     submitOperation(operation, isBlocking);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean trySubmitOperation(Operation operation)
       throws DirectoryException
@@ -389,8 +366,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
   }
 
-
-
   /**
    * Retrieves the next operation that should be processed by one of the worker
    * threads, blocking if necessary until a new request arrives. This method
@@ -406,8 +381,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   {
     return retryNextOperation(workerThread, 0);
   }
-
-
 
   /**
    * Retrieves the next operation that should be processed by one of the worker
@@ -512,8 +485,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     return retryNextOperation(workerThread, numFailures + 1);
   }
 
-
-
   /**
    * Kills this worker thread if needed. This method assumes that the read lock
    * is already taken and ensure that it is taken on exit.
@@ -568,8 +539,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     return false;
   }
 
-
-
   /**
    * Retrieves the total number of operations that have been successfully
    * submitted to this work queue for processing since server startup. This does
@@ -584,8 +553,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     return opsSubmitted.longValue();
   }
 
-
-
   /**
    * Retrieves the total number of operations that have been rejected because
    * the work queue was already at its maximum capacity.
@@ -597,8 +564,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   {
     return queueFullRejects.longValue();
   }
-
-
 
   /**
    * Retrieves the number of pending operations in the queue that have not yet
@@ -622,9 +587,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       TraditionalWorkQueueCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -632,9 +594,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       TraditionalWorkQueueCfg configuration)
@@ -679,7 +638,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
         queueWriteLock.unlock();
       }
     }
-
 
     // Apply a change to the maximum capacity if appropriate. Since we can't
     // change capacity on the fly, then we'll have to create a new queue and
@@ -753,9 +711,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
     return new ConfigChangeResult();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isIdle()
   {

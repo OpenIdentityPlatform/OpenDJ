@@ -55,9 +55,7 @@ public class RotationActionThread extends DirectoryThread
     this.configEntry = configEntry;
   }
 
-  /**
-   * The run method of the thread.
-   */
+  @Override
   public void run()
   {
     try

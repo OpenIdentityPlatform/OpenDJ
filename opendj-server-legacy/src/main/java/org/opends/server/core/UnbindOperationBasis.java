@@ -62,7 +62,6 @@ public class UnbindOperationBasis
         ERR_CANNOT_CANCEL_UNBIND.get());
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -71,20 +70,17 @@ public class UnbindOperationBasis
     return OperationType.UNBIND;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
@@ -93,14 +89,12 @@ public class UnbindOperationBasis
     return NO_RESPONSE_CONTROLS;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     // An unbind operation can never have a response, so just ignore this.
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
@@ -125,15 +119,12 @@ public class UnbindOperationBasis
 
     logUnbind(this);
 
-
     // Check the set of controls included in the request.  If there are any,
     // see if any special processing is needed.
     // NYI
 
-
     // Disconnect the client.
     getClientConnection().disconnect(DisconnectReason.UNBIND, false, null);
-
 
     // Invoke the post-operation unbind plugins.
     getPluginConfigManager().invokePostOperationUnbindPlugins(this);
@@ -141,7 +132,6 @@ public class UnbindOperationBasis
     setProcessingStopTime();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -151,6 +141,4 @@ public class UnbindOperationBasis
     buffer.append(operationID);
     buffer.append(")");
   }
-
 }
-

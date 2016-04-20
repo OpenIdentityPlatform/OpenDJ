@@ -50,7 +50,6 @@ public class RandomPasswordGenerator
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
   /** The current configuration for this password validator. */
   private RandomPasswordGeneratorCfg currentConfig;
 
@@ -63,10 +62,7 @@ public class RandomPasswordGenerator
   /** The total length of the password that will be generated. */
   private int totalLength;
 
-  /**
-   * The numbers of characters of each type that should be used to generate the
-   * passwords.
-   */
+  /** The numbers of characters of each type that should be used to generate the passwords. */
   private int[] characterCounts;
 
   /** The character sets that should be used to generate the passwords. */
@@ -81,9 +77,6 @@ public class RandomPasswordGenerator
   /** The character set format string for this password generator. */
   private String formatString;
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordGenerator(
       RandomPasswordGeneratorCfg configuration)
@@ -131,7 +124,6 @@ public class RandomPasswordGenerator
           ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(getExceptionMessage(e));
       throw new InitializationException(message, e);
     }
-
 
     // Get the value that describes which character set(s) and how many
     // characters from each should be used.
@@ -206,16 +198,11 @@ public class RandomPasswordGenerator
     currentConfig = configuration;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordGenerator()
   {
     currentConfig.removeRandomChangeListener(this);
   }
-
-
 
   /**
    * Generates a password for the user whose account is contained in the
@@ -246,9 +233,6 @@ public class RandomPasswordGenerator
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordGeneratorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -258,9 +242,6 @@ public class RandomPasswordGenerator
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       RandomPasswordGeneratorCfg configuration,
@@ -308,7 +289,6 @@ public class RandomPasswordGenerator
       return false;
     }
 
-
     // Get the value that describes which character set(s) and how many
     // characters from each should be used.
     try
@@ -351,20 +331,15 @@ public class RandomPasswordGenerator
       return false;
     }
 
-
     // If we've gotten here, then everything looks OK.
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       RandomPasswordGeneratorCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
 
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
@@ -407,7 +382,6 @@ public class RandomPasswordGenerator
       ccr.addMessage(ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(getExceptionMessage(e)));
       ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
     }
-
 
     // Get the value that describes which character set(s) and how many
     // characters from each should be used.
@@ -458,7 +432,6 @@ public class RandomPasswordGenerator
       ccr.addMessage(ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(getExceptionMessage(e)));
       ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
     }
-
 
     // If everything looks OK, then apply the changes.
     if (ccr.getResultCode() == ResultCode.SUCCESS)

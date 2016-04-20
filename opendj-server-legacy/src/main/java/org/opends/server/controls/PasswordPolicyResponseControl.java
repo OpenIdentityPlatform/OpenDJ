@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,13 +40,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class PasswordPolicyResponseControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<PasswordPolicyResponseControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public PasswordPolicyResponseControl decode(boolean isCritical,
                                                 ByteString value)
         throws DirectoryException
@@ -120,6 +118,7 @@ public class PasswordPolicyResponseControl
     }
 
 
+    @Override
     public String getOID()
     {
       return OID_ACCOUNT_USABLE_CONTROL;
@@ -127,9 +126,7 @@ public class PasswordPolicyResponseControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<PasswordPolicyResponseControl> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -137,16 +134,12 @@ public class PasswordPolicyResponseControl
 
 
 
-  /**
-   * The BER type value for the warning element of the control value.
-   */
+  /** The BER type value for the warning element of the control value. */
   public static final byte TYPE_WARNING_ELEMENT = (byte) 0xA0;
 
 
 
-  /**
-   * The BER type value for the error element of the control value.
-   */
+  /** The BER type value for the error element of the control value. */
   public static final byte TYPE_ERROR_ELEMENT = (byte) 0x81;
 
 
@@ -292,14 +285,6 @@ public class PasswordPolicyResponseControl
     return errorType;
   }
 
-
-
-  /**
-   * Appends a string representation of this password policy response control to
-   * the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
   @Override
   public void toString(StringBuilder buffer)
   {

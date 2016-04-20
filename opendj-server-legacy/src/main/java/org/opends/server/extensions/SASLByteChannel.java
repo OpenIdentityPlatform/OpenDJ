@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -29,12 +29,9 @@ import org.opends.server.api.ClientConnection;
  */
 public final class SASLByteChannel implements ConnectionSecurityProvider
 {
-
   /** Private implementation. */
   private final class ByteChannelImpl implements ByteChannel
   {
-
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException
     {
@@ -48,18 +45,12 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean isOpen()
     {
       return saslContext != null;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int read(final ByteBuffer unwrappedData) throws IOException
     {
@@ -97,9 +88,6 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int write(final ByteBuffer unwrappedData) throws IOException
     {
@@ -153,8 +141,6 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
       return bytesWritten;
     }
-
-
 
     /** Attempt to read and unwrap the next SASL packet. */
     private int doRecvAndUnwrap() throws IOException
@@ -240,8 +226,6 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
     }
   }
 
-
-
   /**
    * Return a SASL byte channel instance created using the specified parameters.
    *
@@ -258,8 +242,6 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
   {
     return new SASLByteChannel(c, name, context);
   }
-
-
 
   private final String name;
   private final ByteChannel channel;
@@ -278,8 +260,6 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
 
   private final Object readLock = new Object();
   private final Object writeLock = new Object();
-
-
 
   /**
    * Create a SASL byte channel with the specified parameters that is capable of
@@ -308,49 +288,33 @@ public final class SASLByteChannel implements ConnectionSecurityProvider
     sendWrappedBuffer = ByteBuffer.allocate(sendUnwrappedBufferSize + 64);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteChannel getChannel()
   {
     return pimpl;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Certificate[] getClientCertificateChain()
   {
     return new Certificate[0];
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getName()
   {
     return name;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
     return saslContext.getSSF();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure()
   {
     return true;
   }
-
 }

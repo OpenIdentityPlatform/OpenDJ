@@ -20,8 +20,6 @@ import static org.forgerock.util.Reject.*;
 
 import org.forgerock.opendj.ldap.DN;
 
-
-
 /**
  * This abstract class defines methods for a change record entry.  It
  * includes operations to get the DN, as well as methods to
@@ -37,7 +35,6 @@ public abstract class ChangeRecordEntry
   /** The DN for this entry. */
   private DN dn;
 
-
   /**
    * Creates a new change record entry with the provided information.
    *
@@ -50,7 +47,6 @@ public abstract class ChangeRecordEntry
     this.dn = dn;
   }
 
-
   /**
    * Retrieves the distinguished name for this entry.
    *
@@ -61,8 +57,6 @@ public abstract class ChangeRecordEntry
     return dn;
   }
 
-
-
   /**
    * Retrieves the name of the change operation type.
    *
@@ -70,13 +64,6 @@ public abstract class ChangeRecordEntry
    */
   public abstract ChangeOperationType getChangeOperationType();
 
-
-
-  /**
-   * Retrieves a string representation of this change record entry.
-   *
-   * @return  A string representation of this change record entry.
-   */
+  @Override
   public abstract String toString();
 }
-

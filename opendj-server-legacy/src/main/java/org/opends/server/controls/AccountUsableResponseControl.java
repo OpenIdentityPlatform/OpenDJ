@@ -12,24 +12,25 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-import java.io.IOException;
-
-import org.forgerock.opendj.io.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class implements the account usable response control.  This is a
@@ -52,13 +53,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class AccountUsableResponseControl
     extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<AccountUsableResponseControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public AccountUsableResponseControl decode(boolean isCritical,
                                                ByteString value)
         throws DirectoryException
@@ -144,71 +143,41 @@ public class AccountUsableResponseControl
       }
     }
 
+    @Override
     public String getOID()
     {
       return OID_ACCOUNT_USABLE_CONTROL;
     }
-
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
-  public static final ControlDecoder<AccountUsableResponseControl> DECODER =
-    new Decoder();
+  /** The Control Decoder that can be used to decode this control. */
+  public static final ControlDecoder<AccountUsableResponseControl> DECODER = new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
-  /**
-   * The BER type to use for the seconds before expiration when the account is
-   * available.
-   */
+  /** The BER type to use for the seconds before expiration when the account is available. */
   public static final byte TYPE_SECONDS_BEFORE_EXPIRATION = (byte) 0x80;
-
-
-
-  /**
-   * The BER type to use for the MORE_INFO sequence when the account is not
-   * available.
-   */
+  /** The BER type to use for the MORE_INFO sequence when the account is not available. */
   public static final byte TYPE_MORE_INFO = (byte) 0xA1;
-
-
-
   /**
    * The BER type to use for the MORE_INFO element that indicates that the
    * account has been inactivated.
    */
   public static final byte TYPE_INACTIVE = (byte) 0x80;
-
-
-
   /**
    * The BER type to use for the MORE_INFO element that indicates that the
    * password has been administratively reset.
    */
   public static final byte TYPE_RESET = (byte) 0x81;
-
-
-
   /**
    * The BER type to use for the MORE_INFO element that indicates that the
    * user's password is expired.
    */
   public static final byte TYPE_EXPIRED = (byte) 0x82;
-
-
-
   /**
    * The BER type to use for the MORE_INFO element that provides the number of
    * remaining grace logins.
    */
   public static final byte TYPE_REMAINING_GRACE_LOGINS = (byte) 0x83;
-
-
-
   /**
    * The BER type to use for the MORE_INFO element that indicates that the
    * password has been administratively reset.
@@ -216,19 +185,14 @@ public class AccountUsableResponseControl
   public static final byte TYPE_SECONDS_BEFORE_UNLOCK = (byte) 0x84;
 
 
-
   /** Indicates whether the user's account is usable. */
   private boolean isUsable;
-
   /** Indicates whether the user's password is expired. */
   private boolean isExpired;
-
   /** Indicates whether the user's account is inactive. */
   private boolean isInactive;
-
   /** Indicates whether the user's account is currently locked. */
   private boolean isLocked;
-
   /**
    * Indicates whether the user's password has been reset and must be changed
    * before anything else can be done.
@@ -237,13 +201,8 @@ public class AccountUsableResponseControl
 
   /** The number of remaining grace logins, if available. */
   private int remainingGraceLogins;
-
-  /**
-   * The length of time in seconds before the user's password expires, if
-   * available.
-   */
+  /** The length of time in seconds before the user's password expires, if available. */
   private int secondsBeforeExpiration;
-
   /** The length of time before the user's account is unlocked, if available. */
   private int secondsBeforeUnlock;
 
@@ -374,13 +333,7 @@ public class AccountUsableResponseControl
         isLocked, secondsBeforeUnlock);
   }
 
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
+  @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
@@ -538,14 +491,7 @@ public class AccountUsableResponseControl
     return secondsBeforeUnlock;
   }
 
-
-
-  /**
-   * Appends a string representation of this password policy response control to
-   * the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("AccountUsableResponseControl(isUsable=");

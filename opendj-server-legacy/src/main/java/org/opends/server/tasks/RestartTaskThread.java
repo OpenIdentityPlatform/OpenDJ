@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -70,6 +70,7 @@ public class RestartTaskThread
   /**
    * Invokes the Directory Server shutdown process.
    */
+  @Override
   public void run()
   {
     DirectoryServer.restart(CLASS_NAME, shutdownMessage);

@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
 import java.io.InputStream;
 import java.io.IOException;
 
-/**
- * An implementation of input stream that enforces an read size limit.
- */
+/** An implementation of input stream that enforces an read size limit. */
 public class SizeLimitInputStream extends InputStream
 {
   private int bytesRead;
@@ -43,7 +41,7 @@ public class SizeLimitInputStream extends InputStream
     this.readLimit = readLimit;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int available() throws IOException
   {
     int streamAvail = parentStream.available();
@@ -51,14 +49,14 @@ public class SizeLimitInputStream extends InputStream
     return limitedAvail < streamAvail ? limitedAvail : streamAvail;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public synchronized void mark(int readlimit)
   {
     parentStream.mark(readlimit);
     markBytesRead = bytesRead;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int read() throws IOException
   {
     if(bytesRead >= readLimit)
@@ -74,7 +72,7 @@ public class SizeLimitInputStream extends InputStream
     return b;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public int read(byte b[], int off, int len) throws IOException
   {
     if(off < 0 || len < 0 || off+len > b.length)
@@ -105,14 +103,14 @@ public class SizeLimitInputStream extends InputStream
     return readLen;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public synchronized void reset() throws IOException
   {
     parentStream.reset();
     bytesRead = markBytesRead;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public long skip(long n) throws IOException
   {
     if(bytesRead + n > readLimit)
@@ -124,12 +122,12 @@ public class SizeLimitInputStream extends InputStream
     return parentStream.skip(n);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean markSupported() {
     return parentStream.markSupported();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void close() throws IOException {
     parentStream.close();
   }

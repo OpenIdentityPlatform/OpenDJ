@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -127,6 +127,7 @@ public enum ServerStatus
    * for monitoring purpose).
    * @return A user readable string representing this status.
    */
+  @Override
   public String toString()
   {
     switch (value)

@@ -12,14 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.server.monitors;
 
-
-
 import org.opends.server.api.MonitorProvider;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -39,21 +36,11 @@ public class VersionMonitorTestCase
     super("cn=Version,cn=Monitor Providers,cn=config");
   }
 
-
-
-  /**
-   * Retrieves an initialized instance of the associated monitor provider.
-   *
-   * @return  An initialized instance of the associated monitor provider.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  protected MonitorProvider getMonitorInstance()
-         throws Exception
+  @Override
+  protected MonitorProvider<?> getMonitorInstance() throws Exception
   {
     VersionMonitorProvider monitorProvider = new VersionMonitorProvider();
     monitorProvider.initializeMonitorProvider(null);
     return monitorProvider;
   }
 }
-

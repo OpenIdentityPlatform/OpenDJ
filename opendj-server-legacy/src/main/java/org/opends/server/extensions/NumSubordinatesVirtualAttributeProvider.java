@@ -42,9 +42,7 @@ public class NumSubordinatesVirtualAttributeProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Creates a new instance of this NumSubordinates virtual attribute provider.
-   */
+  /** Creates a new instance of this NumSubordinates virtual attribute provider. */
   public NumSubordinatesVirtualAttributeProvider()
   {
     super();
@@ -53,14 +51,12 @@ public class NumSubordinatesVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -82,7 +78,6 @@ public class NumSubordinatesVirtualAttributeProvider
     return Attributes.empty(rule.getAttributeType());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -99,7 +94,6 @@ public class NumSubordinatesVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
@@ -116,7 +110,6 @@ public class NumSubordinatesVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -128,7 +121,6 @@ public class NumSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -138,7 +130,6 @@ public class NumSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -147,7 +138,6 @@ public class NumSubordinatesVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -159,4 +149,3 @@ public class NumSubordinatesVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 }
-

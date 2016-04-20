@@ -32,9 +32,7 @@ import static org.opends.messages.ToolMessages.*;
 public class ParentDNTag
        extends Tag
 {
-  /**
-   * Creates a new instance of this parent DN tag.
-   */
+  /** Creates a new instance of this parent DN tag. */
   public ParentDNTag()
   {
     // No implementation required.
@@ -47,6 +45,7 @@ public class ParentDNTag
    *
    * @return  The name for this tag.
    */
+  @Override
   public String getName()
   {
     return "ParentDN";
@@ -61,6 +60,7 @@ public class ParentDNTag
    * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
    *          or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean allowedInBranch()
   {
     return false;
@@ -83,6 +83,7 @@ public class ParentDNTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
@@ -107,6 +108,7 @@ public class ParentDNTag
    *
    * @return  The result of generating content for this tag.
    */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {

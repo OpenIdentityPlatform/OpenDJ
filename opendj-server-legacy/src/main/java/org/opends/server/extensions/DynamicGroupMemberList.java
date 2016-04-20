@@ -68,8 +68,6 @@ public class DynamicGroupMemberList
   /** The set of LDAP URLs that define the membership criteria. */
   private final Set<LDAPURL> memberURLs;
 
-
-
   /**
    * Creates a new dynamic group member list with the provided information.
    *
@@ -85,8 +83,6 @@ public class DynamicGroupMemberList
   {
     this(groupDN, memberURLs, null, null, null);
   }
-
-
 
   /**
    * Creates a new dynamic group member list with the provided information.
@@ -125,7 +121,6 @@ public class DynamicGroupMemberList
 
     searchesCompleted = false;
     resultQueue = new LinkedBlockingQueue<>(10);
-
 
     // We're going to have to perform one or more internal searches in order to
     // get the results.  We need to be careful about the way that we construct
@@ -213,7 +208,6 @@ public class DynamicGroupMemberList
       }
     }
 
-
     // At this point, we should know what base DN(s) we need to use, so we can
     // create the filter to use with that base DN.  There are some special-case
     // optimizations that we can do here, but in general the filter will look
@@ -276,7 +270,6 @@ public class DynamicGroupMemberList
       searchMap.put(urlBaseDN, combinedFilter);
     }
 
-
     // At this point, we should have all the information we need to perform the
     // searches.  Create arrays of the elements for each.
     DN[]           baseDNArray = new DN[baseDNs.size()];
@@ -297,13 +290,10 @@ public class DynamicGroupMemberList
       }
     }
 
-
     DynamicGroupSearchThread searchThread =
          new DynamicGroupSearchThread(this, baseDNArray, filterArray, urlArray);
     searchThread.start();
   }
-
-
 
   /**
    * Retrieves the DN of the dynamic group with which this dynamic group member
@@ -317,8 +307,6 @@ public class DynamicGroupMemberList
     return groupDN;
   }
 
-
-
   /**
    * Indicates that all of the searches needed to iterate across the member list
    * have completed and there will not be any more results provided.
@@ -327,8 +315,6 @@ public class DynamicGroupMemberList
   {
     searchesCompleted = true;
   }
-
-
 
   /**
    * Adds the provided entry to the set of results that should be returned for
@@ -355,8 +341,6 @@ public class DynamicGroupMemberList
     }
   }
 
-
-
   /**
    * Adds the provided membership exception so that it will be thrown along with
    * the set of results for this member list.
@@ -381,9 +365,6 @@ public class DynamicGroupMemberList
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean hasMoreMembers()
   {
@@ -403,9 +384,6 @@ public class DynamicGroupMemberList
     return resultQueue.peek() != null;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Entry nextMemberEntry()
          throws MembershipException
@@ -441,9 +419,6 @@ public class DynamicGroupMemberList
     return null;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -451,4 +426,3 @@ public class DynamicGroupMemberList
     resultQueue.clear();
   }
 }
-

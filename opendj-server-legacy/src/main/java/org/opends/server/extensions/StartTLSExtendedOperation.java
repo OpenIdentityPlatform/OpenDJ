@@ -37,7 +37,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class StartTLSExtendedOperation
        extends ExtendedOperationHandler<StartTLSExtendedOperationHandlerCfg>
 {
-
   /**
    * Create an instance of this StartTLS extended operation handler.  All
    * initialization should be performed in the
@@ -48,7 +47,6 @@ public class StartTLSExtendedOperation
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeExtendedOperationHandler(
                    StartTLSExtendedOperationHandlerCfg config)
@@ -70,7 +68,6 @@ public class StartTLSExtendedOperation
     // happen.
     operation.setResponseOID(OID_START_TLS_REQUEST);
 
-
     // Get the reference to the client connection.  If there is none, then fail.
     ClientConnection clientConnection = operation.getClientConnection();
     if (clientConnection == null)
@@ -79,7 +76,6 @@ public class StartTLSExtendedOperation
       operation.appendErrorMessage(ERR_STARTTLS_NO_CLIENT_CONNECTION.get());
       return;
     }
-
 
     // Make sure that the client connection is capable of enabling TLS.  If not,
     // then fail.
@@ -108,14 +104,12 @@ public class StartTLSExtendedOperation
     operation.setResultCode(ResultCode.SUCCESS);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationOID()
   {
     return OID_START_TLS_REQUEST;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {

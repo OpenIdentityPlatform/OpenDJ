@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.types;
-
-
 
 /**
  * This class implements an enumeration that may be used for
@@ -30,22 +28,10 @@ package org.opends.server.types;
      mayInvoke=true)
 public enum AcceptRejectWarn
 {
-  /**
-   * Indicates that elements meeting the associated criteria should be
-   * accepted.
-   */
+  /** Indicates that elements meeting the associated criteria should be accepted. */
   ACCEPT("accept"),
-
-
-
-  /**
-   * Indicates that elements meeting the associated criteria should be
-   * rejected.
-   */
+  /** Indicates that elements meeting the associated criteria should be rejected. */
   REJECT("reject"),
-
-
-
   /**
    * Indicates that a warning should be logged if an element meets the
    * associated criteria.  Whether it will be accepted or rejected
@@ -54,12 +40,8 @@ public enum AcceptRejectWarn
    */
   WARN("warn");
 
-
-
   /** The human-readable name for this policy. */
   private String policyName;
-
-
 
   /**
    * Creates a new accept/reject/warn policy with the provided name.
@@ -70,8 +52,6 @@ public enum AcceptRejectWarn
   {
     this.policyName = policyName;
   }
-
-
 
   /**
    * Retrieves the accept/reject/warn policy for the specified name.
@@ -103,8 +83,6 @@ public enum AcceptRejectWarn
     }
   }
 
-
-
   /**
    * Retrieves the human-readable name for this accept/reject/warn
    * policy.
@@ -112,9 +90,9 @@ public enum AcceptRejectWarn
    * @return  The human-readable name for this accept/reject/warn
    *          policy.
    */
+  @Override
   public String toString()
   {
     return policyName;
   }
 }
-

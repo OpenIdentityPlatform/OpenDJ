@@ -49,10 +49,7 @@ public class CharacterSetPasswordValidator
   /** The current configuration for this password validator. */
   private CharacterSetPasswordValidatorCfg currentConfig;
 
-  /**
-   * A mapping between the character sets and the minimum number of characters
-   * required for each.
-   */
+  /** A mapping between the character sets and the minimum number of characters required for each. */
   private HashMap<String,Integer> characterSets;
 
   /**
@@ -61,11 +58,7 @@ public class CharacterSetPasswordValidator
    */
   private HashMap<String,Integer> characterRanges;
 
-
-
-  /**
-   * Creates a new instance of this character set password validator.
-   */
+  /** Creates a new instance of this character set password validator. */
   public CharacterSetPasswordValidator()
   {
     super();
@@ -74,9 +67,6 @@ public class CharacterSetPasswordValidator
     // performed in the initializePasswordValidator() method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    CharacterSetPasswordValidatorCfg configuration)
@@ -90,18 +80,12 @@ public class CharacterSetPasswordValidator
     processCharacterSetsAndRanges(configuration, true);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeCharacterSetChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -111,7 +95,6 @@ public class CharacterSetPasswordValidator
     // Get a handle to the current configuration.
     CharacterSetPasswordValidatorCfg config = currentConfig;
     HashMap<String,Integer> characterSets = this.characterSets;
-
 
     // Process the provided password.
     String password = newPassword.toString();
@@ -227,7 +210,6 @@ public class CharacterSetPasswordValidator
           usedOptionalCharacterSets++;
         }
       }
-
     }
 
     // Check minimum optional character sets are present.
@@ -284,8 +266,6 @@ public class CharacterSetPasswordValidator
     // If we've gotten here, then the password is acceptable.
     return true;
   }
-
-
 
   /**
    * Parses the provided configuration and extracts the character set
@@ -469,9 +449,6 @@ public class CharacterSetPasswordValidator
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -481,9 +458,6 @@ public class CharacterSetPasswordValidator
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CharacterSetPasswordValidatorCfg configuration,
@@ -504,9 +478,6 @@ public class CharacterSetPasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                       CharacterSetPasswordValidatorCfg configuration)

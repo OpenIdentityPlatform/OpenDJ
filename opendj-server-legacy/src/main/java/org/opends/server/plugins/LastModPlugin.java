@@ -89,7 +89,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      LastModPluginCfg configuration)
@@ -117,7 +116,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
@@ -126,7 +124,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
@@ -159,7 +156,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -218,7 +214,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
@@ -255,7 +250,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -266,7 +260,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(LastModPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -297,7 +290,6 @@ public final class LastModPlugin
 
 
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  LastModPluginCfg configuration)

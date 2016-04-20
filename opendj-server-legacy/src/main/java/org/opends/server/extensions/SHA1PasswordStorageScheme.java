@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.MessageDigest;
 import java.util.Arrays;
 
@@ -37,8 +35,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a Directory Server password storage scheme based on the
  * SHA-1 algorithm defined in FIPS 180-1.  This is a one-way digest algorithm
@@ -53,21 +49,15 @@ public class SHA1PasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.SHA1PasswordStorageScheme";
-
-
 
   /** The message digest that will actually be used to generate the SHA-1 hashes. */
   private MessageDigest messageDigest;
 
   /** The lock used to provide threadsafe access to the message digest. */
   private Object digestLock;
-
-
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -79,9 +69,6 @@ public class SHA1PasswordStorageScheme
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    SHA1PasswordStorageSchemeCfg configuration)
@@ -103,18 +90,12 @@ public class SHA1PasswordStorageScheme
     digestLock = new Object();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_SHA_1;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -151,9 +132,6 @@ public class SHA1PasswordStorageScheme
     return ByteString.valueOfUtf8(Base64.encode(digestBytes));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -197,9 +175,6 @@ public class SHA1PasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -247,9 +222,6 @@ public class SHA1PasswordStorageScheme
     return userPWDigestBytes.equals(storedPWDigestBytes);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -257,9 +229,6 @@ public class SHA1PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -269,9 +238,6 @@ public class SHA1PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -280,18 +246,12 @@ public class SHA1PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -301,9 +261,6 @@ public class SHA1PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -314,9 +271,6 @@ public class SHA1PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -324,4 +278,3 @@ public class SHA1PasswordStorageScheme
     return true;
   }
 }
-

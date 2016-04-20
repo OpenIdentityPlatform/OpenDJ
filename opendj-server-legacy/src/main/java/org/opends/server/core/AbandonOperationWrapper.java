@@ -11,10 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
-
 
 /**
  * This abstract class wraps/decorates a given abandon operation. This class
@@ -24,7 +23,6 @@ package org.opends.server.core;
 public abstract class AbandonOperationWrapper extends
     OperationWrapper<AbandonOperation> implements AbandonOperation
 {
-
   /**
    * Creates a new abandon operation wrapper based on the provided abandon
    * operation.
@@ -37,11 +35,9 @@ public abstract class AbandonOperationWrapper extends
     super(abandon);
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getIDToAbandon()
   {
     return getOperation().getIDToAbandon();
   }
-
 }

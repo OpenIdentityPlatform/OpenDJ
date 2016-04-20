@@ -58,26 +58,19 @@ import org.opends.server.types.LDAPException;
 public class ServerSideSortRequestControl
     extends Control
 {
-  /**
-   * The BER type to use when encoding the orderingRule element.
-   */
+  /** The BER type to use when encoding the orderingRule element. */
   private static final byte TYPE_ORDERING_RULE_ID = (byte) 0x80;
 
 
 
-  /**
-   * The BER type to use when encoding the reverseOrder element.
-   */
+  /** The BER type to use when encoding the reverseOrder element. */
   private static final byte TYPE_REVERSE_ORDER = (byte) 0x81;
 
 
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<ServerSideSortRequestControl>
   {
-    /** {@inheritDoc} */
     @Override
     public ServerSideSortRequestControl decode(boolean isCritical,
                                                ByteString value)
@@ -171,9 +164,7 @@ public class ServerSideSortRequestControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<ServerSideSortRequestControl> DECODER =
       new Decoder();
 

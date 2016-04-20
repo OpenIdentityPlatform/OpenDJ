@@ -71,7 +71,6 @@ import static org.opends.server.util.StaticUtils.*;
 public final class LDAPClientConnection extends ClientConnection implements
     TLSCapableConnection
 {
-
   /**
    * A runnable whose task is to close down all IO related channels
    * associated with a client connection after a small delay.
@@ -92,9 +91,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       this.socketChannel = socketChannel;
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -162,8 +158,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     {
       clientChannel.close();
     }
-
-
 
     @Override
     public int write(ByteBuffer byteBuffer) throws IOException
@@ -288,13 +282,10 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Thread local ASN1Writer and buffer.
-   */
+  /** Thread local ASN1Writer and buffer. */
   private static final class ASN1WriterHolder implements Closeable
   {
     private final ASN1Writer writer;
@@ -308,7 +299,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       this.writer = ASN1.getWriter(buffer, maxBufferSize);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException
     {
@@ -317,13 +307,10 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-  /**
-   * Cached ASN1 writer: a thread can only write to one connection at a time.
-   */
+  /** Cached ASN1 writer: a thread can only write to one connection at a time. */
   private static final ThreadLocal<ASN1WriterHolder> ASN1_WRITER_CACHE =
       new ThreadLocal<ASN1WriterHolder>()
   {
-    /** {@inheritDoc} */
     @Override
     protected ASN1WriterHolder initialValue()
     {
@@ -345,10 +332,8 @@ public final class LDAPClientConnection extends ClientConnection implements
 
   /** The time that the last operation was completed. */
   private final AtomicLong lastCompletionTime;
-
   /** The next operation ID that should be used for this connection. */
   private final AtomicLong nextOperationID;
-
   /** The selector that may be used for write operations. */
   private final AtomicReference<Selector> writeSelector;
 
@@ -381,54 +366,34 @@ public final class LDAPClientConnection extends ClientConnection implements
 
   /** The port on the client from which this connection originated. */
   private final int clientPort;
-
-  /**
-   * The LDAP version that the client is using to communicate with the server.
-   */
+  /** The LDAP version that the client is using to communicate with the server. */
   private int ldapVersion;
-
   /** The port on the server to which this client has connected. */
   private final int serverPort;
 
   /** The reference to the connection handler that accepted this connection. */
   private final LDAPConnectionHandler connectionHandler;
-
   /** The statistics tracker associated with this client connection. */
   private final LDAPStatistics statTracker;
   private boolean useNanoTime;
 
-
   /** The connection ID assigned to this connection. */
   private final long connectionID;
 
-  /**
-   * The lock used to provide threadsafe access to the set of operations in
-   * progress.
-   */
+  /** The lock used to provide threadsafe access to the set of operations in progress. */
   private final Object opsInProgressLock;
 
   /** The socket channel with which this client connection is associated. */
   private final SocketChannel clientChannel;
-
   /** The byte channel used for blocking writes with time out. */
   private final ByteChannel timeoutClientChannel;
 
   /** The string representation of the address of the client. */
   private final String clientAddress;
-
-  /**
-   * The name of the protocol that the client is using to communicate with the
-   * server.
-   */
+  /** The name of the protocol that the client is using to communicate with the server. */
   private final String protocol;
-
-  /**
-   * The string representation of the address of the server to which the client
-   * has connected.
-   */
+  /** The string representation of the address of the server to which the client has connected. */
   private final String serverAddress;
-
-
 
   private ASN1ByteChannelReader asn1Reader;
   private final int bufferSize;
@@ -438,7 +403,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   private volatile ConnectionSecurityProvider tlsActiveProvider;
   private volatile ConnectionSecurityProvider saslPendingProvider;
   private volatile ConnectionSecurityProvider tlsPendingProvider;
-
 
   /**
    * Creates a new LDAP client connection with the provided information.
@@ -511,8 +475,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return connectionID;
   }
 
-
-
   /**
    * Retrieves the connection handler that accepted this client
    * connection.
@@ -525,8 +487,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return connectionHandler;
   }
-
-
 
   /**
    * Retrieves the socket channel that can be used to communicate with
@@ -541,8 +501,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return clientChannel;
   }
 
-
-
   /**
    * Retrieves the protocol that the client is using to communicate with
    * the Directory Server.
@@ -556,8 +514,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return protocol;
   }
 
-
-
   /**
    * Retrieves a string representation of the address of the client.
    *
@@ -569,8 +525,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return clientAddress;
   }
 
-
-
   /**
    * Retrieves the port number for this connection on the client system.
    *
@@ -581,8 +535,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return clientPort;
   }
-
-
 
   /**
    * Retrieves a string representation of the address on the server to
@@ -597,8 +549,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return serverAddress;
   }
 
-
-
   /**
    * Retrieves the port number for this connection on the server system.
    *
@@ -609,8 +559,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return serverPort;
   }
-
-
 
   /**
    * Retrieves the <CODE>java.net.InetAddress</CODE> associated with the
@@ -625,8 +573,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return clientChannel.socket().getInetAddress();
   }
-
-
 
   /**
    * Retrieves the <CODE>java.net.InetAddress</CODE> for the Directory
@@ -643,7 +589,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return clientChannel.socket().getLocalAddress();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConnectionValid()
   {
@@ -676,8 +621,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     return secure;
   }
-
-
 
   /**
    * Sends a response to the client based on the information in the
@@ -720,8 +663,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       }
     }
   }
-
-
 
   /**
    * Retrieves an LDAPMessage containing a response generated from the
@@ -860,8 +801,6 @@ public final class LDAPClientConnection extends ClientConnection implements
         controls);
   }
 
-
-
   /**
    * Sends the provided search result entry to the client.
    *
@@ -880,8 +819,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     sendLDAPMessage(new LDAPMessage(searchOperation.getMessageID(),
         protocolOp, searchEntry.getControls()));
   }
-
-
 
   /**
    * Sends the provided search result reference to the client.
@@ -919,8 +856,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return true;
   }
 
-
-
   /**
    * Sends the provided intermediate response message to the client.
    *
@@ -948,8 +883,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     // connection is closed.
     return connectionValid;
   }
-
-
 
   /**
    * Sends the provided LDAP message to the client.
@@ -998,8 +931,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       close(holder);
     }
  }
-
-
 
   /**
    * Closes the connection to the client, optionally sending it a
@@ -1154,8 +1085,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-
-
   /**
    * Retrieves the set of operations in progress for this client
    * connection. This list must not be altered by any caller.
@@ -1168,8 +1097,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return operationsInProgress.values();
   }
-
-
 
   /**
    * Retrieves the operation in progress with the specified message ID.
@@ -1184,8 +1111,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return operationsInProgress.get(messageID);
   }
-
-
 
   /**
    * Adds the provided operation to the set of operations in progress
@@ -1261,8 +1186,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-
-
   /**
    * Removes the provided operation from the set of operations in
    * progress for this client connection. Note that this does not make
@@ -1295,8 +1218,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     lastCompletionTime.set(TimeThread.getTime());
     return true;
   }
-
-
 
   /**
    * Attempts to cancel the specified operation.
@@ -1336,8 +1257,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       return op.cancel(cancelRequest);
     }
   }
-
-
 
   /**
    * Attempts to cancel all operations in progress on this connection.
@@ -1391,8 +1310,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       }
     }
   }
-
-
 
   /**
    * Attempts to cancel all operations in progress on this connection
@@ -1462,9 +1379,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Selector getWriteSelector()
   {
@@ -1489,16 +1403,11 @@ public final class LDAPClientConnection extends ClientConnection implements
     return selector;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public long getMaxBlockedWriteTimeLimit()
   {
     return connectionHandler.getMaxBlockedWriteTimeLimit();
   }
-
-
 
   /**
    * Returns the total number of operations initiated on this
@@ -1512,8 +1421,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return operationsPerformed.get();
   }
 
-
-
   /**
    * Returns the ASN1 reader for this connection.
    *
@@ -1523,8 +1430,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     return asn1Reader;
   }
-
-
 
   /**
    * Process data read.
@@ -1577,8 +1482,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       return -1;
     }
   }
-
-
 
   /**
    * Processes the provided LDAP message read from the client and takes
@@ -1707,8 +1610,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-
-
   /**
    * Processes the provided LDAP message as an abandon request.
    *
@@ -1755,8 +1656,6 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     return connectionValid;
   }
-
-
 
   /**
    * Processes the provided LDAP message as an add request.
@@ -1812,8 +1711,6 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     return connectionValid;
   }
-
-
 
   /**
    * Processes the provided LDAP message as a bind request.
@@ -1944,8 +1841,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return connectionValid;
   }
 
-
-
   /**
    * Processes the provided LDAP message as a compare request.
    *
@@ -2003,8 +1898,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return connectionValid;
   }
 
-
-
   /**
    * Processes the provided LDAP message as a delete request.
    *
@@ -2060,8 +1953,6 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     return connectionValid;
   }
-
-
 
   /**
    * Processes the provided LDAP message as an extended request.
@@ -2125,8 +2016,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return connectionValid;
   }
 
-
-
   /**
    * Processes the provided LDAP message as a modify request.
    *
@@ -2182,8 +2071,6 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     return connectionValid;
   }
-
-
 
   /**
    * Processes the provided LDAP message as a modify DN request.
@@ -2241,8 +2128,6 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     return connectionValid;
   }
-
-
 
   /**
    * Processes the provided LDAP message as a search request.
@@ -2303,8 +2188,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return connectionValid;
   }
 
-
-
   /**
    * Processes the provided LDAP message as an unbind request.
    *
@@ -2331,9 +2214,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getMonitorSummary()
   {
@@ -2395,8 +2275,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return buffer.toString();
   }
 
-
-
   /**
    * Appends a string representation of this client connection to the
    * provided buffer.
@@ -2417,9 +2295,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     buffer.append(serverPort);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean prepareTLS(LocalizableMessageBuilder unavailableReason)
   {
@@ -2452,8 +2327,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return true;
   }
 
-
-
   /**
    * Retrieves the length of time in milliseconds that this client
    * connection has been idle. <BR>
@@ -2480,8 +2353,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
   }
 
-
-
   /**
    * Set the connection provider that is not in use yet. Used in TLS
    * negotiation when a clear response is needed before the connection
@@ -2494,8 +2365,6 @@ public final class LDAPClientConnection extends ClientConnection implements
   {
     tlsPendingProvider = provider;
   }
-
-
 
   /**
    * Set the connection provider that is not in use. Used in SASL
@@ -2510,19 +2379,13 @@ public final class LDAPClientConnection extends ClientConnection implements
     saslPendingProvider = provider;
   }
 
-
-
-  /**
-   * Enable the provider that is inactive.
-   */
+  /** Enable the provider that is inactive. */
   private void enableTLS()
   {
     tlsActiveProvider = tlsPendingProvider;
     tlsChannel.redirect(tlsPendingProvider);
     tlsPendingProvider = null;
   }
-
-
 
   /**
    * Set the security provider to the specified provider.
@@ -2536,19 +2399,13 @@ public final class LDAPClientConnection extends ClientConnection implements
     tlsChannel.redirect(sslProvider);
   }
 
-
-
-  /**
-   * Enable the SASL provider that is currently inactive or pending.
-   */
+  /** Enable the SASL provider that is currently inactive or pending. */
   private void enableSASL()
   {
     saslActiveProvider = saslPendingProvider;
     saslChannel.redirect(saslPendingProvider);
     saslPendingProvider = null;
   }
-
-
 
   /**
    * Return the certificate chain array associated with a connection.
@@ -2568,8 +2425,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return new Certificate[0];
   }
 
-
-
   /**
    * Retrieves the TLS redirecting byte channel used in a LDAP client
    * connection.
@@ -2581,9 +2436,6 @@ public final class LDAPClientConnection extends ClientConnection implements
      return this.tlsChannel;
    }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
@@ -2592,9 +2444,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     return Math.max(tlsSSF, saslSSF);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finishBind()
   {
@@ -2606,9 +2455,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     super.finishBind();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finishStartTLS()
   {

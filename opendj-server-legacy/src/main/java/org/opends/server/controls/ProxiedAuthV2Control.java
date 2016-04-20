@@ -46,13 +46,10 @@ import static org.forgerock.util.Reject.*;
 public class ProxiedAuthV2Control
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<ProxiedAuthV2Control>
   {
-    /** {@inheritDoc} */
     @Override
     public ProxiedAuthV2Control decode(boolean isCritical, ByteString value)
         throws DirectoryException
@@ -105,9 +102,7 @@ public class ProxiedAuthV2Control
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<ProxiedAuthV2Control> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -317,14 +312,6 @@ public class ProxiedAuthV2Control
     }
   }
 
-
-
-  /**
-   * Appends a string representation of this proxied authorization v2 control
-   * to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
   @Override
   public void toString(StringBuilder buffer)
   {

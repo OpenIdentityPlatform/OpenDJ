@@ -49,7 +49,6 @@ public class DynamicGroupSearchThread
        extends DirectoryThread
        implements InternalSearchListener
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The set of base DNs for the search requests. */
@@ -66,8 +65,6 @@ public class DynamicGroupSearchThread
 
   /** The set of search filters for the search requests. */
   private final SearchFilter[] searchFilters;
-
-
 
   /**
    * Creates a new dynamic group search thread that is associated with the
@@ -96,12 +93,7 @@ public class DynamicGroupSearchThread
     searchCounter = 0;
   }
 
-
-
-  /**
-   * Performs the set of searches and provides the results to the associated
-   * member list.
-   */
+  /** Performs the set of searches and provides the results to the associated member list. */
   @Override
   public void run()
   {
@@ -146,9 +138,6 @@ public class DynamicGroupSearchThread
     memberList.setSearchesCompleted();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
                                         SearchResultEntry searchEntry)
@@ -170,9 +159,6 @@ public class DynamicGroupSearchThread
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,
@@ -181,4 +167,3 @@ public class DynamicGroupSearchThread
     // No implementation required.
   }
 }
-

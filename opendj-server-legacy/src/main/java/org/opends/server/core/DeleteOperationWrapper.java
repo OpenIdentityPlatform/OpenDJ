@@ -27,7 +27,6 @@ import org.forgerock.opendj.ldap.DN;
 public abstract class DeleteOperationWrapper extends
     OperationWrapper<DeleteOperation> implements DeleteOperation
 {
-
   /**
    * Creates a new delete operation based on the provided delete operation.
    *
@@ -38,32 +37,27 @@ public abstract class DeleteOperationWrapper extends
     super(delete);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
-
 }

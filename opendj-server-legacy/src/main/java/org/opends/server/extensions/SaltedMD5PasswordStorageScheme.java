@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Random;
@@ -38,8 +36,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a Directory Server password storage scheme based on the
  * MD5 algorithm defined in RFC 1321.  This is a one-way digest algorithm so
@@ -56,23 +52,15 @@ public class SaltedMD5PasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.SaltedMD5PasswordStorageScheme";
 
-
-
-  /**
-   * The number of bytes of random data to use as the salt when generating the
-   * hashes.
-   */
+  /** The number of bytes of random data to use as the salt when generating the hashes. */
   private static final int NUM_SALT_BYTES = 8;
 
   /** The number of bytes MD5 algorithm produces. */
   private static final int MD5_LENGTH = 16;
-
 
   /** The message digest that will actually be used to generate the MD5 hashes. */
   private MessageDigest messageDigest;
@@ -82,8 +70,6 @@ public class SaltedMD5PasswordStorageScheme
 
   /** The secure random number generator to use to generate the salt values. */
   private Random random;
-
-
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -95,9 +81,6 @@ public class SaltedMD5PasswordStorageScheme
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    SaltedMD5PasswordStorageSchemeCfg configuration)
@@ -115,23 +98,16 @@ public class SaltedMD5PasswordStorageScheme
       throw new InitializationException(message, e);
     }
 
-
     digestLock = new Object();
     random     = new Random();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_SALTED_MD5;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -181,9 +157,6 @@ public class SaltedMD5PasswordStorageScheme
     return ByteString.valueOfUtf8(Base64.encode(hashPlusSalt));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -239,9 +212,6 @@ public class SaltedMD5PasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -271,7 +241,6 @@ public class SaltedMD5PasswordStorageScheme
       logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD, storedPassword, e);
       return false;
     }
-
 
     // Use the salt to generate a digest based on the provided plain-text value.
     int plainBytesLength = plaintextPassword.length();
@@ -303,9 +272,6 @@ public class SaltedMD5PasswordStorageScheme
     return Arrays.equals(digestBytes, userDigestBytes);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -313,18 +279,12 @@ public class SaltedMD5PasswordStorageScheme
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getAuthPasswordSchemeName()
   {
     return AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -364,7 +324,6 @@ public class SaltedMD5PasswordStorageScheme
       }
     }
 
-
     // Encode and return the value.
     StringBuilder authPWValue = new StringBuilder();
     authPWValue.append(AUTH_PASSWORD_SCHEME_NAME_SALTED_MD5);
@@ -376,9 +335,6 @@ public class SaltedMD5PasswordStorageScheme
     return ByteString.valueOfUtf8(authPWValue);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -396,7 +352,6 @@ public class SaltedMD5PasswordStorageScheme
 
       return false;
     }
-
 
     int plainBytesLength = plaintextPassword.length();
     byte[] plainPlusSaltBytes = new byte[plainBytesLength + saltBytes.length];
@@ -418,18 +373,12 @@ public class SaltedMD5PasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -439,9 +388,6 @@ public class SaltedMD5PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -452,9 +398,6 @@ public class SaltedMD5PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -462,4 +405,3 @@ public class SaltedMD5PasswordStorageScheme
     return true;
   }
 }
-

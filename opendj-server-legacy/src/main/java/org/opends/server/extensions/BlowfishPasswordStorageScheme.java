@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.BlowfishPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
@@ -36,8 +34,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a Directory Server password storage scheme that will
  * encode values using the Blowfish reversible encryption algorithm.  This
@@ -49,15 +45,11 @@ public class BlowfishPasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /**
    * The reference to the Directory Server crypto manager that we will use to
    * handle the encryption/decryption.
    */
   private CryptoManager cryptoManager;
-
-
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -69,9 +61,6 @@ public class BlowfishPasswordStorageScheme
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    BlowfishPasswordStorageSchemeCfg configuration)
@@ -80,18 +69,12 @@ public class BlowfishPasswordStorageScheme
     cryptoManager = DirectoryServer.getCryptoManager();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_BLOWFISH;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -124,9 +107,6 @@ public class BlowfishPasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -166,9 +146,6 @@ public class BlowfishPasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -188,18 +165,12 @@ public class BlowfishPasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -221,9 +192,6 @@ public class BlowfishPasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -231,9 +199,6 @@ public class BlowfishPasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -243,9 +208,6 @@ public class BlowfishPasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -254,9 +216,6 @@ public class BlowfishPasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -267,9 +226,6 @@ public class BlowfishPasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -277,4 +233,3 @@ public class BlowfishPasswordStorageScheme
     return true;
   }
 }
-

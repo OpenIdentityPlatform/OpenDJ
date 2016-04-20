@@ -76,7 +76,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    * Get the new RDN for the requested modify DN operation.
    *
    * @return the new RDN.
-   *
    */
   public RDN getNewRDN()
   {
@@ -88,7 +87,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    * Get the new superior DN for the requested modify DN operation.
    *
    * @return the new superior DN, or <CODE>null</CODE> if there is none.
-   *
    */
   public DN getNewSuperiorDN()
   {
@@ -100,7 +98,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    * Get the new RDN for the requested modify DN operation.
    *
    * @return the new RDN.
-   *
    */
   public boolean deleteOldRDN()
   {
@@ -113,6 +110,7 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
    *
    * @return  The name of the change operation type.
    */
+  @Override
   public ChangeOperationType getChangeOperationType()
   {
     return ChangeOperationType.MODIFY_DN;
@@ -120,7 +118,6 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
 
 
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

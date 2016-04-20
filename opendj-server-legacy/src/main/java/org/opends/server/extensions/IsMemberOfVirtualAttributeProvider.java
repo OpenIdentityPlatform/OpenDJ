@@ -45,9 +45,7 @@ public class IsMemberOfVirtualAttributeProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Creates a new instance of this entryDN virtual attribute provider.
-   */
+  /** Creates a new instance of this entryDN virtual attribute provider. */
   public IsMemberOfVirtualAttributeProvider()
   {
     super();
@@ -56,14 +54,12 @@ public class IsMemberOfVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -86,7 +82,6 @@ public class IsMemberOfVirtualAttributeProvider
     return builder.toAttribute();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -109,7 +104,6 @@ public class IsMemberOfVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           ByteString value)
@@ -128,7 +122,6 @@ public class IsMemberOfVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -140,7 +133,6 @@ public class IsMemberOfVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -150,7 +142,6 @@ public class IsMemberOfVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -160,7 +151,6 @@ public class IsMemberOfVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -169,8 +159,6 @@ public class IsMemberOfVirtualAttributeProvider
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;
   }
-
-
 
   /**
    * {@inheritDoc}.  This virtual attribute will support search operations only
@@ -192,9 +180,6 @@ public class IsMemberOfVirtualAttributeProvider
     return !isPreIndexed &&
         isSearchable(rule.getAttributeType(), searchOperation.getFilter(), 0);
   }
-
-
-
 
   /**
    * Indicates whether the provided search filter is one that may be used with
@@ -237,7 +222,6 @@ public class IsMemberOfVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -278,7 +262,6 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /**
-   *
    * @param searchOperation the search operation being processed.
    * @param memberList the list of members of the group being processed.
    * @param returnedDNs a set to store the normalized DNs of entries already returned,
@@ -319,8 +302,6 @@ public class IsMemberOfVirtualAttributeProvider
     }
     return true;
   }
-
-
 
   /**
    * Extracts the first group DN encountered in the provided filter, operating
@@ -367,4 +348,3 @@ public class IsMemberOfVirtualAttributeProvider
     return null;
   }
 }
-

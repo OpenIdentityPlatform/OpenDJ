@@ -43,11 +43,7 @@ public class UserDefinedVirtualAttributeProvider
   /** The current configuration for this virtual attribute provider. */
   private UserDefinedVirtualAttributeCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this member virtual attribute provider.
-   */
+  /** Creates a new instance of this member virtual attribute provider. */
   public UserDefinedVirtualAttributeProvider()
   {
     super();
@@ -56,9 +52,6 @@ public class UserDefinedVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeVirtualAttributeProvider(
                             UserDefinedVirtualAttributeCfg configuration)
@@ -68,27 +61,18 @@ public class UserDefinedVirtualAttributeProvider
     configuration.addUserDefinedChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeVirtualAttributeProvider()
   {
     currentConfig.removeUserDefinedChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return currentConfig == null || currentConfig.getValue().size() > 1;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -107,9 +91,6 @@ public class UserDefinedVirtualAttributeProvider
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -119,9 +100,6 @@ public class UserDefinedVirtualAttributeProvider
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -130,9 +108,6 @@ public class UserDefinedVirtualAttributeProvider
     return;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
@@ -142,9 +117,6 @@ public class UserDefinedVirtualAttributeProvider
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
@@ -155,4 +127,3 @@ public class UserDefinedVirtualAttributeProvider
     return new ConfigChangeResult();
   }
 }
-

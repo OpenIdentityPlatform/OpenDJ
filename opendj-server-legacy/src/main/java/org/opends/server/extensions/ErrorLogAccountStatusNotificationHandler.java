@@ -51,7 +51,6 @@ public class ErrorLogAccountStatusNotificationHandler
           ConfigurationChangeListener
           <ErrorLogAccountStatusNotificationHandlerCfg>
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -67,16 +66,13 @@ public class ErrorLogAccountStatusNotificationHandler
     }
   }
 
-
   /** The DN of the configuration entry for this notification handler. */
   private DN configEntryDN;
 
   /** The set of notification types that should generate log messages. */
   private HashSet<AccountStatusNotificationType> notificationTypes;
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeStatusNotificationHandler(
       ErrorLogAccountStatusNotificationHandlerCfg configuration
       )
@@ -90,9 +86,7 @@ public class ErrorLogAccountStatusNotificationHandler
     processNotificationHandlerConfig (configuration, applyChanges);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void handleStatusNotification(
                    AccountStatusNotification notification)
   {
@@ -103,9 +97,6 @@ public class ErrorLogAccountStatusNotificationHandler
                   notification.getMessage());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg configuration,
@@ -116,9 +107,7 @@ public class ErrorLogAccountStatusNotificationHandler
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       ErrorLogAccountStatusNotificationHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -129,8 +118,6 @@ public class ErrorLogAccountStatusNotificationHandler
     return processNotificationHandlerConfig (
         configuration, applyChanges);
   }
-
-
 
   /**
    * Makes a best-effort attempt to apply the configuration contained in the
@@ -155,9 +142,7 @@ public class ErrorLogAccountStatusNotificationHandler
     return applyConfigurationChange(configuration);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange (
       ErrorLogAccountStatusNotificationHandlerCfg configuration
       )
@@ -168,7 +153,6 @@ public class ErrorLogAccountStatusNotificationHandler
 
     return new ConfigChangeResult();
   }
-
 
   /**
    * Parses the provided configuration and configure the notification handler.
@@ -205,7 +189,6 @@ public class ErrorLogAccountStatusNotificationHandler
 
     return isAcceptable;
   }
-
 
   /**
    * Gets the OpenDS notification type object that corresponds to the
@@ -264,6 +247,4 @@ public class ErrorLogAccountStatusNotificationHandler
 
     return nt;
   }
-
 }
-

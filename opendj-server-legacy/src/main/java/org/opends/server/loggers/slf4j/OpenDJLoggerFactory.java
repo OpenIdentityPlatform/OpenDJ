@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers.slf4j;
 
@@ -21,11 +21,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 
-/**
- * Factory to retrieve an openDJ implementation of SLF4J Logger.
- */
+/** Factory to retrieve an openDJ implementation of SLF4J Logger. */
 public final class OpenDJLoggerFactory implements ILoggerFactory {
-
     private final ConcurrentMap<String, Logger> loggerMap;
 
     /** Create the factory. */
@@ -33,7 +30,7 @@ public final class OpenDJLoggerFactory implements ILoggerFactory {
         loggerMap = new ConcurrentHashMap<>();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public Logger getLogger(String name) {
         if (name.equalsIgnoreCase(Logger.ROOT_LOGGER_NAME)) {
             name = "org.forgerock";

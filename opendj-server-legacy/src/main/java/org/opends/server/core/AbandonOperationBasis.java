@@ -39,10 +39,8 @@ public class AbandonOperationBasis extends AbstractOperation
                PreParseAbandonOperation,
                PostOperationAbandonOperation
 {
-
   /** The message ID of the operation that should be abandoned. */
   private final int idToAbandon;
-
 
   /**
    * Creates a new abandon operation with the provided information.
@@ -65,13 +63,10 @@ public class AbandonOperationBasis extends AbstractOperation
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.idToAbandon = idToAbandon;
     this.cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
         ERR_CANNOT_CANCEL_ABANDON.get());
   }
-
-
 
   /**
    * Retrieves the message ID of the operation that should be abandoned.
@@ -84,26 +79,17 @@ public class AbandonOperationBasis extends AbstractOperation
     return idToAbandon;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return null;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -113,9 +99,6 @@ public class AbandonOperationBasis extends AbstractOperation
     return OperationType.ABANDON;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
@@ -124,25 +107,17 @@ public class AbandonOperationBasis extends AbstractOperation
     return NO_RESPONSE_CONTROLS;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     // An abandon operation can never have a response, so just ignore this.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     // An abandon operation can never have a response, so just ignore this.
   }
-
-
 
   /**
    * Performs the work of actually processing this operation.  This
@@ -174,7 +149,6 @@ abandonProcessing:
       // code to reflect whether the abandon was successful and an error message
       // if it was not.  Even though there is no response, the result should
       // still be logged.
-      //
       // Even though it is technically illegal to send a response for
       // operations that have been abandoned, it may be a good idea to do so
       // to ensure that the requestor isn't left hanging.  This will be a
@@ -198,18 +172,13 @@ abandonProcessing:
       }
     }
 
-
     // Stop the processing timer.
     setProcessingStopTime();
-
 
     // Log the result of the abandon operation.
     logAbandonResult(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {

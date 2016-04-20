@@ -30,10 +30,7 @@ import org.opends.server.types.InitializationException;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * This class defines a utility that will be used to manage the Directory Server
- * work queue.
- */
+/** This class defines a utility that will be used to manage the Directory Server work queue. */
 public class WorkQueueConfigManager
        implements ConfigurationChangeListener<WorkQueueCfg>
 {
@@ -49,7 +46,6 @@ public class WorkQueueConfigManager
   {
     this.serverContext = serverContext;
   }
-
 
   /**
    * Initializes the Directory Server's work queue.  This should only be called
@@ -71,7 +67,6 @@ public class WorkQueueConfigManager
     // Get the work queue configuration and register with it as a change listener.
     WorkQueueCfg workQueueConfig = serverContext.getRootConfig().getWorkQueue();
     workQueueConfig.addChangeListener(this);
-
 
     // Get the work queue class, and load and instantiate an instance of it
     // using that configuration.
@@ -98,9 +93,6 @@ public class WorkQueueConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(WorkQueueCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -110,9 +102,6 @@ public class WorkQueueConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(WorkQueueCfg configuration)
   {

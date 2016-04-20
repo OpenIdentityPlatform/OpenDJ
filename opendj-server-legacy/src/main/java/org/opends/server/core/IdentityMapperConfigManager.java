@@ -50,9 +50,7 @@ public class IdentityMapperConfigManager
        implements ConfigurationChangeListener<IdentityMapperCfg>,
                   ConfigurationAddListener<IdentityMapperCfg>,
                   ConfigurationDeleteListener<IdentityMapperCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A mapping between the DNs of the config entries and the associated identity mappers. */
@@ -72,8 +70,6 @@ public class IdentityMapperConfigManager
     identityMappers = new ConcurrentHashMap<>();
   }
 
-
-
   /**
    * Initializes all identity mappers currently defined in the Directory Server
    * configuration.  This should only be called at Directory Server startup.
@@ -91,7 +87,6 @@ public class IdentityMapperConfigManager
     RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addIdentityMapperAddListener(this);
     rootConfiguration.addIdentityMapperDeleteListener(this);
-
 
     //Initialize the existing identity mappers.
     for (String mapperName : rootConfiguration.listIdentityMappers())
@@ -119,7 +114,6 @@ public class IdentityMapperConfigManager
       }
     }
 
-
     // Now that all of the identity mappers are defined, see if the Directory
     // Server's proxied auth mapper is valid.  If not, then log a warning
     // message.
@@ -134,9 +128,6 @@ public class IdentityMapperConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       IdentityMapperCfg configuration,
@@ -162,9 +153,6 @@ public class IdentityMapperConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  IdentityMapperCfg configuration)
@@ -202,9 +190,6 @@ public class IdentityMapperConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       IdentityMapperCfg configuration,
@@ -215,9 +200,6 @@ public class IdentityMapperConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  IdentityMapperCfg configuration)
@@ -235,9 +217,6 @@ public class IdentityMapperConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       IdentityMapperCfg configuration,
@@ -263,19 +242,14 @@ public class IdentityMapperConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  IdentityMapperCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing mapper if it's already enabled.
     IdentityMapper existingMapper = identityMappers.get(configuration.dn());
-
 
     // If the new configuration has the mapper disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -295,7 +269,6 @@ public class IdentityMapperConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the identity mapper.  If the mapper is already enabled,
     // then we shouldn't do anything with it although if the class has changed
@@ -332,8 +305,6 @@ public class IdentityMapperConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as an identity mapper, and
@@ -391,4 +362,3 @@ public class IdentityMapperConfigManager
     }
   }
 }
-

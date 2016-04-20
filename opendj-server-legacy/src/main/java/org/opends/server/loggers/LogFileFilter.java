@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -20,9 +20,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 
-/**
- * This class defines a filename filter that will be used for log files.
- */
+/** This class defines a filename filter that will be used for log files. */
 class LogFileFilter implements FilenameFilter
 {
   private String prefix;
@@ -46,6 +44,7 @@ class LogFileFilter implements FilenameFilter
    * @return  <CODE>true</CODE> if the given filename matches the filter, or
    *          <CODE>false</CODE> if it does not.
    */
+  @Override
   public boolean accept(File dir, String name)
   {
     if(new File(dir, name).isDirectory())

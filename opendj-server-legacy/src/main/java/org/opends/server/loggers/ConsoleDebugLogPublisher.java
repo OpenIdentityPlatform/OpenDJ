@@ -34,14 +34,10 @@ import org.opends.server.util.ServerConstants;
 public class ConsoleDebugLogPublisher extends
     DebugLogPublisher<DebugLogPublisherCfg>
 {
-  /**
-   * The print stream where tracing will be sent.
-   */
+  /** The print stream where tracing will be sent. */
   private PrintStream err;
 
-  /**
-   * The format used for trace timestamps.
-   */
+  /** The format used for trace timestamps. */
   private DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
   /**
@@ -54,14 +50,12 @@ public class ConsoleDebugLogPublisher extends
     this.err = err;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(DebugLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException {
     // This publisher is not configurable.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void trace(TraceSettings settings,
                            String signature,
@@ -77,7 +71,6 @@ public class ConsoleDebugLogPublisher extends
     publish(msg, stack);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void traceException(TraceSettings settings,
                           String signature,
@@ -98,7 +91,6 @@ public class ConsoleDebugLogPublisher extends
     publish(message, stack);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -134,7 +126,6 @@ public class ConsoleDebugLogPublisher extends
     err.print(buf);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

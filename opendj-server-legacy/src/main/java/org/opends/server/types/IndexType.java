@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -196,6 +196,7 @@ public enum IndexType
    *
    * @return  The human-readable name for this index type.
    */
+  @Override
   public String toString()
   {
     return indexName;

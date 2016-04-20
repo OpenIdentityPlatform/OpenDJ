@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.RC4PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
@@ -36,7 +34,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
 /**
  * This class defines a Directory Server password storage scheme that will
  * encode values using the RC4 reversible encryption algorithm.  This
@@ -48,15 +45,11 @@ public class RC4PasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /**
    * The reference to the Directory Server crypto manager that we will use to
    * handle the encryption/decryption.
    */
   private CryptoManager cryptoManager;
-
-
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -68,9 +61,6 @@ public class RC4PasswordStorageScheme
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    RC4PasswordStorageSchemeCfg configuration)
@@ -79,18 +69,12 @@ public class RC4PasswordStorageScheme
     cryptoManager = DirectoryServer.getCryptoManager();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_RC4;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -123,9 +107,6 @@ public class RC4PasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -165,9 +146,6 @@ public class RC4PasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -187,18 +165,12 @@ public class RC4PasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -220,9 +192,6 @@ public class RC4PasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -230,9 +199,6 @@ public class RC4PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -242,9 +208,6 @@ public class RC4PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -253,9 +216,6 @@ public class RC4PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -266,9 +226,6 @@ public class RC4PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -276,4 +233,3 @@ public class RC4PasswordStorageScheme
     return true;
   }
 }
-

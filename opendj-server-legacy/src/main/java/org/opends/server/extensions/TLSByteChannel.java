@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
-
-
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,20 +34,12 @@ import javax.net.ssl.SSLSession;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-
-
-/**
- * A class that provides a TLS byte channel implementation.
- */
+/** A class that provides a TLS byte channel implementation. */
 public final class TLSByteChannel implements ConnectionSecurityProvider
 {
-  /**
-   * Private implementation.
-   */
+  /** Private implementation. */
   private final class ByteChannelImpl implements ByteChannel
   {
-
-    /** {@inheritDoc} */
     @Override
     public void close() throws IOException
     {
@@ -98,18 +88,12 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public boolean isOpen()
     {
       return !sslEngine.isOutboundDone() || !sslEngine.isInboundDone();
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int read(final ByteBuffer unwrappedData) throws IOException
     {
@@ -147,9 +131,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       }
     }
 
-
-
-    /** {@inheritDoc} */
     @Override
     public int write(final ByteBuffer unwrappedData) throws IOException
     {
@@ -176,8 +157,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       return bytesWritten;
     }
 
-
-
     /**
      * It seems that the SSL engine does not remember if an error has already
      * occurred so we must cache it here and rethrow. See OPENDJ-652.
@@ -189,8 +168,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
         throw sslException;
       }
     }
-
-
 
     private void doHandshake(final boolean isReading) throws IOException
     {
@@ -233,8 +210,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
         }
       }
     }
-
-
 
     /** Attempt to read and unwrap the next SSL packet. */
     private int doRecvAndUnwrap() throws IOException
@@ -323,8 +298,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       }
     }
 
-
-
     /** Attempt to wrap and send the next SSL packet. */
     private int doWrapAndSend(final ByteBuffer unwrappedData)
         throws IOException
@@ -382,16 +355,11 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
       }
     }
 
-
-
     private boolean isHandshaking(final HandshakeStatus status)
     {
       return status != HandshakeStatus.NOT_HANDSHAKING;
     }
-
   }
-
-
 
   /**
    * Map of cipher phrases to effective key size (bits). Taken from the
@@ -445,8 +413,6 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   private final Object readLock = new Object();
   private final Object writeLock = new Object();
 
-
-
   /**
    * Creates an TLS byte channel instance using the specified LDAP connection
    * configuration, client connection, SSL context and socket channel
@@ -476,18 +442,12 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     recvUnwrappedBuffer.flip();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteChannel getChannel()
   {
     return pimpl;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Certificate[] getClientCertificateChain()
   {
@@ -502,18 +462,12 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getName()
   {
     return "TLS";
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public int getSSF()
   {
@@ -546,13 +500,9 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     return null;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure()
   {
     return true;
   }
-
 }

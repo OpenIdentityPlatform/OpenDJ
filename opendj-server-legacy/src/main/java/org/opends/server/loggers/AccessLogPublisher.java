@@ -43,7 +43,6 @@ public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
     implements LogPublisher<T>
 {
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
       List<LocalizableMessage> unacceptableReasons)

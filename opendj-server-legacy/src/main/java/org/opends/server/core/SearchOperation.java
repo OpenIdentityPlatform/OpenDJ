@@ -464,6 +464,7 @@ public interface SearchOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   DN getProxiedAuthorizationDN();
 
   /**
@@ -475,6 +476,7 @@ public interface SearchOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 }

@@ -128,9 +128,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /**
-     * Creates a new MD4 message digest algorithm.
-     */
+    /** Creates a new MD4 message digest algorithm. */
     MD4MessageDigest()
     {
       super("MD4");
@@ -139,7 +137,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /** {@inheritDoc} */
     @Override
     public byte[] engineDigest()
     {
@@ -155,7 +152,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /** {@inheritDoc} */
     @Override
     public void engineReset()
     {
@@ -179,7 +175,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /** {@inheritDoc} */
     @Override
     public void engineUpdate(final byte input)
     {
@@ -194,7 +189,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /** {@inheritDoc} */
     @Override
     public void engineUpdate(final byte[] in, int inOff, int len)
     {
@@ -387,9 +381,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-    /*
-     * rotate int x left n bits.
-     */
+    /** Rotate int x left n bits. */
     private int rotateLeft(final int x, final int n)
     {
       return (x << n) | (x >>> 32 - n);
@@ -408,9 +400,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * Plugin configuration object.
-   */
+  /** Plugin configuration object. */
   private SambaPasswordPluginCfg config;
 
   /** The name of the Samba LanMan password attribute. */
@@ -608,9 +598,7 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public SambaPasswordPlugin()
   {
     super();
@@ -618,7 +606,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final SambaPasswordPluginCfg newConfig)
@@ -632,23 +619,17 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public PluginResult.PostOperation doPostOperation(
       final PostOperationExtendedOperation extendedOperation)
   {
-    /*
-     * If the operation is not Password Modify Extended Operation then skip this
-     * operation.
-     */
+    /* If the operation is not Password Modify Extended Operation then skip this operation. */
     if (!extendedOperation.getRequestOID().equals(PWMOD_EXTOP_OID))
     {
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-    /*
-     * If the operation has not been successful then ignore the operation.
-     */
+    /* If the operation has not been successful then ignore the operation. */
     if (extendedOperation.getResultCode() != ResultCode.SUCCESS)
     {
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -765,7 +746,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public PluginResult.PreOperation doPreOperation(
       final PreOperationModifyOperation modifyOperation)
@@ -842,7 +822,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void initializePlugin(final Set<PluginType> pluginTypes,
       final SambaPasswordPluginCfg configuration) throws ConfigException,
@@ -888,7 +867,6 @@ public final class SambaPasswordPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final SambaPasswordPluginCfg newConfig, final List<LocalizableMessage> messages)
@@ -1011,9 +989,7 @@ public final class SambaPasswordPlugin extends
     }
   }
 
-  /**
-   * Timestamp provider interface. Intended primarily for testing purposes.
-   */
+  /** Timestamp provider interface. Intended primarily for testing purposes. */
   static interface TimeStampProvider
   {
     /**

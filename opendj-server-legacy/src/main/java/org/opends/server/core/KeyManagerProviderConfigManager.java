@@ -52,15 +52,10 @@ public class  KeyManagerProviderConfigManager
        implements ConfigurationChangeListener<KeyManagerProviderCfg>,
                   ConfigurationAddListener<KeyManagerProviderCfg>,
                   ConfigurationDeleteListener<KeyManagerProviderCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated key
-   * manager providers.
-   */
+  /** A mapping between the DNs of the config entries and the associated key manager providers. */
   private final ConcurrentHashMap<DN,KeyManagerProvider> providers;
 
   private final ServerContext serverContext;
@@ -96,7 +91,6 @@ public class  KeyManagerProviderConfigManager
     rootConfiguration.addKeyManagerProviderAddListener(this);
     rootConfiguration.addKeyManagerProviderDeleteListener(this);
 
-
     //Initialize the existing key manager providers.
     for (String name : rootConfiguration.listKeyManagerProviders())
     {
@@ -124,9 +118,7 @@ public class  KeyManagerProviderConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
           KeyManagerProviderCfg configuration,
           List<LocalizableMessage> unacceptableReasons)
@@ -151,9 +143,7 @@ public class  KeyManagerProviderConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
           KeyManagerProviderCfg configuration)
   {
@@ -190,9 +180,7 @@ public class  KeyManagerProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       KeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -202,9 +190,7 @@ public class  KeyManagerProviderConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  KeyManagerProviderCfg configuration)
   {
@@ -221,9 +207,7 @@ public class  KeyManagerProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       KeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -248,18 +232,14 @@ public class  KeyManagerProviderConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  KeyManagerProviderCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing provider if it's already enabled.
     KeyManagerProvider existingProvider = providers.get(configuration.dn());
-
 
     // If the new configuration has the provider disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -278,7 +258,6 @@ public class  KeyManagerProviderConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the key manager provider.  If the provider is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -316,8 +295,6 @@ public class  KeyManagerProviderConfigManager
     return ccr;
   }
 
-
-
   /**
    * Loads the specified class, instantiates it as a key manager provider, and
    * optionally initializes that instance.
@@ -352,7 +329,6 @@ public class  KeyManagerProviderConfigManager
            propertyDefinition.loadClass(className, KeyManagerProvider.class);
       KeyManagerProvider provider = providerClass.newInstance();
 
-
       if (initialize)
       {
         provider.initializeKeyManagerProvider(configuration);
@@ -382,4 +358,3 @@ public class  KeyManagerProviderConfigManager
     }
   }
 }
-

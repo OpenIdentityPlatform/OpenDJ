@@ -15,9 +15,9 @@
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,24 +25,23 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.util.List;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.PKCS11KeyManagerProviderCfg;
 import org.opends.server.api.KeyManagerProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a key manager provider that will access keys stored on a
@@ -55,14 +54,8 @@ public class PKCS11KeyManagerProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /**
-   * The keystore type to use when accessing the PKCS#11 keystore.
-   */
+  /** The keystore type to use when accessing the PKCS#11 keystore. */
   public static final String PKCS11_KEYSTORE_TYPE = "PKCS11";
-
-
 
   /** The DN of the configuration entry for this key manager provider. */
   private DN configEntryDN;
@@ -72,8 +65,6 @@ public class PKCS11KeyManagerProvider
 
   /** The current configuration for this key manager provider. */
   private PKCS11KeyManagerProviderCfg currentConfig;
-
-
 
   /**
    * Creates a new instance of this PKCS#11 key manager provider.  The
@@ -85,9 +76,6 @@ public class PKCS11KeyManagerProvider
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeKeyManagerProvider(
                     PKCS11KeyManagerProviderCfg configuration)
@@ -168,29 +156,13 @@ public class PKCS11KeyManagerProvider
     }
   }
 
-
-
-  /**
-   * Performs any finalization that may be necessary for this key
-   * manager provider.
-   */
+  @Override
   public void finalizeKeyManagerProvider()
   {
     currentConfig.removePKCS11ChangeListener(this);
   }
 
-
-
-  /**
-   * Retrieves a set of <CODE>KeyManager</CODE> objects that may be used for
-   * interactions requiring access to a key manager.
-   *
-   * @return  A set of <CODE>KeyManager</CODE> objects that may be used for
-   *          interactions requiring access to a key manager.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to obtain
-   *                              the set of key managers.
-   */
+  @Override
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
@@ -209,7 +181,6 @@ public class PKCS11KeyManagerProvider
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
-
 
     try
     {
@@ -230,9 +201,6 @@ public class PKCS11KeyManagerProvider
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                         PKCS11KeyManagerProviderCfg configuration,
@@ -241,9 +209,7 @@ public class PKCS11KeyManagerProvider
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       PKCS11KeyManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -339,9 +305,7 @@ public class PKCS11KeyManagerProvider
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PKCS11KeyManagerProviderCfg configuration)
   {

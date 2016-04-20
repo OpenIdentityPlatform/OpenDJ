@@ -37,7 +37,6 @@ public abstract class HTTPAccessLogPublisher
     <T extends HTTPAccessLogPublisherCfg> implements LogPublisher<T>
 {
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
       List<LocalizableMessage> unacceptableReasons)

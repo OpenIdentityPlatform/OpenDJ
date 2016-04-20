@@ -77,7 +77,6 @@ public class FingerprintCertificateMapper
   /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
-
   /**
    * Creates a new instance of this certificate mapper.  Note that all actual
    * initialization should be done in the
@@ -88,9 +87,6 @@ public class FingerprintCertificateMapper
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
                    FingerprintCertificateMapperCfg configuration)
@@ -110,7 +106,6 @@ public class FingerprintCertificateMapper
         fingerprintAlgorithm = "SHA1";
         break;
     }
-
 
     // Make sure that the fingerprint attribute is configured for equality in
     // all appropriate backends.
@@ -136,18 +131,12 @@ public class FingerprintCertificateMapper
     requestedAttributes = newLinkedHashSet("*", "+");
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
     currentConfig.removeFingerprintChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
@@ -163,7 +152,6 @@ public class FingerprintCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
     // Get the first certificate in the chain.  It must be an X.509 certificate.
     X509Certificate peerCertificate;
     try
@@ -178,7 +166,6 @@ public class FingerprintCertificateMapper
           certificateChain[0].getType());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
-
 
     // Get the signature from the peer certificate and create a digest of it
     // using the configured algorithm.
@@ -201,12 +188,10 @@ public class FingerprintCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
     // Create the search filter from the fingerprint.
     ByteString value = ByteString.valueOfUtf8(fingerprintString);
     SearchFilter filter =
          SearchFilter.createEqualityFilter(fingerprintAttributeType, value);
-
 
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the
     // set of public naming contexts in the server.
@@ -215,7 +200,6 @@ public class FingerprintCertificateMapper
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
-
 
     // For each base DN, issue an internal search in an attempt to map the
     // certificate.
@@ -247,7 +231,6 @@ public class FingerprintCertificateMapper
           throw new DirectoryException(
                   ResultCode.INVALID_CREDENTIALS, message);
 
-
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
@@ -277,15 +260,11 @@ public class FingerprintCertificateMapper
       }
     }
 
-
     // If we've gotten here, then we either found exactly one user entry or we
     // didn't find any.  Either way, return the entry or null to the caller.
     return userEntry;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -295,9 +274,6 @@ public class FingerprintCertificateMapper
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       FingerprintCertificateMapperCfg configuration,
@@ -306,15 +282,11 @@ public class FingerprintCertificateMapper
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               FingerprintCertificateMapperCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
 
     // Get the algorithm that will be used to generate the fingerprint.
     String newFingerprintAlgorithm = null;
@@ -327,7 +299,6 @@ public class FingerprintCertificateMapper
         newFingerprintAlgorithm = "SHA1";
         break;
     }
-
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {

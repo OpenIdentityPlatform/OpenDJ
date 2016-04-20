@@ -44,16 +44,13 @@ public class AccessLogger extends AbstractLogger
   /** The singleton instance of this class. */
   private static final AccessLogger instance = new AccessLogger();
 
-  /**
-   * The constructor for this class.
-   */
+  /** The constructor for this class. */
   private AccessLogger()
   {
     super((Class) AccessLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected ClassPropertyDefinition getJavaClassPropertyDefinition()
   {
@@ -61,7 +58,6 @@ public class AccessLogger extends AbstractLogger
         .getJavaClassPropertyDefinition();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Collection<AccessLogPublisher<AccessLogPublisherCfg>> getLogPublishers()
   {
@@ -490,7 +486,6 @@ public class AccessLogger extends AbstractLogger
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized void addLogPublisher(
       AccessLogPublisher<AccessLogPublisherCfg> publisher)
@@ -498,7 +493,6 @@ public class AccessLogger extends AbstractLogger
     loggerStorage.addLogPublisher(publisher);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized boolean removeLogPublisher(
       AccessLogPublisher<AccessLogPublisherCfg> publisher)

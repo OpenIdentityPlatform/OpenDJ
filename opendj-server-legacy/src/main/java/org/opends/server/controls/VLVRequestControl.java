@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -52,13 +52,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class VLVRequestControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<VLVRequestControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public VLVRequestControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -126,6 +124,7 @@ public class VLVRequestControl
       }
     }
 
+    @Override
     public String getOID()
     {
       return OID_VLV_REQUEST_CONTROL;
@@ -133,22 +132,16 @@ public class VLVRequestControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<VLVRequestControl> DECODER =
     new Decoder();
 
-  /**
-   * The BER type to use when encoding the byOffset target element.
-   */
+  /** The BER type to use when encoding the byOffset target element. */
   public static final byte TYPE_TARGET_BYOFFSET = (byte) 0xA0;
 
 
 
-  /**
-   * The BER type to use when encoding the greaterThanOrEqual target element.
-   */
+  /** The BER type to use when encoding the greaterThanOrEqual target element. */
   public static final byte TYPE_TARGET_GREATERTHANOREQUAL = (byte) 0x81;
 
 

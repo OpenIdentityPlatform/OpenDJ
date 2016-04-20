@@ -52,7 +52,6 @@ import org.opends.server.types.InitializationException;
 public class DigestMD5SASLMechanismHandler
       extends SASLMechanismHandler<DigestMD5SASLMechanismHandlerCfg>
       implements ConfigurationChangeListener<DigestMD5SASLMechanismHandlerCfg> {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The current configuration for this SASL mechanism handler. */
@@ -73,7 +72,6 @@ public class DigestMD5SASLMechanismHandler
   /** Property used to set the realm in the environment. */
   private static final String REALM_PROPERTY = "com.sun.security.sasl.digest.realm";
 
-
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
    * should be done in this method, as it should all be performed in the
@@ -84,8 +82,6 @@ public class DigestMD5SASLMechanismHandler
     super();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
           DigestMD5SASLMechanismHandlerCfg configuration)
@@ -117,16 +113,12 @@ public class DigestMD5SASLMechanismHandler
       }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler() {
     configuration.removeDigestMD5ChangeListener(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOp) {
       ClientConnection clientConnection = bindOp.getClientConnection();
@@ -159,8 +151,6 @@ public class DigestMD5SASLMechanismHandler
       }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -168,9 +158,6 @@ public class DigestMD5SASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -178,8 +165,6 @@ public class DigestMD5SASLMechanismHandler
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -190,8 +175,6 @@ public class DigestMD5SASLMechanismHandler
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       DigestMD5SASLMechanismHandlerCfg configuration,
@@ -200,8 +183,6 @@ public class DigestMD5SASLMechanismHandler
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
           DigestMD5SASLMechanismHandlerCfg configuration)
@@ -231,7 +212,6 @@ public class DigestMD5SASLMechanismHandler
       return ccr;
   }
 
-
   /**
    * Retrieves the QOP (quality-of-protection) from the specified
    * configuration.
@@ -251,7 +231,6 @@ public class DigestMD5SASLMechanismHandler
       }
   }
 
-
   /**
    * Returns the fully qualified name either defined in the configuration, or,
    * determined by examining the system configuration.
@@ -270,7 +249,6 @@ public class DigestMD5SASLMechanismHandler
       }
       return serverName;
   }
-
 
   /**
    * Retrieve the realm either defined in the specified configuration. If this

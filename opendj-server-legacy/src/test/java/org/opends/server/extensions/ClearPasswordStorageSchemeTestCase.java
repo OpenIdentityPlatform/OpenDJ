@@ -29,6 +29,7 @@ public class ClearPasswordStorageSchemeTestCase
     super("cn=Clear,cn=Password Storage Schemes,cn=config");
   }
 
+  @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     return InitializationUtils.initializePasswordStorageScheme(

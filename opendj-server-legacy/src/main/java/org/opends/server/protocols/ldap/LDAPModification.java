@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -60,6 +60,7 @@ public class LDAPModification
    *
    * @return  The modification type for this modification.
    */
+  @Override
   public ModificationType getModificationType()
   {
     return modificationType;
@@ -72,6 +73,7 @@ public class LDAPModification
    *
    * @param  modificationType  The modification type for this modification.
    */
+  @Override
   public void setModificationType(ModificationType modificationType)
   {
     this.modificationType = modificationType;
@@ -84,6 +86,7 @@ public class LDAPModification
    *
    * @return  The attribute for this modification.
    */
+  @Override
   public RawAttribute getAttribute()
   {
     return attribute;
@@ -96,6 +99,7 @@ public class LDAPModification
    *
    * @param  attribute  The attribute for this modification.
    */
+  @Override
   public void setAttribute(RawAttribute attribute)
   {
     this.attribute = attribute;
@@ -112,6 +116,7 @@ public class LDAPModification
    * @throws  LDAPException  If a problem occurs while trying to convert the
    *                         LDAP attribute to a core <CODE>Attribute</CODE>.
    */
+  @Override
   public Modification toModification()
          throws LDAPException
   {
@@ -125,6 +130,7 @@ public class LDAPModification
    *
    * @return  A string representation of this modification.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -140,6 +146,7 @@ public class LDAPModification
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPModification(type=").append(modificationType);
@@ -158,6 +165,7 @@ public class LDAPModification
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

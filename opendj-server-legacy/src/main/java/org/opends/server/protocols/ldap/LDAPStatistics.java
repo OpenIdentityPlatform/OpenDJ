@@ -116,7 +116,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   private AtomicLong extOperationCount = new AtomicLong(0);
   private AtomicLong extOperationTime = new AtomicLong(0);
 
-
   /**
    * Creates a new instance of this class with the specified parent.
    *
@@ -128,9 +127,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     this.instanceName = instanceName;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
       throws ConfigException
@@ -143,8 +139,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
         ERR_LDAP_STATS_INVALID_MONITOR_INITIALIZATION.get(configuration.dn());
     throw new ConfigException(message);
   }
-
-
 
   /**
    * Retrieves the name of this monitor provider. It should be unique
@@ -159,8 +153,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     return instanceName;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ObjectClass getMonitorObjectClass()
   {
@@ -251,10 +243,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     return attrs;
   }
 
-
-  /**
-   * Clears any statistical information collected to this point.
-   */
+  /** Clears any statistical information collected to this point. */
   public void clearStatistics()
   {
       abandonRequests.set(0);
@@ -311,9 +300,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       extOperationTime.set(0);
   }
 
-
-
-
   /**
    * Updates the appropriate set of counters to indicate that a new
    * connection has been established.
@@ -323,18 +309,11 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     connectionsEstablished.getAndIncrement();
   }
 
-
-
-  /**
-   * Updates the appropriate set of counters to indicate that a
-   * connection has been closed.
-   */
+  /** Updates the appropriate set of counters to indicate that a connection has been closed. */
   public void updateDisconnect()
   {
       connectionsClosed.getAndIncrement();
   }
-
-
 
   /**
    * Updates the appropriate set of counters to indicate that the
@@ -348,8 +327,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
      this.bytesRead.getAndAdd(bytesRead);
   }
 
-
-
   /**
    * Updates the appropriate set of counters to indicate that the
    * specified number of bytes have been written to the client.
@@ -361,8 +338,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
      this.bytesWritten.getAndAdd(bytesWritten);
   }
-
-
 
   /**
    * Updates the appropriate set of counters based on the provided
@@ -428,8 +403,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       }
   }
 
-
-
   /**
    * Updates the appropriate set of counters based on the provided
    * message that has been written to the client.
@@ -490,8 +463,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       }
   }
 
-
-
   /**
    * Updates the appropriate set of counters to indicate that an
    * operation was abandoned without sending a response to the client.
@@ -513,8 +484,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     return connectionsEstablished.get();
   }
 
-
-
   /**
    * Retrieves the number of client connections that have been closed.
    *
@@ -524,8 +493,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
     return connectionsClosed.get();
   }
-
-
 
   /**
    * Retrieves the number of bytes that have been received from clients.
@@ -537,8 +504,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return bytesRead.get();
   }
 
-
-
   /**
    * Retrieves the number of bytes that have been written to clients.
    *
@@ -548,8 +513,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return bytesWritten.get();
   }
-
-
 
   /**
    * Retrieves the number of LDAP messages that have been received from
@@ -563,8 +526,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     return messagesRead.get();
   }
 
-
-
   /**
    * Retrieves the number of LDAP messages that have been written to
    * clients.
@@ -576,8 +537,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
    return messagesWritten.get();
   }
-
-
 
   /**
    * Retrieves the number of operations that have been initiated by
@@ -591,8 +550,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
     return operationsInitiated.get();
   }
 
-
-
   /**
    * Retrieves the number of operations for which the server has
    * completed processing.
@@ -604,8 +561,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return operationsCompleted.get();
   }
-
-
 
   /**
    * Retrieves the number of operations that have been abandoned by
@@ -619,8 +574,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return operationsAbandoned.get();
   }
 
-
-
   /**
    * Retrieves the number of abandon requests that have been received.
    *
@@ -630,8 +583,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return abandonRequests.get();
   }
-
-
 
   /**
    * Retrieves the number of add requests that have been received.
@@ -643,8 +594,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return addRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of add responses that have been sent.
    *
@@ -654,8 +603,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return addResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of bind requests that have been received.
@@ -667,8 +614,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return bindRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of bind responses that have been sent.
    *
@@ -678,8 +623,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return bindResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of compare requests that have been received.
@@ -691,8 +634,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return compareRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of compare responses that have been sent.
    *
@@ -702,8 +643,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return compareResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of delete requests that have been received.
@@ -715,8 +654,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return deleteRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of delete responses that have been sent.
    *
@@ -726,8 +663,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return deleteResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of extended requests that have been received.
@@ -739,8 +674,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return extendedRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of extended responses that have been sent.
    *
@@ -750,8 +683,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return extendedResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of modify requests that have been received.
@@ -763,8 +694,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return modifyRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of modify responses that have been sent.
    *
@@ -774,8 +703,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return modifyResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of modify DN requests that have been received.
@@ -787,8 +714,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return modifyDNRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of modify DN responses that have been sent.
    *
@@ -798,8 +723,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return modifyDNResponses.get();
   }
-
-
 
   /**
    * Retrieves the number of search requests that have been received.
@@ -811,8 +734,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return searchRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of one-level search requests that have been received.
    *
@@ -822,8 +743,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return searchOneRequests.get();
   }
-
-
 
   /**
    * Retrieves the number of subtree search requests that have been received.
@@ -835,8 +754,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return searchSubRequests.get();
   }
 
-
-
   /**
    * Retrieves the number of search result entries that have been sent.
    *
@@ -846,8 +763,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return searchResultEntries.get();
   }
-
-
 
   /**
    * Retrieves the number of search result references that have been
@@ -860,8 +775,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
       return searchResultReferences.get();
   }
 
-
-
   /**
    * Retrieves the number of search result done messages that have been
    * sent.
@@ -873,8 +786,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
       return searchResultsDone.get();
   }
-
-
 
   /**
    * Retrieves the number of unbind requests that have been received.
@@ -934,5 +845,4 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
           moddnOperationTime.getAndAdd(time);
       }
   }
-
 }

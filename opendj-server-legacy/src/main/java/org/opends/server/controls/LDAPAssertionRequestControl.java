@@ -12,21 +12,25 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-import org.forgerock.opendj.io.*;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.io.IOException;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.SearchFilter;
 
 
 /**
@@ -39,13 +43,11 @@ import java.io.IOException;
 public class LDAPAssertionRequestControl
     extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<LDAPAssertionRequestControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public LDAPAssertionRequestControl decode(boolean isCritical,
                                               ByteString value)
         throws DirectoryException
@@ -71,6 +73,7 @@ public class LDAPAssertionRequestControl
       return new LDAPAssertionRequestControl(isCritical, filter);
     }
 
+    @Override
     public String getOID()
     {
       return OID_LDAP_ASSERTION;
@@ -78,9 +81,7 @@ public class LDAPAssertionRequestControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<LDAPAssertionRequestControl> DECODER =
     new Decoder();
 
@@ -113,15 +114,6 @@ public class LDAPAssertionRequestControl
     filter = null;
   }
 
-
-
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
   @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
@@ -157,18 +149,9 @@ public class LDAPAssertionRequestControl
     {
       filter = rawFilter.toSearchFilter();
     }
-
     return filter;
   }
 
-
-
-  /**
-   * Appends a string representation of this LDAP assertion request control to
-   * the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
   @Override
   public void toString(StringBuilder buffer)
   {
@@ -179,4 +162,3 @@ public class LDAPAssertionRequestControl
     buffer.append("\")");
   }
 }
-

@@ -42,7 +42,7 @@ public class FileNumberRetentionPolicy implements
   private int numFiles;
   private FileCountLogRetentionPolicyCfg config;
 
-  /** {@inheritDoc} */
+  @Override
   public void initializeLogRetentionPolicy(
       FileCountLogRetentionPolicyCfg config)
   {
@@ -52,7 +52,7 @@ public class FileNumberRetentionPolicy implements
     config.addFileCountChangeListener(this);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FileCountLogRetentionPolicyCfg config,
       List<LocalizableMessage> unacceptableReasons)
@@ -61,7 +61,7 @@ public class FileNumberRetentionPolicy implements
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FileCountLogRetentionPolicyCfg config)
   {
@@ -70,7 +70,7 @@ public class FileNumberRetentionPolicy implements
     return new ConfigChangeResult();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
       throws DirectoryException
   {
@@ -97,7 +97,7 @@ public class FileNumberRetentionPolicy implements
     return filesToDelete.toArray(new File[0]);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String toString()
   {
     return "Free Number Retention Policy " + config.dn();

@@ -50,9 +50,7 @@ public class AlertHandlerConfigManager
        implements ConfigurationChangeListener<AlertHandlerCfg>,
                   ConfigurationAddListener<AlertHandlerCfg>,
                   ConfigurationDeleteListener<AlertHandlerCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A mapping between the DNs of the config entries and the associated alert handlers. */
@@ -90,7 +88,6 @@ public class AlertHandlerConfigManager
     rootConfiguration.addAlertHandlerAddListener(this);
     rootConfiguration.addAlertHandlerDeleteListener(this);
 
-
     //Initialize the existing alert handlers.
     for (String name : rootConfiguration.listAlertHandlers())
     {
@@ -115,9 +112,6 @@ public class AlertHandlerConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(AlertHandlerCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -142,9 +136,6 @@ public class AlertHandlerConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(AlertHandlerCfg configuration)
   {
@@ -180,9 +171,6 @@ public class AlertHandlerConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       AlertHandlerCfg configuration,
@@ -193,9 +181,6 @@ public class AlertHandlerConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  AlertHandlerCfg configuration)
@@ -212,9 +197,6 @@ public class AlertHandlerConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -239,19 +221,14 @@ public class AlertHandlerConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AlertHandlerCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing alert handler if it's already enabled.
     AlertHandler<?> existingHandler = alertHandlers.get(configuration.dn());
-
 
     // If the new configuration has the handler disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -270,7 +247,6 @@ public class AlertHandlerConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the alert handler.  If the handler is already enabled,
     // then we shouldn't do anything with it although if the class has changed
@@ -307,8 +283,6 @@ public class AlertHandlerConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as an alert handler, and

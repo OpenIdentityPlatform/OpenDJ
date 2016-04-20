@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
@@ -33,7 +33,6 @@ import org.opends.server.types.InitializationException;
 public abstract class InternalDirectoryServerPlugin extends
     DirectoryServerPlugin<PluginCfg>
 {
-
   /**
    * Creates a new internal directory server plugin using the provided
    * component name and plugin types.
@@ -56,9 +55,7 @@ public abstract class InternalDirectoryServerPlugin extends
         invokeForInternalOps);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
       PluginCfg configuration) throws ConfigException,
       InitializationException
@@ -66,14 +63,11 @@ public abstract class InternalDirectoryServerPlugin extends
     // Unused.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public final boolean isConfigurationAcceptable(
       PluginCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
     // Unused.
     return true;
   }
-
 }

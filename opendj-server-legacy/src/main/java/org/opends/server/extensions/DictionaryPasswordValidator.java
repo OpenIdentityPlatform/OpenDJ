@@ -55,11 +55,7 @@ public class DictionaryPasswordValidator
   /** The current dictionary that we should use when performing the validation. */
   private HashSet<String> dictionary;
 
-
-
-  /**
-   * Creates a new instance of this dictionary password validator.
-   */
+  /** Creates a new instance of this dictionary password validator. */
   public DictionaryPasswordValidator()
   {
     super();
@@ -68,9 +64,6 @@ public class DictionaryPasswordValidator
     // performed in the initializePasswordValidator() method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    DictionaryPasswordValidatorCfg configuration)
@@ -82,18 +75,12 @@ public class DictionaryPasswordValidator
     dictionary = loadDictionary(configuration);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeDictionaryChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -142,12 +129,9 @@ public class DictionaryPasswordValidator
       return false;
     }
 
-
     // If we've gotten here, then the password is acceptable.
     return true;
   }
-
-
 
   /**
    * Loads the configured dictionary and returns it as a hash set.
@@ -173,7 +157,6 @@ public class DictionaryPasswordValidator
           configuration.getDictionaryFile());
       throw new ConfigException(message);
     }
-
 
     // Read the contents of file into the dictionary as per the configuration.
     BufferedReader reader = null;
@@ -208,9 +191,6 @@ public class DictionaryPasswordValidator
     return dictionary;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -220,9 +200,6 @@ public class DictionaryPasswordValidator
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       DictionaryPasswordValidatorCfg configuration,
@@ -248,9 +225,6 @@ public class DictionaryPasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                       DictionaryPasswordValidatorCfg configuration)

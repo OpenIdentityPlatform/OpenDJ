@@ -51,24 +51,16 @@ public class ParallelWorkQueue
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
   /**
    * The maximum number of times to retry getting the next operation from the
    * queue if an unexpected failure occurs.
    */
   private static final int MAX_RETRY_COUNT = 5;
 
-
-
   /** The set of worker threads that will be used to process this work queue. */
   private ArrayList<ParallelWorkerThread> workerThreads;
 
-  /**
-   * The number of operations that have been submitted to the work queue for
-   * processing.
-   */
+  /** The number of operations that have been submitted to the work queue for processing. */
   private AtomicLong opsSubmitted;
 
   /**
@@ -95,9 +87,7 @@ public class ParallelWorkQueue
   /** The lock used to provide threadsafe access for the queue. */
   private final Object queueLock = new Object();
 
-
   private final Semaphore queueSemaphore = new Semaphore(0, false);
-
 
   /**
    * Creates a new instance of this work queue.  All initialization should be
@@ -108,9 +98,6 @@ public class ParallelWorkQueue
     // No implementation should be performed here.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeWorkQueue(ParallelWorkQueueCfg configuration)
          throws ConfigException, InitializationException
@@ -140,7 +127,6 @@ public class ParallelWorkQueue
       workerThreads.add(t);
     }
 
-
     // Create and register a monitor provider for the work queue.
     try
     {
@@ -156,14 +142,10 @@ public class ParallelWorkQueue
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
     shutdownRequested = true;
-
 
     // Send responses to any operations in the pending queue to indicate that
     // they won't be processed because the server is shutting down.
@@ -188,7 +170,6 @@ public class ParallelWorkQueue
       }
     }
 
-
     // Notify all the worker threads of the shutdown.
     for (ParallelWorkerThread t : workerThreads)
     {
@@ -204,8 +185,6 @@ public class ParallelWorkQueue
     }
   }
 
-
-
   /**
    * Indicates whether this work queue has received a request to shut down.
    *
@@ -216,8 +195,6 @@ public class ParallelWorkQueue
   {
     return shutdownRequested;
   }
-
-
 
   /**
    * Submits an operation to be processed by one of the worker threads
@@ -245,7 +222,6 @@ public class ParallelWorkQueue
     opsSubmitted.incrementAndGet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean trySubmitOperation(Operation operation)
       throws DirectoryException
@@ -253,7 +229,6 @@ public class ParallelWorkQueue
     submitOperation(operation);
     return true;
   }
-
 
   /**
    * Retrieves the next operation that should be processed by one of the worker
@@ -270,8 +245,6 @@ public class ParallelWorkQueue
   {
     return retryNextOperation(workerThread, 0);
   }
-
-
 
   /**
    * Retrieves the next operation that should be processed by one of the worker
@@ -400,8 +373,6 @@ public class ParallelWorkQueue
     }
   }
 
-
-
   /**
    * Attempts to remove the specified operation from this queue if it has not
    * yet been picked up for processing by one of the worker threads.
@@ -415,8 +386,6 @@ public class ParallelWorkQueue
   {
     return opQueue.remove(operation);
   }
-
-
 
   /**
    * Retrieves the total number of operations that have been successfully
@@ -432,8 +401,6 @@ public class ParallelWorkQueue
     return opsSubmitted.longValue();
   }
 
-
-
   /**
    * Retrieves the number of pending operations in the queue that have not yet
    * been picked up for processing.  Note that this method is not a
@@ -448,9 +415,6 @@ public class ParallelWorkQueue
     return opQueue.size();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       ParallelWorkQueueCfg configuration,
@@ -459,9 +423,6 @@ public class ParallelWorkQueue
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  ParallelWorkQueueCfg configuration)
@@ -506,9 +467,6 @@ public class ParallelWorkQueue
     return new ConfigChangeResult();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isIdle()
   {

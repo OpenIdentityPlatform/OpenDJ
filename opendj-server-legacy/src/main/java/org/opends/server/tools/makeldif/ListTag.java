@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -53,9 +53,7 @@ public class ListTag
 
 
 
-  /**
-   * Creates a new instance of this list tag.
-   */
+  /** Creates a new instance of this list tag. */
   public ListTag()
   {
     // No implementation required.
@@ -68,6 +66,7 @@ public class ListTag
    *
    * @return  The name for this tag.
    */
+  @Override
   public String getName()
   {
     return "List";
@@ -82,6 +81,7 @@ public class ListTag
    * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
    *          or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean allowedInBranch()
   {
     return true;
@@ -104,6 +104,7 @@ public class ListTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
                                   List<LocalizableMessage> warnings)
@@ -129,6 +130,7 @@ public class ListTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
@@ -205,6 +207,7 @@ public class ListTag
    *
    * @return  The result of generating content for this tag.
    */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {

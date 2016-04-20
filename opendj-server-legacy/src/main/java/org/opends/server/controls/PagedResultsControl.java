@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -46,13 +46,11 @@ import java.io.IOException;
  */
 public class PagedResultsControl extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<PagedResultsControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public PagedResultsControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -116,6 +114,7 @@ public class PagedResultsControl extends Control
       return new PagedResultsControl(isCritical, size, cookie);
     }
 
+    @Override
     public String getOID()
     {
       return OID_PAGED_RESULTS_CONTROL;
@@ -123,9 +122,7 @@ public class PagedResultsControl extends Control
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final  ControlDecoder<PagedResultsControl> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -139,9 +136,7 @@ public class PagedResultsControl extends Control
   private int size;
 
 
-  /**
-   * The control value cookie element.
-   */
+  /** The control value cookie element. */
   private ByteString cookie;
 
 
@@ -170,14 +165,6 @@ public class PagedResultsControl extends Control
     }
   }
 
-
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
   @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);

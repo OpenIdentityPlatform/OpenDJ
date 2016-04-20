@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -58,13 +58,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class VLVResponseControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<VLVResponseControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public VLVResponseControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -100,16 +98,14 @@ public class VLVResponseControl
       }
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID()
     {
       return OID_VLV_RESPONSE_CONTROL;
     }
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<VLVResponseControl> DECODER =
     new Decoder();
 

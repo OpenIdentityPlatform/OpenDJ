@@ -56,10 +56,7 @@ public class FilteredStaticGroupMemberList extends MemberList
   /** The iterator used to traverse the set of member DNs. */
   private Iterator<CompactDn> memberDNIterator;
 
-  /**
-   * The membership exception that should be thrown the next time a member is
-   * requested.
-   */
+  /** The membership exception that should be thrown the next time a member is requested. */
   private MembershipException nextMembershipException;
 
   /** The search filter that all returned members should match. */
@@ -204,7 +201,6 @@ public class FilteredStaticGroupMemberList extends MemberList
     nextMembershipException = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasMoreMembers()
   {
@@ -212,7 +208,6 @@ public class FilteredStaticGroupMemberList extends MemberList
         && (nextMatchingEntry != null || nextMembershipException != null);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN nextMemberDN() throws MembershipException
   {
@@ -225,7 +220,6 @@ public class FilteredStaticGroupMemberList extends MemberList
     return entry != null ? entry.getName() : null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry nextMemberEntry() throws MembershipException
   {
@@ -247,11 +241,9 @@ public class FilteredStaticGroupMemberList extends MemberList
     return e;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
     // No implementation is required.
   }
 }
-

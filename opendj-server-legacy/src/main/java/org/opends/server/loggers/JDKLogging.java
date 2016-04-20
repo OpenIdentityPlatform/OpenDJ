@@ -25,17 +25,13 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-/**
- * Utility class for java.util.logging support.
- */
+/** Utility class for java.util.logging support. */
 public class JDKLogging
 {
   /** Root packages that contains all OpenDJ related classes. */
   private static final String[] LOGGING_ROOTS = new String[] { "org.opends", "org.forgerock.opendj"};
 
-  /**
-   * Disable java.util.logging.
-   */
+  /** Disable java.util.logging. */
   public static void disableLogging()
   {
     LogManager.getLogManager().reset();
@@ -101,9 +97,7 @@ public class JDKLogging
     }
   }
 
-  /**
-   * Custom handler to log to either stdout or stderr depending on the log level
-   */
+  /** Custom handler to log to either stdout or stderr depending on the log level. */
   private static final class OpenDJHandler extends Handler
   {
     private final PrintStream out;

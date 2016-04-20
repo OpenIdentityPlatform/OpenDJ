@@ -16,8 +16,6 @@
  */
 package org.opends.server.tasks;
 
-
-
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -25,19 +23,17 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * This class provides an implementation of a Directory Server task that can be
@@ -46,20 +42,13 @@ import org.forgerock.opendj.ldap.ResultCode;
 public class ShutdownTask
        extends Task
 {
-
-
-
-  /**
-   * Indicates whether to use an exit code that indicates the server should be
-   * restarted.
-   */
+  /** Indicates whether to use an exit code that indicates the server should be restarted. */
   private boolean restart;
 
   /** The shutdown message that will be used. */
   private LocalizableMessage shutdownMessage;
 
-
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_SHUTDOWN_NAME.get();
   }
@@ -74,6 +63,7 @@ public class ShutdownTask
    * @throws  DirectoryException  If a problem occurs during initialization that
    *                              should be returned to the client.
    */
+  @Override
   public void initializeTask()
          throws DirectoryException
   {
@@ -95,7 +85,6 @@ public class ShutdownTask
         shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(taskEntry.getName(), valueString);
       }
     }
-
 
     attrType = DirectoryServer.getAttributeType(ATTR_RESTART_SERVER);
     attrList = taskEntry.getAttribute(attrType);
@@ -151,6 +140,7 @@ public class ShutdownTask
    *
    * @return  The final state to use for the task.
    */
+  @Override
   public TaskState runTask()
   {
     // This is a unique case in that the shutdown cannot finish until this task
@@ -166,6 +156,7 @@ public class ShutdownTask
       ShutdownTaskThread shutdownThread =
         new ShutdownTaskThread(shutdownMessage)
       {
+        @Override
         public void run()
         {
           org.opends.server.tools.StopWindowsService.main(new String[]{});
@@ -190,4 +181,3 @@ public class ShutdownTask
     return TaskState.COMPLETED_SUCCESSFULLY;
   }
 }
-

@@ -38,16 +38,13 @@ public class HTTPAccessLogger extends AbstractLogger
   /** The singleton instance of this class for configuration purposes. */
   private static final HTTPAccessLogger instance = new HTTPAccessLogger();
 
-  /**
-   * The constructor for this class.
-   */
+  /** The constructor for this class. */
   private HTTPAccessLogger()
   {
     super((Class) HTTPAccessLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_HTTP_ACCESS_LOGGER_CLASS);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected ClassPropertyDefinition getJavaClassPropertyDefinition()
   {
@@ -55,7 +52,6 @@ public class HTTPAccessLogger extends AbstractLogger
         .getJavaClassPropertyDefinition();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Collection<HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg>> getLogPublishers()
   {
@@ -97,7 +93,6 @@ public class HTTPAccessLogger extends AbstractLogger
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized void addLogPublisher(
       HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg> publisher)
@@ -105,7 +100,6 @@ public class HTTPAccessLogger extends AbstractLogger
     loggerStorage.addLogPublisher(publisher);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final synchronized boolean removeLogPublisher(
       HTTPAccessLogPublisher<HTTPAccessLogPublisherCfg> publisher)

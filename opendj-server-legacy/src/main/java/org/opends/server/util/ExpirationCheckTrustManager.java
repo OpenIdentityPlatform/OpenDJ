@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -78,6 +78,7 @@ public final class ExpirationCheckTrustManager
    * @throws  CertificateException  If the client certificate chain is not
    *                                trusted.
    */
+  @Override
   public void checkClientTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
@@ -119,6 +120,7 @@ public final class ExpirationCheckTrustManager
    * @throws  CertificateException  If the server certificate chain is not
    *                                trusted.
    */
+  @Override
   public void checkServerTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
@@ -155,6 +157,7 @@ public final class ExpirationCheckTrustManager
    * @return  A non-null (possibly empty) array of acceptable CA issuer
    *          certificates.
    */
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return trustManager.getAcceptedIssuers();

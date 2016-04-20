@@ -34,9 +34,7 @@ import org.opends.server.workflowelement.localbackend.*;
 class DefaultAccessControlHandler
       extends AccessControlHandler<AccessControlHandlerCfg>
 {
-  /**
-   * Create a new default access control handler.
-   */
+  /** Create a new default access control handler. */
   public DefaultAccessControlHandler()
   {
     super();
@@ -44,9 +42,6 @@ class DefaultAccessControlHandler
     // No implementation required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeAccessControlHandler(AccessControlHandlerCfg
                                                   configuration)
@@ -55,98 +50,66 @@ class DefaultAccessControlHandler
     // No implementation required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeAccessControlHandler()
   {
     // No implementation required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendAddOperation addOperation)
   {
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(BindOperation bindOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendCompareOperation compareOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendDeleteOperation deleteOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(ExtendedOperation extendedOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendModifyOperation modifyOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
    public  boolean isAllowed(DN dn, Operation  op, Control control)
    {
      return true;
    }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(ModifyDNOperation modifyDNOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(SearchOperation searchOperation)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(Operation operation, Entry entry,
     SearchFilter filter) throws DirectoryException
@@ -154,18 +117,12 @@ class DefaultAccessControlHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean maySend(Operation operation, SearchResultEntry unfilteredEntry)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void filterEntry(Operation operation,
       SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
@@ -173,9 +130,6 @@ class DefaultAccessControlHandler
     return;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean maySend(DN dn, Operation operation,
                          SearchResultReference searchReference)
@@ -183,13 +137,9 @@ class DefaultAccessControlHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public  boolean mayProxy(Entry proxyUser, Entry proxiedUser,
                            Operation operation) {
       return true;
   }
 }
-

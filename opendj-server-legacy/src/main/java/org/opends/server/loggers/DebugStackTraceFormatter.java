@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -24,18 +24,12 @@ import static org.opends.server.util.ServerConstants.EOL;
  */
 class DebugStackTraceFormatter
 {
-  /**
-   * The stack depth value to indicate the entire stack should be printed.
-   */
+  /** The stack depth value to indicate the entire stack should be printed. */
   public static final int COMPLETE_STACK = Integer.MAX_VALUE;
-  /**
-   * A nested frame filter that removes debug and trailing no OpenDS frames.
-   */
+  /** A nested frame filter that removes debug and trailing no OpenDS frames. */
   public static final FrameFilter SMART_FRAME_FILTER = new SmartFrameFilter();
 
-  /**
-   * A FrameFilter provides stack frame filtering used during formatting.
-   */
+  /** A FrameFilter provides stack frame filtering used during formatting. */
   interface FrameFilter
   {
 
@@ -50,10 +44,7 @@ class DebugStackTraceFormatter
     StackTraceElement[] getFilteredStackTrace(StackTraceElement[] frames);
   }
 
-  /**
-   * A basic FrameFilter that filters out frames from the debug logging and non
-   * OpenDS classes.
-   */
+  /** A basic FrameFilter that filters out frames from the debug logging and non OpenDS classes. */
   private static class SmartFrameFilter implements FrameFilter
   {
 
@@ -78,6 +69,7 @@ class DebugStackTraceFormatter
      *          the frames to filter
      * @return the filtered stack trace.
      */
+    @Override
     public StackTraceElement[] getFilteredStackTrace(StackTraceElement[] frames)
     {
       StackTraceElement[] trimmedStack = null;

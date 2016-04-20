@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -30,26 +30,17 @@ package org.opends.server.types;
      mayInvoke=true)
 public enum LockType
 {
-  /**
-   * The lock type that indicates that a read lock should be obtained
-   * for the associated object.
-   */
+  /** The lock type that indicates that a read lock should be obtained for the associated object. */
   READ("Read"),
 
 
 
-  /**
-   * The lock type that indicates that a write lock should be obtained
-   * for the associated object.
-   */
+  /** The lock type that indicates that a write lock should be obtained for the associated object. */
   WRITE("Write"),
 
 
 
-  /**
-   * The lock type that indicates that no lock should be obtained for
-   * the associated object.
-   */
+  /** The lock type that indicates that no lock should be obtained for the associated object. */
   NONE("None");
 
 
@@ -88,6 +79,7 @@ public enum LockType
    *
    * @return  A string representation of this lock type element.
    */
+  @Override
   public String toString()
   {
     return name;

@@ -32,7 +32,6 @@ import org.forgerock.opendj.ldap.DN;
 public abstract class AddOperationWrapper extends
     OperationWrapper<AddOperation> implements AddOperation
 {
-
   /**
    * Creates a new add operation based on the provided add operation.
    *
@@ -43,77 +42,66 @@ public abstract class AddOperationWrapper extends
     super(add);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addObjectClass(ObjectClass objectClass, String name)
   {
     getOperation().addObjectClass(objectClass, name);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addRawAttribute(RawAttribute rawAttribute)
   {
     getOperation().addRawAttribute(rawAttribute);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<ObjectClass, String> getObjectClasses()
   {
     return getOperation().getObjectClasses();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<AttributeType, List<Attribute>> getOperationalAttributes()
   {
     return getOperation().getOperationalAttributes();
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<RawAttribute> getRawAttributes()
   {
     return getOperation().getRawAttributes();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<AttributeType, List<Attribute>> getUserAttributes()
   {
     return getOperation().getUserAttributes();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeAttribute(AttributeType attributeType)
   {
     getOperation().removeAttribute(attributeType);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeObjectClass(ObjectClass objectClass)
   {
     getOperation().removeObjectClass(objectClass);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setAttribute(AttributeType attributeType,
       List<Attribute> attributeList)
@@ -121,25 +109,21 @@ public abstract class AddOperationWrapper extends
     getOperation().setAttribute(attributeType, attributeList);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawAttributes(List<RawAttribute> rawAttributes)
   {
     getOperation().setRawAttributes(rawAttributes);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
-
 }

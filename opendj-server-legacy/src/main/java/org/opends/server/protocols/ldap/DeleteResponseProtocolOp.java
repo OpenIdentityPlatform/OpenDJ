@@ -38,7 +38,6 @@ public class DeleteResponseProtocolOp
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
   /** The matched DN for this response. */
   private DN matchedDN;
   /** The result code for this response. */
@@ -47,8 +46,6 @@ public class DeleteResponseProtocolOp
   private List<String> referralURLs;
   /** The error message for this response. */
   private LocalizableMessage errorMessage;
-
-
 
   /**
    * Creates a new delete response protocol op with the provided result code.
@@ -59,8 +56,6 @@ public class DeleteResponseProtocolOp
   {
     this.resultCode = resultCode;
   }
-
-
 
   /**
    * Creates a new delete response protocol op with the provided result code and
@@ -74,8 +69,6 @@ public class DeleteResponseProtocolOp
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
   }
-
-
 
   /**
    * Creates a new delete response protocol op with the provided information.
@@ -94,8 +87,6 @@ public class DeleteResponseProtocolOp
     this.referralURLs = referralURLs;
   }
 
-
-
   /**
    * Retrieves the result code for this response.
    *
@@ -105,8 +96,6 @@ public class DeleteResponseProtocolOp
   {
     return resultCode;
   }
-
-
 
   /**
    * Retrieves the error message for this response.
@@ -119,8 +108,6 @@ public class DeleteResponseProtocolOp
     return errorMessage;
   }
 
-
-
   /**
    * Retrieves the matched DN for this response.
    *
@@ -131,8 +118,6 @@ public class DeleteResponseProtocolOp
   {
     return matchedDN;
   }
-
-
 
   /**
    * Retrieves the set of referral URLs for this response.

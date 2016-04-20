@@ -51,15 +51,10 @@ public class CertificateMapperConfigManager
        implements ConfigurationChangeListener<CertificateMapperCfg>,
                   ConfigurationAddListener<CertificateMapperCfg>,
                   ConfigurationDeleteListener<CertificateMapperCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated
-   * certificate mappers.
-   */
+  /** A mapping between the DNs of the config entries and the associated certificate mappers. */
   private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
 
   private final ServerContext serverContext;
@@ -95,7 +90,6 @@ public class CertificateMapperConfigManager
     rootConfiguration.addCertificateMapperAddListener(this);
     rootConfiguration.addCertificateMapperDeleteListener(this);
 
-
     //Initialize the existing certificate mappers.
     for (String mapperName : rootConfiguration.listCertificateMappers())
     {
@@ -122,7 +116,6 @@ public class CertificateMapperConfigManager
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       CertificateMapperCfg configuration,
@@ -148,7 +141,6 @@ public class CertificateMapperConfigManager
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  CertificateMapperCfg configuration)
@@ -186,7 +178,6 @@ public class CertificateMapperConfigManager
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       CertificateMapperCfg configuration,
@@ -197,7 +188,6 @@ public class CertificateMapperConfigManager
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  CertificateMapperCfg configuration)
@@ -216,7 +206,6 @@ public class CertificateMapperConfigManager
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CertificateMapperCfg configuration,
@@ -242,18 +231,15 @@ public class CertificateMapperConfigManager
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  CertificateMapperCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing mapper if it's already enabled.
     CertificateMapper existingMapper =
          certificateMappers.get(configuration.dn());
-
 
     // If the new configuration has the mapper disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -273,7 +259,6 @@ public class CertificateMapperConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the certificate mapper.  If the mapper is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -310,8 +295,6 @@ public class CertificateMapperConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a certificate mapper, and
@@ -373,4 +356,3 @@ public class CertificateMapperConfigManager
     }
   }
 }
-

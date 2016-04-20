@@ -177,6 +177,7 @@ public interface AddOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   DN getProxiedAuthorizationDN();
 
   /**
@@ -188,6 +189,7 @@ public interface AddOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 }

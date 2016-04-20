@@ -26,9 +26,7 @@ import org.forgerock.opendj.server.config.server.FixedTimeLogRotationPolicyCfg;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.util.TimeThread;
 
-/**
- * This class implements a rotation policy based on fixed day/time of day.
- */
+/** This class implements a rotation policy based on fixed day/time of day. */
 public class FixedTimeRotationPolicy implements
     RotationPolicy<FixedTimeLogRotationPolicyCfg>,
     ConfigurationChangeListener<FixedTimeLogRotationPolicyCfg>
@@ -38,7 +36,7 @@ public class FixedTimeRotationPolicy implements
   /** The scheduled rotation times as ms offsets from the beginning of the day. */
   private int[] rotationTimes;
 
-  /** {@inheritDoc} */
+  @Override
   public void initializeLogRotationPolicy(FixedTimeLogRotationPolicyCfg config)
   {
     rotationTimes = new int[config.getTimeOfDay().size()];
@@ -54,7 +52,7 @@ public class FixedTimeRotationPolicy implements
     config.addFixedTimeChangeListener(this);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FixedTimeLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -62,7 +60,7 @@ public class FixedTimeRotationPolicy implements
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FixedTimeLogRotationPolicyCfg config)
   {
@@ -81,7 +79,7 @@ public class FixedTimeRotationPolicy implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean rotateFile(RotatableLogFile writer)
   {
     Calendar lastRotationTime = writer.getLastRotationTime();

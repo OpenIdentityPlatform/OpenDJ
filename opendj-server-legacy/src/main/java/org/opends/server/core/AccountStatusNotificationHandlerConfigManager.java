@@ -51,11 +51,7 @@ public class AccountStatusNotificationHandlerConfigManager
           ConfigurationAddListener    <AccountStatusNotificationHandlerCfg>,
           ConfigurationDeleteListener <AccountStatusNotificationHandlerCfg>
 {
-
-  /**
-   * A mapping between the DNs of the config entries and the associated
-   * notification handlers.
-   */
+  /** A mapping between the DNs of the config entries and the associated notification handlers. */
   private final ConcurrentHashMap<DN,AccountStatusNotificationHandler> notificationHandlers;
 
   private final ServerContext serverContext;
@@ -71,8 +67,6 @@ public class AccountStatusNotificationHandlerConfigManager
     this.serverContext = serverContext;
     notificationHandlers = new ConcurrentHashMap<>();
   }
-
-
 
   /**
    * Initializes all account status notification handlers currently defined in
@@ -118,9 +112,6 @@ public class AccountStatusNotificationHandlerConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
@@ -150,9 +141,6 @@ public class AccountStatusNotificationHandlerConfigManager
     return status;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       AccountStatusNotificationHandlerCfg configuration
@@ -208,9 +196,6 @@ public class AccountStatusNotificationHandlerConfigManager
     return changeResult;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
@@ -249,9 +234,6 @@ public class AccountStatusNotificationHandlerConfigManager
     return status;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       AccountStatusNotificationHandlerCfg configuration
@@ -282,9 +264,6 @@ public class AccountStatusNotificationHandlerConfigManager
     return changeResult;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
@@ -295,9 +274,6 @@ public class AccountStatusNotificationHandlerConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       AccountStatusNotificationHandlerCfg configuration
@@ -306,7 +282,6 @@ public class AccountStatusNotificationHandlerConfigManager
     uninstallNotificationHandler (configuration.dn());
     return new ConfigChangeResult();
   }
-
 
   /**
    * Loads the specified class, instantiates it as a notification handler,
@@ -341,7 +316,6 @@ public class AccountStatusNotificationHandlerConfigManager
         handlerClass
         );
   }
-
 
   /**
    * Loads the specified class, instantiates it as a notification handler,
@@ -402,7 +376,6 @@ public class AccountStatusNotificationHandlerConfigManager
     }
   }
 
-
   /**
    * Remove a notification handler that has been installed in the server.
    *
@@ -424,4 +397,3 @@ public class AccountStatusNotificationHandlerConfigManager
     }
   }
 }
-

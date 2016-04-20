@@ -12,15 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
-
-
-/**
- * This enumeration defines the post rotation actions possible.
- */
+/** This enumeration defines the post rotation actions possible. */
 enum ActionType
 {
   /**
@@ -28,34 +24,16 @@ enum ActionType
    * the gzip mechanism.
    */
   GZIP_COMPRESS("GZIP COMPRESSION"),
-
-
-
   /**
    * The action type that indicates the rotated file should be compressed using
    * the zip mechanism.
    */
   ZIP_COMPRESS("ZIP COMPRESSION"),
-
-
-
-  /**
-   * The action type that indicates the rotated file should be encrypted.
-   */
+  /** The action type that indicates the rotated file should be encrypted. */
   ENCRYPT("ENCRYPT"),
-
-
-
-  /**
-   * The action type that indicates the rotated file should be digitally signed.
-   */
+  /** The action type that indicates the rotated file should be digitally signed. */
   SIGN("SIGN"),
-
-
-
-  /**
-   * An invalid rotation action type.
-   */
+  /** An invalid rotation action type. */
   INVALID("INVALID");
 
 
@@ -71,15 +49,9 @@ enum ActionType
     this.action = action;
   }
 
-
-  /**
-   * Retrieves a string representation of this action.
-   *
-   * @return  A string representation of this action.
-   */
+  @Override
   public String toString()
   {
     return action;
   }
 }
-

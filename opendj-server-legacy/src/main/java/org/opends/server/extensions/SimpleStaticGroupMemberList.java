@@ -17,9 +17,6 @@
 package org.opends.server.extensions;
 import org.forgerock.i18n.LocalizableMessage;
 
-
-
-
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import java.util.Iterator;
@@ -37,8 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.StaticGroup.*;
 import static org.forgerock.util.Reject.*;
-
-
 
 /**
  * This class provides an implementation of the {@code MemberList} class that
@@ -71,14 +66,12 @@ public class SimpleStaticGroupMemberList extends MemberList
     this.memberDNIterator = memberDNs.iterator();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasMoreMembers()
   {
     return memberDNIterator.hasNext();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN nextMemberDN()
          throws MembershipException
@@ -102,7 +95,6 @@ public class SimpleStaticGroupMemberList extends MemberList
     return dn;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry nextMemberEntry() throws MembershipException
   {
@@ -132,11 +124,9 @@ public class SimpleStaticGroupMemberList extends MemberList
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
     // No implementation is required.
   }
 }
-

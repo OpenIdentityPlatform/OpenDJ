@@ -12,13 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements an enumeration that holds the possible set of
@@ -38,9 +36,6 @@ public enum AccountStatusNotificationProperty
    * available for all notification types.
    */
   PASSWORD_POLICY_DN("password-policy-dn"),
-
-
-
   /**
    * The property whose value will be a generalized time
    * representation of the time at which the user's account will be
@@ -48,18 +43,12 @@ public enum AccountStatusNotificationProperty
    * {@code ACCOUNT_TEMPORARILY_LOCKED} notification type.
    */
   ACCOUNT_UNLOCK_TIME("account-unlock-time"),
-
-
-
   /**
    * The property whose value will be the number of seconds until the
    * user's account is unlocked.  This will be available for the
    * {@code ACCOUNT_TEMPORARILY_LOCKED} notification type.
    */
   SECONDS_UNTIL_UNLOCK("seconds-until-unlock"),
-
-
-
   /**
    * The property whose value will be a localized, human-readable
    * representation of the length of time until the user's account is
@@ -67,9 +56,6 @@ public enum AccountStatusNotificationProperty
    * {@code ACCOUNT_TEMPORARILY_LOCKED} notification type.
    */
   TIME_UNTIL_UNLOCK("time-until-unlock"),
-
-
-
   /**
    * The property whose value will be the generalized time
    * representation of the time that the user's password will expire.
@@ -77,18 +63,12 @@ public enum AccountStatusNotificationProperty
    * notification type.
    */
   PASSWORD_EXPIRATION_TIME("password-expiration-time"),
-
-
-
   /**
    * The property whose value will be the number of seconds until the
    * user's password expires.  This will be available for the
    * {@code PASSWORD_EXPIRING} notification type.
    */
   SECONDS_UNTIL_EXPIRATION("seconds-until-expiration"),
-
-
-
   /**
    * The property whose value will be a localized, human-readable
    * representation of the length of time until the user's password
@@ -96,9 +76,6 @@ public enum AccountStatusNotificationProperty
    * {@code PASSWORD_EXPIRING} notification type.
    */
   TIME_UNTIL_EXPIRATION("time-until-expiration"),
-
-
-
   /**
    * The property whose value will be a clear-text representation of
    * the user's old password.  This may be available for the
@@ -106,9 +83,6 @@ public enum AccountStatusNotificationProperty
    * types.
    */
   OLD_PASSWORD("old-password"),
-
-
-
   /**
    * The property whose value will be a clear-text representation of
    * the user's new password.  This may be available for the
@@ -117,12 +91,8 @@ public enum AccountStatusNotificationProperty
    */
   NEW_PASSWORD("new-password");
 
-
-
   /** The notification type name. */
   private String name;
-
-
 
   /**
    * Creates a new account status notification property with the
@@ -135,8 +105,6 @@ public enum AccountStatusNotificationProperty
   {
     this.name = name;
   }
-
-
 
   /**
    * Retrieves the account status notification type with the specified
@@ -151,50 +119,30 @@ public enum AccountStatusNotificationProperty
    */
   public static AccountStatusNotificationProperty forName(String name)
   {
-    String lowerName = toLowerCase(name);
-    if (lowerName.equals("password-policy-dn"))
+    switch (toLowerCase(name))
     {
+    case "password-policy-dn":
       return PASSWORD_POLICY_DN;
-    }
-    else if (lowerName.equals("account-unlock-time"))
-    {
+    case "account-unlock-time":
       return ACCOUNT_UNLOCK_TIME;
-    }
-    else if (lowerName.equals("seconds-until-unlock"))
-    {
+    case "seconds-until-unlock":
       return SECONDS_UNTIL_UNLOCK;
-    }
-    else if (lowerName.equals("time-until-unlock"))
-    {
+    case "time-until-unlock":
       return TIME_UNTIL_UNLOCK;
-    }
-    else if (lowerName.equals("password-expiration-time"))
-    {
+    case "password-expiration-time":
       return PASSWORD_EXPIRATION_TIME;
-    }
-    else if (lowerName.equals("seconds-until-expiration"))
-    {
+    case "seconds-until-expiration":
       return SECONDS_UNTIL_EXPIRATION;
-    }
-    else if (lowerName.equals("time-until-expiration"))
-    {
+    case "time-until-expiration":
       return TIME_UNTIL_EXPIRATION;
-    }
-    else if (lowerName.equals("old-password"))
-    {
+    case "old-password":
       return OLD_PASSWORD;
-    }
-    else if (lowerName.equals("new-password"))
-    {
+    case "new-password":
       return NEW_PASSWORD;
-    }
-    else
-    {
+    default:
       return null;
     }
   }
-
-
 
   /**
    * Retrieves the name for this account status notification property.
@@ -206,18 +154,9 @@ public enum AccountStatusNotificationProperty
     return name;
   }
 
-
-
-  /**
-   * Retrieves a string representation of this account status
-   * notification property.
-   *
-   * @return  A string representation of this account status
-   *          notification property.
-   */
+  @Override
   public String toString()
   {
     return name;
   }
 }
-

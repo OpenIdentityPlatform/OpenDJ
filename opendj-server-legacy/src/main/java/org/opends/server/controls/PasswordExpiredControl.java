@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -39,13 +39,11 @@ import java.io.IOException;
 public class PasswordExpiredControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<PasswordExpiredControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public PasswordExpiredControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -65,6 +63,7 @@ public class PasswordExpiredControl
       return new PasswordExpiredControl(isCritical);
     }
 
+    @Override
     public String getOID()
     {
       return OID_NS_PASSWORD_EXPIRED;
@@ -72,16 +71,11 @@ public class PasswordExpiredControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<PasswordExpiredControl> DECODER =
     new Decoder();
 
-  /**
-   * Creates a new instance of the password expired control with the default
-   * settings.
-   */
+  /** Creates a new instance of the password expired control with the default settings. */
   public PasswordExpiredControl()
   {
     this(false);
@@ -99,13 +93,6 @@ public class PasswordExpiredControl
     super(OID_NS_PASSWORD_EXPIRED, isCritical);
   }
 
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
   @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeOctetString("0");

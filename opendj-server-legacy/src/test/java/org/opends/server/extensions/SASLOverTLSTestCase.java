@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -56,12 +56,9 @@ import org.testng.annotations.Test;
  * This class tests SASL confidentiality/integrity over TLS (SSL). It
  * generates binary data larger than the TLS buffer size to make sure
  * that the data is processed correctly.
- *
  */
 public class SASLOverTLSTestCase extends ExtensionsTestCase {
-  /**
-   * Client SSL socket factory which blindly trusts server certificates.
-   */
+  /** Client SSL socket factory which blindly trusts server certificates. */
   public static final class TestSSLSocketFactory extends SSLSocketFactory
   {
     public static synchronized SocketFactory getDefault()
@@ -86,50 +83,57 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
       }
     }
 
+    @Override
     public Socket createSocket() throws IOException
     {
       return factory.createSocket();
     }
 
+    @Override
     public Socket createSocket(String host, int port) throws IOException,
         UnknownHostException
     {
       return factory.createSocket(host, port);
     }
 
+    @Override
     public String[] getDefaultCipherSuites()
     {
       return factory.getDefaultCipherSuites();
     }
 
+    @Override
     public String[] getSupportedCipherSuites()
     {
       return factory.getSupportedCipherSuites();
     }
 
+    @Override
     public Socket createSocket(Socket s, String host, int port,
         boolean autoClose) throws IOException
     {
       return factory.createSocket(s, host, port, autoClose);
     }
 
+    @Override
     public Socket createSocket(String host, int port, InetAddress localHost,
         int localPort) throws IOException, UnknownHostException
     {
       return factory.createSocket(host, port, localHost, localPort);
     }
 
+    @Override
     public Socket createSocket(InetAddress host, int port) throws IOException
     {
       return factory.createSocket(host, port);
     }
 
+    @Override
     public Socket createSocket(InetAddress address, int port,
         InetAddress localAddress, int localPort) throws IOException
     {
       return factory.createSocket(address, port, localAddress, localPort);
     }
-
   }
 
   private static int KB = 1024;
@@ -153,7 +157,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
   private static String confidentiality = "auth-conf";
   private static String integrity = "auth-int";
 
-  //Go from 8KB to 64KB.
+  /** Go from 8KB to 64KB. */
   @DataProvider(name = "kiloBytes")
    public Object[][] kiloBytes() {
      return new Object[][] {

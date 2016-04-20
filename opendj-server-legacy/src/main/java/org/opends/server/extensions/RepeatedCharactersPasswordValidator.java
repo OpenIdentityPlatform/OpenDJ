@@ -45,11 +45,7 @@ public class RepeatedCharactersPasswordValidator
   /** The current configuration for this password validator. */
   private RepeatedCharactersPasswordValidatorCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this repeated characters password validator.
-   */
+  /** Creates a new instance of this repeated characters password validator. */
   public RepeatedCharactersPasswordValidator()
   {
     super();
@@ -58,9 +54,6 @@ public class RepeatedCharactersPasswordValidator
     // performed in the initializePasswordValidator() method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    RepeatedCharactersPasswordValidatorCfg configuration)
@@ -69,18 +62,12 @@ public class RepeatedCharactersPasswordValidator
     currentConfig = configuration;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeRepeatedCharactersChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -97,7 +84,6 @@ public class RepeatedCharactersPasswordValidator
       return true;
     }
 
-
     // Get the password as a string.  If we should use case-insensitive
     // validation, then convert it to use all lowercase characters.
     String passwordString = newPassword.toString();
@@ -106,12 +92,10 @@ public class RepeatedCharactersPasswordValidator
       passwordString = passwordString.toLowerCase();
     }
 
-
     // Create variables to keep track of the last character we've seen and how
     // many times we have seen it.
     char lastCharacter    = '\u0000';
     int  consecutiveCount = 0;
-
 
     // Iterate through the characters in the password.  If the consecutive
     // count ever gets too high, then fail.
@@ -140,9 +124,7 @@ public class RepeatedCharactersPasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       RepeatedCharactersPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -152,9 +134,7 @@ public class RepeatedCharactersPasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                       RepeatedCharactersPasswordValidatorCfg configuration)
   {

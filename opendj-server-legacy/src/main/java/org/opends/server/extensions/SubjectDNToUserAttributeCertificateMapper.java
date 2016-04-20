@@ -73,7 +73,6 @@ public class SubjectDNToUserAttributeCertificateMapper
   /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
-
   /**
    * Creates a new instance of this certificate mapper.  Note that all actual
    * initialization should be done in the
@@ -84,9 +83,6 @@ public class SubjectDNToUserAttributeCertificateMapper
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(
                    SubjectDNToUserAttributeCertificateMapperCfg
@@ -97,7 +93,6 @@ public class SubjectDNToUserAttributeCertificateMapper
 
     currentConfig = configuration;
     configEntryDN = configuration.dn();
-
 
     // Make sure that the subject attribute is configured for equality in all
     // appropriate backends.
@@ -123,18 +118,12 @@ public class SubjectDNToUserAttributeCertificateMapper
     requestedAttributes = newLinkedHashSet("*", "+");
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeCertificateMapper()
   {
     currentConfig.removeSubjectDNToUserAttributeChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Entry mapCertificateToUser(Certificate[] certificateChain)
          throws DirectoryException
@@ -143,14 +132,12 @@ public class SubjectDNToUserAttributeCertificateMapper
          currentConfig;
     AttributeType subjectAttributeType = config.getSubjectAttribute();
 
-
     // Make sure that a peer certificate was provided.
     if (certificateChain == null || certificateChain.length == 0)
     {
       LocalizableMessage message = ERR_SDTUACM_NO_PEER_CERTIFICATE.get();
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
-
 
     // Get the first certificate in the chain.  It must be an X.509 certificate.
     X509Certificate peerCertificate;
@@ -166,14 +153,12 @@ public class SubjectDNToUserAttributeCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
     // Get the subject from the peer certificate and use it to create a search
     // filter.
     X500Principal peerPrincipal = peerCertificate.getSubjectX500Principal();
     String peerName = peerPrincipal.getName(X500Principal.RFC2253);
     SearchFilter filter = SearchFilter.createEqualityFilter(
         subjectAttributeType, ByteString.valueOfUtf8(peerName));
-
 
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the
     // set of public naming contexts in the server.
@@ -182,7 +167,6 @@ public class SubjectDNToUserAttributeCertificateMapper
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
-
 
     // For each base DN, issue an internal search in an attempt to map the
     // certificate.
@@ -213,7 +197,6 @@ public class SubjectDNToUserAttributeCertificateMapper
           throw new DirectoryException(
                   ResultCode.INVALID_CREDENTIALS, message);
 
-
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
@@ -241,15 +224,11 @@ public class SubjectDNToUserAttributeCertificateMapper
       }
     }
 
-
     // If we've gotten here, then we either found exactly one user entry or we
     // didn't find any.  Either way, return the entry or null to the caller.
     return userEntry;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -259,9 +238,6 @@ public class SubjectDNToUserAttributeCertificateMapper
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SubjectDNToUserAttributeCertificateMapperCfg
@@ -271,9 +247,6 @@ public class SubjectDNToUserAttributeCertificateMapper
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SubjectDNToUserAttributeCertificateMapperCfg
@@ -283,4 +256,3 @@ public class SubjectDNToUserAttributeCertificateMapper
     return new ConfigChangeResult();
   }
 }
-

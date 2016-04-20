@@ -43,7 +43,6 @@ public class RootPrivilegeChangeListener
     defaultRootPrivileges = Privilege.getDefaultRootPrivileges();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(RootDNCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -52,7 +51,6 @@ public class RootPrivilegeChangeListener
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(RootDNCfg configuration)
   {
@@ -71,8 +69,6 @@ public class RootPrivilegeChangeListener
   {
     return defaultRootPrivileges;
   }
-
-
 
   /**
    * Specifies the set of privileges that will be automatically granted to root

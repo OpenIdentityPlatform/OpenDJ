@@ -131,7 +131,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     this.memberDNs           = memberDNs;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeGroupImplementation(StaticGroupImplementationCfg configuration)
          throws ConfigException, InitializationException
@@ -139,7 +138,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     // No additional initialization is required.
   }
 
-  /** {@inheritDoc} */
   @Override
   public StaticGroup newInstance(ServerContext serverContext, Entry groupEntry) throws DirectoryException
   {
@@ -216,7 +214,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     return new StaticGroup(serverContext, groupEntry.getName(), someMemberAttributeType, someMemberDNs);
   }
 
-  /** {@inheritDoc} */
   @Override
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
@@ -229,7 +226,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     return SearchFilter.createFilterFromString(filterString);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isGroupDefinition(Entry entry)
   {
@@ -264,28 +260,24 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     return entry.hasObjectClass(DirectoryConfig.getObjectClass(ocName, true));
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getGroupDN()
   {
     return groupEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setGroupDN(DN groupDN)
   {
     groupEntryDN = groupDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supportsNestedGroups()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<DN> getNestedGroupDNs()
   {
@@ -308,7 +300,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -347,7 +338,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -386,7 +376,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMember(DN userDN, Set<DN> examinedGroups) throws DirectoryException
   {
@@ -422,7 +411,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
@@ -486,7 +474,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public MemberList getMembers() throws DirectoryException
   {
@@ -502,7 +489,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public MemberList getMembers(DN baseDN, SearchScope scope, SearchFilter filter) throws DirectoryException
   {
@@ -522,14 +508,12 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean mayAlterMemberList()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateMembers(List<Modification> modifications)
          throws UnsupportedOperationException, DirectoryException
@@ -597,7 +581,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addMember(Entry userEntry) throws UnsupportedOperationException, DirectoryException
   {
@@ -633,7 +616,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeMember(DN userDN) throws UnsupportedOperationException, DirectoryException
   {
@@ -684,7 +666,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         newLinkedList(control), groupEntryDN, mods);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
@@ -717,4 +698,3 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     return compactDn.toDn();
   }
 }
-

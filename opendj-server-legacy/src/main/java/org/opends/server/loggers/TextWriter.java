@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -32,14 +32,10 @@ public interface TextWriter
    */
   void writeRecord(String record);
 
-  /**
-   * Flushes any buffered contents of the output stream.
-   */
+  /** Flushes any buffered contents of the output stream. */
   void flush();
 
-  /**
-   * Releases any resources held by the writer.
-   */
+  /** Releases any resources held by the writer. */
   void shutdown();
 
   /**
@@ -49,75 +45,69 @@ public interface TextWriter
    */
   long getBytesWritten();
 
-  /**
-   * A TextWriter implementation which writes to standard out.
-   */
+  /** A TextWriter implementation which writes to standard out. */
   public static class STDOUT implements TextWriter
   {
     private MeteredStream stream = new MeteredStream(System.out, 0);
     private PrintWriter writer = new PrintWriter(stream, true);
 
-    /** {@inheritDoc} */
+    @Override
     public void writeRecord(String record)
     {
       writer.println(record);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void flush()
     {
       writer.flush();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void shutdown()
     {
       // Should never close the system out stream.
     }
 
-    /** {@inheritDoc} */
+    @Override
     public long getBytesWritten()
     {
       return stream.written;
     }
   }
 
-  /**
-   * A TextWriter implementation which writes to standard error.
-   */
+  /** A TextWriter implementation which writes to standard error. */
   public static class STDERR implements TextWriter
   {
     private MeteredStream stream = new MeteredStream(System.err, 0);
     private PrintWriter writer = new PrintWriter(stream, true);
 
-    /** {@inheritDoc} */
+    @Override
     public void writeRecord(String record)
     {
       writer.println(record);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void flush()
     {
       writer.flush();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void shutdown()
     {
       // Should never close the system error stream.
     }
 
-    /** {@inheritDoc} */
+    @Override
     public long getBytesWritten()
     {
       return stream.written;
     }
   }
 
-  /**
-   * A TextWriter implementation which writes to a given output stream.
-   */
+  /** A TextWriter implementation which writes to a given output stream. */
   public class STREAM implements TextWriter
   {
     private MeteredStream stream;
@@ -134,25 +124,25 @@ public interface TextWriter
       writer = new PrintWriter(stream, true);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void writeRecord(String record)
     {
       writer.println(record);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void flush()
     {
       writer.flush();
     }
 
-    /** {@inheritDoc} */
+    @Override
     public void shutdown()
     {
       // Should never close the system error stream.
     }
 
-    /** {@inheritDoc} */
+    @Override
     public long getBytesWritten()
     {
       return stream.written;

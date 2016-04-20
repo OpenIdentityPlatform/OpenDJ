@@ -38,10 +38,7 @@ import static org.opends.messages.ExtensionMessages.*;
 public class SubschemaSubentryVirtualAttributeProvider
        extends VirtualAttributeProvider<SubschemaSubentryVirtualAttributeCfg>
 {
-  /**
-   * Creates a new instance of this subschemaSubentry virtual attribute
-   * provider.
-   */
+  /** Creates a new instance of this subschemaSubentry virtual attribute provider. */
   public SubschemaSubentryVirtualAttributeProvider()
   {
     super();
@@ -50,14 +47,12 @@ public class SubschemaSubentryVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -69,7 +64,6 @@ public class SubschemaSubentryVirtualAttributeProvider
     return Attributes.create(rule.getAttributeType(), schemaDN.toString());
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -81,7 +75,6 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -91,7 +84,6 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -101,7 +93,6 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -111,7 +102,6 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -122,7 +112,6 @@ public class SubschemaSubentryVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -134,4 +123,3 @@ public class SubschemaSubentryVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 }
-

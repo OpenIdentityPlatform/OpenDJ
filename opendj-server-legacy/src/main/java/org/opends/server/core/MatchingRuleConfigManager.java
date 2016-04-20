@@ -54,15 +54,10 @@ public class MatchingRuleConfigManager
        implements ConfigurationChangeListener<MatchingRuleCfg>,
                   ConfigurationAddListener<MatchingRuleCfg>,
                   ConfigurationDeleteListener<MatchingRuleCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated matching
-   * rule Factories.
-   */
+  /** A mapping between the DNs of the config entries and the associated matching rule Factories. */
   private ConcurrentHashMap<DN, MatchingRuleFactory<?>> matchingRuleFactories;
 
   private final ServerContext serverContext;
@@ -78,8 +73,6 @@ public class MatchingRuleConfigManager
     this.serverContext = serverContext;
     matchingRuleFactories = new ConcurrentHashMap<>();
   }
-
-
 
   /**
    * Initializes all matching rules after reading all the Matching Rule
@@ -136,9 +129,6 @@ public class MatchingRuleConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(MatchingRuleCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -163,9 +153,6 @@ public class MatchingRuleConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(MatchingRuleCfg configuration)
   {
@@ -208,9 +195,6 @@ public class MatchingRuleConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(MatchingRuleCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -269,8 +253,6 @@ public class MatchingRuleConfigManager
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(MatchingRuleCfg configuration)
   {
@@ -297,9 +279,6 @@ public class MatchingRuleConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(MatchingRuleCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -380,18 +359,15 @@ public class MatchingRuleConfigManager
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MatchingRuleCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
    // Get the existing matching rule factory if it's already enabled.
     MatchingRuleFactory<?> existingFactory =
             matchingRuleFactories.get(configuration.dn());
-
 
     // If the new configuration has the matching rule disabled, then disable it
     // if it is enabled, or do nothing if it's already disabled.
@@ -416,7 +392,6 @@ public class MatchingRuleConfigManager
       }
       return ccr;
     }
-
 
     // Get the class for the matching rule.  If the matching rule is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -458,8 +433,6 @@ public class MatchingRuleConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as an attribute syntax, and

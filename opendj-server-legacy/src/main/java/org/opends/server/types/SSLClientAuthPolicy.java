@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.types;
-
-
 
 /**
  * This enumeration defines a policy that indicates how the server
@@ -32,22 +30,13 @@ package org.opends.server.types;
      mayInvoke=true)
 public enum SSLClientAuthPolicy
 {
-  /**
-   * Indicates that the server will not request a certificate from the
-   * client.
-   */
+  /** Indicates that the server will not request a certificate from the client. */
   DISABLED("Disabled"),
-
-
-
   /**
    * Indicates that the server will request a certificate from the
    * client but will not require that one be provided.
    */
   OPTIONAL("Optional"),
-
-
-
   /**
    * Indicates that the server will request a certificate from the
    * client and will reject any connection attempt in which the client
@@ -55,12 +44,8 @@ public enum SSLClientAuthPolicy
    */
   REQUIRED("Required");
 
-
-
   /** The human-readable name for this policy. */
   private String policyName;
-
-
 
   /**
    * Creates a new SSL client auth policy with the provided name.
@@ -71,8 +56,6 @@ public enum SSLClientAuthPolicy
   {
     this.policyName = policyName;
   }
-
-
 
   /**
    * Retrieves the SSL client authentication policy for the specified
@@ -110,17 +93,15 @@ public enum SSLClientAuthPolicy
     }
   }
 
-
-
   /**
    * Retrieves the human-readable name for this SSL client auth
    * policy.
    *
    * @return  The human-readable name for this SSL client auth policy.
    */
+  @Override
   public String toString()
   {
     return policyName;
   }
 }
-

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -65,13 +65,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class ServerSideSortResponseControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<ServerSideSortResponseControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public ServerSideSortResponseControl decode(boolean isCritical,
                                                 ByteString value)
         throws DirectoryException
@@ -107,6 +105,7 @@ public class ServerSideSortResponseControl
       }
     }
 
+    @Override
     public String getOID()
     {
       return OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
@@ -114,15 +113,11 @@ public class ServerSideSortResponseControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<ServerSideSortResponseControl> DECODER =
     new Decoder();
 
-  /**
-   * The BER type to use when encoding the attribute type element.
-   */
+  /** The BER type to use when encoding the attribute type element. */
   private static final byte TYPE_ATTRIBUTE_TYPE = (byte) 0x80;
 
 

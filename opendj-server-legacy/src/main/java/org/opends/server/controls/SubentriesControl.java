@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -36,13 +36,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class SubentriesControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<SubentriesControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public SubentriesControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -70,6 +68,7 @@ public class SubentriesControl
       return new SubentriesControl(isCritical, visibility);
     }
 
+    @Override
     public String getOID()
     {
       return OID_LDAP_SUBENTRIES;
@@ -77,9 +76,7 @@ public class SubentriesControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<SubentriesControl> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

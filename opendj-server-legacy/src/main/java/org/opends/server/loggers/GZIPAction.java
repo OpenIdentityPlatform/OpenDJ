@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -61,6 +61,7 @@ class GZIPAction implements PostRotationAction
    * @return  <CODE>true</CODE> if the compression succeeded, or
    *          <CODE>false</CODE> if it did not.
    */
+  @Override
   public boolean execute()
   {
     FileInputStream fis = null;

@@ -36,8 +36,6 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EMailMessage;
 
-
-
 /**
  * This class implements a Directory Server alert handler that may be used to
  * send administrative alerts via SMTP.
@@ -48,16 +46,10 @@ public class SMTPAlertHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
   /** The current configuration for this alert handler. */
   private SMTPAlertHandlerCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this SMTP alert handler.
-   */
+  /** Creates a new instance of this SMTP alert handler. */
   public SMTPAlertHandler()
   {
     super();
@@ -65,9 +57,7 @@ public class SMTPAlertHandler
     // All initialization should be done in the initializeAlertHandler method.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeAlertHandler(SMTPAlertHandlerCfg configuration)
        throws ConfigException, InitializationException
   {
@@ -83,34 +73,26 @@ public class SMTPAlertHandler
     currentConfig = configuration;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public AlertHandlerCfg getAlertHandlerConfiguration()
   {
     return currentConfig;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void finalizeAlertHandler()
   {
     // No action is required.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     LocalizableMessage alertMessage)
   {
@@ -150,8 +132,6 @@ public class SMTPAlertHandler
     }
   }
 
-
-
   /**
    * Replaces any occurrences of special tokens in the given string with the
    * appropriate value.  Tokens supported include:
@@ -181,9 +161,7 @@ public class SMTPAlertHandler
              replace("\\n", "\r\n");
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       SMTPAlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -191,9 +169,7 @@ public class SMTPAlertHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  SMTPAlertHandlerCfg configuration)
   {

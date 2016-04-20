@@ -16,51 +16,32 @@
  */
 package org.opends.server.api;
 
+import static org.testng.Assert.*;
+
 import java.util.LinkedHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.DummyAlertHandler;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.AlertGenerator;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.extensions.DummyAlertHandler;
-import org.forgerock.opendj.ldap.DN;
-
-import static org.testng.Assert.*;
-
-
-
-/**
- * A set of generic alert handler test cases.
- */
+/** A set of generic alert handler test cases. */
 public class AlertHandlerTestCase
        extends APITestCase
        implements AlertGenerator
 {
-
-  /**
-   * The alert type to use for these tests.
-   */
+  /** The alert type to use for these tests. */
   public static final String ALERT_TYPE = "org.opends.test.TestAlert";
 
-
-
-  /**
-   * The alert description to use for these tests.
-   */
+  /** The alert description to use for these tests. */
   public static final String ALERT_DESCRIPTION =
        "This is the alert description";
 
-
-
-  /**
-   * The alert message to use for these tests.
-   */
+  /** The alert message to use for these tests. */
   public static final LocalizableMessage ALERT_MESSAGE = LocalizableMessage.raw("This is the alert message");
-
-
 
   /**
    * Ensures that the Directory Server is running and registers with it as an
@@ -76,8 +57,6 @@ public class AlertHandlerTestCase
     DirectoryServer.registerAlertGenerator(this);
   }
 
-
-
   /**
    * Tests the ability of the alert handler to send an administrative alert
    * with no special configuration.
@@ -91,11 +70,7 @@ public class AlertHandlerTestCase
     assertEquals(DummyAlertHandler.getAlertCount(), count+1);
   }
 
-
-
-  /**
-   * Tests alert handler functionality when a given alert is explicitly enabled.
-   */
+  /** Tests alert handler functionality when a given alert is explicitly enabled. */
   @Test
   public void testEnabledAlert()
   {
@@ -119,8 +94,6 @@ public class AlertHandlerTestCase
         "--remove", "enabled-alert-type:" + ALERT_TYPE);
     }
   }
-
-
 
   /**
    * Tests alert handler functionality when a given alert is not explicitly
@@ -150,12 +123,7 @@ public class AlertHandlerTestCase
     }
   }
 
-
-
-  /**
-   * Tests alert handler functionality when a given alert is explicitly
-   * disabled.
-   */
+  /** Tests alert handler functionality when a given alert is explicitly disabled. */
   @Test
   public void testDisabledAlert()
   {
@@ -179,8 +147,6 @@ public class AlertHandlerTestCase
         "--remove", "disabled-alert-type:" + ALERT_TYPE);
     }
   }
-
-
 
   /**
    * Tests alert handler functionality when a given alert is not explicitly
@@ -210,12 +176,7 @@ public class AlertHandlerTestCase
     }
   }
 
-
-
-  /**
-   * Tests alert handler functionality when a given alert is both enabled and
-   * disabled.
-   */
+  /** Tests alert handler functionality when a given alert is both enabled and disabled. */
   @Test
   public void testEnabledAndDisabledAlert()
   {
@@ -242,8 +203,6 @@ public class AlertHandlerTestCase
     }
   }
 
-
-
   /**
    * Retrieves the DN of the configuration entry with which this alert
    * generator is associated.
@@ -251,6 +210,7 @@ public class AlertHandlerTestCase
    * @return  The DN of the configuration entry with which this alert
    *          generator is associated.
    */
+  @Override
   @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public DN getComponentEntryDN()
   {
@@ -264,8 +224,6 @@ public class AlertHandlerTestCase
     }
   }
 
-
-
   /**
    * Retrieves the fully-qualified name of the Java class for this
    * alert generator implementation.
@@ -273,13 +231,12 @@ public class AlertHandlerTestCase
    * @return  The fully-qualified name of the Java class for this
    *          alert generator implementation.
    */
+  @Override
   @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public String getClassName()
   {
     return getClass().getName();
   }
-
-
 
   /**
    * Retrieves information about the set of alerts that this generator
@@ -292,6 +249,7 @@ public class AlertHandlerTestCase
    * @return  Information about the set of alerts that this generator
    *          may produce.
    */
+  @Override
   @Test // TestNG treats this as a test, so we annotate it to eliminate warnings
   public LinkedHashMap<String,String> getAlerts()
   {
@@ -302,4 +260,3 @@ public class AlertHandlerTestCase
     return alerts;
   }
 }
-

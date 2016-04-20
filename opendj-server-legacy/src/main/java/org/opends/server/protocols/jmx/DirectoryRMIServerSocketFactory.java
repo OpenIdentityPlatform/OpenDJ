@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -41,16 +41,11 @@ public class DirectoryRMIServerSocketFactory implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   *  The SSL socket factory associated with the connector.
-   */
+  /** The SSL socket factory associated with the connector. */
   private SSLSocketFactory sslSocketFactory;
 
-  /**
-   * Indicate if we required the client authentication via SSL.
-   */
+  /** Indicate if we required the client authentication via SSL. */
   private final boolean needClientCertificate;
-
 
   /**
    * Constructs a new <code>DirectoryRMIServerSocketFactory</code> with the
@@ -100,6 +95,7 @@ public class DirectoryRMIServerSocketFactory implements
    * @throws IOException
    *             if the socket cannot be created
    */
+  @Override
   public ServerSocket createServerSocket(int port) throws IOException
   {
     return new ServerSocket(port, 0, InetAddress.getByName("0.0.0.0"))
@@ -124,7 +120,6 @@ public class DirectoryRMIServerSocketFactory implements
         return sslSocket;
       }
     };
-
   }
 
   /**
@@ -147,6 +142,7 @@ public class DirectoryRMIServerSocketFactory implements
    * @return <code>true</code> if this object is the same as the obj
    *         argument <code>false</code> otherwise.
    */
+  @Override
   public boolean equals(Object obj)
   {
     if (obj == this)
@@ -180,6 +176,7 @@ public class DirectoryRMIServerSocketFactory implements
    * @return a hash code value for this
    * <code>CacaoRMIServerSocketFactory</code>.
    */
+  @Override
   public int hashCode()
   {
     return getClass().hashCode()

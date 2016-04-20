@@ -12,30 +12,25 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
-
 package org.opends.server.tools.upgrade;
 
-
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isUnix;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.FilePermission;
-import org.opends.server.util.StaticUtils;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
-
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Utility class for use by applications containing methods for managing file
@@ -44,46 +39,27 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 class FileManager
 {
-
-  /**
-   * Describes the approach taken to deleting a file or directory.
-   */
+  /** Describes the approach taken to deleting a file or directory. */
   public static enum DeletionPolicy
   {
-
-    /**
-     * Delete the file or directory immediately.
-     */
+    /** Delete the file or directory immediately. */
     DELETE_IMMEDIATELY,
-
-    /**
-     * Mark the file or directory for deletion after the JVM has exited.
-     */
+    /** Mark the file or directory for deletion after the JVM has exited. */
     DELETE_ON_EXIT,
-
     /**
      * First try to delete the file immediately. If the deletion was
      * unsuccessful mark the file for deleteion when the JVM has existed.
      */
     DELETE_ON_EXIT_IF_UNSUCCESSFUL
-
   }
 
-
-
-  /**
-   * Upgrade's Log.
-   */
+  /** Upgrade's Log. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
 
   private FileManager()
   {
     // do nothing;
   }
-
-
 
   /**
    * Deletes everything below the specified file.
@@ -98,15 +74,11 @@ class FileManager
     deleteRecursively(file, null, DeletionPolicy.DELETE_IMMEDIATELY);
   }
 
-
-
   private static void deleteRecursively(File file, FileFilter filter,
       DeletionPolicy deletePolicy) throws IOException
   {
     operateRecursively(new DeleteOperation(file, deletePolicy), filter);
   }
-
-
 
   /**
    * Copies everything below the specified file.
@@ -128,8 +100,6 @@ class FileManager
     co.apply();
     return co.getDestination();
   }
-
-
 
   private static void operateRecursively(FileOperation op, FileFilter filter)
       throws IOException
@@ -181,8 +151,6 @@ class FileManager
     }
   }
 
-
-
   /**
    * Renames the source file to the target file. If the target file exists it is
    * first deleted. The rename and delete operation return values are checked
@@ -218,17 +186,10 @@ class FileManager
     }
   }
 
-
-
-  /**
-   * A file operation.
-   */
+  /** A file operation. */
   private static abstract class FileOperation
   {
-
     private File objectFile;
-
-
 
     /**
      * Creates a new file operation.
@@ -241,8 +202,6 @@ class FileManager
       this.objectFile = objectFile;
     }
 
-
-
     /**
      * Gets the file to be operated on.
      *
@@ -253,8 +212,6 @@ class FileManager
       return objectFile;
     }
 
-
-
     /**
      * Make a copy of this class for the child file.
      *
@@ -264,8 +221,6 @@ class FileManager
      */
     public abstract FileOperation copyForChild(File child);
 
-
-
     /**
      * Execute this operation.
      *
@@ -273,22 +228,14 @@ class FileManager
      *           if there is a problem.
      */
     public abstract void apply() throws IOException;
-
   }
 
-
-
-  /**
-   * A copy operation.
-   */
+  /** A copy operation. */
   private static class CopyOperation extends FileOperation
   {
-
     private File destination;
 
     private boolean overwrite;
-
-
 
     /**
      * Create a new copy operation.
@@ -307,15 +254,11 @@ class FileManager
       this.overwrite = overwrite;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public FileOperation copyForChild(File child)
     {
       return new CopyOperation(child, destination, overwrite);
     }
-
-
 
     /**
      * Returns the destination file that is the result of copying
@@ -328,9 +271,7 @@ class FileManager
       return this.destination;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public void apply() throws IOException
     {
       final File objectFile = getObjectFile();
@@ -406,10 +347,7 @@ class FileManager
         }
       }
     }
-
   }
-
-
 
   /**
    * Returns the file permission on the selected file.
@@ -434,7 +372,6 @@ class FileManager
         return FilePermission.decodeUNIXMode("644");
       }
       return FilePermission.decodeUNIXMode("755");
-
     }
     else if (name.endsWith(".sh"))
     {
@@ -452,8 +389,6 @@ class FileManager
     }
     return FilePermission.decodeUNIXMode("644");
   }
-
-
 
   /**
    * Creates the parent directory if it does not already exist.
@@ -474,17 +409,10 @@ class FileManager
     return b;
   }
 
-
-
-  /**
-   * A delete operation.
-   */
+  /** A delete operation. */
   private static class DeleteOperation extends FileOperation
   {
-
     private DeletionPolicy deletionPolicy;
-
-
 
     /**
      * Creates a delete operation.
@@ -502,17 +430,13 @@ class FileManager
       this.deletionPolicy = deletionPolicy;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public FileOperation copyForChild(File child)
     {
       return new DeleteOperation(child, deletionPolicy);
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public void apply() throws IOException
     {
       File file = getObjectFile();
@@ -573,5 +497,4 @@ class FileManager
       }
     }
   }
-
 }

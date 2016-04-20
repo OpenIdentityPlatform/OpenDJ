@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Random;
@@ -38,8 +36,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a Directory Server password storage scheme based on the
  * 256-bit SHA-2 algorithm defined in FIPS 180-2.  This is a one-way digest
@@ -56,27 +52,17 @@ public class SaltedSHA256PasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.SaltedSHA256PasswordStorageScheme";
 
-
-
-  /**
-   * The number of bytes of random data to use as the salt when generating the
-   * hashes.
-   */
+  /** The number of bytes of random data to use as the salt when generating the hashes. */
   private static final int NUM_SALT_BYTES = 8;
 
   /** Size of the dgiest in bytes. */
   private static final int SHA256_LENGTH = 256 / 8;
 
-  /**
-   * The message digest that will actually be used to generate the 256-bit SHA-2
-   * hashes.
-   */
+  /** The message digest that will actually be used to generate the 256-bit SHA-2 hashes. */
   private MessageDigest messageDigest;
 
   /** The lock used to provide threadsafe access to the message digest. */
@@ -84,8 +70,6 @@ public class SaltedSHA256PasswordStorageScheme
 
   /** The secure random number generator to use to generate the salt values. */
   private Random random;
-
-
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -97,9 +81,6 @@ public class SaltedSHA256PasswordStorageScheme
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    SaltedSHA256PasswordStorageSchemeCfg configuration)
@@ -119,23 +100,16 @@ public class SaltedSHA256PasswordStorageScheme
       throw new InitializationException(message, e);
     }
 
-
     digestLock = new Object();
     random     = new Random();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_SALTED_SHA_256;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -185,9 +159,6 @@ public class SaltedSHA256PasswordStorageScheme
     return ByteString.valueOfUtf8(Base64.encode(hashPlusSalt));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -243,9 +214,6 @@ public class SaltedSHA256PasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -278,7 +246,6 @@ public class SaltedSHA256PasswordStorageScheme
       return false;
     }
 
-
     // Use the salt to generate a digest based on the provided plain-text value.
     int plainBytesLength = plaintextPassword.length();
     byte[] plainPlusSalt = new byte[plainBytesLength + saltLength];
@@ -309,9 +276,6 @@ public class SaltedSHA256PasswordStorageScheme
     return Arrays.equals(digestBytes, userDigestBytes);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -319,18 +283,12 @@ public class SaltedSHA256PasswordStorageScheme
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getAuthPasswordSchemeName()
   {
     return AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_256;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -370,7 +328,6 @@ public class SaltedSHA256PasswordStorageScheme
       }
     }
 
-
     // Encode and return the value.
     StringBuilder authPWValue = new StringBuilder();
     authPWValue.append(AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_256);
@@ -382,9 +339,6 @@ public class SaltedSHA256PasswordStorageScheme
     return ByteString.valueOfUtf8(authPWValue);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -402,7 +356,6 @@ public class SaltedSHA256PasswordStorageScheme
 
       return false;
     }
-
 
     int plainBytesLength = plaintextPassword.length();
     byte[] plainPlusSaltBytes = new byte[plainBytesLength + saltBytes.length];
@@ -424,18 +377,12 @@ public class SaltedSHA256PasswordStorageScheme
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -445,9 +392,6 @@ public class SaltedSHA256PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -458,9 +402,6 @@ public class SaltedSHA256PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -468,4 +409,3 @@ public class SaltedSHA256PasswordStorageScheme
     return true;
   }
 }
-

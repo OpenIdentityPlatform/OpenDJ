@@ -68,20 +68,13 @@ public class DynamicGroup
   /** The set of the LDAP URLs that define the membership criteria. */
   private LinkedHashSet<LDAPURL> memberURLs;
 
-
-
-  /**
-   * Creates a new, uninitialized dynamic group instance.  This is intended for
-   * internal use only.
-   */
+  /** Creates a new, uninitialized dynamic group instance. This is intended for internal use only. */
   public DynamicGroup()
   {
     super();
 
     // No initialization is required here.
   }
-
-
 
   /**
    * Creates a new dynamic group instance with the provided information.
@@ -102,9 +95,6 @@ public class DynamicGroup
     this.memberURLs   = memberURLs;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeGroupImplementation(
                    DynamicGroupImplementationCfg configuration)
@@ -113,16 +103,11 @@ public class DynamicGroup
     // No additional initialization is required.
   }
 
-
-
-
-  /** {@inheritDoc} */
   @Override
   public DynamicGroup newInstance(ServerContext serverContext, Entry groupEntry)
          throws DirectoryException
   {
     ifNull(groupEntry);
-
 
     // Get the memberURL attribute from the entry, if there is one, and parse
     // out the LDAP URLs that it contains.
@@ -147,9 +132,6 @@ public class DynamicGroup
     return new DynamicGroup(groupEntry.getName(), memberURLs);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
@@ -160,9 +142,6 @@ public class DynamicGroup
                                                OC_GROUP_OF_URLS + ")");
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isGroupDefinition(Entry entry)
   {
@@ -175,25 +154,17 @@ public class DynamicGroup
     return entry.hasObjectClass(groupOfURLsClass);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public DN getGroupDN()
   {
     return groupEntryDN;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void setGroupDN(DN groupDN)
   {
     groupEntryDN = groupDN;
   }
-
-
 
   /**
    * Retrieves the set of member URLs for this dynamic group.  The returned set
@@ -206,9 +177,6 @@ public class DynamicGroup
     return memberURLs;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsNestedGroups()
   {
@@ -216,9 +184,6 @@ public class DynamicGroup
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public List<DN> getNestedGroupDNs()
   {
@@ -226,9 +191,6 @@ public class DynamicGroup
     return Collections.<DN>emptyList();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -238,9 +200,6 @@ public class DynamicGroup
     throw new UnsupportedOperationException(message.toString());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -250,9 +209,6 @@ public class DynamicGroup
     throw new UnsupportedOperationException(message.toString());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException
@@ -266,9 +222,6 @@ public class DynamicGroup
     return entry != null && isMember(entry);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
@@ -289,9 +242,6 @@ public class DynamicGroup
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public MemberList getMembers()
          throws DirectoryException
@@ -299,9 +249,6 @@ public class DynamicGroup
     return new DynamicGroupMemberList(groupEntryDN, memberURLs);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public MemberList getMembers(DN baseDN, SearchScope scope,
                                SearchFilter filter)
@@ -318,18 +265,12 @@ public class DynamicGroup
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean mayAlterMemberList()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void updateMembers(List<Modification> modifications)
          throws UnsupportedOperationException, DirectoryException
@@ -339,9 +280,6 @@ public class DynamicGroup
     throw new UnsupportedOperationException(message.toString());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
@@ -351,9 +289,6 @@ public class DynamicGroup
     throw new UnsupportedOperationException(message.toString());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
@@ -363,9 +298,6 @@ public class DynamicGroup
     throw new UnsupportedOperationException(message.toString());
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
@@ -391,4 +323,3 @@ public class DynamicGroup
     buffer.append("})");
   }
 }
-

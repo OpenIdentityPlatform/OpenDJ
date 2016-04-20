@@ -98,8 +98,6 @@ public class SchemaConfigManager
     }
   }
 
-
-
   /**
    * Retrieves the path to the directory containing the server schema files.
    *
@@ -114,8 +112,6 @@ public class SchemaConfigManager
     }
     return null;
   }
-
-
 
   /**
    * Retrieves a reference to the schema information that has been read from the
@@ -132,8 +128,6 @@ public class SchemaConfigManager
   {
     return schema;
   }
-
-
 
   /**
    * Initializes all the matching rules defined in the Directory Server
@@ -152,8 +146,6 @@ public class SchemaConfigManager
     MatchingRuleConfigManager matchingRuleConfigManager = new MatchingRuleConfigManager(serverContext);
     matchingRuleConfigManager.initializeMatchingRules();
   }
-
-
 
   /**
    * Initializes all the attribute syntaxes defined in the Directory Server
@@ -174,22 +166,15 @@ public class SchemaConfigManager
     syntaxConfigManager.initializeAttributeSyntaxes();
   }
 
-
-
-  /**
-   * Filter implementation that accepts only ldif files.
-   */
+  /** Filter implementation that accepts only ldif files. */
   public static class SchemaFileFilter implements FilenameFilter
   {
-    /** {@inheritDoc} */
     @Override
     public boolean accept(File directory, String filename)
     {
       return filename.endsWith(".ldif");
     }
   }
-
-
 
   /**
    * Initializes all the attribute type, object class, name form, DIT content
@@ -245,7 +230,6 @@ public class SchemaConfigManager
         throw new InitializationException(message);
       }
 
-
       FilenameFilter filter = new SchemaFileFilter();
       File[] schemaInstanceDirFiles =
                 schemaInstanceDir.listFiles(filter);
@@ -292,7 +276,6 @@ public class SchemaConfigManager
       throw new InitializationException(message, e);
     }
 
-
     // If the oldest and youngest modification timestamps didn't get set for
     // some reason, then set them to the current time.
     if (oldestModificationTime <= 0)
@@ -308,7 +291,6 @@ public class SchemaConfigManager
     schema.setOldestModificationTime(oldestModificationTime);
     schema.setYoungestModificationTime(youngestModificationTime);
 
-
     // Iterate through the schema files and read them as an LDIF file containing
     // a single entry.  Then get the attributeTypes and objectClasses attributes
     // from that entry and parse them to initialize the server schema.
@@ -317,8 +299,6 @@ public class SchemaConfigManager
       loadSchemaFile(schema, schemaFile, false);
     }
   }
-
-
 
   /**
    * Loads the contents of the specified schema file into the provided schema.
@@ -343,8 +323,6 @@ public class SchemaConfigManager
   {
     return loadSchemaFile(schema, schemaFile, true);
   }
-
-
 
   /**
    * Loads the contents of the specified schema file into the provided schema.
@@ -399,7 +377,6 @@ public class SchemaConfigManager
         return null;
       }
     }
-
 
     // Read the LDIF entry from the file and close the file.
     Entry entry;
@@ -1030,8 +1007,6 @@ public class SchemaConfigManager
     }
   }
 
-
-
   /**
    * This method checks if a given attribute is an attribute that
    * is used by the definition of the schema.
@@ -1064,4 +1039,3 @@ public class SchemaConfigManager
         attributeOid.equals("ldapsyntaxes-oid");
   }
 }
-

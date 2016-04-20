@@ -51,6 +51,7 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
    *
    * @return  The name of the change operation type.
    */
+  @Override
   public ChangeOperationType getChangeOperationType()
   {
     return ChangeOperationType.DELETE;
@@ -58,7 +59,6 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
 
 
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

@@ -55,9 +55,6 @@ public class FileBasedTrustManagerProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
   /** The DN of the configuration entry for this trust manager provider. */
   private DN configEntryDN;
 
@@ -73,8 +70,6 @@ public class FileBasedTrustManagerProvider
   /** The trust store type to use. */
   private String trustStoreType;
 
-
-
   /**
    * Creates a new instance of this file-based trust manager provider.  The
    * <CODE>initializeTrustManagerProvider</CODE> method must be called on the
@@ -85,9 +80,6 @@ public class FileBasedTrustManagerProvider
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeTrustManagerProvider(
                    FileBasedTrustManagerProviderCfg configuration)
@@ -99,7 +91,6 @@ public class FileBasedTrustManagerProvider
     configEntryDN = configuration.dn();
     configuration.addFileBasedChangeListener(this);
 
-
     // Get the path to the trust store file.
     trustStoreFile = configuration.getTrustStoreFile();
     File f = getFileForPath(trustStoreFile);
@@ -108,7 +99,6 @@ public class FileBasedTrustManagerProvider
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(trustStoreFile, configEntryDN);
       throw new InitializationException(message);
     }
-
 
     // Get the trust store type.  If none is specified, then use the default
     // type.
@@ -130,7 +120,6 @@ public class FileBasedTrustManagerProvider
           get(trustStoreType, configEntryDN, getExceptionMessage(kse));
       throw new InitializationException(message);
     }
-
 
     // Get the PIN needed to access the contents of the trust store file.  We
     // will offer several places to look for the PIN, and we will do so in the
@@ -231,18 +220,12 @@ public class FileBasedTrustManagerProvider
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeTrustManagerProvider()
   {
     currentConfig.removeFileBasedChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException
@@ -266,7 +249,6 @@ public class FileBasedTrustManagerProvider
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
-
 
     try
     {
@@ -294,9 +276,6 @@ public class FileBasedTrustManagerProvider
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                          TrustManagerProviderCfg configuration,
@@ -307,16 +286,13 @@ public class FileBasedTrustManagerProvider
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       FileBasedTrustManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
     boolean configAcceptable = true;
     DN cfgEntryDN = configuration.dn();
-
 
     // Get the path to the trust store file.
     String newTrustStoreFile = configuration.getTrustStoreFile();
@@ -337,7 +313,6 @@ public class FileBasedTrustManagerProvider
       configAcceptable = false;
     }
 
-
     // Check to see if the trust store type is acceptable.
     String storeType = configuration.getTrustStoreType();
     if (storeType != null)
@@ -356,7 +331,6 @@ public class FileBasedTrustManagerProvider
       }
     }
 
-
     // If there is a PIN property, then make sure the corresponding
     // property is set.
     String pinProp = configuration.getTrustStorePinProperty();
@@ -366,7 +340,6 @@ public class FileBasedTrustManagerProvider
       configAcceptable = false;
     }
 
-
     // If there is a PIN environment variable, then make sure the corresponding
     // environment variable is set.
     String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
@@ -375,7 +348,6 @@ public class FileBasedTrustManagerProvider
       unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
       configAcceptable = false;
     }
-
 
     // If there is a PIN file, then make sure the file exists and is readable.
     String pinFile = configuration.getTrustStorePinFile();
@@ -418,16 +390,14 @@ public class FileBasedTrustManagerProvider
       }
     }
 
-
     return configAcceptable;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedTrustManagerProviderCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
 
     // Get the path to the trust store file.
     String newTrustStoreFile = configuration.getTrustStoreFile();
@@ -457,7 +427,6 @@ public class FileBasedTrustManagerProvider
           newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
-
 
     // Get the PIN needed to access the contents of the trust store file.  We
     // will offer several places to look for the PIN, and we will do so in the
@@ -557,7 +526,6 @@ public class FileBasedTrustManagerProvider
         newPIN = pinStr.toCharArray();
       }
     }
-
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {

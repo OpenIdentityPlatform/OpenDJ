@@ -39,13 +39,11 @@ import java.io.IOException;
 public class AuthorizationIdentityResponseControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<AuthorizationIdentityResponseControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public AuthorizationIdentityResponseControl decode(boolean isCritical,
                                                        ByteString value)
         throws DirectoryException
@@ -69,6 +67,7 @@ public class AuthorizationIdentityResponseControl
       }
     }
 
+    @Override
     public String getOID()
     {
       return OID_AUTHZID_RESPONSE;
@@ -76,9 +75,7 @@ public class AuthorizationIdentityResponseControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<AuthorizationIdentityResponseControl>
       DECODER = new Decoder();
 
@@ -166,15 +163,7 @@ public class AuthorizationIdentityResponseControl
     }
   }
 
-
-
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
+  @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeOctetString(authorizationID);
   }
@@ -193,14 +182,7 @@ public class AuthorizationIdentityResponseControl
     return authorizationID;
   }
 
-
-
-  /**
-   * Appends a string representation of this authorization identity response
-   * control to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("AuthorizationIdentityResponseControl(authzID=\"");

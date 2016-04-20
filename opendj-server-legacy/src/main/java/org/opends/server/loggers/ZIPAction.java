@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -25,10 +25,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-/**
- * This class implements a post rotation action that compresses
- * the file using ZIP compression.
- */
+/** This class implements a post rotation action that compresses the file using ZIP compression. */
 class ZIPAction implements PostRotationAction
 {
 
@@ -61,6 +58,7 @@ class ZIPAction implements PostRotationAction
    * @return  <CODE>true</CODE> if the compression was successful, or
    *          <CODE>false</CODE> if it was not.
    */
+  @Override
   public boolean execute()
   {
     FileInputStream fis = null;

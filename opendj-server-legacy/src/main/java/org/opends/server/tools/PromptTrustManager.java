@@ -12,25 +12,23 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import static org.opends.messages.ToolMessages.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class provides an implementation of an X.509 trust manager which will
@@ -44,24 +42,15 @@ import static org.opends.messages.ToolMessages.*;
 public class PromptTrustManager
        implements X509TrustManager
 {
-
-
-
   /** The singleton trust manager array for this class. */
   private static TrustManager[] trustManagerArray =
        new TrustManager[] { new PromptTrustManager() };
 
-
-
-  /**
-   * Creates a new instance of this prompt trust manager.
-   */
+  /** Creates a new instance of this prompt trust manager. */
   private PromptTrustManager()
   {
     // No implementation is required.
   }
-
-
 
   /**
    * Retrieves the trust manager array that should be used to initialize an SSL
@@ -77,8 +66,6 @@ public class PromptTrustManager
     return trustManagerArray;
   }
 
-
-
   /**
    * Determines whether an SSL client with the provided certificate chain should
    * be trusted.  This implementation is not intended for server-side use, and
@@ -90,14 +77,13 @@ public class PromptTrustManager
    * @throws  CertificateException  To indicate that the provided client
    *                                certificate is not trusted.
    */
+  @Override
   public void checkClientTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
     LocalizableMessage message = ERR_PROMPTTM_REJECTING_CLIENT_CERT.get();
     throw new CertificateException(message.toString());
   }
-
-
 
   /**
    * Determines whether an SSL server with the provided certificate chain should
@@ -109,6 +95,7 @@ public class PromptTrustManager
    *
    * @throws  CertificateException  If the user rejects the certificate.
    */
+  @Override
   public void checkServerTrusted(X509Certificate[] chain, String authType)
          throws CertificateException
   {
@@ -137,7 +124,6 @@ public class PromptTrustManager
               notBeforeDate,
               notAfterDate));
     }
-
 
     LocalizableMessage prompt = INFO_PROMPTTM_YESNO_PROMPT.get();
     BufferedReader reader =
@@ -171,8 +157,6 @@ public class PromptTrustManager
     }
   }
 
-
-
   /**
    * Retrieves the set of certificate authority certificates which are trusted
    * for authenticating peers.
@@ -180,9 +164,9 @@ public class PromptTrustManager
    * @return  An empty array, since we don't care what certificates are
    *          presented because we will always prompt the user.
    */
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return new X509Certificate[0];
   }
 }
-

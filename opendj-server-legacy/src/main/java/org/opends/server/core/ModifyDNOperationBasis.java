@@ -58,19 +58,13 @@ public class ModifyDNOperationBasis
   /** Indicates whether to delete the old RDN value from the entry. */
   private boolean deleteOldRDN;
 
-  /**
-   * The raw, unprocessed current DN of the entry as included in the request
-   * from the client.
-   */
+  /** The raw, unprocessed current DN of the entry as included in the request from the client. */
   private ByteString rawEntryDN;
 
   /** The raw, unprocessed newRDN as included in the request from the client. */
   private ByteString rawNewRDN;
 
-  /**
-   * The raw, unprocessed newSuperior as included in the request from the
-   * client.
-   */
+  /** The raw, unprocessed newSuperior as included in the request from the client. */
   private ByteString rawNewSuperior;
 
   /** The current DN of the entry. */
@@ -123,7 +117,6 @@ public class ModifyDNOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.rawEntryDN      = rawEntryDN;
     this.rawNewRDN       = rawNewRDN;
     this.deleteOldRDN    = deleteOldRDN;
@@ -136,8 +129,6 @@ public class ModifyDNOperationBasis
     cancelRequest    = null;
     modifications    = null;
   }
-
-
 
   /**
    * Creates a new modify DN operation with the provided information.
@@ -163,7 +154,6 @@ public class ModifyDNOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.entryDN      = entryDN;
     this.newRDN       = newRDN;
     this.deleteOldRDN = deleteOldRDN;
@@ -186,14 +176,12 @@ public class ModifyDNOperationBasis
     modifications    = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -233,7 +221,6 @@ public class ModifyDNOperationBasis
     return rawNewRDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawNewRDN(ByteString rawNewRDN)
   {
@@ -243,7 +230,6 @@ public class ModifyDNOperationBasis
     newDN = null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final RDN getNewRDN()
   {
@@ -264,28 +250,24 @@ public class ModifyDNOperationBasis
     return newRDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final boolean deleteOldRDN()
   {
     return deleteOldRDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setDeleteOldRDN(boolean deleteOldRDN)
   {
     this.deleteOldRDN = deleteOldRDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRawNewSuperior()
   {
     return rawNewSuperior;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void setRawNewSuperior(ByteString rawNewSuperior)
   {
@@ -311,7 +293,6 @@ public class ModifyDNOperationBasis
     return modifications;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addModification(Modification modification)
   {
@@ -325,21 +306,18 @@ public class ModifyDNOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Entry getOriginalEntry()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final Entry getUpdatedEntry()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -349,34 +327,29 @@ public class ModifyDNOperationBasis
     return OperationType.MODIFY_DN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
-
 
   /**
    * Performs the work of actually processing this operation.  This
@@ -463,7 +436,6 @@ public class ModifyDNOperationBasis
     }
   }
 
-
   /**
    * Invokes the post response plugins. If a workflow has been executed
    * then invoke the post response plugins provided by the workflow
@@ -500,7 +472,6 @@ public class ModifyDNOperationBasis
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void updateOperationErrMsgAndResCode()
   {
@@ -508,7 +479,6 @@ public class ModifyDNOperationBasis
     appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(entryDN));
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -531,14 +501,12 @@ public class ModifyDNOperationBasis
     buffer.append(")");
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN dn)
   {
     proxiedAuthorizationDN = dn;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getNewDN()
   {
@@ -567,6 +535,4 @@ public class ModifyDNOperationBasis
     }
     return newDN;
   }
-
 }
-

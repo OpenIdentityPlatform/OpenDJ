@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -39,14 +39,11 @@ import org.forgerock.opendj.ldap.ResultCode;
  */
 public class SubtreeDeleteControl extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a
-   * ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder implements
       ControlDecoder<SubtreeDeleteControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public SubtreeDeleteControl decode(boolean isCritical,
         ByteString value) throws DirectoryException
     {
@@ -62,6 +59,7 @@ public class SubtreeDeleteControl extends Control
 
 
 
+    @Override
     public String getOID()
     {
       return OID_SUBTREE_DELETE_CONTROL;
@@ -71,9 +69,7 @@ public class SubtreeDeleteControl extends Control
 
 
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<SubtreeDeleteControl> DECODER =
       new Decoder();
 
@@ -93,7 +89,6 @@ public class SubtreeDeleteControl extends Control
 
 
 
-  /** {@inheritDoc} */
   @Override
   protected void writeValue(ASN1Writer writer) throws IOException
   {
@@ -102,7 +97,6 @@ public class SubtreeDeleteControl extends Control
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {

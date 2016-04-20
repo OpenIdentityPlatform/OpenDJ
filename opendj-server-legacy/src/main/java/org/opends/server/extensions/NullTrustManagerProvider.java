@@ -43,9 +43,7 @@ public class NullTrustManagerProvider
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeTrustManagerProvider(
                      TrustManagerProviderCfg configuration)
          throws ConfigException, InitializationException
@@ -53,18 +51,11 @@ public class NullTrustManagerProvider
     // No implementation is required.
   }
 
-
-
-  /**
-   * Performs any finalization that may be necessary for this trust manager
-   * provider.
-   */
+  @Override
   public void finalizeTrustManagerProvider()
   {
     // No implementation is required.
   }
-
-
 
   /**
    * Retrieves a <CODE>TrustManager</CODE> object that may be used for
@@ -76,10 +67,10 @@ public class NullTrustManagerProvider
    * @throws  DirectoryException  If a problem occurs while attempting to obtain
    *                              the set of trust managers.
    */
+  @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
     return new TrustManager[0];
   }
 }
-

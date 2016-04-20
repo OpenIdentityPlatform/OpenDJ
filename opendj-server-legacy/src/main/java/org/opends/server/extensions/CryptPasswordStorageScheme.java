@@ -52,16 +52,11 @@ public class CryptPasswordStorageScheme
        extends PasswordStorageScheme<CryptPasswordStorageSchemeCfg>
        implements ConfigurationChangeListener<CryptPasswordStorageSchemeCfg>
 {
-
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
+  /** The fully-qualified name of this class for debugging purposes. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.CryptPasswordStorageScheme";
 
-  /**
-   * The current configuration for the CryptPasswordStorageScheme.
-   */
+  /** The current configuration for the CryptPasswordStorageScheme. */
   private CryptPasswordStorageSchemeCfg currentConfig;
 
   /**
@@ -76,7 +71,6 @@ public class CryptPasswordStorageScheme
   private final Object saltLock = new Object();
   private final Crypt crypt = new Crypt();
 
-
   /**
    * Creates a new instance of this password storage scheme.  Note that no
    * initialization should be performed here, as all initialization should be
@@ -87,29 +81,22 @@ public class CryptPasswordStorageScheme
     super();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    CryptPasswordStorageSchemeCfg configuration)
          throws ConfigException, InitializationException {
-
     configuration.addCryptChangeListener(this);
 
     currentConfig = configuration;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_CRYPT;
   }
 
-
-  /**
-   * Encrypt plaintext password with the Unix Crypt algorithm.
-   */
+  /** Encrypt plaintext password with the Unix Crypt algorithm. */
   private ByteString unixCryptEncodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -230,7 +217,6 @@ public class CryptPasswordStorageScheme
     return ByteString.valueOfUtf8(output);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -254,8 +240,6 @@ public class CryptPasswordStorageScheme
     return bytes;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -271,9 +255,7 @@ public class CryptPasswordStorageScheme
     return ByteString.valueOfUtf8(buffer);
   }
 
-  /**
-   * Matches passwords encrypted with the Unix Crypt algorithm.
-   */
+  /** Matches passwords encrypted with the Unix Crypt algorithm. */
   private boolean unixCryptPasswordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
   {
@@ -370,7 +352,6 @@ public class CryptPasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -394,7 +375,6 @@ public class CryptPasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -402,9 +382,6 @@ public class CryptPasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -414,9 +391,6 @@ public class CryptPasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -425,18 +399,12 @@ public class CryptPasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -446,9 +414,6 @@ public class CryptPasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -459,9 +424,6 @@ public class CryptPasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -472,7 +434,6 @@ public class CryptPasswordStorageScheme
     // category, but it's certainly a lot more vulnerable to lookup tables
     // than most other algorithms.  I'd say we can keep it this way for now,
     // but it might be something to reconsider later.
-    //
     // Currently, this method is unused.  However, the intended purpose is
     // eventually for use in issue #321, where we could do things like prevent
     // even authorized users from seeing the password value over an insecure
@@ -481,7 +442,6 @@ public class CryptPasswordStorageScheme
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
           PasswordStorageSchemeCfg configuration,
@@ -492,9 +452,6 @@ public class CryptPasswordStorageScheme
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CryptPasswordStorageSchemeCfg configuration,
@@ -504,7 +461,6 @@ public class CryptPasswordStorageScheme
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                       CryptPasswordStorageSchemeCfg configuration)

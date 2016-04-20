@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -63,9 +63,8 @@ public final class MultiOutputStream
 
 
 
-  /**
-   * Closes all of the underlying output streams.
-   */
+  /** Closes all of the underlying output streams. */
+  @Override
   public void close()
   {
     for (OutputStream s : targetStreams)
@@ -83,9 +82,8 @@ public final class MultiOutputStream
 
 
 
-  /**
-   * Flushes all of the underlying output streams.
-   */
+  /** Flushes all of the underlying output streams. */
+  @Override
   public void flush()
   {
     for (OutputStream s : targetStreams)
@@ -109,6 +107,7 @@ public final class MultiOutputStream
    *
    * @param  b  The byte array containing the data to be written.
    */
+  @Override
   public void write(byte[] b)
   {
     for (OutputStream s : targetStreams)
@@ -134,6 +133,7 @@ public final class MultiOutputStream
    * @param  off  The position at which the data to write begins in the array.
    * @param  len  The number of bytes to b written.
    */
+  @Override
   public void write(byte[] b, int off, int len)
   {
     for (OutputStream s : targetStreams)
@@ -156,6 +156,7 @@ public final class MultiOutputStream
    *
    * @param  b  The byte to be written.
    */
+  @Override
   public void write(int b)
   {
     for (OutputStream s : targetStreams)

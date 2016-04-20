@@ -12,16 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server;
 
-import org.opends.server.loggers.TextWriter;
-
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 
+import org.opends.server.loggers.TextWriter;
+
+@SuppressWarnings("javadoc")
 public class TestTextWriter implements TextWriter
 {
   /** The list that will hold the messages logged. */
@@ -32,24 +33,25 @@ public class TestTextWriter implements TextWriter
     messageList = new LinkedList<>();
   }
 
+  @Override
   public synchronized void writeRecord(String record)
   {
     messageList.add(record);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void flush()
   {
     // No implementation is required.
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void shutdown()
   {
     messageList.clear();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public long getBytesWritten()
   {
     // No implementation is required. Just return 0;

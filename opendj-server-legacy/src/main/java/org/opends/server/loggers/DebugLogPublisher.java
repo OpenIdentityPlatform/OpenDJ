@@ -50,10 +50,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
 
 
 
-  /**
-   * Construct a default configuration where the global scope will
-   * only log at the ERROR level.
-   */
+  /** Construct a default configuration where the global scope will only log at the ERROR level. */
   protected DebugLogPublisher()
   {
     classTraceSettings = null;
@@ -65,7 +62,6 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(T configuration,
                       List<LocalizableMessage> unacceptableReasons)

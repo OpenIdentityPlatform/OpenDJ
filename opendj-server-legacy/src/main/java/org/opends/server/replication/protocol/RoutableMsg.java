@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
-
-
 
 /**
  * This is an abstract class of messages of the replication protocol for message
@@ -30,19 +28,11 @@ package org.opends.server.replication.protocol;
  */
 public abstract class RoutableMsg extends ReplicationMsg
 {
+  /* Special values for the server ids fields contained in the routable messages. */
 
-  /**
-   *  Special values for the server ids fields contained in the routable
-   *  messages.
-   **/
-
-  /**
-   *  Specifies that no server is identified.
-   */
+  /** Specifies that no server is identified. */
   public static final int UNKNOWN_SERVER      = -1;
-  /**
-   * Specifies all servers in the replication domain.
-   */
+  /** Specifies all servers in the replication domain. */
   public static final int ALL_SERVERS         = -2;
   /**
    * Inside a topology of servers in the same domain, it specifies
@@ -50,13 +40,9 @@ public abstract class RoutableMsg extends ReplicationMsg
    */
   public static final int THE_CLOSEST_SERVER  = -3;
 
-  /**
-   * The destination server or servers of this message.
-   */
+  /** The destination server or servers of this message. */
   protected int destination = UNKNOWN_SERVER;
-  /**
-   * The serverID of the server that sends this message.
-   */
+  /** The serverID of the server that sends this message. */
   protected int senderID = UNKNOWN_SERVER;
 
   /**
@@ -70,9 +56,7 @@ public abstract class RoutableMsg extends ReplicationMsg
     this.destination = destination;
   }
 
-  /**
-   * Creates a routable message.
-   */
+  /** Creates a routable message. */
   public RoutableMsg()
   {
   }
@@ -101,6 +85,7 @@ public abstract class RoutableMsg extends ReplicationMsg
    *
    * @return the string representation of this message.
    */
+  @Override
   public String toString()
   {
     return "[" + getClass().getCanonicalName() +

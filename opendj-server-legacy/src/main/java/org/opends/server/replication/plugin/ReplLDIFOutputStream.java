@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -50,7 +50,7 @@ public class ReplLDIFOutputStream
     this.numEntries = numEntries;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void write(int i) throws IOException
   {
     throw new IOException("Invalid call");
@@ -65,7 +65,7 @@ public class ReplLDIFOutputStream
     return checkSum.getValue();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void write(byte b[], int off, int len) throws IOException
   {
     int endOfEntryIndex;

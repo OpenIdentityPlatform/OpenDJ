@@ -66,7 +66,6 @@ import static org.opends.server.controls.PersistentSearchChangeType.*;
  */
 public final class PersistentSearch
 {
-
   /**
    * A cancellation call-back which can be used by work-flow element
    * implementations in order to register for resource cleanup when a
@@ -74,7 +73,6 @@ public final class PersistentSearch
    */
   public static interface CancellationCallback
   {
-
     /**
      * The provided persistent search has been cancelled. Any
      * resources associated with the persistent search should be
@@ -86,8 +84,6 @@ public final class PersistentSearch
     void persistentSearchCancelled(PersistentSearch psearch);
   }
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
 
   /** Cancel a persistent search. */
   private static synchronized void cancel(PersistentSearch psearch)
@@ -125,10 +121,7 @@ public final class PersistentSearch
   /** Indicates whether or not this persistent search has already been aborted. */
   private boolean isCancelled;
 
-  /**
-   * Indicates whether entries returned should include the entry change
-   * notification control.
-   */
+  /** Indicates whether entries returned should include the entry change notification control. */
   private final boolean returnECs;
 
   /** The reference to the associated search operation. */
@@ -164,8 +157,6 @@ public final class PersistentSearch
     this.returnECs = returnECs;
   }
 
-
-
   /**
    * Cancels this persistent search operation. On exit this persistent
    * search will no longer be valid and any resources associated with
@@ -198,8 +189,6 @@ public final class PersistentSearch
     return new CancelResult(ResultCode.CANCELLED, null);
   }
 
-
-
   /**
    * Gets the message ID associated with this persistent search.
    *
@@ -209,7 +198,6 @@ public final class PersistentSearch
   {
     return searchOperation.getMessageID();
   }
-
 
   /**
    * Get the search operation associated with this persistent search.
@@ -303,8 +291,6 @@ public final class PersistentSearch
     }
   }
 
-
-
   /**
    * Notifies the persistent searches that an entry has been modified.
    *
@@ -315,8 +301,6 @@ public final class PersistentSearch
   {
     processModify(entry, entry);
   }
-
-
 
   /**
    * Notifies persistent searches that an entry has been modified.
@@ -426,8 +410,6 @@ public final class PersistentSearch
     }
   }
 
-
-
   /**
    * Registers a cancellation callback with this persistent search.
    * The cancellation callback will be notified when this persistent
@@ -440,8 +422,6 @@ public final class PersistentSearch
   {
     cancellationCallbacks.add(callback);
   }
-
-
 
   /**
    * Enable this persistent search. The persistent search will be
@@ -456,8 +436,6 @@ public final class PersistentSearch
     DirectoryServer.registerPersistentSearch();
   }
 
-
-
   /**
    * Retrieves a string representation of this persistent search.
    *
@@ -470,8 +448,6 @@ public final class PersistentSearch
     toString(buffer);
     return buffer.toString();
   }
-
-
 
   /**
    * Appends a string representation of this persistent search to the

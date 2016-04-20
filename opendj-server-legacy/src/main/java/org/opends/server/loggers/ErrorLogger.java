@@ -55,16 +55,13 @@ public class ErrorLogger extends AbstractLogger
     return instance;
   }
 
-  /**
-   * The constructor for this class.
-   */
+  /** The constructor for this class. */
   private ErrorLogger()
   {
     super((Class) ErrorLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_ERROR_LOGGER_CLASS);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected ClassPropertyDefinition getJavaClassPropertyDefinition()
   {
@@ -72,7 +69,6 @@ public class ErrorLogger extends AbstractLogger
         .getJavaClassPropertyDefinition();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Collection<ErrorLogPublisher<ErrorLogPublisherCfg>> getLogPublishers()
   {

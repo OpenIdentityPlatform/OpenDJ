@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -27,8 +25,6 @@ import org.opends.server.api.TrustManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
-
 
 /**
  * This class provides an implementation of a trust manager provider that will
@@ -52,9 +48,6 @@ public class BlindTrustManagerProvider
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeTrustManagerProvider(
                   BlindTrustManagerProviderCfg configuration)
@@ -63,29 +56,18 @@ public class BlindTrustManagerProvider
     // No implementation is required.
   }
 
-
-
-  /**
-   * Performs any finalization that may be necessary for this trust manager
-   * provider.
-   */
   @Override
   public void finalizeTrustManagerProvider()
   {
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
     return new TrustManager[] { this };
   }
-
-
 
   /**
    * Determines whether an SSL client with the provided certificate chain should
@@ -94,13 +76,12 @@ public class BlindTrustManagerProvider
    * @param  chain     The certificate chain for the SSL client.
    * @param  authType  The authentication type based on the client certificate.
    */
+  @Override
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   {
     // As long as we don't throw an exception, then the client certificate will
     // be considered trusted.
   }
-
-
 
   /**
    * Determines whether an SSL server with the provided certificate chain should
@@ -109,13 +90,12 @@ public class BlindTrustManagerProvider
    * @param  chain     The certificate chain for the SSL server.
    * @param  authType  The key exchange algorithm used.
    */
+  @Override
   public void checkServerTrusted(X509Certificate[] chain, String authType)
   {
     // As long as we don't throw an exception, then the server certificate will
     // be considered trusted.
   }
-
-
 
   /**
    * Retrieves the set of certificate authority certificates which are trusted
@@ -124,9 +104,9 @@ public class BlindTrustManagerProvider
    * @return  An empty array, since we don't care what certificates are
    *          presented because we will trust them all.
    */
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return new X509Certificate[0];
   }
 }
-

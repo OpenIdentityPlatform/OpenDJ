@@ -39,6 +39,7 @@ public interface ModifyDNOperation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
+  @Override
   ByteString getRawEntryDN();
 
   /**
@@ -59,6 +60,7 @@ public interface ModifyDNOperation
    * @return  The DN of the entry to rename, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
+  @Override
   DN getEntryDN();
 
   /**
@@ -69,6 +71,7 @@ public interface ModifyDNOperation
    * @return  The raw, unprocessed newRDN as included in the request from the
    *          client.
    */
+  @Override
   ByteString getRawNewRDN();
 
   /**
@@ -89,6 +92,7 @@ public interface ModifyDNOperation
    * @return  The new RDN to use for the entry, or <CODE>null</CODE> if the raw
    *          newRDN has not yet been processed.
    */
+  @Override
   RDN getNewRDN();
 
 
@@ -98,6 +102,7 @@ public interface ModifyDNOperation
    * @return  <CODE>true</CODE> if the current RDN value should be removed from
    *          the entry, or <CODE>false</CODE> if not.
    */
+  @Override
   boolean deleteOldRDN();
 
   /**
@@ -116,6 +121,7 @@ public interface ModifyDNOperation
    * @return  The raw, unprocessed newSuperior from the client request, or
    *          <CODE>null</CODE> if there is none.
    */
+  @Override
   ByteString getRawNewSuperior();
 
   /**
@@ -138,6 +144,7 @@ public interface ModifyDNOperation
    *          no newSuperior DN for this request or if the raw newSuperior has
    *          not yet been processed.
    */
+  @Override
   DN getNewSuperior();
 
   /**
@@ -185,6 +192,7 @@ public interface ModifyDNOperation
    * @return  The current entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
+  @Override
   Entry getOriginalEntry();
 
 
@@ -196,6 +204,7 @@ public interface ModifyDNOperation
    * @return  The updated entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
+  @Override
   Entry getUpdatedEntry();
 
   /**
@@ -206,6 +215,7 @@ public interface ModifyDNOperation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   DN getProxiedAuthorizationDN();
 
 
@@ -217,6 +227,7 @@ public interface ModifyDNOperation
    *            authorization has been requested, or {@code null} if proxied
    *            authorization has not been requested.
    */
+  @Override
   void setProxiedAuthorizationDN(DN dn);
 
 }

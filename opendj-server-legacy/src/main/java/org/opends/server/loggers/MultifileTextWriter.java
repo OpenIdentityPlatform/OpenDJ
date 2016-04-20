@@ -229,9 +229,7 @@ class MultifileTextWriter
     this.retentionPolicies.add(policy);
   }
 
-  /**
-   * Removes all the rotation policies currently enforced by this writer.
-   */
+  /** Removes all the rotation policies currently enforced by this writer. */
   public void removeAllRotationPolicies()
   {
     for(RotationPolicy policy : rotationPolicies)
@@ -249,9 +247,7 @@ class MultifileTextWriter
     this.rotationPolicies.clear();
   }
 
-  /**
-   * Removes all retention policies being enforced by this writer.
-   */
+  /** Removes all retention policies being enforced by this writer. */
   public void removeAllRetentionPolicies()
   {
     this.retentionPolicies.clear();
@@ -334,7 +330,6 @@ class MultifileTextWriter
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -343,7 +338,6 @@ class MultifileTextWriter
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
@@ -377,9 +371,7 @@ class MultifileTextWriter
   private class RotaterThread extends DirectoryThread
   {
     MultifileTextWriter writer;
-    /**
-     * Create a new rotater thread.
-     */
+    /** Create a new rotater thread. */
     public RotaterThread(MultifileTextWriter writer)
     {
       super(name);
@@ -501,9 +493,7 @@ class MultifileTextWriter
     return stopRequested;
   }
 
-  /**
-   * Shutdown the text writer.
-   */
+  /** Shutdown the text writer. */
   @Override
   public void shutdown()
   {
@@ -575,7 +565,6 @@ class MultifileTextWriter
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void flush()
   {
@@ -642,7 +631,6 @@ class MultifileTextWriter
     this.actions = actions;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getBytesWritten()
   {
@@ -671,7 +659,6 @@ class MultifileTextWriter
     return lastCleanCount;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Calendar getLastRotationTime()
   {

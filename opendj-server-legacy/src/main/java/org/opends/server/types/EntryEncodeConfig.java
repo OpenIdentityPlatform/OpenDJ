@@ -12,18 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequenceReader;
+import static org.opends.messages.CoreMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.messages.CoreMessages.*;
 
 /**
  * This class defines a data structure that contains configuration
@@ -61,10 +60,7 @@ public final class EntryEncodeConfig
 
 
 
-  /**
-   * A reference to an entry encode configuration with all the default
-   * settings.
-   */
+  /** A reference to an entry encode configuration with all the default settings. */
   public static final EntryEncodeConfig
        DEFAULT_CONFIG = new EntryEncodeConfig();
 
@@ -87,10 +83,7 @@ public final class EntryEncodeConfig
 
 
 
-  /**
-   * Creates a new encoded entry configuration with the default
-   * settings.
-   */
+  /** Creates a new encoded entry configuration with the default settings. */
   public EntryEncodeConfig()
   {
     excludeDN                = false;
@@ -303,21 +296,13 @@ public final class EntryEncodeConfig
     return (b & flag) == flag;
   }
 
-  /**
-   * Retrieves a string representation of this entry encode
-   * configuration.
-   *
-   * @return  A string representation of this entry encode
-   *          configuration.
-   */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
     toString(buffer);
     return buffer.toString();
   }
-
-
 
   /**
    * Appends a string representation of this entry encode
@@ -337,4 +322,3 @@ public final class EntryEncodeConfig
     buffer.append(")");
   }
 }
-

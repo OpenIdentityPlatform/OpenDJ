@@ -20,31 +20,24 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
-
-/**
- * Test authentication policy interaction.
- */
+/** Test authentication policy interaction. */
 public class AuthenticationPolicyTestCase extends APITestCase
 {
-
-  /**
-   * A mock policy which records which methods have been called and their
-   * parameters.
-   */
+  /** A mock policy which records which methods have been called and their parameters. */
   private final class MockPolicy extends AuthenticationPolicy
   {
     private final boolean isDisabled;
@@ -52,7 +45,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
     private boolean isPolicyFinalized;
     private boolean isStateFinalized;
     private ByteString matchedPassword;
-
 
     /**
      * Returns {@code true} if {@code finalizeAuthenticationPolicy} was called.
@@ -64,8 +56,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
       return isPolicyFinalized;
     }
 
-
-
     /**
      * Returns {@code true} if {@code finalizeStateAfterBind} was called.
      *
@@ -76,8 +66,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
       return isStateFinalized;
     }
 
-
-
     /**
      * Returns the password which was tested.
      *
@@ -87,8 +75,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
     {
       return matchedPassword;
     }
-
-
 
     /**
      * Creates a new mock policy.
@@ -104,24 +90,20 @@ public class AuthenticationPolicyTestCase extends APITestCase
       this.isDisabled = isDisabled;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public DN getDN()
     {
       return policyDN;
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public AuthenticationPolicyState createAuthenticationPolicyState(
         Entry userEntry, long time) throws DirectoryException
     {
       return new AuthenticationPolicyState(userEntry)
       {
 
-        /** {@inheritDoc} */
+        @Override
         public boolean passwordMatches(ByteString password)
             throws DirectoryException
         {
@@ -129,25 +111,19 @@ public class AuthenticationPolicyTestCase extends APITestCase
           return matches;
         }
 
-
-
-        /** {@inheritDoc} */
+        @Override
         public boolean isDisabled()
         {
           return MockPolicy.this.isDisabled;
         }
 
-
-
-        /** {@inheritDoc} */
+        @Override
         public void finalizeStateAfterBind() throws DirectoryException
         {
           isStateFinalized = true;
         }
 
-
-
-        /** {@inheritDoc} */
+        @Override
         public AuthenticationPolicy getAuthenticationPolicy()
         {
           return MockPolicy.this;
@@ -155,23 +131,16 @@ public class AuthenticationPolicyTestCase extends APITestCase
       };
     }
 
-
-
-    /** {@inheritDoc} */
+    @Override
     public void finalizeAuthenticationPolicy()
     {
       isPolicyFinalized = true;
     }
-
   }
-
-
 
   private final String policyDNString = "cn=test policy,o=test";
   private final String userDNString = "cn=test user,o=test";
   private DN policyDN;
-
-
 
   /**
    * Ensures that the Directory Server is running and creates a test backend
@@ -187,8 +156,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
     policyDN = DN.valueOf(policyDNString);
   }
-
-
 
   /**
    * Returns test data for the simple/sasl tests.
@@ -208,8 +175,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
     };
     // @formatter:on
   }
-
-
 
   /**
    * Test simple authentication where password validation succeeds.
@@ -232,9 +197,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
       // Create an empty test backend 'o=test'
       TestCaseUtils.initializeTestBackend(true);
 
-      /*
-       * The test user which who will be authenticated.
-       */
+      /* The test user which who will be authenticated. */
       TestCaseUtils.addEntries(
           /* @formatter:off */
           "dn: " + userDNString,
@@ -279,8 +242,6 @@ public class AuthenticationPolicyTestCase extends APITestCase
     }
   }
 
-
-
   /**
    * Test simple authentication where password validation succeeds.
    *
@@ -302,9 +263,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
       // Create an empty test backend 'o=test'
       TestCaseUtils.initializeTestBackend(true);
 
-      /*
-       * The test user which who will be authenticated.
-       */
+      /* The test user which who will be authenticated. */
       TestCaseUtils.addEntries(
           /* @formatter:off */
           "dn: " + userDNString,
@@ -356,5 +315,4 @@ public class AuthenticationPolicyTestCase extends APITestCase
       assertTrue(policy.isPolicyFinalized());
     }
   }
-
 }

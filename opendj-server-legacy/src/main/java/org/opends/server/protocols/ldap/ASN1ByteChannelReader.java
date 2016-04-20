@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -70,10 +70,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
   /** The wrapped ASN.1 reader. */
   private final ASN1Reader reader;
 
-  /**
-   * The NIO ByteStringBuilder that stores any immediate data read off the
-   * channel.
-   */
+  /** The NIO ByteStringBuilder that stores any immediate data read off the channel. */
   private final ByteBuffer byteBuffer;
 
   /**
@@ -104,7 +101,6 @@ final class ASN1ByteChannelReader implements ASN1Reader
    */
   private final class CombinedBufferInputStream extends InputStream
   {
-    /** {@inheritDoc} */
     @Override
     public int available()
     {
@@ -234,7 +230,6 @@ final class ASN1ByteChannelReader implements ASN1Reader
       return bytesCopied;
     }
 
-    /** {@inheritDoc} */
     @Override
     public long skip(long length)
     {
@@ -374,171 +369,143 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return saveBufferReader.remaining() != 0 || byteBuffer.remaining() != 0;
   }
 
-  /** {@inheritDoc} */
   @Override
   public int peekLength() throws IOException {
     return reader.peekLength();
   }
 
-  /** {@inheritDoc} */
   @Override
   public byte peekType() throws IOException {
     return reader.peekType();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean readBoolean() throws IOException {
     return reader.readBoolean();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean readBoolean(byte type) throws IOException {
     return reader.readBoolean(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readEndExplicitTag() throws IOException {
     reader.readEndExplicitTag();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readEndSequence() throws IOException {
     reader.readEndSequence();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readEndSet() throws IOException {
     reader.readEndSet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int readEnumerated() throws IOException {
     return reader.readEnumerated();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int readEnumerated(byte type) throws IOException {
     return reader.readEnumerated(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public long readInteger() throws IOException {
     return reader.readInteger();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long readInteger(byte type) throws IOException {
     return reader.readInteger(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readNull() throws IOException {
     reader.readNull();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readNull(byte type) throws IOException {
     reader.readNull(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString readOctetString() throws IOException {
     return reader.readOctetString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString readOctetString(byte type) throws IOException {
     return readOctetString(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteStringBuilder readOctetString(ByteStringBuilder buffer) throws IOException {
     return reader.readOctetString(buffer);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteStringBuilder readOctetString(byte type, ByteStringBuilder builder) throws IOException {
     return readOctetString(type, builder);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String readOctetStringAsString() throws IOException {
     return reader.readOctetStringAsString();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String readOctetStringAsString(byte type) throws IOException {
     return readOctetStringAsString(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readStartExplicitTag() throws IOException {
     reader.readStartExplicitTag();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readStartExplicitTag(byte type) throws IOException {
     reader.readStartExplicitTag(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readStartSequence() throws IOException {
     reader.readStartSequence();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readStartSequence(byte type) throws IOException {
     reader.readStartSequence(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readStartSet() throws IOException {
     reader.readStartSet();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void readStartSet(byte type) throws IOException {
     reader.readStartSet(type);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close() throws IOException {
     reader.close();
     byteChannel.close();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ASN1Reader skipElement() throws IOException {
     reader.skipElement();
     return this;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ASN1Reader skipElement(byte type) throws DecodeException, IOException
   {

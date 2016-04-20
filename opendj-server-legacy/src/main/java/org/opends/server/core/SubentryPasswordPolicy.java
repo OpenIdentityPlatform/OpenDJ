@@ -64,7 +64,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Password Policy Subentry draft attributes.
+  /** Password Policy Subentry draft attributes. */
   private static final String PWD_OC_POLICY = "pwdpolicy";
   private static final String PWD_ATTR_ATTRIBUTE = "pwdattribute";
   private static final String PWD_ATTR_MINAGE = "pwdminage";
@@ -328,8 +328,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     return null;
   }
 
-
-
   /**
    * Helper method to validate integer values.
    *
@@ -360,8 +358,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
               upperBound));
     }
   }
-
-
 
   /**
    * Helper method to retrieve an attribute value from given entry.
@@ -410,14 +406,12 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isAllowUserPasswordChanges();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isExpirePasswordsWithoutWarning()
   {
     return getDefaultPasswordPolicy().isExpirePasswordsWithoutWarning();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isForceChangeOnAdd()
   {
@@ -426,7 +420,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     return getDefaultPasswordPolicy().isForceChangeOnAdd();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isForceChangeOnReset()
   {
@@ -434,7 +427,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isForceChangeOnReset();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getGraceLoginCount()
   {
@@ -442,28 +434,24 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getGraceLoginCount();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getIdleLockoutInterval()
   {
     return getDefaultPasswordPolicy().getIdleLockoutInterval();
   }
 
-  /** {@inheritDoc} */
   @Override
   public AttributeType getLastLoginTimeAttribute()
   {
     return getDefaultPasswordPolicy().getLastLoginTimeAttribute();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getLastLoginTimeFormat()
   {
     return getDefaultPasswordPolicy().getLastLoginTimeFormat();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getLockoutDuration()
   {
@@ -471,7 +459,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getLockoutDuration();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getLockoutFailureCount()
   {
@@ -479,7 +466,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getLockoutFailureCount();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getLockoutFailureExpirationInterval()
   {
@@ -488,7 +474,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getLockoutFailureExpirationInterval();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getMaxPasswordAge()
   {
@@ -496,14 +481,12 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getMaxPasswordAge();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getMaxPasswordResetAge()
   {
     return getDefaultPasswordPolicy().getMaxPasswordResetAge();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getMinPasswordAge()
   {
@@ -511,7 +494,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getMinPasswordAge();
   }
 
-  /** {@inheritDoc} */
   @Override
   public AttributeType getPasswordAttribute()
   {
@@ -519,7 +501,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getPasswordAttribute();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordChangeRequiresCurrentPassword()
   {
@@ -528,7 +509,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isPasswordChangeRequiresCurrentPassword();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getPasswordExpirationWarningInterval()
   {
@@ -537,7 +517,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getPasswordExpirationWarningInterval();
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getPasswordHistoryCount()
   {
@@ -545,56 +524,48 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getPasswordHistoryCount();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getPasswordHistoryDuration()
   {
     return getDefaultPasswordPolicy().getPasswordHistoryDuration();
   }
 
-  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getPreviousLastLoginTimeFormats()
   {
     return getDefaultPasswordPolicy().getPreviousLastLoginTimeFormats();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getRequireChangeByTime()
   {
     return getDefaultPasswordPolicy().getRequireChangeByTime();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isRequireSecureAuthentication()
   {
     return getDefaultPasswordPolicy().isRequireSecureAuthentication();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isRequireSecurePasswordChanges()
   {
     return getDefaultPasswordPolicy().isRequireSecurePasswordChanges();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSkipValidationForAdministrators()
   {
     return getDefaultPasswordPolicy().isSkipValidationForAdministrators();
   }
 
-  /** {@inheritDoc} */
   @Override
   public StateUpdateFailurePolicy getStateUpdateFailurePolicy()
   {
     return getDefaultPasswordPolicy().getStateUpdateFailurePolicy();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAuthPasswordSyntax()
   {
@@ -602,42 +573,36 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isAuthPasswordSyntax();
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<PasswordStorageScheme<?>> getDefaultPasswordStorageSchemes()
   {
     return getDefaultPasswordPolicy().getDefaultPasswordStorageSchemes();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Set<String> getDeprecatedPasswordStorageSchemes()
   {
     return getDefaultPasswordPolicy().getDeprecatedPasswordStorageSchemes();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {
     return passwordPolicySubentryDN;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isDefaultPasswordStorageScheme(String name)
   {
     return getDefaultPasswordPolicy().isDefaultPasswordStorageScheme(name);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isDeprecatedPasswordStorageScheme(String name)
   {
     return getDefaultPasswordPolicy().isDeprecatedPasswordStorageScheme(name);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<PasswordValidator<?>> getPasswordValidators()
   {
@@ -661,7 +626,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     return getDefaultPasswordPolicy().getPasswordValidators();
   }
 
-
   /**
    * Implementation of a specific Password Validator that reject all
    * password due to mis-configured password policy subentry.
@@ -680,7 +644,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       pwPolicyName = policyName;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void initializePasswordValidator(PasswordValidatorCfg configuration)
         throws ConfigException, InitializationException
@@ -688,7 +651,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       // do nothing
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean passwordIsAcceptable(ByteString newPassword,
                                         Set<ByteString> currentPasswords,
@@ -707,7 +669,6 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<AccountStatusNotificationHandler<?>>
     getAccountStatusNotificationHandlers()
@@ -715,11 +676,9 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     return getDefaultPasswordPolicy().getAccountStatusNotificationHandlers();
   }
 
-  /** {@inheritDoc} */
   @Override
   public PasswordGenerator<?> getPasswordGenerator()
   {
     return getDefaultPasswordPolicy().getPasswordGenerator();
   }
-
 }

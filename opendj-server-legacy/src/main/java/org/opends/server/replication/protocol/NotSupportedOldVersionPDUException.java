@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -58,19 +58,18 @@ public class NotSupportedOldVersionPDUException extends Exception
    * Get the PDU message.
    * @return The PDU message.
    */
+  @Override
   public String getMessage()
   {
     return msg;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getLocalizedMessage()
   {
     return getMessage();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

@@ -29,6 +29,7 @@ public class SHA1PasswordStorageSchemeTestCase
     super("cn=SHA-1,cn=Password Storage Schemes,cn=config");
   }
 
+  @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     return InitializationUtils.initializePasswordStorageScheme(

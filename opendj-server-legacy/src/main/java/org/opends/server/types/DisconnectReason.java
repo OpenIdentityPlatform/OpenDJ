@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -213,6 +213,7 @@ public enum DisconnectReason
    *
    * @return  A string representation of this disconnect reason.
    */
+  @Override
   public String toString()
   {
     return message.toString();

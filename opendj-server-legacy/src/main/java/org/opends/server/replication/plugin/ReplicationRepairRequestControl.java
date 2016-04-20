@@ -12,19 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
-
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.controls.ControlDecoder;
-import org.forgerock.opendj.io.ASN1Writer;
-
 import java.io.IOException;
 
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.controls.ControlDecoder;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class implements the Sun-defined replication repair control.
@@ -36,13 +34,11 @@ import java.io.IOException;
  */
 public class ReplicationRepairRequestControl extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<ReplicationRepairRequestControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public ReplicationRepairRequestControl decode(boolean isCritical,
                                                   ByteString value)
            throws DirectoryException
@@ -50,34 +46,25 @@ public class ReplicationRepairRequestControl extends Control
       return new ReplicationRepairRequestControl(isCritical);
     }
 
-    /** {@inheritDoc} */
+    @Override
     public String getOID()
     {
       return OID_REPLICATION_REPAIR_CONTROL;
     }
-
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<ReplicationRepairRequestControl> DECODER =
     new Decoder();
 
-  /**
-   * The OID of the Replication repair Control.
-   */
+  /** The OID of the Replication repair Control. */
   public static final String
           OID_REPLICATION_REPAIR_CONTROL = "1.3.6.1.4.1.26027.1.5.2";
 
-  /**
-   * Creates a new instance of the replication repair request control with the
-   * default settings.
-   */
+  /** Creates a new instance of the replication repair request control with the default settings. */
   public ReplicationRepairRequestControl()
   {
     super(OID_REPLICATION_REPAIR_CONTROL, false);
-
   }
 
   /**
@@ -90,7 +77,6 @@ public class ReplicationRepairRequestControl extends Control
   public ReplicationRepairRequestControl(boolean isCritical)
   {
     super(OID_REPLICATION_REPAIR_CONTROL, isCritical);
-
   }
 
   /**
@@ -105,16 +91,9 @@ public class ReplicationRepairRequestControl extends Control
     // No value element
   }
 
-  /**
-   * Appends a string representation of this replication repair request control
-   * to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
   @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("ReplicationRepairRequestControl()");
   }
 }
-

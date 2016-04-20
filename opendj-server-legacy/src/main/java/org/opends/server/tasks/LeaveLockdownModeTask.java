@@ -15,21 +15,20 @@
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.TaskMessages.*;
 
 import java.net.InetAddress;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import static org.opends.messages.TaskMessages.*;
-
-
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
 
 /**
  * This class provides an implementation of a Directory Server task that can be
@@ -38,13 +37,11 @@ import static org.opends.messages.TaskMessages.*;
 public class LeaveLockdownModeTask
        extends Task
 {
-
-  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_LEAVE_LOCKDOWN_MODE_NAME.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeTask()
          throws DirectoryException
@@ -71,9 +68,7 @@ public class LeaveLockdownModeTask
     }
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   protected TaskState runTask()
   {
     DirectoryServer.setLockdownMode(false);

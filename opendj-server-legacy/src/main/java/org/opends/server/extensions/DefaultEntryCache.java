@@ -49,7 +49,6 @@ public class DefaultEntryCache
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
   /**
    * The entry cache order array reflects all currently configured and
    * active entry cache implementations in cache level specific order.
@@ -57,10 +56,7 @@ public class DefaultEntryCache
   private static EntryCache<? extends EntryCacheCfg>[] cacheOrder =
     new EntryCache<?>[0];
 
-
-  /**
-   * Creates a new instance of this default entry cache.
-   */
+  /** Creates a new instance of this default entry cache. */
   public DefaultEntryCache()
   {
     super();
@@ -70,7 +66,6 @@ public class DefaultEntryCache
     DirectoryServer.registerBackendInitializationListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeEntryCache(EntryCacheCfg configEntry)
          throws ConfigException, InitializationException
@@ -78,7 +73,6 @@ public class DefaultEntryCache
     // No implementation required.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeEntryCache()
   {
@@ -89,7 +83,6 @@ public class DefaultEntryCache
     cacheOrder = new EntryCache<?>[0];
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean containsEntry(DN entryDN)
   {
@@ -106,7 +99,6 @@ public class DefaultEntryCache
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(String backendID, long entryID)
   {
@@ -127,7 +119,6 @@ public class DefaultEntryCache
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   {
@@ -148,7 +139,6 @@ public class DefaultEntryCache
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryID(DN entryDN)
   {
@@ -163,7 +153,6 @@ public class DefaultEntryCache
     return -1;
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN(String backendID, long entryID)
   {
@@ -178,7 +167,6 @@ public class DefaultEntryCache
     return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void putEntry(Entry entry, String backendID, long entryID)
   {
@@ -192,7 +180,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean putEntryIfAbsent(Entry entry, String backendID, long entryID)
   {
@@ -208,7 +195,6 @@ public class DefaultEntryCache
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeEntry(DN entryDN)
   {
@@ -220,7 +206,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clear()
   {
@@ -229,7 +214,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearBackend(String backendID)
   {
@@ -238,7 +222,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearSubtree(DN baseDN)
   {
@@ -247,7 +230,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void handleLowMemory()
   {
@@ -256,7 +238,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
@@ -267,7 +248,6 @@ public class DefaultEntryCache
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(EntryCacheCfg configuration)
   {
@@ -306,7 +286,6 @@ public class DefaultEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Long getCacheCount()
   {
@@ -317,7 +296,6 @@ public class DefaultEntryCache
     return cacheCount;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toVerboseString()
   {
@@ -334,8 +312,6 @@ public class DefaultEntryCache
     return verboseString.length() > 0 ? verboseString : null;
   }
 
-
-
   /**
    * Retrieves the current cache order array.
    *
@@ -345,8 +321,6 @@ public class DefaultEntryCache
   {
     return DefaultEntryCache.cacheOrder;
   }
-
-
 
   /**
    * Sets the current cache order array.
@@ -360,8 +334,6 @@ public class DefaultEntryCache
     DefaultEntryCache.cacheOrder =
       cacheOrderMap.values().toArray(new EntryCache<?>[0]);
   }
-
-
 
   /**
    * Performs any processing that may be required whenever a backend
@@ -377,8 +349,6 @@ public class DefaultEntryCache
   {
     // Do nothing.
   }
-
-
 
   /**
    * Performs any processing that may be required whenever a backend

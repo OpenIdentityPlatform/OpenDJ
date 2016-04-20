@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -466,6 +466,7 @@ public class LDAPRequestHandler
    *
    * @return  The human-readable name for this shutdown listener.
    */
+  @Override
   public String getShutdownListenerName()
   {
     return handlerName;
@@ -493,6 +494,7 @@ public class LDAPRequestHandler
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
+  @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
     shutdownRequested = true;

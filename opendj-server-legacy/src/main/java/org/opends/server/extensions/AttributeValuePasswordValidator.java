@@ -45,11 +45,7 @@ public class AttributeValuePasswordValidator
   /** The current configuration for this password validator. */
   private AttributeValuePasswordValidatorCfg currentConfig;
 
-
-
-  /**
-   * Creates a new instance of this attribute value password validator.
-   */
+  /** Creates a new instance of this attribute value password validator. */
   public AttributeValuePasswordValidator()
   {
     super();
@@ -58,9 +54,6 @@ public class AttributeValuePasswordValidator
     // performed in the initializePasswordValidator() method.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    AttributeValuePasswordValidatorCfg configuration)
@@ -69,16 +62,11 @@ public class AttributeValuePasswordValidator
     currentConfig = configuration;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeAttributeValueChangeListener(this);
   }
-
-
 
   /**
    * Search for substrings of the password in an Attribute. The search is
@@ -113,9 +101,6 @@ public class AttributeValuePasswordValidator
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
@@ -124,7 +109,6 @@ public class AttributeValuePasswordValidator
   {
     // Get a handle to the current configuration.
     AttributeValuePasswordValidatorCfg config = currentConfig;
-
 
     // Get the string representation (both forward and reversed) for the password.
     final String password = newPassword.toString();
@@ -165,14 +149,10 @@ public class AttributeValuePasswordValidator
       }
     }
 
-
     // If we've gotten here, then the password is acceptable.
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -182,9 +162,7 @@ public class AttributeValuePasswordValidator
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       AttributeValuePasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -193,9 +171,7 @@ public class AttributeValuePasswordValidator
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                       AttributeValuePasswordValidatorCfg configuration)
   {

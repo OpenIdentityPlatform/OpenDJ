@@ -52,13 +52,9 @@ public class SASLConfigManager implements
     ConfigurationAddListener<SASLMechanismHandlerCfg>,
     ConfigurationDeleteListener<SASLMechanismHandlerCfg>
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated SASL
-   * mechanism handlers.
-   */
+  /** A mapping between the DNs of the config entries and the associated SASL mechanism handlers. */
   private final ConcurrentHashMap<DN, SASLMechanismHandler> handlers;
 
   private final ServerContext serverContext;
@@ -74,8 +70,6 @@ public class SASLConfigManager implements
     this.serverContext = serverContext;
     handlers = new ConcurrentHashMap<>();
   }
-
-
 
   /**
    * Initializes all SASL mechanism handlers currently defined in the Directory
@@ -95,7 +89,6 @@ public class SASLConfigManager implements
     RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addSASLMechanismHandlerAddListener(this);
     rootConfiguration.addSASLMechanismHandlerDeleteListener(this);
-
 
     //Initialize the existing SASL mechanism handlers.
     for (String handlerName : rootConfiguration.listSASLMechanismHandlers())
@@ -123,9 +116,6 @@ public class SASLConfigManager implements
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -151,9 +141,6 @@ public class SASLConfigManager implements
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
               SASLMechanismHandlerCfg configuration)
@@ -190,9 +177,6 @@ public class SASLConfigManager implements
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -203,9 +187,6 @@ public class SASLConfigManager implements
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
               SASLMechanismHandlerCfg configuration)
@@ -221,9 +202,6 @@ public class SASLConfigManager implements
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -249,19 +227,14 @@ public class SASLConfigManager implements
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               SASLMechanismHandlerCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing handler if it's already enabled.
     SASLMechanismHandler existingHandler = handlers.get(configuration.dn());
-
 
     // If the new configuration has the handler disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -278,7 +251,6 @@ public class SASLConfigManager implements
 
       return ccr;
     }
-
 
     // Get the class for the SASL handler.  If the handler is already enabled,
     // then we shouldn't do anything with it although if the class has changed
@@ -314,8 +286,6 @@ public class SASLConfigManager implements
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a SASL mechanism hanlder, and
@@ -374,4 +344,3 @@ public class SASLConfigManager implements
     }
   }
 }
-

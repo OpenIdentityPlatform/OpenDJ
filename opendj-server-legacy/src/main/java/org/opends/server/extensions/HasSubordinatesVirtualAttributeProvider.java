@@ -42,9 +42,7 @@ public class HasSubordinatesVirtualAttributeProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Creates a new instance of this HasSubordinates virtual attribute provider.
-   */
+  /** Creates a new instance of this HasSubordinates virtual attribute provider. */
   public HasSubordinatesVirtualAttributeProvider()
   {
     super();
@@ -53,14 +51,12 @@ public class HasSubordinatesVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -82,7 +78,6 @@ public class HasSubordinatesVirtualAttributeProvider
     return Attributes.empty(rule.getAttributeType());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -101,7 +96,6 @@ public class HasSubordinatesVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
@@ -124,7 +118,6 @@ public class HasSubordinatesVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -136,7 +129,6 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -146,7 +138,6 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -156,7 +147,6 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -166,7 +156,6 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -175,7 +164,6 @@ public class HasSubordinatesVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -187,4 +175,3 @@ public class HasSubordinatesVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 }
-

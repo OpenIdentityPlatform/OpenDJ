@@ -80,13 +80,11 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
       this.handler = handler;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getMonitorInstanceName() {
       return instanceName + "," + "cn=" + baseName;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void initializeMonitorProvider(MonitorProviderCfg configuration)
         throws ConfigException, InitializationException {
@@ -149,7 +147,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   private class HandlerNotifier {
     private File directory;
     private int state;
-    /** printable list of handlers names, for reporting backend names in alert messages */
+    /** Printable list of handlers names, for reporting backend names in alert messages. */
     private final StringBuilder diskNames = new StringBuilder();
     private final List<MonitoredDirectory> allHandlers = new ArrayList<>();
 
@@ -221,9 +219,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   {
   }
 
-  /**
-   * Starts periodic monitoring of all registered directories.
-   */
+  /** Starts periodic monitoring of all registered directories. */
   public void startDiskSpaceMonitor()
   {
     DirectoryServer.registerMonitorProvider(this);
@@ -314,7 +310,6 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
   {
     synchronized (monitoredDirs)
     {
-
       List<MonitoredDirectory> directories = monitoredDirs.get(directory);
       if (directories != null)
       {
@@ -336,7 +331,6 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
       throws ConfigException, InitializationException {
@@ -456,7 +450,6 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     return DiskSpaceMonitor.class.getName();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
@@ -466,14 +459,12 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg> implem
     return alerts;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName()
   {
     return INSTANCENAME;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {

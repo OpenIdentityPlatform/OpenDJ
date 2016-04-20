@@ -44,13 +44,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class MatchedValuesControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<MatchedValuesControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public MatchedValuesControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -95,6 +93,7 @@ public class MatchedValuesControl
     }
 
 
+    @Override
     public String getOID()
     {
       return OID_MATCHED_VALUES;
@@ -102,9 +101,7 @@ public class MatchedValuesControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<MatchedValuesControl> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -135,15 +132,6 @@ public class MatchedValuesControl
     this.filters = filters;
   }
 
-
-
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
-   * written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
   @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
@@ -202,14 +190,6 @@ public class MatchedValuesControl
     return false;
   }
 
-
-
-  /**
-   * Appends a string representation of this authorization identity response
-   * control to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
   @Override
   public void toString(StringBuilder buffer)
   {

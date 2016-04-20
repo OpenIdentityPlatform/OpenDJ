@@ -12,18 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
-
-
-
 
 /**
  * This class defines a thread that will be spawned to invoke the Directory
@@ -33,18 +27,12 @@ import org.opends.server.core.DirectoryServer;
 public class ShutdownTaskThread
        extends DirectoryThread
 {
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.tasks.ShutdownTaskThread";
 
-
-
   /** The shutdown message that will be used. */
   private LocalizableMessage shutdownMessage;
-
-
 
   /**
    * Creates a new instance of this shutdown task thread with the provided
@@ -56,20 +44,15 @@ public class ShutdownTaskThread
   {
     super("Shutdown Task Thread");
 
-
     this.shutdownMessage = shutdownMessage;
 
     setDaemon(true);
   }
 
-
-
-  /**
-   * Invokes the Directory Server shutdown process.
-   */
+  /** Invokes the Directory Server shutdown process. */
+  @Override
   public void run()
   {
     DirectoryServer.shutDown(CLASS_NAME, shutdownMessage);
   }
 }
-

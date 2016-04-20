@@ -40,9 +40,7 @@ public class IfPresentTag
 
 
 
-  /**
-   * Creates a new instance of this ifpresent tag.
-   */
+  /** Creates a new instance of this ifpresent tag. */
   public IfPresentTag()
   {
     attributeType  = null;
@@ -56,6 +54,7 @@ public class IfPresentTag
    *
    * @return  The name for this tag.
    */
+  @Override
   public String getName()
   {
     return "IfPresent";
@@ -70,6 +69,7 @@ public class IfPresentTag
    * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
    *          or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean allowedInBranch()
   {
     return true;
@@ -92,6 +92,7 @@ public class IfPresentTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
                                   List<LocalizableMessage> warnings)
@@ -139,6 +140,7 @@ public class IfPresentTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
@@ -180,6 +182,7 @@ public class IfPresentTag
    *
    * @return  The result of generating content for this tag.
    */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {

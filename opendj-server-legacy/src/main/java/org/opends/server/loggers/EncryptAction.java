@@ -12,16 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
 import java.io.File;
 
-/**
- * This class implements a post rotation action that encrypts
- * the log file.
- */
+/** This class implements a post rotation action that encrypts the log file. */
 class EncryptAction implements PostRotationAction
 {
 
@@ -62,12 +59,10 @@ class EncryptAction implements PostRotationAction
    * @return  <CODE>true</CODE> if the encryption succeeded, or
    *          <CODE>false</CODE> if it did not.
    */
+  @Override
   public boolean execute()
   {
     // NYI.
     return true;
   }
-
-
 }
-

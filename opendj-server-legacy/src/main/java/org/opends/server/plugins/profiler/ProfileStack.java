@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.plugins.profiler;
 
@@ -216,6 +216,7 @@ public class ProfileStack
    *
    * @return  The hash code for this profile stack.
    */
+  @Override
   public int hashCode()
   {
     if (numFrames != 0)
@@ -236,6 +237,7 @@ public class ProfileStack
    *          with the same set of class names, method names, and line numbers
    *          as this profile stack, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)

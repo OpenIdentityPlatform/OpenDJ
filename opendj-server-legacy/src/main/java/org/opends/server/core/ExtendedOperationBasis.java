@@ -43,10 +43,7 @@ import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PreOperationExtendedOperation;
 import org.opends.server.types.operation.PreParseExtendedOperation;
 
-/**
- * This class defines an extended operation, which can perform virtually any
- * kind of task.
- */
+/** This class defines an extended operation, which can perform virtually any kind of task. */
 public class ExtendedOperationBasis
        extends AbstractOperation
        implements ExtendedOperation,
@@ -72,8 +69,6 @@ public class ExtendedOperationBasis
   /** The OID for the response associated with this extended operation. */
   private String responseOID;
 
-
-
   /**
    * Creates a new extended operation with the provided information.
    *
@@ -95,7 +90,6 @@ public class ExtendedOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.requestOID   = requestOID;
     this.requestValue = requestValue;
 
@@ -116,16 +110,11 @@ public class ExtendedOperationBasis
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final String getRequestOID()
   {
     return requestOID;
   }
-
-
 
   /**
    * Specifies the OID for the request associated with this extended operation.
@@ -140,32 +129,22 @@ public class ExtendedOperationBasis
     this.requestOID = requestOID;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return null;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public final ByteString getRequestValue()
   {
     return requestValue;
   }
-
-
 
   /**
    * Specifies the value for the request associated with this extended
@@ -180,44 +159,30 @@ public class ExtendedOperationBasis
     this.requestValue = requestValue;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final String getResponseOID()
   {
     return responseOID;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void setResponseOID(String responseOID)
   {
     this.responseOID = responseOID;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final ByteString getResponseValue()
   {
     return responseValue;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void setResponseValue(ByteString responseValue)
   {
     this.responseValue = responseValue;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -226,34 +191,23 @@ public class ExtendedOperationBasis
     return OperationType.EXTENDED;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
-
-
 
   /**
    * Performs the work of actually processing this operation.  This
@@ -285,7 +239,6 @@ public class ExtendedOperationBasis
 
       checkIfCanceled(false);
 
-
       // Get the extended operation handler for the request OID.  If there is
       // none, then fail.
       ExtendedOperationHandler<?> handler =
@@ -296,7 +249,6 @@ public class ExtendedOperationBasis
         appendErrorMessage(ERR_EXTENDED_NO_HANDLER.get(requestOID));
         return;
       }
-
 
       // Look at the controls included in the request and ensure that all
       // critical controls are supported by the handler.
@@ -341,7 +293,6 @@ public class ExtendedOperationBasis
         }
       }
 
-
       // Check to see if the client has permission to perform the
       // extended operation.
 
@@ -376,13 +327,11 @@ public class ExtendedOperationBasis
 
         // Actually perform the processing for this operation.
         handler.processExtendedOperation(this);
-
       }
       finally
       {
         getPluginConfigManager().invokePostOperationExtendedPlugins(this);
       }
-
     }
     catch(CanceledOperationException coe)
     {

@@ -12,13 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
-
 
 /**
  * This enumeration defines the set of possible filter types that may
@@ -32,80 +30,29 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
      mayInvoke=true)
 public enum FilterType
 {
-  /**
-   * The filter type for AND filters.
-   */
+  /** The filter type for AND filters. */
   AND(TYPE_FILTER_AND),
-
-
-
-  /**
-   * The filter type for OR filters.
-   */
+  /** The filter type for OR filters. */
   OR(TYPE_FILTER_OR),
-
-
-
-  /**
-   * The filter type for NOT filters.
-   */
+  /** The filter type for NOT filters. */
   NOT(TYPE_FILTER_NOT),
-
-
-
-  /**
-   * The filter type for equality filters.
-   */
+  /** The filter type for equality filters. */
   EQUALITY(TYPE_FILTER_EQUALITY),
-
-
-
-  /**
-   * The filter type for substring filters.
-   */
+  /** The filter type for substring filters. */
   SUBSTRING(TYPE_FILTER_SUBSTRING),
-
-
-
-  /**
-   * The filter type for greater or equal filters.
-   */
+  /** The filter type for greater or equal filters. */
   GREATER_OR_EQUAL(TYPE_FILTER_GREATER_OR_EQUAL),
-
-
-
-  /**
-   * The filter type for less or equal filters.
-   */
+  /** The filter type for less or equal filters. */
   LESS_OR_EQUAL(TYPE_FILTER_LESS_OR_EQUAL),
-
-
-
-  /**
-   * The filter type for presence filters.
-   */
+  /** The filter type for presence filters. */
   PRESENT(TYPE_FILTER_PRESENCE),
-
-
-
-  /**
-   * The filter type for approximate filters.
-   */
+  /** The filter type for approximate filters. */
   APPROXIMATE_MATCH(TYPE_FILTER_APPROXIMATE),
-
-
-
-  /**
-   * The filter type for extensible matching filters.
-   */
+  /** The filter type for extensible matching filters. */
   EXTENSIBLE_MATCH(TYPE_FILTER_EXTENSIBLE_MATCH);
-
-
 
   /** The LDAP BER type for this filter type. */
   private byte berType;
-
-
 
   /**
    * Creates a new filter type with the provided BER type.
@@ -117,8 +64,6 @@ public enum FilterType
     this.berType = berType;
   }
 
-
-
   /**
    * Retrieves the LDAP BER type for this filter type.
    *
@@ -129,13 +74,12 @@ public enum FilterType
     return berType;
   }
 
-
-
   /**
    * Retrieves a string representation of this filter type.
    *
    * @return  A string representation of this filter type.
    */
+  @Override
   public String toString()
   {
     switch (berType)
@@ -165,4 +109,3 @@ public enum FilterType
     }
   }
 }
-

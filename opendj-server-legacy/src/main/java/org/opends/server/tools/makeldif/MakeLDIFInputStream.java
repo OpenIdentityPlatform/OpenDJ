@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -53,10 +53,7 @@ public class MakeLDIFInputStream
    */
   private ByteArrayOutputStream entryOutputStream;
 
-  /**
-   * The byte array that will hold the LDIF representation of the next entry to
-   * be read.
-   */
+  /** The byte array that will hold the LDIF representation of the next entry to be read. */
   private ByteBuffer entryBytes;
 
   /** The IOException that should be thrown the next time a read is requested. */
@@ -111,9 +108,8 @@ public class MakeLDIFInputStream
 
 
 
-  /**
-   * Closes this input stream so that no more data may be read from it.
-   */
+  /** Closes this input stream so that no more data may be read from it. */
+  @Override
   public void close()
   {
     closed      = true;
@@ -131,6 +127,7 @@ public class MakeLDIFInputStream
    * @throws  IOException  If a problem has occurred while generating data for
    *                       use by this input stream.
    */
+  @Override
   public int read()
          throws IOException
   {
@@ -170,6 +167,7 @@ public class MakeLDIFInputStream
    * @throws  IOException  If a problem has occurred while generating data for
    *                       use by this input stream.
    */
+  @Override
   public int read(byte[] b, int off, int len)
          throws IOException
   {
@@ -196,7 +194,7 @@ public class MakeLDIFInputStream
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException
   {
@@ -216,7 +214,7 @@ public class MakeLDIFInputStream
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public void closeEntryWriter()
   {
     allGenerated = true;

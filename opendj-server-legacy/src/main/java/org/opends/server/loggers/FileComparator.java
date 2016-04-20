@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -39,6 +39,7 @@ class FileComparator implements Comparator<File>
    *          zero if there is no discernible difference between the last modify
    *          times.
    */
+  @Override
   public int compare(File o1, File o2)
   {
     if(o1 == o2)

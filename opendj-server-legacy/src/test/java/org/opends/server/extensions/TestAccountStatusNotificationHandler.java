@@ -36,28 +36,20 @@ extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
   /** The number of notifications that this handler has processed. */
   private static AtomicInteger notificationsProcessed = new AtomicInteger(0);
 
-
-
-  /**
-   * Creates a new instance of this test account status notification handler.
-   */
+  /** Creates a new instance of this test account status notification handler. */
   public TestAccountStatusNotificationHandler()
   {
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void initializeStatusNotificationHandler(
                    AccountStatusNotificationHandlerCfg configuration)
   {
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void handleStatusNotification(AccountStatusNotification notification)
   {
     notificationsProcessed.incrementAndGet();
@@ -105,8 +97,6 @@ extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
     }
   }
 
-
-
   /**
    * Retrieves the number of account status notifications that this handler has
    * processed.
@@ -119,8 +109,6 @@ extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
     return notificationsProcessed.get();
   }
 
-
-
   /**
    * Resets the counter used to keep track fo the number of account status
    * notfications that this handler has processed.
@@ -130,4 +118,3 @@ extends AccountStatusNotificationHandler<AccountStatusNotificationHandlerCfg>
     notificationsProcessed.set(0);
   }
 }
-

@@ -12,10 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
-
 
 import java.io.IOException;
 
@@ -25,7 +24,6 @@ import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.server.util.ServerConstants.*;
 
-
 /**
  * This class defines the data structures and methods to use when interacting
  * with a generic LDAP control.
@@ -34,8 +32,6 @@ public class LDAPControl extends Control
 {
   /** The control value. */
   private ByteString value;
-
-
 
   /**
    * Creates a new LDAP control with the specified OID.  It will not be
@@ -47,8 +43,6 @@ public class LDAPControl extends Control
   {
     super(oid, false);
   }
-
-
 
   /**
    * Creates a new LDAP control with the specified OID and criticality.  It will
@@ -62,8 +56,6 @@ public class LDAPControl extends Control
   {
     super(oid, isCritical);
   }
-
-
 
   /**
    * Creates a new LDAP control with the specified OID, criticality, and value.
@@ -79,7 +71,6 @@ public class LDAPControl extends Control
     this.value = value;
   }
 
-
   /**
    * Retrieves the value for this control.
    *
@@ -90,8 +81,6 @@ public class LDAPControl extends Control
   {
     return value;
   }
-
-
 
   /**
    * Indicates whether this control has a value.
@@ -104,7 +93,7 @@ public class LDAPControl extends Control
     return value != null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void writeValue(ASN1Writer stream) throws IOException
   {
     if (value != null)
@@ -113,14 +102,13 @@ public class LDAPControl extends Control
     }
   }
 
-
-
   /**
    * Appends a string representation of this LDAP control to the provided
    * buffer.
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPControl(oid=");
@@ -136,8 +124,6 @@ public class LDAPControl extends Control
 
     buffer.append(")");
   }
-
-
 
   /**
    * Appends a multi-line string representation of this LDAP control to the
@@ -176,4 +162,3 @@ public class LDAPControl extends Control
     }
   }
 }
-

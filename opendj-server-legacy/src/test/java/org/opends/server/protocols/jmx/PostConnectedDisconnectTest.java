@@ -16,18 +16,19 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static org.testng.Assert.*;
+
 import java.util.HashMap;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
 /**
  * This class check is the pos-connected and post-disconnected plugin are
@@ -35,13 +36,7 @@ import static org.testng.Assert.*;
  */
 public class PostConnectedDisconnectTest extends JmxTestCase
 {
-
-  /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
+  @Override
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -96,7 +91,7 @@ public class PostConnectedDisconnectTest extends JmxTestCase
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
    */
-  @Test(enabled = false, groups = {"slow"})
+  @Test(enabled = false, groups = "slow")
   public void checkPostConnectDisconnectPlugin() throws Exception
   {
     // Before the test, how many time postconnect and postdisconnect

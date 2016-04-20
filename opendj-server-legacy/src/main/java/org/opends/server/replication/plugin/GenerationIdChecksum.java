@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -49,13 +49,13 @@ public class GenerationIdChecksum implements Checksum
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void update(int b)
   {
     updateWithOneByte((byte) b);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void update(byte[] b, int off, int len)
   {
     for (int i = off; i < off + len; i++)
@@ -64,7 +64,7 @@ public class GenerationIdChecksum implements Checksum
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public long getValue()
   {
     if (checksum != 0L)
@@ -83,7 +83,7 @@ public class GenerationIdChecksum implements Checksum
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void reset()
   {
     checksum = 0L;

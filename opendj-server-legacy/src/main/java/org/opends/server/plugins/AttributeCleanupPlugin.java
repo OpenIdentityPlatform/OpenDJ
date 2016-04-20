@@ -57,24 +57,16 @@ public class AttributeCleanupPlugin extends
     ConfigurationChangeListener<AttributeCleanupPluginCfg>
 {
 
-  /**
-   * Plugin configuration.
-   */
+  /** Plugin configuration. */
   private AttributeCleanupPluginCfg config;
 
-  /**
-   * Debug tracer.
-   */
+  /** Debug tracer. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A table of attributes to be renamed.
-   */
+  /** A table of attributes to be renamed. */
   private Map<String, String> attributesToRename;
 
-  /**
-   * The set of attributes to be removed.
-   */
+  /** The set of attributes to be removed. */
   private Set<String> attributesToRemove;
 
   /**
@@ -87,9 +79,7 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public AttributeCleanupPlugin()
   {
     super();
@@ -97,7 +87,6 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       final AttributeCleanupPluginCfg config)
@@ -134,7 +123,6 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(
       final PreParseAddOperation addOperation)
@@ -142,9 +130,7 @@ public class AttributeCleanupPlugin extends
     sharedLock.lock();
     try
     {
-      /*
-       * First strip the listed attributes, then rename the ones that remain.
-       */
+      /* First strip the listed attributes, then rename the ones that remain. */
       processInboundRemove(addOperation);
       processInboundRename(addOperation);
 
@@ -158,7 +144,6 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public PluginResult.PreParse doPreParse(
       final PreParseModifyOperation modifyOperation)
@@ -166,9 +151,7 @@ public class AttributeCleanupPlugin extends
     sharedLock.lock();
     try
     {
-      /*
-       * First strip the listed attributes, then rename the ones that remain.
-       */
+      /* First strip the listed attributes, then rename the ones that remain. */
       processInboundRemove(modifyOperation);
       processInboundRename(modifyOperation);
 
@@ -196,7 +179,6 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void finalizePlugin()
   {
@@ -218,16 +200,12 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void initializePlugin(final Set<PluginType> pluginTypes,
       final AttributeCleanupPluginCfg configuration) throws ConfigException,
       InitializationException
   {
-    /*
-     * The plugin should be invoked only for pre-parse ADD and MODIFY
-     * operations.
-     */
+    /* The plugin should be invoked only for pre-parse ADD and MODIFY operations. */
     for (final PluginType t : pluginTypes)
     {
       switch (t)
@@ -257,7 +235,6 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(final PluginCfg configuration,
       final List<LocalizableMessage> unacceptableReasons)
@@ -269,15 +246,11 @@ public class AttributeCleanupPlugin extends
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       final AttributeCleanupPluginCfg config, final List<LocalizableMessage> messages)
   {
-    /*
-     * The admin framework will ensure that there are no duplicate attributes to
-     * be removed.
-     */
+    /* The admin framework will ensure that there are no duplicate attributes to be removed. */
     boolean isValid = true;
 
     /*

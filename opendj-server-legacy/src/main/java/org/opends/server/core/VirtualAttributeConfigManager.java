@@ -65,10 +65,7 @@ public class VirtualAttributeConfigManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated virtual
-   * attribute rules.
-   */
+  /** A mapping between the DNs of the config entries and the associated virtual attribute rules. */
   private final ConcurrentMap<DN, VirtualAttributeRule> rules = new ConcurrentHashMap<>();
 
   private final ServerContext serverContext;
@@ -102,7 +99,6 @@ public class VirtualAttributeConfigManager
     RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addVirtualAttributeAddListener(this);
     rootConfiguration.addVirtualAttributeDeleteListener(this);
-
 
     //Initialize the existing virtual attribute providers.
     for (String providerName : rootConfiguration.listVirtualAttributes())
@@ -171,7 +167,6 @@ public class VirtualAttributeConfigManager
            cfg.getConflictBehavior());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       VirtualAttributeCfg configuration,
@@ -220,7 +215,6 @@ public class VirtualAttributeConfigManager
     return filters;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  VirtualAttributeCfg configuration)
@@ -270,7 +264,6 @@ public class VirtualAttributeConfigManager
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       VirtualAttributeCfg configuration,
@@ -280,7 +273,6 @@ public class VirtualAttributeConfigManager
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  VirtualAttributeCfg configuration)
@@ -296,7 +288,6 @@ public class VirtualAttributeConfigManager
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       VirtualAttributeCfg configuration,
@@ -337,17 +328,14 @@ public class VirtualAttributeConfigManager
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  VirtualAttributeCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing rule if it's already enabled.
     VirtualAttributeRule existingRule = rules.get(configuration.dn());
-
 
     // If the new configuration has the rule disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -361,7 +349,6 @@ public class VirtualAttributeConfigManager
 
       return ccr;
     }
-
 
     // Make sure that we can parse all of the search filters.
     Map<LocalizableMessage, DirectoryException> reasons =
@@ -402,8 +389,6 @@ public class VirtualAttributeConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a certificate mapper, and

@@ -54,7 +54,6 @@ public class CancelExtendedOperation
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeExtendedOperationHandler(
                    CancelExtendedOperationHandlerCfg config)
@@ -102,18 +101,15 @@ public class CancelExtendedOperation
       return;
     }
 
-
     // Create the cancel request for the target operation.
     LocalizableMessage cancelReason =
         INFO_EXTOP_CANCEL_REASON.get(operation.getMessageID());
     CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
 
-
     // Get the client connection and attempt the cancel.
     ClientConnection clientConnection = operation.getClientConnection();
     CancelResult cancelResult = clientConnection.cancelOperation(idToCancel,
                                                                  cancelRequest);
-
 
     // Update the result of the extended operation and return.
     ResultCode resultCode = cancelResult.getResultCode();
@@ -122,14 +118,12 @@ public class CancelExtendedOperation
     operation.appendErrorMessage(cancelResult.getResponseMessage());
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationOID()
   {
     return OID_CANCEL_REQUEST;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {

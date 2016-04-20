@@ -62,16 +62,13 @@ public class DebugLogger extends AbstractLogger
   /** The singleton instance of this class. */
   static final DebugLogger instance = new DebugLogger();
 
-  /**
-   * The constructor for this class.
-   */
+  /** The constructor for this class. */
   private DebugLogger()
   {
     super((Class) DebugLogPublisher.class,
         ERR_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected ClassPropertyDefinition getJavaClassPropertyDefinition()
   {
@@ -79,17 +76,13 @@ public class DebugLogger extends AbstractLogger
         .getJavaClassPropertyDefinition();
   }
 
-  /** {@inheritDoc} */
   @Override
   protected Collection<DebugLogPublisher<DebugLogPublisherCfg>> getLogPublishers()
   {
     return loggerStorage.getLogPublishers();
   }
 
-  /**
-   * Update all debug tracers with the settings in the registered
-   * publishers.
-   */
+  /** Update all debug tracers with the settings in the registered publishers. */
   static void updateTracerSettings()
   {
     DebugLogPublisher<DebugLogPublisherCfg>[] publishers =

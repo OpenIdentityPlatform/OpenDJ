@@ -150,10 +150,7 @@ public class ReferentialIntegrityPlugin
    */
   public static final String DELETE_DNS="deleteDNs";
 
-  /**
-   * The buffered reader that is used to read the log file by the background
-   * thread.
-   */
+  /** The buffered reader that is used to read the log file by the background thread. */
   private BufferedReader reader;
 
   /**
@@ -343,8 +340,7 @@ public class ReferentialIntegrityPlugin
         unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_NOT_LISTED.get(attr));
       }
 
-      /* Verify the filter.
-       */
+      /* Verify the filter. */
       try
       {
         SearchFilter.createFilterFromString(filtStr);
@@ -524,7 +520,6 @@ public class ReferentialIntegrityPlugin
    * @param log Set to <code>true</code> if the map should be written to a log
    *            file so that the background thread can process the changes at
    *            a later time.
-   *
    */
   private void processModifyDN(Map<DN, DN> modDNMap, boolean log)
   {
@@ -563,7 +558,6 @@ public class ReferentialIntegrityPlugin
    * @param log Set to <code>true</code> if the DN should be written to a log
    *            file so that the background thread can process the change at
    *            a later time.
-   *
    */
   private void processDelete(Set<DN> deleteDNset, boolean log)
   {
@@ -589,7 +583,6 @@ public class ReferentialIntegrityPlugin
    * @param oldEntryDN  The entry DN before the modify DN operation.
    *
    * @param newEntryDN The entry DN after the modify DN operation.
-   *
    */
   private void processModifyDN(DN oldEntryDN, DN newEntryDN)
   {
@@ -605,7 +598,6 @@ public class ReferentialIntegrityPlugin
    * are used.
    *
    * @return A set of DNs to use in the reference searches.
-   *
    */
   private Set<DN> getBaseDNsToSearch()
   {
@@ -628,7 +620,6 @@ public class ReferentialIntegrityPlugin
    *
    * @param newEntryDN The new entry DN that needs to be added. May be null
    *                   if the original operation was a delete.
-   *
    */
   private void searchBaseDN(DN baseDN, DN oldEntryDN, DN newEntryDN)
   {
@@ -674,7 +665,6 @@ public class ReferentialIntegrityPlugin
    * @param baseDN The DN to base the search at.
    *
    * @param modifyDNmap The map containing the modify DN old and new entry DNs.
-   *
    */
   private void doBaseDN(DN baseDN, Map<DN,DN> modifyDNmap)
   {
@@ -692,7 +682,6 @@ public class ReferentialIntegrityPlugin
    * @param baseDN The DN to base the search at.
    *
    * @param deleteDNset The set containing the delete DNs.
-   *
    */
   private void doBaseDN(DN baseDN, Set<DN> deleteDNset)
   {
@@ -715,7 +704,6 @@ public class ReferentialIntegrityPlugin
    *
    * @param newEntryDN The new entry DN to add a reference to, if it is not
    *                   null.
-   *
    */
   private void deleteAddAttributesEntry(Entry e, DN oldEntryDN, DN newEntryDN)
   {
@@ -760,7 +748,6 @@ public class ReferentialIntegrityPlugin
    * @param logFileName The name of the file to use, may be absolute.
    *
    * @throws ConfigException If a new file cannot be created if needed.
-   *
    */
   private void setUpLogFile(String logFileName)
           throws ConfigException
@@ -787,7 +774,6 @@ public class ReferentialIntegrityPlugin
    * with.
    *
    * @throws IOException If a new file writer cannot be created.
-   *
    */
   private void setupWriter() throws IOException {
     writer=new BufferedWriter(new FileWriter(logFile, true));
@@ -799,7 +785,6 @@ public class ReferentialIntegrityPlugin
    * update records with.
    *
    * @throws IOException If a new file reader cannot be created.
-   *
    */
   private void setupReader() throws IOException {
     reader=new BufferedReader(new FileReader(logFile));
@@ -813,7 +798,6 @@ public class ReferentialIntegrityPlugin
    * modify DN operation.
    *
    * @param modDNmap The map of old entry and new entry DNs.
-   *
    */
   private void writeLog(Map<DN,DN> modDNmap) {
     synchronized(logFile)
@@ -841,7 +825,6 @@ public class ReferentialIntegrityPlugin
    * These entry DNs are related to a delete operation.
    *
    * @param deletedEntryDN The DN of the deleted entry.
-   *
    */
   private void writeLog(Set<DN> deleteDNset) {
     synchronized(logFile)
@@ -872,7 +855,6 @@ public class ReferentialIntegrityPlugin
    * integrity processing as though the operation was just processed. After
    * all of the records in log file have been processed, the log file is
    * cleared so that new records can be added.
-   *
    */
   private void processLog() {
     synchronized(logFile) {
@@ -914,7 +896,6 @@ public class ReferentialIntegrityPlugin
    * Return the listener name.
    *
    * @return The name of the listener.
-   *
    */
   @Override
   public String getShutdownListenerName() {
@@ -935,7 +916,6 @@ public class ReferentialIntegrityPlugin
    * to be interrupted so it can read the stop request variable and exit.
    *
    * @param reason The reason message for the shutdown.
-   *
    */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
@@ -970,7 +950,6 @@ public class ReferentialIntegrityPlugin
   /**
    * Sets up background processing of referential integrity by creating a
    * new background thread to process updates.
-   *
    */
   private void setUpBackGroundProcessing()  {
     if(backGroundThread == null) {
@@ -986,7 +965,6 @@ public class ReferentialIntegrityPlugin
    * Used by the background thread to determine if it should exit.
    *
    * @return Returns <code>true</code> if the background thread should exit.
-   *
    */
   private boolean isShuttingDown()  {
     return stopRequested;
@@ -996,21 +974,16 @@ public class ReferentialIntegrityPlugin
    * The background referential integrity processing thread. Wakes up after
    * sleeping for a configurable interval and checks the log file for update
    * records.
-   *
    */
   private class BackGroundThread extends DirectoryThread {
 
-    /**
-     * Constructor for the background thread.
-     */
+    /** Constructor for the background thread. */
     public
     BackGroundThread() {
       super(name);
     }
 
-    /**
-     * Run method for the background thread.
-     */
+    /** Run method for the background thread. */
     @Override
     public void run() {
       while(!isShuttingDown())  {
@@ -1030,8 +1003,7 @@ public class ReferentialIntegrityPlugin
   public PluginResult.PreOperation doPreOperation(
     PreOperationModifyOperation modifyOperation)
   {
-    /* Skip the integrity checks if the enforcing is not enabled
-     */
+    /* Skip the integrity checks if the enforcing is not enabled */
 
     if (!currentConfiguration.isCheckReferences())
     {
@@ -1041,9 +1013,7 @@ public class ReferentialIntegrityPlugin
     final List<Modification> mods = modifyOperation.getModifications();
     final Entry entry = modifyOperation.getModifiedEntry();
 
-    /* Make sure the entry belongs to one of the configured naming
-     * contexts.
-     */
+    /* Make sure the entry belongs to one of the configured naming contexts. */
     DN entryDN = entry.getName();
     DN entryBaseDN = getEntryBaseDN(entryDN);
     if (entryBaseDN == null)
@@ -1055,8 +1025,7 @@ public class ReferentialIntegrityPlugin
     {
       final ModificationType modType = mod.getModificationType();
 
-      /* Process only ADD and REPLACE modification types.
-       */
+      /* Process only ADD and REPLACE modification types. */
       if (modType != ModificationType.ADD
           && modType != ModificationType.REPLACE)
       {
@@ -1075,8 +1044,7 @@ public class ReferentialIntegrityPlugin
       }
     }
 
-    /* At this point, everything is fine.
-     */
+    /* At this point, everything is fine. */
     return PluginResult.PreOperation.continueOperationProcessing();
   }
 
@@ -1198,9 +1166,7 @@ public class ReferentialIntegrityPlugin
    */
   private DN getEntryBaseDN(DN dn)
   {
-    /* Verify that the entry belongs to one of the configured naming
-     * contexts.
-     */
+    /* Verify that the entry belongs to one of the configured naming contexts. */
 
     DN namingContext = null;
 

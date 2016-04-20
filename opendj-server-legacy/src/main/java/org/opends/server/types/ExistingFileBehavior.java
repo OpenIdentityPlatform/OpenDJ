@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -37,10 +37,7 @@ public enum ExistingFileBehavior
 
 
 
-  /**
-   * The file behavior that indicates that the data written should
-   * overwrite any existing file.
-   */
+  /** The file behavior that indicates that the data written should overwrite any existing file. */
   OVERWRITE("overwrite"),
 
 
@@ -87,6 +84,7 @@ public enum ExistingFileBehavior
    *
    * @return  A string representation of this existing file behavior.
    */
+  @Override
   public String toString()
   {
     return name;

@@ -12,19 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
-import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.AccessControlMessages.*;
 
-/**
- * The class represents the ssf keyword in a bind rule.SSF stands for
- * security strength factor.
- */
-public class SSF implements KeywordBindRule {
+import org.forgerock.i18n.LocalizableMessage;
 
+/** The class represents the ssf keyword in a bind rule.SSF stands for security strength factor. */
+public class SSF implements KeywordBindRule {
     /** Enumeration representing the bind rule operation type. */
     private EnumBindRuleType type;
 
@@ -67,6 +64,7 @@ public class SSF implements KeywordBindRule {
      * @return An evaluation result enumeration containing the result of the
      *         context evaluation.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         int currentSSF = evalCtx.getCurrentSSF();
         EnumEvalResult matched = getMatched(currentSSF);
@@ -108,7 +106,6 @@ public class SSF implements KeywordBindRule {
       return EnumEvalResult.FALSE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -117,11 +114,9 @@ public class SSF implements KeywordBindRule {
         return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer)
     {
         buffer.append(super.toString());
     }
-
 }

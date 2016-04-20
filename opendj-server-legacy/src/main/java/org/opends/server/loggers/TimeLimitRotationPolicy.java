@@ -33,7 +33,7 @@ public class TimeLimitRotationPolicy implements
 {
   private long timeInterval;
 
-  /** {@inheritDoc} */
+  @Override
   public void initializeLogRotationPolicy(TimeLimitLogRotationPolicyCfg config)
   {
     timeInterval = config.getRotationInterval();
@@ -41,7 +41,7 @@ public class TimeLimitRotationPolicy implements
     config.addTimeLimitChangeListener(this);
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       TimeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -49,7 +49,7 @@ public class TimeLimitRotationPolicy implements
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       TimeLimitLogRotationPolicyCfg config)
   {
@@ -65,6 +65,7 @@ public class TimeLimitRotationPolicy implements
    * @param writer The multi file text writer written the log file.
    * @return true if the file should be rotated, false otherwise.
    */
+  @Override
   public boolean rotateFile(RotatableLogFile writer)
   {
     long currInterval = TimeThread.getTime() -

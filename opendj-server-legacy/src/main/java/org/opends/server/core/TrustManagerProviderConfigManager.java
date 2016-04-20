@@ -52,15 +52,10 @@ public class TrustManagerProviderConfigManager
        implements ConfigurationChangeListener<TrustManagerProviderCfg>,
                   ConfigurationAddListener<TrustManagerProviderCfg>,
                   ConfigurationDeleteListener<TrustManagerProviderCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated trust
-   * manager providers.
-   */
+  /** A mapping between the DNs of the config entries and the associated trust manager providers. */
   private final ConcurrentHashMap<DN,TrustManagerProvider> providers;
 
   private final ServerContext serverContext;
@@ -96,7 +91,6 @@ public class TrustManagerProviderConfigManager
     rootConfiguration.addTrustManagerProviderAddListener(this);
     rootConfiguration.addTrustManagerProviderDeleteListener(this);
 
-
     //Initialize the existing trust manager providers.
     for (String name : rootConfiguration.listTrustManagerProviders())
     {
@@ -124,9 +118,7 @@ public class TrustManagerProviderConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
           TrustManagerProviderCfg configuration,
           List<LocalizableMessage> unacceptableReasons)
@@ -151,9 +143,7 @@ public class TrustManagerProviderConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                   TrustManagerProviderCfg configuration)
   {
@@ -191,9 +181,7 @@ public class TrustManagerProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       TrustManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -203,9 +191,7 @@ public class TrustManagerProviderConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  TrustManagerProviderCfg configuration)
   {
@@ -222,9 +208,7 @@ public class TrustManagerProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       TrustManagerProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -249,18 +233,14 @@ public class TrustManagerProviderConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  TrustManagerProviderCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing provider if it's already enabled.
     TrustManagerProvider existingProvider = providers.get(configuration.dn());
-
 
     // If the new configuration has the provider disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -279,7 +259,6 @@ public class TrustManagerProviderConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the trust manager provider.  If the provider is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -316,8 +295,6 @@ public class TrustManagerProviderConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a trust manager provider, and
@@ -376,4 +353,3 @@ public class TrustManagerProviderConfigManager
     }
   }
 }
-

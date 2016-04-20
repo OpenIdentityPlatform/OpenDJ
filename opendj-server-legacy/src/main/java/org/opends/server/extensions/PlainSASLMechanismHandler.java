@@ -64,13 +64,11 @@ public class PlainSASLMechanismHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The identity mapper that will be used to map ID strings to user entries.*/
+  /** The identity mapper that will be used to map ID strings to user entries. */
   private IdentityMapper<?> identityMapper;
 
   /** The current configuration for this SASL mechanism handler. */
   private PlainSASLMechanismHandlerCfg currentConfig;
-
-
 
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
@@ -82,9 +80,6 @@ public class PlainSASLMechanismHandler
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
                    PlainSASLMechanismHandlerCfg configuration)
@@ -93,18 +88,13 @@ public class PlainSASLMechanismHandler
     configuration.addPlainChangeListener(this);
     currentConfig = configuration;
 
-
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
 
-
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_PLAIN, this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
@@ -112,10 +102,6 @@ public class PlainSASLMechanismHandler
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_PLAIN);
   }
 
-
-
-
-  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -151,7 +137,6 @@ public class PlainSASLMechanismHandler
       authzID = credString.substring(0, nullPos1);
     }
 
-
     int nullPos2 = credString.indexOf('\u0000', nullPos1+1);
     if (nullPos2 < 0)
     {
@@ -182,7 +167,6 @@ public class PlainSASLMechanismHandler
 
     authcID  = credString.substring(nullPos1+1, nullPos2);
     password = credString.substring(nullPos2+1);
-
 
     // Get the user entry for the authentication ID.  Allow for an
     // authentication ID that is just a username (as per the SASL PLAIN spec),
@@ -259,7 +243,6 @@ public class PlainSASLMechanismHandler
       }
     }
 
-
     // At this point, we should have a user entry.  If we don't then fail.
     if (userEntry == null)
     {
@@ -273,7 +256,6 @@ public class PlainSASLMechanismHandler
     {
       bindOperation.setSASLAuthUserEntry(userEntry);
     }
-
 
     // If an authorization ID was provided, then make sure that it is
     // acceptable.
@@ -413,7 +395,6 @@ public class PlainSASLMechanismHandler
       }
     }
 
-
     // Get the password policy for the user and use it to determine if the
     // provided password was correct.
     try
@@ -452,7 +433,6 @@ public class PlainSASLMechanismHandler
       return;
     }
 
-
     // If we've gotten here, then the authentication was successful.
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
@@ -464,9 +444,6 @@ public class PlainSASLMechanismHandler
     return;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -474,9 +451,6 @@ public class PlainSASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -484,9 +458,6 @@ public class PlainSASLMechanismHandler
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -497,9 +468,6 @@ public class PlainSASLMechanismHandler
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PlainSASLMechanismHandlerCfg configuration,
@@ -508,9 +476,6 @@ public class PlainSASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               PlainSASLMechanismHandlerCfg configuration)

@@ -52,13 +52,9 @@ public class PasswordGeneratorConfigManager
        ConfigurationDeleteListener<PasswordGeneratorCfg>,
        ConfigurationChangeListener<PasswordGeneratorCfg>
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated password
-   * generators.
-   */
+  /** A mapping between the DNs of the config entries and the associated password generators. */
   private final ConcurrentHashMap<DN,PasswordGenerator> passwordGenerators;
 
   private final ServerContext serverContext;
@@ -94,7 +90,6 @@ public class PasswordGeneratorConfigManager
     rootConfiguration.addPasswordGeneratorAddListener(this);
     rootConfiguration.addPasswordGeneratorDeleteListener(this);
 
-
     //Initialize the existing password generators.
     for (String generatorName : rootConfiguration.listPasswordGenerators())
     {
@@ -123,7 +118,6 @@ public class PasswordGeneratorConfigManager
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PasswordGeneratorCfg configuration,
@@ -149,19 +143,15 @@ public class PasswordGeneratorConfigManager
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordGeneratorCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing generator if it's already enabled.
     PasswordGenerator existingGenerator =
          passwordGenerators.get(configuration.dn());
-
 
     // If the new configuration has the generator disabled, then disable it if
     // it is enabled, or do nothing if it's already disabled.
@@ -181,7 +171,6 @@ public class PasswordGeneratorConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the password generator.  If the generator is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -220,7 +209,6 @@ public class PasswordGeneratorConfigManager
 
     return ccr;
   }
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       PasswordGeneratorCfg configuration,
@@ -246,8 +234,6 @@ public class PasswordGeneratorConfigManager
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PasswordGeneratorCfg configuration)
@@ -287,7 +273,6 @@ public class PasswordGeneratorConfigManager
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       PasswordGeneratorCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -296,8 +281,6 @@ public class PasswordGeneratorConfigManager
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       PasswordGeneratorCfg configuration)
@@ -375,4 +358,3 @@ public class PasswordGeneratorConfigManager
     }
   }
 }
-

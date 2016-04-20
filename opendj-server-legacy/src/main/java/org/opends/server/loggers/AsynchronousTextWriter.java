@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -26,16 +26,11 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 
-/**
- * A Text Writer which writes log records asynchronously to
- * character-based stream.
- */
+/** A Text Writer which writes log records asynchronously to character-based stream. */
 class AsynchronousTextWriter
     implements ServerShutdownListener, TextWriter
 {
-  /**
-   * The wrapped Text Writer.
-   */
+  /** The wrapped Text Writer. */
   private final TextWriter writer;
 
   /** Queue to store unpublished records. */
@@ -169,14 +164,12 @@ class AsynchronousTextWriter
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void flush()
   {
     writer.flush();
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getBytesWritten()
   {
@@ -193,14 +186,12 @@ class AsynchronousTextWriter
     return writer;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName()
   {
     return "AsynchronousTextWriter Thread " + name;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
@@ -210,7 +201,6 @@ class AsynchronousTextWriter
     shutdown(false);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void shutdown()
   {

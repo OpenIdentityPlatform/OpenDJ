@@ -45,13 +45,10 @@ import static org.opends.server.util.StaticUtils.*;
 public class ProxiedAuthV1Control
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<ProxiedAuthV1Control>
   {
-    /** {@inheritDoc} */
     @Override
     public ProxiedAuthV1Control decode(boolean isCritical, ByteString value)
         throws DirectoryException
@@ -96,9 +93,7 @@ public class ProxiedAuthV1Control
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<ProxiedAuthV1Control> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

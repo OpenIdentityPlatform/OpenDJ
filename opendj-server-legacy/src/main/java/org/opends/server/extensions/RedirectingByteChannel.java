@@ -12,18 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
-
 package org.opends.server.extensions;
-
-
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
-
-
 
 /**
  * This class redirects read and write requests either to a child byte channel,
@@ -45,21 +40,15 @@ public class RedirectingByteChannel implements ByteChannel
     return new RedirectingByteChannel(bc);
   }
 
-
-
   private final ByteChannel child;
   private volatile ByteChannel redirect;
-
-
 
   private RedirectingByteChannel(final ByteChannel child)
   {
     this.child = child;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void close() throws IOException
   {
     final ByteChannel tmp = redirect;
@@ -73,19 +62,13 @@ public class RedirectingByteChannel implements ByteChannel
     }
   }
 
-
-
-  /**
-   * Disable redirection.
-   */
+  /** Disable redirection. */
   public final void disable()
   {
     redirect = null;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isOpen()
   {
     final ByteChannel tmp = redirect;
@@ -99,9 +82,7 @@ public class RedirectingByteChannel implements ByteChannel
     }
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public int read(final ByteBuffer buffer) throws IOException
   {
     final ByteChannel tmp = redirect;
@@ -115,8 +96,6 @@ public class RedirectingByteChannel implements ByteChannel
     }
   }
 
-
-
   /**
    * Redirects a byte channel to a byte channel associated with the specified
    * provider.
@@ -129,9 +108,7 @@ public class RedirectingByteChannel implements ByteChannel
     redirect = provider.getChannel();
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public int write(final ByteBuffer buffer) throws IOException
   {
     final ByteChannel tmp = redirect;

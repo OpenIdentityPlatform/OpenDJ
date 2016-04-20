@@ -74,13 +74,7 @@ public final class ChangeNumberControlPlugin
       this.csn = csn;
     }
 
-    /**
-     * Writes this control's value to an ASN.1 writer. The value (if any) must
-     * be written as an ASN1OctetString.
-     *
-     * @param writer The ASN.1 writer to use.
-     * @throws IOException If a problem occurs while writing to the stream.
-     */
+    @Override
     protected void writeValue(ASN1Writer writer) throws IOException {
       writer.writeOctetString(csn.toString());
     }
@@ -107,7 +101,6 @@ public final class ChangeNumberControlPlugin
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ChangeNumberControlPluginCfg configuration)
@@ -160,17 +153,12 @@ public final class ChangeNumberControlPlugin
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public final void finalizePlugin()
   {
     currentConfig.removeChangeNumberControlChangeListener(this);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
@@ -181,7 +169,6 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
@@ -192,7 +179,6 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
@@ -203,7 +189,6 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /** {@inheritDoc} */
   @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
@@ -214,9 +199,6 @@ public final class ChangeNumberControlPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -226,9 +208,7 @@ public final class ChangeNumberControlPlugin
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       ChangeNumberControlPluginCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -258,7 +238,7 @@ public final class ChangeNumberControlPlugin
     return configAcceptable;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  ChangeNumberControlPluginCfg configuration)
   {

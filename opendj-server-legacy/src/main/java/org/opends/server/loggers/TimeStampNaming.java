@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -22,9 +22,7 @@ import java.io.FilenameFilter;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.TimeThread;
 
-/**
- * A file name policy that names files suffixed by the time it was created.
- */
+/** A file name policy that names files suffixed by the time it was created. */
 public class TimeStampNaming implements FileNamingPolicy
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -47,6 +45,7 @@ public class TimeStampNaming implements FileNamingPolicy
      * @return  <CODE>true</CODE> if the given filename matches the filter, or
      *          <CODE>false</CODE> if it does not.
      */
+    @Override
     public boolean accept(File dir, String name)
     {
       if(new File(dir, name).isDirectory())
@@ -107,25 +106,25 @@ public class TimeStampNaming implements FileNamingPolicy
     this.filter = new TimeStampNamingFilter();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public File getInitialName()
   {
     return file;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public File getNextName()
   {
     return new File(file + "." + TimeThread.getGMTTime());
   }
 
-  /** {@inheritDoc} */
+  @Override
   public FilenameFilter getFilenameFilter()
   {
     return filter;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public File[] listFiles()
   {
     File directory = file.getParentFile();

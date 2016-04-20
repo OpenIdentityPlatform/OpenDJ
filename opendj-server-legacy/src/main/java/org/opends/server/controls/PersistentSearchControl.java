@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,13 +40,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class PersistentSearchControl
        extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
       implements ControlDecoder<PersistentSearchControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public PersistentSearchControl decode(boolean isCritical, ByteString value)
         throws DirectoryException
     {
@@ -90,6 +88,7 @@ public class PersistentSearchControl
           changeTypes, changesOnly, returnECs);
     }
 
+    @Override
     public String getOID()
     {
       return OID_PERSISTENT_SEARCH;
@@ -97,9 +96,7 @@ public class PersistentSearchControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<PersistentSearchControl> DECODER =
     new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

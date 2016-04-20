@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -78,10 +76,7 @@ public class GSSAPISASLMechanismHandler extends
   /** The identity mapper that will be used to map identities. */
   private IdentityMapper<?> identityMapper;
 
-  /**
-   * The properties to use when creating a SASL server to process the
-   * GSSAPI authentication.
-   */
+  /** The properties to use when creating a SASL server to process the GSSAPI authentication. */
   private HashMap<String, String> saslProps;
 
   /** The fully qualified domain name used when creating the SASL server. */
@@ -90,8 +85,6 @@ public class GSSAPISASLMechanismHandler extends
   /** The login context used to perform server-side authentication. */
   private volatile LoginContext loginContext;
   private final Object loginContextLock = new Object();
-
-
 
   /**
    * Creates a new instance of this SASL mechanism handler. No
@@ -104,9 +97,6 @@ public class GSSAPISASLMechanismHandler extends
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
       GSSAPISASLMechanismHandlerCfg configuration) throws ConfigException,
@@ -132,8 +122,6 @@ public class GSSAPISASLMechanismHandler extends
       throw new InitializationException(message, ioe);
     }
   }
-
-
 
   /**
    * Checks to make sure that the ds-cfg-kdc-address and dc-cfg-realm
@@ -161,11 +149,8 @@ public class GSSAPISASLMechanismHandler extends
     {
       System.setProperty(KRBV_PROPERTY_KDC, kdcAddress);
       System.setProperty(KRBV_PROPERTY_REALM, realm);
-
     }
   }
-
-
 
   /**
    * During login, callbacks are usually used to prompt for passwords.
@@ -181,8 +166,6 @@ public class GSSAPISASLMechanismHandler extends
   public void handle(Callback[] callbacks) throws UnsupportedCallbackException
   {
   }
-
-
 
   /**
    * Returns the fully qualified name either defined in the
@@ -208,7 +191,6 @@ public class GSSAPISASLMechanismHandler extends
   }
 
   /**
-   *
    * Return the login context. If it's not been initialized yet,
    * create a login context or login using the principal and keytab
    * information specified in the configuration.
@@ -234,11 +216,7 @@ public class GSSAPISASLMechanismHandler extends
     return loginContext;
   }
 
-
-
-  /**
-   * Logout of the current login context.
-   */
+  /** Logout of the current login context. */
   private void logout()
   {
     try
@@ -257,8 +235,6 @@ public class GSSAPISASLMechanismHandler extends
       logger.traceException(e);
     }
   }
-
-
 
   /**
    * Creates an login.conf file from information in the specified
@@ -320,9 +296,6 @@ public class GSSAPISASLMechanismHandler extends
     return configFileName;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler() {
     logout();
@@ -335,7 +308,6 @@ public class GSSAPISASLMechanismHandler extends
     logger.error(INFO_GSSAPI_STOPPED);
   }
 
-
 private void clearProperties() {
   System.clearProperty(KRBV_PROPERTY_KDC);
   System.clearProperty(KRBV_PROPERTY_REALM);
@@ -343,7 +315,6 @@ private void clearProperties() {
   System.clearProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY);
 }
 
-  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOp)
   {
@@ -394,7 +365,6 @@ private void clearProperties() {
     }
   }
 
-
   /**
    * Get the underlying GSSException messages that really tell what the
    * problem is. The major code is the GSS-API status and the minor is the
@@ -417,8 +387,6 @@ private void clearProperties() {
     return message.toMessage();
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -426,8 +394,6 @@ private void clearProperties() {
     return false;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -435,9 +401,6 @@ private void clearProperties() {
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
       SASLMechanismHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -447,9 +410,6 @@ private void clearProperties() {
     return isConfigurationChangeAcceptable(newConfig, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       GSSAPISASLMechanismHandlerCfg newConfiguration,
@@ -496,9 +456,6 @@ private void clearProperties() {
     return isAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(GSSAPISASLMechanismHandlerCfg newConfiguration)
   {

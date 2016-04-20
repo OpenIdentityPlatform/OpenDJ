@@ -74,8 +74,6 @@ public class ExactMatchIdentityMapper
   /** The set of attributes to return in search result entries. */
   private LinkedHashSet<String> requestedAttributes;
 
-
-
   /**
    * Creates a new instance of this exact match identity mapper.  All
    * initialization should be performed in the {@code initializeIdentityMapper}
@@ -88,9 +86,6 @@ public class ExactMatchIdentityMapper
     // Don't do any initialization here.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeIdentityMapper(
                    ExactMatchIdentityMapperCfg configuration)
@@ -100,7 +95,6 @@ public class ExactMatchIdentityMapper
 
     currentConfig = configuration;
     configEntryDN = currentConfig.dn();
-
 
     // Get the attribute types to use for the searches.  Ensure that they are
     // all indexed for equality.
@@ -126,24 +120,16 @@ public class ExactMatchIdentityMapper
       }
     }
 
-
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
     requestedAttributes = newLinkedHashSet("*", "+");
   }
 
-
-
-  /**
-   * Performs any finalization that may be necessary for this identity mapper.
-   */
   @Override
   public void finalizeIdentityMapper()
   {
     currentConfig.removeExactMatchChangeListener(this);
   }
-
-
 
   /**
    * Retrieves the user entry that was mapped to the provided identification
@@ -167,7 +153,6 @@ public class ExactMatchIdentityMapper
     ExactMatchIdentityMapperCfg config = currentConfig;
     AttributeType[] attributeTypes = this.attributeTypes;
 
-
     // Construct the search filter to use to make the determination.
     SearchFilter filter;
     if (attributeTypes.length == 1)
@@ -186,7 +171,6 @@ public class ExactMatchIdentityMapper
 
       filter = SearchFilter.createORFilter(filterComps);
     }
-
 
     // Iterate through the set of search bases and process an internal search
     // to find any matching entries.  Since we'll only allow a single match,
@@ -262,9 +246,6 @@ public class ExactMatchIdentityMapper
     return matchingEntry;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -274,9 +255,6 @@ public class ExactMatchIdentityMapper
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       ExactMatchIdentityMapperCfg configuration,
@@ -309,9 +287,6 @@ public class ExactMatchIdentityMapper
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               ExactMatchIdentityMapperCfg configuration)

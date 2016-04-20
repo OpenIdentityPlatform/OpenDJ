@@ -12,33 +12,29 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.makeldif.EntryWriter;
 import org.opends.server.tools.makeldif.MakeLDIFException;
 import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.tools.makeldif.TemplateFile;
+import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.LDIFException;
-import org.forgerock.i18n.LocalizableMessage;
+import org.opends.server.util.LDIFWriter;
 
-import java.io.IOException;
-import java.util.Random;
-import java.util.ArrayList;
-
-/**
- * This class makes test LDIF files using the makeldif package.
- */
+/** This class makes test LDIF files using the makeldif package. */
 public class LdifFileWriter implements EntryWriter
 {
-  /**
-   * The LDIF writer used to write the entries to the file.
-   */
+  /** The LDIF writer used to write the entries to the file. */
   private LDIFWriter ldifWriter;
 
   /**
@@ -116,7 +112,7 @@ public class LdifFileWriter implements EntryWriter
     template.generateLDIF(new LdifFileWriter(ldifWriter));
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean writeEntry(TemplateEntry entry)
        throws IOException, MakeLDIFException
   {
@@ -130,7 +126,7 @@ public class LdifFileWriter implements EntryWriter
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void closeEntryWriter()
   {
     try

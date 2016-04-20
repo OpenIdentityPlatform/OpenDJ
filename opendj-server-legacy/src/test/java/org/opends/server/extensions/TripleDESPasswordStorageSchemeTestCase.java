@@ -29,6 +29,7 @@ public class TripleDESPasswordStorageSchemeTestCase
     super("cn=3DES,cn=Password Storage Schemes,cn=config");
   }
 
+  @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     return InitializationUtils.initializePasswordStorageScheme(

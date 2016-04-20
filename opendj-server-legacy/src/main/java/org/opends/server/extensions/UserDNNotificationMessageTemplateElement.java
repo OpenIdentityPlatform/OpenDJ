@@ -12,16 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-
-
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AccountStatusNotification;
-
-
 
 /**
  * This class implements a notification message template element that will
@@ -30,21 +26,16 @@ import org.opends.server.types.AccountStatusNotification;
 public class UserDNNotificationMessageTemplateElement
        extends NotificationMessageTemplateElement
 {
-  /**
-   * Creates a new user DN notification message template element.
-   */
+  /** Creates a new user DN notification message template element. */
   public UserDNNotificationMessageTemplateElement()
   {
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {
     buffer.append(notification.getUserDN());
   }
 }
-

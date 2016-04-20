@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
 
@@ -29,7 +29,7 @@ import org.opends.server.types.RawAttribute;
 /**
  * This is a simple adaptor to create a task schedule information object
  * using the data provided by the user.  It is used to be able to share some
- * code with the {@link TaskTool} class.
+ * code with the {@link org.opends.server.tools.tasks.TaskTool} class.
  */
 public class PurgeHistoricalScheduleInformation
 implements TaskScheduleInformation
@@ -52,7 +52,7 @@ implements TaskScheduleInformation
     }
   }
 
-  /** {@inheritDoc} */
+  @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
     attributes.add(new LDAPAttribute(
@@ -62,55 +62,55 @@ implements TaskScheduleInformation
         Long.toString(uData.getMaximumDuration())));
   }
 
-  /** {@inheritDoc} */
+  @Override
   public List<String> getDependencyIds()
   {
     return taskSchedule.getDependencyIds();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public FailedDependencyAction getFailedDependencyAction()
   {
     return taskSchedule.getFailedDependencyAction();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public List<String> getNotifyUponCompletionEmailAddresses()
   {
     return taskSchedule.getNotifyUponCompletionEmailAddresses();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public List<String> getNotifyUponErrorEmailAddresses()
   {
     return taskSchedule.getNotifyUponErrorEmailAddresses();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getRecurringDateTime()
   {
     return taskSchedule.getRecurringDateTime();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Date getStartDateTime()
   {
     return taskSchedule.getStartDate();
   }
 
-  /** {@inheritDoc} */
+  @Override
   public Class<?> getTaskClass()
   {
     return org.opends.server.tasks.PurgeConflictsHistoricalTask.class;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getTaskId()
   {
     return null;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getTaskObjectclass()
   {
     return "ds-task-purge-conflicts-historical";

@@ -40,24 +40,18 @@ public class SimilarityBasedPasswordValidator extends
     PasswordValidator<SimilarityBasedPasswordValidatorCfg> implements
     ConfigurationChangeListener<SimilarityBasedPasswordValidatorCfg>
 {
-
   /** The current configuration for this password validator. */
   private SimilarityBasedPasswordValidatorCfg currentConfig;
 
-
-  /**
-   * Creates a new instance of this password validator.
-   */
+  /** Creates a new instance of this password validator. */
   public SimilarityBasedPasswordValidator()
   {
     super();
-
 
     // All initialization must be done in the initializePasswordValidator
     // method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordValidator(
                    SimilarityBasedPasswordValidatorCfg configuration)
@@ -68,22 +62,17 @@ public class SimilarityBasedPasswordValidator extends
     currentConfig = configuration;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeSimilarityBasedChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
                                       LocalizableMessageBuilder invalidReason)  {
-
     int minDifference = currentConfig.getMinPasswordDifference();
     ByteString passwd = newPassword == null
                         ? ByteString.empty()
@@ -115,7 +104,7 @@ public class SimilarityBasedPasswordValidator extends
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       SimilarityBasedPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -123,7 +112,7 @@ public class SimilarityBasedPasswordValidator extends
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               SimilarityBasedPasswordValidatorCfg configuration)
   {

@@ -70,9 +70,7 @@ import org.opends.server.types.OperationType;
 abstract class AbstractTextAccessLogPublisher
     <T extends AccessLogPublisherCfg> extends AccessLogPublisher<T>
 {
-  /**
-   * Criteria based filter.
-   */
+  /** Criteria based filter. */
   static final class CriteriaFilter implements Filter
   {
     private final AccessLogFilteringCriteriaCfg cfg;
@@ -221,7 +219,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
@@ -230,7 +227,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
@@ -241,7 +237,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
@@ -259,7 +254,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isResponseLoggable(final Operation operation)
     {
@@ -627,9 +621,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * Log message filter predicate.
-   */
+  /** Log message filter predicate. */
   private static interface Filter
   {
     /**
@@ -677,9 +669,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * A filter which performs a logical OR over a set of sub-filters.
-   */
+  /** A filter which performs a logical OR over a set of sub-filters. */
   private static final class OrFilter implements Filter
   {
     private final Filter[] subFilters;
@@ -699,7 +689,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
@@ -716,7 +705,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
@@ -733,7 +721,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
@@ -750,7 +737,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isResponseLoggable(final Operation operation)
     {
@@ -806,7 +792,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
@@ -830,7 +815,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
@@ -854,7 +838,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isRequestLoggable(final Operation operation)
     {
@@ -878,7 +861,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isResponseLoggable(final Operation operation)
     {
@@ -925,13 +907,10 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * Configuration change listener.
-   */
+  /** Configuration change listener. */
   private final class ChangeListener implements
       ConfigurationChangeListener<AccessLogPublisherCfg>
   {
-    /** {@inheritDoc} */
     @Override
     public final ConfigChangeResult applyConfigurationChange(
         final AccessLogPublisherCfg configuration)
@@ -947,7 +926,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public final boolean isConfigurationChangeAcceptable(
         final AccessLogPublisherCfg configuration,
@@ -959,16 +937,13 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * Filter criteria configuration listener.
-   */
+  /** Filter criteria configuration listener. */
   private final class FilterListener implements
       ConfigurationChangeListener<AccessLogFilteringCriteriaCfg>,
       ConfigurationAddListener<AccessLogFilteringCriteriaCfg>,
       ConfigurationDeleteListener<AccessLogFilteringCriteriaCfg>
   {
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(
         final AccessLogFilteringCriteriaCfg configuration)
@@ -981,7 +956,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(
         final AccessLogFilteringCriteriaCfg configuration)
@@ -993,7 +967,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(
         final AccessLogFilteringCriteriaCfg configuration)
@@ -1005,7 +978,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
@@ -1016,7 +988,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
@@ -1027,7 +998,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(
         final AccessLogFilteringCriteriaCfg configuration,
@@ -1058,9 +1028,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   protected static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private AccessLogPublisherCfg cfg;
   private Filter filter;
@@ -1069,7 +1037,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final void close()
   {
@@ -1102,7 +1069,6 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /** {@inheritDoc} */
   @Override
   public final DN getDN()
   {
@@ -1124,9 +1090,7 @@ abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * Release any resources owned by the sub-implementation.
-   */
+  /** Release any resources owned by the sub-implementation. */
   protected abstract void close0();
 
 

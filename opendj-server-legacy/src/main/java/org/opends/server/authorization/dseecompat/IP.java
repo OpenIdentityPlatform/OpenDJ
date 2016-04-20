@@ -12,15 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
-import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
-import java.util.regex.Pattern;
-import java.util.*;
+
 import java.net.InetAddress;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * This class represents a single ACI's IP bind rule expression. It is possible
@@ -29,21 +31,16 @@ import java.net.InetAddress;
  * address for each IP address parsed from the bind rule.
  */
 public class IP implements KeywordBindRule {
-
     /**
      * Regular expression used to do a quick check on the characters in a
      * bind rule address. These are all of the valid characters that may
      * appear in an bind rule address part.
      */
-    private  static final String ipRegEx =
-            "((?i)[\\.{1}[a-f]\\d:\\+{1}\\*/{1}\\t\\[{1}\\]{1}]+(?-i))";
+    private  static final Pattern ipRegEx =
+        Pattern.compile("((?i)[\\.{1}[a-f]\\d:\\+{1}\\*/{1}\\t\\[{1}\\]{1}]+(?-i))");
 
-    /**
-     * List of the pattern classes, one for each address decoded from the bind
-     * rule.
-     */
+    /** List of the pattern classes, one for each address decoded from the bind rule. */
     private List<PatternIP> patternIPList;
-
     /** The type of the bind rule (!= or =). */
     private EnumBindRuleType type;
 
@@ -74,13 +71,10 @@ public class IP implements KeywordBindRule {
         String[] ipStrs=expr.split("\\,", -1);
         List<PatternIP> patternIPList= new LinkedList<>();
         for (String ipStr : ipStrs) {
-            if (!Pattern.matches(ipRegEx, ipStr)) {
-                LocalizableMessage message =
-                    WARN_ACI_SYNTAX_INVALID_IP_EXPRESSION.get(expr);
-                throw new AciException(message);
+            if (!ipRegEx.matcher(ipStr).matches()) {
+                throw new AciException(WARN_ACI_SYNTAX_INVALID_IP_EXPRESSION.get(expr));
             }
-            PatternIP ipPattern = PatternIP.decode(ipStr);
-            patternIPList.add(ipPattern);
+            patternIPList.add(PatternIP.decode(ipStr));
         }
         return new IP(patternIPList, type);
     }
@@ -94,9 +88,9 @@ public class IP implements KeywordBindRule {
      *
      * @return An enumeration representing if the address matched.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
-        InetAddress remoteAddr=evalCtx.getRemoteAddress();
-        return evaluate(remoteAddr);
+        return evaluate(evalCtx.getRemoteAddress());
     }
 
     /**
@@ -117,7 +111,6 @@ public class IP implements KeywordBindRule {
         return matched.getRet(type, false);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -125,10 +118,8 @@ public class IP implements KeywordBindRule {
         return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer) {
         buffer.append(super.toString());
     }
-
 }

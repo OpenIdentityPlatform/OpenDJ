@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.types;
-
-
 
 /**
  * This enumeration defines the set of possible authentication types
@@ -36,15 +34,11 @@ public enum AuthenticationType
    */
   SIMPLE((byte) 0x80),
 
-
-
   /**
    * The authentication type that indicates that the user will be
    * performing SASL authentication using some extensible mechanism.
    */
   SASL((byte) 0xA3),
-
-
 
   /**
    * The authentication type that indicates that the associated
@@ -52,12 +46,8 @@ public enum AuthenticationType
    */
   INTERNAL((byte) 0xFF);
 
-
-
   /** The BER type tag that is associated with this authentication type. */
   private byte berType;
-
-
 
   /**
    * Creates a new authentication type with the provided BER type tag.
@@ -70,27 +60,17 @@ public enum AuthenticationType
     this.berType = berType;
   }
 
-
-
   /**
-   * Retrieves the BER type tag associated with this authentication
-   * type.
+   * Retrieves the BER type tag associated with this authentication type.
    *
-   * @return  The BER type tag associated with this authentication
-   *          type.
+   * @return  The BER type tag associated with this authentication type.
    */
   public int getBERType()
   {
     return berType;
   }
 
-
-
-  /**
-   * Retrieves a string representation of this authentication type.
-   *
-   * @return  A string representation of this authentication type.
-   */
+  @Override
   public String toString()
   {
     switch (berType)
@@ -106,4 +86,3 @@ public enum AuthenticationType
     }
   }
 }
-

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 import org.forgerock.i18n.LocalizableMessage;
@@ -45,9 +45,7 @@ public class SequentialTag
 
 
 
-  /**
-   * Creates a new instance of this sequential tag.
-   */
+  /** Creates a new instance of this sequential tag. */
   public SequentialTag()
   {
     // No implementation required.
@@ -60,6 +58,7 @@ public class SequentialTag
    *
    * @return  The name for this tag.
    */
+  @Override
   public String getName()
   {
     return "Sequential";
@@ -74,6 +73,7 @@ public class SequentialTag
    * @return  <CODE>true</CODE> if this tag may be used in branch definitions,
    *          or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean allowedInBranch()
   {
     return true;
@@ -96,6 +96,7 @@ public class SequentialTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForBranch(TemplateFile templateFile, Branch branch,
                                   String[] arguments, int lineNumber,
                                   List<LocalizableMessage> warnings)
@@ -121,6 +122,7 @@ public class SequentialTag
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   this tag.
    */
+  @Override
   public void initializeForTemplate(TemplateFile templateFile,
                                     Template template, String[] arguments,
                                     int lineNumber, List<LocalizableMessage> warnings)
@@ -213,6 +215,7 @@ public class SequentialTag
    * @param  parentEntry  The entry below which the new entries will be
    *                      generated.
    */
+  @Override
   public void initializeForParent(TemplateEntry parentEntry)
   {
     if (resetOnNewParents)
@@ -232,6 +235,7 @@ public class SequentialTag
    *
    * @return  The result of generating content for this tag.
    */
+  @Override
   public TagResult generateValue(TemplateEntry templateEntry,
                                  TemplateValue templateValue)
   {

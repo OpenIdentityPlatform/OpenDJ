@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -42,41 +42,21 @@ public final class MeteredStream extends OutputStream
     this.written = written;
   }
 
-  /**
-   * Write the specified byte to the stream.
-   *
-   * @param b The value to be written to the stream.
-   *
-   * @exception IOException if the write failed.
-   */
+  @Override
   public void write(int b) throws IOException
   {
     out.write(b);
     written++;
   }
 
-  /**
-   * Write the specified buffer to the stream.
-   *
-   * @param buff The value to be written to the stream.
-   *
-   * @exception IOException if the write failed.
-   */
+  @Override
   public void write(byte buff[]) throws IOException
   {
     out.write(buff);
     written += buff.length;
   }
 
-  /**
-   * Write the specified buffer to the stream.
-   *
-   * @param buff The value to be written to the stream.
-   * @param off  The offset to write from.
-   * @param len  The length of the buffer to write.
-   *
-   * @exception IOException if the write failed.
-   */
+  @Override
   public void write(byte buff[], int off, int len) throws IOException
   {
     out.write(buff,off,len);
@@ -88,6 +68,7 @@ public final class MeteredStream extends OutputStream
    *
    * @exception IOException if the flush failed.
    */
+  @Override
   public void flush() throws IOException
   {
     out.flush();
@@ -98,6 +79,7 @@ public final class MeteredStream extends OutputStream
    *
    * @exception IOException if the close failed.
    */
+  @Override
   public void close() throws IOException
   {
     out.close();
@@ -113,4 +95,3 @@ public final class MeteredStream extends OutputStream
     return written;
   }
 }
-

@@ -84,18 +84,11 @@ public class CRAMMD5SASLMechanismHandler
   /** The message digest engine that will be used to create the MD5 digests. */
   private MessageDigest md5Digest;
 
-  /**
-   * The lock that will be used to provide threadsafe access to the message
-   * digest.
-   */
+  /** The lock that will be used to provide threadsafe access to the message digest. */
   private Object digestLock;
 
-  /**
-   * The random number generator that we will use to create the server challenge.
-   */
+  /** The random number generator that we will use to create the server challenge. */
   private SecureRandom randomGenerator;
-
-
 
   /**
    * Creates a new instance of this SASL mechanism handler.  No initialization
@@ -107,9 +100,6 @@ public class CRAMMD5SASLMechanismHandler
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeSASLMechanismHandler(
                    CramMD5SASLMechanismHandlerCfg configuration)
@@ -135,13 +125,11 @@ public class CRAMMD5SASLMechanismHandler
       throw new InitializationException(message, e);
     }
 
-
     // Create and fill the iPad and oPad arrays.
     iPad = new byte[HMAC_MD5_BLOCK_LENGTH];
     oPad = new byte[HMAC_MD5_BLOCK_LENGTH];
     Arrays.fill(iPad, CRAMMD5_IPAD_BYTE);
     Arrays.fill(oPad, CRAMMD5_OPAD_BYTE);
-
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
@@ -150,9 +138,6 @@ public class CRAMMD5SASLMechanismHandler
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_CRAM_MD5, this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeSASLMechanismHandler()
   {
@@ -160,10 +145,6 @@ public class CRAMMD5SASLMechanismHandler
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_CRAM_MD5);
   }
 
-
-
-
-  /** {@inheritDoc} */
   @Override
   public void processSASLBind(BindOperation bindOperation)
   {
@@ -195,7 +176,6 @@ public class CRAMMD5SASLMechanismHandler
       return;
     }
 
-
     // If we've gotten here, then the client did provide credentials.  First,
     // make sure that we have a stored version of the credentials associated
     // with the client connection.  If not, then it likely means that the client
@@ -224,7 +204,6 @@ public class CRAMMD5SASLMechanismHandler
     // Wipe out the stored challenge so it can't be used again.
     clientConnection.setSASLAuthStateInfo(null);
 
-
     // Now look at the client credentials and make sure that we can decode them.
     // It should be a username followed by a space and a digest string.  Since
     // the username itself may contain spaces but the digest string may not,
@@ -242,7 +221,6 @@ public class CRAMMD5SASLMechanismHandler
 
     String userName = credString.substring(0, spacePos);
     String digest   = credString.substring(spacePos+1);
-
 
     // Look at the digest portion of the provided credentials.  It must have a
     // length of exactly 32 bytes and be comprised only of hex characters.
@@ -273,7 +251,6 @@ public class CRAMMD5SASLMechanismHandler
       bindOperation.setAuthFailureReason(message);
       return;
     }
-
 
     // Get the user entry for the authentication ID.  Allow for an
     // authentication ID that is just a username (as per the CRAM-MD5 spec), but
@@ -353,7 +330,6 @@ public class CRAMMD5SASLMechanismHandler
       }
     }
 
-
     // At this point, we should have a user entry.  If we don't then fail.
     if (userEntry == null)
     {
@@ -367,7 +343,6 @@ public class CRAMMD5SASLMechanismHandler
     {
       bindOperation.setSASLAuthUserEntry(userEntry);
     }
-
 
     // Get the clear-text passwords from the user entry, if there are any.
     List<ByteString> clearPasswords;
@@ -405,7 +380,6 @@ public class CRAMMD5SASLMechanismHandler
       return;
     }
 
-
     // Iterate through the clear-text values and see if any of them can be used
     // in conjunction with the challenge to construct the provided digest.
     boolean matchFound = false;
@@ -428,7 +402,6 @@ public class CRAMMD5SASLMechanismHandler
       return;
     }
 
-
     // If we've gotten here, then the authentication was successful.
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
@@ -436,8 +409,6 @@ public class CRAMMD5SASLMechanismHandler
         SASL_MECHANISM_CRAM_MD5, DirectoryServer.isRootDN(userEntry.getName()));
     bindOperation.setAuthenticationInfo(authInfo);
   }
-
-
 
   /**
    * Generates the appropriate HMAC-MD5 digest for a CRAM-MD5 authentication
@@ -456,7 +427,6 @@ public class CRAMMD5SASLMechanismHandler
     byte[] p = password.toByteArray();
     byte[] c = challenge.toByteArray();
 
-
     // Grab a lock to protect the MD5 digest generation.
     synchronized (digestLock)
     {
@@ -467,7 +437,6 @@ public class CRAMMD5SASLMechanismHandler
         p = md5Digest.digest(p);
       }
 
-
       // Create byte arrays with data needed for the hash generation.
       byte[] iPadAndData = new byte[HMAC_MD5_BLOCK_LENGTH + c.length];
       System.arraycopy(iPad, 0, iPadAndData, 0, HMAC_MD5_BLOCK_LENGTH);
@@ -475,7 +444,6 @@ public class CRAMMD5SASLMechanismHandler
 
       byte[] oPadAndHash = new byte[HMAC_MD5_BLOCK_LENGTH + MD5_DIGEST_LENGTH];
       System.arraycopy(oPad, 0, oPadAndHash, 0, HMAC_MD5_BLOCK_LENGTH);
-
 
       // Iterate through the bytes in the key and XOR them with the iPad and
       // oPad as appropriate.
@@ -485,21 +453,16 @@ public class CRAMMD5SASLMechanismHandler
         oPadAndHash[i] ^= p[i];
       }
 
-
       // Copy an MD5 digest of the iPad-XORed key and the data into the array to
       // be hashed.
       System.arraycopy(md5Digest.digest(iPadAndData), 0, oPadAndHash,
                        HMAC_MD5_BLOCK_LENGTH, MD5_DIGEST_LENGTH);
-
 
       // Return an MD5 digest of the resulting array.
       return md5Digest.digest(oPadAndHash);
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isPasswordBased(String mechanism)
   {
@@ -507,9 +470,6 @@ public class CRAMMD5SASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isSecure(String mechanism)
   {
@@ -517,9 +477,6 @@ public class CRAMMD5SASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
@@ -530,9 +487,6 @@ public class CRAMMD5SASLMechanismHandler
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       CramMD5SASLMechanismHandlerCfg configuration,
@@ -541,9 +495,6 @@ public class CRAMMD5SASLMechanismHandler
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               CramMD5SASLMechanismHandlerCfg configuration)

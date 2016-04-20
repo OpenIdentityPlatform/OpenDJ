@@ -115,7 +115,6 @@ public class ExtendedOperationConfigManager implements
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
        ExtendedOperationHandlerCfg configuration)
@@ -131,7 +130,6 @@ public class ExtendedOperationConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        ExtendedOperationHandlerCfg configuration,
@@ -141,7 +139,6 @@ public class ExtendedOperationConfigManager implements
         || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
        ExtendedOperationHandlerCfg configuration)
@@ -163,7 +160,6 @@ public class ExtendedOperationConfigManager implements
           // Put this handler in the hash so that we will
           // be able to find it if it is altered.
           handlers.put(dn, handler);
-
         } catch (ConfigException e) {
           logger.traceException(e);
 
@@ -200,7 +196,6 @@ public class ExtendedOperationConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
        ExtendedOperationHandlerCfg configuration,
@@ -209,7 +204,6 @@ public class ExtendedOperationConfigManager implements
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
        ExtendedOperationHandlerCfg configuration)
@@ -232,7 +226,6 @@ public class ExtendedOperationConfigManager implements
         // Put this connection handler in the hash so that we will be
         // able to find it if it is altered.
         handlers.put(dn, handler);
-
       }
       catch (ConfigException e)
       {
@@ -254,7 +247,6 @@ public class ExtendedOperationConfigManager implements
     return ccr;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
        ExtendedOperationHandlerCfg configuration,
@@ -290,12 +282,7 @@ public class ExtendedOperationConfigManager implements
     }
   }
 
-
-
-  /**
-   * Determines whether or not the new configuration's implementation
-   * class is acceptable.
-   */
+  /** Determines whether or not the new configuration's implementation class is acceptable. */
   private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
                                         List<LocalizableMessage> unacceptableReasons)
   {
@@ -319,4 +306,3 @@ public class ExtendedOperationConfigManager implements
     }
   }
 }
-

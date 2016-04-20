@@ -38,10 +38,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Creates a new instance of this pwdPolicySubentry
-   * virtual attribute provider.
-   */
+  /** Creates a new instance of this pwdPolicySubentry virtual attribute provider. */
   public PasswordPolicySubentryVirtualAttributeProvider()
   {
     super();
@@ -50,14 +47,12 @@ public class PasswordPolicySubentryVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -104,7 +99,6 @@ public class PasswordPolicySubentryVirtualAttributeProvider
     return Attributes.empty(rule.getAttributeType());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -113,7 +107,6 @@ public class PasswordPolicySubentryVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

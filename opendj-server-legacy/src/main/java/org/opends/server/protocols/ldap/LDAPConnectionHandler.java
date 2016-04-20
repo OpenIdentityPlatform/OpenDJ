@@ -74,10 +74,7 @@ public final class LDAPConnectionHandler extends
     ConfigurationChangeListener<LDAPConnectionHandlerCfg>,
     ServerShutdownListener, AlertGenerator
 {
-
-  /**
-   * Task run periodically by the connection finalizer.
-   */
+  /** Task run periodically by the connection finalizer. */
   private final class ConnectionFinalizerRunnable implements Runnable
   {
     @Override
@@ -99,14 +96,11 @@ public final class LDAPConnectionHandler extends
         connectionFinalizerActiveJobQueue = connectionFinalizerPendingJobQueue;
         connectionFinalizerPendingJobQueue = tmp;
       }
-
     }
   }
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default friendly name for the LDAP connection handler.
-   */
+  /** Default friendly name for the LDAP connection handler. */
   private static final String DEFAULT_FRIENDLY_NAME = "LDAP Connection Handler";
 
   /** SSL instance name used in context creation. */
@@ -132,15 +126,10 @@ public final class LDAPConnectionHandler extends
   /** Indicates whether to allow the reuse address socket option. */
   private boolean allowReuseAddress;
 
-  /**
-   * The number of request handlers that should be used for this connection
-   * handler.
-   */
+  /** The number of request handlers that should be used for this connection handler. */
   private int numRequestHandlers;
 
-  /**
-   * Indicates whether the Directory Server is in the process of shutting down.
-   */
+  /** Indicates whether the Directory Server is in the process of shutting down. */
   private volatile boolean shutdownRequested;
 
   /* Internal LDAP connection handler state */
@@ -151,9 +140,7 @@ public final class LDAPConnectionHandler extends
   /** The set of clients that are explicitly allowed access to the server. */
   private Collection<AddressMask> allowedClients;
 
-  /**
-   * The set of clients that have been explicitly denied access to the server.
-   */
+  /** The set of clients that have been explicitly denied access to the server. */
   private Collection<AddressMask> deniedClients;
 
   /**
@@ -165,19 +152,13 @@ public final class LDAPConnectionHandler extends
   /** The set of listeners for this connection handler. */
   private List<HostPort> listeners;
 
-  /**
-   * The set of request handlers that are associated with this connection
-   * handler.
-   */
+  /** The set of request handlers that are associated with this connection handler. */
   private LDAPRequestHandler[] requestHandlers;
 
   /** The set of statistics collected for this connection handler. */
   private LDAPStatistics statTracker;
 
-  /**
-   * The client connection monitor provider associated with this connection
-   * handler.
-   */
+  /** The client connection monitor provider associated with this connection handler. */
   private ClientConnectionMonitorProvider connMonitor;
 
   /**
@@ -227,8 +208,6 @@ public final class LDAPConnectionHandler extends
   private List<Runnable> connectionFinalizerActiveJobQueue;
   private List<Runnable> connectionFinalizerPendingJobQueue;
 
-
-
   /**
    * Creates a new instance of this LDAP connection handler. It must be
    * initialized before it may be used.
@@ -237,8 +216,6 @@ public final class LDAPConnectionHandler extends
   {
     this(new WorkQueueStrategy(), null); // Use name from configuration.
   }
-
-
 
   /**
    * Creates a new instance of this LDAP connection handler, using a queueing
@@ -262,8 +239,6 @@ public final class LDAPConnectionHandler extends
     // initializeConnectionHandler method.
   }
 
-
-
   /**
    * Indicates whether this connection handler should allow interaction with
    * LDAPv2 clients.
@@ -275,8 +250,6 @@ public final class LDAPConnectionHandler extends
   {
     return currentConfig.isAllowLDAPV2();
   }
-
-
 
   /**
    * Indicates whether this connection handler should allow the use of the
@@ -290,9 +263,6 @@ public final class LDAPConnectionHandler extends
     return currentConfig.isAllowStartTLS() && !currentConfig.isUseSSL();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LDAPConnectionHandlerCfg config)
@@ -300,7 +270,6 @@ public final class LDAPConnectionHandler extends
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Note that the following properties cannot be modified:
-    //
     // * listen port and addresses
     // * use ssl
     // * ssl policy
@@ -363,8 +332,6 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
@@ -411,8 +378,6 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-
-
   /**
    * Retrieves information about the set of alerts that this generator may
    * produce. The map returned should be between the notification type for a
@@ -436,8 +401,6 @@ public final class LDAPConnectionHandler extends
     return alerts;
   }
 
-
-
   /**
    * Retrieves the fully-qualified name of the Java class for this alert
    * generator implementation.
@@ -450,8 +413,6 @@ public final class LDAPConnectionHandler extends
   {
     return LDAPConnectionHandler.class.getName();
   }
-
-
 
   /**
    * Retrieves the set of active client connections that have been established
@@ -471,8 +432,6 @@ public final class LDAPConnectionHandler extends
     return connectionList;
   }
 
-
-
   /**
    * Retrieves the DN of the configuration entry with which this alert generator
    * is associated.
@@ -486,18 +445,12 @@ public final class LDAPConnectionHandler extends
     return currentConfig.dn();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName()
   {
     return handlerName;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Collection<String> getEnabledSSLCipherSuites()
   {
@@ -509,9 +462,6 @@ public final class LDAPConnectionHandler extends
     return super.getEnabledSSLCipherSuites();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Collection<String> getEnabledSSLProtocols()
   {
@@ -523,16 +473,11 @@ public final class LDAPConnectionHandler extends
     return super.getEnabledSSLProtocols();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners()
   {
     return listeners;
   }
-
-
 
   /**
    * Retrieves the port on which this connection handler is listening for client
@@ -545,8 +490,6 @@ public final class LDAPConnectionHandler extends
   {
     return listenPort;
   }
-
-
 
   /**
    * Retrieves the maximum length of time in milliseconds that attempts to write
@@ -561,8 +504,6 @@ public final class LDAPConnectionHandler extends
     return currentConfig.getMaxBlockedWriteTimeLimit();
   }
 
-
-
   /**
    * Retrieves the maximum ASN.1 element value length that will be allowed by
    * this connection handler.
@@ -575,8 +516,6 @@ public final class LDAPConnectionHandler extends
     return (int) currentConfig.getMaxRequestSize();
   }
 
-
-
   /**
    * Retrieves the size in bytes of the LDAP response message write buffer
    * defined for this connection handler.
@@ -588,25 +527,17 @@ public final class LDAPConnectionHandler extends
     return (int) currentConfig.getBufferSize();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getProtocol()
   {
     return protocol;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName()
   {
     return handlerName;
   }
-
-
 
   /**
    * Retrieves the SSL client authentication policy for this connection handler.
@@ -618,8 +549,6 @@ public final class LDAPConnectionHandler extends
     return sslClientAuthPolicy;
   }
 
-
-
   /**
    * Retrieves the set of statistics maintained by this connection handler.
    *
@@ -630,9 +559,6 @@ public final class LDAPConnectionHandler extends
     return statTracker;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(ServerContext serverContext, LDAPConnectionHandlerCfg config)
       throws ConfigException, InitializationException
@@ -755,9 +681,6 @@ public final class LDAPConnectionHandler extends
     config.addLDAPChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -837,16 +760,12 @@ public final class LDAPConnectionHandler extends
     return null;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LDAPConnectionHandlerCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationAcceptable(config, unacceptableReasons);
   }
-
-
 
   /**
    * Indicates whether this connection handler should maintain usage statistics.
@@ -859,9 +778,6 @@ public final class LDAPConnectionHandler extends
     return currentConfig.isKeepStats();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
@@ -885,9 +801,6 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void start()
   {
@@ -910,8 +823,6 @@ public final class LDAPConnectionHandler extends
       }
     }
   }
-
-
 
   /**
    * Operates in a loop, accepting new connections and ensuring that requests on
@@ -1036,7 +947,6 @@ public final class LDAPConnectionHandler extends
           listening = false;
           enabled = false;
         }
-
       }
       catch (Exception e)
       {
@@ -1058,7 +968,6 @@ public final class LDAPConnectionHandler extends
       }
     }
   }
-
 
   /**
    * Serves the incoming connections.
@@ -1103,7 +1012,6 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-
   /**
    * Open channels for each listen address and register them against this
    * ConnectionHandler's {@link Selector}.
@@ -1137,8 +1045,6 @@ public final class LDAPConnectionHandler extends
     }
     return numRegistered;
   }
-
-
 
   private void acceptConnection(SocketChannel clientChannel)
       throws DirectoryException
@@ -1234,8 +1140,6 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-
-
   /**
    * Appends a string representation of this connection handler to the provided
    * buffer.
@@ -1249,8 +1153,6 @@ public final class LDAPConnectionHandler extends
     buffer.append(handlerName);
   }
 
-
-
   /**
    * Indicates whether this connection handler should use SSL to communicate
    * with clients.
@@ -1262,8 +1164,6 @@ public final class LDAPConnectionHandler extends
   {
     return currentConfig.isUseSSL();
   }
-
-
 
   /**
    * Cleans up the contents of the selector, closing any server socket channels
@@ -1301,8 +1201,6 @@ public final class LDAPConnectionHandler extends
     }
   }
 
-
-
   /**
    * Get the queueing strategy.
    *
@@ -1312,8 +1210,6 @@ public final class LDAPConnectionHandler extends
   {
     return queueingStrategy;
   }
-
-
 
   /**
    * Creates a TLS Byte Channel instance using the specified socket channel.
@@ -1330,8 +1226,6 @@ public final class LDAPConnectionHandler extends
     SSLEngine sslEngine = createSSLEngine(currentConfig, sslContext);
     return new TLSByteChannel(channel, sslEngine);
   }
-
-
 
   private SSLEngine createSSLEngine(LDAPConnectionHandlerCfg config,
       SSLContext sslContext) throws DirectoryException
@@ -1381,8 +1275,6 @@ public final class LDAPConnectionHandler extends
       throw new DirectoryException(resCode, message, e);
     }
   }
-
-
 
   private void disableAndWarnIfUseSSL(LDAPConnectionHandlerCfg config)
   {
@@ -1483,5 +1375,4 @@ public final class LDAPConnectionHandler extends
       }
     }
   }
-
 }

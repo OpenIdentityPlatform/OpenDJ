@@ -111,7 +111,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(ServerContext serverContext, LDIFConnectionHandlerCfg
                                                configuration)
@@ -152,7 +151,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
@@ -184,7 +182,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName()
   {
@@ -193,7 +190,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public String getProtocol()
   {
@@ -202,7 +198,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners()
   {
@@ -212,7 +207,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public Collection<ClientConnection> getClientConnections()
   {
@@ -222,7 +216,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void run()
   {
@@ -539,7 +532,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
@@ -552,7 +544,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -563,7 +554,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       LDIFConnectionHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -574,7 +565,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  LDIFConnectionHandlerCfg configuration)
   {
@@ -588,7 +579,6 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
@@ -597,7 +587,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public String getClassName()
   {
     return LDIFConnectionHandler.class.getName();
@@ -605,7 +595,7 @@ public final class LDIFConnectionHandler
 
 
 
-  /** {@inheritDoc} */
+  @Override
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<>();

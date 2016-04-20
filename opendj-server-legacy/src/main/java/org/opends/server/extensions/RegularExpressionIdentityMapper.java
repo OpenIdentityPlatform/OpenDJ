@@ -84,8 +84,6 @@ public class RegularExpressionIdentityMapper
   /** The replacement string to use for the pattern. */
   private String replacePattern;
 
-
-
   /**
    * Creates a new instance of this regular expression identity mapper.  All
    * initialization should be performed in the {@code initializeIdentityMapper}
@@ -98,9 +96,6 @@ public class RegularExpressionIdentityMapper
     // Don't do any initialization here.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeIdentityMapper(
                    RegularExpressionIdentityMapperCfg configuration)
@@ -128,7 +123,6 @@ public class RegularExpressionIdentityMapper
       replacePattern = "";
     }
 
-
     // Get the attribute types to use for the searches.  Ensure that they are
     // all indexed for equality.
     attributeTypes =
@@ -153,24 +147,17 @@ public class RegularExpressionIdentityMapper
       }
     }
 
-
     // Create the attribute list to include in search requests.  We want to
     // include all user and operational attributes.
     requestedAttributes = newLinkedHashSet("*", "+");
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void finalizeIdentityMapper()
   {
     currentConfig.removeRegularExpressionChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Entry getEntryForID(String id)
          throws DirectoryException
@@ -178,12 +165,10 @@ public class RegularExpressionIdentityMapper
     RegularExpressionIdentityMapperCfg config = currentConfig;
     AttributeType[] attributeTypes = this.attributeTypes;
 
-
     // Run the provided identifier string through the regular expression pattern
     // matcher and make the appropriate replacement.
     Matcher matcher = matchPattern.matcher(id);
     String processedID = matcher.replaceAll(replacePattern);
-
 
     // Construct the search filter to use to make the determination.
     SearchFilter filter;
@@ -203,7 +188,6 @@ public class RegularExpressionIdentityMapper
 
       filter = SearchFilter.createORFilter(filterComps);
     }
-
 
     // Iterate through the set of search bases and process an internal search
     // to find any matching entries.  Since we'll only allow a single match,
@@ -242,7 +226,6 @@ public class RegularExpressionIdentityMapper
           throw new DirectoryException(
                   ResultCode.CONSTRAINT_VIOLATION, message);
 
-
         case TIME_LIMIT_EXCEEDED:
         case ADMIN_LIMIT_EXCEEDED:
           // The search criteria was too inefficient.
@@ -280,9 +263,6 @@ public class RegularExpressionIdentityMapper
     return matchingEntry;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -292,9 +272,6 @@ public class RegularExpressionIdentityMapper
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       RegularExpressionIdentityMapperCfg configuration,
@@ -336,13 +313,9 @@ public class RegularExpressionIdentityMapper
       configAcceptable = false;
     }
 
-
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               RegularExpressionIdentityMapperCfg configuration)
@@ -366,10 +339,8 @@ public class RegularExpressionIdentityMapper
       newReplacePattern = "";
     }
 
-
     AttributeType[] newAttributeTypes =
          configuration.getMatchAttribute().toArray(new AttributeType[0]);
-
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {

@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import javax.security.auth.x500.X500Principal;
@@ -54,9 +52,6 @@ public class SubjectEqualsDNCertificateMapper
     super();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeCertificateMapper(SubjectEqualsDNCertificateMapperCfg
                                                configuration)
@@ -64,8 +59,6 @@ public class SubjectEqualsDNCertificateMapper
   {
     // No initialization is required.
   }
-
-
 
   /**
    * Establishes a mapping between the information in the provided certificate
@@ -98,7 +91,6 @@ public class SubjectEqualsDNCertificateMapper
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
 
-
     // Get the first certificate in the chain.  It must be an X.509 certificate.
     X509Certificate peerCertificate;
     try
@@ -112,7 +104,6 @@ public class SubjectEqualsDNCertificateMapper
       LocalizableMessage message = ERR_SEDCM_PEER_CERT_NOT_X509.get(certificateChain[0].getType());
       throw new DirectoryException(ResultCode.INVALID_CREDENTIALS, message);
     }
-
 
     // Get the subject from the peer certificate and decode it as a DN.
     X500Principal peerPrincipal = peerCertificate.getSubjectX500Principal();
@@ -161,4 +152,3 @@ public class SubjectEqualsDNCertificateMapper
     }
   }
 }
-

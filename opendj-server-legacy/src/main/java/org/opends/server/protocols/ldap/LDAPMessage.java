@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -538,6 +538,7 @@ public class LDAPMessage
    *
    * @return  The name of the protocol associated with this protocol element.
    */
+  @Override
   public String getProtocolElementName()
   {
     return "LDAP";
@@ -567,6 +568,7 @@ public class LDAPMessage
    * @param  buffer  The buffer into which the string representation should be
    *                 written.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPMessage(msgID=");
@@ -608,6 +610,7 @@ public class LDAPMessage
    * @param  indent  The number of spaces that should be used to indent the
    *                 resulting string representation.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

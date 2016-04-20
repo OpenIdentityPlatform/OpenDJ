@@ -83,7 +83,6 @@ public class EntryCacheConfigManager
     this.serverContext = serverContext;
   }
 
-
   /**
    * Initializes the default entry cache.
    * This should only be called at Directory Server startup.
@@ -109,9 +108,7 @@ public class EntryCacheConfigManager
           stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
-
   }
-
 
   /**
    * Initializes the configuration associated with the Directory Server entry
@@ -188,8 +185,6 @@ public class EntryCacheConfigManager
     }
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
@@ -230,8 +225,6 @@ public class EntryCacheConfigManager
     return status;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       EntryCacheCfg configuration
@@ -315,8 +308,6 @@ public class EntryCacheConfigManager
     return changeResult;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       EntryCacheCfg configuration,
@@ -353,8 +344,6 @@ public class EntryCacheConfigManager
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(EntryCacheCfg configuration)
   {
@@ -383,8 +372,6 @@ public class EntryCacheConfigManager
     return changeResult;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       EntryCacheCfg configuration,
@@ -397,8 +384,6 @@ public class EntryCacheConfigManager
     return true;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       EntryCacheCfg configuration
@@ -436,7 +421,6 @@ public class EntryCacheConfigManager
 
     return changeResult;
   }
-
 
   /**
    * Loads the specified class, instantiates it as an entry cache,
@@ -584,5 +568,4 @@ public class EntryCacheConfigManager
       throw new InitializationException(message, e);
     }
   }
-
 }

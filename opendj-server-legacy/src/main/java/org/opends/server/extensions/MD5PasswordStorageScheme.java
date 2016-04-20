@@ -16,8 +16,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.MessageDigest;
 import java.util.Arrays;
 
@@ -37,8 +35,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a Directory Server password storage scheme based on the
  * MD5 algorithm defined in RFC 1321.  This is a one-way digest algorithm
@@ -53,21 +49,15 @@ public class MD5PasswordStorageScheme
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.MD5PasswordStorageScheme";
-
-
 
   /** The message digest that will actually be used to generate the MD5 hashes. */
   private MessageDigest messageDigest;
 
   /** The lock used to provide threadsafe access to the message digest. */
   private Object digestLock;
-
-
 
   /**
    * Creates a new instance of this password storage scheme.  Note that no
@@ -77,12 +67,8 @@ public class MD5PasswordStorageScheme
   public MD5PasswordStorageScheme()
   {
     super();
-
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(
                    MD5PasswordStorageSchemeCfg configuration)
@@ -104,18 +90,12 @@ public class MD5PasswordStorageScheme
     digestLock = new Object();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_MD5;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
@@ -152,9 +132,6 @@ public class MD5PasswordStorageScheme
     return ByteString.valueOfUtf8(Base64.encode(digestBytes));
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
@@ -195,13 +172,9 @@ public class MD5PasswordStorageScheme
 
     buffer.append(Base64.encode(digestBytes));
 
-
     return ByteString.valueOfUtf8(buffer);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
@@ -249,9 +222,6 @@ public class MD5PasswordStorageScheme
     return userPWDigestBytes.equals(storedPWDigestBytes);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
@@ -259,9 +229,6 @@ public class MD5PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
@@ -271,9 +238,6 @@ public class MD5PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
@@ -282,18 +246,12 @@ public class MD5PasswordStorageScheme
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
@@ -302,9 +260,6 @@ public class MD5PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
@@ -315,9 +270,6 @@ public class MD5PasswordStorageScheme
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
@@ -325,4 +277,3 @@ public class MD5PasswordStorageScheme
     return true;
   }
 }
-

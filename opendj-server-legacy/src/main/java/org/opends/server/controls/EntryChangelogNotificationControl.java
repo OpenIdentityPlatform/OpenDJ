@@ -12,9 +12,10 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
+
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_NO_CONTROL_VALUE;
 import static org.opends.server.util.ServerConstants.*;
@@ -32,8 +33,6 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.forgerock.opendj.ldap.ResultCode;
 
-
-
 /**
  * This class implements the ECL cookie control.
  * It may be included in entries returned in response to a search or
@@ -47,13 +46,11 @@ public class EntryChangelogNotificationControl
   /** The cookie value - payload of this control. */
   private String cookie;
 
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder
   implements ControlDecoder<EntryChangelogNotificationControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public EntryChangelogNotificationControl decode(
         boolean isCritical, ByteString value)
     throws DirectoryException
@@ -83,6 +80,7 @@ public class EntryChangelogNotificationControl
       return new EntryChangelogNotificationControl(isCritical, cookie);
     }
 
+    @Override
     public String getOID()
     {
       return OID_ECL_COOKIE_EXCHANGE_CONTROL;
@@ -90,9 +88,7 @@ public class EntryChangelogNotificationControl
 
   }
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<EntryChangelogNotificationControl>
   DECODER = new Decoder();
 
@@ -112,13 +108,7 @@ public class EntryChangelogNotificationControl
     this.cookie = cookie;
   }
 
-  /**
-   * Writes this control's value to an ASN.1 writer. The value (if any)
-   * must be written as an ASN1OctetString.
-   *
-   * @param writer The ASN.1 output stream to write to.
-   * @throws IOException If a problem occurs while writing to the stream.
-   */
+  @Override
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeStartSequence();
@@ -139,12 +129,7 @@ public class EntryChangelogNotificationControl
     return cookie;
   }
 
-  /**
-   * Appends a string representation of this entry change notification control
-   * to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be appended.
-   */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("EntryChangelogNotificationControl(cookie=");

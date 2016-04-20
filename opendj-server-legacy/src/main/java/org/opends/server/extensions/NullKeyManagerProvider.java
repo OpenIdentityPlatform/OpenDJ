@@ -31,9 +31,6 @@ import org.opends.server.types.InitializationException;
  */
 public class NullKeyManagerProvider
        extends KeyManagerProvider<KeyManagerProviderCfg>{
-
-
-
   /**
    * Creates a new instance of this null key manager provider.  The
    * <CODE>initializeKeyManagerProvider</CODE> method must be called on the
@@ -44,9 +41,6 @@ public class NullKeyManagerProvider
     // No implementation is required.
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeKeyManagerProvider(
       KeyManagerProviderCfg configuration) throws ConfigException,
@@ -54,18 +48,11 @@ public class NullKeyManagerProvider
     // No implementation is required.
   }
 
-
-
-  /**
-   * Performs any finalization that may be necessary for this key manager
-   * provider.
-   */
+  @Override
   public void finalizeKeyManagerProvider()
   {
     // No implementation is required.
   }
-
-
 
   /**
    * Retrieves a <CODE>KeyManager</CODE> object that may be used for
@@ -77,10 +64,10 @@ public class NullKeyManagerProvider
    * @throws  DirectoryException  If a problem occurs while attempting to obtain
    *                              the set of key managers.
    */
+  @Override
   public KeyManager[] getKeyManagers()
          throws DirectoryException
   {
     return new KeyManager[0];
   }
 }
-

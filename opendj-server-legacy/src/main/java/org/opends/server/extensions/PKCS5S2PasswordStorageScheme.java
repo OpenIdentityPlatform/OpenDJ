@@ -79,7 +79,6 @@ public class PKCS5S2PasswordStorageScheme
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(PKCS5S2PasswordStorageSchemeCfg configuration)
       throws InitializationException
@@ -96,14 +95,12 @@ public class PKCS5S2PasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_PKCS5S2;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
       throws DirectoryException
@@ -115,7 +112,6 @@ public class PKCS5S2PasswordStorageScheme
     return ByteString.valueOfUtf8(Base64.encode(hashPlusSalt));
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
       throws DirectoryException
@@ -123,7 +119,6 @@ public class PKCS5S2PasswordStorageScheme
     return ByteString.valueOfUtf8('{' + STORAGE_SCHEME_NAME_PKCS5S2 + '}' + encodePassword(plaintext));
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword, ByteSequence storedPassword)
   {
@@ -154,21 +149,18 @@ public class PKCS5S2PasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getAuthPasswordSchemeName()
   {
     return AUTH_PASSWORD_SCHEME_NAME_PKCS5S2;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
       throws DirectoryException
@@ -180,7 +172,6 @@ public class PKCS5S2PasswordStorageScheme
         + ':' + Base64.encode(saltBytes) + '$' + Base64.encode(digestBytes));
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword, String authInfo, String authValue)
   {
@@ -203,14 +194,12 @@ public class PKCS5S2PasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
       throws DirectoryException
@@ -219,7 +208,6 @@ public class PKCS5S2PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo, String authValue)
       throws DirectoryException
@@ -228,14 +216,11 @@ public class PKCS5S2PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
     return true;
   }
-
-
 
   /**
    * Generates an encoded password string from the given clear-text password.
@@ -328,5 +313,4 @@ public class PKCS5S2PasswordStorageScheme
     System.arraycopy(digestBytes, 0, hashPlusSalt, NUM_SALT_BYTES, digestBytes.length);
     return hashPlusSalt;
   }
-
 }

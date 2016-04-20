@@ -12,20 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
 import java.security.Principal;
 
-/**
- * Represents a Ldap authentication ID used for JMX connection authentication.
- */
+/** Represents a Ldap authentication ID used for JMX connection authentication. */
 public class OpendsJmxPrincipal implements Principal
 {
   /** The authentication ID. */
   private String authID;
-
 
   /**
    * Create a new OpendsJmxPrincipal object.
@@ -38,29 +35,25 @@ public class OpendsJmxPrincipal implements Principal
     this.authID = authID;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean equals(Object another)
   {
     return authID.equals(another);
   }
 
-  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return authID.hashCode() ;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return authID;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public String getName()
   {
     return authID;

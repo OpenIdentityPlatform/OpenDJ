@@ -31,7 +31,6 @@ import org.forgerock.opendj.ldap.RDN;
 public abstract class ModifyDNOperationWrapper extends
     OperationWrapper<ModifyDNOperation> implements ModifyDNOperation
 {
-
   /**
    * Creates a new moddn operation based on the provided moddn operation.
    *
@@ -42,101 +41,84 @@ public abstract class ModifyDNOperationWrapper extends
     super(modifyDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addModification(Modification modification) {
     getOperation().addModification(modification);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean deleteOldRDN() {
     return getOperation().deleteOldRDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN() {
     return getOperation().getEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<Modification> getModifications() {
     return getOperation().getModifications();
   }
 
-  /** {@inheritDoc} */
   @Override
   public RDN getNewRDN() {
     return getOperation().getNewRDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getNewSuperior() {
     return getOperation().getNewSuperior();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getOriginalEntry() {
     return getOperation().getOriginalEntry();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN() {
     return getOperation().getRawEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawNewRDN() {
     return getOperation().getRawNewRDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawNewSuperior() {
     return getOperation().getRawNewSuperior();
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getUpdatedEntry() {
     return getOperation().getUpdatedEntry();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setDeleteOldRDN(boolean deleteOldRDN) {
     getOperation().setDeleteOldRDN(deleteOldRDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN) {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawNewRDN(ByteString rawNewRDN) {
     getOperation().setRawNewRDN(rawNewRDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawNewSuperior(ByteString rawNewSuperior) {
     getOperation().setRawNewSuperior(rawNewSuperior);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getNewDN()
   {
     return getOperation().getNewDN();
   }
-
 }

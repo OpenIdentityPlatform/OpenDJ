@@ -82,7 +82,6 @@ public class PBKDF2PasswordStorageScheme
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializePasswordStorageScheme(PBKDF2PasswordStorageSchemeCfg configuration)
       throws ConfigException, InitializationException
@@ -102,7 +101,6 @@ public class PBKDF2PasswordStorageScheme
     config.addPBKDF2ChangeListener(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(PBKDF2PasswordStorageSchemeCfg configuration,
                                                  List<LocalizableMessage> unacceptableReasons)
@@ -110,7 +108,6 @@ public class PBKDF2PasswordStorageScheme
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(PBKDF2PasswordStorageSchemeCfg configuration)
   {
@@ -118,14 +115,12 @@ public class PBKDF2PasswordStorageScheme
     return new ConfigChangeResult();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_PBKDF2;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePassword(ByteSequence plaintext)
       throws DirectoryException
@@ -139,7 +134,6 @@ public class PBKDF2PasswordStorageScheme
     return ByteString.valueOfUtf8(iterations + ":" + Base64.encode(hashPlusSalt));
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
       throws DirectoryException
@@ -147,7 +141,6 @@ public class PBKDF2PasswordStorageScheme
     return ByteString.valueOfUtf8('{' + STORAGE_SCHEME_NAME_PBKDF2 + '}' + encodePassword(plaintext));
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean passwordMatches(ByteSequence plaintextPassword, ByteSequence storedPassword) {
     // Split the iterations from the stored value (separated by a ':')
@@ -185,21 +178,18 @@ public class PBKDF2PasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean supportsAuthPasswordSyntax()
   {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getAuthPasswordSchemeName()
   {
     return AUTH_PASSWORD_SCHEME_NAME_PBKDF2;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
       throws DirectoryException
@@ -213,7 +203,6 @@ public class PBKDF2PasswordStorageScheme
         + iterations + ':' + Base64.encode(saltBytes) + '$' + Base64.encode(digestBytes));
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword, String authInfo, String authValue)
   {
@@ -236,14 +225,12 @@ public class PBKDF2PasswordStorageScheme
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isReversible()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
       throws DirectoryException
@@ -252,7 +239,6 @@ public class PBKDF2PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo, String authValue)
       throws DirectoryException
@@ -261,13 +247,11 @@ public class PBKDF2PasswordStorageScheme
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isStorageSchemeSecure()
   {
     return true;
   }
-
 
   /**
    * Generates an encoded password string from the given clear-text password.
@@ -364,5 +348,4 @@ public class PBKDF2PasswordStorageScheme
     System.arraycopy(saltBytes, 0, hashPlusSalt, digestBytes.length, NUM_SALT_BYTES);
     return hashPlusSalt;
   }
-
 }

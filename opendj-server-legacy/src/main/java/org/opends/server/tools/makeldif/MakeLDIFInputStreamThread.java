@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -61,6 +61,7 @@ class MakeLDIFInputStreamThread
    * Operates in a loop, generating entries and feeding them to the input stream
    * until either all entries have been generated or the input stream is closed.
    */
+  @Override
   public void run()
   {
     try

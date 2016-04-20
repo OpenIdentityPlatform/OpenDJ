@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -44,7 +44,6 @@ public final class JDKLoggingFormater extends Formatter
         }
       };
 
-  /** {@inheritDoc} */
   @Override
   public String format(LogRecord record)
   {

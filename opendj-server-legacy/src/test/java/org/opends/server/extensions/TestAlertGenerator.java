@@ -16,29 +16,18 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.LinkedHashMap;
 
 import org.opends.server.api.AlertGenerator;
 import org.forgerock.opendj.ldap.DN;
 
-
-
-/**
- * This class defines a simple alert generator that may be used for testing
- * purposes.
- */
+/** This class defines a simple alert generator that may be used for testing purposes. */
 public class TestAlertGenerator
        implements AlertGenerator
 {
-  /**
-   * The fully-qualified name of this class for debugging purposes.
-   */
+  /** The fully-qualified name of this class for debugging purposes. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.TestAlertGenerator";
-
-
 
   /** The DN of the "configuration entry" for this alert generator. */
   private DN configEntryDN;
@@ -48,8 +37,6 @@ public class TestAlertGenerator
 
   /** The alert type used for testing purposes. */
   private String alertType;
-
-
 
   /**
    * Creates a new instance of this test alert generator.
@@ -64,8 +51,6 @@ public class TestAlertGenerator
     alertDescription = "This is a test alert.";
   }
 
-
-
   /**
    * Retrieves the alert type for this test alert generator.
    *
@@ -76,25 +61,19 @@ public class TestAlertGenerator
     return alertType;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public DN getComponentEntryDN()
   {
     return configEntryDN;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<>();
@@ -104,4 +83,3 @@ public class TestAlertGenerator
     return alerts;
   }
 }
-

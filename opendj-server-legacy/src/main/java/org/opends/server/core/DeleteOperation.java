@@ -64,6 +64,7 @@ public interface DeleteOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   DN getProxiedAuthorizationDN();
 
   /**
@@ -75,6 +76,7 @@ public interface DeleteOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
+  @Override
   void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 

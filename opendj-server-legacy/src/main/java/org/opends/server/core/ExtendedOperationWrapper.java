@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -25,7 +25,6 @@ import org.forgerock.opendj.ldap.ByteString;
 public abstract class ExtendedOperationWrapper extends
     OperationWrapper<ExtendedOperation> implements ExtendedOperation
 {
-
   /**
    * Creates a new extended operation wrapper based on the provided extended
    * operation.
@@ -38,46 +37,39 @@ public abstract class ExtendedOperationWrapper extends
     super(extended);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getRequestOID()
   {
     return getOperation().getRequestOID();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getResponseOID()
   {
     return getOperation().getResponseOID();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRequestValue()
   {
     return getOperation().getRequestValue();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getResponseValue()
   {
     return getOperation().getResponseValue();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setResponseOID(String responseOID)
   {
     getOperation().setResponseOID(responseOID);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setResponseValue(ByteString responseValue)
   {
     getOperation().setResponseValue(responseValue);
   }
-
 }

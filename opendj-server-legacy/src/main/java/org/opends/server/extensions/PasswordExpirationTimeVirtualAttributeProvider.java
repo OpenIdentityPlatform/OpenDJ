@@ -29,34 +29,25 @@ import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 
-/**
- * Provider for the password expiration time virtual attribute.
- */
+/** Provider for the password expiration time virtual attribute. */
 public class PasswordExpirationTimeVirtualAttributeProvider
   extends VirtualAttributeProvider<PasswordExpirationTimeVirtualAttributeCfg>
 {
-
-  /**
-   * Debug tracer to log debugging information.
-   */
+  /** Debug tracer to log debugging information. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public PasswordExpirationTimeVirtualAttributeProvider()
   {
     super();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -76,7 +67,6 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     return Attributes.empty(rule.getAttributeType());
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -85,7 +75,6 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -98,7 +87,6 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -156,7 +144,6 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       }
 
       return pwpState.getPasswordExpirationTime();
-
     }
     else
     {

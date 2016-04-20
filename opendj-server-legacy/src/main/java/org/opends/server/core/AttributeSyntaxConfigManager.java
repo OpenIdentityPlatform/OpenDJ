@@ -53,15 +53,10 @@ public class AttributeSyntaxConfigManager
        implements ConfigurationChangeListener<AttributeSyntaxCfg>,
                   ConfigurationAddListener<AttributeSyntaxCfg>,
                   ConfigurationDeleteListener<AttributeSyntaxCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated
-   * attribute syntaxes.
-   */
+  /** A mapping between the DNs of the config entries and the associated attribute syntaxes. */
   private ConcurrentHashMap<DN,AttributeSyntax> syntaxes;
 
   private final ServerContext serverContext;
@@ -77,8 +72,6 @@ public class AttributeSyntaxConfigManager
     this.serverContext = serverContext;
     syntaxes = new ConcurrentHashMap<>();
   }
-
-
 
   /**
    * Initializes all attribute syntaxes currently defined in the Directory
@@ -98,7 +91,6 @@ public class AttributeSyntaxConfigManager
     RootCfg rootConfiguration = serverContext.getRootConfig();
     rootConfiguration.addAttributeSyntaxAddListener(this);
     rootConfiguration.addAttributeSyntaxDeleteListener(this);
-
 
     //Initialize the existing attribute syntaxes.
     for (String name : rootConfiguration.listAttributeSyntaxes())
@@ -142,9 +134,6 @@ public class AttributeSyntaxConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       AttributeSyntaxCfg configuration,
@@ -170,9 +159,6 @@ public class AttributeSyntaxConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  AttributeSyntaxCfg configuration)
@@ -216,9 +202,6 @@ public class AttributeSyntaxConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       AttributeSyntaxCfg configuration,
@@ -248,9 +231,6 @@ public class AttributeSyntaxConfigManager
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  AttributeSyntaxCfg configuration)
@@ -276,9 +256,6 @@ public class AttributeSyntaxConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       AttributeSyntaxCfg configuration,
@@ -324,18 +301,13 @@ public class AttributeSyntaxConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(AttributeSyntaxCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing syntax if it's already enabled.
     AttributeSyntax<?> existingSyntax = syntaxes.get(configuration.dn());
-
 
     // If the new configuration has the syntax disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -362,7 +334,6 @@ public class AttributeSyntaxConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the attribute syntax.  If the syntax is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -405,8 +376,6 @@ public class AttributeSyntaxConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as an attribute syntax, and
@@ -464,4 +433,3 @@ public class AttributeSyntaxConfigManager
     }
   }
 }
-

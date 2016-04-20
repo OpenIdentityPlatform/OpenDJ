@@ -34,17 +34,14 @@ public class SaltedMD5PasswordStorageSchemeTestCase
     super("cn=Salted MD5,cn=Password Storage Schemes,cn=config");
   }
 
+  @Override
   protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     return InitializationUtils.initializePasswordStorageScheme(
         new SaltedMD5PasswordStorageScheme(), configEntry, SaltedMD5PasswordStorageSchemeCfgDefn.getInstance());
   }
 
-
-
-  /**
-   * Tests matching with a different salt size.
-   */
+  /** Tests matching with a different salt size. */
   @Test
   public void testDifferentSaltSize() throws Exception {
     SaltedMD5PasswordStorageScheme scheme = InitializationUtils.initializePasswordStorageScheme(

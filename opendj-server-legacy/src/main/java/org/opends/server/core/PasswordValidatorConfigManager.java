@@ -51,15 +51,10 @@ public class PasswordValidatorConfigManager
        implements ConfigurationChangeListener<PasswordValidatorCfg>,
                   ConfigurationAddListener<PasswordValidatorCfg>,
                   ConfigurationDeleteListener<PasswordValidatorCfg>
-
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * A mapping between the DNs of the config entries and the associated password
-   * validators.
-   */
+  /** A mapping between the DNs of the config entries and the associated password validators. */
   private final ConcurrentHashMap<DN,PasswordValidator> passwordValidators;
 
   private final ServerContext serverContext;
@@ -95,7 +90,6 @@ public class PasswordValidatorConfigManager
     rootConfiguration.addPasswordValidatorAddListener(this);
     rootConfiguration.addPasswordValidatorDeleteListener(this);
 
-
     //Initialize the existing password validators.
     for (String validatorName : rootConfiguration.listPasswordValidators())
     {
@@ -124,9 +118,6 @@ public class PasswordValidatorConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       PasswordValidatorCfg configuration,
@@ -152,9 +143,6 @@ public class PasswordValidatorConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PasswordValidatorCfg configuration)
@@ -193,9 +181,6 @@ public class PasswordValidatorConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       PasswordValidatorCfg configuration,
@@ -206,9 +191,6 @@ public class PasswordValidatorConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  PasswordValidatorCfg configuration)
@@ -227,9 +209,6 @@ public class PasswordValidatorConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       PasswordValidatorCfg configuration,
@@ -255,20 +234,15 @@ public class PasswordValidatorConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordValidatorCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
     // Get the existing validator if it's already enabled.
     PasswordValidator existingValidator =
          passwordValidators.get(configuration.dn());
-
 
     // If the new configuration has the validator disabled, then disable it if
     // it is enabled, or do nothing if it's already disabled.
@@ -288,7 +262,6 @@ public class PasswordValidatorConfigManager
 
       return ccr;
     }
-
 
     // Get the class for the password validator.  If the validator is already
     // enabled, then we shouldn't do anything with it although if the class has
@@ -326,8 +299,6 @@ public class PasswordValidatorConfigManager
 
     return ccr;
   }
-
-
 
   /**
    * Loads the specified class, instantiates it as a password validator, and
@@ -386,4 +357,3 @@ public class PasswordValidatorConfigManager
     }
   }
 }
-

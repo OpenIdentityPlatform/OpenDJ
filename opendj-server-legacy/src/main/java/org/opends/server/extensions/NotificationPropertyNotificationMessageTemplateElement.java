@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -32,8 +32,6 @@ public class NotificationPropertyNotificationMessageTemplateElement
   /** The account status notification property for which to obtain the value. */
   private AccountStatusNotificationProperty property;
 
-
-
   /**
    * Creates a new notification property notification message template element.
    *
@@ -45,9 +43,7 @@ public class NotificationPropertyNotificationMessageTemplateElement
     this.property = property;
   }
 
-
-
-  /** {@inheritDoc} */
+  @Override
   public void generateValue(LocalizableMessageBuilder buffer,
                             AccountStatusNotification notification)
   {
@@ -59,4 +55,3 @@ public class NotificationPropertyNotificationMessageTemplateElement
     }
   }
 }
-

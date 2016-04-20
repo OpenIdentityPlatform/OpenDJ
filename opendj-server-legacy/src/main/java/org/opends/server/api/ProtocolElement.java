@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
-
-
 
 /**
  * This interface defines a set of methods that must be implemented by
@@ -25,30 +23,16 @@ package org.opends.server.api;
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
      mayExtend=true,
      mayInvoke=true)
 public interface ProtocolElement
 {
   /**
-   * Retrieves the name of the protocol associated with this protocol
-   * element.
+   * Retrieves the name of the protocol associated with this protocol element.
    *
-   * @return  The name of the protocol associated with this protocol
-   *          element.
+   * @return  The name of the protocol associated with this protocol element.
    */
   String getProtocolElementName();
-
-
-
-  /**
-   * Retrieves a string representation of this protocol element.
-   *
-   * @return  A string representation of this protocol element.
-   */
-  String toString();
-
-
 
   /**
    * Appends a string representation of this protocol element to the
@@ -58,8 +42,6 @@ public interface ProtocolElement
    *                 should be written.
    */
   void toString(StringBuilder buffer);
-
-
 
   /**
    * Appends a string representation of this protocol element to the
@@ -72,4 +54,3 @@ public interface ProtocolElement
    */
   void toString(StringBuilder buffer, int indent);
 }
-

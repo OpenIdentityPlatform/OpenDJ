@@ -80,10 +80,7 @@ public class FIFOEntryCache
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The reference to the Java runtime used to determine the amount of memory
-   * currently in use.
-   */
+  /** The reference to the Java runtime used to determine the amount of memory currently in use. */
   private static final Runtime runtime = Runtime.getRuntime();
 
   /** The mapping between entry backends/IDs and entries. */
@@ -92,10 +89,7 @@ public class FIFOEntryCache
   /** The mapping between DNs and entries. */
   private LinkedHashMap<DN,CacheEntry> dnMap;
 
-  /**
-   * The lock used to provide threadsafe access when changing the contents of
-   * the cache.
-   */
+  /** The lock used to provide threadsafe access when changing the contents of the cache. */
   private ReadWriteLock cacheLock;
   private Lock cacheWriteLock;
   private Lock cacheReadLock;
@@ -122,7 +116,6 @@ public class FIFOEntryCache
     // All initialization should be performed in the initializeEntryCache.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeEntryCache(FIFOEntryCacheCfg configuration)
       throws ConfigException, InitializationException
@@ -152,7 +145,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeEntryCache()
   {
@@ -174,7 +166,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean containsEntry(DN entryDN)
   {
@@ -191,7 +182,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   {
@@ -212,7 +202,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public long getEntryID(DN entryDN)
   {
@@ -226,7 +215,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN(String backendID, long entryID)
   {
@@ -246,13 +234,11 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void putEntry(Entry entry, String backendID, long entryID)
   {
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backendID, entryID);
-
 
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
@@ -268,7 +254,6 @@ public class FIFOEntryCache
 
       return;
     }
-
 
     // At this point, we hold the lock.  No matter what, we must release the
     // lock before leaving this method, so do that in a finally block.
@@ -312,7 +297,6 @@ public class FIFOEntryCache
             }
           }
         }
-
       }
       else
       {
@@ -331,7 +315,6 @@ public class FIFOEntryCache
         {
           map.put(entryID, cacheEntry);
         }
-
 
         // See if a cap has been placed on the maximum number of entries in the
         // cache.  If so, then see if we have exceeded it and we need to purge
@@ -366,13 +349,11 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean putEntryIfAbsent(Entry entry, String backendID, long entryID)
   {
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backendID, entryID);
-
 
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
@@ -390,7 +371,6 @@ public class FIFOEntryCache
       // We can't rule out the possibility of a conflict, so return false.
       return false;
     }
-
 
     // At this point, we hold the lock.  No matter what, we must release the
     // lock before leaving this method, so do that in a finally block.
@@ -441,7 +421,6 @@ public class FIFOEntryCache
           map.put(entryID, cacheEntry);
         }
 
-
         // See if a cap has been placed on the maximum number of entries in the
         // cache.  If so, then see if we have exceeded it and we need to purge
         // entries until we're within the limit.
@@ -465,7 +444,6 @@ public class FIFOEntryCache
         }
       }
 
-
       // We'll always return true in this case, even if we didn't actually add
       // the entry due to memory constraints.
       return true;
@@ -483,7 +461,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void removeEntry(DN entryDN)
   {
@@ -493,7 +470,6 @@ public class FIFOEntryCache
     // time and then if it fails then put it in a queue for processing by some
     // other thread before it releases the lock.
     cacheWriteLock.lock();
-
 
     // At this point, it is absolutely critical that we always release the lock
     // before leaving this method, so do so in a finally block.
@@ -538,14 +514,12 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clear()
   {
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
     cacheWriteLock.lock();
-
 
     // At this point, it is absolutely critical that we always release the lock
     // before leaving this method, so do so in a finally block.
@@ -569,14 +543,12 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearBackend(String backendID)
   {
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
     cacheWriteLock.lock();
-
 
     // At this point, it is absolutely critical that we always release the lock
     // before leaving this method, so do so in a finally block.
@@ -590,7 +562,6 @@ public class FIFOEntryCache
         // without doing anything.
         return;
       }
-
 
       // Unfortunately, there is no good way to dump the entries from the DN
       // cache based on their backend, so we will need to iterate through the
@@ -624,7 +595,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearSubtree(DN baseDN)
   {
@@ -636,11 +606,9 @@ public class FIFOEntryCache
       return;
     }
 
-
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
     cacheWriteLock.lock();
-
 
     // At this point, it is absolutely critical that we always release the lock
     // before leaving this method, so do so in a finally block.
@@ -660,8 +628,6 @@ public class FIFOEntryCache
     }
   }
 
-
-
   /**
    * Clears all entries at or below the specified base DN that are associated
    * with the given backend.  The caller must already hold the cache lock.
@@ -680,7 +646,6 @@ public class FIFOEntryCache
       // doing anything.
       return;
     }
-
 
     // Since the provided base DN could hold a subset of the information in the
     // specified backend, we will have to do this by iterating through all the
@@ -709,7 +674,6 @@ public class FIFOEntryCache
       }
     }
 
-
     // See if the backend has any subordinate backends.  If so, then process
     // them recursively.
     for (Backend<?> subBackend : backend.getSubordinateBackends())
@@ -731,13 +695,11 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void handleLowMemory()
   {
     // Grab the lock on the cache and wait until we have it.
     cacheWriteLock.lock();
-
 
     // At this point, it is absolutely critical that we always release the lock
     // before leaving this method, so do so in a finally block.
@@ -782,7 +744,6 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -791,7 +752,6 @@ public class FIFOEntryCache
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FIFOEntryCacheCfg configuration,
@@ -810,7 +770,6 @@ public class FIFOEntryCache
     return errorHandler.getIsAcceptable();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(      FIFOEntryCacheCfg configuration      )
   {
@@ -832,8 +791,6 @@ public class FIFOEntryCache
     changeResult.getMessages().addAll(errorHandler.getErrorMessages());
     return changeResult;
   }
-
-
 
   /**
    * Parses the provided configuration and configure the entry cache.
@@ -920,14 +877,12 @@ public class FIFOEntryCache
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Long getCacheCount()
   {
     return Long.valueOf(dnMap.size());
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toVerboseString()
   {

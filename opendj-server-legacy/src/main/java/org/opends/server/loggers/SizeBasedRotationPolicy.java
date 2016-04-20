@@ -26,9 +26,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 
 import java.util.List;
 
-/**
- * This class implements a rotation policy based on the size of the file.
- */
+/** This class implements a rotation policy based on the size of the file. */
 public class SizeBasedRotationPolicy implements
     RotationPolicy<SizeLimitLogRotationPolicyCfg>,
     ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
@@ -37,7 +35,7 @@ public class SizeBasedRotationPolicy implements
 
   SizeLimitLogRotationPolicyCfg currentConfig;
 
-  /** {@inheritDoc} */
+  @Override
   public void initializeLogRotationPolicy(SizeLimitLogRotationPolicyCfg config)
       throws ConfigException, InitializationException
   {
@@ -47,7 +45,7 @@ public class SizeBasedRotationPolicy implements
     currentConfig = config;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -55,7 +53,7 @@ public class SizeBasedRotationPolicy implements
     return true;
   }
 
-  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
   {
@@ -72,6 +70,7 @@ public class SizeBasedRotationPolicy implements
    * @param writer The multi file text writer writing the log file.
    * @return true if the file needs to be rotated, false otherwise.
   */
+  @Override
   public boolean rotateFile(RotatableLogFile writer)
   {
     long fileSize = writer.getBytesWritten();

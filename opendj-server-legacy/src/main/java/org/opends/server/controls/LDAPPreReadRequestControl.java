@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -46,13 +46,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class LDAPPreReadRequestControl extends Control
 {
-  /**
-   * ControlDecoder implementation to decode this control from a ByteString.
-   */
+  /** ControlDecoder implementation to decode this control from a ByteString. */
   private static final class Decoder implements
       ControlDecoder<LDAPPreReadRequestControl>
   {
-    /** {@inheritDoc} */
+    @Override
     public LDAPPreReadRequestControl decode(boolean isCritical,
         ByteString value) throws DirectoryException
     {
@@ -87,6 +85,7 @@ public class LDAPPreReadRequestControl extends Control
 
 
 
+    @Override
     public String getOID()
     {
       return OID_LDAP_READENTRY_PREREAD;
@@ -96,9 +95,7 @@ public class LDAPPreReadRequestControl extends Control
 
 
 
-  /**
-   * The Control Decoder that can be used to decode this control.
-   */
+  /** The Control Decoder that can be used to decode this control. */
   public static final ControlDecoder<LDAPPreReadRequestControl> DECODER =
       new Decoder();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

@@ -51,7 +51,6 @@ public class ThreadFilterTextErrorLogPublisher
     this.writer = writer;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(ErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -60,14 +59,12 @@ public class ThreadFilterTextErrorLogPublisher
     // configurable via the admin framework.
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
     writer.shutdown();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void log(String category, Severity severity,
       LocalizableMessage message, Throwable exception)
@@ -96,7 +93,6 @@ public class ThreadFilterTextErrorLogPublisher
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isEnabledFor(String category, Severity severity)
   {
@@ -105,7 +101,6 @@ public class ThreadFilterTextErrorLogPublisher
         || this.thread.getThreadGroup().equals(currentThread.getThreadGroup());
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

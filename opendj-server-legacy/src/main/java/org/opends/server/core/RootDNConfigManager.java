@@ -47,7 +47,6 @@ public class RootDNConfigManager
        implements ConfigurationChangeListener<RootDNUserCfg>,
                   ConfigurationAddListener<RootDNUserCfg>,
                   ConfigurationDeleteListener<RootDNUserCfg>
-
 {
   /** A mapping between the actual root DNs and their alternate bind DNs. */
   private ConcurrentHashMap<DN,HashSet<DN>> alternateBindDNs;
@@ -92,10 +91,8 @@ public class RootDNConfigManager
     rootPrivilegeChangeListener.setDefaultRootPrivileges(rootDNCfg);
     rootDNCfg.addChangeListener(rootPrivilegeChangeListener);
 
-
     rootDNCfg.addRootDNUserAddListener(this);
     rootDNCfg.addRootDNUserDeleteListener(this);
-
 
     // Get the set of root users defined below "cn=Root DNs,cn=config".  For
     // each one, register as a change listener, and get the set of alternate
@@ -125,8 +122,6 @@ public class RootDNConfigManager
     }
   }
 
-
-
   /**
    * Retrieves the set of privileges that will be granted to root users by
    * default.
@@ -139,9 +134,6 @@ public class RootDNConfigManager
     return rootPrivilegeChangeListener.getDefaultRootPrivileges();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(RootDNUserCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
@@ -163,9 +155,6 @@ public class RootDNConfigManager
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(RootDNUserCfg configuration)
   {
@@ -205,9 +194,6 @@ public class RootDNConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(RootDNUserCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -215,9 +201,6 @@ public class RootDNConfigManager
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  RootDNUserCfg configuration)
@@ -239,9 +222,6 @@ public class RootDNConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(RootDNUserCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -264,9 +244,6 @@ public class RootDNConfigManager
     return configAcceptable;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  RootDNUserCfg configuration)
@@ -336,4 +313,3 @@ public class RootDNConfigManager
     return ccr;
   }
 }
-

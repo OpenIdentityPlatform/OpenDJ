@@ -30,7 +30,6 @@ import org.forgerock.opendj.ldap.DN;
 public abstract class ModifyOperationWrapper extends
     OperationWrapper<ModifyOperation> implements ModifyOperation
 {
-
   /**
    * Creates a new modify operation based on the provided modify operation.
    *
@@ -41,7 +40,6 @@ public abstract class ModifyOperationWrapper extends
     super(modify);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addModification(Modification modification)
     throws DirectoryException
@@ -49,60 +47,51 @@ public abstract class ModifyOperationWrapper extends
     getOperation().addModification(modification);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addRawModification(RawModification rawModification)
   {
     getOperation().addRawModification(rawModification);
   }
 
-  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<Modification> getModifications()
   {
     return getOperation().getModifications();
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-  /** {@inheritDoc} */
   @Override
   public List<RawModification> getRawModifications()
   {
     return getOperation().getRawModifications();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void setRawModifications(List<RawModification> rawModifications)
   {
     getOperation().setRawModifications(rawModifications);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
-
 }

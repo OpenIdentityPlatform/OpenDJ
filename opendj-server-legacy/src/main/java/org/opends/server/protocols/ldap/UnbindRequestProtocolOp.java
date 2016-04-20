@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -51,6 +51,7 @@ public class UnbindRequestProtocolOp
    *
    * @return  The BER type for this protocol op.
    */
+  @Override
   public byte getType()
   {
     return OP_TYPE_UNBIND_REQUEST;
@@ -63,6 +64,7 @@ public class UnbindRequestProtocolOp
    *
    * @return  The name for this protocol op type.
    */
+  @Override
   public String getProtocolOpName()
   {
     return "Unbind Request";
@@ -74,6 +76,7 @@ public class UnbindRequestProtocolOp
    * @param stream The ASN.1 output stream to write to.
    * @throws IOException If a problem occurs while writing to the stream.
    */
+  @Override
   public void write(ASN1Writer stream) throws IOException
   {
     stream.writeNull(OP_TYPE_UNBIND_REQUEST);
@@ -87,6 +90,7 @@ public class UnbindRequestProtocolOp
    *
    * @param  buffer  The buffer to which the string should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("UnbindRequest()");
@@ -102,6 +106,7 @@ public class UnbindRequestProtocolOp
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     for (int i=0; i < indent; i++)

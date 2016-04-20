@@ -50,9 +50,7 @@ public class EntryDNVirtualAttributeProvider
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Creates a new instance of this entryDN virtual attribute provider.
-   */
+  /** Creates a new instance of this entryDN virtual attribute provider. */
   public EntryDNVirtualAttributeProvider()
   {
     super();
@@ -61,14 +59,12 @@ public class EntryDNVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
@@ -76,7 +72,6 @@ public class EntryDNVirtualAttributeProvider
     return Attributes.create(rule.getAttributeType(), dnString);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -84,7 +79,6 @@ public class EntryDNVirtualAttributeProvider
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
@@ -103,7 +97,6 @@ public class EntryDNVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -115,7 +108,6 @@ public class EntryDNVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -125,7 +117,6 @@ public class EntryDNVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -135,7 +126,6 @@ public class EntryDNVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -144,8 +134,6 @@ public class EntryDNVirtualAttributeProvider
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;
   }
-
-
 
   /**
    * {@inheritDoc}.  This virtual attribute will support search operations only
@@ -167,9 +155,6 @@ public class EntryDNVirtualAttributeProvider
   {
     return isSearchable(rule.getAttributeType(), searchOperation.getFilter(), 0);
   }
-
-
-
 
   /**
    * Indicates whether the provided search filter is one that may be used with
@@ -227,7 +212,6 @@ public class EntryDNVirtualAttributeProvider
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -264,8 +248,6 @@ public class EntryDNVirtualAttributeProvider
       }
     }
   }
-
-
 
   /**
    * Extracts the user DNs from the provided filter, operating recursively as

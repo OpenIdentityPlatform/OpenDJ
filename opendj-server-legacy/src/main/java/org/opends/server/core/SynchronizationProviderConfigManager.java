@@ -121,9 +121,6 @@ public class SynchronizationProviderConfigManager
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       SynchronizationProviderCfg configuration)
@@ -204,9 +201,6 @@ public class SynchronizationProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       SynchronizationProviderCfg configuration,
@@ -216,9 +210,6 @@ public class SynchronizationProviderConfigManager
         || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
     SynchronizationProviderCfg configuration)
@@ -268,9 +259,6 @@ public class SynchronizationProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       SynchronizationProviderCfg configuration,
@@ -279,8 +267,6 @@ public class SynchronizationProviderConfigManager
     return !configuration.isEnabled()
         || isJavaClassAcceptable(configuration, unacceptableReasons);
   }
-
-
 
   /**
    * Check if the class provided in the configuration is an acceptable
@@ -383,7 +369,6 @@ public class SynchronizationProviderConfigManager
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       SynchronizationProviderCfg configuration)
@@ -402,9 +387,6 @@ public class SynchronizationProviderConfigManager
     return ccr;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       SynchronizationProviderCfg configuration,
