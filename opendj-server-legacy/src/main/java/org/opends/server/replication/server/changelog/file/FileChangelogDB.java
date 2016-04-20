@@ -42,6 +42,7 @@ import org.forgerock.util.Pair;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.ChangelogBackend;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -116,6 +117,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   private static final DBCursor<UpdateMsg> EMPTY_CURSOR_REPLICA_DB =
       new FileReplicaDBCursor(EMPTY_CURSOR, null, AFTER_MATCHING_KEY);
 
+  private final CryptoSuite cryptoSuite;
   /**
    * Creates a new changelog DB.
    *
@@ -123,14 +125,17 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    *          the local replication server.
    * @param dbDirectoryPath
    *          the path where the changelog files reside.
+   * @param cryptoSuite
+   *          the cryptosuite to use for encryption
    * @throws ConfigException
    *           if a problem occurs opening the supplied directory
    */
-  public FileChangelogDB(final ReplicationServer replicationServer, String dbDirectoryPath)
+  public FileChangelogDB(final ReplicationServer replicationServer, String dbDirectoryPath, CryptoSuite cryptoSuite)
       throws ConfigException
   {
     this.replicationServer = replicationServer;
     this.dbDirectory = makeDir(dbDirectoryPath);
+    this.cryptoSuite = cryptoSuite;
   }
 
   private File makeDir(final String dbDirName) throws ConfigException
@@ -266,7 +271,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         return null;
       }
 
-      final FileReplicaDB newDB = new FileReplicaDB(serverId, baseDN, server, replicationEnv);
+      final FileReplicaDB newDB = new FileReplicaDB(serverId, baseDN, server, cryptoSuite, replicationEnv);
       domainMap.put(serverId, newDB);
       return Pair.of(newDB, true);
     }

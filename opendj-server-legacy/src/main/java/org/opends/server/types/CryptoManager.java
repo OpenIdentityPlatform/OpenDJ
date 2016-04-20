@@ -430,6 +430,7 @@ import java.util.SortedSet;
    * @return a new {@link CryptoSuite} for the cipher and key
    * @param cipherTransformation cipher transformation string specification
    * @param cipherKeyLength length of key in bits
+   * @param encrypt true if the user of the crypto suite needs encryption
    */
-  CryptoSuite newCryptoSuite(String cipherTransformation, int cipherKeyLength);
+  CryptoSuite newCryptoSuite(String cipherTransformation, int cipherKeyLength, boolean encrypt);
 }

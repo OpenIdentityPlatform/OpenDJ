@@ -53,6 +53,7 @@ import org.forgerock.opendj.server.config.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -129,6 +130,8 @@ public class ReplicationServer
    */
   private static final List<ReplicationServer> allInstances = new ArrayList<>();
 
+  private final CryptoSuite cryptoSuite;
+
   /**
    * Creates a new Replication server using the provided configuration entry.
    *
@@ -170,7 +173,10 @@ public class ReplicationServer
     this.domainPredicate = predicate;
 
     enableExternalChangeLog();
-    this.changelogDB = new FileChangelogDB(this, config.getReplicationDBDirectory());
+    cryptoSuite = DirectoryServer.getInstance().getServerContext().getCryptoManager().
+        newCryptoSuite(cfg.getCipherTransformation(), cfg.getCipherKeyLength(), cfg.isConfidentialityEnabled());
+
+    this.changelogDB = new FileChangelogDB(this, config.getReplicationDBDirectory(), cryptoSuite);
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();
@@ -871,6 +877,9 @@ public class ReplicationServer
       }
     }
 
+    cryptoSuite.newParameters(config.getCipherTransformation(), config.getCipherKeyLength(),
+        config.isConfidentialityEnabled());
+
     // changing the listen port requires to stop the listen thread
     // and restart it.
     if (getReplicationPort() != oldConfig.getReplicationPort())
@@ -1335,6 +1344,15 @@ public class ReplicationServer
   public boolean isECLEnabled()
   {
     return MultimasterReplication.isECLEnabled();
+  }
+
+  /**
+   * Return whether change-log records should be encrypted.
+   * @return trus if change-log records should be encrypted
+   */
+  public boolean isEncrypted()
+  {
+    return config.isConfidentialityEnabled();
   }
 
   @Override

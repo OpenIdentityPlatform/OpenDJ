@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2010 Sun Microsystems, Inc.
-  Portions copyright 2011-2015 ForgeRock AS.
+  Portions copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -365,6 +365,104 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-compute-change-number</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="cipher-transformation">
+    <adm:synopsis>
+      Specifies the cipher for the directory server.
+      The syntax is "algorithm/mode/padding".
+    </adm:synopsis>
+    <adm:description>
+      The full transformation is required: specifying only an algorithm
+      and allowing the cipher provider to supply the default mode and
+      padding is not supported, because there is no guarantee these
+      default values are the same among different implementations.
+      Some cipher algorithms, including RC4 and ARCFOUR, do not have a
+      mode or padding, and hence must be specified using NONE for the
+      mode field and NoPadding for the padding field. For example,
+      RC4/NONE/NoPadding.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect cryptographic operations performed after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>AES/CBC/PKCS5Padding</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cipher-transformation</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="cipher-key-length">
+    <adm:synopsis>
+      Specifies the key length in bits for the preferred cipher.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect cryptographic operations performed after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>128</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cipher-key-length</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="confidentiality-enabled">
+    <adm:synopsis>
+      Indicates whether the replication change-log should make records readable only by Directory Server.
+      Throughput and disk space are affected by the more expensive operations taking place.
+    </adm:synopsis>
+    <adm:description>
+      Confidentiality is achieved by encrypting records on all domains managed by this replication server.
+      Encrypting the records prevents unauthorized parties from accessing contents of LDAP operations.
+      For complete protection, consider enabling secure communications between servers.
+      Change number indexing is not affected by the setting.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect operations performed after the change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-confidentiality-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

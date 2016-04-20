@@ -17,6 +17,7 @@ package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -388,7 +389,7 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
     private static final byte STRING_SEPARATOR = 0;
 
     @Override
-    public ByteString encodeRecord(final Record<Long, ChangeNumberIndexRecord> record)
+    public ByteString encodeRecord(final Record<Long, ChangeNumberIndexRecord> record) throws IOException
     {
       final ChangeNumberIndexRecord cnIndexRecord = record.getValue();
       return new ByteStringBuilder()

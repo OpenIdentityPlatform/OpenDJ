@@ -16,7 +16,10 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.REPLICATION_PROTOCOL_V7;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -24,12 +27,13 @@ import net.jcip.annotations.Immutable;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.api.MonitorData;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
@@ -39,6 +43,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingSt
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -54,10 +59,6 @@ import org.opends.server.types.InitializationException;
  */
 class FileReplicaDB
 {
-
-  /** The parser of records stored in Replica DB. */
-  static final RecordParser<CSN, UpdateMsg> RECORD_PARSER = new ReplicaDBParser();
-
   /** Class that allows atomically setting oldest and newest CSNs without synchronization. */
   @Immutable
   private static final class CSNLimits
@@ -105,13 +106,13 @@ class FileReplicaDB
    *           If a database problem happened
    */
   FileReplicaDB(final int serverId, final DN baseDN, final ReplicationServer replicationServer,
-      final ReplicationEnvironment replicationEnv) throws ChangelogException
+      final CryptoSuite cryptoSuite, final ReplicationEnvironment replicationEnv) throws ChangelogException
   {
     this.serverId = serverId;
     this.baseDN = baseDN;
     this.replicationServer = replicationServer;
     this.replicationEnv = replicationEnv;
-    this.log = createLog(replicationEnv);
+    this.log = createLog(replicationEnv, cryptoSuite);
     this.csnLimits = new CSNLimits(readOldestCSN(), readNewestCSN());
 
     DirectoryServer.deregisterMonitorProvider(dbMonitor);
@@ -130,10 +131,11 @@ class FileReplicaDB
     return record == null ? null : record.getKey();
   }
 
-  private Log<CSN, UpdateMsg> createLog(final ReplicationEnvironment replicationEnv) throws ChangelogException
+  private Log<CSN, UpdateMsg> createLog(final ReplicationEnvironment replicationEnv, final CryptoSuite cryptoSuite)
+      throws ChangelogException
   {
     final ReplicationServerDomain domain = replicationServer.getReplicationServerDomain(baseDN, true);
-    return replicationEnv.getOrCreateReplicaDB(baseDN, serverId, domain.getGenerationId());
+    return replicationEnv.getOrCreateReplicaDB(baseDN, serverId, domain.getGenerationId(), cryptoSuite);
   }
 
   /**
@@ -336,14 +338,49 @@ class FileReplicaDB
     log.dumpAsTextFile(log.getPath());
   }
 
+  static ReplicaDBParser newReplicaDBParser(final CryptoSuite cryptoSuite)
+  {
+    return new ReplicaDBParser(cryptoSuite);
+  }
+
   /** Parser of records persisted in the ReplicaDB log. */
   private static class ReplicaDBParser implements RecordParser<CSN, UpdateMsg>
   {
+    private static final byte RECORD_VERSION = 0x01;
+    private final CryptoSuite cryptoSuite;
+    /** Adjusts the ByteStringBuilder capacity to avoid capacity increases (and copies) when encoding records. */
+    private int encryptionOverhead;
+
+    ReplicaDBParser(CryptoSuite cryptoSuite)
+    {
+      this.cryptoSuite = cryptoSuite;
+    }
 
     @Override
-    public ByteString encodeRecord(final Record<CSN, UpdateMsg> record)
+    public ByteString encodeRecord(final Record<CSN, UpdateMsg> record) throws IOException
     {
       final UpdateMsg message = record.getValue();
+      if (cryptoSuite.isEncrypted())
+      {
+        try
+        {
+          byte[] messageBytes = message.getBytes();
+          ByteStringBuilder builder = new ByteStringBuilder(messageBytes.length + encryptionOverhead);
+          builder.appendByte(UpdateMsg.MSG_TYPE_DISK_ENCODING);
+          builder.appendByte(RECORD_VERSION);
+          builder.appendBytes(cryptoSuite.encrypt(messageBytes));
+          final int overhead = builder.length() - messageBytes.length;
+          if (encryptionOverhead < overhead)
+          {
+            encryptionOverhead = overhead;
+          }
+          return builder.toByteString();
+        }
+        catch (GeneralSecurityException | CryptoManagerException e)
+        {
+          throw new IOException(e);
+        }
+      }
       return ByteString.wrap(message.getBytes());
     }
 
@@ -352,8 +389,21 @@ class FileReplicaDB
     {
       try
       {
-        final UpdateMsg msg =
-            (UpdateMsg) UpdateMsg.generateMsg(data.toByteArray(), ProtocolVersion.REPLICATION_PROTOCOL_V7);
+        byte[] recordBytes;
+        if (data.byteAt(0) == UpdateMsg.MSG_TYPE_DISK_ENCODING)
+        {
+          final int version = data.byteAt(1);
+          if (version != RECORD_VERSION)
+          {
+            throw new DecodingException(ERR_UNRECOGNIZED_RECORD_VERSION.get(version));
+          }
+          recordBytes = cryptoSuite.decrypt(data.subSequence(2, data.length()).toByteArray());
+        }
+        else
+        {
+          recordBytes = data.toByteArray();
+        }
+        final UpdateMsg msg = (UpdateMsg) UpdateMsg.generateMsg(recordBytes, REPLICATION_PROTOCOL_V7);
         return Record.from(msg.getCSN(), msg);
       }
       catch (Exception e)
@@ -362,26 +412,22 @@ class FileReplicaDB
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public CSN decodeKeyFromString(String key) throws ChangelogException
     {
       return new CSN(key);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String encodeKeyToString(CSN key)
     {
       return key.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public CSN getMaxKey()
     {
       return CSN.MAX_CSN_VALUE;
     }
   }
-
 }

@@ -40,6 +40,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   private int queueSize;
   private int windowSize;
   private SortedSet<String> servers;
+  private boolean confidentialityEnabled;
 
   /*
    * Assured mode properties
@@ -203,9 +204,27 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   }
 
   @Override
+  public boolean isConfidentialityEnabled()
+  {
+    return confidentialityEnabled;
+  }
+
+  @Override
   public long getAssuredTimeout()
   {
     return assuredTimeout;
+  }
+
+  @Override
+  public int getCipherKeyLength()
+  {
+    return 128;
+  }
+
+  @Override
+  public String getCipherTransformation()
+  {
+    return "AES/CBC/PKCS5Padding";
   }
 
   @Override
@@ -245,5 +264,10 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   public void setComputeChangeNumber(boolean computeChangenumber)
   {
     this.computeChangenumber = computeChangenumber;
+  }
+
+  public void setConfidentialityEnabled(boolean confidentialityEnabled)
+  {
+    this.confidentialityEnabled = confidentialityEnabled;
   }
 }

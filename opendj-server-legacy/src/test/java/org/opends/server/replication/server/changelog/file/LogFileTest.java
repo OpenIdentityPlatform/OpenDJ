@@ -16,6 +16,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -327,7 +328,7 @@ public class LogFileTest extends DirectoryServerTestCase
     }
 
     @Override
-    public ByteString encodeRecord(Record<String, String> record)
+    public ByteString encodeRecord(Record<String, String> record) throws IOException
     {
       return new ByteStringBuilder()
         .appendUtf8(record.getKey()).appendByte(STRING_SEPARATOR)

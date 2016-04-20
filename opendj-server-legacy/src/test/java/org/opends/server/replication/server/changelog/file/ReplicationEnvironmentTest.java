@@ -24,6 +24,7 @@ import org.assertj.core.data.MapEntry;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -52,14 +53,16 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
   private static final String DN1_AS_STRING = "cn=test1,dc=company.com";
   private static final String DN2_AS_STRING = "cn=te::st2,dc=company.com";
   private static final String DN3_AS_STRING = "cn=test3,dc=company.com";
-
   private static final String TEST_DIRECTORY_CHANGELOG = "test-output/changelog";
+
+  private static final CryptoSuite cryptoSuite = mock(CryptoSuite.class);
 
   @BeforeClass
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available for DN decoding.
     TestCaseUtils.startFakeServer();
+    when(cryptoSuite.isEncrypted()).thenReturn(false);
   }
 
   @AfterClass
@@ -89,8 +92,8 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       final DN domainDN = DN.valueOf(DN1_AS_STRING);
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
-      replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
+      replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1, cryptoSuite);
 
       final ChangelogState state = environment.readOnDiskChangelogState();
 
@@ -123,7 +126,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
         for (int j = 1; j <= 10; j++)
         {
           // 3 domains, 10 server id each, generation id is different for each domain
-          replicaDBs.add(environment.getOrCreateReplicaDB(domainDNs.get(i), j, i+1));
+          replicaDBs.add(environment.getOrCreateReplicaDB(domainDNs.get(i), j, i+1, cryptoSuite));
         }
       }
 
@@ -159,7 +162,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       final DN domainDN = DN.valueOf(DN1_AS_STRING);
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
 
       // put server id 1 offline
       CSN offlineCSN = new CSN(TimeThread.getTime(), 0, SERVER_ID_1);
@@ -189,7 +192,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       final DN domainDN = DN.valueOf(DN1_AS_STRING);
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
 
       File offlineStateFile = new File(environment.getServerIdPath("1", 1), REPLICA_OFFLINE_STATE_FILENAME);
       offlineStateFile.createNewFile();
@@ -214,7 +217,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
 
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
 
       // put server id 1 offline twice
       CSNGenerator csnGenerator = new CSNGenerator(SERVER_ID_1, 100);
@@ -245,7 +248,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
 
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
 
       // put server id 1 offline
       environment.notifyReplicaOffline(domainDN, new CSN(TimeThread.getTime(), 0, SERVER_ID_1));
@@ -274,7 +277,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
 
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
       CSN offlineCSN = new CSN(TimeThread.getTime(), 0, SERVER_ID_1);
       environment.notifyReplicaOffline(domainDN, offlineCSN);
 
@@ -304,8 +307,8 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
       DN domainDN = DN.valueOf(DN1_AS_STRING);
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
-      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
-      replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1, cryptoSuite);
+      replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1, cryptoSuite);
 
       // delete the domain directory created for the 2 replica DBs to break the
       // consistency with domain state file

@@ -61,6 +61,7 @@ import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.crypto.CryptoSuite;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.PackedLong;
@@ -483,6 +484,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   {
     private static final State state;
     private static final EntryContainer entryContainer;
+    private static final CryptoSuite cryptoSuite;
 
     static
     {
@@ -493,11 +495,14 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
       state = Mockito.mock(State.class);
       Mockito.when(state.getIndexFlags(Mockito.any(ReadableTransaction.class), Mockito.any(TreeName.class))).thenReturn(
           EnumSet.of(State.IndexFlag.COMPACTED));
+
+      cryptoSuite = Mockito.mock(CryptoSuite.class);
+      Mockito.when(cryptoSuite.isEncrypted()).thenReturn(false);
     };
 
     DummyIndex(int indexEntryLimit) throws StorageRuntimeException
     {
-      super(TreeName.valueOf("/dumy/dummy"), state, indexEntryLimit, entryContainer);
+      super(TreeName.valueOf("/dummy/dummy"), state, indexEntryLimit, entryContainer, cryptoSuite);
       open(Mockito.mock(WriteableTransaction.class), false);
     }
   }

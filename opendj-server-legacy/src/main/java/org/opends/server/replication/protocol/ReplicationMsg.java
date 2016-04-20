@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions copyright 2013-2014 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -27,6 +27,9 @@ import java.util.zip.DataFormatException;
  */
 public abstract class ReplicationMsg
 {
+  /** Reserved type for uses other than protocol messages. */
+  public static final byte MSG_TYPE_DISK_ENCODING = -1;
+
   // PDU type values kept for compatibility with replication protocol version 1
   static final byte MSG_TYPE_MODIFY_V1 = 1;
   static final byte MSG_TYPE_ADD_V1 = 2;

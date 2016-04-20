@@ -25,6 +25,8 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -54,6 +56,8 @@ import static org.testng.Assert.*;
 public class FileReplicaDBTest extends ReplicationTestCase
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  private final String cipherTransformation = "AES/CBC/PKCS5Padding";
+  private final int keyLength = 128;
   private DN TEST_ROOT_DN;
 
   /**
@@ -76,16 +80,17 @@ public class FileReplicaDBTest extends ReplicationTestCase
   {
     CSN[] csns = generateCSNs(1, 0, 2);
     return new Object[][] {
-      { new DeleteMsg(TEST_ROOT_DN, csns[0], "uid") },
-      { new DeleteMsg(TEST_ROOT_DN, csns[1], "uid") },
+      { new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"), false },
+      { new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"), false },
+      { new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"), true },
+      { new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"), true },
     };
   }
 
   @Test(dataProvider="messages")
-  public void testRecordParser(UpdateMsg msg) throws Exception
+  public void testRecordParser(UpdateMsg msg, boolean confidential) throws Exception
   {
-    RecordParser<CSN, UpdateMsg> parser = FileReplicaDB.RECORD_PARSER;
-
+    RecordParser<CSN, UpdateMsg> parser = FileReplicaDB.newReplicaDBParser(createCryptoSuite(confidential));
     ByteString data = parser.encodeRecord(Record.from(msg.getCSN(), msg));
     Record<CSN, UpdateMsg> record = parser.decodeRecord(data);
 
@@ -94,6 +99,23 @@ public class FileReplicaDBTest extends ReplicationTestCase
     assertThat(record.getValue()).isEqualTo(msg);
   }
 
+  @Test(dataProvider="messages")
+  public void testRecordEncodingWithAndWithoutConfidentiality(UpdateMsg msg, boolean confidential) throws Exception
+  {
+    CryptoSuite cryptoSuite = createCryptoSuite(confidential);
+    RecordParser<CSN, UpdateMsg> parser = FileReplicaDB.newReplicaDBParser(cryptoSuite);
+
+    ByteString data1 = parser.encodeRecord(Record.from(msg.getCSN(), msg));
+    cryptoSuite.newParameters(cipherTransformation, keyLength, !confidential);
+    ByteString data2 = parser.encodeRecord(Record.from(msg.getCSN(), msg));
+
+    assertFalse(data1.equals(data2));
+  }
+
+  private CryptoSuite createCryptoSuite(boolean confidential)
+  {
+    return DirectoryServer.getCryptoManager().newCryptoSuite(cipherTransformation, keyLength, confidential);
+  }
   @Test
   public void testDomainDNWithForwardSlashes() throws Exception
   {
@@ -407,7 +429,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationEnvironment(testRoot.getPath(), replicationServer, TimeService.SYSTEM);
-      replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
+      replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, createCryptoSuite(false), dbEnv);
 
       // Populate the db with 'max' msg
       int mySeqnum = 1;
@@ -428,7 +450,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       debugInfo(tn, "SHUTDOWN replicaDB and recreate");
       replicaDB.shutdown();
 
-      replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
+      replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, createCryptoSuite(false), dbEnv);
       assertLimits(replicaDB, csns[1], csns[max]);
 
       // Populate the db with 'max' msg
@@ -521,8 +543,9 @@ public class FileReplicaDBTest extends ReplicationTestCase
       throws IOException, ConfigException
   {
     final int changelogPort = findFreePort();
-    return new ReplicationServer(
-        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null));
+    ReplServerFakeConfiguration replServerFakeCfg =
+        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null);
+    return new ReplicationServer(replServerFakeCfg);
   }
 
   private FileReplicaDB newReplicaDB(ReplicationServer rs) throws Exception

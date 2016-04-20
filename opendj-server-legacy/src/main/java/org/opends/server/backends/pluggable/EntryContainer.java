@@ -154,6 +154,8 @@ public class EntryContainer
 
   /** The set of attribute indexes. */
   private final Map<AttributeType, AttributeIndex> attrIndexMap = new HashMap<>();
+
+  private final Map<AttributeType, CryptoSuite> attrCryptoMap = new HashMap<>();
   /** The set of VLV (Virtual List View) indexes. */
   private final Map<String, VLVIndex> vlvIndexMap = new HashMap<>();
 
@@ -164,8 +166,6 @@ public class EntryContainer
   private final String treePrefix;
 
   private final ServerContext serverContext;
-
-  private CryptoSuite cryptoSuite;
 
   /**
    * This class is responsible for managing the configuration for attribute
@@ -180,7 +180,7 @@ public class EntryContainer
     {
       try
       {
-        newAttributeIndex(cfg);
+        newAttributeIndex(cfg, null);
         return true;
       }
       catch(Exception e)
@@ -196,7 +196,8 @@ public class EntryContainer
       final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
-        final AttributeIndex index = newAttributeIndex(cfg);
+        final CryptoSuite cryptoSuite = newCryptoSuite(cfg.isConfidentialityEnabled());
+        final AttributeIndex index = newAttributeIndex(cfg, cryptoSuite);
         storage.write(new WriteOperation()
         {
           @Override
@@ -209,6 +210,7 @@ public class EntryContainer
               ccr.addMessage(NOTE_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
             }
             attrIndexMap.put(cfg.getAttribute(), index);
+            attrCryptoMap.put(cfg.getAttribute(), cryptoSuite);
           }
         });
       }
@@ -242,6 +244,7 @@ public class EntryContainer
           public void run(WriteableTransaction txn) throws Exception
           {
             attrIndexMap.remove(cfg.getAttribute()).closeAndDelete(txn);
+            attrCryptoMap.remove(cfg.getAttribute());
           }
         });
       }
@@ -370,7 +373,13 @@ public class EntryContainer
     config.addBackendVLVIndexDeleteListener(vlvIndexCfgManager);
   }
 
-  private AttributeIndex newAttributeIndex(BackendIndexCfg cfg) throws ConfigException
+  private CryptoSuite newCryptoSuite(boolean confidentiality)
+  {
+    return serverContext.getCryptoManager().newCryptoSuite(config.getCipherTransformation(),
+        config.getCipherKeyLength(), confidentiality);
+  }
+
+  private AttributeIndex newAttributeIndex(BackendIndexCfg cfg, CryptoSuite cryptoSuite) throws ConfigException
   {
     return new AttributeIndex(cfg, state, this, cryptoSuite);
   }
@@ -381,7 +390,8 @@ public class EntryContainer
         .compress(config.isEntriesCompressed())
         .encode(config.isCompactEncoding())
         .encrypt(config.isConfidentialityEnabled())
-        .cryptoSuite(cryptoSuite)
+        .cryptoSuite(serverContext.getCryptoManager().newCryptoSuite(config.getCipherTransformation(),
+            config.getCipherKeyLength(),config.isConfidentialityEnabled()))
         .schema(rootContainer.getCompressedSchema())
         .build();
   }
@@ -404,8 +414,6 @@ public class EntryContainer
     boolean shouldCreate = accessMode.isWriteable();
     try
     {
-      cryptoSuite = serverContext.getCryptoManager().newCryptoSuite(config.getCipherTransformation(),
-          config.getCipherKeyLength());
       id2entry = new ID2Entry(getIndexName(ID2ENTRY_TREE_NAME), newDataConfig(config));
       id2entry.open(txn, shouldCreate);
       id2childrenCount.open(txn, shouldCreate);
@@ -417,13 +425,15 @@ public class EntryContainer
       {
         BackendIndexCfg indexCfg = config.getBackendIndex(idx);
 
-        final AttributeIndex index = newAttributeIndex(indexCfg);
+        CryptoSuite cryptoSuite = newCryptoSuite(indexCfg.isConfidentialityEnabled());
+        final AttributeIndex index = newAttributeIndex(indexCfg, cryptoSuite);
         index.open(txn, shouldCreate);
         if(!index.isTrusted())
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, index.getName());
         }
         attrIndexMap.put(indexCfg.getAttribute(), index);
+        attrCryptoMap.put(indexCfg.getAttribute(), cryptoSuite);
       }
 
       for (String idx : config.listBackendVLVIndexes())
@@ -2386,13 +2396,14 @@ public class EntryContainer
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          cryptoSuite.setCipherTransformation(cfg.getCipherTransformation());
-          cryptoSuite.setCipherKeyLength(cfg.getCipherKeyLength());
           id2entry.setDataConfig(newDataConfig(cfg));
-
           EntryContainer.this.config = cfg;
         }
       });
+      for (CryptoSuite indexCrypto : attrCryptoMap.values())
+      {
+        indexCrypto.newParameters(cfg.getCipherTransformation(), cfg.getCipherKeyLength(), indexCrypto.isEncrypted());
+      }
     }
     catch (Exception e)
     {

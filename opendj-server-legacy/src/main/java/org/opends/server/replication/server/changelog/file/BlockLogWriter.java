@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -123,7 +123,7 @@ class BlockLogWriter<K extends Comparable<K>, V> implements Closeable
       write(parser.encodeRecord(record));
       writer.flush();
     }
-    catch (IOException e)
+    catch (Exception e)
     {
       throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_ADD_RECORD.get(record.toString(),
           writer.getFile().getPath()), e);

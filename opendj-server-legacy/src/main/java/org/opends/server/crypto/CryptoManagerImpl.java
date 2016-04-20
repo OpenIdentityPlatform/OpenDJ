@@ -2752,8 +2752,8 @@ public class CryptoManagerImpl
   }
 
   @Override
-  public CryptoSuite newCryptoSuite(String cipherTransformation, int cipherKeyLength)
+  public CryptoSuite newCryptoSuite(String cipherTransformation, int cipherKeyLength, boolean encrypt)
   {
-    return new CryptoSuite(this, cipherTransformation, cipherKeyLength);
+    return new CryptoSuite(this, cipherTransformation, cipherKeyLength, encrypt);
   }
 }

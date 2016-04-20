@@ -48,6 +48,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.util.time.TimeService;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
@@ -338,8 +339,8 @@ class ReplicationEnvironment implements ChangelogStateProvider
    * @throws ChangelogException
    *           if an error occurs.
    */
-  Log<CSN, UpdateMsg> getOrCreateReplicaDB(final DN domainDN, final int serverId, final long generationId)
-      throws ChangelogException
+  Log<CSN, UpdateMsg> getOrCreateReplicaDB(final DN domainDN, final int serverId, final long generationId,
+      final CryptoSuite cryptoSuite) throws ChangelogException
   {
     if (logger.isTraceEnabled())
     {
@@ -367,7 +368,7 @@ class ReplicationEnvironment implements ChangelogStateProvider
         ensureGenerationIdFileExists(generationIdPath);
         changelogState.setDomainGenerationId(domainDN, generationId);
 
-        return openLog(serverIdPath, FileReplicaDB.RECORD_PARSER,
+        return openLog(serverIdPath, FileReplicaDB.newReplicaDBParser(cryptoSuite),
             new LogRotationParameters(REPLICA_DB_MAX_LOG_FILE_SIZE_IN_BYTES, 0, 0), logsReplicaDB);
       }
     }

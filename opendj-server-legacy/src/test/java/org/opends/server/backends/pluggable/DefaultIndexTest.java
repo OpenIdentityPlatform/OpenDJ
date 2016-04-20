@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -41,6 +41,7 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.crypto.CryptoSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -118,7 +119,10 @@ public class DefaultIndexTest extends DirectoryServerTestCase
   {
     final State state = mock(State.class);
     when(state.getIndexFlags(any(ReadableTransaction.class), any(TreeName.class))).thenReturn(indexFlags);
-    return new DefaultIndex(new TreeName("dc=example,dc=com", name), state, indexLimit, mock(EntryContainer.class));
+    final CryptoSuite cryptoSuite = mock(CryptoSuite.class);
+    when(cryptoSuite.isEncrypted()).thenReturn(false);
+    return new DefaultIndex(new TreeName("dc=example,dc=com", name), state, indexLimit, mock(EntryContainer.class),
+        cryptoSuite);
   }
 
   static final class DummyWriteableTransaction implements WriteableTransaction {

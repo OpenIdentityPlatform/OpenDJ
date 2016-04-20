@@ -108,11 +108,10 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     private MatchingRuleIndex(EntryContainer entryContainer, AttributeType attributeType, State state, Indexer indexer,
         int indexEntryLimit, boolean encryptValues, CryptoSuite cryptoSuite)
     {
-      super(getIndexName(entryContainer, attributeType, indexer.getIndexID()), state, indexEntryLimit, entryContainer);
+      super(getIndexName(entryContainer, attributeType, indexer.getIndexID()), state, indexEntryLimit, entryContainer,
+          cryptoSuite);
       this.attributeType = attributeType;
       this.indexer = indexer;
-      this.encryptValues = encryptValues;
-      this.cryptoSuite = cryptoSuite;
     }
 
     Set<ByteString> indexEntry(Entry entry)

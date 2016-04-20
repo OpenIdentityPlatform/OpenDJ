@@ -15,6 +15,7 @@
  */
 package org.opends.server.crypto;
 
+import net.jcip.annotations.Immutable;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -33,8 +34,23 @@ import static org.opends.messages.CoreMessages.*;
 /** Defines cipher transformation and hash algorithm for cryptographic related operations. */
 public class CryptoSuite
 {
-  private String cipherTransformation;
-  private int cipherKeyLength;
+  /** Cipher specific settings that can change at runtime. */
+  @Immutable
+  private static final class CipherInfo
+  {
+    private final String cipherTransformation;
+    private final int cipherKeyLength;
+    private final boolean encrypt;
+
+    CipherInfo(String cipherTransformation, int cipherKeyLength, boolean encrypt)
+    {
+      this.cipherTransformation = cipherTransformation;
+      this.cipherKeyLength = cipherKeyLength;
+      this.encrypt = encrypt;
+    }
+  }
+
+  private volatile CipherInfo cipherInfo;
   private final CryptoManager cryptoManager;
 
   /**
@@ -42,52 +58,24 @@ public class CryptoSuite
    * @param cryptoManager the CryptoManager to use for cryptographic operations
    * @param cipherTransformation the initial cipher transformation
    * @param cipherKeyLength the initial key length for the cipher
+   * @param encrypt if the user of the crypto suite needs encryption
    */
-  public CryptoSuite(CryptoManager cryptoManager, String cipherTransformation, int cipherKeyLength)
+  public CryptoSuite(CryptoManager cryptoManager, String cipherTransformation, int cipherKeyLength, boolean encrypt)
   {
     this.cryptoManager = cryptoManager;
-    this.cipherTransformation = cipherTransformation;
-    this.cipherKeyLength = cipherKeyLength;
+    this.cipherInfo = new CipherInfo(cipherTransformation, cipherKeyLength, encrypt);
   }
 
   /**
-   * Returns the cipher transformation to use.
-   *
-   * @return the cipher transformation to use
-   */
-  public String getCipherTransformation()
-  {
-    return cipherTransformation;
-  }
-
-  /**
-   * Returns the cipher key length to use.
-   *
-   * @return the cipher key length to use
-   */
-  public int getCipherKeyLength()
-  {
-    return cipherKeyLength;
-  }
-
-  /**
-   * Sets the cipher transformation for the CryptoSuite.
+   * Set new cipher and enable parameters for the crypto suite.
    *
    * @param cipherTransformation the new cipher transformation
-   */
-  public void setCipherTransformation(String cipherTransformation)
-  {
-    this.cipherTransformation = cipherTransformation;
-  }
-
-  /**
-   * Sets the key length for the CryptoSuite.
-   *
    * @param cipherKeyLength the new key length
+   * @param enabled true if the user of the crypto suite needs encryption
    */
-  public void setCipherKeyLength(int cipherKeyLength)
+  public void newParameters(String cipherTransformation, int cipherKeyLength, boolean enabled)
   {
-    this.cipherKeyLength = cipherKeyLength;
+    cipherInfo = new CipherInfo(cipherTransformation, cipherKeyLength, enabled);
   }
 
   /**
@@ -113,7 +101,8 @@ public class CryptoSuite
    */
   public byte[] encrypt(byte[] data) throws GeneralSecurityException, CryptoManagerException
   {
-    return cryptoManager.encrypt(cipherTransformation, cipherKeyLength, data);
+    CipherInfo currentCipher = cipherInfo;
+    return cryptoManager.encrypt(currentCipher.cipherTransformation, currentCipher.cipherKeyLength, data);
   }
 
   /**
@@ -127,7 +116,8 @@ public class CryptoSuite
    */
   public CipherOutputStream getCipherOutputStream(OutputStream os) throws CryptoManagerException
   {
-    return cryptoManager.getCipherOutputStream(cipherTransformation, cipherKeyLength, os);
+    CipherInfo currentCipher = cipherInfo;
+    return cryptoManager.getCipherOutputStream(currentCipher.cipherTransformation, currentCipher.cipherKeyLength, os);
   }
 
   /**
@@ -162,14 +152,27 @@ public class CryptoSuite
     }
   }
 
+  /**
+   * Returns whether the user of the crypto suite needs encryption.
+   *
+   * @return true if the user of the crypto suite needs encryption
+   */
+  public boolean isEncrypted()
+  {
+    return cipherInfo.encrypt;
+  }
+
   @Override
   public String toString()
   {
     StringBuilder builder = new StringBuilder();
+    CipherInfo currentCipher = cipherInfo;
     builder.append("CryptoSuite(cipherTransformation=");
-    builder.append(cipherTransformation);
+    builder.append(currentCipher.cipherTransformation);
     builder.append(", keyLength=");
-    builder.append(cipherKeyLength);
+    builder.append(currentCipher.cipherKeyLength);
+    builder.append(", encrypt=");
+    builder.append(currentCipher.encrypt);
     builder.append(")");
     return builder.toString();
   }

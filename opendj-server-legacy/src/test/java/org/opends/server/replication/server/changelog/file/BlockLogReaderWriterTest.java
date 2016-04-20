@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -22,6 +22,7 @@ import static org.opends.server.replication.server.changelog.file.BlockLogReader
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -494,7 +495,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     }
 
     @Override
-    public ByteString encodeRecord(Record<Integer, Integer> record)
+    public ByteString encodeRecord(Record<Integer, Integer> record) throws IOException
     {
       return new ByteStringBuilder().appendInt(record.getKey()).appendInt(record.getValue()).toByteString();
     }

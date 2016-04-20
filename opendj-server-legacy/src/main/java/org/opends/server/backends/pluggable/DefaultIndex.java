@@ -53,7 +53,6 @@ class DefaultIndex extends AbstractTree implements Index
   private int indexEntryLimit;
 
   private EntryIDSetCodec codec;
-  protected boolean encryptValues;
   protected CryptoSuite cryptoSuite;
 
   /**
@@ -79,16 +78,18 @@ class DefaultIndex extends AbstractTree implements Index
    *          The configured limit on the number of entry IDs that may be indexed by one key.
    * @param entryContainer
    *          The entryContainer holding this index.
+   * @param cryptoSuite
    * @throws StorageRuntimeException
    *           If an error occurs in the storage.
    */
-  DefaultIndex(TreeName name, State state, int indexEntryLimit, EntryContainer entryContainer)
+  DefaultIndex(TreeName name, State state, int indexEntryLimit, EntryContainer entryContainer, CryptoSuite cryptoSuite)
       throws StorageRuntimeException
   {
     super(name);
     this.indexEntryLimit = indexEntryLimit;
     this.state = state;
     this.entryContainer = entryContainer;
+    this.cryptoSuite = cryptoSuite;
   }
 
   @Override
@@ -96,7 +97,7 @@ class DefaultIndex extends AbstractTree implements Index
   {
     final EnumSet<IndexFlag> flags = state.getIndexFlags(txn, getName());
     codec = flags.contains(COMPACTED) ? CODEC_V2 : CODEC_V1;
-    if (encryptValues)
+    if (cryptoSuite.isEncrypted())
     {
       codec = new EntryIDSet.EntryIDSetCodecV3(codec, cryptoSuite);
     }
@@ -154,12 +155,14 @@ class DefaultIndex extends AbstractTree implements Index
   // Keeps temporary values during import encrypted even in on-disk buffers.
   long importDecodeValue(ByteString value)
   {
-    return encryptValues ? decodeValue(ByteString.empty(), value).iterator().next().longValue() : value.toLong();
+    return cryptoSuite.isEncrypted()
+        ? decodeValue(ByteString.empty(), value).iterator().next().longValue()
+        : value.toLong();
   }
 
   ByteString importToValue(EntryID entryID)
   {
-    return encryptValues ? toValue(newDefinedSet(entryID.longValue())) : entryID.toByteString();
+    return cryptoSuite.isEncrypted() ? toValue(newDefinedSet(entryID.longValue())) : entryID.toByteString();
   }
 
   @Override
@@ -293,9 +296,7 @@ class DefaultIndex extends AbstractTree implements Index
   @Override
   public boolean setConfidential(boolean indexConfidential)
   {
-    final boolean rebuildRequired = !this.encryptValues && indexConfidential;
-    this.encryptValues = indexConfidential;
-    return rebuildRequired;
+    return cryptoSuite.isEncrypted() != indexConfidential;
   }
 
   @Override
