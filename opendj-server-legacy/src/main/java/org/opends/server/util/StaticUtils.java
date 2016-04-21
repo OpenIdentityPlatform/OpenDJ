@@ -1489,10 +1489,7 @@ public final class StaticUtils
                         element, i));
                 return false;
               }
-              else
-              {
-                lastWasDot = true;
-              }
+              lastWasDot = true;
             }
             else
             {
@@ -1577,22 +1574,18 @@ public final class StaticUtils
     InetAddress address, int port,
     boolean allowReuse)
   {
-    // Return pessimistic.
-    boolean isInUse = true;
-    Socket clientSocket = null;
-    ServerSocket serverSocket = null;
     try {
       // HACK:
       // With dual stacks we can have a situation when INADDR_ANY/PORT
       // is bound in TCP4 space but available in TCP6 space and since
-      // JavaServerSocket implemantation will always use TCP46 on dual
+      // JavaServerSocket implementation will always use TCP46 on dual
       // stacks the bind below will always succeed in such cases thus
       // shadowing anything that is already bound to INADDR_ANY/PORT.
       // While technically correct, with IPv4 and IPv6 being separate
       // address spaces, it presents a problem to end users because a
       // common case scenario is to have a single service serving both
       // address spaces ie listening to the same port in both spaces
-      // on wildcard addresses 0 and ::. ServerSocket implemantation
+      // on wildcard addresses 0 and ::. ServerSocket implementation
       // does not provide any means of working with each address space
       // separately such as doing TCP4 or TCP6 only binds thus we have
       // to do a dummy connect to INADDR_ANY/PORT to check if it is
@@ -1600,48 +1593,37 @@ public final class StaticUtils
       // addresses as specific IPv4 or IPv6 addresses will always be
       // handled in their respective address space.
       if (address.isAnyLocalAddress()) {
-        clientSocket = new Socket();
-        try {
+        try (Socket clientSocket = new Socket()) {
           // This might fail on some stacks but this is the best we
           // can do. No need for explicit timeout since it is local
           // address and we have to know for sure unless it fails.
           clientSocket.connect(new InetSocketAddress(address, port));
-        } catch (IOException e) {
-        // Expected, ignore.
-        }
-        if (clientSocket.isConnected()) {
-          return true;
+          if (clientSocket.isConnected()) {
+            return true;
+          }
+        } catch (IOException ignore) {
+          // ignore.
         }
       }
-      serverSocket = new ServerSocket();
-      serverSocket.setReuseAddress(allowReuse);
-      serverSocket.bind(new InetSocketAddress(address, port));
-      isInUse = false;
-    } catch (IOException e) {
-      isInUse = true;
-    } finally {
-      try {
-        if (serverSocket != null) {
-          serverSocket.close();
-        }
-      } catch (Exception e) {}
-      try {
-        if (clientSocket != null) {
-          clientSocket.close();
-        }
-      } catch (Exception e) {}
+      try (ServerSocket serverSocket = new ServerSocket()) {
+        serverSocket.setReuseAddress(allowReuse);
+        serverSocket.bind(new InetSocketAddress(address, port));
+        return false;
+      }
+    } catch (IOException ignore) {
+      // no-op
     }
-    return isInUse;
+    return true;
   }
 
 
 
   /**
    * Returns a lower-case string representation of a given string, verifying for null input string.
-   * {@see com.forgerock.opendj.util.StaticUtils#toLowerCase(String s)}
    *
    * @param s the mixed case string
    * @return a lower-case string
+   * @see com.forgerock.opendj.util.StaticUtils#toLowerCase(String)
    */
   public static String toLowerCase(String s)
   {
@@ -1651,7 +1633,6 @@ public final class StaticUtils
   /**
    * Appends a lower-case string representation of a given ByteSequence to a StringBuilder,
    * verifying for null input.
-   * {@see com.forgerock.opendj.util.StaticUtils#toLowerCase(ByteSequence s, StringBuilder string)}
    *
    * @param  b       The byte array for which to obtain the lowercase string
    *                 representation.
@@ -1659,6 +1640,7 @@ public final class StaticUtils
    *                 be appended.
    * @param  trim    Indicates whether leading and trailing spaces should be
    *                 omitted from the string representation.
+   * @see com.forgerock.opendj.util.StaticUtils#toLowerCase(ByteSequence, StringBuilder)}
    */
   public static void toLowerCase(ByteSequence b, StringBuilder buffer, boolean trim)
   {
@@ -2252,16 +2234,7 @@ public final class StaticUtils
   public static File getFileForPath(String path)
   {
     File f = new File (path);
-
-    if (f.isAbsolute())
-    {
-      return f;
-    }
-    else
-    {
-      return new File(DirectoryServer.getInstanceRoot() + File.separator +
-          path);
-    }
+    return f.isAbsolute() ? f : new File(DirectoryServer.getInstanceRoot(), path);
   }
 
   /**
@@ -2280,16 +2253,7 @@ public final class StaticUtils
   public static File getFileForPath(String path, ServerContext serverContext)
   {
     File f = new File (path);
-
-    if (f.isAbsolute())
-    {
-      return f;
-    }
-    else
-    {
-      return new File(serverContext.getInstanceRoot() + File.separator +
-          path);
-    }
+    return f.isAbsolute() ? f : new File(serverContext.getInstanceRoot(), path);
   }
 
 
@@ -2653,10 +2617,7 @@ public final class StaticUtils
           // We've been blocked for too long.
           return false;
         }
-        else
-        {
-          waitTime = stopTime - currentTime;
-        }
+        waitTime = stopTime - currentTime;
 
         Iterator<SelectionKey> iterator =
             selector.selectedKeys().iterator();
@@ -2868,7 +2829,7 @@ public final class StaticUtils
    * @return {@code true} if message corresponds to descriptor
    */
   public static boolean hasDescriptor(LocalizableMessage msg,
-      LocalizableMessageDescriptor.Arg1 desc)
+      LocalizableMessageDescriptor.Arg1<?> desc)
   {
     return msg.ordinal() == desc.ordinal()
         && msg.resourceName().equals(desc.resourceName());
@@ -2884,7 +2845,7 @@ public final class StaticUtils
    * @return {@code true} if message corresponds to descriptor
    */
   public static boolean hasDescriptor(LocalizableMessage msg,
-      LocalizableMessageDescriptor.Arg2 desc)
+      LocalizableMessageDescriptor.Arg2<?, ?> desc)
   {
     return msg.ordinal() == desc.ordinal()
         && msg.resourceName().equals(desc.resourceName());
@@ -2900,7 +2861,7 @@ public final class StaticUtils
    * @return {@code true} if message corresponds to descriptor
    */
   public static boolean hasDescriptor(LocalizableMessage msg,
-      LocalizableMessageDescriptor.Arg3 desc)
+      LocalizableMessageDescriptor.Arg3<?, ?, ?> desc)
   {
     return msg.ordinal() == desc.ordinal()
         && msg.resourceName().equals(desc.resourceName());
@@ -2916,7 +2877,7 @@ public final class StaticUtils
    * @return {@code true} if message corresponds to descriptor
    */
   public static boolean hasDescriptor(LocalizableMessage msg,
-      LocalizableMessageDescriptor.Arg7 desc)
+      LocalizableMessageDescriptor.Arg7<?, ?, ?, ?, ?, ?, ?> desc)
   {
     return msg.ordinal() == desc.ordinal()
         && msg.resourceName().equals(desc.resourceName());

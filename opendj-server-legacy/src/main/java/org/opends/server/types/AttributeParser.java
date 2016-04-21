@@ -32,8 +32,7 @@ import org.forgerock.util.promise.NeverThrowsException;
 /**
  * A fluent API for parsing attributes as different types of object. An
  * attribute parser is obtained from an entry using the method
- * {@link Entry#parseAttribute} or from an attribute using
- * {@link Attribute#parse}.
+ * {@link Entry#parseAttribute}.
  * <p>
  * Methods throw an {@code IllegalArgumentException} when a value cannot be
  * parsed (e.g. because its syntax is invalid). Methods which return a
@@ -55,7 +54,6 @@ import org.forgerock.util.promise.NeverThrowsException;
  * </pre>
  *
  * @see Entry#parseAttribute
- * @see Attribute#parse
  */
 public final class AttributeParser {
     // TODO: enums, filters, rdns?

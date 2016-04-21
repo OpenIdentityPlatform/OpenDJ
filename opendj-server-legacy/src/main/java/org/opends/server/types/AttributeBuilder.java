@@ -761,7 +761,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    * Creates a new attribute builder with an undefined attribute type
    * and user-provided name. The attribute type, and optionally the
    * user-provided name, must be defined using
-   * {@link #setAttributeType(AttributeType)} before the attribute
+   * {@link #setAttributeDescription(AttributeDescription)} before the attribute
    * builder can be converted to an {@link Attribute}. Failure to do
    * so will yield an {@link IllegalStateException}.
    */

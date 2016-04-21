@@ -35,8 +35,9 @@ import org.forgerock.opendj.ldap.DN;
  *  <li>Across all replicaDBs of a domain, provided a {@link ServerState}</li>
  *  <li>On one replica DB for a domain and serverId, provided a CSN</li>
  * </ul>
- * The cursor starting point is specified by providing a key, a {@link KeyMatchingStrategy} and
- * a {@link PositionStrategy}.
+ * The cursor starting point is specified by providing a key,
+ * a {@link org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy} and
+ * a {@link org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy}.
  */
 public interface ReplicationDomainDB
 {

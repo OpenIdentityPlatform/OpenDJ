@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.event;
 
 import java.util.Collections;
@@ -24,13 +23,10 @@ import java.util.Set;
 import org.opends.server.types.ObjectClass;
 
 /**
- * This is the event sent to notify the changes made in the superiors of a given
- * object class.  It is used mainly by the
- * {@link
- * org.opends.guitools.controlpanel.components.SuperiorObjectClassesEditor}
- * class.  It is linked to the {@link SuperiorObjectClassesChangedListener}
- * interface.
- *
+ * This is the event sent to notify the changes made in the superiors of a given object class. It is
+ * used mainly by the
+ * {@link org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEditor} class. It is
+ * linked to the {@link SuperiorObjectClassesChangedListener} interface.
  */
 public class SuperiorObjectClassesChangedEvent
 {
@@ -42,8 +38,7 @@ public class SuperiorObjectClassesChangedEvent
    * @param source the source of the event.
    * @param newObjectClasses the set of new superior object classes.
    */
-  public SuperiorObjectClassesChangedEvent(Object source,
-      Set<ObjectClass> newObjectClasses)
+  public SuperiorObjectClassesChangedEvent(Object source, Set<ObjectClass> newObjectClasses)
   {
     this.source = source;
     this.newObjectClasses.addAll(newObjectClasses);

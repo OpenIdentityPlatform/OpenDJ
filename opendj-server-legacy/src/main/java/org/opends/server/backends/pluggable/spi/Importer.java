@@ -40,7 +40,7 @@ public interface Importer extends Closeable
 
   /**
    * Creates a record with the provided key and value in the tree identified by the provided name. At the end of this
-   * method, the record is visible by {@link read(TreeName, ByteSequence)} and {@link openCursor(TreeName)} methods of
+   * method, the record is visible by {@link #read(TreeName, ByteSequence)} and {@link #openCursor(TreeName)} methods of
    * this instance. The record is guaranteed to be persisted only after {@link #close()}.
    *
    * @param treeName
@@ -65,7 +65,7 @@ public interface Importer extends Closeable
 
   /**
    * Opens a cursor on the tree whose name is provided. Cursors are predictable only if there is no pending
-   * {@link put(TreeName, ByteSequence, ByteSequence)} operations. Indeed, once opened, cursors might not reflect
+   * {@link #put(TreeName, ByteSequence, ByteSequence)} operations. Indeed, once opened, cursors might not reflect
    * changes.
    *
    * @param treeName

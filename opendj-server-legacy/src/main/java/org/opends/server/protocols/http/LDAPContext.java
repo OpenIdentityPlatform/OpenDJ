@@ -19,7 +19,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.services.context.AbstractContext;
 import org.forgerock.services.context.Context;
 
-/** Context provided by this LDAP server to the embedded {@link HttpApplication}s. */
+/** Context provided by this LDAP server to the embedded {@link org.forgerock.http.HttpApplication}s. */
 public final class LDAPContext extends AbstractContext
 {
   private final ConnectionFactory ldapConnectionFactory;
@@ -31,9 +31,9 @@ public final class LDAPContext extends AbstractContext
   }
 
   /**
-   * Get the {@link LDAPConnectionFactory} attached to this context.
+   * Get the {@link org.forgerock.opendj.ldap.LDAPConnectionFactory} attached to this context.
    *
-   * @return The {@link LDAPConnectionFactory} attached to this context.
+   * @return The {@link org.forgerock.opendj.ldap.LDAPConnectionFactory} attached to this context.
    */
   public ConnectionFactory getLdapConnectionFactory()
   {

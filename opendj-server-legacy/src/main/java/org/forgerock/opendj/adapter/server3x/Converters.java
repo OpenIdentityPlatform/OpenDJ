@@ -519,8 +519,8 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server
-     * {@link org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope} to OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.SearchScope}.
+     * {@link org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.Scope}
+     *  to OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.SearchScope}.
      *
      * @param srvScope
      *          The server scope value.

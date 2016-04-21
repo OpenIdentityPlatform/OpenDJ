@@ -868,7 +868,7 @@ public final class DirectoryServer
 
       try
       {
-        directoryServer.initializePlugins(Collections.EMPTY_SET);
+        directoryServer.initializePlugins(Collections.<PluginType> emptySet());
       }
       catch (Exception e)
       {

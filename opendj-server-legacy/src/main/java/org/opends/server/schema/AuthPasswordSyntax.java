@@ -89,7 +89,7 @@ public class AuthPasswordSyntax
   /**
    * Decodes the provided authentication password value into its component parts.
    * <p>
-   * FIXME this is a duplicate of {@link org.forgerock.opendj.ldap.schema.AuthPasswordSyntaxImplTest}
+   * FIXME this is a duplicate of {@link org.forgerock.opendj.ldap.schema.AuthPasswordSyntaxImpl}
    *
    * @param  authPasswordValue  The authentication password value to be decoded.
    * @return  A three-element array, containing the scheme, authInfo, and

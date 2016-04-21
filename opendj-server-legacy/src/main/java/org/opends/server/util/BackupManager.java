@@ -76,7 +76,7 @@ import org.opends.server.types.RestoreConfig;
 /**
  * A backup manager for any entity that is backupable (backend, storage).
  *
- * @see {@link Backupable}
+ * @see Backupable
  */
 public class BackupManager
 {

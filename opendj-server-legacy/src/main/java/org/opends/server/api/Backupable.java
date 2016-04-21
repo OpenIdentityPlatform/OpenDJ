@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -53,7 +53,7 @@ import org.opends.server.types.DirectoryException;
  * Actions taken before and after the restore should be handled in the {@code beforeRestore()} and
  * {@link #afterRestore(Path, Path)} methods.
  *
- * @see {@link BackupManager}
+ * @see org.opends.server.util.BackupManager
  */
 public interface Backupable
 {

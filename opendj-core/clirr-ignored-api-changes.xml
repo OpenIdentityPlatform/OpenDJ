@@ -32,4 +32,39 @@ For a description of ant style path expressions see:
 
 Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to avoid the need to use \s* in the '<to>' tags.
 -->
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connections</className>
+    <differenceType>7002</differenceType>
+    <method>org.forgerock.opendj.ldap.ConnectionFactory newLoadBalancer(org.forgerock.opendj.ldap.LoadBalancingAlgorithm)</method>
+    <justification>OPENDJ-2878 Implement sharded request load-balancer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LoadBalancingAlgorithm</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-2878 Implement sharded request load-balancer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LdapPromise</className>
+    <differenceType>7012</differenceType>
+    <method>org.forgerock.opendj.ldap.LdapPromise thenFinally(java.lang.Runnable)</method>
+    <justification>Consequence of COMMONs-5 Promise API improvements</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/RootDSE</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.LdapPromise readRootDSEAsync(org.forgerock.opendj.ldap.Connection, org.forgerock.opendj.ldap.LdapResultHandler)</method>
+    <justification>Code cleanup: remove unused LdapResultHandler parameter</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LdapPromises</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl newBindLdapPromise(int, org.forgerock.opendj.ldap.requests.BindRequest, org.forgerock.opendj.ldap.requests.BindClient, org.forgerock.opendj.ldap.IntermediateResponseHandler, org.forgerock.opendj.ldap.Connection)</method>
+    <justification>Code cleanup: remove unused Connection parameter</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LdapPromises</className>
+    <differenceType>7002</differenceType>
+    <method>org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl newBindLdapPromise(int, org.forgerock.opendj.ldap.requests.BindRequest, org.forgerock.opendj.ldap.requests.BindClient, org.forgerock.opendj.ldap.IntermediateResponseHandler, org.forgerock.opendj.ldap.spi.LDAPConnectionImpl)</method>
+    <justification>Code cleanup: remove overloaded method with unused parameter</justification>
+  </difference>
 </differences>

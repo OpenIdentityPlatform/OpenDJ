@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -57,17 +57,16 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
 import org.opends.server.util.Base64;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a generic interface that LDAP clients can use to perform
@@ -1019,15 +1018,6 @@ public class LDAPAuthenticationHandler
                             message, bindResponse2.getMatchedDN(), null);
   }
 
-
-
-  /**
-   * @param saslProperties
-   * @param authID
-   * @param name
-   * @return
-   * @throws ClientException
-   */
   private String getAuthID(Map<String, List<String>> saslProperties, String authID, String name) throws ClientException
   {
     List<String> values = saslProperties.get(name);

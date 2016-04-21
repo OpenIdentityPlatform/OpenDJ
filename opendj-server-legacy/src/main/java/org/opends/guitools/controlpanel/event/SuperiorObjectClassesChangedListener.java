@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.event;
 
 /**
- * This is the listener that receives events about the changes made in the
- * superiors of a given object class.  It is used mainly by the
- * {@link
- * org.opends.guitools.controlpanel.components.SuperiorObjectClassesEditor}
- * class.
- *
+ * This is the listener that receives events about the changes made in the superiors of a given
+ * object class. It is used mainly by the
+ * {@link org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEditor} class.
  */
 public interface SuperiorObjectClassesChangedListener
 {

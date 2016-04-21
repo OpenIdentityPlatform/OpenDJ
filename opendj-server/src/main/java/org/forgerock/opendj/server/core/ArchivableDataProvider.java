@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -26,11 +26,11 @@ import org.forgerock.opendj.ldap.LdapResultHandler;
  * <p>
  * TODO: do we need removeBackup?
  * <p>
- * TODO: is there any boiler plate code that abstracted in order to make
- * implementation simpler? E.g. initialization, crypto.
+ * TODO: is there any boiler plate code that abstracted in order to make implementation simpler?
+ * E.g. initialization, crypto.
  * <p>
  * FIXME: the async APIs used below are a bad fit. We do not want to return an
- * {@link LdapException}. We really need a more generic promises API.
+ * {@link org.forgerock.opendj.ldap.LdapException}. We really need a more generic promises API.
  */
 public interface ArchivableDataProvider {
 

@@ -25,19 +25,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.CertificateMapperCfgDefn;
 import org.forgerock.opendj.server.config.server.CertificateMapperCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.util.Utils;
 import org.opends.server.api.CertificateMapper;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -55,7 +55,7 @@ public class CertificateMapperConfigManager
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A mapping between the DNs of the config entries and the associated certificate mappers. */
-  private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
+  private ConcurrentHashMap<DN, CertificateMapper<?>> certificateMappers;
 
   private final ServerContext serverContext;
 
@@ -102,8 +102,7 @@ public class CertificateMapperConfigManager
         String className = mapperConfiguration.getJavaClass();
         try
         {
-          CertificateMapper mapper = loadMapper(className, mapperConfiguration,
-                                                true);
+          CertificateMapper<?> mapper = loadMapper(className, mapperConfiguration, true);
           certificateMappers.put(mapperConfiguration.dn(), mapper);
           DirectoryServer.registerCertificateMapper(mapperConfiguration.dn(), mapper);
         }
@@ -154,7 +153,7 @@ public class CertificateMapperConfigManager
       return ccr;
     }
 
-    CertificateMapper certificateMapper = null;
+    CertificateMapper<?> certificateMapper = null;
 
     // Get the name of the class and make sure we can instantiate it as a
     // certificate mapper.
@@ -196,8 +195,7 @@ public class CertificateMapperConfigManager
 
     DirectoryServer.deregisterCertificateMapper(configuration.dn());
 
-    CertificateMapper certificateMapper =
-         certificateMappers.remove(configuration.dn());
+    CertificateMapper<?> certificateMapper = certificateMappers.remove(configuration.dn());
     if (certificateMapper != null)
     {
       certificateMapper.finalizeCertificateMapper();
@@ -238,8 +236,7 @@ public class CertificateMapperConfigManager
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Get the existing mapper if it's already enabled.
-    CertificateMapper existingMapper =
-         certificateMappers.get(configuration.dn());
+    CertificateMapper<?> existingMapper = certificateMappers.get(configuration.dn());
 
     // If the new configuration has the mapper disabled, then disable it if it
     // is enabled, or do nothing if it's already disabled.
@@ -249,8 +246,7 @@ public class CertificateMapperConfigManager
       {
         DirectoryServer.deregisterCertificateMapper(configuration.dn());
 
-        CertificateMapper certificateMapper =
-             certificateMappers.remove(configuration.dn());
+        CertificateMapper<?> certificateMapper = certificateMappers.remove(configuration.dn());
         if (certificateMapper != null)
         {
           certificateMapper.finalizeCertificateMapper();
@@ -276,7 +272,7 @@ public class CertificateMapperConfigManager
       return ccr;
     }
 
-    CertificateMapper certificateMapper = null;
+    CertificateMapper<?> certificateMapper = null;
     try
     {
       certificateMapper = loadMapper(className, configuration, true);
@@ -312,7 +308,7 @@ public class CertificateMapperConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the certificate mapper.
    */
-  private CertificateMapper loadMapper(String className,
+  private CertificateMapper<?> loadMapper(String className,
                                        CertificateMapperCfg configuration,
                                        boolean initialize)
           throws InitializationException

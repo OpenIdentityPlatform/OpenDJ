@@ -169,8 +169,7 @@
                             <comparisonArtifacts>
                                 <comparisonArtifact>
                                     <groupId>${project.groupId}</groupId>
-                                    <artifactId>opendj-ldap-sdk</artifactId>
-                                    <!-- former name of this jar -->
+                                    <artifactId>opendj-core</artifactId>
                                     <version>3.0.0</version>
                                 </comparisonArtifact>
                             </comparisonArtifacts>
