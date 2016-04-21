@@ -39,12 +39,7 @@ import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.loggers.DebugLogger;
-import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.RebuildTask;
 import org.opends.server.tools.tasks.TaskTool;
@@ -282,12 +277,11 @@ public class RebuildIndex extends TaskTool
   {
     if (initializeServer)
     {
-      final int init = initializeServer(err);
+      final int init = initializeServer(out, err);
       if (init != 0)
       {
         return init;
       }
-      setErrorAndDebugLogPublisher(out, err);
     }
 
     if (!configureRebuildProcess(baseDNString.getValue()))
@@ -337,47 +331,21 @@ public class RebuildIndex extends TaskTool
   }
 
   /**
-   * Defines the error and the debug log publisher used in this tool.
-   *
-   * @param out
-   *          The output stream to use for standard output, or {@code null} if
-   *          standard output is not needed.
-   * @param err
-   *          The output stream to use for standard error, or {@code null} if
-   *          standard error is not needed.
-   */
-  private void setErrorAndDebugLogPublisher(final PrintStream out,
-      final PrintStream err)
-  {
-    try
-    {
-      final ErrorLogPublisher errorLogPublisher =
-          TextErrorLogPublisher
-              .getToolStartupTextErrorPublisher(new TextWriter.STREAM(out));
-      ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
-      DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STREAM(out));
-    }
-    catch (Exception e)
-    {
-      err.println("Error installing the custom error logger: "
-          + stackTraceToSingleLineString(e));
-    }
-  }
-
-  /**
    * Initializes the directory server.
    *
+   * @param out stream to write messages; may be null
    * @param err
    *          The output stream to use for standard error, or {@code null} if
    *          standard error is not needed.
    * @return The result code.
    */
-  private int initializeServer(final PrintStream err)
+  private int initializeServer(final PrintStream out, final PrintStream err)
   {
     try
     {
       new DirectoryServer.InitializationBuilder(configFile.getValue())
           .requireCryptoServices()
+          .requireErrorAndDebugLogPublisher(out, err)
           .initialize();
       return 0;
     }
@@ -557,8 +525,6 @@ public class RebuildIndex extends TaskTool
   {
     try
     {
-      setErrorAndDebugLogPublisher(out, out);
-
       try
       {
         initializeArguments(true);
@@ -581,7 +547,7 @@ public class RebuildIndex extends TaskTool
 
       if (initializeServer)
       {
-        final int init = initializeServer(out);
+        final int init = initializeServer(out, out);
         if (init != 0)
         {
           return init;

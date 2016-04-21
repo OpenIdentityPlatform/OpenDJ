@@ -690,20 +690,22 @@ public final class DirectoryServer
       ADMIN_USERS,
       START_CRYPTO,
       PASSWORD_STORAGE_SCHEME,
-      USER_PLUGINS;
+      USER_PLUGINS,
+      ERROR_DEBUG_LOGGERS;
     }
 
     private String configFile;
     private Set<PluginType> pluginTypes = new HashSet<>();
     private static EnumSet<SubSystem> subSystemsToInitialize = EnumSet.noneOf(SubSystem.class);
+    private PrintStream loggingOut;
+    private PrintStream errConfiguringLogging;
 
     /**
      * Initialize the client side of DirectoryServer and the Core Configuration.
      *
      * @param configFile the configuration file
-     * @throws InitializationException if client initialization or core Config fails
      */
-    public InitializationBuilder(String configFile) throws InitializationException
+    public InitializationBuilder(String configFile)
     {
       this.configFile = configFile;
       subSystemsToInitialize.add(SubSystem.CLIENT_INIT);
@@ -714,10 +716,9 @@ public final class DirectoryServer
      * Require to setup and start everything necessary for Crypto Services.
      * Core config should already be initialized through the constructor.
      *
-     * @return the initialization object
-     * @throws InitializationException if Core Config is not initialized
+     * @return this initialization builder
      */
-    public InitializationBuilder requireCryptoServices() throws InitializationException
+    public InitializationBuilder requireCryptoServices()
     {
       Collections.addAll(subSystemsToInitialize,
           SubSystem.INIT_CRYPTO,
@@ -731,10 +732,9 @@ public final class DirectoryServer
      * Requires to setup and start Password Storage Schemes.
      * Crypto services are needed for Password Storage, so it will also set them up if not already done.
      *
-     * @return the initialization object
-     * @throws InitializationException if Core Config is not initialized
+     * @return this initialization builder
      */
-    public InitializationBuilder requirePasswordStorageSchemes() throws InitializationException
+    public InitializationBuilder requirePasswordStorageSchemes()
     {
       requireCryptoServices();
       Collections.addAll(subSystemsToInitialize, SubSystem.PASSWORD_STORAGE_SCHEME);
@@ -745,10 +745,9 @@ public final class DirectoryServer
      * Requires to start specified user plugins.
      *
      * @param plugins the plugins to start
-     * @return the initialization object
-     * @throws InitializationException if Core Config is not initialized
+     * @return this initialization builder
      */
-    public InitializationBuilder requireUserPlugins(PluginType... plugins) throws InitializationException
+    public InitializationBuilder requireUserPlugins(PluginType... plugins)
     {
       Collections.addAll(subSystemsToInitialize, SubSystem.USER_PLUGINS);
       this.pluginTypes.addAll(Arrays.asList(plugins));
@@ -756,9 +755,28 @@ public final class DirectoryServer
     }
 
     /**
+     * Requires to start the error and debug log publishers for tools.
+     *
+     * @param loggingOut
+     *          The output stream where to write error and debug logging.
+     * @param errConfiguringLogging
+     *          The output stream where to write errors occurring when configuring logging.
+     * @return this initialization builder
+     */
+    public InitializationBuilder requireErrorAndDebugLogPublisher(
+        final PrintStream loggingOut, final PrintStream errConfiguringLogging)
+    {
+      subSystemsToInitialize.add(SubSystem.ERROR_DEBUG_LOGGERS);
+      this.loggingOut = loggingOut;
+      this.errConfiguringLogging = errConfiguringLogging;
+      return this;
+    }
+
+    /**
      * Run all Initialization blocks as configured.
      *
-     * @throws InitializationException if one of the initialization steps fails
+     * @throws InitializationException
+     *           if one of the initialization steps fails
      */
     public void initialize() throws InitializationException
     {
@@ -789,6 +807,9 @@ public final class DirectoryServer
           break;
         case USER_PLUGINS:
           startUserPlugin();
+          break;
+        case ERROR_DEBUG_LOGGERS:
+          startErrorAndDebugLoggers();
           break;
         }
       }
@@ -946,6 +967,21 @@ public final class DirectoryServer
       catch (Exception e)
       {
         throw new InitializationException(ERR_CANNOT_INITIALIZE_STORAGE_SCHEMES.get(getExceptionMessage(e)));
+      }
+    }
+
+    private void startErrorAndDebugLoggers()
+    {
+      try
+      {
+        final ErrorLogPublisher errorLogPublisher =
+            TextErrorLogPublisher.getToolStartupTextErrorPublisher(new TextWriter.STREAM(loggingOut));
+        ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
+        DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STREAM(loggingOut));
+      }
+      catch (Exception e)
+      {
+        errConfiguringLogging.println("Error installing the custom error logger: " + stackTraceToSingleLineString(e));
       }
     }
   }

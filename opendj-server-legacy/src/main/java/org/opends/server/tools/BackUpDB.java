@@ -45,12 +45,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.loggers.DebugLogger;
-import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.BackupTask;
 import org.opends.server.tools.tasks.TaskTool;
@@ -433,26 +428,13 @@ public class BackUpDB extends TaskTool
       try
       {
         new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .requireErrorAndDebugLogPublisher(out, err)
             .initialize();
       }
       catch (InitializationException ie)
       {
         printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(getExceptionMessage(ie)));
         return 1;
-      }
-
-      try
-      {
-        ErrorLogPublisher errorLogPublisher =
-            TextErrorLogPublisher.getToolStartupTextErrorPublisher(
-            new TextWriter.STREAM(out));
-        ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
-        DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STREAM(out));
-      }
-      catch(Exception e)
-      {
-        err.println("Error installing the custom error logger: " +
-                    stackTraceToSingleLineString(e));
       }
     }
 
