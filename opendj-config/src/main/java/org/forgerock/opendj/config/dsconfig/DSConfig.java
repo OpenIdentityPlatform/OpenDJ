@@ -65,8 +65,6 @@ import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
 import org.forgerock.opendj.config.AttributeTypePropertyDefinition;
 import org.forgerock.opendj.config.BooleanPropertyDefinition;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
-import org.forgerock.opendj.config.Configuration;
-import org.forgerock.opendj.config.ConfigurationClient;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.DNPropertyDefinition;
 import org.forgerock.opendj.config.DefaultBehaviorProvider;
@@ -415,8 +413,7 @@ public final class DSConfig extends ConsoleApplication {
                 }
 
                 @Override
-                public <C extends ConfigurationClient, S extends Configuration> String visitAggregation(
-                        AggregationPropertyDefinition<C, S> prop, Void p) {
+                public String visitAggregation(AggregationPropertyDefinition prop, Void p) {
                     b.append(op);
                     final RelationDefinition<?, ?> rel = prop.getRelationDefinition();
                     if (isHidden(rel)) {
@@ -493,12 +490,12 @@ public final class DSConfig extends ConsoleApplication {
                 }
 
                 @Override
-                public <E extends Enum<E>> String visitEnum(EnumPropertyDefinition<E> prop, Void p) {
+                public String visitEnum(EnumPropertyDefinition prop, Void p) {
                     b.append("<variablelist>").append(EOL);
                     final Class<?> en = prop.getEnumClass();
                     final Object[] constants = en.getEnumConstants();
                     for (Object enumConstant : constants) {
-                        final LocalizableMessage valueSynopsis = prop.getValueSynopsis((E) enumConstant);
+                        final LocalizableMessage valueSynopsis = prop.getValueSynopsis((Enum) enumConstant);
                         appendVarListEntry(b, enumConstant.toString(), op + valueSynopsis + cp);
                     }
                     b.append("</variablelist>").append(EOL);
@@ -563,7 +560,7 @@ public final class DSConfig extends ConsoleApplication {
                 }
 
                 @Override
-                public <T> String visitUnknown(PropertyDefinition<T> prop, Void p) {
+                public String visitUnknown(PropertyDefinition prop, Void p) {
                     b.append(op).append(REF_DSCFG_UNKNOWN.get()).append(cp).append(EOL);
                     return null;
                 }
