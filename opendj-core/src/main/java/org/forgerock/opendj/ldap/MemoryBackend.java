@@ -485,8 +485,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             SimplePagedResultsControl pagedResults) throws CancelledResultException, LdapException {
         final NavigableMap<DN, Entry> subtree = entries.subMap(dn, dn.child(RDN.maxValue()));
         if (subtree.isEmpty() || !dn.equals(subtree.firstKey())) {
-            resultHandler.handleResult(newResult(ResultCode.NO_SUCH_OBJECT));
-            return;
+            throw newLdapException(newResult(ResultCode.NO_SUCH_OBJECT));
         }
 
         final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;
