@@ -25,7 +25,7 @@ import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
+import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -55,9 +55,8 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.EntryReader;
 
 /**
- * A simple in memory back-end which can be used for testing. It is not intended
- * for production use due to various limitations. The back-end implementations
- * supports the following:
+ * A simple in memory back-end which can be used for testing.
+ * The back-end implementations supports the following:
  * <ul>
  * <li>add, bind (simple), compare, delete, modify, and search operations, but
  * not modifyDN nor extended operations
@@ -442,9 +441,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                         if (!overwrite && entries.containsKey(dn)) {
                             throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS,
                                     "Attempted to add the entry '" + dn + "' multiple times");
-                        } else {
-                            entries.put(dn, entry);
                         }
+                        entries.put(dn, entry);
                     }
                 } finally {
                     reader.close();
@@ -485,10 +483,15 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final LdapResultHandler<Result> resultHandler, final DN dn, final Matcher matcher,
             final AttributeFilter attributeFilter, final int sizeLimit, SearchScope scope,
             SimplePagedResultsControl pagedResults) throws CancelledResultException, LdapException {
+        final NavigableMap<DN, Entry> subtree = entries.subMap(dn, dn.child(RDN.maxValue()));
+        if (subtree.isEmpty() || !dn.equals(subtree.firstKey())) {
+            resultHandler.handleResult(newResult(ResultCode.NO_SUCH_OBJECT));
+            return;
+        }
+
         final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;
         final int offset = (pagedResults != null && !pagedResults.getCookie().isEmpty())
                 ? Integer.valueOf(pagedResults.getCookie().toString()) : 0;
-        final Map<DN, Entry> subtree = entries.subMap(dn, dn.child(RDN.maxValue()));
         int numberOfResults = 0;
         int position = 0;
         for (final Entry entry : subtree.values()) {
@@ -528,8 +531,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         }
         final Result result = newResult(ResultCode.SUCCESS);
         if (pageSize > 0) {
-            final ByteString cookie = numberOfResults == pageSize ? ByteString.valueOfUtf8(String.valueOf(position))
-                    : ByteString.empty();
+            final ByteString cookie = numberOfResults == pageSize
+                ? ByteString.valueOfUtf8(String.valueOf(position))
+                : ByteString.empty();
             result.addControl(SimplePagedResultsControl.newControl(true, 0, cookie));
         }
         resultHandler.handleResult(result);
@@ -544,12 +548,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             if (preRead != null) {
                 if (preRead.isCritical() && before == null) {
                     throw newLdapException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
-                } else {
-                    final AttributeFilter filter =
-                            new AttributeFilter(preRead.getAttributes(), schema);
-                    result.addControl(PreReadResponseControl.newControl(filter
-                            .filteredViewOf(before)));
                 }
+                final AttributeFilter filter = new AttributeFilter(preRead.getAttributes(), schema);
+                result.addControl(PreReadResponseControl.newControl(filter.filteredViewOf(before)));
             }
 
             // Add post-read response control if requested.
@@ -558,12 +559,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             if (postRead != null) {
                 if (postRead.isCritical() && after == null) {
                     throw newLdapException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
-                } else {
-                    final AttributeFilter filter =
-                            new AttributeFilter(postRead.getAttributes(), schema);
-                    result.addControl(PostReadResponseControl.newControl(filter
-                            .filteredViewOf(after)));
                 }
+                final AttributeFilter filter = new AttributeFilter(postRead.getAttributes(), schema);
+                result.addControl(PostReadResponseControl.newControl(filter.filteredViewOf(after)));
             }
             return result;
         } catch (final DecodeException e) {

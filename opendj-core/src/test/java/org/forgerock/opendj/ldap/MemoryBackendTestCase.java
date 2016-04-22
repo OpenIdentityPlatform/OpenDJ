@@ -51,9 +51,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test
     public void testAdd() throws Exception {
         final Connection connection = getConnection();
-        final Entry newDomain =
-                valueOfLDIFEntry("dn: dc=new domain,dc=com", "objectClass: domain",
-                        "objectClass: top", "dc: new domain");
+        final Entry newDomain = newDomain();
         connection.add(newDomain);
         assertThat(connection.readEntry("dc=new domain,dc=com")).isEqualTo(newDomain);
     }
@@ -75,9 +73,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test
     public void testAddPostRead() throws Exception {
         final Connection connection = getConnection();
-        final Entry newDomain =
-                valueOfLDIFEntry("dn: dc=new domain,dc=com", "objectClass: domain",
-                        "objectClass: top", "dc: new domain");
+        final Entry newDomain = newDomain();
         assertThat(
                 connection.add(
                         newAddRequest(newDomain)
@@ -89,10 +85,16 @@ public class MemoryBackendTestCase extends SdkTestCase {
     @Test(expectedExceptions = LdapException.class)
     public void testAddPreRead() throws Exception {
         final Connection connection = getConnection();
-        final Entry newDomain =
-                valueOfLDIFEntry("dn: dc=new domain,dc=com", "objectClass: domain",
-                        "objectClass: top", "dc: new domain");
+        final Entry newDomain = newDomain();
         connection.add(newAddRequest(newDomain).addControl(PreReadRequestControl.newControl(true)));
+    }
+
+    private Entry newDomain() {
+        return valueOfLDIFEntry(
+            "dn: dc=new domain,dc=com",
+            "objectClass: domain",
+            "objectClass: top",
+            "dc: new domain");
     }
 
     @Test
@@ -482,6 +484,13 @@ public class MemoryBackendTestCase extends SdkTestCase {
         final Connection connection = getConnection();
         connection.searchSingleEntry("dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
                 "(uid=missing)");
+    }
+
+    @Test(expectedExceptions = EntryNotFoundException.class)
+    public void testSearchSubtreeBaseEntryNotFound() throws Exception {
+        final Connection connection = getConnection();
+        connection.searchSingleEntry("uid=missing,dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                "(uid=*)");
     }
 
     @Test
