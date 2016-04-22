@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -77,6 +77,11 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   /** Lock used to ensure that log file is in a consistent state when reading it. */
   private final Lock sharedLock;
 
+  /**
+   * The newest (last) record appended to this log file. In order to keep the ordering of the keys
+   * in the log file, any attempt to append a record with a key lower or equal to this key is
+   * rejected (no error but an event is logged).
+   */
   private Record<K, V> newestRecord;
 
   /**
@@ -114,6 +119,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     exclusiveLock = rwLock.writeLock();
     sharedLock = rwLock.readLock();
+    initializeNewestRecord();
   }
 
   /**
@@ -227,9 +233,11 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   /**
    * Add the provided record at the end of this log.
    * <p>
-   * In order to ensure that record is written out of buffers and persisted
-   * to file system, it is necessary to explicitely call the
-   * {@code syncToFileSystem()} method.
+   * The record must have a key strictly higher than the key of the last record added.
+   * If it is not the case, the record is not appended.
+   * <p>
+   * In order to ensure that record is written out of buffers and persisted to file system, it is
+   * necessary to explicitly call the {@link #syncToFileSystem()} method.
    *
    * @param record
    *          The record to add.
@@ -242,6 +250,10 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     exclusiveLock.lock();
     try
     {
+      if (appendWouldBreakKeyOrdering(record))
+      {
+        return;
+      }
       writer.write(record);
       newestRecord = record;
     }
@@ -249,6 +261,18 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     {
       exclusiveLock.unlock();
     }
+  }
+
+  /** Indicates if the provided record has a key that would break the key ordering if appended in this file log. */
+  boolean appendWouldBreakKeyOrdering(final Record<K, V> record)
+  {
+    boolean wouldBreakOrder = newestRecord != null && record.getKey().compareTo(newestRecord.getKey()) <= 0;
+    if (wouldBreakOrder)
+    {
+      logger.debug(
+          INFO_CHANGELOG_FILTER_OUT_RECORD_BREAKING_ORDER.get(logfile.getPath(), record, newestRecord.getKey()));
+    }
+    return wouldBreakOrder;
   }
 
   /**
@@ -363,28 +387,29 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * @throws ChangelogException
    *           If an error occurs while retrieving the record.
    */
-  Record<K, V> getNewestRecord() throws ChangelogException
+  Record<K, V> getNewestRecord()
   {
-    if (newestRecord == null)
+    return newestRecord;
+  }
+
+  private void initializeNewestRecord() throws ChangelogException
+  {
+    try (BlockLogReader<K, V> reader = getReader())
     {
-      try (BlockLogReader<K, V> reader = getReader())
+      sharedLock.lock();
+      try
       {
-        sharedLock.lock();
-        try
-        {
-          newestRecord = reader.getNewestRecord();
-        }
-        finally
-        {
-          sharedLock.unlock();
-        }
+        newestRecord = reader.getNewestRecord();
       }
-      catch (IOException ioe)
+      finally
       {
-        throw new ChangelogException(ERR_CHANGELOG_CANNOT_READ_NEWEST_RECORD.get(logfile.getAbsolutePath()), ioe);
+        sharedLock.unlock();
       }
     }
-    return newestRecord;
+    catch (IOException ioe)
+    {
+      throw new ChangelogException(ERR_CHANGELOG_CANNOT_READ_NEWEST_RECORD.get(logfile.getAbsolutePath()), ioe);
+    }
   }
 
   /**
