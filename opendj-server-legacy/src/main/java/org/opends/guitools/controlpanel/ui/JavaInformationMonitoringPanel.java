@@ -40,6 +40,7 @@ import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.util.CollectionUtils;
 
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
@@ -49,23 +50,20 @@ import static org.opends.server.util.ServerConstants.*;
 public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563799969830L;
-  private List<BasicMonitoringAttributes> generalAttributes = new ArrayList<>();
-  {
-    generalAttributes.add(BasicMonitoringAttributes.JVM_VERSION);
-    generalAttributes.add(BasicMonitoringAttributes.JVM_VENDOR);
-    generalAttributes.add(BasicMonitoringAttributes.JVM_ARCHITECTURE);
-    generalAttributes.add(BasicMonitoringAttributes.JVM_ARGUMENTS);
-    generalAttributes.add(BasicMonitoringAttributes.CLASS_PATH);
-    generalAttributes.add(BasicMonitoringAttributes.JAVA_VERSION);
-    generalAttributes.add(BasicMonitoringAttributes.JAVA_VENDOR);
-  }
-  private List<BasicMonitoringAttributes> extraAttributes = new ArrayList<>();
-  {
-    extraAttributes.add(BasicMonitoringAttributes.CLASS_PATH);
-    extraAttributes.add(BasicMonitoringAttributes.JAVA_VERSION);
-    extraAttributes.add(BasicMonitoringAttributes.JAVA_VENDOR);
-  }
-  private ArrayList<JComponent> generalMonitoringComps = new ArrayList<>();
+
+  private final List<BasicMonitoringAttributes> generalAttributes = CollectionUtils.newArrayList(
+      BasicMonitoringAttributes.JVM_VERSION,
+      BasicMonitoringAttributes.JVM_VENDOR,
+      BasicMonitoringAttributes.JVM_ARCHITECTURE,
+      BasicMonitoringAttributes.JVM_ARGUMENTS,
+      BasicMonitoringAttributes.CLASS_PATH,
+      BasicMonitoringAttributes.JAVA_VERSION,
+      BasicMonitoringAttributes.JAVA_VENDOR);
+  private final List<BasicMonitoringAttributes> extraAttributes = CollectionUtils.newArrayList(
+      BasicMonitoringAttributes.CLASS_PATH,
+      BasicMonitoringAttributes.JAVA_VERSION,
+      BasicMonitoringAttributes.JAVA_VENDOR);
+  private final List<JComponent> generalMonitoringComps = new ArrayList<>();
   {
     for (int i=0; i<generalAttributes.size(); i++)
     {
@@ -86,8 +84,8 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     }
   }
 
-  private List<String> memoryAttributes = new ArrayList<>();
-  private List<JLabel> memoryLabels = new ArrayList<>();
+  private final List<String> memoryAttributes = new ArrayList<>();
+  private final List<JLabel> memoryLabels = new ArrayList<>();
   private JPanel memoryPanel;
 
   /** Default constructor. */
@@ -270,7 +268,7 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /** Updates the contents of the panel. */
+  @Override
   public void updateContents()
   {
     ServerDescriptor server = null;

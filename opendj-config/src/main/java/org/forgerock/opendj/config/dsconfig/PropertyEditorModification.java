@@ -43,8 +43,8 @@ final class PropertyEditorModification<T> {
         REMOVE
     }
 
-    private PropertyDefinition<T> propertyDefinition;
-    private Type type;
+    private final PropertyDefinition<T> propertyDefinition;
+    private final Type type;
     private final SortedSet<T> values;
     private final SortedSet<T> originalValues;
 

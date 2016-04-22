@@ -18,21 +18,20 @@ package org.forgerock.opendj.config.server;
 
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 
-import org.forgerock.opendj.config.DecodingException;
-import org.forgerock.util.Reject;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.DecodingException;
+import org.forgerock.util.Reject;
 
 /**
  * This exception is thrown when the server refuses to use or delete a managed
  * object due to one or more constraints that cannot be satisfied.
  */
-public class ConstraintViolationException extends DecodingException {
+class ConstraintViolationException extends DecodingException {
 
     /** Serialization ID. */
     private static final long serialVersionUID = -4902443848460011875L;

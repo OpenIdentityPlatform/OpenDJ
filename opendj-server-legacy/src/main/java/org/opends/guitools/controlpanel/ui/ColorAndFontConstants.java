@@ -14,9 +14,7 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
-
 
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
@@ -127,7 +125,7 @@ public class ColorAndFontConstants
   public static final Color mouseOverBackground =
   UIManager.getColor("TextField.selectionBackground");
   /** Text color indicating that a field is valid. */
-  public static final Color validFontColor = foreground;
+  static final Color validFontColor = foreground;
 
   /**
    * The color of the text when the mouse is over (this is used in some
@@ -164,8 +162,7 @@ public class ColorAndFontConstants
   public static final Font headerFont =
   UIManager.getFont("TableHeader.font").deriveFont(Font.BOLD);
   /** The font to be used in the title of the error panes. */
-  public static final Font errorTitleFont =
-  defaultFont.deriveFont(Font.BOLD).deriveFont(13f);
+  static final Font errorTitleFont = defaultFont.deriveFont(Font.BOLD).deriveFont(13f);
   /** The font to be used in the CategoryButton component. */
   public static final Font categoryFont =
     UIManager.getFont("Label.font").deriveFont(Font.BOLD);
@@ -182,14 +179,12 @@ public class ColorAndFontConstants
   public static final Font titleFont =
   defaultFont.deriveFont(Font.BOLD).deriveFont(14f);
   /** Text color indicating that a field is not valid. */
-  public static final Color invalidFontColor = Color.red;
+  static final Color invalidFontColor = Color.red;
   /** The font to be used when the field associated with a primary label is not valid. */
-  public static final Font primaryInvalidFont =
+  static final Font primaryInvalidFont =
     primaryFont.deriveFont(Font.ITALIC);
   /** The font to be used when the field associated with a normal label is not valid. */
-  public static final Font invalidFont = defaultFont.deriveFont(Font.ITALIC);
+  static final Font invalidFont = defaultFont.deriveFont(Font.ITALIC);
   /** The font to be used in the progress dialog's 'Details' section. */
   public static final Font progressFont = UIManager.getFont("EditorPane.font");
-  /** Specifies the font for the command-line output in the detail panel. */
-  public static final Font outputFont = Font.decode("Monospaced-PLAIN-12");
 }

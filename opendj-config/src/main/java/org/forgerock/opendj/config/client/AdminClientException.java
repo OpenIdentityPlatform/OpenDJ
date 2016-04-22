@@ -28,7 +28,7 @@ import org.forgerock.opendj.config.AdminException;
  * Client exceptions represent communications problems, security problems, and
  * service related problems.
  */
-public abstract class AdminClientException extends AdminException {
+abstract class AdminClientException extends AdminException {
 
     /** Serialization ID. */
     private static final long serialVersionUID = 4044747533980824456L;

@@ -46,7 +46,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.HostPort;
 
 /** The object of this class represent an OpenDS server. */
@@ -1277,48 +1276,6 @@ public class ServerDescriptor
         ctx.destroySubcontext(keyDn);
         ctx.createSubcontext(keyDn, keyAttrs).close();
       }
-    }
-  }
-
-  /**
-   * Cleans up the contents of the ads truststore.
-   *
-   * @param ctx the bound instance.
-   * @throws NamingException in case an error occurs while updating the
-   * instance's ads-truststore via LDAP.
-   */
-  public static void cleanAdsTrustStore(InitialLdapContext ctx)
-  throws NamingException
-  {
-    try
-    {
-      SearchControls sc = new SearchControls();
-      sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      sc.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
-      NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
-          "(objectclass=ds-cfg-instance-key)", sc);
-      ArrayList<String> dnsToDelete = new ArrayList<>();
-      try
-      {
-        while (ne.hasMore())
-        {
-          SearchResult sr = ne.next();
-          dnsToDelete.add(sr.getName()+","+TRUSTSTORE_DN);
-        }
-      }
-      finally
-      {
-        ne.close();
-      }
-      for (String dn : dnsToDelete)
-      {
-        ctx.destroySubcontext(dn);
-      }
-    }
-    catch (NameNotFoundException nnfe)
-    {
-      // Ignore
-      logger.warn(LocalizableMessage.raw("Error cleaning truststore: "+nnfe, nnfe));
     }
   }
 

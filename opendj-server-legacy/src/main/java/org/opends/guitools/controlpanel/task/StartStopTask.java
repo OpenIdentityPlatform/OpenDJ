@@ -19,17 +19,18 @@ package org.opends.guitools.controlpanel.task;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** An abstract class used to re-factor some code between the start, stop and restart tasks. */
-public abstract class StartStopTask extends Task
+abstract class StartStopTask extends Task
 {
-  Set<String> backendSet;
+  private final Set<String> backendSet;
 
   /**
    * Constructor of the task.
@@ -46,7 +47,6 @@ public abstract class StartStopTask extends Task
     {
       backendSet.add(backend.getBackendID());
     }
-
   }
 
   @Override
@@ -80,11 +80,8 @@ public abstract class StartStopTask extends Task
       getInfo().stopPooling();
       getInfo().regenerateDescriptor();
 
-      ArrayList<String> arguments = getCommandLineArguments();
-
-      String[] args = new String[arguments.size()];
-
-      arguments.toArray(args);
+      List<String> arguments = getCommandLineArguments();
+      String[] args = arguments.toArray(new String[arguments.size()]);
       returnCode = executeCommandLine(getCommandLinePath(), args);
 
       postCommandLine();
@@ -109,13 +106,6 @@ public abstract class StartStopTask extends Task
    */
   protected void postCommandLine()
   {
-    if (returnCode != 0)
-    {
-      state = State.FINISHED_WITH_ERROR;
-    }
-    else
-    {
-      state = State.FINISHED_SUCCESSFULLY;
-    }
+    state = returnCode != 0 ? State.FINISHED_WITH_ERROR : State.FINISHED_SUCCESSFULLY;
   }
 }

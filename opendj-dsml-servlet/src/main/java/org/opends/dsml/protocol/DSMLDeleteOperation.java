@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.LDAPException;
 
 /**
@@ -36,9 +36,9 @@ import org.opends.server.types.LDAPException;
  *
  * @author   Vivek Nagar
  */
-public class DSMLDeleteOperation
+class DSMLDeleteOperation
 {
-  private LDAPConnection connection;
+  private final LDAPConnection connection;
 
   /**
    * Create an instance with the specified LDAP connection.

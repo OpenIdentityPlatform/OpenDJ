@@ -18,6 +18,8 @@ package org.opends.guitools.controlpanel.browser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 
@@ -32,11 +34,11 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
  */
 class NodeSearcherQueue implements Runnable {
 
-  private String name;
-  private ArrayList<AbstractNodeTask> waitingQueue = new ArrayList<>();
-  private HashMap<BasicNode, AbstractNodeTask> workingList = new HashMap<>();
-  private HashMap<BasicNode, BasicNode> cancelList = new HashMap<>();
-  private ThreadGroup threadGroup;
+  private final String name;
+  private final List<AbstractNodeTask> waitingQueue = new ArrayList<>();
+  private final Map<BasicNode, AbstractNodeTask> workingList = new HashMap<>();
+  private final Map<BasicNode, BasicNode> cancelList = new HashMap<>();
+  private final ThreadGroup threadGroup;
 
 
   /**

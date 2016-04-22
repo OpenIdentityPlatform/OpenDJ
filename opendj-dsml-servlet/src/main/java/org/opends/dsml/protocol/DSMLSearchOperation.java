@@ -16,6 +16,8 @@
  */
 package org.opends.dsml.protocol;
 
+import static org.opends.messages.ProtocolMessages.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -25,7 +27,10 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -35,21 +40,17 @@ import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.tools.LDAPConnection;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawFilter;
-import org.forgerock.opendj.ldap.SearchScope;
-import static org.opends.messages.ProtocolMessages.*;
 
 /**
  * This class provides the functionality for the performing an LDAP
  * SEARCH operation based on the specified DSML request.
  */
-public class DSMLSearchOperation
+class DSMLSearchOperation
 {
 
-  private LDAPConnection connection;
+  private final LDAPConnection connection;
 
 
 

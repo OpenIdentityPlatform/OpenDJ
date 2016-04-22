@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -23,7 +23,7 @@ import java.util.HashMap;
  */
 public class ResultCodeFactory
 {
-  static HashMap<Integer,LDAPResultCode> codeToDescr = new HashMap<>();
+  static final HashMap<Integer, LDAPResultCode> codeToDescr = new HashMap<>();
   static
   {
     codeToDescr.put(0, LDAPResultCode.SUCCESS);

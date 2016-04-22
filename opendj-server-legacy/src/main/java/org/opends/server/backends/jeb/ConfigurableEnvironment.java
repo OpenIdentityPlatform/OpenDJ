@@ -17,6 +17,7 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
+
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 
@@ -54,7 +55,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;
 
 /** This class maps JE properties to configuration attributes. */
-public class ConfigurableEnvironment
+class ConfigurableEnvironment
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -62,136 +63,107 @@ public class ConfigurableEnvironment
    * The name of the attribute which configures the database cache size as a
    * percentage of Java VM heap size.
    */
-  public static final String ATTR_DATABASE_CACHE_PERCENT =
+  private static final String ATTR_DATABASE_CACHE_PERCENT =
        ConfigConstants.NAME_PREFIX_CFG + "db-cache-percent";
 
   /**
    * The name of the attribute which configures the database cache size as an
    * approximate number of bytes.
    */
-  public static final String ATTR_DATABASE_CACHE_SIZE =
+  private static final String ATTR_DATABASE_CACHE_SIZE =
        ConfigConstants.NAME_PREFIX_CFG + "db-cache-size";
-
-  /**
-   * The name of the attribute which configures whether data updated by a
-   * database transaction is forced to disk.
-   */
-  public static final String ATTR_DATABASE_TXN_NO_SYNC =
-       ConfigConstants.NAME_PREFIX_CFG + "db-txn-no-sync";
-
-  /**
-   * The name of the attribute which configures whether data updated by a
-   * database transaction is written from the Java VM to the O/S.
-   */
-  public static final String ATTR_DATABASE_TXN_WRITE_NO_SYNC =
-       ConfigConstants.NAME_PREFIX_CFG + "db-txn-write-no-sync";
 
   /**
    * The name of the attribute which configures whether the database background
    * cleaner thread runs.
    */
-  public static final String ATTR_DATABASE_RUN_CLEANER =
+  private static final String ATTR_DATABASE_RUN_CLEANER =
        ConfigConstants.NAME_PREFIX_CFG + "db-run-cleaner";
 
   /**
    * The name of the attribute which configures the minimum percentage of log
    * space that must be used in log files.
    */
-  public static final String ATTR_CLEANER_MIN_UTILIZATION =
+  private static final String ATTR_CLEANER_MIN_UTILIZATION =
        ConfigConstants.NAME_PREFIX_CFG + "db-cleaner-min-utilization";
 
   /**
    * The name of the attribute which configures the maximum size of each
    * individual JE log file, in bytes.
    */
-  public static final String ATTR_DATABASE_LOG_FILE_MAX =
+  private static final String ATTR_DATABASE_LOG_FILE_MAX =
        ConfigConstants.NAME_PREFIX_CFG + "db-log-file-max";
 
   /** The name of the attribute which configures the database cache eviction algorithm. */
-  public static final String ATTR_EVICTOR_LRU_ONLY =
+  private static final String ATTR_EVICTOR_LRU_ONLY =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-lru-only";
 
   /**
    * The name of the attribute which configures the number of nodes in one scan
    * of the database cache evictor.
    */
-  public static final String ATTR_EVICTOR_NODES_PER_SCAN =
+  private static final String ATTR_EVICTOR_NODES_PER_SCAN =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-nodes-per-scan";
 
   /**
    * The name of the attribute which configures the minimum number of threads
    * of the database cache evictor pool.
    */
-  public static final String ATTR_EVICTOR_CORE_THREADS =
+  private static final String ATTR_EVICTOR_CORE_THREADS =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-core-threads";
   /**
    * The name of the attribute which configures the maximum number of threads
    * of the database cache evictor pool.
    */
-  public static final String ATTR_EVICTOR_MAX_THREADS =
+  private static final String ATTR_EVICTOR_MAX_THREADS =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-max-threads";
 
   /**
    * The name of the attribute which configures the time excess threads
    * of the database cache evictor pool are kept alive.
    */
-  public static final String ATTR_EVICTOR_KEEP_ALIVE =
+  private static final String ATTR_EVICTOR_KEEP_ALIVE =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-keep-alive";
-
-  /**
-   * The name of the attribute which configures whether the logging file
-   * handler will be on or off.
-   */
-  public static final String ATTR_LOGGING_FILE_HANDLER_ON =
-       ConfigConstants.NAME_PREFIX_CFG + "db-logging-file-handler-on";
-
-  /** The name of the attribute which configures the trace logging message level. */
-  public static final String ATTR_LOGGING_LEVEL =
-       ConfigConstants.NAME_PREFIX_CFG + "db-logging-level";
 
   /**
    * The name of the attribute which configures how many bytes are written to
    * the log before the checkpointer runs.
    */
-  public static final String ATTR_CHECKPOINTER_BYTES_INTERVAL =
+  private static final String ATTR_CHECKPOINTER_BYTES_INTERVAL =
        ConfigConstants.NAME_PREFIX_CFG + "db-checkpointer-bytes-interval";
 
   /**
    * The name of the attribute which configures the amount of time between
    * runs of the checkpointer.
    */
-  public static final String ATTR_CHECKPOINTER_WAKEUP_INTERVAL =
+  private static final String ATTR_CHECKPOINTER_WAKEUP_INTERVAL =
        ConfigConstants.NAME_PREFIX_CFG +
        "db-checkpointer-wakeup-interval";
 
   /** The name of the attribute which configures the number of lock tables. */
-  public static final String ATTR_NUM_LOCK_TABLES =
+  private static final String ATTR_NUM_LOCK_TABLES =
        ConfigConstants.NAME_PREFIX_CFG + "db-num-lock-tables";
 
   /**
    * The name of the attribute which configures the number threads
    * allocated by the cleaner for log file processing.
    */
-  public static final String ATTR_NUM_CLEANER_THREADS =
+  private static final String ATTR_NUM_CLEANER_THREADS =
        ConfigConstants.NAME_PREFIX_CFG + "db-num-cleaner-threads";
 
   /** The name of the attribute which configures the size of the file handle cache. */
-  public static final String ATTR_LOG_FILECACHE_SIZE =
+  private static final String ATTR_LOG_FILECACHE_SIZE =
        ConfigConstants.NAME_PREFIX_CFG + "db-log-filecache-size";
 
-  /** The name of the attribute which may specify any native JE properties. */
-  public static final String ATTR_JE_PROPERTY =
-       ConfigConstants.NAME_PREFIX_CFG + "je-property";
-
   /** A map of JE property names to the corresponding configuration attribute. */
-  private static HashMap<String, String> attrMap = new HashMap<>();
+  private static final Map<String, String> attrMap = new HashMap<>();
 
   /**
    * A map of configuration attribute names to the corresponding configuration object getter method.
    */
-  private static Map<String, Method> jebMethodMap = new HashMap<>();
+  private static final Map<String, Method> jebMethodMap = new HashMap<>();
   /** A map of configuration attribute names to the corresponding configuration PropertyDefinition. */
-  private static Map<String, PropertyDefinition<?>> jebDefnMap = new HashMap<>();
+  private static final Map<String, PropertyDefinition<?>> jebDefnMap = new HashMap<>();
 
   /** Pulled from resource/admin/ABBREVIATIONS.xsl. db is mose common. */
   private static final List<String> ABBREVIATIONS = Arrays.asList(new String[]
@@ -249,16 +221,6 @@ public class ConfigurableEnvironment
 
     jebDefnMap.put(attrName, propDefn);
     jebMethodMap.put(attrName, configClass.getMethod(methodName));
-  }
-
-  /**
-   * Get the name of the configuration attribute associated with a JE property.
-   * @param jeProperty The name of the JE property.
-   * @return The name of the associated configuration attribute.
-   */
-  public static String getAttributeForProperty(String jeProperty)
-  {
-    return attrMap.get(jeProperty);
   }
 
   /**
@@ -358,7 +320,7 @@ public class ConfigurableEnvironment
    *
    * @return A JE environment config containing default values.
    */
-  public static EnvironmentConfig defaultConfig()
+  private static EnvironmentConfig defaultConfig()
   {
     EnvironmentConfig envConfig = new EnvironmentConfig();
 
@@ -408,7 +370,7 @@ public class ConfigurableEnvironment
    * @throws ConfigException If there is an error in the provided configuration
    * entry.
    */
-  public static EnvironmentConfig parseConfigEntry(JEBackendCfg cfg) throws ConfigException
+  static EnvironmentConfig parseConfigEntry(JEBackendCfg cfg) throws ConfigException
   {
     validateDbCacheSize(cfg.getDBCacheSize());
 
@@ -506,8 +468,8 @@ public class ConfigurableEnvironment
    * @throws ConfigException If there is an error while parsing,
    *         validating and setting any of the properties provided.
    */
-  public static EnvironmentConfig setJEProperties(EnvironmentConfig envConfig,
-    SortedSet<String> jeProperties, HashMap<String, String> configAttrMap)
+  private static EnvironmentConfig setJEProperties(EnvironmentConfig envConfig,
+    SortedSet<String> jeProperties, Map<String, String> configAttrMap)
     throws ConfigException
   {
     if (jeProperties.isEmpty()) {

@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
@@ -36,7 +37,6 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -1093,8 +1093,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     if (fks.iterator().hasNext())
     {
       FakeOperation fk = fks.iterator().next();
-      assertEquals(new FakeOperationComparator().compare(fk, fk), 0);
-      assertTrue(new FakeOperationComparator().compare(null, fk) < 0);
+      assertEquals(fk.getCSN().compareTo(fk.getCSN()), 0);
       ReplicationMsg generatedMsg = fk.generateMessage();
       if (generatedMsg instanceof LDAPUpdateMsg)
       {

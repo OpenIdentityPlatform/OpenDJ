@@ -12,21 +12,20 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.browser;
 
 /**
  * The exception used by the NodeRefresher when the refresh process is
  * cancelled, interrupted or something failed.
- *
  */
 class SearchAbandonException extends Exception {
 
   private static final long serialVersionUID = 7768798649278383859L;
-  private NodeRefresher.State state;
-  private Exception x;
-  private Object arg;
+  private final NodeRefresher.State state;
+  private final Exception x;
+  private final Object arg;
 
   /**
    * The constructor for the class.

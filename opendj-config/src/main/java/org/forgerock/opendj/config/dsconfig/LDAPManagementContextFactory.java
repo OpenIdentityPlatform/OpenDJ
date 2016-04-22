@@ -43,11 +43,9 @@ public final class LDAPManagementContextFactory {
     private ManagementContext context;
 
     /** The connection parameters command builder. */
-    private CommandBuilder contextCommandBuilder;
-
+    private final CommandBuilder contextCommandBuilder;
     /** The connection factory provider. */
     private final ConnectionFactoryProvider provider;
-
     /** The connection factory. */
     private final ConnectionFactory factory;
 
@@ -62,6 +60,7 @@ public final class LDAPManagementContextFactory {
     public LDAPManagementContextFactory(ConnectionFactoryProvider cfp) throws ArgumentException {
         this.provider = cfp;
         factory = cfp.getAuthenticatedConnectionFactory();
+        contextCommandBuilder = null;
     }
 
     /** Closes this management context. */

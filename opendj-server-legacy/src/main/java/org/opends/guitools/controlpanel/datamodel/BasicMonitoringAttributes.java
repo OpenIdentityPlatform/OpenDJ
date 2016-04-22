@@ -175,9 +175,8 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
     }
   }
 
-  private LocalizableMessage msg;
-  private String attributeName;
-  private boolean isAborted;
+  private final LocalizableMessage msg;
+  private final String attributeName;
   private boolean isNumeric;
   private boolean isGMTDate;
   private boolean isValueInBytes;
@@ -200,12 +199,6 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
   public String getAttributeName()
   {
     return attributeName;
-  }
-
-  @Override
-  public boolean isAborted()
-  {
-    return isAborted;
   }
 
   @Override
@@ -246,8 +239,6 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
 
   private void calculateProperties()
   {
-    isAborted = attributeName.indexOf("ds-mon-aborted-") == 0;
-
     canHaveAverage = attributeName.endsWith("total-count") ||
     attributeName.endsWith("Requests") ||
     attributeName.endsWith("Responses") ||

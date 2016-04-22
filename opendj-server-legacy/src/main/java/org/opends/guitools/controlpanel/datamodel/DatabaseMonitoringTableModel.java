@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -34,15 +35,15 @@ import static org.opends.server.util.CollectionUtils.*;
 public class DatabaseMonitoringTableModel extends SortableTableModel implements Comparator<BackendDescriptor>
 {
   private static final long serialVersionUID = 548035716525600536L;
-  private Set<BackendDescriptor> data = new HashSet<>();
-  private ArrayList<String[]> dataArray = new ArrayList<>();
+  private final Set<BackendDescriptor> data = new HashSet<>();
+  private final List<String[]> dataArray = new ArrayList<>();
 
   private String[] columnNames = {};
-  private LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
-  private LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
+  private final LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
+  private final LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /** The fields to be displayed. */
-  private LinkedHashSet<String> attributes = new LinkedHashSet<>();
+  private final Set<String> attributes = new LinkedHashSet<>();
   /** The sort column of the table. */
   private int sortColumn;
   /** Whether the sorting is ascending or descending. */
@@ -195,7 +196,7 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
    * Sets the fields displayed by this table model.
    * @param fields the statistic fields displayed by this table model.
    */
-  public void setAttributes(LinkedHashSet<String> fields)
+  public void setAttributes(Set<String> fields)
   {
     this.attributes.clear();
     this.attributes.addAll(fields);
@@ -274,7 +275,7 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
    * @param backend the backend.
    * @return the label to be used for the provided backend.
    */
-  protected String getName(BackendDescriptor backend)
+  private String getName(BackendDescriptor backend)
   {
     return backend.getBackendID();
   }
@@ -285,7 +286,7 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
    * @return the monitoring entry associated with the provided backend.  Returns
    * <CODE>null</CODE> if there is no monitoring entry associated.
    */
-  protected CustomSearchResult getMonitoringEntry(BackendDescriptor backend)
+  private CustomSearchResult getMonitoringEntry(BackendDescriptor backend)
   {
     return backend.getMonitoringEntry();
   }
@@ -311,5 +312,4 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
     }
     return line;
   }
-
 }

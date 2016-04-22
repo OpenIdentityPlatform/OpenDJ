@@ -11,45 +11,15 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.server.tools.upgrade;
 
 import com.forgerock.opendj.cli.ClientException;
 
-/**
- * An upgrade task.
- */
-public interface UpgradeTask
+/** An upgrade task. */
+interface UpgradeTask
 {
-
-  /**
-   * Defines the different types of upgrade tasks.
-   */
-  public enum TaskType {
-    /**
-     * Defines a standard task.
-     */
-    NORMAL,
-    /**
-     * Defines a task which require a standard user interaction.
-     */
-    NEED_USER_INTERACTION,
-    /**
-     * Defines a critical task which require an imperative user interaction.
-     */
-    MANDATORY_USER_INTERACTION,
-    /**
-     * Defines a task which take a long time to complete.
-     */
-    TAKE_LONG_TIME_TO_COMPLETE,
-    /**
-     * Defines a task which cannot be reverted once started.
-     */
-    CANNOT_BE_REVERTED
-  }
-
   /**
    * Performs any preparation work required before performing the upgrade task, including
    * interacting with the user where needed (e.g. in order to ask for confirmation), and throw a

@@ -25,28 +25,31 @@ import java.awt.GridBagConstraints;
 
 import javax.swing.JPanel;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
+import org.opends.guitools.controlpanel.ui.BrowseGeneralMonitoringPanel.NodeType;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 
 /** The panel on the right of the 'General Information' panel. */
-public class GeneralMonitoringRightPanel extends StatusGenericPanel
+class GeneralMonitoringRightPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -4197460101279681042L;
 
   /** The panel with a CardLayout that contains all the panels. */
-  protected JPanel mainPanel;
+  private JPanel mainPanel;
 
-  private RootMonitoringPanel rootPanel = new RootMonitoringPanel();
-  private WorkQueueMonitoringPanel workQueuePanel = new WorkQueueMonitoringPanel();
-  private EntryCachesMonitoringPanel entryCachesPanel = new EntryCachesMonitoringPanel();
-  private DatabaseMonitoringPanel jeMonitoringPanel = new DatabaseMonitoringPanel(BackendDescriptor.PluggableType.JE);
-  private DatabaseMonitoringPanel pdbMonitoringPanel = new DatabaseMonitoringPanel(BackendDescriptor.PluggableType.PDB);
-  private SystemInformationMonitoringPanel systemInformationPanel = new SystemInformationMonitoringPanel();
-  private JavaInformationMonitoringPanel javaInformationPanel = new JavaInformationMonitoringPanel();
+  private final RootMonitoringPanel rootPanel = new RootMonitoringPanel();
+  private final WorkQueueMonitoringPanel workQueuePanel = new WorkQueueMonitoringPanel();
+  private final EntryCachesMonitoringPanel entryCachesPanel = new EntryCachesMonitoringPanel();
+  private final DatabaseMonitoringPanel jeMonitoringPanel = new DatabaseMonitoringPanel(
+      BackendDescriptor.PluggableType.JE);
+  private final DatabaseMonitoringPanel pdbMonitoringPanel = new DatabaseMonitoringPanel(
+      BackendDescriptor.PluggableType.PDB);
+  private final SystemInformationMonitoringPanel systemInformationPanel = new SystemInformationMonitoringPanel();
+  private final JavaInformationMonitoringPanel javaInformationPanel = new JavaInformationMonitoringPanel();
 
   private static final String rootPanelTitle = "RootMonitoringPanel";
   private static final String workQueuePanelTitle = "WorkQueueMonitoringPanel";
@@ -57,7 +60,7 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   private static final String javaInformationPanelTitle = "JavaInformationMonitoringPanel";
 
   /** The panel used to update messages. */
-  protected NoItemSelectedPanel noEntryPanel = new NoItemSelectedPanel();
+  private final NoItemSelectedPanel noEntryPanel = new NoItemSelectedPanel();
   private static final String noEntryPanelTitle = "JavaInformationMonitoringPanel";
 
   private final StatusGenericPanel[] panels =
@@ -100,7 +103,7 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   }
 
   /** Creates the layout of the panel (but the contents are not populated here). */
-  protected void createLayout()
+  private void createLayout()
   {
     GridBagConstraints gbc = new GridBagConstraints();
     CardLayout cardLayout = new CardLayout();
@@ -156,55 +159,42 @@ public class GeneralMonitoringRightPanel extends StatusGenericPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    // no-op
   }
 
-  /** Updates the contents of the panel with the root monitoring information. */
-  public void updateRoot()
+  void update(NodeType type)
   {
-    rootPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, rootPanelTitle);
+    switch (type)
+    {
+    case ROOT:
+      update(rootPanel, rootPanelTitle);
+      break;
+    case SYSTEM_INFORMATION:
+      update(systemInformationPanel, systemInformationPanelTitle);
+      break;
+    case WORK_QUEUE:
+      update(workQueuePanel, workQueuePanelTitle);
+      break;
+    case ENTRY_CACHES:
+      update(entryCachesPanel, entryCachesPanelTitle);
+      break;
+    case JE_DATABASES_INFORMATION:
+      update(jeMonitoringPanel, jeMonitoringPanelTitle);
+      break;
+    case PDB_DATABASES_INFORMATION:
+      update(pdbMonitoringPanel, pdbMonitoringPanelTitle);
+      break;
+    case JAVA_INFORMATION:
+      update(javaInformationPanel, javaInformationPanelTitle);
+      break;
+    default:
+      throw new RuntimeException("Unknown node type: " + type);
+    }
   }
 
-  /** Updates the contents of the panel with the system information monitoring. */
-  public void updateSystemInformation()
+  private void update(GeneralMonitoringPanel panel, String panelTitle)
   {
-    systemInformationPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, systemInformationPanelTitle);
+    panel.updateContents();
+    ((CardLayout) mainPanel.getLayout()).show(mainPanel, panelTitle);
   }
-
-  /** Updates the contents of the panel with the work queue monitoring information. */
-  public void updateWorkQueue()
-  {
-    workQueuePanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, workQueuePanelTitle);
-  }
-
-  /** Updates the contents of the panel with the entry caches monitoring information. */
-  public void updateEntryCaches()
-  {
-    entryCachesPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, entryCachesPanelTitle);
-  }
-
-  /** Updates the contents of the panel with the je database monitoring information. */
-  public void updateJEDatabaseInformation()
-  {
-    jeMonitoringPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, jeMonitoringPanelTitle);
-  }
-
-  /** Updates the contents of the panel with the pdb database monitoring information. */
-  public void updatePDBDatbaseInformation()
-  {
-    pdbMonitoringPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, pdbMonitoringPanelTitle);
-  }
-
-  /** Updates the contents of the panel with the JAVA information. */
-  public void updateJavaInformation()
-  {
-    javaInformationPanel.updateContents();
-    ((CardLayout)mainPanel.getLayout()).show(mainPanel, javaInformationPanelTitle);
-  }
-
 }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -22,13 +22,13 @@ import java.io.IOException;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.tools.LDAPConnection;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.tools.LDAPConnection;
 import org.opends.server.types.LDAPException;
 
 
@@ -37,10 +37,10 @@ import org.opends.server.types.LDAPException;
  * This class provides the functionality for the performing an
  * LDAP MODIFY_DN operation based on the specified DSML request.
  */
-public class DSMLModifyDNOperation
+class DSMLModifyDNOperation
 {
 
-  private LDAPConnection connection;
+  private final LDAPConnection connection;
 
   /**
    * Create the instance with the specified connection.

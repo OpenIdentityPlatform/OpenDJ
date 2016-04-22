@@ -31,24 +31,24 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
 /** An implementation of SSLSocketFactory. */
-public class TrustedSocketFactory extends SSLSocketFactory
+class TrustedSocketFactory extends SSLSocketFactory
 {
-  private static Map<Thread, TrustManager> hmTrustManager = new HashMap<>();
-  private static Map<Thread, KeyManager> hmKeyManager = new HashMap<>();
+  private static final Map<Thread, TrustManager> hmTrustManager = new HashMap<>();
+  private static final Map<Thread, KeyManager> hmKeyManager = new HashMap<>();
 
-  private static Map<TrustManager, SocketFactory> hmDefaultFactoryTm = new HashMap<>();
-  private static Map<KeyManager, SocketFactory> hmDefaultFactoryKm = new HashMap<>();
+  private static final Map<TrustManager, SocketFactory> hmDefaultFactoryTm = new HashMap<>();
+  private static final Map<KeyManager, SocketFactory> hmDefaultFactoryKm = new HashMap<>();
 
   private SSLSocketFactory innerFactory;
-  private TrustManager trustManager;
-  private KeyManager   keyManager;
+  private final TrustManager trustManager;
+  private final KeyManager keyManager;
 
   /**
    * Constructor of the TrustedSocketFactory.
    * @param trustManager the trust manager to use.
    * @param keyManager   the key manager to use.
    */
-  public TrustedSocketFactory(TrustManager trustManager, KeyManager keyManager)
+  TrustedSocketFactory(TrustManager trustManager, KeyManager keyManager)
   {
     this.trustManager = trustManager;
     this.keyManager   = keyManager;
@@ -63,8 +63,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
    * @param keyManager
    *          the key manager to use.
    */
-  public static synchronized void setCurrentThreadTrustManager(
-      TrustManager trustManager, KeyManager keyManager)
+  static synchronized void setCurrentThreadTrustManager(TrustManager trustManager, KeyManager keyManager)
   {
     setThreadTrustManager(trustManager, Thread.currentThread());
     setThreadKeyManager  (keyManager, Thread.currentThread());
@@ -75,8 +74,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
    * @param trustManager the trust manager to use.
    * @param thread the thread where we want to use the provided trust manager.
    */
-  public static synchronized void setThreadTrustManager(
-      TrustManager trustManager, Thread thread)
+  static synchronized void setThreadTrustManager(TrustManager trustManager, Thread thread)
   {
     TrustManager currentTrustManager = hmTrustManager.get(thread);
     if (currentTrustManager != null) {
@@ -93,8 +91,7 @@ public class TrustedSocketFactory extends SSLSocketFactory
    * @param keyManager the key manager to use.
    * @param thread the thread where we want to use the provided key manager.
    */
-  public static synchronized void setThreadKeyManager(
-      KeyManager keyManager, Thread thread)
+  static synchronized void setThreadKeyManager(KeyManager keyManager, Thread thread)
   {
     KeyManager currentKeyManager = hmKeyManager.get(thread);
     if (currentKeyManager != null) {

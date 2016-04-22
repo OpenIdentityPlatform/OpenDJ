@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads;
 
 import javax.naming.ldap.BasicControl;
 
-/**
- * This class implements the LDAP subtree delete control for JNDI.
- */
-public class SubtreeDeleteControl extends BasicControl
+/** This class implements the LDAP subtree delete control for JNDI. */
+class SubtreeDeleteControl extends BasicControl
 {
   /**
    * The serial version identifier required to satisfy the compiler
@@ -32,9 +30,7 @@ public class SubtreeDeleteControl extends BasicControl
    */
   static final long serialVersionUID = 3941576361457157921L;
 
-  /**
-    * Default constructor.
-    */
+  /** Default constructor. */
   public SubtreeDeleteControl()
   {
     super("1.2.840.113556.1.4.805");

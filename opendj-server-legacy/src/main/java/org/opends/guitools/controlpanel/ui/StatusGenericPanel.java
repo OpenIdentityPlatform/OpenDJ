@@ -225,6 +225,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   public void toBeDisplayed(final boolean visible)
   {
+    // to be overridden
   }
 
   /**
@@ -2110,7 +2111,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    * @param monitoringEntry
    *          the monitoring entry containing the information to be displayed.
    */
-  protected void updateMonitoringInfo(final List<MonitoringAttributes> monitoringAttrs,
+  protected void updateMonitoringInfo(final List<? extends MonitoringAttributes> monitoringAttrs,
       final List<JLabel> monitoringLabels, final CustomSearchResult monitoringEntry)
   {
     for (int i = 0; i < monitoringAttrs.size(); i++)

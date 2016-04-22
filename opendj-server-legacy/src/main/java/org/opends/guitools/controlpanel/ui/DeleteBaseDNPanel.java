@@ -46,6 +46,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -54,22 +55,21 @@ import org.opends.guitools.controlpanel.task.DeleteBaseDNAndBackendTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.ldap.DN;
 
 /**
  * The panel displayed when the user clicks on 'Delete Base DN...' in the
  * browse entries dialog.
  */
-public class DeleteBaseDNPanel extends StatusGenericPanel
+class DeleteBaseDNPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2182662824496761087L;
 
   /** The list containing the base DNs. */
   protected JList list;
   /** Label indicating that no element was found. */
-  protected JLabel lNoElementsFound;
+  private JLabel lNoElementsFound;
   /** The main panel. */
-  protected JPanel mainPanel;
+  private JPanel mainPanel;
 
   /** Default constructor. */
   public DeleteBaseDNPanel()

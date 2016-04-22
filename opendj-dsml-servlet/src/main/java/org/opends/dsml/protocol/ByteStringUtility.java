@@ -27,7 +27,7 @@ import org.w3c.dom.Element;
  * A utility class to assist in converting DsmlValues (in Objects) into
  * the required ByteStrings, and back again.
  */
-public class ByteStringUtility
+class ByteStringUtility
 {
   /**
    * Returns a ByteString from a DsmlValue Object.

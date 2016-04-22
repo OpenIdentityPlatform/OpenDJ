@@ -24,6 +24,7 @@ import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -66,15 +67,15 @@ public class ApplicationTrustManager implements X509TrustManager
   private String lastRefusedAuthType;
   private X509Certificate[] lastRefusedChain;
   private Cause lastRefusedCause;
-  private KeyStore keystore;
+  private final KeyStore keystore;
 
   /**
    * The following ArrayList contain information about the certificates
    * explicitly accepted by the user.
    */
-  private ArrayList<X509Certificate[]> acceptedChains = new ArrayList<>();
-  private ArrayList<String> acceptedAuthTypes = new ArrayList<>();
-  private ArrayList<String> acceptedHosts = new ArrayList<>();
+  private final List<X509Certificate[]> acceptedChains = new ArrayList<>();
+  private final List<String> acceptedAuthTypes = new ArrayList<>();
+  private final List<String> acceptedHosts = new ArrayList<>();
 
   private String host;
 

@@ -161,11 +161,11 @@ public abstract class Task
    * a bug, because of the way the contents of logs is updated, using
    * StringBuffer instead of StringBuilder is required.
    */
-  protected StringBuffer logs = new StringBuffer();
+  private StringBuffer logs = new StringBuffer();
   /** The error logs of the task. */
-  protected StringBuilder errorLogs = new StringBuilder();
+  private StringBuilder errorLogs = new StringBuilder();
   /** The standard output logs of the task. */
-  protected StringBuilder outputLogs = new StringBuilder();
+  private StringBuilder outputLogs = new StringBuilder();
   /** The print stream for the error logs. */
   protected ApplicationPrintStream errorPrintStream =
     new ApplicationPrintStream();
@@ -178,7 +178,7 @@ public abstract class Task
    * start server task, the process generated executing the start-ds
    * command-line.
    */
-  protected Process process;
+  private Process process;
   private ControlPanelInfo info;
 
   private ServerDescriptor server;

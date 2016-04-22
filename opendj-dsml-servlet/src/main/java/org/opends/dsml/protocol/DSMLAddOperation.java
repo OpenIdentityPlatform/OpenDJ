@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -30,7 +31,6 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
 
@@ -40,10 +40,10 @@ import org.opends.server.types.RawAttribute;
  * This class provides the functionality for the performing an
  * LDAP ADD operation based on the specified DSML request.
  */
-public class DSMLAddOperation
+class DSMLAddOperation
 {
 
-  private LDAPConnection connection;
+  private final LDAPConnection connection;
 
   /**
    * Create the instance with the specified LDAP connection.

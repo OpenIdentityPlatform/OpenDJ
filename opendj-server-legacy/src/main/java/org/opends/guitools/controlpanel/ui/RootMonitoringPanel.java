@@ -36,16 +36,16 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.BackendMessages.*;
 
 /** The panel displaying the root monitor panel. */
-public class RootMonitoringPanel extends GeneralMonitoringPanel
+class RootMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563746269830L;
 
-  private JLabel openConnections = Utilities.createDefaultLabel();
-  private JLabel maxConnections = Utilities.createDefaultLabel();
-  private JLabel totalConnections = Utilities.createDefaultLabel();
-  private JLabel startTime = Utilities.createDefaultLabel();
-  private JLabel upTime = Utilities.createDefaultLabel();
-  private JLabel version = Utilities.createDefaultLabel();
+  private final JLabel openConnections = Utilities.createDefaultLabel();
+  private final JLabel maxConnections = Utilities.createDefaultLabel();
+  private final JLabel totalConnections = Utilities.createDefaultLabel();
+  private final JLabel startTime = Utilities.createDefaultLabel();
+  private final JLabel upTime = Utilities.createDefaultLabel();
+  private final JLabel version = Utilities.createDefaultLabel();
 
   /** Default constructor. */
   public RootMonitoringPanel()
@@ -119,7 +119,7 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /** Updates the contents of the panel. */
+  @Override
   public void updateContents()
   {
     ServerDescriptor server = null;

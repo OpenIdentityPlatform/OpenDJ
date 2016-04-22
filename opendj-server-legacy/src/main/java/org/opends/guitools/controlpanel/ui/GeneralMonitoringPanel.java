@@ -21,27 +21,28 @@ import static org.opends.messages.AdminToolMessages.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 
 /**
  * Abstract class used to refactor some code among the panels that display the
  * contents of the global monitoring.
  */
-public abstract class GeneralMonitoringPanel extends StatusGenericPanel
+abstract class GeneralMonitoringPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2840755228290832143L;
 
   /** The empty border shared by all the panels. */
-  protected Border PANEL_BORDER = new EmptyBorder(10, 10, 10, 10);
+  protected final Border PANEL_BORDER = new EmptyBorder(10, 10, 10, 10);
 
   /** The message to express that the value was not found. */
-  protected static LocalizableMessage NO_VALUE_SET =
+  protected final static LocalizableMessage NO_VALUE_SET =
     INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
 
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    // no-op
   }
 
   @Override
@@ -53,5 +54,9 @@ public abstract class GeneralMonitoringPanel extends StatusGenericPanel
   @Override
   public void okClicked()
   {
+    // no-op
   }
+
+  /** Updates the contents of the panel. */
+  public abstract void updateContents();
 }

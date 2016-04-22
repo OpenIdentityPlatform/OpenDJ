@@ -25,8 +25,8 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
  */
 public abstract class AbstractNodeTask implements Runnable {
 
-  BasicNode node;
-  boolean cancelled;
+  private final BasicNode node;
+  private boolean cancelled;
 
   /**
    * The constructor of the node searcher.

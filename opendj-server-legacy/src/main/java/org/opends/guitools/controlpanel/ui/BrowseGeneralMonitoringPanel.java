@@ -26,6 +26,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.ImageIcon;
@@ -41,6 +42,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -50,11 +53,9 @@ import org.opends.guitools.controlpanel.ui.nodes.GeneralMonitoringTreeNode;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /** The pane that is displayed when the user clicks on 'General Monitoring'. */
-public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
+class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 6462914563746678830L;
 
@@ -69,9 +70,9 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
 
   private boolean ignoreSelectionEvents;
 
-  private LocalizableMessage NO_ELEMENT_SELECTED =
+  private final LocalizableMessage NO_ELEMENT_SELECTED =
     INFO_CTRL_PANEL_GENERAL_MONITORING_NO_ITEM_SELECTED.get();
-  private LocalizableMessage MULTIPLE_ITEMS_SELECTED =
+  private final LocalizableMessage MULTIPLE_ITEMS_SELECTED =
     INFO_CTRL_PANEL_MULTIPLE_ITEMS_SELECTED_LABEL.get();
 
   /** The enumeration used to define the different static nodes of the tree. */
@@ -94,7 +95,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   }
 
   /** The panel displaying the informations about the selected node. */
-  protected GeneralMonitoringRightPanel entryPane;
+  private GeneralMonitoringRightPanel entryPane;
 
   /** Default constructor. */
   public BrowseGeneralMonitoringPanel()
@@ -225,7 +226,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       }
     });
     JTree tree = treePane.getTree();
-    repopulateTree(tree, true);
+    repopulateTree(tree);
     tree.setRootVisible(true);
     tree.setVisibleRowCount(20);
     tree.expandPath(new TreePath(getRoot(tree)));
@@ -273,7 +274,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
           // Repopulate the tree to display a root node with server information
           if (!serverName.equals(lastServerName))
           {
-            repopulateTree(treePane.getTree(), false);
+            repopulateTree(treePane.getTree());
             lastServerName = serverName;
           }
           if (firstTimeCalled)
@@ -353,9 +354,8 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
    * Populates the tree.  Should be called only once since the tree in this
    * panel is static.
    * @param tree the tree to be repopulated.
-   * @param forceScroll whether the scroll must be reset or not.
    */
-  private void repopulateTree(JTree tree, boolean forceScroll)
+  private void repopulateTree(JTree tree)
   {
     ignoreSelectionEvents = true;
 
@@ -445,33 +445,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       {
         GeneralMonitoringTreeNode node =
           (GeneralMonitoringTreeNode)path.getLastPathComponent();
-        NodeType type = (NodeType)node.getIdentifier();
-        switch (type)
-        {
-        case ROOT:
-          entryPane.updateRoot();
-          break;
-        case SYSTEM_INFORMATION:
-          entryPane.updateSystemInformation();
-          break;
-        case WORK_QUEUE:
-          entryPane.updateWorkQueue();
-          break;
-        case ENTRY_CACHES:
-          entryPane.updateEntryCaches();
-          break;
-        case JE_DATABASES_INFORMATION:
-          entryPane.updateJEDatabaseInformation();
-          break;
-        case PDB_DATABASES_INFORMATION:
-          entryPane.updatePDBDatbaseInformation();
-          break;
-        case JAVA_INFORMATION:
-          entryPane.updateJavaInformation();
-          break;
-        default:
-          throw new RuntimeException("Unknown node type: "+type);
-        }
+        entryPane.update((NodeType) node.getIdentifier());
       }
       else if (paths != null && paths.length > 1)
       {
@@ -506,7 +480,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         && !Objects.equals(lastServer.getWorkQueueMonitor(), desc.getWorkQueueMonitor());
   }
 
-  private HashMap<Object, ImageIcon> hmImages = new HashMap<>();
+  private final Map<Object, ImageIcon> hmImages = new HashMap<>();
   {
     NodeType[] identifiers = {
         NodeType.ROOT,
@@ -547,7 +521,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
   }
 
   /** Specific class used to render the nodes in the tree. It uses specific icons for the nodes. */
-  protected class GeneralMonitoringTreeCellRenderer extends TreeCellRenderer
+  private class GeneralMonitoringTreeCellRenderer extends TreeCellRenderer
   {
     private static final long serialVersionUID = -3390566664259441766L;
 

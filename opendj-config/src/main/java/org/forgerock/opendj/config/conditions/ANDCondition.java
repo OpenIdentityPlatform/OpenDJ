@@ -31,7 +31,7 @@ import org.forgerock.util.Reject;
  * A condition which evaluates to <code>true</code> if and only if all of its
  * sub-conditions are <code>true</code>.
  */
-public final class ANDCondition implements Condition {
+final class ANDCondition implements Condition {
 
     /** The list of sub-conditions. */
     private final List<Condition> conditions;
@@ -73,5 +73,4 @@ public final class ANDCondition implements Condition {
             condition.initialize(d);
         }
     }
-
 }

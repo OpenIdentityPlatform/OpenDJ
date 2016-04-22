@@ -247,7 +247,7 @@ enum ErrorReturnCode
   /** This occurs for instance when the authentication provided by the user is not valid. */
   ERROR_READING_CONFIGURATION_WITH_LDAP(4);
 
-  private int returnCode;
+  private final int returnCode;
   private ErrorReturnCode(int returnCode)
   {
     this.returnCode = returnCode;

@@ -21,6 +21,7 @@ import static org.opends.admin.ads.util.ConnectionUtils.isSSL;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.naming.InterruptedNamingException;
@@ -77,15 +78,15 @@ public class NodeRefresher extends AbstractNodeTask {
     FAILED
   }
 
-  BrowserController controller;
-  State state;
-  boolean recursive;
+  private final BrowserController controller;
+  private State state;
+  private final boolean recursive;
 
-  SearchResult localEntry;
-  SearchResult remoteEntry;
+  private SearchResult localEntry;
+  private SearchResult remoteEntry;
   LDAPURL   remoteUrl;
-  boolean isLeafNode;
-  final ArrayList<SearchResult> childEntries = new ArrayList<>();
+  private boolean isLeafNode;
+  private final List<SearchResult> childEntries = new ArrayList<>();
   final boolean differential;
   Exception exception;
   Object exceptionArg;
@@ -146,7 +147,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * Returns the child entries of the node.
    * @return the child entries of the node.
    */
-  public ArrayList<SearchResult> getChildEntries() {
+  public List<SearchResult> getChildEntries() {
     return childEntries;
   }
 
@@ -579,23 +580,20 @@ public class NodeRefresher extends AbstractNodeTask {
       i = i + 1;
     }
     if (entry == null) {
-      throw new SearchAbandonException(
-          State.FAILED, lastException, lastExceptionArg);
+      throw new SearchAbandonException(State.FAILED, lastException, lastExceptionArg);
     }
-    else
+
+    if (url.getScope() != SearchScope.BASE_OBJECT)
     {
-      if (url.getScope() != SearchScope.BASE_OBJECT)
-      {
-        // The URL is to be transformed: the code assumes that the URL points
-        // to the remote entry.
-        url = new LDAPURL(url.getScheme(), url.getHost(),
-            url.getPort(), entry.getName(), url.getAttributes(),
-            SearchScope.BASE_OBJECT, null, url.getExtensions());
-      }
-      checkLoopInReferral(url, referral[i-1]);
-      remoteUrl = url;
-      remoteEntry = entry;
+      // The URL is to be transformed: the code assumes that the URL points
+      // to the remote entry.
+      url = new LDAPURL(url.getScheme(), url.getHost(),
+          url.getPort(), entry.getName(), url.getAttributes(),
+          SearchScope.BASE_OBJECT, null, url.getExtensions());
     }
+    checkLoopInReferral(url, referral[i-1]);
+    remoteUrl = url;
+    remoteEntry = entry;
   }
 
   /**
@@ -770,15 +768,12 @@ public class NodeRefresher extends AbstractNodeTask {
         while (entries.hasMore())
         {
           SearchResult r = entries.next();
-          String name;
           if (r.getName().length() == 0)
           {
             continue;
           }
-          else
-          {
-            name = unquoteRelativeName(r.getName())+","+parentDn;
-          }
+
+          String name = unquoteRelativeName(r.getName()) + "," + parentDn;
           boolean add = false;
           if (useCustomFilter())
           {
@@ -916,8 +911,7 @@ public class NodeRefresher extends AbstractNodeTask {
   private SearchResult searchManuallyEntry(InitialLdapContext ctx, String dn)
   throws NamingException
   {
-    SearchResult sr = null;
-//  Send an LDAP search
+    // Send an LDAP search
     SearchControls ctls = controller.getBasicSearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(controller.getAttrsForRedSearch());
@@ -926,6 +920,7 @@ public class NodeRefresher extends AbstractNodeTask {
               controller.getObjectSearchFilter(),
               ctls);
 
+    SearchResult sr = null;
     try
     {
       while (entries.hasMore())
@@ -1035,21 +1030,19 @@ public class NodeRefresher extends AbstractNodeTask {
    * and the attribute 'ref' is present and <CODE>false</CODE> otherwise.
    * @throws NamingException if an error occurs.
    */
-  static boolean isReferralEntry(SearchResult entry) throws NamingException {
-    boolean result = false;
+  private static boolean isReferralEntry(SearchResult entry) throws NamingException
+  {
     Set<String> ocValues = ConnectionUtils.getValues(entry, "objectClass");
     if (ocValues != null) {
       for (String value : ocValues)
       {
         boolean isReferral = "referral".equalsIgnoreCase(value);
-
         if (isReferral) {
-          result = ConnectionUtils.getFirstValue(entry, "ref") != null;
-          break;
+          return ConnectionUtils.getFirstValue(entry, "ref") != null;
         }
       }
     }
-    return result;
+    return false;
   }
 
   /**

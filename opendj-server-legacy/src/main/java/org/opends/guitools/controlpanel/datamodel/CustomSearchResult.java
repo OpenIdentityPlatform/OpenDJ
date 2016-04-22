@@ -54,7 +54,7 @@ import org.opends.server.util.LDIFReader;
  */
 public class CustomSearchResult implements Comparable<CustomSearchResult>
 {
-  private String dn;
+  private final String dn;
   private Map<String, List<Object>> attributes;
   private SortedSet<String> attrNames;
   private String toString;
@@ -188,21 +188,6 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       return 0;
     }
     return toString().compareTo(o.toString());
-  }
-
-  /**
-   * Return a new object, copy of the current object.
-   *
-   * @return a new object, copy of the current object
-   */
-  public CustomSearchResult duplicate()
-  {
-    CustomSearchResult sr = new CustomSearchResult(dn);
-    sr.attributes = new HashMap<>(attributes);
-    sr.attrNames = new TreeSet<>(attrNames);
-    sr.toString = toString;
-    sr.hashCode = hashCode;
-    return sr;
   }
 
   @Override

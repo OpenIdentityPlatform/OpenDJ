@@ -28,14 +28,18 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.AuthenticationType;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
 
 /**
  *  The AciContainer class contains all of the needed information to perform
@@ -43,29 +47,15 @@ import org.opends.server.types.*;
  *  of testing if an ACI is applicable to an operation, and evaluation is
  *  the actual access evaluation of the ACI.
  */
-public abstract class AciContainer
-implements AciTargetMatchContext, AciEvalContext {
-
-    /**
-     * The allow and deny lists.
-     */
+abstract class AciContainer implements AciTargetMatchContext, AciEvalContext {
+    /** The allow and deny lists. */
     private List<Aci> denyList, allowList;
 
-    /**
-     * The attribute type in the resource entry currently being evaluated.
-     */
+    /** The attribute type in the resource entry currently being evaluated. */
     private AttributeType attributeType;
-
-    /**
-     * The attribute type value in the resource entry currently being
-     * evaluated.
-     */
+    /** The attribute type value in the resource entry currently being evaluated. */
     private ByteString attributeValue;
-
-    /**
-     * True if this is the first attribute type in the resource entry being
-     * evaluated.
-     */
+    /** True if this is the first attribute type in the resource entry being evaluated. */
     private boolean isFirst;
 
     /**
@@ -74,29 +64,18 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private boolean isEntryTestRule;
 
-    /**
-     * The right mask to use in the evaluation of the LDAP operation.
-     */
+    /** The right mask to use in the evaluation of the LDAP operation. */
     private int rightsMask;
 
-    /**
-     * The entry being evaluated (resource entry).
-     */
-    private Entry resourceEntry;
+    /** The entry being evaluated (resource entry). */
+    private final Entry resourceEntry;
 
-    /**
-     * The client connection information.
-     */
+    /** The client connection information. */
     private final ClientConnection clientConnection;
-
-    /**
-     * The operation being evaluated.
-     */
+    /** The operation being evaluated. */
     private final Operation operation;
 
-    /**
-     * True if a targattrfilters match was found.
-     */
+    /** True if a targattrfilters match was found. */
     private boolean targAttrFiltersMatch;
 
     /**
@@ -107,12 +86,10 @@ implements AciTargetMatchContext, AciEvalContext {
      * switched back for non-proxy access checking. If proxied authentication
      * is not being used then this entry never changes.
      */
-    private Entry authorizationEntry;
+    private final Entry authorizationEntry;
 
-    /**
-     * True if proxied authorization is being used.
-     */
-    private boolean proxiedAuthorization;
+    /** True if proxied authorization is being used. */
+    private final boolean proxiedAuthorization;
 
     /**
      * Used by proxied authorization processing. True if the entry has already
@@ -122,20 +99,12 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private boolean seenEntry;
 
-    /**
-     *  True if geteffectiverights evaluation is in progress.
-     */
+    /** True if geteffectiverights evaluation is in progress. */
     private boolean isGetEffectiveRightsEval;
-
-    /**
-     *  True if the operation has a geteffectiverights control.
-     */
-    private boolean hasGetEffectiveRightsControl;
-
-    /**
-     * The geteffectiverights authzID in DN format.
-     */
-    private DN authzid;
+    /** True if the operation has a geteffectiverights control. */
+    private final boolean hasGetEffectiveRightsControl;
+    /** The geteffectiverights authzID in DN format. */
+    private final DN authzid;
 
     /**
      * True if the authZid should be used as the client DN, only used in
@@ -147,7 +116,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * The list of specific attributes to get rights for, in addition to
      * any attributes requested in the search.
      */
-    private List<AttributeType> specificAttrs;
+    private final List<AttributeType> specificAttrs;
 
     /**
      * Table of ACIs that have targattrfilter keywords that matched. Used
@@ -169,10 +138,7 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private int targAttrMatch;
 
-    /**
-     * The ACI that decided the last evaluation. Used in geteffectiverights
-     * loginfo processing.
-     */
+    /** The ACI that decided the last evaluation. Used in geteffectiverights loginfo processing. */
     private Aci decidingAci;
 
     /**
@@ -188,25 +154,16 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private String summaryString;
 
-   /**
-    * Flag used to determine if ACI all attributes target matched.
-    */
+    /** Flag used to determine if ACI all attributes target matched. */
     private int evalAllAttributes;
 
-   /**
-    * String used to hold a control OID string.
-    */
+    /** String used to hold a control OID string. */
     private String controlOID;
-
-   /**
-    * String used to hold an extended operation OID string.
-    */
+    /** String used to hold an extended operation OID string. */
     private String extOpOID;
 
-    /**
-     * AuthenticationInfo class to use.
-     */
-    private AuthenticationInfo authInfo;
+  /** AuthenticationInfo class to use. */
+  private final AuthenticationInfo authInfo;
 
   /**
      * This constructor is used by all currently supported LDAP operations
@@ -248,12 +205,13 @@ implements AciTargetMatchContext, AciEvalContext {
             && operation instanceof SearchOperation)
         {
           hasGetEffectiveRightsControl = true;
-          if (getEffectiveRightsControl.getAuthzDN() == null) {
-            this.authzid = getClientDN();
-          } else {
-            this.authzid = getEffectiveRightsControl.getAuthzDN();
-          }
+          DN authzDN = getEffectiveRightsControl.getAuthzDN();
+          this.authzid = authzDN != null ? authzDN : getClientDN();
           this.specificAttrs = getEffectiveRightsControl.getAttributes();
+        } else {
+          hasGetEffectiveRightsControl = false;
+          authzid = null;
+          specificAttrs = null;
         }
 
         //If an ACI evaluated because of an Targetattr="*", then the
@@ -273,6 +231,10 @@ implements AciTargetMatchContext, AciEvalContext {
         {
           evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
         }
+      } else {
+        hasGetEffectiveRightsControl = false;
+        authzid = null;
+        specificAttrs = null;
       }
 
       //Reference the current authorization entry, so it can be put back
@@ -297,7 +259,12 @@ implements AciTargetMatchContext, AciEvalContext {
         this.authInfo = authInfo;
         this.authorizationEntry = authInfo.getAuthorizationEntry();
         this.rightsMask = rights;
+        proxiedAuthorization = false;
+        hasGetEffectiveRightsControl = false;
+        authzid = null;
+        specificAttrs = null;
     }
+
   /**
    * Returns true if an entry has already been processed by an access proxy
    * check.
@@ -310,8 +277,7 @@ implements AciTargetMatchContext, AciEvalContext {
     }
 
   /**
-   * Set to true if an entry has already been processed by an access proxy
-   * check.
+   * Set to true if an entry has already been processed by an access proxy check.
    *
    * @param val The value to set the seenEntry boolean to.
    */
@@ -319,13 +285,11 @@ implements AciTargetMatchContext, AciEvalContext {
      this.seenEntry=val;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isProxiedAuthorization() {
          return this.proxiedAuthorization;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isGetEffectiveRightsEval() {
         return this.isGetEffectiveRightsEval;
@@ -371,19 +335,16 @@ implements AciTargetMatchContext, AciEvalContext {
        return this.specificAttrs;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void addTargAttrFiltersMatchAci(Aci aci) {
       this.targAttrFilterAcis.put(aci, aci);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasTargAttrFiltersMatchAci(Aci aci) {
       return this.targAttrFilterAcis.containsKey(aci);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isTargAttrFilterMatchAciEmpty() {
        return this.targAttrFilterAcis.isEmpty();
@@ -404,31 +365,26 @@ implements AciTargetMatchContext, AciEvalContext {
       this.targAttrMatch=0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setTargAttrFiltersAciName(String name) {
       this.targAttrFiltersAciName=name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getTargAttrFiltersAciName() {
       return this.targAttrFiltersAciName;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setTargAttrFiltersMatchOp(int flag) {
       this.targAttrMatch |= flag;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasTargAttrFiltersMatchOp(int flag) {
        return (this.targAttrMatch & flag) != 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getDecidingAciName() {
       if(this.decidingAci != null) {
@@ -437,7 +393,6 @@ implements AciTargetMatchContext, AciEvalContext {
       return null;
     }
 
-  /** {@inheritDoc} */
   @Override
   public void setEvaluationResult(EnumEvalReason reason, Aci decidingAci)
   {
@@ -445,19 +400,16 @@ implements AciTargetMatchContext, AciEvalContext {
     this.decidingAci = decidingAci;
   }
 
-    /** {@inheritDoc} */
     @Override
     public EnumEvalReason getEvalReason() {
       return this.evalReason;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setEvalSummary(String summary) {
       this.summaryString=summary;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getEvalSummary() {
       return this.summaryString;
@@ -473,104 +425,87 @@ implements AciTargetMatchContext, AciEvalContext {
      return this.authzid.equals(this.authorizationEntry.getName());
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setDenyList(List<Aci> denys) {
         denyList=denys;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setAllowList(List<Aci> allows) {
         allowList=allows;
     }
 
-    /** {@inheritDoc} */
     @Override
     public AttributeType getCurrentAttributeType() {
         return attributeType;
     }
 
-    /** {@inheritDoc} */
     @Override
     public ByteString getCurrentAttributeValue() {
         return attributeValue;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setCurrentAttributeType(AttributeType type) {
         attributeType=type;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setCurrentAttributeValue(ByteString value) {
         attributeValue=value;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isFirstAttribute() {
         return isFirst;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setIsFirstAttribute(boolean val) {
         isFirst=val;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean hasEntryTestRule() {
         return isEntryTestRule;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setEntryTestRule(boolean val) {
         isEntryTestRule=val;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Entry getResourceEntry() {
         return resourceEntry;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Entry getClientEntry() {
       return this.authorizationEntry;
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<Aci> getDenyList() {
         return denyList;
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<Aci> getAllowList() {
        return allowList;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isDenyEval() {
         return EnumEvalReason.NO_ALLOW_ACIS.equals(evalReason)
             || EnumEvalReason.EVALUATED_DENY_ACI.equals(evalReason);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAnonymousUser() {
         return !authInfo.isAuthenticated();
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getClientDN() {
       if(this.useAuthzid)
@@ -584,7 +519,6 @@ implements AciTargetMatchContext, AciEvalContext {
       return DN.rootDN();
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getResourceDN() {
         return resourceEntry.getName();
@@ -602,55 +536,46 @@ implements AciTargetMatchContext, AciEvalContext {
        return (this.rightsMask & rights) != 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getRights() {
         return this.rightsMask;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setRights(int rights) {
          this.rightsMask=rights;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getHostName() {
         return clientConnection.getRemoteAddress().getCanonicalHostName();
     }
 
-    /** {@inheritDoc} */
     @Override
     public InetAddress getRemoteAddress() {
         return clientConnection.getRemoteAddress();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAddOperation() {
         return operation instanceof AddOperation;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setTargAttrFiltersMatch(boolean v) {
         this.targAttrFiltersMatch=v;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean getTargAttrFiltersMatch() {
         return targAttrFiltersMatch;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getControlOID() {
       return controlOID;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getExtOpOID() {
       return extOpOID;
@@ -665,7 +590,6 @@ implements AciTargetMatchContext, AciEvalContext {
       this.controlOID=oid;
     }
 
-
     /**
      * Set the extended operation OID value to the specified oid string.
      *
@@ -675,7 +599,6 @@ implements AciTargetMatchContext, AciEvalContext {
       this.extOpOID=oid;
     }
 
-    /** {@inheritDoc} */
     @Override
     public EnumEvalResult hasAuthenticationMethod(EnumAuthMethod authMethod,
                                                   String saslMech) {
@@ -724,7 +647,6 @@ implements AciTargetMatchContext, AciEvalContext {
       return matched;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isMemberOf(Group<?> group) {
         try {
@@ -794,7 +716,6 @@ implements AciTargetMatchContext, AciEvalContext {
       return null;
   }
 
-  /** {@inheritDoc} */
   @Override
   public  void setEvalUserAttributes(int v) {
     if(rightsMask == ACI_READ) {
@@ -809,7 +730,6 @@ implements AciTargetMatchContext, AciEvalContext {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public  void setEvalOpAttributes(int v) {
     if(rightsMask == ACI_READ) {
@@ -824,13 +744,11 @@ implements AciTargetMatchContext, AciEvalContext {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasEvalUserAttributes() {
     return hasAttribute(ACI_FOUND_USER_ATTR_RULE);
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean hasEvalOpAttributes() {
     return hasAttribute(ACI_FOUND_OP_ATTR_RULE);
@@ -861,7 +779,6 @@ implements AciTargetMatchContext, AciEvalContext {
     return (evalAllAttributes & aciAttribute) == aciAttribute;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void clearEvalAttributes(int v) {
     if(v == 0)
@@ -874,13 +791,11 @@ implements AciTargetMatchContext, AciEvalContext {
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public int getCurrentSSF() {
       return clientConnection.getSSF();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

@@ -26,25 +26,23 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.JLabel;
 
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
-import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.util.CollectionUtils;
 
 /** The panel displaying the work queue monitor panel. */
-public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
+ class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
-  static List<MonitoringAttributes> attributes = new ArrayList<>();
-  {
-    attributes.add(BasicMonitoringAttributes.AVERAGE_REQUEST_BACKLOG);
-    attributes.add(BasicMonitoringAttributes.MAX_REQUEST_BACKLOG);
-    attributes.add(BasicMonitoringAttributes.CURRENT_REQUEST_BACKLOG);
-    attributes.add(BasicMonitoringAttributes.REQUESTS_SUBMITTED);
-    attributes.add(BasicMonitoringAttributes.REQUESTS_REJECTED);
-  }
-  private ArrayList<JLabel> monitoringLabels = new ArrayList<>();
+  static final List<BasicMonitoringAttributes> attributes = CollectionUtils.newArrayList(
+      BasicMonitoringAttributes.AVERAGE_REQUEST_BACKLOG,
+      BasicMonitoringAttributes.MAX_REQUEST_BACKLOG,
+      BasicMonitoringAttributes.CURRENT_REQUEST_BACKLOG,
+      BasicMonitoringAttributes.REQUESTS_SUBMITTED,
+      BasicMonitoringAttributes.REQUESTS_REJECTED);
+  private final List<JLabel> monitoringLabels = new ArrayList<>();
   {
     for (int i=0; i<attributes.size(); i++)
     {
@@ -112,6 +110,7 @@ public class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
   }
 
   /** Updates the contents of the panel. */
+  @Override
   public void updateContents()
   {
     ServerDescriptor server = null;

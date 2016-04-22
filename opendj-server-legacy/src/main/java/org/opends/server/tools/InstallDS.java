@@ -17,14 +17,14 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
-
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,8 +57,8 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.LicenseFile;
-import org.opends.quicksetup.TempLogFile;
 import org.opends.quicksetup.SecurityOptions;
+import org.opends.quicksetup.TempLogFile;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
@@ -100,44 +100,26 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public class InstallDS extends ConsoleApplication
 {
-
   private final PlainTextProgressMessageFormatter formatter = new PlainTextProgressMessageFormatter();
 
-  /** Prefix for log files. */
-  public static final String TMP_FILE_PREFIX = "opendj-setup-";
-
-  /** Suffix for log files. */
-  public static final String LOG_FILE_SUFFIX = ".log";
-
-  /**
-   * The enumeration containing the different return codes that the command-line
-   * can have.
-   */
+  /** The enumeration containing the different return codes that the command-line can have. */
   private enum InstallReturnCode
   {
     SUCCESSFUL(0),
-
     /** We did no have an error but the setup was not executed (displayed version or usage). */
     SUCCESSFUL_NOP(0),
-
     /** Unexpected error (potential bug). */
     ERROR_UNEXPECTED(1),
-
     /** Cannot parse arguments or data provided by user is not valid. */
     ERROR_USER_DATA(2),
-
     /** Error server already installed. */
     ERROR_SERVER_ALREADY_INSTALLED(3),
-
     /** Error initializing server. */
     ERROR_INITIALIZING_SERVER(4),
-
     /** The user failed providing password (for the keystore for instance). */
     ERROR_PASSWORD_LIMIT(5),
-
     /** The user cancelled the setup. */
     ERROR_USER_CANCELLED(6),
-
     /** The user doesn't accept the license. */
     ERROR_LICENSE_NOT_ACCEPTED(7);
 
@@ -192,7 +174,7 @@ public class InstallDS extends ConsoleApplication
    * The maximum number of times that we should ask the user to provide the
    * password to access to a keystore.
    */
-  public static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
+  private static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
 
   private final BackendTypeHelper backendTypeHelper = new BackendTypeHelper();
 
@@ -1816,7 +1798,7 @@ public class InstallDS extends ConsoleApplication
    *          the list that will be updated with the nicknames found in the key
    *          store.
    */
-  public static void checkCertificateInKeystore(SecurityOptions.CertificateType type, String path, String pwd,
+  private static void checkCertificateInKeystore(SecurityOptions.CertificateType type, String path, String pwd,
       Collection<String> certNicknames, Collection<LocalizableMessage> errorMessages, Collection<String> nicknameList)
   {
     boolean errorWithPath = false;
@@ -1973,7 +1955,6 @@ public class InstallDS extends ConsoleApplication
   private SecurityOptions createSecurityOptionsPrompting(SecurityOptions.CertificateType type, boolean enableSSL,
       boolean enableStartTLS, int ldapsPort) throws UserDataException, ClientException
   {
-    SecurityOptions securityOptions;
     String path;
     Collection<String> certNicknames = argParser.certNicknameArg.getValues();
     String pwd = argParser.getKeyStorePassword();
@@ -2128,7 +2109,7 @@ public class InstallDS extends ConsoleApplication
    *         to a problem with the key store path and <CODE>false</CODE>
    *         otherwise.
    */
-  public static boolean containsKeyStorePathErrorMessage(Collection<LocalizableMessage> msgs)
+  private static boolean containsKeyStorePathErrorMessage(Collection<LocalizableMessage> msgs)
   {
     for (final LocalizableMessage msg : msgs)
     {
@@ -2159,7 +2140,7 @@ public class InstallDS extends ConsoleApplication
    *         to a problem with the key store password and <CODE>false</CODE>
    *         otherwise.
    */
-  public static boolean containsKeyStorePasswordErrorMessage(Collection<LocalizableMessage> msgs)
+  private static boolean containsKeyStorePasswordErrorMessage(Collection<LocalizableMessage> msgs)
   {
     for (final LocalizableMessage msg : msgs)
     {
@@ -2189,20 +2170,17 @@ public class InstallDS extends ConsoleApplication
    *         to a problem with the certificate nickname and <CODE>false</CODE>
    *         otherwise.
    */
-  public static boolean containsCertNicknameErrorMessage(
-      Collection<LocalizableMessage> msgs)
+  private static boolean containsCertNicknameErrorMessage(Collection<LocalizableMessage> msgs)
   {
-    boolean found = false;
     for (final LocalizableMessage msg : msgs)
     {
       if (StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_CERTNICKNAME_NOT_FOUND) ||
           StaticUtils.hasDescriptor(msg, ERR_INSTALLDS_MUST_PROVIDE_CERTNICKNAME))
       {
-        found = true;
-        break;
+        return true;
       }
     }
-    return found;
+    return false;
   }
 
   /**

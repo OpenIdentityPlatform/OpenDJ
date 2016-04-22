@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.admin.ads.util;
 
@@ -32,7 +32,7 @@ public class OpendsCertificateException extends CertificateException
   private static final long serialVersionUID = 1151044344529478436L;
 
   /** Private certificate chain. */
-  private X509Certificate[] chain;
+  private final X509Certificate[] chain;
 
   // ------------------
   // Constructor

@@ -12,25 +12,21 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads;
 
 import java.util.HashSet;
 import java.util.Set;
 
 
-/**
- * The object of this class represent a Replica (i.e. a suffix in a given
- * server).
- */
+/** The object of this class represent a Replica (i.e. a suffix in a given server). */
 public class ReplicaDescriptor
 {
   private SuffixDescriptor suffix;
   private int entries = -1;
   private ServerDescriptor server;
-  private Set<String> replicationServers = new HashSet<>();
+  private final Set<String> replicationServers = new HashSet<>();
   private int replicationId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;

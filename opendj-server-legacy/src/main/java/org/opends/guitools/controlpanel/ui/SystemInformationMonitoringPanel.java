@@ -26,17 +26,17 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.JLabel;
 
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 
 /** The panel displaying the system information monitoring panel. */
-public class SystemInformationMonitoringPanel extends GeneralMonitoringPanel
+class SystemInformationMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563298069830L;
-  static List<MonitoringAttributes> operations = new ArrayList<>();
+  private static final List<MonitoringAttributes> operations = new ArrayList<>();
   {
     operations.add(BasicMonitoringAttributes.SYSTEM_NAME);
     operations.add(BasicMonitoringAttributes.OPERATING_SYSTEM);
@@ -45,7 +45,7 @@ public class SystemInformationMonitoringPanel extends GeneralMonitoringPanel
     operations.add(BasicMonitoringAttributes.FREE_USED_MEMORY);
     operations.add(BasicMonitoringAttributes.MAX_MEMORY);
   }
-  private ArrayList<JLabel> monitoringLabels = new ArrayList<>();
+  private final List<JLabel> monitoringLabels = new ArrayList<>();
   {
     for (int i=0; i<operations.size(); i++)
     {
@@ -112,7 +112,7 @@ public class SystemInformationMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /** Updates the contents of the panel. */
+  @Override
   public void updateContents()
   {
     ServerDescriptor server = null;

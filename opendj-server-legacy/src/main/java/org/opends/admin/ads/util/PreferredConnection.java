@@ -38,8 +38,8 @@ public class PreferredConnection
     START_TLS
   }
 
-  private String ldapUrl;
-  private Type type;
+  private final String ldapUrl;
+  private final Type type;
 
   /**
    * The constructor of the PreferredConnection.

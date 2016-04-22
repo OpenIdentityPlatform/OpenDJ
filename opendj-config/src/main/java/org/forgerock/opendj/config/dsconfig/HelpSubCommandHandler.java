@@ -554,21 +554,17 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         return b.toString();
     }
 
+    /** The sub-command associated with this handler. */
+    private final SubCommand subCommand;
     /** The argument which should be used to specify the category of managed object to be retrieved. */
     private final StringArgument categoryArgument;
-
     /** A table listing all the available types of managed object indexed on their parent type. */
     private final Map<String, Map<String, AbstractManagedObjectDefinition<?, ?>>> categoryMap = new TreeMap<>();
 
     /** The argument which should be used to display inherited properties. */
-    private BooleanArgument inheritedModeArgument;
-
-    /** The sub-command associated with this handler. */
-    private final SubCommand subCommand;
-
+    private final BooleanArgument inheritedModeArgument;
     /** A table listing all the available types of managed object indexed on their tag(s). */
     private final Map<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>> tagMap = new HashMap<>();
-
     /** The argument which should be used to specify the sub-type of managed object to be retrieved. */
     private final StringArgument typeArgument;
 

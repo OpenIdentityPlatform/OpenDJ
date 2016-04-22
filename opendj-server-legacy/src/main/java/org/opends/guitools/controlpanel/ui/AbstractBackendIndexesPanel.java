@@ -47,17 +47,17 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * 'Manage Indexes...' dialog when the user clicks on 'Indexes' or
  * 'VLV Indexes'.
  */
-public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
+abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = 2702054131388877743L;
   private String backendName;
   /** The table model. */
   protected AbstractIndexTableModel tableModel;
   /** The table contained by this panel. */
-  protected JTable table;
+  private JTable table;
   /** The scroll pane that contains the table. */
-  protected JScrollPane tableScroll;
-  private Set<IndexSelectionListener> indexListeners = new HashSet<>();
+  private JScrollPane tableScroll;
+  private final Set<IndexSelectionListener> indexListeners = new HashSet<>();
   private int lastRowMouseOver = -1;
 
   /** Default constructor. */
@@ -83,7 +83,7 @@ public abstract class AbstractBackendIndexesPanel extends StatusGenericPanel
    * backend.
    * @param backendName the backend name.
    */
-  public void update(String backendName)
+  void update(String backendName)
   {
     this.backendName = backendName;
 

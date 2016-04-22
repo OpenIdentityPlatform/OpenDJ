@@ -136,7 +136,7 @@ final class SubCommandHandlerFactory {
     /** The set of get-xxx-prop available sub-commands. */
     private final SortedSet<GetPropSubCommandHandler> getPropHandlers = new TreeSet<>();
     /** The help sub-command handler. */
-    private HelpSubCommandHandler helpHandler;
+    private final HelpSubCommandHandler helpHandler;
     /** The set of list-xxx available sub-commands. */
     private final SortedSet<ListSubCommandHandler> listHandlers = new TreeSet<>();
     /** The set of set-xxx-prop available sub-commands. */

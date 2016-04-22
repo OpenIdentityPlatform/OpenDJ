@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,8 +60,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPHeader;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -83,7 +90,6 @@ import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.LDAPException;
 import org.opends.server.util.Base64;
-
 import org.w3c.dom.Document;
 import org.xml.sax.Attributes;
 import org.xml.sax.EntityResolver;
@@ -131,7 +137,7 @@ public class DSMLServlet extends HttpServlet {
   private static Schema schema;
 
   /** Prevent multiple logging when trying to set unavailable/unsupported parser features */
-  private static AtomicBoolean logFeatureWarnings = new AtomicBoolean(false);
+  private static final AtomicBoolean logFeatureWarnings = new AtomicBoolean(false);
 
   private String hostName;
   private Integer port;
@@ -143,7 +149,7 @@ public class DSMLServlet extends HttpServlet {
   private String trustStorePasswordValue;
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
-  private HashSet<String> exopStrings = new HashSet<>();
+  private final Set<String> exopStrings = new HashSet<>();
 
   /**
    * This method will be called by the Servlet Container when
@@ -155,33 +161,17 @@ public class DSMLServlet extends HttpServlet {
    */
   @Override
   public void init(ServletConfig config) throws ServletException {
-
     try {
-      hostName = config.getServletContext().getInitParameter(HOST);
-
-      port = Integer.valueOf(config.getServletContext().getInitParameter(PORT));
-
-      userDN = config.getServletContext().getInitParameter(USERDN);
-
-      userPassword = config.getServletContext().getInitParameter(USERPWD);
-
-      useSSL = Boolean.valueOf(
-          config.getServletContext().getInitParameter(USESSL));
-
-      useStartTLS = Boolean.valueOf(
-          config.getServletContext().getInitParameter(USESTARTTLS));
-
-      trustStorePathValue =
-          config.getServletContext().getInitParameter(TRUSTSTOREPATH);
-
-      trustStorePasswordValue =
-          config.getServletContext().getInitParameter(TRUSTSTOREPASSWORD);
-
-      trustAll = Boolean.valueOf(
-          config.getServletContext().getInitParameter(TRUSTALLCERTS));
-
-      useHTTPAuthzID = Boolean.valueOf(
-          config.getServletContext().getInitParameter(USEHTTPAUTHZID));
+      hostName = stringValue(config, HOST);
+      port = Integer.valueOf(stringValue(config, PORT));
+      userDN = stringValue(config, USERDN);
+      userPassword = stringValue(config, USERPWD);
+      useSSL = booleanValue(config, USESSL);
+      useStartTLS = booleanValue(config, USESTARTTLS);
+      trustStorePathValue = stringValue(config, TRUSTSTOREPATH);
+      trustStorePasswordValue = stringValue(config, TRUSTSTOREPASSWORD);
+      trustAll = booleanValue(config, TRUSTALLCERTS);
+      useHTTPAuthzID = booleanValue(config, USEHTTPAUTHZID);
 
       /*
        * Find all the param-names matching the pattern:
@@ -224,7 +214,15 @@ public class DSMLServlet extends HttpServlet {
     }
   }
 
+  private boolean booleanValue(ServletConfig config, String paramName)
+  {
+    return Boolean.valueOf(stringValue(config, paramName));
+  }
 
+  private String stringValue(ServletConfig config, String paramName)
+  {
+    return config.getServletContext().getInitParameter(paramName);
+  }
 
   /**
    * Check if using the proxy authz control will work, by using it to read

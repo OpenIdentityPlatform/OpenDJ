@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -44,7 +44,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.ServerConstants;
 
 /** The panel displaying the database monitoring filtered attributes. */
-public class DatabaseMonitoringPanel extends GeneralMonitoringPanel
+class DatabaseMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563723229830L;
 
@@ -54,8 +54,8 @@ public class DatabaseMonitoringPanel extends GeneralMonitoringPanel
   private JLabel noDBsFound;
   private JLabel noMonitoringFound;
   private JButton showFields;
-  private LinkedHashSet<String> attributes = new LinkedHashSet<>();
-  private LinkedHashSet<String> allAttributes = new LinkedHashSet<>();
+  private Set<String> attributes = new LinkedHashSet<>();
+  private final LinkedHashSet<String> allAttributes = new LinkedHashSet<>();
 
   private MonitoringAttributesViewPanel<String> fieldsViewPanel;
   private GenericDialog fieldsViewDlg;
@@ -65,7 +65,7 @@ public class DatabaseMonitoringPanel extends GeneralMonitoringPanel
    * Default constructor.
    * @param type the type of pluggable backend.
    */
-  public DatabaseMonitoringPanel(BackendDescriptor.PluggableType type)
+  DatabaseMonitoringPanel(BackendDescriptor.PluggableType type)
   {
     pluggableType = type;
     createLayout();
@@ -137,7 +137,7 @@ public class DatabaseMonitoringPanel extends GeneralMonitoringPanel
     setBorder(PANEL_BORDER);
   }
 
-  /** Updates the contents of the panel.  The code assumes that this is being called from the event thread. */
+  @Override
   public void updateContents()
   {
     boolean backendsFound = false;
@@ -217,7 +217,7 @@ public class DatabaseMonitoringPanel extends GeneralMonitoringPanel
     }
   }
 
-  private void setFieldsToDisplay(LinkedHashSet<String> attributes)
+  private void setFieldsToDisplay(Set<String> attributes)
   {
     this.attributes = attributes;
     tableModel.setAttributes(attributes);

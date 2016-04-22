@@ -89,18 +89,13 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
 
   /** Name of the index label. */
   final JLabel name = Utilities.createDefaultLabel();
-
   /** Backends label. */
-  final JLabel lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
+  private final JLabel lBackend = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_BACKEND_LABEL.get());
   /** Read-only backend name label. */
   final JLabel backendName = Utilities.createDefaultLabel();
-
   final JLabel lAttribute = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ATTRIBUTE_LABEL.get());
-
   final JLabel lEntryLimit = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_ENTRY_LIMIT_LABEL.get());
-
   final JTextField entryLimit = Utilities.createShortTextField();
-
   final JLabel lType = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_INDEX_TYPE_LABEL.get());
   /** Panel containing all the index types. */
   final JPanel typesPanel = new JPanel(new GridBagLayout());
@@ -118,7 +113,7 @@ abstract class AbstractIndexPanel extends StatusGenericPanel
   /** Array of checkboxes. */
   final JCheckBox[] types =       { approximate, equality, ordering, presence, substring };
   /** Array of index types that matches the array of checkboxes (types). */
-  final IndexType[] configTypes = { APPROXIMATE, EQUALITY, ORDERING, PRESENCE, SUBSTRING };
+  private final IndexType[] configTypes = { APPROXIMATE, EQUALITY, ORDERING, PRESENCE, SUBSTRING };
 
   final JButton deleteIndex = Utilities.createButton(INFO_CTRL_PANEL_DELETE_INDEX_LABEL.get());
   final JButton saveChanges = Utilities.createButton(INFO_CTRL_PANEL_SAVE_CHANGES_LABEL.get());

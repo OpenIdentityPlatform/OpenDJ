@@ -68,7 +68,7 @@ import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 
 /** The panel displaying a table view of an LDAP entry. */
-public class TableViewEntryPanel extends ViewEntryPanel
+class TableViewEntryPanel extends ViewEntryPanel
 {
   private static final long serialVersionUID = 2135331526526472175L;
   private CustomSearchResult searchResult;
@@ -382,13 +382,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
   }
 
   /** The table model used by the tree in the panel. */
-  protected class LDAPEntryTableModel extends SortableTableModel
+  private class LDAPEntryTableModel extends SortableTableModel
   implements Comparator<AttributeValuePair>
   {
     private static final long serialVersionUID = -1240282431326505113L;
-    private ArrayList<AttributeValuePair> dataArray = new ArrayList<>();
-    private SortedSet<AttributeValuePair> allSortedValues = new TreeSet<>(this);
-    private Set<String> requiredAttrs = new HashSet<>();
+    private final List<AttributeValuePair> dataArray = new ArrayList<>();
+    private final SortedSet<AttributeValuePair> allSortedValues = new TreeSet<>(this);
+    private final Set<String> requiredAttrs = new HashSet<>();
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(LocalizableMessage.raw("Attribute"), 40),
         getHeader(LocalizableMessage.raw("Value", 40))};
@@ -399,7 +399,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
      * Updates the contents of the table model with the
      * {@code TableViewEntryPanel.searchResult} object.
      */
-    public void displayEntry()
+    private void displayEntry()
     {
       updateDataArray();
       fireTableDataChanged();
@@ -809,18 +809,18 @@ public class TableViewEntryPanel extends ViewEntryPanel
    * used by the table model to be able to retrieve more easily all the values
    * for a given attribute.
    */
-  static class AttributeValuePair
+  private static class AttributeValuePair
   {
     /** The attribute name. */
-    String attrName;
+    private final String attrName;
     /** The value. */
-    Object value;
+    private Object value;
     /**
      * Constructor.
      * @param attrName the attribute name.
      * @param value the value.
      */
-    public AttributeValuePair(String attrName, Object value)
+    private AttributeValuePair(String attrName, Object value)
     {
       this.attrName = attrName;
       this.value = value;

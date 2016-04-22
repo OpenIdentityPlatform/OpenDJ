@@ -33,10 +33,11 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.util.Utils;
 
 /**
- * Represents a particular version of OpenDJ useful for making comparisons between versions. FIXME TODO Move this file
- * in ? package.
+ * Represents a particular version of OpenDJ useful for making comparisons between versions.
+ * <p>
+ * FIXME TODO Move this file in ? package.
  */
-public class BuildVersion implements Comparable<BuildVersion> {
+class BuildVersion implements Comparable<BuildVersion> {
 
     private final int major;
     private final int minor;

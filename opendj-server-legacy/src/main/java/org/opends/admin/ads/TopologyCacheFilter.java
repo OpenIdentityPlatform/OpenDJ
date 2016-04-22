@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class TopologyCacheFilter
 {
-  private Set<String> baseDNs = new HashSet<>();
+  private final Set<String> baseDNs = new HashSet<>();
   private boolean searchMonitoringInformation = true;
   private boolean searchBaseDNInformation = true;
 
@@ -83,15 +83,6 @@ public class TopologyCacheFilter
   public void addBaseDNToSearch(String dn)
   {
     baseDNs.add(dn);
-  }
-
-  /**
-   * Removes a base DN fom the list of baseDNs to search.
-   * @param dn the DN of the base DN to be removed.
-   */
-  public void removeBaseDNToSearch(String dn)
-  {
-    baseDNs.remove(dn);
   }
 
   /**

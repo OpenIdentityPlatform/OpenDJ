@@ -12,15 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.admin.ads;
-import org.opends.server.types.OpenDsException;
 
 import javax.naming.NamingException;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.server.types.OpenDsException;
 
 /**
  * This class represents the Exception that can occur while reading server
@@ -29,43 +28,26 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 public class TopologyCacheException extends OpenDsException {
 
   private static final long serialVersionUID = 1709535837273360382L;
-  private Type type;
-  private String ldapUrl;
-  private ApplicationTrustManager trustManager;
+  private final Type type;
+  private final String ldapUrl;
+  private final ApplicationTrustManager trustManager;
 
-  /**
-   * Error type.
-   */
+  /** Error type. */
   public enum Type
   {
-    /**
-     * Error reading the ADS.
-     */
+    /** Error reading the ADS. */
     GENERIC_READING_ADS,
-    /**
-     * Creating connection to a particular server.
-     */
+    /** Creating connection to a particular server. */
     GENERIC_CREATING_CONNECTION,
-    /**
-     * Error reading the configuration of a particular server.
-     */
+    /** Error reading the configuration of a particular server. */
     GENERIC_READING_SERVER,
-    /**
-     * The DN provided in the DirContext of ADS is not of a global
-     * administrator.
-     */
+    /** The DN provided in the DirContext of ADS is not of a global administrator. */
     NOT_GLOBAL_ADMINISTRATOR,
-    /**
-     * Not enough permissions to read the server configuration.
-     */
+    /** Not enough permissions to read the server configuration. */
     NO_PERMISSIONS,
-    /**
-     * Timeout reading the configuration of a particular server.
-     */
+    /** Timeout reading the configuration of a particular server. */
     TIMEOUT,
-    /**
-     * Unexpected error.
-     */
+    /** Unexpected error. */
     BUG
   }
 
@@ -74,10 +56,12 @@ public class TopologyCacheException extends OpenDsException {
    * ADSContextException occurs.
    * @param ace the exception which is the cause of this exception.
    */
-  public TopologyCacheException(ADSContextException ace)
+  TopologyCacheException(ADSContextException ace)
   {
     super(ace);
     type = Type.GENERIC_READING_ADS;
+    ldapUrl = null;
+    trustManager = null;
   }
 
   /**
@@ -89,6 +73,8 @@ public class TopologyCacheException extends OpenDsException {
   {
     super(t);
     this.type = type;
+    this.ldapUrl = null;
+    this.trustManager = null;
   }
 
   /**
