@@ -30,8 +30,13 @@ import javax.net.ssl.SSLKeyException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-/** An implementation of SSLSocketFactory. */
-class TrustedSocketFactory extends SSLSocketFactory
+/**
+ * An implementation of SSLSocketFactory.
+ * <p>
+ * Note: The class must be public so it can be instantiated by the
+ * {@link javax.naming.ldap.InitialLdapContext}.
+ */
+public class TrustedSocketFactory extends SSLSocketFactory
 {
   private static final Map<Thread, TrustManager> hmTrustManager = new HashMap<>();
   private static final Map<Thread, KeyManager> hmKeyManager = new HashMap<>();
@@ -45,10 +50,16 @@ class TrustedSocketFactory extends SSLSocketFactory
 
   /**
    * Constructor of the TrustedSocketFactory.
-   * @param trustManager the trust manager to use.
-   * @param keyManager   the key manager to use.
+   * <p>
+   * Note: The class must be public so it can be instantiated by the
+   * {@link javax.naming.ldap.InitialLdapContext}.
+   *
+   * @param trustManager
+   *          the trust manager to use.
+   * @param keyManager
+   *          the key manager to use.
    */
-  TrustedSocketFactory(TrustManager trustManager, KeyManager keyManager)
+  public TrustedSocketFactory(TrustManager trustManager, KeyManager keyManager)
   {
     this.trustManager = trustManager;
     this.keyManager   = keyManager;
