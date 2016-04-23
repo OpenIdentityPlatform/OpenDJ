@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2011-2015 ForgeRock AS.
+  Copyright 2011-2016 ForgeRock AS.
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
@@ -22,11 +22,9 @@
   </properties>
   <body>
     <section name="About ${project.name}">
-      <p>This module contains example LDAP applications implemented using the
-        OpenDJ LDAP SDK.</p>
 
       <p>
-        The following examples use the synchronous APIs:
+        The following LDAP example applications use the OpenDJ LDAP SDK synchronous APIs:
       </p>
 
       <ul>
@@ -109,7 +107,7 @@
       </ul>
 
       <p>
-        The following examples use the asynchronous APIs:
+        The following LDAP example applications use the OpenDJ LDAP SDK asynchronous APIs:
       </p>
 
       <ul>
@@ -157,6 +155,7 @@
         </li>
       </ul>
     </section>
+<!--
     <section name="Documentation for ${project.name}">
       <p>
         Javadoc for this module can be found <a href="apidocs/index.html">here</a>.
@@ -184,5 +183,6 @@
         </p>
       </subsection>
     </section>
+-->
   </body>
 </document>
