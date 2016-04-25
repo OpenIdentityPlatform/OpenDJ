@@ -36,11 +36,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
 * The panel that allows the user to select which attributes must be displayed
@@ -49,12 +49,12 @@ import org.forgerock.i18n.LocalizableMessage;
 * @param <T> the type of the objects that this panel manages.  For now it only
 * manages String and MonitoringAttribute objects.
 */
-public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
+class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
 {
  private static final long serialVersionUID = 6462932163745559L;
 
- private LinkedHashSet<T> selectedAttributes = new LinkedHashSet<>();
- private Set<T> monitoringAttributes;
+ private final LinkedHashSet<T> selectedAttributes = new LinkedHashSet<>();
+ private final Set<T> monitoringAttributes;
  private boolean isCanceled = true;
 
  /**
@@ -71,7 +71,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @param attributes the list of possible attributes.
   * @return an instance of this panel that uses String as attributes.
   */
- public static MonitoringAttributesViewPanel<String> createStringInstance(LinkedHashSet<String> attributes)
+ static MonitoringAttributesViewPanel<String> createStringInstance(LinkedHashSet<String> attributes)
  {
    return new MonitoringAttributesViewPanel<>(attributes);
  }
@@ -83,7 +83,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @return an instance of this panel that uses MonitoringAttributes as
   * attributes.
   */
- public static MonitoringAttributesViewPanel<MonitoringAttributes>
+ static MonitoringAttributesViewPanel<MonitoringAttributes>
  createMonitoringAttributesInstance(LinkedHashSet<MonitoringAttributes> attributes)
  {
    return new MonitoringAttributesViewPanel<>(attributes);
@@ -95,7 +95,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @param attributes the list of possible attributes.
   * @return an instance of this panel that uses LocalizableMessage as attributes.
   */
- public static MonitoringAttributesViewPanel<LocalizableMessage>
+ static MonitoringAttributesViewPanel<LocalizableMessage>
  createMessageInstance(LinkedHashSet<LocalizableMessage> attributes)
  {
    return new MonitoringAttributesViewPanel<>(attributes);
@@ -111,7 +111,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * Default constructor.
   * @param attributes the attributes that will be proposed to the user.
   */
- protected MonitoringAttributesViewPanel(LinkedHashSet<T> attributes)
+ private MonitoringAttributesViewPanel(LinkedHashSet<T> attributes)
  {
    monitoringAttributes = new LinkedHashSet<>(attributes);
    createLayout();
@@ -324,7 +324,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @param attribute the attribute.
   * @return the message for the provided attribute.
   */
- protected LocalizableMessage getMessage(T attribute)
+ private LocalizableMessage getMessage(T attribute)
  {
    if (attribute instanceof MonitoringAttributes)
    {

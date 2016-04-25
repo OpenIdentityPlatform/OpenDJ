@@ -167,7 +167,7 @@ public class JavaArguments
    * @param defaultJavaArguments the default values for the java arguments.
    * @return the message representing a java arguments object.
    */
-  public static LocalizableMessage getMessage(JavaArguments javaArguments,
+  private static LocalizableMessage getMessage(JavaArguments javaArguments,
       JavaArguments defaultJavaArguments)
   {
     LocalizableMessage msg;

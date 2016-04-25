@@ -95,8 +95,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   private JLabel dn = Utilities.createDefaultLabel();
 
   /** An array containing the fields of this panel. */
-  protected final JTextField[] fields = {name, description, filter,
-      referenceGroup};
+  private final JTextField[] fields = { name, description, filter, referenceGroup };
 
   /** Default constructor. */
   public NewGroupPanel()

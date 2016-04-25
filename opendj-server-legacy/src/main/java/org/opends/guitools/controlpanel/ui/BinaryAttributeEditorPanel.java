@@ -626,7 +626,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
    * user provides a path value through the JFileChooser associated with the
    * browse button.
    */
-  class CustomBrowseActionListener extends BrowseActionListener
+  private class CustomBrowseActionListener extends BrowseActionListener
   {
     /**
      * Constructor of this listener.
@@ -635,7 +635,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
      * @param parent the parent component to be used as reference to display
      * the file chooser dialog.
      */
-    public CustomBrowseActionListener(JTextComponent field, BrowseType type,
+    private CustomBrowseActionListener(JTextComponent field, BrowseType type,
         Component parent)
     {
       super(field, type, parent);

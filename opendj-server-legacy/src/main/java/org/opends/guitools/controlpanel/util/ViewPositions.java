@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.util;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JScrollPane;
 
@@ -27,14 +28,14 @@ import javax.swing.JScrollPane;
  */
 public class ViewPositions
 {
-  private ArrayList<JScrollPane> scrolls = new ArrayList<>();
-  private ArrayList<Point> points = new ArrayList<>();
+  private final List<JScrollPane> scrolls = new ArrayList<>();
+  private final List<Point> points = new ArrayList<>();
 
   /**
    * Returns the size of the lists.
    * @return the size of the lists.
    */
-  public int size()
+  int size()
   {
     return scrolls.size();
   }
@@ -44,17 +45,10 @@ public class ViewPositions
    * @param scroll the scroll bar.
    * @param p the point.
    */
-  public void add(JScrollPane scroll, Point p)
+  void add(JScrollPane scroll, Point p)
   {
     scrolls.add(scroll);
     points.add(p);
-  }
-
-  /** Clears the contents of both lists. */
-  public void clear()
-  {
-    scrolls.clear();
-    points.clear();
   }
 
   /**
@@ -62,7 +56,7 @@ public class ViewPositions
    * @param index the index.
    * @return the point at the provided index.
    */
-  public Point getPoint(int index)
+  Point getPoint(int index)
   {
     return points.get(index);
   }
@@ -72,7 +66,7 @@ public class ViewPositions
    * @param index the index.
    * @return the scroll at the provided index.
    */
-  public JScrollPane getScrollPane(int index)
+  JScrollPane getScrollPane(int index)
   {
     return scrolls.get(index);
   }

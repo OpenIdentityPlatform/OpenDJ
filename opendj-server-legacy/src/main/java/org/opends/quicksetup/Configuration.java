@@ -12,19 +12,18 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
-import org.opends.quicksetup.util.Utils;
-
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
+
+import org.opends.quicksetup.util.Utils;
 
 /**
  * Represents the contents of an OpenDS configuration file.
@@ -33,8 +32,8 @@ public class Configuration {
 
   private String contents;
   private String lowerCaseContents;
-  private Installation install;
-  private File file;
+  private final Installation install;
+  private final File file;
 
   /**
    * Create a Configuration from a file.
@@ -315,7 +314,8 @@ public class Configuration {
    * Loads the contents of the configuration file into memory.
    * @throws IOException if there were problems loading the file
    */
-  public void load() throws IOException {
+  private void load() throws IOException
+  {
     StringBuilder buf = new StringBuilder();
     FileReader reader = new FileReader(file);
     BufferedReader in = new BufferedReader(reader);

@@ -14,11 +14,9 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
-
- /** Policy to follow to choose the protocol to be used. */
+/** Policy to follow to choose the protocol to be used. */
 public enum ConnectionProtocolPolicy
 {
   /** Force to use Start TLS. */
@@ -33,31 +31,4 @@ public enum ConnectionProtocolPolicy
   USE_MOST_SECURE_AVAILABLE,
   /** Use the less secure available (LDAP, and then LDAPs). */
   USE_LESS_SECURE_AVAILABLE;
-
-  /**
-   * Returns the ConnectionProtocolPolicy to be used with the parameters
-   * provided by the user.
-   * @param useSSL whether the user asked to use SSL or not.
-   * @param useStartTLS whether the user asked to use Start TLS or not.
-   * @return the ConnectionProtocolPolicy to be used with the parameters
-   * provided by the user.
-   */
-  public static ConnectionProtocolPolicy getConnectionPolicy(boolean useSSL,
-      boolean useStartTLS)
-  {
-    ConnectionProtocolPolicy policy;
-    if (useStartTLS)
-    {
-      policy = ConnectionProtocolPolicy.USE_STARTTLS;
-    }
-    else if (useSSL)
-    {
-      policy = ConnectionProtocolPolicy.USE_LDAPS;
-    }
-    else
-    {
-      policy = ConnectionProtocolPolicy.USE_LESS_SECURE_AVAILABLE;
-    }
-    return policy;
-  }
 }

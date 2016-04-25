@@ -416,7 +416,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
   }
 
   /** The class that performs the export. */
-  protected class ExportTask extends InclusionExclusionTask
+  private class ExportTask extends InclusionExclusionTask
   {
     private Set<String> backendSet;
     private String fileName;
@@ -425,7 +425,7 @@ public class ExportLDIFPanel extends InclusionExclusionPanel
      * @param info the control panel info.
      * @param dlg the progress dialog that shows the progress of the task.
      */
-    public ExportTask(ControlPanelInfo info, ProgressDialog dlg)
+    private ExportTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<>();

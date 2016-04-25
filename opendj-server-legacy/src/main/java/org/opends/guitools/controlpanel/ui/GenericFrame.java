@@ -64,10 +64,10 @@ public class GenericFrame extends JFrame
   private JButton okButton;
 
   /** The close button. */
-  protected JButton closeButton;
+  private JButton closeButton;
   private JButton cancelButton;
   /** The panel contained in the frame. */
-  protected StatusGenericPanel panel;
+  private StatusGenericPanel panel;
   private Component lastComponentWithFocus;
 
   /**

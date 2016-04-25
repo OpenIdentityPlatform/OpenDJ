@@ -64,7 +64,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
  * The panel that displays an existing index (it appears on the right of the
  * 'Manage Indexes' dialog).
  */
-public class IndexPanel extends AbstractIndexPanel
+class IndexPanel extends AbstractIndexPanel
 {
   private static final long serialVersionUID = 1439500626486823366L;
 
@@ -221,6 +221,7 @@ public class IndexPanel extends AbstractIndexPanel
   @Override
   public void okClicked()
   {
+    // no-op
   }
 
   /**
@@ -231,7 +232,7 @@ public class IndexPanel extends AbstractIndexPanel
    *         selection of the index should be canceled) and <CODE>false</CODE>
    *         otherwise.
    */
-  public boolean mustCheckUnsavedChanges()
+  boolean mustCheckUnsavedChanges()
   {
     return index != null &&
         saveChanges.isVisible() && saveChanges.isEnabled();
@@ -245,7 +246,7 @@ public class IndexPanel extends AbstractIndexPanel
    *         panel, to not save them or simply cancelled the selection change in
    *         the tree.
    */
-  public UnsavedChangesDialog.Result checkUnsavedChanges()
+  UnsavedChangesDialog.Result checkUnsavedChanges()
   {
     UnsavedChangesDialog.Result result;
     UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(Utilities.getParentDialog(this), getInfo());
@@ -370,7 +371,7 @@ public class IndexPanel extends AbstractIndexPanel
    * @param index
    *          the index descriptor to be used to update the panel.
    */
-  public void update(IndexDescriptor index)
+  void update(IndexDescriptor index)
   {
     ignoreCheckSave = true;
     setPrimaryValid(lEntryLimit);
@@ -462,14 +463,14 @@ public class IndexPanel extends AbstractIndexPanel
   }
 
   /** The task in charge of modifying the index. */
-  protected class ModifyIndexTask extends Task
+  private class ModifyIndexTask extends Task
   {
-    private Set<String> backendSet;
-    private String attributeName;
-    private String backendName;
-    private int entryLimitValue;
-    private IndexDescriptor indexToModify;
-    private SortedSet<IndexType> indexTypes = new TreeSet<>();
+    private final Set<String> backendSet;
+    private final String attributeName;
+    private final String backendName;
+    private final int entryLimitValue;
+    private final IndexDescriptor indexToModify;
+    private final SortedSet<IndexType> indexTypes;
     private IndexDescriptor modifiedIndex;
 
     /**
@@ -480,7 +481,7 @@ public class IndexPanel extends AbstractIndexPanel
      * @param dlg
      *          the progress dialog that shows the progress of the task.
      */
-    public ModifyIndexTask(ControlPanelInfo info, ProgressDialog dlg)
+    private ModifyIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendName = index.getBackend().getBackendID();
@@ -660,10 +661,7 @@ public class IndexPanel extends AbstractIndexPanel
       {
         return getCommandLinePath("dsconfig");
       }
-      else
-      {
-        return null;
-      }
+      return null;
     }
 
     @Override

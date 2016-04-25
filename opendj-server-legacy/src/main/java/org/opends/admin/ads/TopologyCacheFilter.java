@@ -36,7 +36,7 @@ public class TopologyCacheFilter
    * @return <CODE>true</CODE> if we must search base DN information and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean searchBaseDNInformation()
+  boolean searchBaseDNInformation()
   {
     return searchBaseDNInformation;
   }
@@ -58,7 +58,7 @@ public class TopologyCacheFilter
    * @return <CODE>true</CODE> if we must search monitoring information and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean searchMonitoringInformation()
+  boolean searchMonitoringInformation()
   {
     return searchMonitoringInformation;
   }
@@ -100,7 +100,7 @@ public class TopologyCacheFilter
    * @return <CODE>true</CODE> if the filter specifies to search for all the
    * base DNs and <CODE>false</CODE> otherwise.
    */
-  public boolean searchAllBaseDNs()
+  boolean searchAllBaseDNs()
   {
     return baseDNs.isEmpty();
   }

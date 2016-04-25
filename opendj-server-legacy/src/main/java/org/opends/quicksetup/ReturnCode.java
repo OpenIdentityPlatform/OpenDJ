@@ -55,14 +55,15 @@ public class ReturnCode {
   /** Return code for errors that are non-specified. */
   public static final ReturnCode UNKNOWN = new ReturnCode(100);
 
-  private int code;
+  private final int code;
 
   /**
    * Creates a new parameterized instance.
    *
    * @param code to return
    */
-  public ReturnCode(int code) {
+  private ReturnCode(int code)
+  {
     this.code = code;
   }
 

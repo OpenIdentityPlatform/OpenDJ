@@ -28,7 +28,11 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchFilter;
 
 /**
  * The TargAttrFilters class represents a targattrfilters rule of an ACI.
@@ -39,7 +43,7 @@ public class TargAttrFilters {
      * A valid targattrfilters rule may have two TargFilterlist parts -- the
      * first one is required.
      */
-    private TargAttrFilterList firstFilterList;
+  private final TargAttrFilterList firstFilterList;
     private TargAttrFilterList secondFilterList;
 
     /**
@@ -61,41 +65,40 @@ public class TargAttrFilters {
     /**
      * Regular expression used to check for valid expression separator.
      */
-    private static final
-    String secondOpSeparator="\\)" +  ZERO_OR_MORE_WHITESPACE + ",";
+    private static final Pattern secondOpSeparator = Pattern.compile("\\)" + ZERO_OR_MORE_WHITESPACE + ",");
 
     /**
      * Regular expression used to match the second operation of the filter list.
      * If the first was "add" this must be "del", if the first was "del" this
      * must be "add".
      */
-    public static final String secondOp =
+    private static final Pattern secondOp = Pattern.compile(
             "[,]{1}" + ZERO_OR_MORE_WHITESPACE + "del|add" +
-            ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN + ZERO_OR_MORE_WHITESPACE;
+            ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN + ZERO_OR_MORE_WHITESPACE);
 
     /**
      * Regular expression used to match the first targFilterList, it must exist
      * or an exception is thrown.
      */
-    private static final String firstOp = "^" + ADD_OR_DEL_KEYWORD_GROUP +
-            ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN + ZERO_OR_MORE_WHITESPACE;
+    private static final Pattern firstOp = Pattern.compile("^" + ADD_OR_DEL_KEYWORD_GROUP +
+            ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN + ZERO_OR_MORE_WHITESPACE);
 
     /**
      * Regular expression used to group the remainder of a partially parsed
      * rule.  Any character one or more times.
      */
-    private static String restOfExpression = "(.+)";
+    private final static String restOfExpression = "(.+)";
 
     /**
      * Regular expression used to match the first operation keyword and the
      * rest of the expression.
      */
-    private static String keywordFullPattern = firstOp + restOfExpression;
+    private final static String keywordFullPattern = firstOp + restOfExpression;
 
     /**
      * The enumeration representing the operation.
      */
-    private EnumTargetOperator op;
+    private final EnumTargetOperator op;
 
     /**
      * A mask used to denote if the rule has add, del or both operations in the
@@ -174,13 +177,13 @@ public class TargAttrFilters {
          * Check that there are not too many filter lists. There can only
          * be either one or two.
          */
-        String[] filterLists = subExpression.split(secondOp, -1);
+        String[] filterLists = secondOp.split(subExpression, -1);
         if(filterLists.length > 2) {
           throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS.get(expression));
         } else if (filterLists.length == 1) {
           //Check if the there is something like ") , deel=". A bad token
           //that the regular expression didn't pick up.
-          String [] filterList2=subExpression.split(secondOpSeparator);
+          String[] filterList2 = secondOpSeparator.split(subExpression);
           if(filterList2.length == 2) {
               throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION.get(expression));
           }

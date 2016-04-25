@@ -153,7 +153,7 @@ public class DataReplicationOptions
    * @return the free port of type X989 if it is available and we can use and -1
    * if not.
    */
-  static int getDefaultReplicationPort()
+  private static int getDefaultReplicationPort()
   {
     int defaultPort = -1;
 

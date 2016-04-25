@@ -16,8 +16,9 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.AdminToolMessages.*;
-import static com.forgerock.opendj.cli.Utils.isDN;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -52,30 +53,30 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -3826176895778069011L;
   /** The DNs to exclude. */
-  protected JTextArea dnsToExclude;
+  private JTextArea dnsToExclude;
   /** The attributes to exclude. */
-  protected JTextField attributesToExclude;
+  private JTextField attributesToExclude;
   /** The exclusion filter. */
-  protected JTextField exclusionFilter;
+  private JTextField exclusionFilter;
   /** The DNs to include. */
-  protected JTextArea dnsToInclude;
+  private JTextArea dnsToInclude;
   /** The attributes to include. */
-  protected JTextField attributesToInclude;
+  private JTextField attributesToInclude;
   /** The inclusion filter. */
-  protected JTextField inclusionFilter;
+  private JTextField inclusionFilter;
 
   /** The DNs to include. */
-  protected JLabel lDnsToInclude;
+  private JLabel lDnsToInclude;
   /** The attributes to include. */
-  protected JLabel lAttributesToInclude;
+  private JLabel lAttributesToInclude;
   /** The inclusion filter label. */
-  protected JLabel lInclusionFilter;
+  private JLabel lInclusionFilter;
   /** The DNs to exclude label. */
-  protected JLabel lDnsToExclude;
+  private JLabel lDnsToExclude;
   /** The attributes to exclude label. */
-  protected JLabel lAttributesToExclude;
+  private JLabel lAttributesToExclude;
   /** The exclusion filter label. */
-  protected JLabel lExclusionFilter;
+  private JLabel lExclusionFilter;
 
   @Override
   public void cancelClicked()

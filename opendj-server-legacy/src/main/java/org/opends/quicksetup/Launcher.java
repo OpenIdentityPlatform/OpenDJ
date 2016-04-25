@@ -16,18 +16,18 @@
  */
 package org.opends.quicksetup;
 
-import org.forgerock.i18n.LocalizableMessage;
-import com.forgerock.opendj.cli.ArgumentParser;
-
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
-import org.opends.quicksetup.util.Utils;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.DynamicConstants.*;
 
 import java.io.PrintStream;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.quicksetup.util.Utils;
+
+import com.forgerock.opendj.cli.ArgumentParser;
 
 /**
  * Responsible for providing initial evaluation of command line arguments
@@ -38,7 +38,7 @@ public abstract class Launcher {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Arguments with which this launcher was invoked. */
-  protected String[] args;
+  protected final String[] args;
 
   /** The temporary log file which will be kept if an error occurs. */
   protected final TempLogFile tempLogFile;
@@ -153,7 +153,8 @@ public abstract class Launcher {
    * @param toStdErr whether the message must be printed to the standard error
    * or the standard output.
    */
-  protected void printUsage(String i18nMsg, boolean toStdErr) {
+  private void printUsage(String i18nMsg, boolean toStdErr)
+  {
     if (toStdErr)
     {
       System.err.println(i18nMsg);
@@ -252,7 +253,7 @@ public abstract class Launcher {
    * @return 0 if everything worked fine, and an error code if something wrong
    *         occurred.
    */
-  protected int launchCli(CliApplication cliApp)
+  private int launchCli(CliApplication cliApp)
   {
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     QuickSetupCli cli = new QuickSetupCli(cliApp, this);
@@ -274,7 +275,7 @@ public abstract class Launcher {
   }
 
   /** Prints the version statement to standard output terminal. */
-  protected void printVersion()
+  private void printVersion()
   {
     System.out.print(PRINTABLE_VERSION_STRING);
   }
@@ -285,7 +286,8 @@ public abstract class Launcher {
    * @param toStdErr whether the message must be printed to the standard error
    * or the standard output.
    */
-  protected void printUsage(boolean toStdErr) {
+  private void printUsage(boolean toStdErr)
+  {
     try
     {
       ArgumentParser argParser = getArgumentParser();

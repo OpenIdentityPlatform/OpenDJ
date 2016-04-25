@@ -691,7 +691,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
   }
 
   /** The task in charge of creating the base DN (and if required, the backend). */
-  protected class NewBaseDNTask extends Task
+  private class NewBaseDNTask extends Task
   {
     private final Set<String> backendSet;
     private final String newBaseDN;
@@ -705,7 +705,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
      * @param dlg
      *          the progress dialog that shows the progress of the task.
      */
-    public NewBaseDNTask(ControlPanelInfo info, ProgressDialog dlg)
+    private NewBaseDNTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<>();

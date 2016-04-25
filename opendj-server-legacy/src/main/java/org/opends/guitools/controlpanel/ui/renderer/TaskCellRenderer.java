@@ -31,13 +31,13 @@ public class TaskCellRenderer extends DefaultTableCellRenderer
 {
   private static final long serialVersionUID = -84332267021523835L;
   /** The border of the first column. TODO: modify CustomCellRenderer to make this public. */
-  protected static final Border column0Border =
+  private static final Border column0Border =
     BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 1, 0, 0,
           ColorAndFontConstants.gridColor),
           BorderFactory.createEmptyBorder(4, 4, 4, 4));
   /** The default border. */
-  public static final Border defaultBorder = CustomCellRenderer.defaultBorder;
+  private static final Border defaultBorder = CustomCellRenderer.defaultBorder;
 
   /** Default constructor. */
   public TaskCellRenderer()

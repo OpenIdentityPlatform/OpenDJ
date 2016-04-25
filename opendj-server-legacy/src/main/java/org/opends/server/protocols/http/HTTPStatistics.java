@@ -33,7 +33,6 @@ import org.opends.server.protocols.ldap.LDAPStatistics;
  */
 public class HTTPStatistics extends LDAPStatistics
 {
-
   /**
    * Map containing the total number of requests per HTTP methods.
    * <p>
@@ -43,7 +42,7 @@ public class HTTPStatistics extends LDAPStatistics
    * The keys are static because they need to be listed in the schema which is
    * static.
    */
-  private Map<String, AtomicInteger> requestMethodsTotalCount = new HashMap<>();
+  private final Map<String, AtomicInteger> requestMethodsTotalCount = new HashMap<>();
   /**
    * Map containing the total execution time for the requests per HTTP methods.
    * <p>
@@ -54,13 +53,13 @@ public class HTTPStatistics extends LDAPStatistics
    * The keys are static because they need to be listed in the schema which is
    * static.
    */
-  private Map<String, AtomicLong> requestMethodsTotalTime = new HashMap<>();
+  private final Map<String, AtomicLong> requestMethodsTotalTime = new HashMap<>();
   /**
    * Total number of requests. The total number may be different than the sum of
    * the supported HTTP methods above because clients could use unsupported HTTP
    * methods.
    */
-  private AtomicInteger requestsTotalCount = new AtomicInteger(0);
+  private final AtomicInteger requestsTotalCount = new AtomicInteger(0);
 
   /**
    * Constructor for this class.
@@ -112,26 +111,6 @@ public class HTTPStatistics extends LDAPStatistics
       final String nb = entry.getValue().toString();
       results.add(prefix + httpMethod + suffix, nb);
     }
-  }
-
-  /**
-   * Adds a request to the stats using the provided HTTP method.
-   *
-   * @param httpMethod
-   *          the method of the HTTP request to add to the stats
-   * @throws NullPointerException
-   *           if the httpMethod is null
-   */
-  public void addRequest(String httpMethod) throws NullPointerException
-  {
-    AtomicInteger nb =
-        this.requestMethodsTotalCount.get(httpMethod.toLowerCase());
-    if (nb != null)
-    {
-      nb.incrementAndGet();
-    } // else this is an unsupported HTTP method
-    // always count any requests regardless of whether the method is supported
-    this.requestsTotalCount.incrementAndGet();
   }
 
   /**

@@ -12,17 +12,29 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.ui;
 
-import org.forgerock.i18n.LocalizableMessage;
 import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.util.StringTokenizer;
+
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
+
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A set of utilities specific to GUI QuickSetup applications.
@@ -189,7 +201,7 @@ public class Utilities {
    * @param width the maximum width of the column.
    * @return the wrapped message.
    */
-  public static String wrapMsg(String msg, int width)
+  private static String wrapMsg(String msg, int width)
   {
     StringBuilder   buffer        = new StringBuilder();
     StringTokenizer lineTokenizer = new StringTokenizer(msg, "\n", true);

@@ -610,7 +610,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   }
 
   /** The class that performs the import. */
-  protected class ImportTask extends InclusionExclusionTask
+  private class ImportTask extends InclusionExclusionTask
   {
     private Set<String> backendSet;
     private String fileName;
@@ -622,7 +622,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
      * @param info the control panel info.
      * @param dlg the progress dialog that shows the progress of the task.
      */
-    public ImportTask(ControlPanelInfo info, ProgressDialog dlg)
+    private ImportTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<>();

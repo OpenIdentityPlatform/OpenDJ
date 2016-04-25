@@ -54,7 +54,7 @@ public class SecurityOptions
   private CertificateType certificateType;
   private String keyStorePath;
   private String keyStorePassword;
-  private Set<String> aliasesToUse = new TreeSet<>();
+  private final Set<String> aliasesToUse = new TreeSet<>();
 
   private SecurityOptions()
   {
@@ -111,7 +111,7 @@ public class SecurityOptions
    * @return a new instance of a SecurityOptions using a self-signed
    *         certificate.
    */
-  public static SecurityOptions createSelfSignedCertificateOptions(boolean enableSSL, boolean enableStartTLS,
+  private static SecurityOptions createSelfSignedCertificateOptions(boolean enableSSL, boolean enableStartTLS,
       int sslPort, Collection<String> aliasesToUse)
   {
       return createOptionsForCertificatType(
@@ -404,7 +404,7 @@ public class SecurityOptions
    * Sets the certificates aliases name.
    * @param aliasesToUse the certificates aliases name.
    */
-  void setAliasToUse(Collection<String> aliasesToUse)
+  private void setAliasToUse(Collection<String> aliasesToUse)
   {
     this.aliasesToUse.clear();
     this.aliasesToUse.addAll(aliasesToUse);

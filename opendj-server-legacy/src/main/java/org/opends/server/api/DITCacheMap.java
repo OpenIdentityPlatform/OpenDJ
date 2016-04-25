@@ -720,14 +720,4 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       return size;
     }
   }
-
-  /**
-   * Returns the size of the internal map. Used for testing purposes only.
-   *
-   * @return The size of the internal map.
-   */
-  int getMapSize()
-  {
-    return ditCacheMap.size();
-  }
 }

@@ -41,12 +41,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
-import org.opends.guitools.controlpanel.event.
- SuperiorObjectClassesChangedListener;
+import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedListener;
 import org.opends.guitools.controlpanel.ui.GenericDialog;
 import org.opends.guitools.controlpanel.ui.SelectObjectClassesPanel;
-import org.opends.guitools.controlpanel.ui.renderer.
- SchemaElementComboBoxCellRenderer;
+import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.types.ObjectClass;
@@ -57,26 +55,26 @@ public class SuperiorObjectClassesEditor extends JPanel
 {
   private static final long serialVersionUID = 123123973933568L;
 
-  private Set<ObjectClass> toExclude = new HashSet<>();
-  private JComboBox singleSuperior = Utilities.createComboBox();
-  private JLabel multipleSuperiors = Utilities.createDefaultLabel();
-  private JButton bSpecifyMultiple = Utilities.createButton(
+  private final Set<ObjectClass> toExclude = new HashSet<>();
+  private final JComboBox<ObjectClass> singleSuperior = Utilities.createComboBox();
+  private final JLabel multipleSuperiors = Utilities.createDefaultLabel();
+  private final JButton bSpecifyMultiple = Utilities.createButton(
       INFO_CTRL_PANEL_SPECIFY_MULTIPLE_SUPERIORS_LABEL.get());
-  private JButton bUpdateMultiple = Utilities.createButton(
+  private final JButton bUpdateMultiple = Utilities.createButton(
       INFO_CTRL_PANEL_UPDATE_MULTIPLE_SUPERIORS_LABEL.get());
 
   private SelectObjectClassesPanel superiorsPanel;
   private GenericDialog superiorsDialog;
 
-  private String MULTIPLE = "Multiple";
-  private String SINGLE = "Single";
+  private static final String MULTIPLE = "Multiple";
+  private static final String SINGLE = "Single";
 
-  private CardLayout cardLayout = new CardLayout();
+  private final CardLayout cardLayout;
 
   private boolean isMultiple;
 
-  private Set<ObjectClass> selectedMultipleSuperiors = new HashSet<>();
-  private Set<SuperiorObjectClassesChangedListener> listeners = new HashSet<>();
+  private final Set<ObjectClass> selectedMultipleSuperiors = new HashSet<>();
+  private final Set<SuperiorObjectClassesChangedListener> listeners = new HashSet<>();
 
   private Schema schema;
 
@@ -87,16 +85,6 @@ public class SuperiorObjectClassesEditor extends JPanel
     cardLayout = (CardLayout)getLayout();
     setOpaque(false);
     createLayout();
-  }
-
-  /**
-   * Constructor for this panel.
-   * @param schema a non {@code null} schema object.
-   */
-  public SuperiorObjectClassesEditor(Schema schema)
-  {
-    this();
-    updateWithSchema(schema);
   }
 
   /** Creates the layout of this panel. */
@@ -124,8 +112,7 @@ public class SuperiorObjectClassesEditor extends JPanel
     });
     SchemaElementComboBoxCellRenderer renderer = new
     SchemaElementComboBoxCellRenderer(singleSuperior);
-    DefaultComboBoxModel model = new DefaultComboBoxModel();
-    singleSuperior.setModel(model);
+    singleSuperior.setModel(new DefaultComboBoxModel<ObjectClass>());
     singleSuperior.setRenderer(renderer);
     ItemListener itemListener = new ItemListener()
     {
@@ -285,14 +272,11 @@ public class SuperiorObjectClassesEditor extends JPanel
     {
       newParents.add(objectClassNameMap.get(key));
     }
-    Utilities.updateComboBoxModel(newParents,
-        (DefaultComboBoxModel)singleSuperior.getModel());
+    Utilities.updateComboBoxModel(newParents, (DefaultComboBoxModel<ObjectClass>) singleSuperior.getModel());
 
     if (this.schema == null)
     {
-      // Select the values.
-      ObjectClass topClass = schema.getObjectClass("top");
-      singleSuperior.setSelectedItem(topClass);
+      singleSuperior.setSelectedItem(schema.getObjectClass("top"));
     }
     this.schema = schema;
   }
@@ -306,16 +290,6 @@ public class SuperiorObjectClassesEditor extends JPanel
       SuperiorObjectClassesChangedListener listener)
   {
     listeners.add(listener);
-  }
-
-  /**
-   * Removes the provided listener.
-   * @param listener the listener to be removed.
-   */
-  public void removeParentObjectClassesChangedListener(
-      SuperiorObjectClassesChangedListener listener)
-  {
-    listeners.remove(listener);
   }
 
   private void specifyMultipleClicked()

@@ -84,12 +84,12 @@ public class NodeRefresher extends AbstractNodeTask {
 
   private SearchResult localEntry;
   private SearchResult remoteEntry;
-  LDAPURL   remoteUrl;
+  private LDAPURL remoteUrl;
   private boolean isLeafNode;
   private final List<SearchResult> childEntries = new ArrayList<>();
-  final boolean differential;
-  Exception exception;
-  Object exceptionArg;
+  private final boolean differential;
+  private Exception exception;
+  private Object exceptionArg;
 
   /**
    * The constructor of the refresher object.

@@ -91,7 +91,7 @@ public class CompressedSchema
 
   private final ServerContext serverContext;
   /** Lock to update the maps. */
-  final ReadWriteLock lock = new ReentrantReadWriteLock();
+  private final ReadWriteLock lock = new ReentrantReadWriteLock();
   private final Lock exclusiveLock = lock.writeLock();
   private final Lock sharedLock = lock.readLock();
 

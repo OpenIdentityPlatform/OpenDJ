@@ -153,7 +153,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   }
 
   /** Creates the layout of the panel (but the contents are not populated here). */
-  protected void createLayout()
+  private void createLayout()
   {
     JPanel p = new JPanel(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
@@ -213,7 +213,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
    * @param c the container where all the components will be layed out.
    * @param gbc the grid bag constraints.
    */
-  protected void createBasicLayout(Container c, GridBagConstraints gbc)
+  private void createBasicLayout(Container c, GridBagConstraints gbc)
   {
     SuperiorObjectClassesChangedListener listener =
       new SuperiorObjectClassesChangedListener()

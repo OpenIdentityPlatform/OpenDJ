@@ -17,8 +17,9 @@
 
 package org.opends.quicksetup;
 
-import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NamingException;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -39,7 +41,6 @@ import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
-import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
@@ -67,56 +68,13 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected ProgressMessageFormatter formatter;
 
   /** Handler for listeners and event firing. */
-  protected ProgressUpdateListenerDelegate listenerDelegate;
+  private ProgressUpdateListenerDelegate listenerDelegate;
 
-  private ErrorPrintStream err = new ErrorPrintStream();
-  private OutputPrintStream out = new OutputPrintStream();
+  private final ErrorPrintStream err = new ErrorPrintStream();
+  private final OutputPrintStream out = new OutputPrintStream();
 
   /** Temporary log file where messages will be logged. */
   protected TempLogFile tempLogFile;
-
-  /**
-   * Creates an application by instantiating the Application class
-   * denoted by the System property
-   * <code>org.opends.quicksetup.Application.class</code>.
-   * @return Application object that was newly instantiated
-   * @throws RuntimeException if there was a problem
-   *  creating the new Application object
-   */
-  public static GuiApplication create() throws RuntimeException {
-    GuiApplication app;
-    String appClassName =
-            System.getProperty("org.opends.quicksetup.Application.class");
-    if (appClassName != null) {
-      Class<?> appClass = null;
-      try {
-        appClass = Class.forName(appClassName);
-        app = (GuiApplication) appClass.newInstance();
-      } catch (ClassNotFoundException e) {
-        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
-        String msg = "Application class " + appClass + " not found";
-        throw new RuntimeException(msg, e);
-      } catch (IllegalAccessException e) {
-        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
-        String msg = "Could not access class " + appClass;
-        throw new RuntimeException(msg, e);
-      } catch (InstantiationException e) {
-        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
-        String msg = "Error instantiating class " + appClass;
-        throw new RuntimeException(msg, e);
-      } catch (ClassCastException e) {
-        String msg = "The class indicated by the system property " +
-                  "'org.opends.quicksetup.Application.class' must " +
-                  " must be of type Application";
-        throw new RuntimeException(msg, e);
-      }
-    } else {
-      String msg = "System property 'org.opends.quicksetup.Application.class'" +
-                " must specify class quicksetup application";
-      throw new RuntimeException(msg);
-    }
-    return app;
-  }
 
   /**
    * Sets this instances user data.
@@ -573,6 +531,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void checkAbort() throws ApplicationException
   {
+    // no-op
   }
 
   /**
@@ -692,6 +651,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   protected void applicationPrintStreamReceived(String message)
   {
+    // no-op
   }
 
   /**
@@ -758,7 +718,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard streams.
    */
-  protected abstract class ApplicationPrintStream extends PrintStream {
+  private abstract class ApplicationPrintStream extends PrintStream
+  {
 
     private boolean isFirstLine;
 

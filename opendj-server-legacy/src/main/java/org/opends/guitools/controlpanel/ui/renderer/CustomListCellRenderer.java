@@ -39,11 +39,11 @@ public class CustomListCellRenderer implements ListCellRenderer
 {
   private ListCellRenderer defaultRenderer;
   /** The separator used to render a non-selectable separator in the combo box. */
-  protected Component separator;
+  private Component separator;
   /** The default font. */
   protected Font defaultFont;
   /** The category font. */
-  protected Font categoryFont;
+  private Font categoryFont;
 
   /**
    * Constructor of a renderer to be used with a combo box.

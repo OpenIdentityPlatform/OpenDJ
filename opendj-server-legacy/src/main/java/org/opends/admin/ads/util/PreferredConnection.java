@@ -99,7 +99,7 @@ public class PreferredConnection
    * @param conn the connection we retrieve the information from.
    * @return a preferred connection object.
    */
-  public static PreferredConnection getPreferredConnection(ConnectionWrapper conn)
+  private static PreferredConnection getPreferredConnection(ConnectionWrapper conn)
   {
     InitialLdapContext ctx = conn.getLdapContext();
     String ldapUrl = ConnectionUtils.getLdapUrl(ctx);

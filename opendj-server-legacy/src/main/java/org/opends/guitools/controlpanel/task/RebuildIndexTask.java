@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -44,7 +44,7 @@ import org.opends.server.tools.RebuildIndex;
  */
 public class RebuildIndexTask extends IndexTask
 {
-  private SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<>();
+  private final SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<>();
 
   /**
    * The indexes that must not be specified in the command-line.
@@ -187,7 +187,7 @@ public class RebuildIndexTask extends IndexTask
    * @return the command line arguments required to rebuild the indexes in the
    *         specified base DN.
    */
-  protected List<String> getCommandLineArguments(String baseDN)
+  private List<String> getCommandLineArguments(String baseDN)
   {
     List<String> args = new ArrayList<>();
 

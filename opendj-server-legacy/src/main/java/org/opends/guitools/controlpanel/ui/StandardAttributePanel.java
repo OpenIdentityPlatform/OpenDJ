@@ -35,39 +35,38 @@ import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
 /** The panel that displays a standard attribute definition. */
-public class StandardAttributePanel extends SchemaElementPanel
+class StandardAttributePanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = -7922968631524763675L;
-  private TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY,
-      LocalizableMessage.EMPTY);
-  private JLabel name = Utilities.createDefaultLabel();
-  private JLabel parent = Utilities.createDefaultLabel();
-  private JLabel oid = Utilities.createDefaultLabel();
-  private JLabel aliases = Utilities.createDefaultLabel();
-  private JLabel origin = Utilities.createDefaultLabel();
-  private JLabel description = Utilities.createDefaultLabel();
-  private JLabel usage = Utilities.createDefaultLabel();
-  private JLabel syntax = Utilities.createDefaultLabel();
-  private JLabel approximate = Utilities.createDefaultLabel();
-  private JLabel equality = Utilities.createDefaultLabel();
-  private JLabel ordering = Utilities.createDefaultLabel();
-  private JLabel substring = Utilities.createDefaultLabel();
-  private JLabel type = Utilities.createDefaultLabel();
-  private JList requiredBy = new JList(new DefaultListModel());
-  private JList optionalBy = new JList(new DefaultListModel());
+  private final TitlePanel titlePanel = new TitlePanel(LocalizableMessage.EMPTY, LocalizableMessage.EMPTY);
+  private final JLabel name = Utilities.createDefaultLabel();
+  private final JLabel parent = Utilities.createDefaultLabel();
+  private final JLabel oid = Utilities.createDefaultLabel();
+  private final JLabel aliases = Utilities.createDefaultLabel();
+  private final JLabel origin = Utilities.createDefaultLabel();
+  private final JLabel description = Utilities.createDefaultLabel();
+  private final JLabel usage = Utilities.createDefaultLabel();
+  private final JLabel syntax = Utilities.createDefaultLabel();
+  private final JLabel approximate = Utilities.createDefaultLabel();
+  private final JLabel equality = Utilities.createDefaultLabel();
+  private final JLabel ordering = Utilities.createDefaultLabel();
+  private final JLabel substring = Utilities.createDefaultLabel();
+  private final JLabel type = Utilities.createDefaultLabel();
+  private final JList<String> requiredBy = new JList<>(new DefaultListModel<String>());
+  private final JList<String> optionalBy = new JList<>(new DefaultListModel<String>());
 
   /** Default constructor of the panel. */
   public StandardAttributePanel()
@@ -91,15 +90,17 @@ public class StandardAttributePanel extends SchemaElementPanel
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
+    // no-op
   }
 
   @Override
   public void okClicked()
   {
+    // no-op
   }
 
   /** Creates the layout of the panel (but the contents are not populated here). */
-  protected void createLayout()
+  private void createLayout()
   {
     createBasicLayout(this, new GridBagConstraints());
     setBorder(PANEL_BORDER);
@@ -110,7 +111,7 @@ public class StandardAttributePanel extends SchemaElementPanel
    * @param c the container where all the components will be layed out.
    * @param gbc the grid bag constraints.
    */
-  protected void createBasicLayout(Container c, GridBagConstraints gbc)
+  private void createBasicLayout(Container c, GridBagConstraints gbc)
   {
     requiredBy.setVisibleRowCount(5);
     optionalBy.setVisibleRowCount(9);
@@ -166,7 +167,7 @@ public class StandardAttributePanel extends SchemaElementPanel
         INFO_CTRL_PANEL_REQUIRED_BY_LABEL.get(),
         INFO_CTRL_PANEL_ALLOWED_BY_LABEL.get()
         };
-    JList[] lists = {requiredBy, optionalBy};
+    JList<?>[] lists = { requiredBy, optionalBy };
     gbc.anchor = GridBagConstraints.NORTHWEST;
     for (int i=0; i<2; i++)
     {
@@ -192,7 +193,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       c.add(Utilities.createScrollPane(lists[i]), gbc);
       gbc.gridy ++;
 
-      final JList list = lists[i];
+      final JList<?> list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
         @Override
@@ -233,14 +234,7 @@ public class StandardAttributePanel extends SchemaElementPanel
     titlePanel.setDetails(LocalizableMessage.raw(n));
     name.setText(n);
     AttributeType superior = attr.getSuperiorType();
-    if (superior == null)
-    {
-      n = null;
-    }
-    else
-    {
-      n = superior.getNameOrOID();
-    }
+    n = superior != null ? superior.getNameOrOID() : null;
     parent.setText(n);
     oid.setText(attr.getOID());
     origin.setText(StandardObjectClassPanel.getOrigin(new SomeSchemaElement(attr)).toString());
@@ -250,14 +244,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       n = NOT_APPLICABLE.toString();
     }
     description.setText(n);
-    if (attr.getUsage() == null)
-    {
-      n = NOT_APPLICABLE.toString();
-    }
-    else
-    {
-      n = attr.getUsage().toString();
-    }
+    n = attr.getUsage() != null ? attr.getUsage().toString() : NOT_APPLICABLE.toString();
     usage.setText(n);
     Set<String> aliases = getAliases(attr);
     if (!aliases.isEmpty())
@@ -299,7 +286,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       }
     }
 
-    DefaultListModel model = (DefaultListModel)requiredBy.getModel();
+    DefaultListModel<String> model = (DefaultListModel<String>) requiredBy.getModel();
     model.clear();
     for (String oc : requiredByOcs)
     {
@@ -315,7 +302,7 @@ public class StandardAttributePanel extends SchemaElementPanel
       }
     }
 
-    model = (DefaultListModel)optionalBy.getModel();
+    model = (DefaultListModel<String>) optionalBy.getModel();
     model.clear();
     for (String oc : optionalByOcs)
     {
@@ -333,7 +320,7 @@ public class StandardAttributePanel extends SchemaElementPanel
   static LocalizableMessage getTypeValue(AttributeType attr)
   {
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-    Boolean[] props = {attr.isOperational(), attr.isSingleValue(),
+    boolean[] props = {attr.isOperational(), attr.isSingleValue(),
         attr.isNoUserModification(), attr.isCollective(),
         attr.isObsolete()};
     LocalizableMessage[][] values = {
@@ -344,7 +331,7 @@ public class StandardAttributePanel extends SchemaElementPanel
         {INFO_CTRL_PANEL_ATTRIBUTE_COLLECTIVE_LABEL.get(), null},
         {INFO_CTRL_PANEL_ATTRIBUTE_OBSOLETE_LABEL.get(), null}};
     int i = 0;
-    for (Boolean prop : props)
+    for (boolean prop : props)
     {
       LocalizableMessage value = prop ? values[i][0] : values[i][1];
       if (value != null)

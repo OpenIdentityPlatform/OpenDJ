@@ -14,7 +14,6 @@
  * Copyright 2008-2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -34,6 +33,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackupDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -43,12 +43,10 @@ import org.opends.guitools.controlpanel.event.BackupCreatedListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.RestoreDB;
 
 /** The panel that appears when the user wants to restore from a backup. */
-public class RestorePanel extends BackupListPanel
-implements BackupCreatedListener
+class RestorePanel extends BackupListPanel implements BackupCreatedListener
 {
   private static final long serialVersionUID = -205585323128518051L;
   private ListSelectionListener listener;
@@ -313,12 +311,12 @@ implements BackupCreatedListener
   }
 
   /** The task in charge of restoring or verifying the backup. */
-  protected class RestoreTask extends Task
+  private class RestoreTask extends Task
   {
-    private Set<String> backendSet;
-    private String dir;
-    private String backupID;
-    private boolean verify;
+    private final Set<String> backendSet;
+    private final String dir;
+    private final String backupID;
+    private final boolean verify;
 
     /**
      * The constructor of the task.
@@ -327,7 +325,7 @@ implements BackupCreatedListener
      * @param verify whether this is an actual restore or a verify of the
      * backup.
      */
-    public RestoreTask(ControlPanelInfo info, ProgressDialog dlg,
+    private RestoreTask(ControlPanelInfo info, ProgressDialog dlg,
         boolean verify)
     {
       super(info, dlg);

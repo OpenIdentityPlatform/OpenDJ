@@ -52,48 +52,48 @@ public final class Installation
   /** The relative path where all the UNIX binaries (scripts) are. */
   public static final String UNIX_BINARIES_PATH_RELATIVE = "bin";
   /** The relative path where all the MacOS X Applications are. */
-  public static final String MAC_APPLICATIONS_PATH_RELATIVE = "bin";
+  private static final String MAC_APPLICATIONS_PATH_RELATIVE = "bin";
   /** The relative path where all the libraries (jar files) are. */
   public static final String LIBRARIES_PATH_RELATIVE = SetupUtils.LIBRARIES_PATH_RELATIVE;
   /** The relative path where the resources directory (to customize the product) is. */
-  public static final String RESOURCES_PATH_RELATIVE = "resources";
+  private static final String RESOURCES_PATH_RELATIVE = "resources";
   /** The relative path where customer classes are. */
-  public static final String CLASSES_PATH_RELATIVE = "classes";
+  private static final String CLASSES_PATH_RELATIVE = "classes";
   /** The relative path where the database files are. */
-  public static final String DATABASES_PATH_RELATIVE = "db";
+  private static final String DATABASES_PATH_RELATIVE = "db";
   /** The relative path where the log files are. */
-  public static final String LOGS_PATH_RELATIVE = "logs";
+  private static final String LOGS_PATH_RELATIVE = "logs";
   /** The relative path where the LDIF files are. */
-  public static final String LDIFS_PATH_RELATIVE = "ldif";
+  private static final String LDIFS_PATH_RELATIVE = "ldif";
   /** The relative path where the backup files are. */
   public static final String BACKUPS_PATH_RELATIVE = "bak";
   /** The relative path where the config files are. */
   public static final String CONFIG_PATH_RELATIVE = "config";
   /** The relative path where the config files are. */
-  public static final String HISTORY_PATH_RELATIVE = "history";
+  private static final String HISTORY_PATH_RELATIVE = "history";
   /** Path to the config/upgrade directory where upgrade base files are stored. */
-  public static final String UPGRADE_PATH = "upgrade";
+  private static final String UPGRADE_PATH = "upgrade";
   /** Relative path to the locks directory. */
   public static final String LOCKS_PATH_RELATIVE = "locks";
   /** Relative path to the locks directory. */
-  public static final String TMP_PATH_RELATIVE = "tmp";
+  private static final String TMP_PATH_RELATIVE = "tmp";
   /** The relative path to the current Configuration LDIF file. */
-  public static final String CURRENT_CONFIG_FILE_NAME = "config.ldif";
+  private static final String CURRENT_CONFIG_FILE_NAME = "config.ldif";
   /** The relative path to the current Configuration LDIF file. */
-  public static final String BASE_CONFIG_FILE_PREFIX = "config.ldif.";
+  private static final String BASE_CONFIG_FILE_PREFIX = "config.ldif.";
   /** The relative path to the instance.loc file. */
   public static final String INSTANCE_LOCATION_PATH_RELATIVE = "instance.loc";
   /** The path to the instance.loc file. */
   public static final String INSTANCE_LOCATION_PATH = "/etc/opendj/"
       + INSTANCE_LOCATION_PATH_RELATIVE;
   /** The relative path to tmpl_instance. */
-  public static final String TEMPLATE_RELATIVE_PATH = "template";
+  private static final String TEMPLATE_RELATIVE_PATH = "template";
   /** The relative path to buildinfo file. */
-  public static final String BUILDINFO_RELATIVE_PATH = "buildinfo";
+  private static final String BUILDINFO_RELATIVE_PATH = "buildinfo";
   /** The UNIX setup script file name. */
   public static final String UNIX_SETUP_FILE_NAME = "setup";
   /** The Windows setup batch file name. */
-  public static final String WINDOWS_SETUP_FILE_NAME = "setup.bat";
+  private static final String WINDOWS_SETUP_FILE_NAME = "setup.bat";
   /** The UNIX uninstall script file name. */
   public static final String UNIX_UNINSTALL_FILE_NAME = "uninstall";
   /** The Windows uninstall batch file name. */
@@ -877,7 +877,7 @@ public final class Installation
    *          consuming
    * @return BuildInformation object describing this instance
    */
-  public BuildInformation getInstanceBuildInformation(boolean useCachedVersion)
+  private BuildInformation getInstanceBuildInformation(boolean useCachedVersion)
   {
     if (instanceInformation == null || !useCachedVersion)
     {

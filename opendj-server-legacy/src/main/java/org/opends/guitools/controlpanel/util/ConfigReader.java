@@ -93,7 +93,7 @@ public abstract class ConfigReader
   protected List<Exception> exceptions = Collections.emptyList();
 
   /** Whether the configuration has already been read or not. */
-  protected boolean configRead;
+  private boolean configRead;
 
   /** The set of connection listeners. */
   protected Set<ConnectionHandlerDescriptor> listeners = Collections.emptySet();

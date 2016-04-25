@@ -26,10 +26,10 @@ import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** Class used to render the tables. */
 public class CustomCellRenderer extends LabelWithHelpIcon
@@ -37,7 +37,7 @@ implements TableCellRenderer
 {
   private static final long serialVersionUID = -8604332267021523835L;
   /** The border of the first column. */
-  protected static final Border column0Border =
+  private static final Border column0Border =
     BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 1, 0, 0,
           ColorAndFontConstants.gridColor),

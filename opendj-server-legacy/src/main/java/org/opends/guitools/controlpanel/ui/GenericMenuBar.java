@@ -45,12 +45,12 @@ public abstract class GenericMenuBar extends JMenuBar
   private ControlPanelInfo info;
 
   /** The URL to the administration guide. */
-  protected final String ADMINISTRATION_GUIDE_URL =
+  private final String ADMINISTRATION_GUIDE_URL =
     Utils.getCustomizedObject("ADMINISTRATION_GUIDE_URL",
         DynamicConstants.ADMINISTRATION_GUIDE_URL, String.class);
 
   /** The URL to the wiki main page. */
-  protected final String DOC_REFERENCE_WIKI =
+  private final String DOC_REFERENCE_WIKI =
     Utils.getCustomizedObject("DOC_REFERENCE_WIKI",
         DynamicConstants.DOC_REFERENCE_WIKI, String.class);
 
@@ -110,7 +110,7 @@ public abstract class GenericMenuBar extends JMenuBar
    * Tries to display a URL in the systems default WEB browser.
    * @param url the URL to be displayed.
    */
-  protected void displayURL(final String url)
+  private void displayURL(final String url)
   {
     BackgroundTask<Void> worker = new BackgroundTask<Void>()
     {

@@ -80,7 +80,7 @@ public class ControlPanelInfo
   private static boolean mustDeregisterConfig;
   private static ControlPanelInfo instance;
 
-  private Set<Task> tasks = new HashSet<>();
+  private final Set<Task> tasks = new HashSet<>();
   private ConnectionWrapper connWrapper;
   private InitialLdapContext userDataCtx;
   private final LDAPConnectionPool connectionPool = new LDAPConnectionPool();
@@ -176,7 +176,7 @@ public class ControlPanelInfo
    * Unregisters a task.
    * @param task the task to be unregistered.
    */
-  public void unregisterTask(Task task)
+  private void unregisterTask(Task task)
   {
     tasks.remove(task);
   }
@@ -385,7 +385,7 @@ public class ControlPanelInfo
    * the index listeners that an index has been modified.
    * @param modifiedIndex the modified index.
    */
-  public void indexModified(AbstractIndexDescriptor modifiedIndex)
+  private void indexModified(AbstractIndexDescriptor modifiedIndex)
   {
     IndexModifiedEvent ev = new IndexModifiedEvent(modifiedIndex);
     for (IndexModifiedListener listener : indexListeners)

@@ -43,13 +43,13 @@ public class LabelWithHelpIcon extends JPanel
   /** The label with the text. */
   protected JLabel label = Utilities.createDefaultLabel();
   /** The label with the icon. */
-  protected JLabel iconLabel = new JLabel(icon);
+  private JLabel iconLabel = new JLabel(icon);
   private static final ImageIcon icon =
     Utilities.createImageIcon("org/opends/quicksetup/images/help_small.gif");
 
 
   /** The left inset of the help icon. */
-  protected final int INSET_WITH_ICON= 3;
+  private final int INSET_WITH_ICON = 3;
 
   /**
    * The constructor of this panel.

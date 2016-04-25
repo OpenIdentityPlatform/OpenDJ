@@ -439,7 +439,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
   }
 
   /** The task in charge of verifying the index. */
-  protected class VerifyIndexTask extends IndexTask
+  private class VerifyIndexTask extends IndexTask
   {
     private String baseDN;
 
@@ -451,7 +451,7 @@ public class VerifyIndexPanel extends StatusGenericPanel implements IndexModifie
      * @param dlg
      *          the progress dialog that shows the progress of the task.
      */
-    public VerifyIndexTask(ControlPanelInfo info, ProgressDialog dlg)
+    private VerifyIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg, getSelectedBaseDN());
       this.baseDN = getSelectedBaseDN();

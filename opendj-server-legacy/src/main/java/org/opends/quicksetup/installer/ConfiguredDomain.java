@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer;
 
 import java.util.HashSet;
@@ -24,13 +23,12 @@ import java.util.Set;
  * Class used to know what has been modified in the configuration of a
  * replication domain.
  * This class provides a read only view of what has been configured.
- *
  */
 class ConfiguredDomain
 {
-  private String domainName;
-  private boolean isCreated;
-  Set<String> addedReplicationServers;
+  private final String domainName;
+  private final boolean isCreated;
+  private final Set<String> addedReplicationServers;
 
   /**
    * Constructor of the ConfiguredDomain object.

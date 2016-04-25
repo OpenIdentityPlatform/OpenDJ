@@ -33,7 +33,7 @@ public class DndBrowserNodes implements Transferable {
   public static final DataFlavor INFO_FLAVOR =
     new DataFlavor(BrowserNodeInfo.class, "Browse Node Information");
 
-  static DataFlavor[] FLAVORS = {INFO_FLAVOR };
+  private static DataFlavor[] FLAVORS = { INFO_FLAVOR };
 
   private BrowserNodeInfo[] nodes;
 

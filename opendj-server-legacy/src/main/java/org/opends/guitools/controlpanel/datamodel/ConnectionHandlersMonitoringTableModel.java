@@ -174,10 +174,10 @@ AddressConnectionHandlerDescriptor>
  */
 class AddressConnectionHandlerDescriptor
 {
-  private ConnectionHandlerDescriptor ch;
-  private InetAddress address;
-  private CustomSearchResult monitoringEntry;
-  private int hashCode;
+  private final ConnectionHandlerDescriptor ch;
+  private final InetAddress address;
+  private final CustomSearchResult monitoringEntry;
+  private final int hashCode;
 
   /**
    * Constructor of this data structure.

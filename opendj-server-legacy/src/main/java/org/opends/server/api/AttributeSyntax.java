@@ -20,12 +20,12 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -329,7 +329,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
-  public final void toString(StringBuilder buffer)
+  private final void toString(StringBuilder buffer)
   {
     buffer.append("( ");
     buffer.append(getOID());

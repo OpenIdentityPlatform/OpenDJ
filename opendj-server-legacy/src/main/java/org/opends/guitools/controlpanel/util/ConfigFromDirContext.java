@@ -44,17 +44,7 @@ import javax.naming.ldap.LdapName;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.admin.ads.util.ConnectionWrapper;
-import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
-import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
-import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
-import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
-import org.opends.guitools.controlpanel.task.OnlineUpdateException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.AdministrationConnectorCfgClient;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
@@ -77,10 +67,20 @@ import org.forgerock.opendj.server.config.client.RootDNCfgClient;
 import org.forgerock.opendj.server.config.client.RootDNUserCfgClient;
 import org.forgerock.opendj.server.config.client.SNMPConnectionHandlerCfgClient;
 import org.forgerock.opendj.server.config.client.TaskBackendCfgClient;
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
+import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
+import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
+import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
@@ -108,17 +108,17 @@ public class ConfigFromDirContext extends ConfigReader
   private final Map<String, CustomSearchResult> hmConnectionHandlersMonitor = new HashMap<>();
 
   /** The monitor root entry DN. */
-  protected DN monitorDN = DN.rootDN();
+  private DN monitorDN = DN.rootDN();
   /** The JVM memory usage monitoring entry DN. */
-  protected DN jvmMemoryUsageDN = DN.rootDN();
+  private DN jvmMemoryUsageDN = DN.rootDN();
   /** The system information monitoring entry DN. */
-  protected DN systemInformationDN = DN.rootDN();
+  private DN systemInformationDN = DN.rootDN();
   /**The entry cache monitoring entry DN. */
-  protected DN entryCachesDN = DN.rootDN();
+  private DN entryCachesDN = DN.rootDN();
   /** The work queue monitoring entry DN. */
-  protected DN workQueueDN = DN.rootDN();
+  private DN workQueueDN = DN.rootDN();
   /** The version monitoring entry DN. */
-  protected DN versionDN = DN.rootDN();
+  private DN versionDN = DN.rootDN();
 
   {
     try
@@ -616,7 +616,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return an array of monitoring attributes to be returned in the request.
    */
-  protected String[] getMonitoringAttributes()
+  private String[] getMonitoringAttributes()
   {
     return new String[] {"*"};
   }
@@ -665,9 +665,7 @@ public class ConfigFromDirContext extends ConfigReader
    * @throws NamingException
    *           if there is an error retrieving the values of the search result.
    */
-  protected void handleMonitoringSearchResult(SearchResult sr,
-      String searchBaseDN)
-  throws NamingException
+  private void handleMonitoringSearchResult(SearchResult sr, String searchBaseDN) throws NamingException
   {
     if (javaVersion == null)
     {

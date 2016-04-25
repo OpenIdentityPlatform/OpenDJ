@@ -159,7 +159,7 @@ public class MainActionsPane extends StatusGenericPanel
    * @param panel the panel that will be contained in the frame.
    * @return the frame to be displayed using the provided panel.
    */
-  protected GenericFrame createFrame(StatusGenericPanel panel)
+  private GenericFrame createFrame(StatusGenericPanel panel)
   {
     return new GenericFrame(panel);
   }
@@ -168,7 +168,7 @@ public class MainActionsPane extends StatusGenericPanel
    * Creates the categories contained by this panel.
    * @return the categories contained by this panel.
    */
-  protected ArrayList<Category> createCategories()
+  private ArrayList<Category> createCategories()
   {
     ArrayList<Category> categories = new ArrayList<>();
     LocalizableMessage[][] labels;

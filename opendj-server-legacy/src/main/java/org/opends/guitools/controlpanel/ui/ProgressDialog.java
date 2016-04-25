@@ -40,13 +40,13 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.html.HTMLDocument;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.PrintStreamListener;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.ApplicationPrintStream;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** The dialog that is used to display progress in a task. */
 public class ProgressDialog extends GenericDialog
@@ -177,7 +177,7 @@ public class ProgressDialog extends GenericDialog
   }
 
   /** The panel contained in the progress dialog. */
-  static class ProgressPanel extends StatusGenericPanel
+  private static class ProgressPanel extends StatusGenericPanel
   {
     private static final long serialVersionUID = -364496083928260306L;
     private BasicExpander details;
@@ -239,7 +239,7 @@ public class ProgressDialog extends GenericDialog
      * will have a new-line char at the end (is similar to println()).
      * @param msg the HTML formatted text to be appended.
      */
-    public void appendErrorLine(String msg)
+    private void appendErrorLine(String msg)
     {
       msg = filterForBugID4988885(msg+"<br>");
       msg = Utilities.applyFont(msg, ColorAndFontConstants.progressFont);
@@ -281,7 +281,7 @@ public class ProgressDialog extends GenericDialog
      * will be preceded by a new line (is similar to println()).
      * @param msg the HTML formatted text to be appended.
      */
-    public void appendOutputLine(String msg)
+    private void appendOutputLine(String msg)
     {
       appendErrorLine(msg);
     }
@@ -291,7 +291,7 @@ public class ProgressDialog extends GenericDialog
      * will be appended as it is (is similar to print()).
      * @param msg the HTML formatted text to be appended.
      */
-    public void appendHtml(String msg)
+    private void appendHtml(String msg)
     {
       HTMLDocument doc = (HTMLDocument)logs.getDocument();
 
@@ -308,7 +308,7 @@ public class ProgressDialog extends GenericDialog
     }
 
     /** Resets the contents of the logs (Details) section. */
-    public void resetLogs()
+    private void resetLogs()
     {
       logs.setText(INIT_TEXT);
     }

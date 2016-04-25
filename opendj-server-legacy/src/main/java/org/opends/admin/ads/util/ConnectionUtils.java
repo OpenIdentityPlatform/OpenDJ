@@ -489,7 +489,7 @@ public class ConnectionUtils
    * @return <CODE>true</CODE> if we are connected and read the configuration
    * and <CODE>false</CODE> otherwise.
    */
-  public static boolean connectedAsAdministrativeUser(InitialLdapContext ctx)
+  static boolean connectedAsAdministrativeUser(InitialLdapContext ctx)
   {
     try
     {

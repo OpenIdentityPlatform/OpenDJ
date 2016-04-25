@@ -14,13 +14,13 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.text.Element;
@@ -32,7 +32,7 @@ import javax.swing.text.html.HTMLEditorKit;
 /** Class used to be able to detect events in the button inside an HTML pane. */
 public class CustomHTMLEditorKit extends HTMLEditorKit
 {
-  private HashSet<ActionListener> listeners = new HashSet<>();
+  private final Set<ActionListener> listeners = new HashSet<>();
   private static final long serialVersionUID = 298103926252426388L;
 
   /** Default constructor. */
@@ -66,7 +66,7 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
   }
 
   /** Class used to be able to detect events in the button inside an HTML pane. */
-  class MyHTMLFactory extends HTMLFactory
+  private class MyHTMLFactory extends HTMLFactory
   {
     @Override
     public View create(Element elem)
@@ -81,14 +81,14 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
   }
 
   /** Class used to be able to detect events in the button inside an HTML pane. */
-  class MyFormView extends FormView
+  private class MyFormView extends FormView
   {
     /**
      * Creates a new FormView object.
      *
      * @param elem the element to decorate
      */
-    MyFormView(Element elem)
+    private MyFormView(Element elem)
     {
       super(elem);
     }

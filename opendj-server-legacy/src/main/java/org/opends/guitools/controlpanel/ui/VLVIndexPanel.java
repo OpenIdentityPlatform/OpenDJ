@@ -518,7 +518,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   }
 
   /** The task in charge of modifying the VLV index. */
-  protected class ModifyVLVIndexTask extends Task
+  private class ModifyVLVIndexTask extends Task
   {
     private final Set<String> backendSet;
     private final String indexName;
@@ -539,7 +539,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
      * @param dlg
      *          the progress dialog that shows the progress of the task.
      */
-    public ModifyVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
+    private ModifyVLVIndexTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendID = index.getBackend().getBackendID();

@@ -31,12 +31,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
  * A simple panel used in the LDAP entry viewers to display the object class
@@ -47,12 +47,12 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 public class ObjectClassCellPanel extends JPanel
 {
   private static final long serialVersionUID = -2362754512894888888L;
-  private JLabel label;
-  private CellEditorButton editButton;
+  private final JLabel label;
+  private final CellEditorButton editButton;
   private ObjectClassValue value;
-  private JLabel lockLabel = Utilities.createDefaultLabel();
+  private final JLabel lockLabel = Utilities.createDefaultLabel();
 
-  private ImageIcon lockIcon =
+  private final ImageIcon lockIcon =
     Utilities.createImageIcon(IconPool.IMAGE_PATH+"/field-locked.png");
 
   /** Default constructor. */
@@ -119,13 +119,6 @@ public class ObjectClassCellPanel extends JPanel
       lockLabel.setVisible(false);
     }
   }
-
-  /** Explicitly request the focus for the edit button of this panel. */
-  public void requestFocusForButton()
-  {
-    editButton.requestFocusInWindow();
-  }
-
 
   /**
    * Adds an action listener to this panel.  The action listener will be

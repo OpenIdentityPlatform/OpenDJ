@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import static org.opends.messages.QuickSetupMessages.*;
@@ -80,7 +79,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   }
   private static final long serialVersionUID = -8989965057591475064L;
   private ReturnType returnValue = ReturnType.NOT_ACCEPTED;
-  private UserDataCertificateException ce;
+  private final UserDataCertificateException ce;
   private JButton doNotAcceptButton;
   private JComponent certificateDetails;
   private JEditorPane explanationPane;
@@ -391,7 +390,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     p.setLayout(new GridBagLayout());
     if (ce.getChain() != null && ce.getChain().length > 0)
     {
-      final JComboBox combo = new JComboBox();
+      final JComboBox<String> combo = new JComboBox<String>();
       combo.setToolTipText(
               INFO_CERTIFICATE_CHAIN_COMBO_TOOLTIP.get().toString());
       final CardLayout cl = new CardLayout();
@@ -596,7 +595,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    * @param cert the certificate object.
    * @return the LocalizableMessage representation of the SHA1 fingerprint.
    */
-  public static LocalizableMessage getSHA1FingerPrint(X509Certificate cert)
+  private static LocalizableMessage getSHA1FingerPrint(X509Certificate cert)
   {
     return getFingerPrint(cert, "SHA1");
   }
@@ -606,7 +605,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    * @param cert the certificate object.
    * @return the LocalizableMessage representation of the MD5 fingerprint.
    */
-  public static LocalizableMessage getMD5FingerPrint(X509Certificate cert)
+  private static LocalizableMessage getMD5FingerPrint(X509Certificate cert)
   {
     return getFingerPrint(cert, "MD5");
   }

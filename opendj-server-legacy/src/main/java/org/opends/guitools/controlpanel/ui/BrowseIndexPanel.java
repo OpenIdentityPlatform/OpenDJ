@@ -31,6 +31,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -53,6 +54,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -60,7 +62,13 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
-import org.opends.guitools.controlpanel.event.*;
+import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedEvent;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.IndexModifiedEvent;
+import org.opends.guitools.controlpanel.event.IndexModifiedListener;
+import org.opends.guitools.controlpanel.event.IndexSelectionEvent;
+import org.opends.guitools.controlpanel.event.IndexSelectionListener;
 import org.opends.guitools.controlpanel.task.DeleteIndexTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.CustomTree;
@@ -72,15 +80,14 @@ import org.opends.guitools.controlpanel.ui.nodes.VLVIndexTreeNode;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** The pane that is displayed when the user clicks on 'Browse Indexes'. */
-public class BrowseIndexPanel extends StatusGenericPanel
+class BrowseIndexPanel extends StatusGenericPanel
 implements IndexModifiedListener
 {
   private static final long serialVersionUID = 4560020571983291585L;
 
-  private JComboBox backends;
+  private JComboBox<String> backends;
   private JLabel lNoBackendsFound;
 
   private IndexBrowserRightPanel entryPane;
@@ -91,16 +98,16 @@ implements IndexModifiedListener
   private JButton newIndex;
   private JButton newVLVIndex;
 
-  private CategoryTreeNode standardIndexes = new CategoryTreeNode(
+  private final CategoryTreeNode standardIndexes = new CategoryTreeNode(
       INFO_CTRL_PANEL_INDEXES_CATEGORY_NODE.get());
-  private CategoryTreeNode vlvIndexes = new CategoryTreeNode(
+  private final CategoryTreeNode vlvIndexes = new CategoryTreeNode(
       INFO_CTRL_PANEL_VLV_INDEXES_CATEGORY_NODE.get());
 
   private AbstractIndexDescriptor lastCreatedIndex;
 
   private TreePath lastIndexTreePath;
 
-  private CategoryTreeNode[] categoryNodes = {
+  private final CategoryTreeNode[] categoryNodes = {
       standardIndexes, vlvIndexes
   };
 
@@ -174,7 +181,7 @@ implements IndexModifiedListener
     add(lBackend, gbc);
 
     backends = Utilities.createComboBox();
-    backends.setModel(new DefaultComboBoxModel(new String[]{}));
+    backends.setModel(new DefaultComboBoxModel<>(new String[] {}));
     ItemListener comboListener = new ItemListener()
     {
       @Override
@@ -425,9 +432,8 @@ implements IndexModifiedListener
   {
     ignoreSelectionEvents = true;
     ServerDescriptor desc = ev.getNewDescriptor();
-    updateSimpleBackendComboBoxModel(backends, lNoBackendsFound,
-        desc);
-    refreshContents(desc);
+    updateSimpleBackendComboBoxModel(backends, lNoBackendsFound, desc);
+    refreshContents();
   }
 
   /** Adds a pop up menu. */
@@ -475,9 +481,8 @@ implements IndexModifiedListener
 
   /**
    * Refresh the contents of the tree.
-   * @param desc the descriptor containing the index configuration.
    */
-  private void refreshContents(final ServerDescriptor desc)
+  private void refreshContents()
   {
     SwingUtilities.invokeLater(new Runnable()
     {
@@ -510,13 +515,13 @@ implements IndexModifiedListener
   @Override
   public void indexModified(IndexModifiedEvent ev)
   {
-    refreshContents(getInfo().getServerDescriptor());
+    refreshContents();
   }
 
   @Override
   public void backendIndexesModified(IndexModifiedEvent ev)
   {
-    refreshContents(getInfo().getServerDescriptor());
+    refreshContents();
   }
 
   /**
@@ -875,8 +880,8 @@ implements IndexModifiedListener
     }
   }
 
-  private HashMap<Object, ImageIcon> hmCategoryImages = new HashMap<>();
-  private HashMap<Class<?>, ImageIcon> hmImages = new HashMap<>();
+  private final Map<Object, ImageIcon> hmCategoryImages = new HashMap<>();
+  private final Map<Class<?>, ImageIcon> hmImages = new HashMap<>();
   {
     Object[] nodes = {standardIndexes, vlvIndexes};
     String[] paths = {"ds-idx-folder.png", "ds-vlv-idx-folder.png"};
@@ -895,7 +900,7 @@ implements IndexModifiedListener
   }
 
   /** Specific class used to render the nodes in the tree.  It uses specific icons for the nodes. */
-  protected class IndexTreeCellRenderer extends TreeCellRenderer
+  private class IndexTreeCellRenderer extends TreeCellRenderer
   {
     private ImageIcon readOnlyIndexIcon =
       Utilities.createImageIcon(IconPool.IMAGE_PATH+"/ds-idx-ro.png");

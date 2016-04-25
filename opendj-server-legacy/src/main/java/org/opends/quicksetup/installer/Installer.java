@@ -183,28 +183,23 @@ public class Installer extends GuiApplication
   private TopologyCache lastLoadedCache;
 
   /** Indicates that we've detected that there is something installed. */
-  boolean forceToDisplaySetup;
+  private boolean forceToDisplaySetup;
 
   /** When true indicates that the user has canceled this operation. */
-  protected boolean canceled;
-
+  private boolean canceled;
   private boolean javaVersionCheckFailed;
 
   /** Map containing information about what has been configured remotely. */
   private final Map<ServerDescriptor, ConfiguredReplication> hmConfiguredRemoteReplication = new HashMap<>();
 
   /** Set of progress steps that have been completed. */
-  protected Set<InstallProgressStep> completedProgress = new HashSet<>();
-
-  private final List<WizardStep> lstSteps = new ArrayList<>();
-
-  private final Set<WizardStep> SUBSTEPS = new HashSet<>();
-  {
-    SUBSTEPS.add(Step.CREATE_GLOBAL_ADMINISTRATOR);
-    SUBSTEPS.add(Step.SUFFIXES_OPTIONS);
-    SUBSTEPS.add(Step.NEW_SUFFIX_OPTIONS);
-    SUBSTEPS.add(Step.REMOTE_REPLICATION_PORTS);
-  }
+  private final Set<InstallProgressStep> completedProgress = new HashSet<>();
+  private final List<WizardStep> listSteps = new ArrayList<>();
+  private final Set<WizardStep> SUBSTEPS = CollectionUtils.<WizardStep> newHashSet(
+      Step.CREATE_GLOBAL_ADMINISTRATOR,
+      Step.SUFFIXES_OPTIONS,
+      Step.NEW_SUFFIX_OPTIONS,
+      Step.REMOTE_REPLICATION_PORTS);
 
   private final Map<WizardStep, WizardStep> hmPreviousSteps = new HashMap<>();
 
@@ -216,9 +211,10 @@ public class Installer extends GuiApplication
   private String lastImportProgress;
 
   /** Aliases of self-signed certificates. */
-  protected static final String SELF_SIGNED_CERT_ALIASES[] = new String[] {
+  private static final String[] SELF_SIGNED_CERT_ALIASES = {
     SecurityOptions.SELF_SIGNED_CERT_ALIAS,
-    SecurityOptions.SELF_SIGNED_EC_CERT_ALIAS };
+    SecurityOptions.SELF_SIGNED_EC_CERT_ALIAS
+  };
 
   /**
    * The threshold in minutes used to know whether we must display a warning
@@ -621,7 +617,7 @@ public class Installer extends GuiApplication
   /** Creates a default instance. */
   public Installer()
   {
-    addStepsInOrder(lstSteps, LicenseFile.exists());
+    addStepsInOrder(listSteps, LicenseFile.exists());
   }
 
   @Override
@@ -880,7 +876,7 @@ public class Installer extends GuiApplication
   @Override
   public Set<? extends WizardStep> getWizardSteps()
   {
-    return Collections.unmodifiableSet(new HashSet<WizardStep>(lstSteps));
+    return Collections.unmodifiableSet(new HashSet<WizardStep>(listSteps));
   }
 
   @Override
@@ -1079,10 +1075,10 @@ public class Installer extends GuiApplication
     }
     else
     {
-      int i = lstSteps.indexOf(step);
-      if (i != -1 && i + 1 < lstSteps.size())
+      int i = listSteps.indexOf(step);
+      if (i != -1 && i + 1 < listSteps.size())
       {
-        return lstSteps.get(i + 1);
+        return listSteps.get(i + 1);
       }
     }
     return null;
@@ -1092,7 +1088,7 @@ public class Installer extends GuiApplication
   public LinkedHashSet<WizardStep> getOrderedSteps()
   {
     LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<>();
-    addStepsInOrder(orderedSteps, lstSteps.contains(LICENSE));
+    addStepsInOrder(orderedSteps, listSteps.contains(LICENSE));
     return orderedSteps;
   }
 
@@ -1123,10 +1119,10 @@ public class Installer extends GuiApplication
 
     if (prev == null)
     {
-      int i = lstSteps.indexOf(step);
+      int i = listSteps.indexOf(step);
       if (i != -1 && i > 0)
       {
-        prev = lstSteps.get(i - 1);
+        prev = listSteps.get(i - 1);
       }
     }
     return prev;
@@ -1142,7 +1138,7 @@ public class Installer extends GuiApplication
    * Uninstalls installed services. This is to be used when the user has elected
    * to cancel an installation.
    */
-  protected void uninstallServices()
+  private void uninstallServices()
   {
     if (completedProgress.contains(InstallProgressStep.ENABLING_WINDOWS_SERVICE))
     {
@@ -1191,7 +1187,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void configureServer() throws ApplicationException
+  private void configureServer() throws ApplicationException
   {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
     copyTemplateInstance();
@@ -1861,7 +1857,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void createReplicatedBackendsIfRequired() throws ApplicationException
+  private void createReplicatedBackendsIfRequired() throws ApplicationException
   {
     if (FIRST_IN_TOPOLOGY == getUserData().getReplicationOptions().getType())
     {
@@ -1965,7 +1961,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void configureReplication() throws ApplicationException
+  private void configureReplication() throws ApplicationException
   {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING_REPLICATION.get()));
 
@@ -2183,7 +2179,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void enableWindowsService() throws ApplicationException
+  private void enableWindowsService() throws ApplicationException
   {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_ENABLING_WINDOWS_SERVICE.get()));
     InstallerHelper helper = new InstallerHelper();
@@ -2200,7 +2196,7 @@ public class Installer extends GuiApplication
    * @param isCli
    *          a boolean to indicate if the install is using CLI or GUI
    */
-  protected void initSummaryMap(Map<ProgressStep, LocalizableMessage> hmSummary, boolean isCli)
+  private void initSummaryMap(Map<ProgressStep, LocalizableMessage> hmSummary, boolean isCli)
   {
     put(hmSummary, NOT_STARTED, INFO_SUMMARY_INSTALL_NOT_STARTED);
     put(hmSummary, CONFIGURING_SERVER, INFO_SUMMARY_CONFIGURING);
@@ -2250,7 +2246,7 @@ public class Installer extends GuiApplication
    * @param isCli
    *          a boolean to indicate if the install is using CLI or GUI
    */
-  protected void updateSummaryWithServerState(Map<ProgressStep, LocalizableMessage> hmSummary, Boolean isCli)
+  private void updateSummaryWithServerState(Map<ProgressStep, LocalizableMessage> hmSummary, Boolean isCli)
   {
     Installation installation = getInstallation();
     String cmd = getPath(installation.getControlPanelCommandFile());
@@ -2400,7 +2396,7 @@ public class Installer extends GuiApplication
    * @param currentProgressStep
    *          the current progress step of the installation process.
    */
-  protected void setCurrentProgressStep(InstallProgressStep currentProgressStep)
+  private void setCurrentProgressStep(InstallProgressStep currentProgressStep)
   {
     if (currentProgressStep != null)
     {
@@ -2416,7 +2412,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void createData() throws ApplicationException
+  private void createData() throws ApplicationException
   {
     if (createNotReplicatedSuffix()
         && NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY != getUserData().getNewSuffixOptions().getType())
@@ -2451,7 +2447,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void initializeSuffixes() throws ApplicationException
+  private void initializeSuffixes() throws ApplicationException
   {
     ConnectionWrapper conn = null;
     try
@@ -2623,7 +2619,7 @@ public class Installer extends GuiApplication
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  protected void updateADS() throws ApplicationException
+  private void updateADS() throws ApplicationException
   {
     DataReplicationOptions repl = getUserData().getReplicationOptions();
     boolean isRemoteServer = repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
@@ -2792,7 +2788,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if we must create a new suffix and {@code false} otherwise.
    */
-  protected boolean createNotReplicatedSuffix()
+  private boolean createNotReplicatedSuffix()
   {
     DataReplicationOptions repl = getUserData().getReplicationOptions();
 
@@ -2808,7 +2804,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if we must configure replication and {@code false} otherwise.
    */
-  protected boolean mustConfigureReplication()
+  private boolean mustConfigureReplication()
   {
     return getUserData().getReplicationOptions().getType() != DataReplicationOptions.Type.STANDALONE;
   }
@@ -2818,7 +2814,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if we must create the ADS and {@code false} otherwise.
    */
-  protected boolean mustCreateAds()
+  private boolean mustCreateAds()
   {
     return getUserData().getReplicationOptions().getType() != DataReplicationOptions.Type.STANDALONE;
   }
@@ -2828,7 +2824,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if we must start the server and {@code false} otherwise.
    */
-  protected boolean mustStart()
+  private boolean mustStart()
   {
     return getUserData().getStartServer() || mustCreateAds();
   }
@@ -2841,7 +2837,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if the start server must be launched in verbose mode and {@code false} otherwise.
    */
-  protected boolean isStartVerbose()
+  private boolean isStartVerbose()
   {
     if (isVerbose())
     {
@@ -2883,7 +2879,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if we must stop the server and {@code false} otherwise.
    */
-  protected boolean mustStop()
+  private boolean mustStop()
   {
     return !getUserData().getStartServer() && mustCreateAds();
   }
@@ -2893,7 +2889,7 @@ public class Installer extends GuiApplication
    *
    * @return {@code true} if we must initialize suffixes and {@code false} otherwise.
    */
-  protected boolean mustInitializeSuffixes()
+  private boolean mustInitializeSuffixes()
   {
     return getUserData().getReplicationOptions().getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
   }
@@ -2997,7 +2993,6 @@ public class Installer extends GuiApplication
   private void updateUserDataForServerSettingsPanel(QuickSetup qs) throws UserDataException
   {
     List<LocalizableMessage> errorMsgs = new ArrayList<>();
-    LocalizableMessage confirmationMsg = null;
 
     // Check the host is not empty.
     // TODO: check that the host name is valid...
@@ -3182,10 +3177,6 @@ public class Installer extends GuiApplication
     if (!errorMsgs.isEmpty())
     {
       throw new UserDataException(Step.SERVER_SETTINGS, getMessageFromCollection(errorMsgs, "\n"));
-    }
-    if (confirmationMsg != null)
-    {
-      throw new UserDataConfirmationException(Step.SERVER_SETTINGS, confirmationMsg);
     }
   }
 
@@ -3404,32 +3395,12 @@ public class Installer extends GuiApplication
   {
     host = getHostNameForLdapUrl(host);
     HostPort hostPort = new HostPort(host, port);
-    ConnectionWrapper conn = null;
 
     ApplicationTrustManager trustManager = getTrustManager();
     trustManager.setHost(host);
     trustManager.resetLastRefusedItems();
-    try
+    try (ConnectionWrapper conn = newConnectionWrapper(dn, pwd, effectiveDn, hostPort, trustManager))
     {
-      effectiveDn[0] = dn;
-      try
-      {
-        conn = new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
-      }
-      catch (Throwable t)
-      {
-        if (!isCertificateException(t))
-        {
-          // Try using a global administrator
-          dn = ADSContext.getAdministratorDN(dn);
-          effectiveDn[0] = dn;
-          conn = new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
-        }
-        else
-        {
-          throw t;
-        }
-      }
       ADSContext adsContext = new ADSContext(conn);
       if (adsContext.hasAdminData())
       {
@@ -3537,14 +3508,11 @@ public class Installer extends GuiApplication
           throw new UserDataCertificateException(Step.REPLICATION_OPTIONS, INFO_CERTIFICATE_EXCEPTION.get(host, port),
               t, host, port, trustManager.getLastRefusedChain(), trustManager.getLastRefusedAuthType(), excType);
         }
-        else
-        {
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-          errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(host + ":" + port, t));
-        }
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+        errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(host + ":" + port, t));
       }
       else if (t instanceof NamingException)
       {
@@ -3566,9 +3534,26 @@ public class Installer extends GuiApplication
         throw new UserDataException(Step.REPLICATION_OPTIONS, getThrowableMsg(INFO_BUG_MSG.get(), t));
       }
     }
-    finally
+  }
+
+  private ConnectionWrapper newConnectionWrapper(String dn, String pwd, String[] effectiveDn, HostPort hostPort,
+      ApplicationTrustManager trustManager) throws Throwable
+  {
+    try
     {
-      StaticUtils.close(conn);
+      effectiveDn[0] = dn;
+      return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
+    }
+    catch (Throwable t)
+    {
+      if (isCertificateException(t))
+      {
+        throw t;
+      }
+      // Try using a global administrator
+      dn = ADSContext.getAdministratorDN(dn);
+      effectiveDn[0] = dn;
+      return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
     }
   }
 
@@ -4004,7 +3989,7 @@ public class Installer extends GuiApplication
    * @return the keystore path to be used for generating a self-signed
    *         certificate.
    */
-  protected String getSelfSignedKeystorePath()
+  private String getSelfSignedKeystorePath()
   {
     return getPath2("keystore");
   }
@@ -4077,7 +4062,7 @@ public class Installer extends GuiApplication
    *
    * @return the self-signed certificate password used for this session.
    */
-  protected String getSelfSignedCertificatePwd()
+  private String getSelfSignedCertificatePwd()
   {
     if (selfSignedCertPw == null)
     {
@@ -4618,7 +4603,7 @@ public class Installer extends GuiApplication
    *          the ServerDescriptor.
    * @return the host port string representation of the provided server.
    */
-  protected HostPort getHostPort(ServerDescriptor server)
+  private HostPort getHostPort(ServerDescriptor server)
   {
     HostPort hostPort = null;
 
@@ -4658,7 +4643,7 @@ public class Installer extends GuiApplication
    * @return the timeout to be used to connect in milliseconds. Returns
    *         {@code 0} if there is no timeout.
    */
-  protected int getConnectTimeout()
+  private int getConnectTimeout()
   {
     return getUserData().getConnectTimeout();
   }

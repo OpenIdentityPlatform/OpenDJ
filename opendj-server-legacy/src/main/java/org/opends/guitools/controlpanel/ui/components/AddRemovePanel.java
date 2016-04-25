@@ -72,13 +72,13 @@ public class AddRemovePanel<T> extends JPanel
    * Mask used as display option.  If the provided display options contain
    * this mask, the panel will display the remove all button.
    */
-  public static final int DISPLAY_REMOVE_ALL = 0x001;
+  private static final int DISPLAY_REMOVE_ALL = 0x001;
 
   /**
    * Mask used as display option.  If the provided display options contain
    * this mask, the panel will display the add all button.
    */
-  public static final int DISPLAY_ADD_ALL = 0x010;
+  private static final int DISPLAY_ADD_ALL = 0x010;
 
 
   /**
@@ -99,7 +99,7 @@ public class AddRemovePanel<T> extends JPanel
    * @param displayOptions the display options.
    * @param theClass the class of the objects in the panel.
    */
-  public AddRemovePanel(int displayOptions, Class<T> theClass)
+  private AddRemovePanel(int displayOptions, Class<T> theClass)
   {
     super(new GridBagLayout());
     setOpaque(false);

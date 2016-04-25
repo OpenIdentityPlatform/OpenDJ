@@ -17,10 +17,9 @@
 
 package org.opends.server.protocols.internal;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 
@@ -71,46 +70,6 @@ public final class Requests {
             throws NullPointerException {
         Reject.ifNull(name, scope, filter);
         final SearchRequest request = new SearchRequest(name, scope, filter);
-        for (final String attributeDescription : attributeDescriptions) {
-            request.addAttribute(attributeDescription);
-        }
-        return request;
-    }
-
-    /**
-     * Creates a new search request using the provided distinguished name,
-     * scope, and filter, decoded using the default schema.
-     *
-     * @param name
-     *            The distinguished name of the base entry relative to which the
-     *            search is to be performed.
-     * @param scope
-     *            The scope of the search.
-     * @param filter
-     *            The filter that defines the conditions that must be fulfilled
-     *            in order for an entry to be returned.
-     * @param attributeDescriptions
-     *            The names of the attributes to be included with each entry.
-     * @return The new search request.
-     * @throws  DirectoryException
-     *             If a problem occurs while decoding the provided string as a
-     *             search filter.
-     * @throws LocalizedIllegalArgumentException
-     *             If {@code name} could not be decoded using the default
-     *             schema, or if {@code filter} is not a valid LDAP string
-     *             representation of a filter.
-     * @throws NullPointerException
-     *             If the {@code name}, {@code scope}, or {@code filter} were
-     *             {@code null}.
-     */
-    public static SearchRequest newSearchRequest(final String name, final SearchScope scope,
-            final String filter, final String... attributeDescriptions)
-            throws NullPointerException, LocalizedIllegalArgumentException, DirectoryException {
-        Reject.ifNull(name, scope, filter);
-        SearchFilter f = "(objectclass=*)".equals(filter.toLowerCase())
-            ? SearchFilter.objectClassPresent()
-            : SearchFilter.createFilterFromString(filter);
-        final SearchRequest request = new SearchRequest(DN.valueOf(name), scope, f);
         for (final String attributeDescription : attributeDescriptions) {
             request.addAttribute(attributeDescription);
         }

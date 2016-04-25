@@ -93,7 +93,7 @@ public class ZipExtractor {
    * @throws FileNotFoundException if the specified file does not exist
    * @throws IllegalArgumentException if the zip file is not a zip file
    */
-  public ZipExtractor(File zipFile, int minRatio, int maxRatio,
+  private ZipExtractor(File zipFile, int minRatio, int maxRatio,
                                       int numberZipEntries,
                                       Application app)
     throws FileNotFoundException, IllegalArgumentException
@@ -118,7 +118,7 @@ public class ZipExtractor {
    * @param zipFileName name of the input zip file
    * @param app application to be notified about progress
    */
-  public ZipExtractor(InputStream is, int minRatio, int maxRatio,
+  private ZipExtractor(InputStream is, int minRatio, int maxRatio,
                                       int numberZipEntries,
                                       String zipFileName,
                                       Application app) {
@@ -144,7 +144,8 @@ public class ZipExtractor {
    * @param destination File where the zip file will be extracted
    * @throws ApplicationException if something goes wrong
    */
-  public void extract(String destination) throws ApplicationException {
+  private void extract(String destination) throws ApplicationException
+  {
     extract(destination, true);
   }
 
@@ -158,7 +159,7 @@ public class ZipExtractor {
    * directory as 'some_file'.
    * @throws ApplicationException if something goes wrong
    */
-  public void extract(String destDir, boolean removeFirstPath)
+  private void extract(String destDir, boolean removeFirstPath)
           throws ApplicationException
   {
     ZipInputStream zipIn = new ZipInputStream(is);

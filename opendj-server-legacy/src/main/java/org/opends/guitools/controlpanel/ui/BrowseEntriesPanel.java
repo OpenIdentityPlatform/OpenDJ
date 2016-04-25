@@ -62,6 +62,9 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.browser.NodeRefresher;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -76,9 +79,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -1101,28 +1101,28 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   }
 
   /** The specific menu bar of this panel. */
-  class BrowseMenuBar extends GenericMenuBar
+  private class BrowseMenuBar extends GenericMenuBar
   {
     private static final long serialVersionUID = 505187832236882370L;
-    JMenuItem deleteMenuItem;
-    JMenuItem copyDNMenuItem;
-    JMenuItem addToGroupMenuItem;
-    JMenuItem resetPasswordMenuItem;
-    JMenuItem newUserMenuItem;
-    JMenuItem newGroupMenuItem;
-    JMenuItem newOUMenuItem;
-    JMenuItem newOrganizationMenuItem;
-    JMenuItem newDomainMenuItem;
-    JMenuItem newEntryFromLDIFMenuItem;
-    JMenuItem duplicateEntryMenuItem;
-    JMenuItem deleteBaseDNMenuItem;
-    JMenuItem deleteBackendMenuItem;
+    private JMenuItem deleteMenuItem;
+    private JMenuItem copyDNMenuItem;
+    private JMenuItem addToGroupMenuItem;
+    private JMenuItem resetPasswordMenuItem;
+    private JMenuItem newUserMenuItem;
+    private JMenuItem newGroupMenuItem;
+    private JMenuItem newOUMenuItem;
+    private JMenuItem newOrganizationMenuItem;
+    private JMenuItem newDomainMenuItem;
+    private JMenuItem newEntryFromLDIFMenuItem;
+    private JMenuItem duplicateEntryMenuItem;
+    private JMenuItem deleteBaseDNMenuItem;
+    private JMenuItem deleteBackendMenuItem;
 
     /**
      * Constructor.
      * @param info the control panel info.
      */
-    public BrowseMenuBar(ControlPanelInfo info)
+    private BrowseMenuBar(ControlPanelInfo info)
     {
       super(info);
       add(createFileMenuBar());
@@ -1170,7 +1170,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
      * Creates the view menu bar.
      * @return the view menu bar.
      */
-    protected JMenu createViewMenuBar()
+    private JMenu createViewMenuBar()
     {
       JMenu menu = Utilities.createMenu(
           INFO_CTRL_PANEL_VIEW_MENU.get(),
@@ -1306,7 +1306,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
      * Creates the entries menu bar.
      * @return the entries menu bar.
      */
-    protected JMenu createEntriesMenuBar()
+    private JMenu createEntriesMenuBar()
     {
       JMenu menu = Utilities.createMenu(
           INFO_CTRL_PANEL_ENTRIES_MENU.get(),

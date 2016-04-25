@@ -19,10 +19,10 @@ package org.opends.guitools.controlpanel.ui.nodes;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.LDAPURL;
 import org.forgerock.opendj.ldap.RDN;
+import org.opends.guitools.controlpanel.browser.BasicNodeError;
+import org.opends.server.types.LDAPURL;
 
 /** The basic node used to render entries in the 'Manage Entries' tree. */
 public class BasicNode extends DefaultMutableTreeNode {
@@ -388,7 +388,8 @@ public class BasicNode extends DefaultMutableTreeNode {
    * or not.
    * @return the RDN value from the DN.
    */
-  public static String extractRDN(String dn, boolean showAttributeName) {
+  private static String extractRDN(String dn, boolean showAttributeName)
+  {
     String result;
     if (dn == null)
     {
@@ -429,7 +430,8 @@ public class BasicNode extends DefaultMutableTreeNode {
    * @param dn the DN.
    * @return the RDN value from the DN.
    */
-  public static String extractRDN(String dn) {
+  private static String extractRDN(String dn)
+  {
     return extractRDN(dn, false);
   }
 

@@ -32,10 +32,10 @@ import java.util.Set;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** The menu bar that appears on the main panel. */
 public class MainMenuBar extends GenericMenuBar
@@ -104,7 +104,7 @@ public class MainMenuBar extends GenericMenuBar
    * Creates the File menu bar.
    * @return the File menu bar.
    */
-  protected JMenu createFileMenuBar()
+  private JMenu createFileMenuBar()
   {
     JMenu menu = Utilities.createMenu(INFO_CTRL_PANEL_FILE_MENU.get(),
         INFO_CTRL_PANEL_FILE_MENU_DESCRIPTION.get());
@@ -202,7 +202,7 @@ public class MainMenuBar extends GenericMenuBar
   }
 
   /** The method called when the user clicks on 'Refresh Options'. */
-  protected void refreshOptionsClicked()
+  private void refreshOptionsClicked()
   {
     if (panel == null)
     {
@@ -225,7 +225,7 @@ public class MainMenuBar extends GenericMenuBar
   }
 
   /** The method called when the user clicks on 'Connect to Server...'. */
-  protected void connectToServerClicked()
+  private void connectToServerClicked()
   {
     Set<String> runningTasks = new HashSet<>();
     for (Task task : getInfo().getTasks())

@@ -36,7 +36,7 @@ import org.opends.server.util.CollectionUtils;
  class WorkQueueMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
-  static final List<BasicMonitoringAttributes> attributes = CollectionUtils.newArrayList(
+  private static final List<BasicMonitoringAttributes> attributes = CollectionUtils.newArrayList(
       BasicMonitoringAttributes.AVERAGE_REQUEST_BACKLOG,
       BasicMonitoringAttributes.MAX_REQUEST_BACKLOG,
       BasicMonitoringAttributes.CURRENT_REQUEST_BACKLOG,

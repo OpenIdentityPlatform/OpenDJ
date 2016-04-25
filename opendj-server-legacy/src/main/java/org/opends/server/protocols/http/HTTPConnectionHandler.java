@@ -117,7 +117,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   private boolean enabled;
 
   /** The set of listeners for this connection handler. */
-  private List<HostPort> listeners = new LinkedList<>();
+  private final List<HostPort> listeners = new LinkedList<>();
 
   /** The HTTP server embedded in OpenDJ. */
   private HttpServer httpServer;
@@ -130,7 +130,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
    * ensure no concurrent reads/writes can happen and adds/removes are fast. We
    * only use the keys, so it does not matter what value is put there.
    */
-  private Map<ClientConnection, ClientConnection> clientConnections = new ConcurrentHashMap<>();
+  private final Map<ClientConnection, ClientConnection> clientConnections = new ConcurrentHashMap<>();
 
   /** The set of statistics collected for this connection handler. */
   private HTTPStatistics statTracker;
@@ -372,17 +372,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   public String getProtocol()
   {
     return protocol;
-  }
-
-  /**
-   * Returns the SSL engine configured for this connection handler if SSL is
-   * enabled, null otherwise.
-   *
-   * @return the SSL engine if SSL is enabled, null otherwise
-   */
-  SSLEngine getSSLEngine()
-  {
-    return sslEngineConfigurator.createSSLEngine();
   }
 
   @Override

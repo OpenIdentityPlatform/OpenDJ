@@ -16,12 +16,12 @@
  */
 package org.opends.server.api.plugin;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DisconnectReason;
-
 import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DisconnectReason;
 
 /**
  * This class defines a data structure that holds information about
@@ -35,7 +35,7 @@ import java.util.List;
 public final class PluginResult
 {
   /** Contract for operation results. */
-  public static interface OperationResult
+  public interface OperationResult
   {
     /**
      * Indicates whether processing on the associated operation should continue.
@@ -93,7 +93,7 @@ public final class PluginResult
     /** An message explaining why startup should stop. */
     private final LocalizableMessage errorMessage;
 
-    private static Startup DEFAULT_RESULT =
+    private static final Startup DEFAULT_RESULT =
         new Startup(true, true, null);
 
     /**
@@ -207,7 +207,7 @@ public final class PluginResult
     /** The result code for this result. */
     private final ResultCode resultCode;
 
-    private static PreParse DEFAULT_RESULT =
+    private static final PreParse DEFAULT_RESULT =
         new PreParse(true, true, null, null, null, null);
 
     /**
@@ -357,7 +357,7 @@ public final class PluginResult
     /** The result code for this result. */
     private final ResultCode resultCode;
 
-    private static PreOperation DEFAULT_RESULT =
+    private static final PreOperation DEFAULT_RESULT =
         new PreOperation(true, true, null, null, null, null);
 
     /**
@@ -503,7 +503,7 @@ public final class PluginResult
     /** The result code for this result. */
     private final ResultCode resultCode;
 
-    private static PostOperation DEFAULT_RESULT =
+    private static final PostOperation DEFAULT_RESULT =
         new PostOperation(true, null, null, null, null);
 
     /**
@@ -611,7 +611,7 @@ public final class PluginResult
     /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    private static PostResponse DEFAULT_RESULT =
+    private static final PostResponse DEFAULT_RESULT =
         new PostResponse(true);
 
     /**
@@ -673,7 +673,7 @@ public final class PluginResult
     /** An message explaining why processing should stop. */
     private final LocalizableMessage errorMessage;
 
-    private static ImportLDIF DEFAULT_RESULT =
+    private static final ImportLDIF DEFAULT_RESULT =
         new ImportLDIF(true, true, null);
 
     /**
@@ -787,7 +787,7 @@ public final class PluginResult
     /** The result code for this result. */
     private final ResultCode resultCode;
 
-    private static SubordinateModifyDN DEFAULT_RESULT =
+    private static final SubordinateModifyDN DEFAULT_RESULT =
         new SubordinateModifyDN(true, true, null, null, null, null);
 
     /**
@@ -938,7 +938,7 @@ public final class PluginResult
     /** The result code for this result. */
     private final ResultCode resultCode;
 
-    private static SubordinateDelete DEFAULT_RESULT =
+    private static final SubordinateDelete DEFAULT_RESULT =
         new SubordinateDelete(true, true, null, null, null, null);
 
     /**
@@ -1091,7 +1091,7 @@ public final class PluginResult
     /** The result code for this result. */
     private final ResultCode resultCode;
 
-    private static IntermediateResponse DEFAULT_RESULT =
+    private static final IntermediateResponse DEFAULT_RESULT =
         new IntermediateResponse(true, true, true, null, null, null,
             null);
 
@@ -1275,7 +1275,7 @@ public final class PluginResult
     /** Whether to send a disconnect notification to the client. */
     private final boolean sendDisconnectNotification;
 
-    private static PostConnect DEFAULT_RESULT =
+    private static final PostConnect DEFAULT_RESULT =
         new PostConnect(true, true, null, null, false);
 
     /**
@@ -1408,7 +1408,7 @@ public final class PluginResult
     /** Whether to invoke the rest of the plugins. */
     private final boolean continuePluginProcessing;
 
-    private static PostDisconnect DEFAULT_RESULT =
+    private static final PostDisconnect DEFAULT_RESULT =
         new PostDisconnect(true);
 
     /**

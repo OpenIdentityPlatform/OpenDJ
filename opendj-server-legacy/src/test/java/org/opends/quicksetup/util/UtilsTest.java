@@ -12,18 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
 import static org.testng.Assert.*;
-import org.testng.annotations.*;
-import org.opends.server.DirectoryServerTestCase;
 
-/**
- * Utils Tester.
- */
+import org.opends.server.DirectoryServerTestCase;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+/** Utils Tester. */
 @Test(sequential=true)
+@SuppressWarnings("javadoc")
 public class UtilsTest extends DirectoryServerTestCase {
 
   @DataProvider(name = "breakHtmlStringData")
@@ -43,25 +44,6 @@ public class UtilsTest extends DirectoryServerTestCase {
   @Test(dataProvider = "breakHtmlStringData")
   public void testBreakHtmlString(String s, int maxll, String expectedValue) {
     assertEquals(Utils.breakHtmlString(s, maxll), expectedValue);
-  }
-
-  @DataProvider(name = "stripHtmlData")
-  public Object[][] stripHtmlData() {
-    return new Object[][]{
-            {"Hi <i>Ho</i>", "Hi Ho"},
-            {"Hi <b>Ho</b>", "Hi Ho"},
-            {"Hi<br> Ho", "Hi Ho"},
-            {"Hi<br/> Ho", "Hi Ho"},
-            {"Hi<input value=\"abc\"/> Ho", "Hi Ho"},
-            {"Hi<input value=\"abc\"></input> Ho", "Hi Ho"},
-            // {"Hi<tag attr=\"1 > 0\"> Ho", "Hi Ho"}, // broken case
-            // {"Hi <your name here>", "Hi <your name here>"} // broken case
-    };
-  }
-
-  @Test(enabled = false, dataProvider = "stripHtmlData")
-  public void testStripHtml(String html, String expectedResult) {
-    assertEquals(expectedResult, Utils.stripHtml(html));
   }
 
   @DataProvider(name = "containsHtmlData")

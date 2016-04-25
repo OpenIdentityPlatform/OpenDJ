@@ -16,11 +16,12 @@
  */
 package org.opends.server.admin.client.cli;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
-import static org.opends.messages.ToolMessages.*;
+
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +36,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.forgerock.opendj.cli.ArgumentParser;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
@@ -51,6 +51,7 @@ import org.opends.server.core.DirectoryServer;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.FileBasedArgument;
@@ -95,7 +96,7 @@ public final class SecureConnectionCliArgs
   private boolean configurationInitialized;
 
   /** Defines if the CLI always use the SSL connection type. */
-  private boolean alwaysSSL;
+  private final boolean alwaysSSL;
 
   /**
    * Creates a new instance of secure arguments.
@@ -294,7 +295,7 @@ public final class SecureConnectionCliArgs
    *          the LocalizableMessageBuilder to write the error messages.
    * @return return code.
    */
-  public int validateGlobalOptions(LocalizableMessageBuilder buf)
+  int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
     final List<LocalizableMessage> errors = new ArrayList<>();
     addErrorMessageIfArgumentsConflict(errors, bindPasswordArg, bindPasswordFileArg);

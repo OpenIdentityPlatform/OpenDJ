@@ -1383,7 +1383,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    *
    * @throws ApplicationException if something goes wrong.
    */
-  protected void disableWindowsService() throws ApplicationException {
+  private void disableWindowsService() throws ApplicationException {
     notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_DISABLING_WINDOWS_SERVICE.get()));
     int code = disableService(System.out, System.err);
@@ -1393,7 +1393,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
     switch (code) {
       case SERVICE_DISABLE_SUCCESS:
-        break;
       case SERVICE_ALREADY_DISABLED:
         break;
       default:

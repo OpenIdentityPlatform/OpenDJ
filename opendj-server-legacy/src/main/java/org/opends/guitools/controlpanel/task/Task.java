@@ -69,8 +69,8 @@ import com.forgerock.opendj.cli.CommandBuilder;
  */
 public abstract class Task
 {
-  private static String localHostName = UserData.getDefaultHostName();
-  private String binDir;
+  private static final String localHostName = UserData.getDefaultHostName();
+  private static final int MAX_BINARY_LENGTH_TO_DISPLAY = 1024;
 
   /** The different task types. */
   public enum Type
@@ -161,17 +161,15 @@ public abstract class Task
    * a bug, because of the way the contents of logs is updated, using
    * StringBuffer instead of StringBuilder is required.
    */
-  private StringBuffer logs = new StringBuffer();
+  private final StringBuffer logs = new StringBuffer();
   /** The error logs of the task. */
-  private StringBuilder errorLogs = new StringBuilder();
+  private final StringBuilder errorLogs = new StringBuilder();
   /** The standard output logs of the task. */
-  private StringBuilder outputLogs = new StringBuilder();
+  private final StringBuilder outputLogs = new StringBuilder();
   /** The print stream for the error logs. */
-  protected ApplicationPrintStream errorPrintStream =
-    new ApplicationPrintStream();
+  protected final ApplicationPrintStream errorPrintStream = new ApplicationPrintStream();
   /** The print stream for the standard output logs. */
-  protected ApplicationPrintStream outPrintStream =
-    new ApplicationPrintStream();
+  protected final ApplicationPrintStream outPrintStream = new ApplicationPrintStream();
 
   /**
    * The process (if any) that the task launched.  For instance if this is a
@@ -179,15 +177,11 @@ public abstract class Task
    * command-line.
    */
   private Process process;
-  private ControlPanelInfo info;
-
-  private ServerDescriptor server;
-
-  private ProgressDialog progressDialog;
-
-  private ArrayList<ConfigurationElementCreatedListener> confListeners = new ArrayList<>();
-
-  private static int MAX_BINARY_LENGTH_TO_DISPLAY = 1024;
+  private final ControlPanelInfo info;
+  private final ServerDescriptor server;
+  private String binDir;
+  private final ProgressDialog progressDialog;
+  private final List<ConfigurationElementCreatedListener> confListeners = new ArrayList<>();
 
   /**
    * Constructor of the task.
@@ -419,7 +413,7 @@ public abstract class Task
    * @return the obfuscated String representing the attribute value to be
    * displayed in the logs of the user.
    */
-  protected String obfuscateAttributeStringValue(String attrName, Object o)
+  private String obfuscateAttributeStringValue(String attrName, Object o)
   {
     if (Utilities.mustObfuscate(attrName,
         getInfo().getServerDescriptor().getSchema()))
@@ -557,7 +551,7 @@ public abstract class Task
    * Returns the binary/script directory.
    * @return the binary/script directory.
    */
-  protected String getBinaryDir()
+  private String getBinaryDir()
   {
     if (binDir == null)
     {
@@ -826,7 +820,7 @@ public abstract class Task
    * @param mods the modifications.
    * @param useAdminCtx use the administration connector.
    */
-  protected void printEquivalentCommandToModify(String dn,
+  private void printEquivalentCommandToModify(String dn,
       Collection<ModificationItem> mods, boolean useAdminCtx)
   {
     ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
@@ -946,7 +940,7 @@ public abstract class Task
    * @return <CODE>true</CODE> if the attribute must be displayed using base 64
    * and <CODE>false</CODE> otherwise.
    */
-  protected boolean displayBase64(String attrName)
+  private boolean displayBase64(String attrName)
   {
     Schema schema = null;
     if (getInfo() != null)

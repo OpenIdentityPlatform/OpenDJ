@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api.plugin;
 
@@ -474,7 +474,7 @@ public enum PluginType
   }
 
   /** The name for this plugin type. */
-  private String name;
+  private final String name;
 
   /**
    * Creates a new plugin type instance with the specified name.

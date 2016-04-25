@@ -20,9 +20,7 @@ package org.opends.quicksetup.ui;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashSet;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -30,11 +28,16 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import org.opends.quicksetup.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.ProgressDescriptor;
+import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.ProgressDescriptor;
 /**
  * This class represents the dialog used by quicksetup applications.
  *
@@ -49,23 +52,18 @@ public class QuickSetupDialog
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private JFrame frame;
+  private final JFrame frame;
   private QuickSetupErrorPanel installedPanel;
   private JPanel framePanel;
   private StepsPanel stepsPanel;
   private CurrentStepPanel currentStepPanel;
   private ButtonsPanel buttonsPanel;
-
   private WizardStep displayedStep;
 
-  private CurrentInstallStatus installStatus;
-
-  private HashSet<ButtonActionListener> buttonListeners = new HashSet<>();
-
-  private GuiApplication application;
-
-  private QuickSetup quickSetup;
-
+  private final CurrentInstallStatus installStatus;
+  private final Set<ButtonActionListener> buttonListeners = new HashSet<>();
+  private final GuiApplication application;
+  private final QuickSetup quickSetup;
   private boolean forceToDisplay;
 
   /**
@@ -94,20 +92,6 @@ public class QuickSetupDialog
     });
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     Utilities.setFrameIcon(frame);
-  }
-
-  /** Packs and displays this dialog. */
-  public void packAndShow()
-  {
-    frame.pack();
-    int minWidth = (int) frame.getPreferredSize().getWidth();
-    int minHeight = (int) frame.getPreferredSize().getHeight();
-    Utilities.centerOnScreen(frame);
-    setFocusOnButton(application.getInitialFocusButtonName());
-    frame.addComponentListener(new MinimumSizeComponentListener(frame,
-        minWidth, minHeight));
-
-    frame.setVisible(true);
   }
 
   /**
@@ -278,20 +262,6 @@ public class QuickSetupDialog
       }
     };
     runOnEventThread(r);
-  }
-
-  /**
-   * Notification telling that the installation/uninstallation is finished.
-   * @param successful a boolean telling whether the setup was successful or
-   * not.
-   */
-  public void finished(boolean successful)
-  {
-    setButtonEnabled(ButtonName.CLOSE, true);
-    if (!successful)
-    {
-      // Do nothing... all the error messages
-    }
   }
 
   /**

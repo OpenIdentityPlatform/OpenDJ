@@ -39,13 +39,13 @@ import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
@@ -108,7 +108,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   }
 
   /** Creates the layout of the panel (but the contents are not populated here). */
-  protected void createLayout()
+  private void createLayout()
   {
     createBasicLayout(this, new GridBagConstraints());
     setBorder(PANEL_BORDER);
@@ -119,7 +119,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
    * @param c the container where all the components will be layed out.
    * @param gbc the grid bag constraints.
    */
-  protected void createBasicLayout(Container c, GridBagConstraints gbc)
+  private void createBasicLayout(Container c, GridBagConstraints gbc)
   {
 
     requiredAttributes.setVisibleRowCount(5);

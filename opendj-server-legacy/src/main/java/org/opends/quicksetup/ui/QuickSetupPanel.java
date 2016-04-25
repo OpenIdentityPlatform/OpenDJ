@@ -14,7 +14,6 @@
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import java.awt.Component;
@@ -23,15 +22,12 @@ import java.awt.Window;
 
 import javax.swing.JPanel;
 
-import org.opends.quicksetup.UserData;
-
 /** This class is an abstract class that provides some commodity methods. */
 abstract class QuickSetupPanel extends JPanel
 {
   private static final long serialVersionUID = 2096518919339628055L;
 
-  private GuiApplication application;
-
+  private final GuiApplication application;
   private QuickSetup quickSetup;
 
   /**
@@ -95,13 +91,4 @@ abstract class QuickSetupPanel extends JPanel
   protected GuiApplication getApplication() {
     return this.application;
   }
-
-  /**
-   * Gets the user data associated with the current application.
-   * @return UserData user specified data
-   */
-  protected UserData getUserData() {
-    return application.getUserData();
-  }
-
 }

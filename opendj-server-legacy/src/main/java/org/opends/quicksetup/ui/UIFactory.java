@@ -53,7 +53,6 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class provides constants an methods to create Swing objects and to
@@ -64,9 +63,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 public class UIFactory
 {
-  private static boolean initialized;
   private static String parentPackagePath;
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Specifies the horizontal insets between buttons. */
   public static final int HORIZONTAL_INSET_BETWEEN_BUTTONS = 5;
@@ -188,16 +185,17 @@ public class UIFactory
   /** Specifies the dialog border. */
   public static final Border DIALOG_PANEL_BORDER = BorderFactory.createMatteBorder(0, 0, 2, 0, PANEL_BORDER_COLOR);
 
-  private static Font DEFAULT_FONT;
-  static
+  private static final Font DEFAULT_FONT = getDefaultFont();
+
+  private static Font getDefaultFont()
   {
     try
     {
-      DEFAULT_FONT = UIManager.getFont("Label.font").deriveFont(Font.PLAIN).deriveFont(12f);
+      return UIManager.getFont("Label.font").deriveFont(Font.PLAIN).deriveFont(12f);
     }
     catch (Throwable t)
     {
-      DEFAULT_FONT = Font.decode("SansSerif-PLAIN-12");
+      return Font.decode("SansSerif-PLAIN-12");
     }
   }
 
@@ -414,33 +412,6 @@ public class UIFactory
     if (ts[0] != null)
     {
       throw ts[0];
-    }
-  }
-
-  /**
-   * This method initialize the look and feel and UI settings specific to quick
-   * setup.
-   *
-   * @throws Throwable
-   *           if there is a problem initializing the look and feel.
-   */
-  public static void initialize() throws Throwable
-  {
-    if (!initialized)
-    {
-      try
-      {
-        UIManager.put("OptionPane.background", getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
-        UIManager.put("Panel.background", getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
-        UIManager.put("ComboBox.background", getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
-      }
-      catch (Throwable t)
-      {
-        // This might occur when we do not get the display
-        logger.warn(LocalizableMessage.raw("Error updating UIManager: " + t, t));
-      }
-      initializeLookAndFeel();
-      initialized = true;
     }
   }
 
@@ -884,7 +855,7 @@ public class UIFactory
    * @return a read only JEditorPane containing the provided text with the
    *         provided font.
    */
-  public static JEditorPane makeHtmlPane(LocalizableMessage text, HTMLEditorKit ek, Font font)
+  private static JEditorPane makeHtmlPane(LocalizableMessage text, HTMLEditorKit ek, Font font)
   {
     JEditorPane pane = new JEditorPane();
     if (ek != null) {
@@ -1034,13 +1005,9 @@ public class UIFactory
    * @return a string that represents the original HTML with the font specified
    *         as parameter.
    */
-  public static String applyFontToHtmlWithDiv(String html, Font font)
+  private static String applyFontToHtmlWithDiv(String html, Font font)
   {
-    StringBuilder buf = new StringBuilder();
-
-    buf.append("<div style=\"").append(getFontStyle(font)).append("\">").append(html).append(DIV_CLOSE);
-
-    return buf.toString();
+    return "<div style=\"" + getFontStyle(font) + "\">" + html + DIV_CLOSE;
   }
 
   /**
@@ -1497,5 +1464,6 @@ class TextFieldFocusListener implements FocusListener
   @Override
   public void focusLost(FocusEvent e)
   {
+    // no-op
   }
 }

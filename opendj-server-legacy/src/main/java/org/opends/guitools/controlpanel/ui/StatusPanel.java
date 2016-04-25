@@ -42,6 +42,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.util.Utils;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNTableModel;
@@ -50,17 +55,11 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerTableModel;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
-import org.opends.guitools.controlpanel.ui.components.
- SelectableLabelWithHelpIcon;
+import org.opends.guitools.controlpanel.ui.components.SelectableLabelWithHelpIcon;
 import org.opends.guitools.controlpanel.ui.renderer.BaseDNCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.CustomCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.util.Utils;
 
 /**
  * The panel displaying the general status of the server (started/stopped),
@@ -206,7 +205,7 @@ class StatusPanel extends StatusGenericPanel
    * Updates the contents of the panel with the provided ServerDescriptor.
    * @param desc the ServerDescriptor.
    */
-  public void updateContents(ServerDescriptor desc)
+  private void updateContents(ServerDescriptor desc)
   {
     JScrollPane scroll = Utilities.getContainingScroll(this);
     ViewPositions pos;

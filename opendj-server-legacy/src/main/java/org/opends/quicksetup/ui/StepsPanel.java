@@ -12,24 +12,23 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.WizardStep;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class displays the different steps of the wizard.  It appears on the
@@ -37,15 +36,14 @@ import org.forgerock.i18n.LocalizableMessage;
  *
  * The current step is highlighted using a different label style and an icon.
  * The current displayed step can be changed calling the method setCurrentStep.
- *
  */
-public class StepsPanel extends QuickSetupPanel
+class StepsPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = -2003945907121690657L;
 
-  HashMap<WizardStep, JLabel> hmLabels = new HashMap<>();
-  HashMap<WizardStep, JLabel> hmIcons = new HashMap<>();
-  HashMap<WizardStep, JPanel> hmSubPanels = new HashMap<>();
+  private final Map<WizardStep, JLabel> hmLabels = new HashMap<>();
+  private final Map<WizardStep, JLabel> hmIcons = new HashMap<>();
+  private final Map<WizardStep, JPanel> hmSubPanels = new HashMap<>();
 
   /**
    * Creates a StepsPanel.

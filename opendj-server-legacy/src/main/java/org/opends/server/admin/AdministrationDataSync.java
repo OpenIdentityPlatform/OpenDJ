@@ -49,7 +49,7 @@ public final class AdministrationDataSync
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The root connection. */
-  private InternalClientConnection internalConnection;
+  private final InternalClientConnection internalConnection;
 
   /** The attribute name used to store the port. TODO Use the default one. */
   private static final String LDAP_PORT = "ds-cfg-listen-port";

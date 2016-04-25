@@ -36,11 +36,11 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ConfigureWindowsService;
 
 /** The panel that displays the Windows Service panel configuration for the server. */
@@ -249,9 +249,9 @@ public class WindowsServicePanel extends StatusGenericPanel
   }
 
   /** The task in charge of updating the windows service configuration. */
-  protected class WindowsServiceTask extends Task
+  private class WindowsServiceTask extends Task
   {
-    Set<String> backendSet;
+    private Set<String> backendSet;
     private boolean enableService;
     /**
      * The constructor of the task.
@@ -260,7 +260,7 @@ public class WindowsServicePanel extends StatusGenericPanel
      * @param enableService whether the windows service must be enabled or
      * disabled.
      */
-    public WindowsServiceTask(ControlPanelInfo info, ProgressDialog dlg,
+    private WindowsServiceTask(ControlPanelInfo info, ProgressDialog dlg,
         boolean enableService)
     {
       super(info, dlg);

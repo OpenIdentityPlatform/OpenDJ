@@ -301,29 +301,6 @@ public class InstallerHelper {
   }
 
   /**
-   * Deletes a backend on the server.
-   * @param connWrapper the connection to the server.
-   * @param backendName the name of the backend to be deleted.
-   * @param serverDisplay the server display.
-   * @throws ApplicationException if something goes wrong.
-   */
-  public void deleteBackend(ConnectionWrapper connWrapper, String backendName, String serverDisplay)
-      throws ApplicationException
-  {
-    try
-    {
-      connWrapper.getRootConfiguration().removeBackend(backendName);
-    }
-    catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
-          t);
-    }
-  }
-
-  /**
    * Deletes a backend on the server.  It assumes the server is stopped.
    * @param backendName the name of the backend to be deleted.
    * @throws ApplicationException if something goes wrong.
@@ -367,7 +344,7 @@ public class InstallerHelper {
       RootCfgClient root = conn.getRootConfiguration();
       BackendCfgClient backend = root.createBackend(backendType, backendName, null);
       backend.setEnabled(true);
-      backend.setBaseDN(toByteStrings(baseDNs));
+      backend.setBaseDN(toDNs(baseDNs));
       backend.setBackendId(backendName);
       backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
       backend.commit();
@@ -379,7 +356,7 @@ public class InstallerHelper {
     }
   }
 
-  private Set<DN> toByteStrings(Set<String> strings) throws DirectoryException
+  private Set<DN> toDNs(Set<String> strings) throws DirectoryException
   {
     Set<DN> results = new HashSet<>();
     for (String s : strings)
@@ -387,33 +364,6 @@ public class InstallerHelper {
       results.add(DN.valueOf(s));
     }
     return results;
-  }
-
-  /**
-   * Sets the base DNs on a given backend.
-   * @param connWrapper the connection to the server.
-   * @param backendName the name of the backend where the base Dns must be
-   * defined.
-   * @param baseDNs the list of base DNs to be defined on the server.
-   * @param serverDisplay the server display.
-   * @throws ApplicationException if something goes wrong.
-   */
-  public void setBaseDns(ConnectionWrapper connWrapper, String backendName, Set<String> baseDNs, String serverDisplay)
-      throws ApplicationException
-  {
-    try
-    {
-      BackendCfgClient backend = connWrapper.getRootConfiguration().getBackend(backendName);
-      backend.setBaseDN(toByteStrings(baseDNs));
-      backend.commit();
-    }
-    catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(serverDisplay, t),
-          t);
-    }
   }
 
   /**

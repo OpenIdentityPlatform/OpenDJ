@@ -610,7 +610,7 @@ public class BackupPanel extends BackupListPanel
   }
 
   /** Class that launches the backup. */
-  protected class BackupTask extends Task
+  private class BackupTask extends Task
   {
     private Set<String> backendSet;
     private String dir;
@@ -619,7 +619,7 @@ public class BackupPanel extends BackupListPanel
      * @param info the control panel info.
      * @param dlg the progress dialog that shows the progress of the task.
      */
-    public BackupTask(ControlPanelInfo info, ProgressDialog dlg)
+    private BackupTask(ControlPanelInfo info, ProgressDialog dlg)
     {
       super(info, dlg);
       backendSet = new HashSet<>();

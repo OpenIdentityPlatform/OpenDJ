@@ -265,7 +265,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
    * @return <CODE>true</CODE> if the schema must be checked and
    * <CODE>false</CODE> otherwise.
    */
-  protected boolean checkSchema()
+  private boolean checkSchema()
   {
     return getInfo().getServerDescriptor().isSchemaEnabled();
   }

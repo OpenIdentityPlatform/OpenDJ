@@ -43,7 +43,7 @@ public class CategoryPanel extends JPanel {
   private CategoryButton expandButton;
   private boolean expanded = true;
 
-  static final Border categoryBorder = new AccordionElementBorder();
+  private static final Border categoryBorder = new AccordionElementBorder();
 
   /**
    * Constructor the the panel.

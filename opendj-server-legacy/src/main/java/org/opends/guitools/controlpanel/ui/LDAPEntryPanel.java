@@ -441,7 +441,7 @@ implements EntryReadListener
    * @return <CODE>true</CODE> if the provided DN corresponds to a read-only
    * entry and <CODE>false</CODE> otherwise.
    */
-  public boolean isReadOnly(String sDn)
+  private boolean isReadOnly(String sDn)
   {
     boolean isReadOnly = false;
     try

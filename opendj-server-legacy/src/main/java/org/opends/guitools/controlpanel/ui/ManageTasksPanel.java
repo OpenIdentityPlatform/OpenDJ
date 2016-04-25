@@ -633,7 +633,7 @@ public class ManageTasksPanel extends StatusGenericPanel
    * the attributes definition and objectclasses in the schema of the server.
    * TODO: move somewhere better.
    */
-  public static Entry getEntry(CustomSearchResult csr) throws OpenDsException
+  private static Entry getEntry(CustomSearchResult csr) throws OpenDsException
   {
     DN dn = DN.valueOf(csr.getDN());
     Map<ObjectClass,String> objectClasses = new HashMap<>();
@@ -859,7 +859,7 @@ public class ManageTasksPanel extends StatusGenericPanel
   }
 
   /** The specific menu bar of this panel. */
-  class ManageTasksMenuBar extends MainMenuBar
+  private class ManageTasksMenuBar extends MainMenuBar
   {
     private static final long serialVersionUID = 5051878116443370L;
 
@@ -867,7 +867,7 @@ public class ManageTasksPanel extends StatusGenericPanel
      * Constructor.
      * @param info the control panel info.
      */
-    public ManageTasksMenuBar(ControlPanelInfo info)
+    private ManageTasksMenuBar(ControlPanelInfo info)
     {
       super(info);
     }

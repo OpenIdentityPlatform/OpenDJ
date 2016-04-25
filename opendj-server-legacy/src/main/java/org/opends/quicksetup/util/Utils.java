@@ -23,6 +23,7 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Installation.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.DynamicConstants.*;
 
 import java.io.BufferedOutputStream;
@@ -37,7 +38,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -87,7 +87,6 @@ import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ClientException;
@@ -239,7 +238,7 @@ public class Utils
    * @throws IOException
    *           if something goes wrong
    */
-  public static boolean createFile(File f) throws IOException
+  static boolean createFile(File f) throws IOException
   {
     if (f != null)
     {
@@ -344,22 +343,6 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the parent directory for the provided path
-   * exists and <CODE>false</CODE> otherwise.
-   *
-   * @param path
-   *          the path that we are analyzing.
-   * @return <CODE>true</CODE> if the parent directory for the provided path
-   *         exists and <CODE>false</CODE> otherwise.
-   */
-  public static boolean parentDirectoryExists(String path)
-  {
-    File f = new File(path);
-    File parentFile = f.getParentFile();
-    return parentFile != null && parentFile.isDirectory();
-  }
-
-  /**
    * Returns <CODE>true</CODE> if the the provided path is a file and exists and
    * <CODE>false</CODE> otherwise.
    *
@@ -446,25 +429,10 @@ public class Utils
    * @return boolean indicating whether or not the input <code>f</code> has a
    *         parent after this method is invoked.
    */
-  public static boolean ensureParentsExist(File f)
+  static boolean ensureParentsExist(File f)
   {
     final File parent = f.getParentFile();
     return parent.exists() || parent.mkdirs();
-  }
-
-  /**
-   * Creates the a directory in the provided path.
-   *
-   * @param path
-   *          the path.
-   * @return <CODE>true</CODE> if the path was created or already existed (and
-   *         was a directory) and <CODE>false</CODE> otherwise.
-   * @throws IOException
-   *           if something goes wrong.
-   */
-  public static boolean createDirectory(String path) throws IOException
-  {
-    return createDirectory(new File(path));
   }
 
   /**
@@ -477,7 +445,7 @@ public class Utils
    * @throws IOException
    *           if something goes wrong.
    */
-  public static boolean createDirectory(File f) throws IOException
+  static boolean createDirectory(File f) throws IOException
   {
     if (f.exists())
     {
@@ -497,23 +465,18 @@ public class Utils
    * @throws IOException
    *           if something goes wrong.
    */
-  public static void createFile(File path, InputStream is) throws IOException
+  static void createFile(File path, InputStream is) throws IOException
   {
-    FileOutputStream out;
-    BufferedOutputStream dest;
-    byte[] data = new byte[BUFFER_SIZE];
-    int count;
-
-    out = new FileOutputStream(path);
-
-    dest = new BufferedOutputStream(out);
-
-    while ((count = is.read(data, 0, BUFFER_SIZE)) != -1)
+    try (FileOutputStream out = new FileOutputStream(path);
+        BufferedOutputStream dest = new BufferedOutputStream(out))
     {
-      dest.write(data, 0, count);
+      byte[] data = new byte[BUFFER_SIZE];
+      int count;
+      while ((count = is.read(data, 0, BUFFER_SIZE)) != -1)
+      {
+        dest.write(data, 0, count);
+      }
     }
-    dest.flush();
-    dest.close();
   }
 
   /**
@@ -593,58 +556,6 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if there is more disk space in the provided path
-   * than what is specified with the bytes parameter.
-   *
-   * @param directoryPath
-   *          the path.
-   * @param bytes
-   *          the disk space.
-   * @return <CODE>true</CODE> if there is more disk space in the provided path
-   *         than what is specified with the bytes parameter.
-   */
-  public static synchronized boolean hasEnoughSpace(String directoryPath, long bytes)
-  {
-    // TODO This does not work with quotas etc. but at least it seems that
-    // we do not write all data on disk if it fails.
-    boolean hasEnoughSpace = false;
-    File file = null;
-    RandomAccessFile raf = null;
-    File directory = new File(directoryPath);
-    boolean deleteDirectory = false;
-    if (!directory.exists())
-    {
-      deleteDirectory = directory.mkdir();
-    }
-
-    try
-    {
-      file = File.createTempFile("temp" + System.nanoTime(), ".tmp", directory);
-      raf = new RandomAccessFile(file, "rw");
-      raf.setLength(bytes);
-      hasEnoughSpace = true;
-    }
-    catch (IOException ex)
-    { /* do nothing */
-    }
-    finally
-    {
-      StaticUtils.close(raf);
-      if (file != null)
-      {
-        file.delete();
-      }
-    }
-
-    if (deleteDirectory)
-    {
-      directory.delete();
-    }
-
-    return hasEnoughSpace;
-  }
-
-  /**
    * Gets a localized representation of the provide TopologyCacheException.
    *
    * @param te
@@ -701,7 +612,7 @@ public class Utils
    * @throws InterruptedException
    *           if the Runtime.exec method is interrupted.
    */
-  public static int setPermissionsUnix(List<String> paths, String permissions) throws IOException,
+  static int setPermissionsUnix(List<String> paths, String permissions) throws IOException,
       InterruptedException
   {
     String[] args = new String[paths.size() + 2];
@@ -730,7 +641,7 @@ public class Utils
    * @throws InterruptedException
    *           if the Runtime.exec method is interrupted.
    */
-  public static int setPermissionsUnix(String path, String permissions) throws IOException, InterruptedException
+  static int setPermissionsUnix(String path, String permissions) throws IOException, InterruptedException
   {
     String[] args = new String[] { "chmod", permissions, path };
     Process p = Runtime.getRuntime().exec(args);
@@ -911,14 +822,9 @@ public class Utils
     {
       String line = reader.readLine();
       File instanceLoc = new File(line.trim());
-      if (instanceLoc.isAbsolute())
-      {
-        return getCanonicalPath(instanceLoc);
-      }
-      else
-      {
-        return getCanonicalPath(new File(installPath + File.separator + instanceLoc.getPath()));
-      }
+      return getCanonicalPath(instanceLoc.isAbsolute()
+          ? instanceLoc
+          : new File(installPath + File.separator + instanceLoc.getPath()));
     }
     catch (Exception e)
     {
@@ -953,63 +859,13 @@ public class Utils
   }
 
   /**
-   * Returns the number of entries contained in the zip file. This is used to
-   * update properly the progress bar ratio.
-   *
-   * @return the number of entries contained in the zip file.
-   */
-  public static int getNumberZipEntries()
-  {
-    // TODO  we should get this dynamically during build
-    return 165;
-  }
-
-  /**
-   * Creates a string consisting of the string representation of the elements in
-   * the <code>list</code> separated by <code>separator</code>.
-   *
-   * @param list
-   *          the list to print
-   * @param separator
-   *          to use in separating elements
-   * @param prefix
-   *          prepended to each individual element in the list before adding to
-   *          the returned string.
-   * @param suffix
-   *          appended to each individual element in the list before adding to
-   *          the returned string.
-   * @return String representing the list
-   */
-  public static String listToString(List<?> list, String separator, String prefix, String suffix)
-  {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < list.size(); i++)
-    {
-      if (prefix != null)
-      {
-        sb.append(prefix);
-      }
-      sb.append(list.get(i));
-      if (suffix != null)
-      {
-        sb.append(suffix);
-      }
-      if (i < list.size() - 1)
-      {
-        sb.append(separator);
-      }
-    }
-    return sb.toString();
-  }
-
-  /**
    * Returns the file system permissions for a file.
    *
    * @param file
    *          the file for which we want the file permissions.
    * @return the file system permissions for the file.
    */
-  public static String getFileSystemPermissions(File file)
+  static String getFileSystemPermissions(File file)
   {
     String name = file.getName();
     if (file.getParent().endsWith(File.separator + Installation.WINDOWS_BINARIES_PATH_RELATIVE)
@@ -1047,89 +903,42 @@ public class Utils
    */
   public static String breakHtmlString(CharSequence cs, int maxll)
   {
-    if (cs != null)
-    {
-      String d = cs.toString();
-      int len = d.length();
-      if (len <= 0)
-      {
-        return d;
-      }
-      if (len > maxll)
-      {
-        // First see if there are any tags that would cause a
-        // natural break in the line.  If so start line break
-        // point evaluation from that point.
-        for (String tag : Constants.BREAKING_TAGS)
-        {
-          int p = d.lastIndexOf(tag, maxll);
-          if (p > 0 && p < len)
-          {
-            return d.substring(0, p + tag.length()) + breakHtmlString(d.substring(p + tag.length()), maxll);
-          }
-        }
-
-        // Now look for spaces in which to insert a break.
-        // First see if there are any spaces counting backward
-        // from the max line length.  If there aren't any, then
-        // use the first space encountered after the max line
-        // length.
-        int p = d.lastIndexOf(' ', maxll);
-        if (p <= 0)
-        {
-          p = d.indexOf(' ', maxll);
-        }
-        if (p > 0 && p < len)
-        {
-          return d.substring(0, p) + Constants.HTML_LINE_BREAK + breakHtmlString(d.substring(p + 1), maxll);
-        }
-        else
-        {
-          return d;
-        }
-      }
-      else
-      {
-        return d;
-      }
-    }
-    else
+    if (cs == null)
     {
       return null;
     }
-  }
 
-  /**
-   * Converts existing HTML break tags to native line separators.
-   *
-   * @param s
-   *          string to convert
-   * @return converted string
-   */
-  public static String convertHtmlBreakToLineSeparator(String s)
-  {
-    return s.replaceAll("<br>", Constants.LINE_SEPARATOR);
-  }
-
-  /**
-   * Strips any potential HTML markup from a given string.
-   *
-   * @param s
-   *          string to strip
-   * @return resulting string
-   */
-  public static String stripHtml(String s)
-  {
-    if (s != null)
+    String d = cs.toString();
+    int len = d.length();
+    if (len <= 0 || len <= maxll)
     {
-      // This is not a comprehensive solution but addresses the few tags
-      // that we have in Resources.properties at the moment.
-      // Note that the following might strip out more than is intended for non-tags
-      // like '<your name here>' or for funky tags like '<tag attr="1 > 0">'.
-      // See test class for cases that might cause problems.
-      return s.replaceAll("<.*?>", "");
+      return d;
     }
-    return null;
+
+    // First see if there are any tags that would cause a natural break in the line.
+    // If so start line break point evaluation from that point.
+    for (String tag : Constants.BREAKING_TAGS)
+    {
+      int p = d.lastIndexOf(tag, maxll);
+      if (p > 0 && p < len)
+      {
+        return d.substring(0, p + tag.length()) + breakHtmlString(d.substring(p + tag.length()), maxll);
+      }
+    }
+
+    // Now look for spaces in which to insert a break.
+    // First see if there are any spaces counting backward from the max line length.
+    // If there aren't any, then use the first space encountered after the max line length.
+    int p = d.lastIndexOf(' ', maxll);
+    if (p <= 0)
+    {
+      p = d.indexOf(' ', maxll);
+    }
+    if (0 < p && p < len)
+    {
+      return d.substring(0, p) + Constants.HTML_LINE_BREAK + breakHtmlString(d.substring(p + 1), maxll);
+    }
+    return d;
   }
 
   /**
@@ -1139,7 +948,7 @@ public class Utils
    *          String to test
    * @return true if the string contains HTML
    */
-  public static boolean containsHtml(String text)
+  static boolean containsHtml(String text)
   {
     return text != null && text.indexOf('<') != -1 && text.indexOf('>') != -1;
   }
@@ -1650,7 +1459,7 @@ public class Utils
   public static List<String> getSetupEquivalentCommandLine(final UserData userData)
   {
     List<String> cmdLine = new ArrayList<>();
-    cmdLine.add(getInstallDir(userData) + getSetupFileName());
+    cmdLine.add(getInstallDir() + getSetupFileName());
     cmdLine.add("--cli");
 
     final ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType =
@@ -1885,15 +1694,13 @@ public class Utils
   /**
    * Returns the full path of the command-line for a given script name.
    *
-   * @param userData
-   *          the user data.
    * @param scriptBasicName
    *          the script basic name (with no extension).
    * @return the full path of the command-line for a given script name.
    */
-  private static String getCommandLinePath(UserData userData, String scriptBasicName)
+  private static String getCommandLinePath(String scriptBasicName)
   {
-    String installDir = getInstallDir(userData);
+    String installDir = getInstallDir();
     if (isWindows())
     {
       return installDir + WINDOWS_BINARIES_PATH_RELATIVE + File.separatorChar + scriptBasicName + ".bat";
@@ -1911,7 +1718,7 @@ public class Utils
    *
    * @return the installation directory.
    */
-  private static String getInstallDir(UserData userData)
+  private static String getInstallDir()
   {
     if (installDir == null)
     {
@@ -1922,7 +1729,6 @@ public class Utils
         installDir += File.separatorChar;
       }
     }
-
     return installDir;
   }
 
@@ -1942,7 +1748,7 @@ public class Utils
       Set<String> baseDNs, ServerDescriptor server)
   {
     List<String> cmdLine = new ArrayList<>();
-    String cmdName = getCommandLinePath(userData, "dsreplication");
+    String cmdName = getCommandLinePath("dsreplication");
     cmdLine.add(cmdName);
     cmdLine.add(subcommand);
 
@@ -2087,32 +1893,24 @@ public class Utils
   public static List<List<String>> getDsConfigReplicationEnableEquivalentCommandLines(UserData userData)
   {
     final List<List<String>> cmdLines = new ArrayList<>();
-    final String cmdName = getCommandLinePath(userData, "dsconfig");
+    final String cmdName = getCommandLinePath("dsconfig");
 
-    List<String> connectionArgs = new ArrayList<>();
-    connectionArgs.add("--hostName");
-    connectionArgs.add(userData.getHostName());
-    connectionArgs.add("--port");
-    connectionArgs.add(String.valueOf(userData.getAdminConnectorPort()));
-    connectionArgs.add("--bindDN");
-    connectionArgs.add(userData.getDirectoryManagerDn());
-    connectionArgs.add("--bindPassword");
-    connectionArgs.add(OBFUSCATED_VALUE);
-    connectionArgs.add("--trustAll");
-    connectionArgs.add("--no-prompt");
-    connectionArgs.add("--noPropertiesFile");
+    List<String> connectionArgs = newArrayList(
+        "--hostName", userData.getHostName(),
+        "--port", String.valueOf(userData.getAdminConnectorPort()),
+        "--bindDN", userData.getDirectoryManagerDn(),
+        "--bindPassword", OBFUSCATED_VALUE,
+        "--trustAll",
+        "--no-prompt",
+        "--noPropertiesFile");
 
-    List<String> cmdReplicationServer = new ArrayList<>();
-    cmdReplicationServer.add(cmdName);
-    cmdReplicationServer.add("create-replication-server");
-    cmdReplicationServer.add("--provider-name");
-    cmdReplicationServer.add("Multimaster Synchronization");
-    cmdReplicationServer.add("--set");
-    cmdReplicationServer.add("replication-port:" + userData.getReplicationOptions().getReplicationPort());
-    cmdReplicationServer.add("--set");
-    cmdReplicationServer.add("replication-server-id:1");
-    cmdReplicationServer.add("--type");
-    cmdReplicationServer.add("generic");
+    List<String> cmdReplicationServer = newArrayList(
+        cmdName,
+        "create-replication-server",
+        "--provider-name", "Multimaster Synchronization",
+        "--set", "replication-port:" + userData.getReplicationOptions().getReplicationPort(),
+        "--set", "replication-server-id:1",
+        "--type", "generic");
     cmdReplicationServer.addAll(connectionArgs);
 
     cmdLines.add(cmdReplicationServer);

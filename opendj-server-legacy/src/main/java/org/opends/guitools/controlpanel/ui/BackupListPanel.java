@@ -12,16 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui;
+
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-
-import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -73,10 +72,10 @@ public abstract class BackupListPanel extends StatusGenericPanel
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The refreshing list message, displayed when the list of backups is refreshed. */
-  protected static final LocalizableMessage REFRESHING_LIST = INFO_CTRL_PANEL_REFRESHING_LIST_SUMMARY.get();
+  private static final LocalizableMessage REFRESHING_LIST = INFO_CTRL_PANEL_REFRESHING_LIST_SUMMARY.get();
 
   /** The message informing that no backups where found. */
-  protected static final LocalizableMessage NO_BACKUPS_FOUND = INFO_CTRL_PANEL_NO_BACKUPS_FOUND.get();
+  private static final LocalizableMessage NO_BACKUPS_FOUND = INFO_CTRL_PANEL_NO_BACKUPS_FOUND.get();
 
   private static final String DUMMY_PARENT_PATH = "/local/OpenDJ-X.X.X/bak";
 

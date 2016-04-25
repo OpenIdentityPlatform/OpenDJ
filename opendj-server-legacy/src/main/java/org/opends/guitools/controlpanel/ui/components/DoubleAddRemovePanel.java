@@ -55,53 +55,41 @@ import org.opends.guitools.controlpanel.util.Utilities;
 public class DoubleAddRemovePanel<T> extends JPanel
 {
   private static final long serialVersionUID = 6881453848780359594L;
-  private SortableListModel<T> availableListModel;
-  private SortableListModel<T> selectedListModel1;
-  private SortableListModel<T> selectedListModel2;
-  private JLabel selectedLabel1;
-  private JLabel selectedLabel2;
-  private JLabel availableLabel;
-  private JButton add1;
-  private JButton remove1;
-  private JButton add2;
-  private JButton remove2;
-  private JButton addAll1;
-  private JButton removeAll1;
-  private JButton addAll2;
-  private JButton removeAll2;
-  private JScrollPane availableScroll;
-  private JScrollPane selectedScroll1;
-  private JScrollPane selectedScroll2;
-  private JList availableList;
-  private JList<T> selectedList1;
-  private JList<T> selectedList2;
-  private Class<T> theClass;
-  private Collection<T> unmovableItems = new ArrayList<>();
+  private final SortableListModel<T> availableListModel;
+  private final SortableListModel<T> selectedListModel1;
+  private final SortableListModel<T> selectedListModel2;
+  private final JLabel selectedLabel1;
+  private final JLabel selectedLabel2;
+  private final JLabel availableLabel;
+  private final JButton add1;
+  private final JButton remove1;
+  private final JButton add2;
+  private final JButton remove2;
+  private final JButton addAll1;
+  private final JButton removeAll1;
+  private final JButton addAll2;
+  private final JButton removeAll2;
+  private final JScrollPane availableScroll;
+  private final JScrollPane selectedScroll1;
+  private final JScrollPane selectedScroll2;
+  private final JList availableList;
+  private final JList<T> selectedList1;
+  private final JList<T> selectedList2;
+  private final Class<T> theClass;
+  private final Collection<T> unmovableItems = new ArrayList<>();
   private boolean ignoreListEvents;
 
   /**
    * Mask used as display option.  If the provided display options contain
    * this mask, the panel will display the remove all button.
    */
-  public static final int DISPLAY_REMOVE_ALL = 0x001;
+  private static final int DISPLAY_REMOVE_ALL = 0x001;
 
   /**
    * Mask used as display option.  If the provided display options contain
    * this mask, the panel will display the add all button.
    */
-  public static final int DISPLAY_ADD_ALL = 0x010;
-
-
-  /**
-   * Constructor of the default double add remove panel (including 'Add All' and
-   * 'Remove All' buttons).
-   * The class is required to avoid warnings in compilation.
-   * @param theClass the class of the objects in the panel.
-   */
-  public DoubleAddRemovePanel(Class<T> theClass)
-  {
-    this(DISPLAY_REMOVE_ALL | DISPLAY_ADD_ALL, theClass);
-  }
+  private static final int DISPLAY_ADD_ALL = 0x010;
 
   /**
    * Constructor of the double add remove panel allowing the user to provide
@@ -261,6 +249,10 @@ public class DoubleAddRemovePanel<T> extends JPanel
       gbc.gridy ++;
       add(addAll1, gbc);
     }
+    else
+    {
+      addAll1 = null;
+    }
 
     remove1 = Utilities.createButton(
         INFO_CTRL_PANEL_ADDREMOVE_REMOVE_BUTTON.get());
@@ -294,6 +286,10 @@ public class DoubleAddRemovePanel<T> extends JPanel
       gbc.gridy ++;
       gbc.insets.top = 5;
       add(removeAll1, gbc);
+    }
+    else
+    {
+      removeAll1 = null;
     }
 
 
@@ -340,6 +336,10 @@ public class DoubleAddRemovePanel<T> extends JPanel
       gbc.gridy ++;
       add(addAll2, gbc);
     }
+    else
+    {
+      addAll2 = null;
+    }
 
     remove2 = Utilities.createButton(
         INFO_CTRL_PANEL_ADDREMOVE_REMOVE_BUTTON.get());
@@ -373,6 +373,10 @@ public class DoubleAddRemovePanel<T> extends JPanel
       gbc.gridy ++;
       gbc.insets.top = 5;
       add(removeAll2, gbc);
+    }
+    else
+    {
+      removeAll2 = null;
     }
 
 

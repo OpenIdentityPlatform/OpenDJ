@@ -14,17 +14,17 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.opends.messages.AdminToolMessages;
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.messages.AdminToolMessages;
 
 /**
  * Table Model used to store information about indexes.  It is used basically
@@ -35,9 +35,9 @@ public abstract class AbstractIndexTableModel extends SortableTableModel
 implements Comparator<AbstractIndexDescriptor>
 {
   private static final long serialVersionUID = -5131878622200568636L;
-  private Set<AbstractIndexDescriptor> data = new HashSet<>();
-  private ArrayList<String[]> dataArray = new ArrayList<>();
-  private ArrayList<AbstractIndexDescriptor> indexArray = new ArrayList<>();
+  private final Set<AbstractIndexDescriptor> data = new HashSet<>();
+  private final List<String[]> dataArray = new ArrayList<>();
+  private final List<AbstractIndexDescriptor> indexArray = new ArrayList<>();
   private final String[] COLUMN_NAMES = getColumnNames();
   /** The sort column of the table. */
   protected int sortColumn;

@@ -64,7 +64,7 @@ public class GenericDialog extends JDialog
   private JButton okButton;
 
   /** The close button. */
-  protected JButton closeButton;
+  private JButton closeButton;
   private JButton cancelButton;
   /** The panel contained in the dialog. */
   protected StatusGenericPanel panel;
