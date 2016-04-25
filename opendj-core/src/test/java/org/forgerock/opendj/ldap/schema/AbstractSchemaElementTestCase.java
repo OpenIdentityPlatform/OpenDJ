@@ -50,14 +50,14 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
      *             If the test failed unexpectedly.
      */
     @Test(dataProvider = "equalsTestData")
-    public final void testEquals(final SchemaElement e1, final SchemaElement e2,
+    public final void testEquals(final AbstractSchemaElement e1, final AbstractSchemaElement e2,
             final boolean result) throws Exception {
         Assert.assertEquals(e1.equals(e2), result);
         Assert.assertEquals(e2.equals(e1), result);
     }
 
     /**
-     * Check that the {@link SchemaElement#getDescription()} method returns a
+     * Check that the {@link AbstractSchemaElement#getDescription()} method returns a
      * description.
      *
      * @throws Exception
@@ -65,12 +65,12 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
      */
     @Test
     public final void testGetDescription() throws Exception {
-        final SchemaElement e = getElement("hello", EMPTY_PROPS);
+        final AbstractSchemaElement e = getElement("hello", EMPTY_PROPS);
         Assert.assertEquals(e.getDescription(), "hello");
     }
 
     /**
-     * Check that the {@link SchemaElement#getDescription()} method returns
+     * Check that the {@link AbstractSchemaElement#getDescription()} method returns
      * <code>null</code> when there is no description.
      *
      * @throws Exception
@@ -78,12 +78,12 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
      */
     @Test
     public final void testGetDescriptionDefault() throws Exception {
-        final SchemaElement e = getElement("", EMPTY_PROPS);
+        final AbstractSchemaElement e = getElement("", EMPTY_PROPS);
         Assert.assertEquals(e.getDescription(), "");
     }
 
     /**
-     * Check that the {@link SchemaElement#getExtraProperties()} method
+     * Check that the {@link AbstractSchemaElement#getExtraProperties()} method
      * returns values.
      *
      * @throws Exception
@@ -95,7 +95,7 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
         values.add("one");
         values.add("two");
         final Map<String, List<String>> props = Collections.singletonMap("test", values);
-        final SchemaElement e = getElement("", props);
+        final AbstractSchemaElement e = getElement("", props);
 
         int i = 0;
         for (final String value : e.getExtraProperties().get("test")) {
@@ -105,7 +105,7 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
     }
 
     /**
-     * Check that the {@link SchemaElement#getExtraProperties()} method
+     * Check that the {@link AbstractSchemaElement#getExtraProperties()} method
      * returns <code>null</code> when there is no property.
      *
      * @throws Exception
@@ -113,7 +113,7 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
      */
     @Test
     public final void testGetExtraPropertyDefault() throws Exception {
-        final SchemaElement e = getElement("", EMPTY_PROPS);
+        final AbstractSchemaElement e = getElement("", EMPTY_PROPS);
         Assert.assertNull(e.getExtraProperties().get("test"));
     }
 
@@ -130,11 +130,11 @@ public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCa
      *             If the test failed unexpectedly.
      */
     @Test(dataProvider = "equalsTestData")
-    public final void testHashCode(final SchemaElement e1, final SchemaElement e2,
+    public final void testHashCode(final AbstractSchemaElement e1, final AbstractSchemaElement e2,
             final boolean result) throws Exception {
         Assert.assertEquals(e1.hashCode() == e2.hashCode(), result);
     }
 
-    protected abstract SchemaElement getElement(String description,
+    protected abstract AbstractSchemaElement getElement(String description,
             Map<String, List<String>> extraProperties) throws SchemaException;
 }

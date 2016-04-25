@@ -171,21 +171,21 @@ public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
         ocBuilder.addToSchema().toSchema();
     }
 
-    private void assertSchemaElementsContainsAll(final Set<? extends SchemaElement> elements,
+    private void assertSchemaElementsContainsAll(final Set<? extends AbstractSchemaElement> elements,
             final Set<String> namesOrOIDs) throws Exception {
         assertSchemaElementsContainsAll(elements, namesOrOIDs.toArray(new String[namesOrOIDs.size()]));
     }
 
 
-    private void assertSchemaElementsContainsAll(final Set<? extends SchemaElement> elements,
+    private void assertSchemaElementsContainsAll(final Set<? extends AbstractSchemaElement> elements,
             final String... namesOrOIDs) throws Exception {
         for (final String nameOrOID : namesOrOIDs) {
             assertThat(assertSchemaElementsContains(elements, nameOrOID)).isTrue();
         }
     }
 
-    private boolean assertSchemaElementsContains(final Set<? extends SchemaElement> elements, final String nameOrOID) {
-        for (final SchemaElement element : elements) {
+    private boolean assertSchemaElementsContains(final Set<? extends AbstractSchemaElement> elements, final String nameOrOID) {
+        for (final AbstractSchemaElement element : elements) {
             final String oid = element instanceof AttributeType ? ((AttributeType) element).getNameOrOID()
                                                             : ((ObjectClass) element).getNameOrOID();
             if (oid.equals(nameOrOID)) {

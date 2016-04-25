@@ -47,7 +47,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
  * provided, the ordering will be preserved when the associated fields are
  * accessed via their getters or via the {@link #toString()} methods.
  */
-public final class ObjectClass extends SchemaElement {
+public final class ObjectClass extends AbstractSchemaElement {
 
     /** A fluent API for incrementally constructing object classes. */
     public static final class Builder extends SchemaElementBuilder<Builder> {

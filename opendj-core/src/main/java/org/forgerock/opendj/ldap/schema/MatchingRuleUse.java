@@ -40,7 +40,7 @@ import org.forgerock.util.Reject;
  * matching rule use definition, which may be used to restrict the set of
  * attribute types that may be used for a given matching rule.
  */
-public final class MatchingRuleUse extends SchemaElement {
+public final class MatchingRuleUse extends AbstractSchemaElement {
     /** A fluent API for incrementally constructing matching rule uses. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;

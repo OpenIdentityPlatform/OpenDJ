@@ -40,7 +40,7 @@ import org.forgerock.util.Reject;
  * This class defines a DIT structure rule, which is used to indicate the types
  * of children that entries may have.
  */
-public final class DITStructureRule extends SchemaElement {
+public final class DITStructureRule extends AbstractSchemaElement {
 
     /** A fluent API for incrementally constructing DIT structure rules. */
     public static final class Builder extends SchemaElementBuilder<Builder> {

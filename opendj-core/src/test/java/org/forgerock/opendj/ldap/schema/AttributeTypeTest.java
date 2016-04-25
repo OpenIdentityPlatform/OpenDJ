@@ -530,7 +530,7 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     }
 
     @Override
-    protected SchemaElement getElement(final String description,
+    protected AbstractSchemaElement getElement(final String description,
             final Map<String, List<String>> extraProperties) throws SchemaException {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
         builder.buildAttributeType("1.2.3")

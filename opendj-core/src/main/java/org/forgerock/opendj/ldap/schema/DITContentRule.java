@@ -41,7 +41,7 @@ import org.forgerock.util.Reject;
  * objectclass, and also indicates which auxiliary classes may be included in
  * the entry.
  */
-public final class DITContentRule extends SchemaElement {
+public final class DITContentRule extends AbstractSchemaElement {
 
     /** A fluent API for incrementally constructing DIT content rule. */
     public static final class Builder extends SchemaElementBuilder<Builder> {

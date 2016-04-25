@@ -47,7 +47,7 @@ import com.forgerock.opendj.util.StaticUtils;
  * will be preserved when the associated fields are accessed via their getters
  * or via the {@link #toString()} methods.
  */
-public final class AttributeType extends SchemaElement implements Comparable<AttributeType> {
+public final class AttributeType extends AbstractSchemaElement implements Comparable<AttributeType> {
 
     /** A fluent API for incrementally constructing attribute type. */
     public static final class Builder extends SchemaElementBuilder<Builder> {

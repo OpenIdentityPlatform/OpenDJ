@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
  * will be preserved when the associated fields are accessed via their getters
  * or via the {@link #toString()} methods.
  */
-public final class MatchingRule extends SchemaElement {
+public final class MatchingRule extends AbstractSchemaElement {
 
     /** A fluent API for incrementally constructing matching rules. */
     public static final class Builder extends SchemaElementBuilder<Builder> {

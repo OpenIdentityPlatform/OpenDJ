@@ -67,4 +67,24 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl newBindLdapPromise(int, org.forgerock.opendj.ldap.requests.BindRequest, org.forgerock.opendj.ldap.requests.BindClient, org.forgerock.opendj.ldap.IntermediateResponseHandler, org.forgerock.opendj.ldap.spi.LDAPConnectionImpl)</method>
     <justification>Code cleanup: remove overloaded method with unused parameter</justification>
   </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/(AttributeType|DITContentRule|DITStructureRule|MatchingRule|MatchingRuleUse|NameForm|ObjectClass|Syntax)\$Builder]</className>
+    <differenceType>7006</differenceType>
+    <method>%regex[org\.forgerock\.opendj\.ldap\.schema\.SchemaElement\$SchemaElementBuilder (description|extraProperties|removeAllExtraProperties|removeExtraProperty)\([^)]*\)]</method>   
+    <to>org.forgerock.opendj.ldap.schema.AbstractSchemaElement$SchemaElementBuilder</to>
+    <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/(AttributeType|DITContentRule|DITStructureRule|MatchingRule|MatchingRuleUse|NameForm|ObjectClass|Syntax)]</className>
+    <differenceType>5001</differenceType>
+    <to>org/forgerock/opendj/ldap/schema/**SchemaElement</to>
+    <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/(AttributeType|DITContentRule|DITStructureRule|MatchingRule|MatchingRuleUse|NameForm|ObjectClass|Syntax)\$Builder]</className>
+    <differenceType>5001</differenceType>
+    <to>org/forgerock/opendj/ldap/schema/**SchemaElement$SchemaElementBuilder</to>
+    <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
+  </difference>
+  
 </differences>
