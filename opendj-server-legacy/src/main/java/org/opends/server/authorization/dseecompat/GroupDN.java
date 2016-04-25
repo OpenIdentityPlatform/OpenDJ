@@ -28,28 +28,25 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPURL;
 
-/**
- * This class implements the groupdn bind rule keyword.
- */
-public class GroupDN implements KeywordBindRule {
+/** This class implements the groupdn bind rule keyword. */
+class GroupDN implements KeywordBindRule {
 
     /** List of group DNs. */
-    private List<DN> groupDNs;
-
+    private final List<DN> groupDNs;
     /** Enumeration representing the groupdn operator type. */
-    private EnumBindRuleType type;
+    private final EnumBindRuleType type;
 
-    /**
-     * Regular expression matching one or more LDAP URLs separated by
-     * "||".
-     */
-    public static final String LDAP_URLS = LDAP_URL +
+    /** Regular expression matching one or more LDAP URLs separated by "||". */
+    private static final String LDAP_URLS = LDAP_URL +
             ZERO_OR_MORE_WHITESPACE + "(" + LOGICAL_OR +
             ZERO_OR_MORE_WHITESPACE + LDAP_URL + ")*";
 
@@ -129,10 +126,9 @@ public class GroupDN implements KeywordBindRule {
      *                 then the groupDN can be anywhere in the DIT.
      * @return Enumeration evaluation result.
      */
-    public static EnumEvalResult evaluate (Entry e, AciEvalContext evalCtx,
+    public static boolean evaluate (Entry e, AciEvalContext evalCtx,
                                            AttributeType attributeType,
                                            DN suffixDN) {
-        EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs = e.getAttribute(attributeType);
         for(ByteString v : attrs.get(0)) {
             try {
@@ -143,21 +139,19 @@ public class GroupDN implements KeywordBindRule {
                 }
                 Group<?> group = getGroupManager().getGroupInstance(groupDN);
                 if(group != null && evalCtx.isMemberOf(group)) {
-                    matched=EnumEvalResult.TRUE;
-                    break;
+                    return true;
                 }
             } catch (LocalizedIllegalArgumentException ignored) {
                 break;
             }
         }
-        return matched;
+        return false;
     }
 
     private static GroupManager getGroupManager() {
         return DirectoryServer.getGroupManager();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -165,10 +159,8 @@ public class GroupDN implements KeywordBindRule {
         return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer) {
         buffer.append(super.toString());
     }
-
 }

@@ -12,15 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
-/**
- * This class provides an enumeration of the two access types (allow, deny).
- */
-public enum EnumAccessType {
-
+/** This class provides an enumeration of the two access types (allow, deny). */
+enum EnumAccessType {
     /** Allow access type. */
     ALLOW   ("allow"),
     /** Deny access type. */

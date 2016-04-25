@@ -12,24 +12,20 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 
-import java.util.HashSet;
 import java.util.Set;
 
-/**
- * This class represents an ACI's targetcontrol keyword.
- */
+/** This class represents an ACI's targetcontrol keyword. */
 public class TargetControl {
-
   /** HashSet of OID strings parsed from the decode. */
-  private Set<String> controlOIDS = new HashSet<>();
+  private final Set<String> controlOIDS;
   /** Enumeration representing the targetcontrol operator. */
-  private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
+  private final EnumTargetOperator op;
 
   /**
    * Creates a class that can be used to evaluate a targetcontrol.
@@ -73,18 +69,23 @@ public class TargetControl {
     {
       return false;
     }
-    boolean ret = false;
-    for(String oid : controlOIDS)
+    boolean ret = isApplicable(matchCtx.getControlOID());
+    if (EnumTargetOperator.NOT_EQUALITY.equals(op))
     {
-      if(oid.equals("*") || matchCtx.getControlOID().equals(oid)) {
-        ret=true;
-        break;
-      }
-    }
-    if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-    {
-      ret = !ret;
+      return !ret;
     }
     return ret;
+  }
+
+  private boolean isApplicable(String matchControlOID)
+  {
+    for (String oid : controlOIDS)
+    {
+      if (oid.equals("*") || matchControlOID.equals(oid))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 }

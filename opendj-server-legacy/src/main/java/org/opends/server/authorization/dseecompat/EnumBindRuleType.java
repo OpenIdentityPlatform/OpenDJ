@@ -12,44 +12,23 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
-/**
- * This class provides an enumeration of the allowed bind rule types.
- */
-public enum EnumBindRuleType {
-
-    /**
-     * The enumeration type when the bind rule has specified type of
-     * "=".
-     */
+/** This class provides an enumeration of the allowed bind rule types. */
+enum EnumBindRuleType {
+    /** The enumeration type when the bind rule has specified type of "=". */
     EQUAL_BINDRULE_TYPE             ("="),
-    /**
-     * The enumeration type when the bind rule has specified type of
-     * "!=".
-     */
+    /** The enumeration type when the bind rule has specified type of "!=". */
     NOT_EQUAL_BINDRULE_TYPE         ("!="),
-    /**
-     * The enumeration type when the bind rule has specified type of
-     * "<".
-     */
+    /** The enumeration type when the bind rule has specified type of "<". */
     LESS_BINDRULE_TYPE              ("<"),
-    /**
-     * The enumeration type when the bind rule has specified type of
-     * "<=".
-     */
+    /** The enumeration type when the bind rule has specified type of "<=". */
     LESS_OR_EQUAL_BINDRULE_TYPE     ("<="),
-    /**
-     * The enumeration type when the bind rule has specified type of
-     * >".
-     */
+    /** The enumeration type when the bind rule has specified type of >". */
     GREATER_BINDRULE_TYPE           (">"),
-    /**
-     * The enumeration type when the bind rule has specified type of
-     * ">=".
-     */
+    /** The enumeration type when the bind rule has specified type of ">=". */
     GREATER_OR_EQUAL_BINDRULE_TYPE  (">=");
 
     /** The bind rule type name. */

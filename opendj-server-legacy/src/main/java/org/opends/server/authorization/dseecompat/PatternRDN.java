@@ -49,7 +49,7 @@ public class PatternRDN
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Indicate whether the RDN contains a wildcard in any of its attribute types. */
-  private boolean hasTypeWildcard;
+  private final boolean hasTypeWildcard;
   /** The set of attribute type patterns. */
   private String[] typePatterns;
   /**
@@ -60,7 +60,7 @@ public class PatternRDN
    * a list of one element A.  The value "*A*" is represented as a list
    * of three elements "", A and "".
    */
-  private List<List<ByteString>> valuePatterns;
+  private final List<List<ByteString>> valuePatterns;
 
   /**
    * Create a new RDN pattern composed of a single attribute-value pair.
@@ -83,6 +83,10 @@ public class PatternRDN
                                      message);
       }
       hasTypeWildcard = true;
+    }
+    else
+    {
+      hasTypeWildcard = false;
     }
 
     typePatterns = new String[] { type };

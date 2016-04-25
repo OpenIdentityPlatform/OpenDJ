@@ -12,26 +12,24 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
-import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 
-/**
- * This class represents a targetfilter keyword of an aci.
- */
+/** This class represents a targetfilter keyword of an aci. */
 public class TargetFilter {
 
     /** Enumeration representing the targetfilter operation. */
-    private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
-
+    private final EnumTargetOperator op;
     /** Filter parsed from the ACI used to match the resource entry. */
-    private SearchFilter filter;
+    private final SearchFilter filter;
 
     /**
      * Class representing a targetfilter keyword.
@@ -57,8 +55,7 @@ public class TargetFilter {
             filter = SearchFilter.createFilterFromString(expr);
         } catch (DirectoryException ex) {
             LocalizableMessage message =
-                WARN_ACI_SYNTAX_INVALID_TARGETFILTERKEYWORD_EXPRESSION.
-                  get(expr);
+                WARN_ACI_SYNTAX_INVALID_TARGETFILTERKEYWORD_EXPRESSION.get(expr);
             throw new AciException(message);
         }
         return new TargetFilter(op, filter);
@@ -70,11 +67,10 @@ public class TargetFilter {
      * @return True if the target filter matched the context.
      */
     public boolean isApplicable(AciTargetMatchContext matchCtx) {
-        boolean ret;
-        ret=matchesFilter(matchCtx.getResourceEntry());
+        boolean ret = matchesFilter(matchCtx.getResourceEntry());
         if(op.equals(EnumTargetOperator.NOT_EQUALITY))
         {
-          ret = !ret;
+          return !ret;
         }
         return ret;
     }
@@ -85,13 +81,11 @@ public class TargetFilter {
      * @return True if the filter matches the entry.
      */
     private boolean matchesFilter(Entry e) {
-        boolean ret;
         try {
-            ret=filter.matchesEntry(e);
+            return filter.matchesEntry(e);
         } catch (DirectoryException ex) {
             //TODO information message?
             return false;
         }
-        return ret;
     }
 }

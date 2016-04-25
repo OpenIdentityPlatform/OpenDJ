@@ -59,7 +59,7 @@ public class AciList {
           new ReentrantReadWriteLock();
 
   /** The configuration DN used to compare against the global ACI entry DN. */
-  private DN configDN;
+  private final DN configDN;
 
   /**
    * Constructor to create an ACI list to cache ACI attribute types.
@@ -121,13 +121,12 @@ public class AciList {
           baseDN=parentDN;
         }
       }
+      return candidates;
     }
     finally
     {
       lock.readLock().unlock();
     }
-
-    return candidates;
   }
 
   /**
@@ -142,11 +141,10 @@ public class AciList {
   public int addAci(List<? extends Entry> entries,
                                  LinkedList<LocalizableMessage> failedACIMsgs)
   {
-    int validAcis=0;
-
     lock.writeLock().lock();
     try
     {
+      int validAcis = 0;
       for (Entry entry : entries) {
         DN dn=entry.getName();
         List<Attribute> attributeList =
@@ -154,13 +152,12 @@ public class AciList {
         validAcis += addAciAttributeList(aciList, dn, configDN,
                                          attributeList, failedACIMsgs);
       }
+      return validAcis;
     }
     finally
     {
       lock.writeLock().unlock();
     }
-
-    return validAcis;
   }
 
   /**
@@ -198,11 +195,10 @@ public class AciList {
   public int addAci(Entry entry, boolean hasAci,
                                  boolean hasGlobalAci,
                                  List<LocalizableMessage> failedACIMsgs) {
-    int validAcis=0;
-
     lock.writeLock().lock();
     try
     {
+      int validAcis = 0;
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
@@ -217,13 +213,12 @@ public class AciList {
           validAcis += addAciAttributeList(aciList, entry.getName(), configDN,
                                            attributeList, failedACIMsgs);
       }
+      return validAcis;
     }
     finally
     {
       lock.writeLock().unlock();
     }
-
-    return validAcis;
   }
 
   /**
@@ -348,11 +343,10 @@ public class AciList {
    */
   public boolean removeAci(Entry entry,  boolean hasAci,
                                                       boolean hasGlobalAci) {
-    DN entryDN = entry.getName();
-
     lock.writeLock().lock();
     try
     {
+      DN entryDN = entry.getName();
       if (hasGlobalAci && entryDN.equals(configDN) &&
           aciList.remove(DN.rootDN()) == null)
       {
@@ -362,13 +356,12 @@ public class AciList {
       {
         return aciList.removeSubtree(entryDN, null);
       }
+      return true;
     }
     finally
     {
       lock.writeLock().unlock();
     }
-
-    return true;
   }
 
   /**

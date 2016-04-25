@@ -15,6 +15,7 @@
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
+
 import static org.opends.messages.AccessControlMessages.*;
 
 import java.util.regex.Pattern;
@@ -28,10 +29,9 @@ public class TimeOfDay implements KeywordBindRule {
     private static final Pattern timeofdayRegex = Pattern.compile("[0-2]\\d[0-5]\\d");
 
     /** Enumeration representing the bind rule operation type. */
-    private EnumBindRuleType type;
-
+    private final EnumBindRuleType type;
     /** Holds the time value parsed from the ACI. */
-    private int timeRef;
+    private final int timeRef;
 
     /**
      * Constructor to create a timeofday keyword class.
@@ -78,52 +78,31 @@ public class TimeOfDay implements KeywordBindRule {
      * Evaluates the timeofday bind rule using the evaluation context
      * passed into the method.
      * @param evalCtx  The evaluation context to use for the evaluation.
-     * @return  An enumeration result representing the result of the
-     * evaluation.
+     * @return  An enumeration result representing the result of the evaluation.
      */
     @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
-        EnumEvalResult matched=EnumEvalResult.FALSE;
+        EnumEvalResult matched = evaluate() ? EnumEvalResult.TRUE : EnumEvalResult.FALSE;
+        return matched.getRet(type, false);
+    }
 
+    private boolean evaluate() {
         int currentTime=TimeThread.getHourAndMinute();
-        //check the type
         switch (type) {
         case EQUAL_BINDRULE_TYPE:
         case NOT_EQUAL_BINDRULE_TYPE:
-            if (currentTime != timeRef)
-            {
-                matched=EnumEvalResult.TRUE;
-            }
-            break;
-
+            return currentTime != timeRef;
         case LESS_OR_EQUAL_BINDRULE_TYPE:
-            if (currentTime <= timeRef)
-            {
-                matched=EnumEvalResult.TRUE;
-            }
-            break;
-
+            return currentTime <= timeRef;
         case LESS_BINDRULE_TYPE:
-            if (currentTime < timeRef)
-            {
-                matched=EnumEvalResult.TRUE;
-            }
-            break;
-
+            return currentTime < timeRef;
         case GREATER_OR_EQUAL_BINDRULE_TYPE:
-            if (currentTime >= timeRef)
-            {
-                matched=EnumEvalResult.TRUE;
-            }
-            break;
-
+            return currentTime >= timeRef;
         case GREATER_BINDRULE_TYPE:
-            if (currentTime > timeRef)
-            {
-                matched=EnumEvalResult.TRUE;
-            }
+            return currentTime > timeRef;
+        default:
+            return false;
         }
-        return matched.getRet(type, false);
     }
 
     @Override

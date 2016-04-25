@@ -54,7 +54,6 @@ import org.opends.server.types.DirectoryException;
  * Multiple-Whole-RDN:  A double wildcard may be used to match one or more
  * RDN components:
  *   uid=bjensen,**,dc=example,dc=com
- *
  */
 public class PatternDN
 {
@@ -74,7 +73,6 @@ public class PatternDN
   private List<PatternRDN[]> subAnyElements;
   private PatternRDN[] subFinal;
 
-
   /**
    * When there is no initial sequence, this is used to distinguish between
    * the case where we have a suffix pattern (zero or more RDN components
@@ -84,7 +82,6 @@ public class PatternDN
    */
   private boolean isSuffix;
 
-
   /**
    * Create a DN pattern that does not include any Multiple-Whole-RDN wildcards.
    * @param equality The sequence of RDN patterns making up the DN pattern.
@@ -93,7 +90,6 @@ public class PatternDN
   {
     this.equality = equality;
   }
-
 
   /**
    * Create a DN pattern that includes Multiple-Whole-RDN wildcards.
@@ -113,7 +109,6 @@ public class PatternDN
     this.subAnyElements = subAnyElements;
     this.subFinal = subFinal;
   }
-
 
   /**
    * Determine whether a given DN matches this pattern.
@@ -167,14 +162,10 @@ public class PatternDN
       }
       pos++;
     }
-    else
+    else if (!isSuffix)
     {
-      if (!isSuffix)
-      {
-        pos++;
-      }
+      pos++;
     }
-
 
     if (subAnyElements != null && ! subAnyElements.isEmpty())
     {
@@ -186,13 +177,11 @@ public class PatternDN
         boolean match = false;
         for (; pos < end; pos++)
         {
-          if (element[0].matchesRDN(dn.rdn(pos)))
+          if (element[0].matchesRDN(dn.rdn(pos))
+              && subMatch(dn, pos, element, anyLength))
           {
-            if (subMatch(dn, pos, element, anyLength))
-            {
-              match = true;
-              break;
-            }
+            match = true;
+            break;
           }
         }
 
@@ -203,7 +192,6 @@ public class PatternDN
         pos += anyLength + 1;
       }
     }
-
 
     if (subFinal != null)
     {
@@ -272,7 +260,6 @@ public class PatternDN
     return patternDN;
   }
 
-
   /**
    * Create a new DN pattern matcher from a pattern string.
    * @param dnString The DN pattern string.
@@ -296,7 +283,6 @@ public class PatternDN
     {
       return new PatternDN();
     }
-
 
     // Iterate through the DN string.  The first thing to do is to get
     // rid of any leading spaces.
@@ -417,7 +403,6 @@ public class PatternDN
         pos++;
       }
 
-
       // If we are at the end of the DN string, then that must mean
       // that the attribute value was empty.  This will probably never
       // happen in a real-world environment, but technically isn't
@@ -430,22 +415,18 @@ public class PatternDN
         break;
       }
 
-
       // Parse the value for this RDN component.
       List<ByteString> parsedValue = new ArrayList<>();
       pos = parseValuePattern(dnString, pos, parsedValue);
 
-
       // Create the new RDN with the provided information.
       PatternRDN rdn = new PatternRDN(name, parsedValue, dnString);
-
 
       // Skip over any spaces that might be after the attribute value.
       while (pos < length && ((c = dnString.charAt(pos)) == ' '))
       {
         pos++;
       }
-
 
       // Most likely, we will be at either the end of the RDN
       // component or the end of the DN. If so, then handle that appropriately.
@@ -471,7 +452,6 @@ public class PatternDN
         throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
-
       // If we have gotten here, then this must be a multi-valued RDN.
       // In that case, parse the remaining attribute/value pairs and
       // add them to the RDN that we've already created.
@@ -485,11 +465,9 @@ public class PatternDN
           pos++;
         }
 
-
         // Parse the attribute name from the DN string.
         attributeName = new StringBuilder();
         pos = parseAttributePattern(dnString, pos, attributeName);
-
 
         // Make sure that we're not at the end of the DN string
         // because that would be invalid.
@@ -498,7 +476,6 @@ public class PatternDN
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
               ERR_ATTR_SYNTAX_DN_END_WITH_ATTR_NAME.get(dnString, attributeName));
         }
-
 
         name = attributeName.toString();
 
@@ -519,7 +496,6 @@ public class PatternDN
           c = dnString.charAt(pos);
         }
 
-
         // The next character must be an equal sign.  If it is not,
         // then that's an error.
         if (c == '=')
@@ -532,13 +508,11 @@ public class PatternDN
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
 
-
         // Skip over any spaces after the equal sign.
         while (pos < length && ((c = dnString.charAt(pos)) == ' '))
         {
           pos++;
         }
-
 
         // If we are at the end of the DN string, then that must mean
         // that the attribute value was empty.  This will probably
@@ -553,22 +527,18 @@ public class PatternDN
           break;
         }
 
-
         // Parse the value for this RDN component.
         parsedValue = new ArrayList<>();
         pos = parseValuePattern(dnString, pos, parsedValue);
 
-
         // Create the new RDN with the provided information.
         rdn.addValue(name, parsedValue, dnString);
-
 
         // Skip over any spaces that might be after the attribute value.
         while (pos < length && ((c = dnString.charAt(pos)) == ' '))
         {
           pos++;
         }
-
 
         // Most likely, we will be at either the end of the RDN
         // component or the end of the DN.  If so, then handle that appropriately.
@@ -642,7 +612,6 @@ public class PatternDN
     return new PatternDN(subInitial, subAnyElements, subFinal);
   }
 
-
   /**
    * Parses an attribute name pattern from the provided DN pattern string
    * starting at the specified location.
@@ -660,12 +629,11 @@ public class PatternDN
    *                              valid attribute name pattern from the
    *                              provided DN pattern string.
    */
-  static int parseAttributePattern(String dnString, int pos,
+  private static int parseAttributePattern(String dnString, int pos,
                                    StringBuilder attributeName)
           throws DirectoryException
   {
     int length = dnString.length();
-
 
     // Skip over any leading spaces.
     if (pos < length)
@@ -702,7 +670,6 @@ public class PatternDN
           endOfName = true;
           break;
 
-
         case '!':
         case '"':
         case '#':
@@ -716,7 +683,6 @@ public class PatternDN
           // character immediately following it.
           throw illegalCharacter(dnString, pos, c);
 
-
         case '*':
           // Wildcard character.
           attributeName.append(c);
@@ -724,7 +690,6 @@ public class PatternDN
 
         case '+':
           throw illegalCharacter(dnString, pos, c);
-
 
         case ',':
           // This should denote the end of the attribute name.
@@ -742,7 +707,6 @@ public class PatternDN
           attributeName.append(c);
           break;
 
-
         case '.':
           // The period could be allowed if the attribute name is
           // actually expressed as an OID.  We'll accept it for now,
@@ -751,10 +715,8 @@ public class PatternDN
           checkForOID = true;
           break;
 
-
         case '/':
           throw illegalCharacter(dnString, pos, c);
-
 
         case '0':
         case '1':
@@ -774,10 +736,8 @@ public class PatternDN
           attributeName.append(c);
           break;
 
-
         case ':':
           throw illegalCharacter(dnString, pos, c);
-
 
         case ';': // NOTE:  attribute options are not allowed in a DN.
           // This should denote the end of the attribute name.
@@ -787,18 +747,15 @@ public class PatternDN
         case '<':
           throw illegalCharacter(dnString, pos, c);
 
-
         case '=':
           // This should denote the end of the attribute name.
           endOfName = true;
           break;
 
-
         case '>':
         case '?':
         case '@':
           throw illegalCharacter(dnString, pos, c);
-
 
         case 'A':
         case 'B':
@@ -830,22 +787,18 @@ public class PatternDN
           attributeName.append(c);
           break;
 
-
         case '[':
         case '\\':
         case ']':
         case '^':
           throw illegalCharacter(dnString, pos, c);
 
-
         case '_':
           attributeName.append(c);
           break;
 
-
         case '`':
           throw illegalCharacter(dnString, pos, c);
-
 
         case 'a':
         case 'b':
@@ -877,13 +830,11 @@ public class PatternDN
           attributeName.append(c);
           break;
 
-
         default:
           // This is not allowed in an attribute name or any character
           // immediately following it.
           throw illegalCharacter(dnString, pos, c);
       }
-
 
       if (endOfName)
       {
@@ -892,7 +843,6 @@ public class PatternDN
 
       pos++;
     }
-
 
     // We should now have the full attribute name.  However, we may
     // still need to perform some validation, particularly if the
@@ -965,7 +915,6 @@ public class PatternDN
         }
       }
 
-
       if (validOID && attributeName.charAt(nameLength-1) == '.')
       {
         validOID = false;
@@ -986,7 +935,6 @@ public class PatternDN
     return new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
         ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR.get(dnString, c, pos));
   }
-
 
   /**
    * Parses the attribute value pattern from the provided DN pattern
@@ -1020,7 +968,6 @@ public class PatternDN
       return pos;
     }
 
-
     // Look at the first character.  If it is an octothorpe (#), then
     // that means that the value should be a hex string.
     char c = dnString.charAt(pos++);
@@ -1047,7 +994,6 @@ public class PatternDN
           throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
       }
-
 
       // The rest of the value must be a multiple of two hex
       // characters.  The end of the value may be designated by the
@@ -1091,7 +1037,6 @@ public class PatternDN
         }
       }
 
-
       // At this point, we should have a valid hex string.  Convert it
       // to a byte array and set that as the value of the provided
       // octet string.
@@ -1108,7 +1053,6 @@ public class PatternDN
             ERR_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE.get(dnString, e));
       }
     }
-
 
     // If the first character is a quotation mark, then the value
     // should continue until the corresponding closing quotation mark.
@@ -1158,7 +1102,6 @@ public class PatternDN
       return pos;
     }
 
-
     // Otherwise, use general parsing to find the end of the value.
     else
     {
@@ -1180,7 +1123,6 @@ public class PatternDN
         escaped = false;
         valueString.append(c);
       }
-
 
       // Keep reading until we find an unescaped comma or plus sign or the end of the DN.
       while (true)
@@ -1266,7 +1208,6 @@ public class PatternDN
         }
       }
 
-
       // Strip off any unescaped spaces that may be at the end of the
       // value.
       if (pos > 2 && dnString.charAt(pos-1) == ' ' &&
@@ -1284,12 +1225,10 @@ public class PatternDN
         }
       }
 
-
       attributeValues.add(ByteString.valueOfUtf8(valueString));
       return pos;
     }
   }
-
 
   /**
    * Decodes a hexadecimal string from the provided

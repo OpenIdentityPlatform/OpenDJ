@@ -36,13 +36,13 @@ public class IP implements KeywordBindRule {
      * bind rule address. These are all of the valid characters that may
      * appear in an bind rule address part.
      */
-    private  static final Pattern ipRegEx =
+    private static final Pattern ipRegEx =
         Pattern.compile("((?i)[\\.{1}[a-f]\\d:\\+{1}\\*/{1}\\t\\[{1}\\]{1}]+(?-i))");
 
     /** List of the pattern classes, one for each address decoded from the bind rule. */
-    private List<PatternIP> patternIPList;
+    private final List<PatternIP> patternIPList;
     /** The type of the bind rule (!= or =). */
-    private EnumBindRuleType type;
+    private final EnumBindRuleType type;
 
     /**
      * Create a class representing the IP bind rule expressions for this ACI.

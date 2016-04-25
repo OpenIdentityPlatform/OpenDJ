@@ -12,61 +12,29 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
-/**
- * This class provides an enumeration of the allowed bind rule
- * keyword types.
- */
-public enum EnumBindRuleKeyword {
-
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * userdn.
-     */
+/** This class provides an enumeration of the allowed bind rule keyword types. */
+enum EnumBindRuleKeyword {
+    /** The enumeration type when the bind rule has specified keyword of userdn. */
     USERDN     ("userdn"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * groupdn.
-     */
+    /** The enumeration type when the bind rule has specified keyword of groupdn. */
     GROUPDN    ("groupdn"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * roledn.
-     */
+    /** The enumeration type when the bind rule has specified keyword of roledn. */
     ROLEDN     ("roledn"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * ip.
-     */
+    /** The enumeration type when the bind rule has specified keyword of ip. */
     IP         ("ip"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * dns.
-     */
+    /** The enumeration type when the bind rule has specified keyword of dns. */
     DNS        ("dns"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * dayofweek.
-     */
+    /** The enumeration type when the bind rule has specified keyword of dayofweek. */
     DAYOFWEEK  ("dayofweek"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * timeofday.
-     */
+    /** The enumeration type when the bind rule has specified keyword of timeofday. */
     TIMEOFDAY  ("timeofday"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * userattr.
-     */
+    /** The enumeration type when the bind rule has specified keyword of userattr. */
     USERATTR ("userattr"),
-    /**
-     * The enumeration type when the bind rule has specified keyword of
-     * authmethod.
-     */
+    /** The enumeration type when the bind rule has specified keyword of authmethod. */
     AUTHMETHOD ("authmethod"),
     /** The enumeration type when the bind rule has specified keyword of ssf. */
     SSF("ssf");

@@ -12,36 +12,25 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
+
 import static org.opends.messages.AccessControlMessages.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 
-/**
- * The AuthMethod class represents an authmethod bind rule keyword expression.
- */
+/** The AuthMethod class represents an authmethod bind rule keyword expression. */
 public class AuthMethod implements KeywordBindRule {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-    /**
-     * Enumeration representing the authentication method.
-     */
-    private EnumAuthMethod authMethod;
-
-    /**
-     * The SASL mechanism if the authentication method is SASL.
-     */
-    private String saslMech;
-
-    /**
-     * Enumeration representing the bind rule operation type.
-     */
-    private EnumBindRuleType type;
+    /** Enumeration representing the authentication method. */
+    private final EnumAuthMethod authMethod;
+    /** The SASL mechanism if the authentication method is SASL. */
+    private final String saslMech;
+    /** Enumeration representing the bind rule operation type. */
+    private final EnumBindRuleType type;
 
     /**
      * Create a class representing an authmethod bind rule keyword from the
@@ -68,15 +57,15 @@ public class AuthMethod implements KeywordBindRule {
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException  {
       String lowerExpr = expr.toLowerCase();
-      if (lowerExpr.equals("none"))
+      if ("none".equals(lowerExpr))
       {
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_NONE, null, type);
       }
-      else if (lowerExpr.equals("simple"))
+      else if ("simple".equals(lowerExpr))
       {
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SIMPLE, null, type);
       }
-      else if (lowerExpr.equals("ssl"))
+      else if ("ssl".equals(lowerExpr))
       {
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SSL, "EXTERNAL", type);
       }
@@ -89,8 +78,7 @@ public class AuthMethod implements KeywordBindRule {
         return new AuthMethod(EnumAuthMethod.AUTHMETHOD_SASL, saslMech, type);
       }
 
-      LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION.get(expr);
-      throw new AciException(message);
+      throw new AciException(WARN_ACI_SYNTAX_INVALID_AUTHMETHOD_EXPRESSION.get(expr));
     }
 
     /**
@@ -105,7 +93,6 @@ public class AuthMethod implements KeywordBindRule {
         return matched.getRet(type, false);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -114,11 +101,9 @@ public class AuthMethod implements KeywordBindRule {
       return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer)
     {
       buffer.append(super.toString());
     }
-
 }

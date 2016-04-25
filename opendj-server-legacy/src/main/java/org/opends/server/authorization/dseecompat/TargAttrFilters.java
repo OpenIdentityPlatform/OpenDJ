@@ -34,37 +34,22 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 
-/**
- * The TargAttrFilters class represents a targattrfilters rule of an ACI.
- */
+/** The TargAttrFilters class represents a targattrfilters rule of an ACI. */
 public class TargAttrFilters {
+    /** A valid targattrfilters rule may have two TargFilterlist parts -- the first one is required. */
+    private final TargAttrFilterList firstFilterList;
+    private final TargAttrFilterList secondFilterList;
 
-    /**
-     * A valid targattrfilters rule may have two TargFilterlist parts -- the
-     * first one is required.
-     */
-  private final TargAttrFilterList firstFilterList;
-    private TargAttrFilterList secondFilterList;
-
-    /**
-     * Regular expression group position for the first operation value.
-     */
+    /** Regular expression group position for the first operation value. */
     private static final int firstOpPos = 1;
 
-    /**
-     * Regular expression group position for the rest of an partially parsed
-     * rule.
-     */
+    /** Regular expression group position for the rest of an partially parsed rule. */
     private static final int restOfExpressionPos=2;
 
-    /**
-     * Regular expression used to match the operation group (either add or del).
-     */
+    /** Regular expression used to match the operation group (either add or del). */
     private static final String ADD_OR_DEL_KEYWORD_GROUP = "(add|del)";
 
-    /**
-     * Regular expression used to check for valid expression separator.
-     */
+    /** Regular expression used to check for valid expression separator. */
     private static final Pattern secondOpSeparator = Pattern.compile("\\)" + ZERO_OR_MORE_WHITESPACE + ",");
 
     /**
@@ -87,17 +72,12 @@ public class TargAttrFilters {
      * Regular expression used to group the remainder of a partially parsed
      * rule.  Any character one or more times.
      */
-    private final static String restOfExpression = "(.+)";
+    private static final String restOfExpression = "(.+)";
 
-    /**
-     * Regular expression used to match the first operation keyword and the
-     * rest of the expression.
-     */
-    private final static String keywordFullPattern = firstOp + restOfExpression;
+    /** Regular expression used to match the first operation keyword and the rest of the expression. */
+    private static final String keywordFullPattern = firstOp + restOfExpression;
 
-    /**
-     * The enumeration representing the operation.
-     */
+    /** The enumeration representing the operation. */
     private final EnumTargetOperator op;
 
     /**
@@ -116,7 +96,7 @@ public class TargAttrFilters {
      * @param secondFilterList The second filter list class parsed from the
      * rule. This one is optional.
      */
-    public TargAttrFilters(EnumTargetOperator op,
+    private TargAttrFilters(EnumTargetOperator op,
                            TargAttrFilterList firstFilterList,
                            TargAttrFilterList secondFilterList ) {
         this.op=op;
@@ -126,6 +106,8 @@ public class TargAttrFilters {
             //Add the second filter list mask to the mask.
             operationMask |= secondFilterList.getMask();
             this.secondFilterList=secondFilterList;
+        } else {
+            this.secondFilterList = null;
         }
     }
 
@@ -173,10 +155,7 @@ public class TargAttrFilters {
                 get(expression);
             throw new AciException(message);
         }
-        /*
-         * Check that there are not too many filter lists. There can only
-         * be either one or two.
-         */
+        /* Check that there are not too many filter lists. There can only be either one or two. */
         String[] filterLists = secondOp.split(subExpression, -1);
         if(filterLists.length > 2) {
           throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS.get(expression));
@@ -238,8 +217,8 @@ public class TargAttrFilters {
      * @param op The op string.
      * @return   The mask corresponding to the operation string.
      */
-    private static  int getMask(String op) {
-        if(op.equals("add"))
+    private static int getMask(String op) {
+        if ("add".equals(op))
         {
           return TARGATTRFILTERS_ADD;
         }
@@ -253,7 +232,7 @@ public class TargAttrFilters {
      * @return  A TargAttrFilterList matching both the rights of the target
      * match context and the mask of the TargFilterAttrList. May return null.
      */
-    public TargAttrFilterList
+    private TargAttrFilterList
     getTargAttrFilterList(AciTargetMatchContext matchCtx) {
         int mask=ACI_NULL;
         //Set up the wanted mask by evaluating both the target match
@@ -441,5 +420,4 @@ public class TargAttrFilters {
     public boolean hasMask(int mask) {
         return (this.operationMask & mask) != 0;
     }
-
 }

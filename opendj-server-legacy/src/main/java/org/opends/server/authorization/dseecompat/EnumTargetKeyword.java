@@ -12,50 +12,25 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
 
-/**
- *  This class provides an enumeration of the valid ACI target keywords.
- */
-public enum EnumTargetKeyword {
-
-    /**
-     * This enumeration is returned when the target keyword is
-     * "target".
-     */
+/** This class provides an enumeration of the valid ACI target keywords. */
+enum EnumTargetKeyword {
+    /** This enumeration is returned when the target keyword is "target". */
     KEYWORD_TARGET      ("target"),
-    /**
-     * This enumeration is returned when the target keyword is
-     * "targetattr".
-     */
+    /** This enumeration is returned when the target keyword is "targetattr". */
     KEYWORD_TARGETATTR  ("targetattr"),
-    /**
-     * This enumeration is returned when the target keyword  is
-     * "targetscope".
-     */
+    /** This enumeration is returned when the target keyword is "targetscope". */
     KEYWORD_TARGETSCOPE ("targetscope"),
-    /**
-     * This enumeration is returned when the target keyword is
-     * "targetfilter".
-     */
+    /** This enumeration is returned when the target keyword is "targetfilter". */
     KEYWORD_TARGETFILTER ("targetfilter"),
-    /**
-     * This enumeration is returned when the target keyword is
-     * "targattrfilters".
-     */
+    /** This enumeration is returned when the target keyword is "targattrfilters". */
     KEYWORD_TARGATTRFILTERS ("targattrfilters"),
-    /**
-     * This enumeration is returned when the target keyword is
-     * "targetcontrol".
-     */
+    /** This enumeration is returned when the target keyword is "targetcontrol". */
     KEYWORD_TARGETCONTROL ("targetcontrol"),
-      /**
-     * This enumeration is returned when the target keyword is
-     * "extop".
-     */
+    /** This enumeration is returned when the target keyword is "extop". */
     KEYWORD_EXTOP ("extop");
 
     /** The target keyword name. */

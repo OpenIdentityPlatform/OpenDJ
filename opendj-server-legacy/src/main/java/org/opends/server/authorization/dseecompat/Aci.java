@@ -27,81 +27,47 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DN;
 
-/**
- * The Aci class represents ACI strings.
- */
+/** The Aci class represents ACI strings. */
 public class Aci implements Comparable<Aci>
 {
-
-    /**
-     * The body of the ACI is the version, name and permission-bind rule
-     * pairs.
-     */
-    private AciBody body;
-
-    /**
-     * The ACI targets.
-     */
-    private AciTargets targets;
-
-    /**
-     * Version that we support.
-     */
+    /** Version that we support. */
     public static final String supportedVersion="3.0";
 
-    /**
-     * String representation of the ACI used.
-     */
-    private String aciString;
-
-    /**
-     * The DN of the entry containing this ACI.
-     */
+    /** The body of the ACI is the version, name and permission-bind rule pairs. */
+    private final AciBody body;
+    /** The ACI targets. */
+    private final AciTargets targets;
+    /** String representation of the ACI used. */
+    private final String aciString;
+    /** The DN of the entry containing this ACI. */
     private final DN dn;
 
-    /**
-     * Regular expression matching a word group.
-     */
+    /** Regular expression matching a word group. */
     public static final String WORD_GROUP="(\\w+)";
 
-    /**
-     * Regular expression matching a word group at the start of a
-     * pattern.
-     */
-    public static final String WORD_GROUP_START_PATTERN = "^" + WORD_GROUP;
+    /** Regular expression matching a word group at the start of a pattern. */
+    static final String WORD_GROUP_START_PATTERN = "^" + WORD_GROUP;
 
-    /**
-     * Regular expression matching a white space.
-     */
+    /** Regular expression matching a white space. */
     public static final String ZERO_OR_MORE_WHITESPACE="\\s*";
 
-    /**
-     * Regular expression matching a white space at the start of a pattern.
-     */
+    /** Regular expression matching a white space at the start of a pattern. */
     public static final String ZERO_OR_MORE_WHITESPACE_START_PATTERN =
                                              "^" + ZERO_OR_MORE_WHITESPACE ;
 
-    /**
-     * Regular expression matching a white space at the end of a pattern.
-     */
+    /** Regular expression matching a white space at the end of a pattern. */
     private static final String ZERO_OR_MORE_WHITESPACE_END_PATTERN =
                                              ZERO_OR_MORE_WHITESPACE  + "$";
 
-    /**
-     * Regular expression matching a ACL statement separator.
-     */
+    /** Regular expression matching a ACL statement separator. */
     public static final String ACI_STATEMENT_SEPARATOR =
                 ZERO_OR_MORE_WHITESPACE + ";" + ZERO_OR_MORE_WHITESPACE;
 
-    /**
-     * This regular expression is used to do a quick syntax check
-     * when an ACI is being decoded.
-     */
+    /** This regular expression is used to do a quick syntax check when an ACI is being decoded. */
     private static final String aciRegex =
            ZERO_OR_MORE_WHITESPACE_START_PATTERN + AciTargets.targetsRegex +
            ZERO_OR_MORE_WHITESPACE + AciBody.bodyRegx +
            ZERO_OR_MORE_WHITESPACE_END_PATTERN;
-
 
     /**
      * Regular expression that graciously matches an attribute type name. Must
@@ -110,143 +76,75 @@ public class Aci implements Comparable<Aci>
      * the special shorthand characters "*" for all user attributes and "+" for
      * all operational attributes.
      */
-    public  static final String ATTR_NAME =
+    static final String ATTR_NAME =
               "((?i)[a-z\\d]{1}[[a-z]\\d-_.]*(?-i)|\\*{1}|\\+{1})";
 
-    /**
-      * Regular expression matching a LDAP URL.
-      */
+     /** Regular expression matching a LDAP URL. */
      public  static final String LDAP_URL = ZERO_OR_MORE_WHITESPACE  +
                                                  "(ldap:///[^\\|]+)";
 
-    /**
-     *  String used to check for NULL ldap URL.
-     */
+     /** String used to check for NULL ldap URL. */
      public static final String NULL_LDAP_URL = "ldap:///";
 
-    /**
-     * Regular expression used to match token that joins expressions (||).
-     */
-    public static final String LOGICAL_OR = "\\|\\|";
+    /** Regular expression used to match token that joins expressions (||). */
+    static final String LOGICAL_OR = "\\|\\|";
+    /** Regular expression used to match an open parenthesis. */
+    static final String OPEN_PAREN = "\\(";
+    /** Regular expression used to match a closed parenthesis. */
+    static final String CLOSED_PAREN = "\\)";
+    /** Regular expression used to match a single equal sign. */
+    static final String EQUAL_SIGN = "={1}";
 
-    /**
-     * Regular expression used to match an open parenthesis.
-     */
-    public static final String OPEN_PAREN = "\\(";
-
-    /**
-     * Regular expression used to match a closed parenthesis.
-     */
-    public static final String CLOSED_PAREN = "\\)";
-
-    /**
-     * Regular expression used to match a single equal sign.
-     */
-    public static final String EQUAL_SIGN = "={1}";
-
-    /**
-     * Regular expression the matches "*".
-     */
+    /** Regular expression the matches "*". */
     public static final String ALL_USER_ATTRS_WILD_CARD =
             ZERO_OR_MORE_WHITESPACE +
                     "\\*" + ZERO_OR_MORE_WHITESPACE;
 
-    /**
-     * Regular expression the matches "+".
-     */
+    /** Regular expression the matches "+". */
     public static final String ALL_OP_ATTRS_WILD_CARD =
             ZERO_OR_MORE_WHITESPACE +
                     "\\+" + ZERO_OR_MORE_WHITESPACE;
 
-    /**
-     * Regular expression used to do quick check of OID string.
-     */
+    /** Regular expression used to do quick check of OID string. */
     private static final String OID_NAME = "[\\d.\\*]*";
 
-    /**
-     * Regular expression that matches one or more OID_NAME's separated by
-     * the "||" token.
-     */
+    /** Regular expression that matches one or more OID_NAME's separated by the "||" token. */
     private static final String oidListRegex  =  ZERO_OR_MORE_WHITESPACE +
             OID_NAME + ZERO_OR_MORE_WHITESPACE + "(" +
             LOGICAL_OR + ZERO_OR_MORE_WHITESPACE + OID_NAME +
             ZERO_OR_MORE_WHITESPACE + ")*";
 
-    /**
-     * ACI_ADD is used to set the container rights for a LDAP add operation.
-     */
+    /** ACI_ADD is used to set the container rights for a LDAP add operation. */
     public static final int ACI_ADD = 0x0020;
 
-    /**
-     * ACI_DELETE is used to set the container rights for a LDAP
-     * delete operation.
-     */
-    public static final int ACI_DELETE = 0x0010;
-
-    /**
-     * ACI_READ is used to set the container rights for a LDAP
-     * search operation.
-     */
-    public static final int ACI_READ = 0x0004;
-
-    /**
-     * ACI_WRITE is used to set the container rights for a LDAP
-     * modify operation.
-     */
-    public static final int ACI_WRITE = 0x0008;
-
-    /**
-     * ACI_COMPARE is used to set the container rights for a LDAP
-     * compare operation.
-     */
-    public static final int ACI_COMPARE = 0x0001;
-
-    /**
-     * ACI_SEARCH is used to set the container rights a LDAP search operation.
-     */
-    public static final int ACI_SEARCH = 0x0002;
-
-    /**
-     * ACI_SELF is used for the SELFWRITE right.
-     */
+    /** ACI_DELETE is used to set the container rights for a LDAP delete operation. */
+    static final int ACI_DELETE = 0x0010;
+    /** ACI_READ is used to set the container rights for a LDAP search operation. */
+    static final int ACI_READ = 0x0004;
+    /** ACI_WRITE is used to set the container rights for a LDAP modify operation. */
+    static final int ACI_WRITE = 0x0008;
+    /** ACI_COMPARE is used to set the container rights for a LDAP compare operation. */
+    static final int ACI_COMPARE = 0x0001;
+    /** ACI_SEARCH is used to set the container rights a LDAP search operation. */
+    static final int ACI_SEARCH = 0x0002;
+    /** ACI_SELF is used for the SELFWRITE right. */
     public static final int ACI_SELF = 0x0040;
-
     /**
      * ACI_ALL is used to as a mask for all of the above. These
      * six below are not masked by the ACI_ALL.
      */
-    public static final int ACI_ALL = 0x007F;
-
-    /**
-     * ACI_PROXY is used for the PROXY right.
-     */
+    static final int ACI_ALL = 0x007F;
+    /** ACI_PROXY is used for the PROXY right. */
     public static final int ACI_PROXY = 0x0080;
-
-    /**
-     * ACI_IMPORT is used to set the container rights for a LDAP
-     * modify dn operation.
-     */
-    public static final int ACI_IMPORT = 0x0100;
-
-    /**
-     * ACI_EXPORT is used to set the container rights for a LDAP
-     * modify dn operation.
-     */
-    public static final int ACI_EXPORT = 0x0200;
-
-    /**
-     * ACI_WRITE_ADD is used by the LDAP modify operation.
-     */
-    public static final int ACI_WRITE_ADD = 0x800;
-
-    /**
-     * ACI_WRITE_DELETE is used by the LDAP modify operation.
-     */
+    /** ACI_IMPORT is used to set the container rights for a LDAP modify dn operation. */
+    static final int ACI_IMPORT = 0x0100;
+    /** ACI_EXPORT is used to set the container rights for a LDAP modify dn operation. */
+    static final int ACI_EXPORT = 0x0200;
+    /** ACI_WRITE_ADD is used by the LDAP modify operation. */
+    static final int ACI_WRITE_ADD = 0x800;
+    /** ACI_WRITE_DELETE is used by the LDAP modify operation. */
     public static final int ACI_WRITE_DELETE = 0x400;
-
-    /**
-     * ACI_SKIP_PROXY_CHECK is used to bypass the proxy access check.
-     */
+    /** ACI_SKIP_PROXY_CHECK is used to bypass the proxy access check. */
     public static final int ACI_SKIP_PROXY_CHECK = 0x400000;
 
     /**
@@ -259,7 +157,7 @@ public class Aci implements Comparable<Aci>
      * The TARGATTRFILTERS_ADD flag would be set during ACI parsing in the
      * TargAttrFilters class.
      */
-    public static final int TARGATTRFILTERS_ADD = 0x1000;
+    static final int TARGATTRFILTERS_ADD = 0x1000;
 
     /**
      * TARGATTRFILTER_DELETE is used to specify that a
@@ -271,16 +169,12 @@ public class Aci implements Comparable<Aci>
      * The TARGATTRFILTERS_DELETE flag would be set during ACI parsing in the
      * TargAttrFilters class.
      */
-    public static final int TARGATTRFILTERS_DELETE = 0x2000;
+    static final int TARGATTRFILTERS_DELETE = 0x2000;
 
-    /**
-     * Used by the control evaluation access check.
-     */
-    public static final int ACI_CONTROL = 0x4000;
+    /** Used by the control evaluation access check. */
+    static final int ACI_CONTROL = 0x4000;
 
-    /**
-     *  Used by the extended operation access check.
-     */
+    /** Used by the extended operation access check. */
     public static final int ACI_EXT_OP = 0x8000;
 
     /**
@@ -294,7 +188,7 @@ public class Aci implements Comparable<Aci>
      * evaluation if the flag is ACI_ATTR_STAR_MATCHED (all attributes match)
      * and the attribute type is not operational.
      */
-    public static final int ACI_USER_ATTR_STAR_MATCHED = 0x0008;
+    static final int ACI_USER_ATTR_STAR_MATCHED = 0x0008;
 
     /**
      * ACI_FOUND_USER_ATTR_RULE is the flag set when the evaluation reason of a
@@ -302,7 +196,7 @@ public class Aci implements Comparable<Aci>
      * ACI targetattr specific user attribute expression
      * (targetattr="some user attribute type") target match.
      */
-    public static final int ACI_FOUND_USER_ATTR_RULE = 0x0010;
+    static final int ACI_FOUND_USER_ATTR_RULE = 0x0010;
 
     /**
      * ACI_OP_ATTR_PLUS_MATCHED is the flag set when the evaluation reason of a
@@ -316,7 +210,7 @@ public class Aci implements Comparable<Aci>
      * evaluation if the flag is ACI_OP_ATTR_PLUS_MATCHED (all operational
      * attributes match) and the attribute type is operational.
      */
-    public static final int ACI_OP_ATTR_PLUS_MATCHED = 0x0004;
+    static final int ACI_OP_ATTR_PLUS_MATCHED = 0x0004;
 
     /**
      * ACI_FOUND_OP_ATTR_RULE is the flag set when the evaluation reason of a
@@ -324,13 +218,10 @@ public class Aci implements Comparable<Aci>
      * ACI targetattr specific operational attribute expression
      * (targetattr="some operational attribute type") target match.
      */
-    public static final int ACI_FOUND_OP_ATTR_RULE = 0x0020;
+    static final int ACI_FOUND_OP_ATTR_RULE = 0x0020;
 
-    /**
-     * ACI_NULL is used to set the container rights to all zeros. Used
-     * by LDAP modify.
-     */
-    public static final int ACI_NULL = 0x0000;
+    /** ACI_NULL is used to set the container rights to all zeros. Used by LDAP modify. */
+    static final int ACI_NULL = 0x0000;
 
     /**
      * Construct a new Aci from the provided arguments.
@@ -359,8 +250,7 @@ public class Aci implements Comparable<Aci>
         //Perform a quick pattern check against the string to catch any
         //obvious syntax errors.
         if (!Pattern.matches(aciRegex, input)) {
-            LocalizableMessage message = WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input);
-            throw new AciException(message);
+            throw new AciException(WARN_ACI_SYNTAX_GENERAL_PARSE_FAILED.get(input));
         }
         //Decode the body first.
         AciBody body=AciBody.decode(input);
@@ -525,7 +415,6 @@ public class Aci implements Comparable<Aci>
     public String getName() {
       return this.body.getName();
     }
-
 
   /**
    *  Decode an OIDs expression string.

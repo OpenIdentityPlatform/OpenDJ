@@ -24,8 +24,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 
@@ -35,33 +35,22 @@ import org.opends.server.types.SearchFilter;
  *
  *   "Op=attr1:F1 [(&& attr2:F2)*]
  */
-public class TargAttrFilterList {
-
-  /**
-   * The mask corresponding to the operation of this list (add or del).
-   */
-    private int mask;
-
+class TargAttrFilterList
+{
+  /** The mask corresponding to the operation of this list (add or del). */
+  private final int mask;
   /**
    * ListHashMap keyed by the attribute type and mapping to the corresponding
    * search filter. LinkedHashMap is used so everything is in order.
    */
-    private LinkedHashMap<AttributeType, SearchFilter> attrFilterList;
+  private final LinkedHashMap<AttributeType, SearchFilter> attrFilterList;
 
-  /**
-   * Regular expression group count.
-   */
-    private static int expectedGroupCount=2;
-
-  /**
-   * Regular expression attribute group position.
-   */
-    private static int attributePos=1;
-
-  /**
-   * Regular expression filter group position.
-   */
-    private static int filterPos=2;
+  /** Regular expression group count. */
+  private static final int expectedGroupCount = 2;
+  /** Regular expression attribute group position. */
+  private static final int attributePos = 1;
+  /** Regular expression filter group position. */
+  private static final int filterPos = 2;
 
   /**
    * Regular expression used to match a filter list including the strange "and"
@@ -70,9 +59,7 @@ public class TargAttrFilterList {
     private static final String filterListSeperator =
               ZERO_OR_MORE_WHITESPACE  + "&&" + ZERO_OR_MORE_WHITESPACE;
 
-  /**
-   * Regular expression used to match an attribute filter pair.
-   */
+    /** Regular expression used to match an attribute filter pair. */
     private static final String attributeFilter=
             ATTR_NAME + ZERO_OR_MORE_WHITESPACE + ":{1}" +
             ZERO_OR_MORE_WHITESPACE + "(\\({1}.*\\){1})";
@@ -83,7 +70,7 @@ public class TargAttrFilterList {
      * @param attrFilterList The list map containing the attribute type
      * filter mappings.
      */
-    public TargAttrFilterList(int mask,
+    private TargAttrFilterList(int mask,
                     LinkedHashMap<AttributeType, SearchFilter> attrFilterList) {
         this.mask=mask;
         this.attrFilterList=attrFilterList;
@@ -97,8 +84,7 @@ public class TargAttrFilterList {
      * filter list.
      * @throws AciException If the expression string contains errors.
      */
-    public static TargAttrFilterList decode(int mask, String expression)
-            throws AciException {
+    static TargAttrFilterList decode(int mask, String expression) throws AciException {
         LinkedHashMap<AttributeType, SearchFilter> attrFilterList = new LinkedHashMap<>();
         String[] subExpressions=expression.split(filterListSeperator, -1);
         //Iterate over each sub-expression, parse and add them to the list
@@ -190,7 +176,7 @@ public class TargAttrFilterList {
      * @param mask The mask to check for.
      * @return  True if the mask matches the specified value.
      */
-    public boolean hasMask(int mask) {
+    boolean hasMask(int mask) {
         return (this.mask & mask) != 0;
     }
 
@@ -198,8 +184,7 @@ public class TargAttrFilterList {
      * Return the list map holding the attribute type to filter mappings.
      * @return  The list map.
      */
-    public
-    LinkedHashMap<AttributeType, SearchFilter> getAttributeTypeFilterList() {
+    public LinkedHashMap<AttributeType, SearchFilter> getAttributeTypeFilterList() {
         return  attrFilterList;
     }
 }

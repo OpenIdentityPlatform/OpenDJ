@@ -262,26 +262,27 @@ public class AciListenerManager implements
   }
 
   /** The configuration DN. */
-  private DN configurationDN;
+  private final DN configurationDN;
 
   /** True if the server is in lockdown mode. */
   private boolean inLockDownMode;
 
   /** The AciList caches the ACIs. */
-  private AciList aciList;
+  private final AciList aciList;
 
   /** Search filter used in context search for "aci" attribute types. */
-  private static SearchFilter aciFilter;
-  static
+  private final static SearchFilter aciFilter = buildAciFilter();
+  private static SearchFilter buildAciFilter()
   {
     // Set up the filter used to search private and public contexts.
     try
     {
-      aciFilter = SearchFilter.createFilterFromString("(aci=*)");
+      return SearchFilter.createFilterFromString("(aci=*)");
     }
     catch (DirectoryException ex)
     {
       // TODO should never happen, error message?
+      return null;
     }
   }
 
@@ -334,9 +335,10 @@ public class AciListenerManager implements
   }
 
   /**
-   * {@inheritDoc} In this case, the server will search the backend to
-   * find all aci attribute type values that it may contain and add them
-   * to the ACI list.
+   * {@inheritDoc}
+   * <p>
+   * In this case, the server will search the backend to find all aci attribute type values
+   * that it may contain and add them to the ACI list.
    */
   @Override
   public void performBackendPreInitializationProcessing(Backend<?> backend)
@@ -475,7 +477,7 @@ public class AciListenerManager implements
    * @param failedACIMsgs
    *          List of exception messages from failed ACI decodes.
    */
-  public void logMsgsSetLockDownMode(LinkedList<LocalizableMessage> failedACIMsgs)
+  private void logMsgsSetLockDownMode(LinkedList<LocalizableMessage> failedACIMsgs)
   {
     for (LocalizableMessage msg : failedACIMsgs)
     {

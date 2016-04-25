@@ -12,37 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
-/**
- * This class provides an enumeration of the allowed authmethod types.
- */
-public enum EnumAuthMethod {
-
-    /**
-     * The enumeration type when the bind rule has specified authentication of
-     * none.
-     */
+/** This class provides an enumeration of the allowed authmethod types. */
+enum EnumAuthMethod {
+    /** The enumeration type when the bind rule has specified authentication of none. */
     AUTHMETHOD_NONE          ("none"),
-
-    /**
-     * The enumeration type when the bind rule has specified authentication of
-     * simple.
-     */
+    /** The enumeration type when the bind rule has specified authentication of simple. */
     AUTHMETHOD_SIMPLE        ("simple"),
-
-    /**
-     * The enumeration type when the bind rule has specified authentication of
-     * ssl client auth.
-     */
+    /** The enumeration type when the bind rule has specified authentication of ssl client auth. */
     AUTHMETHOD_SSL           ("ssl"),
-
-    /**
-     * The enumeration type when the bind rule has specified authentication of
-     * a sasl mechanism.
-     */
+    /** The enumeration type when the bind rule has specified authentication of a sasl mechanism. */
     AUTHMETHOD_SASL          ("sasl");
 
     /**
@@ -51,5 +33,4 @@ public enum EnumAuthMethod {
      */
     EnumAuthMethod (String authmethod){
     }
-
 }

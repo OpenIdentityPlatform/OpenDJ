@@ -12,9 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
-
 
 /**
  * Enumeration that represents the type an "userdn" keyword DN can have.
@@ -28,8 +28,7 @@ package org.opends.server.authorization.dseecompat;
  * ignored in the UserDN.evaluate() method for types such as: ALL, PARENT,
  * SELF and ANYONE.
  */
-public enum EnumUserDNType {
-
+enum EnumUserDNType {
         /**
          * The enumeration type when the "userdn" URL contains only a DN (no
          * filter or scope) and that DN has no pattern.
@@ -40,30 +39,15 @@ public enum EnumUserDNType {
          * filter or scope) and that DN has a substring pattern.
          */
         DNPATTERN(1),
-        /**
-         * The enumeration type when the "userdn" URL has the value of:
-         *  "ldap:///all".
-         */
+        /** The enumeration type when the "userdn" URL has the value of: "ldap:///all". */
         ALL(2),
-        /**
-         * The enumeration type when the "userdn" URL has the value of:
-         *  "ldap:///parent".
-         */
+        /** The enumeration type when the "userdn" URL has the value of: "ldap:///parent". */
         PARENT(3),
-        /**
-         * The enumeration type when the "userdn" URL has the value of:
-         *  "ldap:///self".
-         */
+        /** The enumeration type when the "userdn" URL has the value of: "ldap:///self". */
         SELF(4),
-        /**
-         * The enumeration type when the "userdn" URL has the value of:
-         *  "ldap:///anyone".
-         */
+        /** The enumeration type when the "userdn" URL has the value of: "ldap:///anyone". */
         ANYONE(5),
-        /**
-         * The enumeration type when the "userdn" URL is contains a DN (suffix),
-         * a scope and a filter.
-         */
+        /** The enumeration type when the "userdn" URL is contains a DN (suffix), a scope and a filter. */
         URL(6);
 
         /**

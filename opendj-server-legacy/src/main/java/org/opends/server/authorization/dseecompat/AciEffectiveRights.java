@@ -29,21 +29,12 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 
-/**
- * This class implements the dseecompat geteffectiverights evaluation.
- */
+/** This class implements the dseecompat geteffectiverights evaluation. */
 public class AciEffectiveRights {
-
-  /**
-   * Value used when a aclRights attribute was seen in the search operation
-   * attribute set.
-   */
+  /** Value used when a aclRights attribute was seen in the search operation attribute set. */
   private static final int ACL_RIGHTS = 0x001;
 
-  /**
-   * Value used when a aclRightsInfo attribute was seen in the search operation
-   * attribute set.
-   */
+  /** Value used when a aclRightsInfo attribute was seen in the search operation attribute set. */
   private static final int ACL_RIGHTS_INFO = 0x002;
 
   /**
@@ -129,25 +120,19 @@ public class AciEffectiveRights {
   /** Attribute type used in the geteffectiverights selfwrite evaluation. */
   private static AttributeType dnAttributeType;
 
-  /**The distinguishedName string. */
+  /** The distinguishedName string. */
   private static final String dnAttrStr = "distinguishedname";
 
-  /**
-   * String used to fill in the summary status field when access was allowed.
-   */
-  private static String ALLOWED="access allowed";
-
-  /**
-   * String used to fill in the summary status field when access was not
-   * allowed.
-   */
-  private static String NOT_ALLOWED="access not allowed";
+  /** String used to fill in the summary status field when access was allowed. */
+  private static final String ALLOWED = "access allowed";
+  /** String used to fill in the summary status field when access was not allowed. */
+  private static final String NOT_ALLOWED = "access not allowed";
 
   /** Evaluated as anonymous user. Used to fill in summary field. */
-  private static String anonymous="anonymous";
+  private static final String anonymous = "anonymous";
 
   /** Format used to build the summary string. */
-  private static String summaryFormatStr =
+  private static final String summaryFormatStr =
         "acl_summary(%s): %s(%s) on entry/attr(%s, %s) to (%s)" +
         " (not proxied) ( reason: %s %s)";
 
@@ -155,19 +140,15 @@ public class AciEffectiveRights {
    * Strings below represent access denied or allowed evaluation reasons. Used
    * to fill in the summary status field. Access evaluated an allow ACI.
    */
-  private static String EVALUATED_ALLOW="evaluated allow";
-
+  private static final String EVALUATED_ALLOW = "evaluated allow";
   /** Access evaluated a deny ACI. */
-  private static String EVALUATED_DENY="evaluated deny";
-
+  private static final String EVALUATED_DENY = "evaluated deny";
   /** Access evaluated deny because there were no allow ACIs. */
-  private static String NO_ALLOWS="no acis matched the resource";
-
+  private static final String NO_ALLOWS = "no acis matched the resource";
   /** Access evaluated deny because no allow or deny ACIs evaluated. */
-  private static String NO_ALLOWS_MATCHED="no acis matched the subject";
-
+  private static final String NO_ALLOWS_MATCHED = "no acis matched the subject";
   /** Access evaluated allow because the clientDN has bypass-acl privileges. */
-  private static String SKIP_ACI="user has bypass-acl privileges";
+  private static final String SKIP_ACI = "user has bypass-acl privileges";
 
   //TODO add support for the modify-acl privilege?
 
@@ -298,8 +279,6 @@ public class AciEffectiveRights {
     addEntryLevelRights(container, handler, attrMask, e, skipCheck);
   }
 
-
-
   /**
    * Perform the attributeLevel rights evaluation on a list of specified
    * attribute types. Each attribute has an access check done for the following
@@ -410,8 +389,6 @@ public class AciEffectiveRights {
     container.setCurrentAttributeValue(null);
     container.setCurrentAttributeType(null);
   }
-
-
 
   /**
    * Perform the attributeLevel write rights evaluation. The issue here is that
@@ -581,7 +558,6 @@ public class AciEffectiveRights {
     return resString.toString();
   }
 
-
   /**
    * Check that access is allowed on the aclRights and/or aclRightsInfo
    * attribute types.
@@ -610,7 +586,6 @@ public class AciEffectiveRights {
     return retRight && retInfo;
   }
 
-
   /**
    * Add aclRightsInfo attributeLevel information to the entry. This is the
    * summary string built from the last access check.
@@ -626,7 +601,6 @@ public class AciEffectiveRights {
   void addAttrLevelRightsInfo(AciLDAPOperationContainer container, int mask,
                      AttributeType aType, Entry retEntry,
                      String rightStr) {
-
     //Check if the aclRightsInfo attribute was requested.
     if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       //Build the attribute type.
@@ -656,7 +630,6 @@ public class AciEffectiveRights {
    void addEntryLevelRightsInfo(AciLDAPOperationContainer container, int mask,
                        Entry retEntry,
                       String rightStr) {
-
      //Check if the aclRightsInfo attribute was requested.
      if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       String typeStr = aclRightsInfoEntryLogsStr + ";" + rightStr;
@@ -675,7 +648,6 @@ public class AciEffectiveRights {
   private static boolean hasAttrMask(int mask, int rightsAttr) {
         return (mask & rightsAttr) != 0;
   }
-
 
   /**
    * Create the summary string used in the aclRightsInfo log string.

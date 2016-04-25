@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -25,10 +25,9 @@ import org.opends.server.types.LDAPURL;
 public class UserDNTypeURL {
 
     /** The DN type of the URL. */
-    private EnumUserDNType dnType;
-
+    private final EnumUserDNType dnType;
     /** The URL value. Maybe a dummy value for types such as ANYONE or SELF. */
-    private LDAPURL url;
+    private final LDAPURL url;
 
     /**
      * Create a class representing the "userdn" URL decoded by the

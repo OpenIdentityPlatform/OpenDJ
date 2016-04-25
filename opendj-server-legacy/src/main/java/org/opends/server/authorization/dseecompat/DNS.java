@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -29,21 +29,17 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-/**
- * This class implements the dns bind rule keyword.
- */
+/** This class implements the dns bind rule keyword. */
 public class DNS implements KeywordBindRule {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** List of patterns to match against. */
-    private List<String> patterns;
-
+    private final List<String> patterns;
     /** The enumeration representing the bind rule type of the DNS rule. */
-    private EnumBindRuleType type;
+    private final EnumBindRuleType type;
 
     /** Regular expression group used to match a dns rule. */
     private static final String valueRegex = "([a-zA-Z0-9\\.\\-\\*]+)";
-
     /** Regular expression group used to match one or more DNS values. */
     private static final String valuesRegExGroup =
             valueRegex + ZERO_OR_MORE_WHITESPACE +
@@ -82,7 +78,7 @@ public class DNS implements KeywordBindRule {
             String hn=valueMatcher.group(valuePos);
             String[] hnArray=hn.split("\\.", -1);
             for(int i=1, n=hnArray.length; i < n; i++) {
-                if(hnArray[i].equals("*")) {
+                if ("*".equals(hnArray[i])) {
                     LocalizableMessage message =
                         WARN_ACI_SYNTAX_INVALID_DNS_WILDCARD.get(expr);
                     throw new AciException(message);
@@ -110,7 +106,7 @@ public class DNS implements KeywordBindRule {
                   String canonicalName = addr.getCanonicalHostName();
                   if (! hn.equalsIgnoreCase(canonicalName))
                   {
-                    if (hn.equalsIgnoreCase("localhost")
+                    if ("localhost".equalsIgnoreCase(hn)
                         && !dns.contains(canonicalName))
                     {
                       dns.add(canonicalName);
@@ -171,7 +167,7 @@ public class DNS implements KeywordBindRule {
      * @return  True if the remote hostname matches the pattern.
      */
     boolean evalHostName(String[] remoteHostName, String[] pat) {
-      boolean wildCard=pat[0].equals("*");
+      boolean wildCard = "*".equals(pat[0]);
       //Check if there is a single wild-card.
       if(pat.length == 1 && wildCard) {
         return true;
@@ -195,7 +191,6 @@ public class DNS implements KeywordBindRule {
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -203,10 +198,8 @@ public class DNS implements KeywordBindRule {
         return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer) {
         buffer.append(super.toString());
     }
-
 }

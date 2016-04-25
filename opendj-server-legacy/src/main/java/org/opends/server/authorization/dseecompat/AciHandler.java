@@ -79,19 +79,19 @@ public final class AciHandler extends
    * String used to indicate that the evaluating ACI had a all
    * operational attributes targetattr match (targetattr="+").
    */
-  public static final String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
+  static final String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
 
   /**
    * String used to indicate that the evaluating ACI had a all user
    * attributes targetattr match (targetattr="*").
    */
-  public static final String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
+  static final String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
 
   /**
    * String used to save the original authorization entry in an
    * operation attachment if a proxied authorization control was seen.
    */
-  public static final String ORIG_AUTH_ENTRY = "origAuthorizationEntry";
+  static final String ORIG_AUTH_ENTRY = "origAuthorizationEntry";
 
   /** Attribute type corresponding to "aci" attribute. */
   static AttributeType aciType;

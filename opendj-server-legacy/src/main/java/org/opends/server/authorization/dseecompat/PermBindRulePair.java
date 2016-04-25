@@ -12,21 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
-/**
- * A class representing a permission-bind rule pair. There can be multiple
- * of these in an ACI.
- */
+/** A class representing a permission-bind rule pair. There can be multiple of these in an ACI. */
 public class PermBindRulePair {
-
     /** The Bind Rule part. */
-    private BindRule bindRule;
-
+    private final BindRule bindRule;
     /** The permission part. */
-    private Permission perm;
+    private final Permission perm;
 
     /**
      * This constructor calls the permission and bind rule decodes
@@ -83,7 +78,6 @@ public class PermBindRulePair {
         return perm.hasRights(right);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -98,7 +92,7 @@ public class PermBindRulePair {
      *          The buffer into which a string representation of this object
      *          should be appended.
      */
-    public final void toString(StringBuilder buffer) {
+    final void toString(StringBuilder buffer) {
         if (this.perm != null) {
             this.perm.toString(buffer);
         }

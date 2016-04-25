@@ -38,19 +38,19 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  */
 public class AciTargets {
     /** ACI syntax has a target keyword. */
-    private Target target;
+    private final Target target;
     /** ACI syntax has a targetscope keyword. */
-    private SearchScope targetScope = SearchScope.WHOLE_SUBTREE;
+    private final SearchScope targetScope;
     /** ACI syntax has a targetattr keyword. */
-    private TargetAttr targetAttr;
+    private final TargetAttr targetAttr;
     /** ACI syntax has a targetfilter keyword. */
-    private TargetFilter targetFilter;
+    private final TargetFilter targetFilter;
     /** ACI syntax has a targattrtfilters keyword. */
-    private TargAttrFilters targAttrFilters;
+    private final TargAttrFilters targAttrFilters;
     /** The ACI syntax has a targetcontrol keyword. */
-    private TargetControl targetControl;
+    private final TargetControl targetControl;
     /** The ACI syntax has a extop keyword. */
-    private ExtOp extOp;
+    private final ExtOp extOp;
 
     /** The number of regular expression group positions in a valid ACI target expression. */
     private static final int targetElementCount = 3;
@@ -72,7 +72,7 @@ public class AciTargets {
      * Regular expression used to match one or more target rules. The pattern is
      * part of a general ACI verification.
      */
-    public static final String targetsRegex = "(" + targetRegex + ")*";
+    static final String targetsRegex = "(" + targetRegex + ")*";
 
     /**
      * Rights that are skipped for certain target evaluations.
@@ -500,7 +500,7 @@ public class AciTargets {
      * @return  True if the one or more of the specified rights are in the
      * skiprights rights mask.
      */
-    public static boolean skipRightsHasRights(int rights) {
+    private static boolean skipRightsHasRights(int rights) {
       //geteffectiverights sets this flag, turn it off before evaluating.
       int tmpRights=rights & ~ACI_SKIP_PROXY_CHECK;
       return (skipRights & tmpRights) == tmpRights;

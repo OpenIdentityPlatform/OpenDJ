@@ -26,31 +26,17 @@ import org.opends.server.types.LDAPURL;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 
-/**
- * A class representing an ACI target keyword.
- */
+/** A class representing an ACI target keyword. */
 public class Target
 {
-    /**
-     * Enumeration representing the target operator.
-     */
-    private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
-
-    /**
-     * True if the URL contained a DN wild-card pattern.
-     */
-    private boolean isPattern;
-
-    /**
-     * The target DN from the URL or null if it was a wild-card pattern.
-     */
-    private DN urlDN;
-
-    /**
-     * The pattern matcher for a wild-card pattern or null if the URL
-     * contained an ordinary DN.
-     */
-    private PatternDN patternDN;
+    /** Enumeration representing the target operator. */
+    private final EnumTargetOperator operator;
+    /** True if the URL contained a DN wild-card pattern. */
+    private final boolean isPattern;
+    /** The target DN from the URL or null if it was a wild-card pattern. */
+    private final DN urlDN;
+    /** The pattern matcher for a wild-card pattern or null if the URL contained an ordinary DN. */
+    private final PatternDN patternDN;
 
     /*
      * TODO Save aciDN parameter and use it in matchesPattern re-write.
@@ -59,7 +45,6 @@ public class Target
      * it can be used in the matchesPattern() method?  The DN should only be
      * considered a potential match if it is at or below the entry containing
      * the ACI.
-     *
      */
     /**
      * This constructor parses the target string.
@@ -80,7 +65,10 @@ public class Target
           if (targetURL.getRawBaseDN().contains("*")) {
               this.isPattern=true;
               patternDN = PatternDN.decodeSuffix(targetURL.getRawBaseDN());
+              urlDN = null;
           } else {
+              this.isPattern = false;
+              patternDN = null;
               urlDN=targetURL.getBaseDN();
               if(!urlDN.isSubordinateOrEqualTo(aciDN)) {
                   throw new AciException(WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.get(urlDN, aciDN));

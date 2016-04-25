@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -32,52 +32,26 @@ import org.forgerock.i18n.LocalizableMessage;
  * version, name, and permission-bind rule pairs.
  */
 public class AciBody {
-
-    /**
-     * Regular expression group position for the version string.
-     */
+    /** Regular expression group position for the version string. */
     private static final int VERSION = 1;
-
-    /**
-     * Regular expression group position for the name string.
-     */
+    /** Regular expression group position for the name string. */
     private static final int NAME = 2;
-
-    /**
-     * Regular expression group position for the permission string.
-     */
+    /** Regular expression group position for the permission string. */
     private static final int PERM = 1;
-
-    /**
-     * Regular expression group position for the rights string.
-     */
+    /** Regular expression group position for the rights string. */
     private static final int RIGHTS = 2;
-
-    /**
-     * Regular expression group position for the bindrule string.
-     */
+    /** Regular expression group position for the bindrule string. */
     private static final int BINDRULE = 3;
 
-    /**
-     * Index into the ACI string where the ACI body starts.
-     */
-    private int startPos;
+    /** Index into the ACI string where the ACI body starts. */
+    private final int startPos;
+    /** The name of the ACI, currently not used but parsed. */
+    private final String name;
+    /** The version of the ACi, current not used but parsed and checked for 3.0. */
+    private final String version;
 
-    /**
-     * The name of the ACI, currently not used but parsed.
-     */
-    private String name;
-
-    /**
-     * The version of the ACi, current not used but parsed and checked for 3.0.
-     */
-    private String version;
-
-    /**
-     * This structure represents a permission-bind rule pairs. There can be
-     * several of these.
-     */
-    private List<PermBindRulePair> permBindRulePairs;
+    /** This structure represents a permission-bind rule pairs. There can be several of these. */
+    private final List<PermBindRulePair> permBindRulePairs;
 
     /**
      * Regular expression used to match the access type group (allow, deny) and
@@ -104,26 +78,18 @@ public class AciBody {
             ZERO_OR_MORE_WHITESPACE + permissionRegex +
             ZERO_OR_MORE_WHITESPACE + bindRuleRegex;
 
-    /**
-     * Regular expression used to match the version value (digit.digit).
-     */
+    /** Regular expression used to match the version value (digit.digit). */
     private static final String versionRegex = "(\\d\\.\\d)";
-
-    /**
-     * Regular expression used to match the version token. Case insensitive.
-     */
+    /** Regular expression used to match the version token. Case insensitive. */
     private static final String versionToken = "(?i)version(?-i)";
-
-    /**
-     * Regular expression used to match the acl token. Case insensitive.
-     */
+    /** Regular expression used to match the acl token. Case insensitive. */
     private static final String aclToken = "(?i)acl(?-i)";
 
     /**
      * Regular expression used to match the body of an ACI. This pattern is
      * a general verification check.
      */
-    public static final String bodyRegx =
+    static final String bodyRegx =
         "\\(" + ZERO_OR_MORE_WHITESPACE + versionToken +
         ZERO_OR_MORE_WHITESPACE + versionRegex +
         ACI_STATEMENT_SEPARATOR + aclToken + ZERO_OR_MORE_WHITESPACE +
@@ -186,9 +152,7 @@ public class AciBody {
         Pattern bodyPattern1 = Pattern.compile("\\G" + actionRegex);
         Matcher bodyMatcher1 = bodyPattern1.matcher(input);
 
-        /*
-         * The may be many permission-bind rule pairs.
-         */
+        /* The may be many permission-bind rule pairs. */
         int lastIndex = -1;
         while(bodyMatcher1.find()) {
          String perm=bodyMatcher1.group(PERM);
@@ -317,7 +281,6 @@ public class AciBody {
       return this.name;
     }
 
-
   /**
    * Mainly used because geteffectiverights adds flags to the rights that aren't
    * needed in the actual evaluation of the ACI. This routine returns only the
@@ -364,7 +327,6 @@ public class AciBody {
     return version;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -380,13 +342,13 @@ public class AciBody {
    *          The buffer into which a string representation of this object
    *          should be appended.
    */
-  public final void toString(StringBuilder buffer)
+  private final void toString(StringBuilder buffer)
   {
     buffer.append("(version ").append(this.version);
     buffer.append("; acl \"").append(this.name).append("\"; ");
     for (PermBindRulePair pair : this.permBindRulePairs)
     {
-      buffer.append(pair);
+      pair.toString(buffer);
     }
   }
 }

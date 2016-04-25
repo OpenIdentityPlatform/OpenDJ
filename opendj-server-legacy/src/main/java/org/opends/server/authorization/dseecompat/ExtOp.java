@@ -12,29 +12,20 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 
-import java.util.HashSet;
 import java.util.Set;
 
-/**
- * This class represents an ACI's extop keyword rule.
- */
+/** This class represents an ACI's extop keyword rule. */
 public class ExtOp {
-
-  /**
-   * HashSet of OID strings parsed from the decode.
-   */
-  private Set<String> extOpOIDs = new HashSet<>();
-
-  /**
-   * Enumeration representing the extop operator.
-   */
-  private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
+  /** Set of OID strings parsed from the decode. */
+  private final Set<String> extOpOIDs;
+  /** Enumeration representing the extop operator. */
+  private final EnumTargetOperator op;
 
   /**
    * Creates a class that can be used to evaluate a extop rule.
@@ -78,18 +69,23 @@ public class ExtOp {
     {
       return false;
     }
-    boolean ret = false;
-    for(String oid : extOpOIDs)
+    boolean ret = isApplicable(matchCtx.getExtOpOID());
+    if (EnumTargetOperator.NOT_EQUALITY.equals(op))
     {
-      if(oid.equals("*") || matchCtx.getExtOpOID().equals(oid)) {
-        ret=true;
-        break;
-      }
-    }
-    if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-    {
-      ret = !ret;
+      return !ret;
     }
     return ret;
+  }
+
+  private boolean isApplicable(String matchOID)
+  {
+    for(String oid : extOpOIDs)
+    {
+      if ("*".equals(oid) || matchOID.equals(oid))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -36,14 +36,13 @@ import static org.opends.messages.AccessControlMessages.*;
 
 /** This class represents the userdn keyword in a bind rule. */
 public class UserDN implements KeywordBindRule {
-
     /** A dummy URL for invalid URLs such as: all, parent, anyone, self. */
     private static final String URL_STR = "ldap:///";
 
     /** This list holds a list of objects representing a EnumUserDNType URL mapping. */
-    private List<UserDNTypeURL> urlList;
+    private final List<UserDNTypeURL> urlList;
     /** Enumeration of the userdn operation type. */
-    private EnumBindRuleType type;
+    private final EnumBindRuleType type;
 
     /**
      * Constructor that creates the userdn class. It also sets up an attribute
@@ -67,7 +66,6 @@ public class UserDN implements KeywordBindRule {
      */
     public static KeywordBindRule decode(String expression,
             EnumBindRuleType type) throws AciException {
-
         String[] vals=expression.split("[|][|]");
         List<UserDNTypeURL> urlList = new LinkedList<>();
         for (String val : vals)
@@ -129,29 +127,26 @@ public class UserDN implements KeywordBindRule {
      * @return  The user DN type of the URL.
      */
     private static EnumUserDNType getType(StringBuilder bldr) {
-        EnumUserDNType type;
         String str=bldr.toString();
-
         if (str.contains("?")) {
-            type = EnumUserDNType.URL;
+            return EnumUserDNType.URL;
         } else  if(str.equalsIgnoreCase("ldap:///self")) {
-            type = EnumUserDNType.SELF;
             bldr.replace(0, bldr.length(), URL_STR);
+            return EnumUserDNType.SELF;
         } else if(str.equalsIgnoreCase("ldap:///anyone")) {
-            type = EnumUserDNType.ANYONE;
             bldr.replace(0, bldr.length(), URL_STR);
+            return EnumUserDNType.ANYONE;
         } else if(str.equalsIgnoreCase("ldap:///parent")) {
-            type = EnumUserDNType.PARENT;
             bldr.replace(0, bldr.length(), URL_STR);
+            return EnumUserDNType.PARENT;
         } else if(str.equalsIgnoreCase("ldap:///all")) {
-            type = EnumUserDNType.ALL;
             bldr.replace(0, bldr.length(), URL_STR);
+            return EnumUserDNType.ALL;
         } else if (str.contains("*")) {
-            type = EnumUserDNType.DNPATTERN;
+            return EnumUserDNType.DNPATTERN;
         } else {
-            type = EnumUserDNType.DN;
+            return EnumUserDNType.DN;
         }
-        return type;
     }
 
     /**
@@ -199,84 +194,63 @@ public class UserDN implements KeywordBindRule {
      */
     private EnumEvalResult evalNonAnonymous(AciEvalContext evalCtx,
                                             UserDNTypeURL dnTypeURL) {
+        return evalNonAnonymous0(evalCtx, dnTypeURL) ? EnumEvalResult.TRUE : EnumEvalResult.FALSE;
+    }
+
+    private boolean evalNonAnonymous0(AciEvalContext evalCtx,
+                                            UserDNTypeURL dnTypeURL) {
         DN clientDN=evalCtx.getClientDN();
         DN resDN=evalCtx.getResourceDN();
-        EnumEvalResult matched = EnumEvalResult.FALSE;
         EnumUserDNType type=dnTypeURL.getUserDNType();
         LDAPURL url=dnTypeURL.getURL();
         switch (type) {
             case URL:
-            {
-                matched = evalURL(evalCtx, url);
-                break;
-            }
+                return evalURL0(evalCtx, url);
             case ANYONE:
-            {
-                matched = EnumEvalResult.TRUE;
-                break;
-            }
-            case SELF:
-            {
-                if (clientDN.equals(resDN))
-                {
-                  matched = EnumEvalResult.TRUE;
-                }
-                break;
-            }
-            case PARENT:
-            {
-                DN parentDN = resDN.parent();
-                if (parentDN != null && parentDN.equals(clientDN))
-                {
-                  matched = EnumEvalResult.TRUE;
-                }
-                break;
-            }
             case ALL:
-            {
-                matched = EnumEvalResult.TRUE;
-                break;
-            }
+                return true;
+            case SELF:
+                return clientDN.equals(resDN);
+            case PARENT:
+                DN parentDN = resDN.parent();
+                return parentDN != null && parentDN.equals(clientDN);
             case DNPATTERN:
-            {
-                matched = evalDNPattern(evalCtx, url);
-                break;
-            }
+                return evalDNPattern(evalCtx, url);
             case DN:
-            {
-                try
-                {
-                    DN dn = url.getBaseDN();
-                    if (clientDN.equals(dn))
-                    {
-                      matched = EnumEvalResult.TRUE;
-                    }
-                    else {
-                        //This code handles the case where a root dn entry does
-                        //not have bypass-acl privilege and the ACI bind rule
-                        //userdn DN possible is an alternate root DN.
-                        DN actualDN=DirectoryServer.getActualRootBindDN(dn);
-                        DN clientActualDN=
-                                DirectoryServer.getActualRootBindDN(clientDN);
-                        if(actualDN != null)
-                        {
-                          dn=actualDN;
-                        }
-                        if(clientActualDN != null)
-                        {
-                          clientDN=clientActualDN;
-                        }
-                        if(clientDN.equals(dn))
-                        {
-                          matched=EnumEvalResult.TRUE;
-                        }
-                    }
-                } catch (DirectoryException ex) {
-                    //TODO add message
-                }
-            }
+                return evalDN(clientDN, url);
+            default:
+                return false;
         }
-        return matched;
+    }
+
+    private boolean evalDN(DN clientDN, LDAPURL url)
+    {
+      try
+      {
+          DN dn = url.getBaseDN();
+          if (clientDN.equals(dn))
+          {
+            return true;
+          }
+
+          // This code handles the case where a root dn entry does
+          // not have bypass-acl privilege and the ACI bind rule
+          // userdn DN possible is an alternate root DN.
+          DN actualDN = DirectoryServer.getActualRootBindDN(dn);
+          DN clientActualDN = DirectoryServer.getActualRootBindDN(clientDN);
+          if (actualDN != null)
+          {
+            dn = actualDN;
+          }
+          if (clientActualDN != null)
+          {
+            clientDN = clientActualDN;
+          }
+          return clientDN.equals(dn);
+      } catch (DirectoryException ex) {
+          //TODO add message
+          return false;
+      }
     }
 
     /**
@@ -285,16 +259,15 @@ public class UserDN implements KeywordBindRule {
      * @param url The LDAP URL containing the pattern.
      * @return An enumeration evaluation result.
      */
-    private EnumEvalResult evalDNPattern(AciEvalContext evalCtx, LDAPURL url) {
+    private boolean evalDNPattern(AciEvalContext evalCtx, LDAPURL url) {
         PatternDN pattern;
         try {
           pattern = PatternDN.decode(url.getRawBaseDN());
         } catch (DirectoryException ex) {
-          return EnumEvalResult.FALSE;
+          return false;
         }
 
-        return pattern.matchesDN(evalCtx.getClientDN()) ?
-             EnumEvalResult.TRUE : EnumEvalResult.FALSE;
+        return pattern.matchesDN(evalCtx.getClientDN());
     }
 
 
@@ -309,48 +282,47 @@ public class UserDN implements KeywordBindRule {
      * @return An enumeration of the evaluation result.
      */
     public static EnumEvalResult evalURL(AciEvalContext evalCtx, LDAPURL url) {
-        EnumEvalResult ret=EnumEvalResult.FALSE;
+        return evalURL0(evalCtx, url) ? EnumEvalResult.TRUE : EnumEvalResult.FALSE;
+    }
+
+    private static boolean evalURL0(AciEvalContext evalCtx, LDAPURL url) {
         DN urlDN;
         SearchFilter filter;
         try {
             urlDN=url.getBaseDN();
             filter=url.getFilter();
         } catch (DirectoryException ex) {
-            return EnumEvalResult.FALSE;
+            return false;
         }
         SearchScope scope=url.getScope();
         if(scope == SearchScope.WHOLE_SUBTREE) {
             if(!evalCtx.getClientDN().isSubordinateOrEqualTo(urlDN))
             {
-              return EnumEvalResult.FALSE;
+              return false;
             }
         } else if(scope == SearchScope.SINGLE_LEVEL) {
             DN parent=evalCtx.getClientDN().parent();
             if(parent != null && !parent.equals(urlDN))
             {
-              return EnumEvalResult.FALSE;
+              return false;
             }
         } else if(scope == SearchScope.SUBORDINATES) {
             DN userDN = evalCtx.getClientDN();
             if (userDN.size() <= urlDN.size() ||
                  !userDN.isSubordinateOrEqualTo(urlDN)) {
-              return EnumEvalResult.FALSE;
+              return false;
             }
         } else {
             if(!evalCtx.getClientDN().equals(urlDN))
             {
-              return EnumEvalResult.FALSE;
+              return false;
             }
         }
         try {
-            if(filter.matchesEntry(evalCtx.getClientEntry()))
-            {
-              ret=EnumEvalResult.TRUE;
-            }
+            return (filter.matchesEntry(evalCtx.getClientEntry()));
         } catch (DirectoryException ex) {
-            return EnumEvalResult.FALSE;
+            return false;
         }
-        return ret;
     }
 
     /*
@@ -370,23 +342,22 @@ public class UserDN implements KeywordBindRule {
      * @param attrType The attribute type from the bind rule.
      * @return An enumeration with the result.
      */
-    public static EnumEvalResult evaluate(Entry e, DN clientDN,
+    public static boolean evaluate(Entry e, DN clientDN,
                                            AttributeType attrType) {
         List<Attribute> attrs =  e.getAttribute(attrType);
         for(ByteString v : attrs.get(0)) {
             try {
                 DN dn = DN.valueOf(v.toString());
                 if(dn.equals(clientDN)) {
-                    return EnumEvalResult.TRUE;
+                    return true;
                 }
             } catch (LocalizedIllegalArgumentException ignored) {
                 break;
             }
         }
-        return EnumEvalResult.FALSE;
+        return false;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -394,7 +365,6 @@ public class UserDN implements KeywordBindRule {
         return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer) {
         buffer.append("userdn");
@@ -406,5 +376,4 @@ public class UserDN implements KeywordBindRule {
             buffer.append("\"");
         }
     }
-
 }

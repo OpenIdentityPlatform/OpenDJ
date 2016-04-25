@@ -16,6 +16,10 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,33 +28,28 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPURL;
+import org.opends.server.types.SearchResultEntry;
 
-import static org.opends.messages.AccessControlMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-
-/*
- * TODO Evaluate making this class more efficient.
- *
- * This class isn't as efficient as it could be.  For example, the evalVAL()
- * method should be able to use cached versions of the attribute type and
- * filter. The evalURL() and evalDN() methods should also be able to use a
- * cached version of the attribute type.
- */
 /**
  * This class implements the  userattr bind rule keyword.
+ * <p>
+ * TODO Evaluate making this class more efficient.
+ *<p>
+ * This class isn't as efficient as it could be.  For example, the {@link #evalVAL(AciEvalContext)}
+ * method should be able to use cached versions of the attribute type and filter.
+ * The {@link #evalURL(AciEvalContext)} and {@link #evalDNKeywords(AciEvalContext)}
+ * methods should also be able to use a cached version of the attribute type.
  */
 public class UserAttr implements KeywordBindRule {
-
-    /**
-     * This enumeration is the various types the userattr can have after
-     * the "#" token.
-     */
+    /** This enumeration is the various types the userattr can have after the "#" token. */
     private enum UserAttrType {
         USERDN, GROUPDN, ROLEDN, URL, VALUE;
 
@@ -72,22 +71,18 @@ public class UserAttr implements KeywordBindRule {
      * Used to create an attribute type that can compare the value below in
      * an entry returned from an internal search.
      */
-    private String attrStr;
-
+    private final String attrStr;
     /**
      * Used to compare a attribute value returned from a search against this
      * value which might have been defined in the ACI userattr rule.
      */
-    private String attrVal;
-
+    private final String attrVal;
     /** Contains the type of the userattr, one of the above enumerations. */
-    private UserAttrType userAttrType;
-
+    private final UserAttrType userAttrType;
     /** An enumeration representing the bind rule type. */
-    private EnumBindRuleType type;
-
+    private final EnumBindRuleType type;
     /** The class used to hold the parent inheritance information. */
-    private ParentInheritance parentInheritance;
+    private final ParentInheritance parentInheritance;
 
     /**
      * Create an non-USERDN/GROUPDN instance of the userattr keyword class.
@@ -105,6 +100,7 @@ public class UserAttr implements KeywordBindRule {
         this.attrVal=attrVal;
         this.userAttrType=userAttrType;
         this.type=type;
+        this.parentInheritance = null;
     }
 
     /**
@@ -117,6 +113,8 @@ public class UserAttr implements KeywordBindRule {
      */
     private UserAttr(UserAttrType userAttrType, EnumBindRuleType type,
                      ParentInheritance parentInheritance) {
+        this.attrStr = null;
+        this.attrVal = null;
         this.userAttrType=userAttrType;
         this.type=type;
         this.parentInheritance=parentInheritance;
@@ -162,7 +160,6 @@ public class UserAttr implements KeywordBindRule {
      */
     @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
-      EnumEvalResult matched;
       //The working resource entry might be filtered and not have an
       //attribute type that is needed to perform these evaluations. The
       //evalCtx has a copy of the non-filtered entry, switch to it for these
@@ -170,18 +167,13 @@ public class UserAttr implements KeywordBindRule {
       switch(userAttrType) {
       case ROLEDN:
       case GROUPDN:
-      case USERDN: {
-        matched=evalDNKeywords(evalCtx);
-        break;
-      }
-      case URL: {
-        matched=evalURL(evalCtx);
-        break;
-      }
+      case USERDN:
+        return evalDNKeywords(evalCtx);
+      case URL:
+        return evalURL(evalCtx);
       default:
-        matched=evalVAL(evalCtx);
+        return evalVAL(evalCtx);
       }
-      return matched;
     }
 
     /** Evaluate a VALUE userattr type. Look in client entry for an
@@ -256,35 +248,30 @@ public class UserAttr implements KeywordBindRule {
      * @return An enumeration containing a result of the USERDN evaluation.
      */
     private EnumEvalResult evalDNKeywords(AciEvalContext evalCtx) {
-        EnumEvalResult matched= EnumEvalResult.FALSE;
-        boolean undefined=false, stop=false;
+        boolean matched = false;
+        boolean undefined = false;
         int numLevels=parentInheritance.getNumLevels();
         int[] levels=parentInheritance.getLevels();
         AttributeType attrType=parentInheritance.getAttributeType();
         DN baseDN=parentInheritance.getBaseDN();
+        Entry resourceEntry = evalCtx.getResourceEntry();
         if(baseDN != null) {
-            if (evalCtx.getResourceEntry().hasAttribute(attrType)) {
-                matched=GroupDN.evaluate(evalCtx.getResourceEntry(),
-                        evalCtx,attrType, baseDN);
-            }
+            matched = resourceEntry.hasAttribute(attrType) && GroupDN.evaluate(resourceEntry, evalCtx,attrType, baseDN);
         } else {
-        for(int i=0;(i < numLevels && !stop); i++ ) {
+        for (int i = 0; i < numLevels; i++) {
             //The ROLEDN keyword will always enter this statement. The others
             //might. For the add operation, the resource itself (level 0)
             //must never be allowed to give access.
             if(levels[i] == 0) {
                 if(evalCtx.isAddOperation()) {
                     undefined=true;
-                } else if (evalCtx.getResourceEntry().hasAttribute(attrType)) {
-                    matched =
-                            evalEntryAttr(evalCtx.getResourceEntry(),
-                                    evalCtx,attrType);
-                    if(matched.equals(EnumEvalResult.TRUE)) {
-                        stop=true;
-                    }
+                } else if (resourceEntry.hasAttribute(attrType)
+                        && evalEntryAttr(resourceEntry, evalCtx, attrType)) {
+                    matched = true;
+                    break;
                 }
             } else {
-                DN pDN = getDNParentLevel(levels[i], evalCtx.getResourceDN());
+                DN pDN = evalCtx.getResourceDN().parent(levels[i]);
                 if(pDN == null) {
                     continue;
                 }
@@ -294,43 +281,21 @@ public class UserAttr implements KeywordBindRule {
                 LinkedList<SearchResultEntry> result = op.getSearchEntries();
                 if (!result.isEmpty()) {
                     Entry e = result.getFirst();
-                    if(e.hasAttribute(attrType)) {
-                        matched = evalEntryAttr(e, evalCtx, attrType);
-                        if(matched.equals(EnumEvalResult.TRUE)) {
-                            stop=true;
-                        }
+                    if (e.hasAttribute(attrType) && evalEntryAttr(e, evalCtx, attrType)) {
+                        matched = true;
+                        break;
                     }
                 }
             }
         }
-    }
-    return matched.getRet(type, undefined);
-    }
-
-    /**
-     * This method returns a parent DN based on the level. Not very
-     * sophisticated but it works.
-     * @param l The level.
-     * @param dn The DN to get the parent of.
-     * @return Parent DN based on the level or null if the level is greater
-     * than the  rdn count.
-     */
-    private DN getDNParentLevel(int l, DN dn) {
-        int rdns=dn.size();
-        if(l > rdns) {
-            return null;
         }
-        DN theDN=dn;
-        for(int i=0; i < l;i++) {
-            theDN=theDN.parent();
-        }
-        return theDN;
+        EnumEvalResult res = matched ? EnumEvalResult.TRUE : EnumEvalResult.FALSE;
+        return res.getRet(type, undefined);
     }
-
 
     /**
      * This method evaluates the user attribute type and calls the correct
-     * evalaution method. The three user attribute types that can be selected
+     * evaluation method. The three user attribute types that can be selected
      * are USERDN or GROUPDN.
      *
      * @param e The entry to use in the evaluation.
@@ -338,24 +303,17 @@ public class UserAttr implements KeywordBindRule {
      * @param attributeType The attribute type to use in the evaluation.
      * @return The result of the evaluation routine.
      */
-    private EnumEvalResult evalEntryAttr(Entry e, AciEvalContext evalCtx,
-                                         AttributeType attributeType) {
-        EnumEvalResult result=EnumEvalResult.FALSE;
+    private boolean evalEntryAttr(Entry e, AciEvalContext evalCtx, AttributeType attributeType) {
         switch (userAttrType) {
-            case USERDN: {
-                result=UserDN.evaluate(e, evalCtx.getClientDN(),
-                                       attributeType);
-                break;
-            }
-            case GROUPDN: {
-                result=GroupDN.evaluate(e, evalCtx, attributeType, null);
-                break;
-            }
+        case USERDN:
+            return UserDN.evaluate(e, evalCtx.getClientDN(), attributeType);
+        case GROUPDN:
+            return GroupDN.evaluate(e, evalCtx, attributeType, null);
+        default:
+            return false;
         }
-        return result;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -364,11 +322,9 @@ public class UserAttr implements KeywordBindRule {
         return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer)
     {
         buffer.append(super.toString());
     }
-
 }

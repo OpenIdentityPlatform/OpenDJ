@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -20,30 +20,28 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * This class represents a single bind rule of an ACI permission-bind rule pair.
- */
+/** This class represents a single bind rule of an ACI permission-bind rule pair. */
 public class BindRule {
-
     /** This hash table holds the keyword bind rule mapping. */
-    private final HashMap<String, KeywordBindRule> keywordRuleMap = new HashMap<>();
+    private final Map<String, KeywordBindRule> keywordRuleMap = new HashMap<>();
 
     /** True is a boolean "not" was seen. */
     private boolean negate;
 
     /** Complex bind rules have left and right values. */
-    private BindRule left;
-    private BindRule right;
+    private final BindRule left;
+    private final BindRule right;
 
     /** Enumeration of the boolean type of the complex bind rule ("and" or "or"). */
-    private EnumBooleanTypes booleanType;
+    private final EnumBooleanTypes booleanType;
     /** The keyword of a simple bind rule. */
-    private EnumBindRuleKeyword keyword;
+    private final EnumBindRuleKeyword keyword;
 
     /** Regular expression group position of a bind rule keyword. */
     private static final int keywordPos = 1;
@@ -89,8 +87,10 @@ public class BindRule {
     private BindRule(EnumBindRuleKeyword keyword, KeywordBindRule rule) {
         this.keyword=keyword;
         this.keywordRuleMap.put(keyword.toString(), rule);
+        this.booleanType = null;
+        this.left = null;
+        this.right = null;
     }
-
 
     /*
      * TODO Verify that this handles the NOT boolean properly by
@@ -126,6 +126,7 @@ public class BindRule {
      * @param booleanType The boolean type enumeration ("and" or "or").
      */
     private BindRule(BindRule left, BindRule right, EnumBooleanTypes booleanType) {
+        this.keyword = null;
         this.booleanType = booleanType;
         this.left = left;
         this.right = right;
@@ -232,7 +233,6 @@ public class BindRule {
           }
         }
     }
-
 
     /**
      * Parses a simple bind rule using the regular expression matcher.
@@ -471,7 +471,6 @@ public class BindRule {
         return EnumEvalResult.negateIfNeeded(ret, negate);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();

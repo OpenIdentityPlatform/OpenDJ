@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -31,29 +31,19 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public class Permission {
 
-    /**
-     *  The access type (allow,deny) corresponding to the ACI permission value.
-     */
-    private EnumAccessType accessType;
-
-    /**
-     * The rights (search, add, delete, ...) corresponding to the ACI rights
-     * value.
-     */
-    private int rights;
-
-    /**
-     * Regular expression token representing the separator.
-     */
+    /** Regular expression token representing the separator. */
     private static final String separatorToken = ",";
 
-    /**
-     * Regular expression used to match the ACI rights string.
-     */
+    /** Regular expression used to match the ACI rights string. */
     private static final String rightsRegex = ZERO_OR_MORE_WHITESPACE +
             WORD_GROUP + ZERO_OR_MORE_WHITESPACE +
             "(," + ZERO_OR_MORE_WHITESPACE + WORD_GROUP +
             ZERO_OR_MORE_WHITESPACE +  ")*";
+
+    /** The access type (allow,deny) corresponding to the ACI permission value. */
+    private final EnumAccessType accessType;
+    /** The rights (search, add, delete, ...) corresponding to the ACI rights value. */
+    private int rights;
 
     /**
      * Constructor creating a class representing a permission part of an bind
@@ -125,7 +115,6 @@ public class Permission {
         return (this.rights & rights) != 0;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
@@ -146,8 +135,7 @@ public class Permission {
             Set<EnumRight> enumRights = EnumRight.getEnumRight(rights);
             if (enumRights != null) {
                 buffer.append("(");
-                for (Iterator<EnumRight> iter = enumRights.iterator(); iter
-                        .hasNext();) {
+                for (Iterator<EnumRight> iter = enumRights.iterator(); iter.hasNext();) {
                     buffer.append(iter.next().getRight());
                     if (iter.hasNext()) {
                         buffer.append(",");

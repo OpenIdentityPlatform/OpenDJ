@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -25,16 +25,12 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * This class implements the dayofweek bind rule keyword.
- */
+/** This class implements the dayofweek bind rule keyword. */
 public class DayOfWeek  implements KeywordBindRule {
-
     /** List containing the enumeration of the day of the week. */
-    private List<EnumDayOfWeek> days;
-
+    private final List<EnumDayOfWeek> days;
     /** Enumeration representing the bind rule operation type. */
-    private EnumBindRuleType type;
+    private final EnumBindRuleType type;
 
     /**
      * Create a class representing a dayofweek bind rule keyword.
@@ -91,7 +87,6 @@ public class DayOfWeek  implements KeywordBindRule {
         return matched.getRet(type, false);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -100,11 +95,9 @@ public class DayOfWeek  implements KeywordBindRule {
       return sb.toString();
     }
 
-    /** {@inheritDoc} */
     @Override
     public final void toString(StringBuilder buffer)
     {
       buffer.append(super.toString());
     }
-
 }

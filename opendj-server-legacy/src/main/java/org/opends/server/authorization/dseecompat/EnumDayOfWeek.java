@@ -12,55 +12,31 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
 import java.util.Calendar;
 
-/**
- * This class provides an enumeration of the allowed dayofweek types.
- */
-public enum EnumDayOfWeek {
-
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "mon".
-     */
+/** This class provides an enumeration of the allowed dayofweek types. */
+enum EnumDayOfWeek {
+    /** The enumeration type when the bind rule has specified dayofweek type of "mon". */
     DAY_MONDAY      ("mon"),
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "tue" .
-     */
+    /** The enumeration type when the bind rule has specified dayofweek type of "tue" . */
     DAY_TUESDAY     ("tue"),
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "wed".
-     */
+    /** The enumeration type when the bind rule has specified dayofweek type of "wed". */
     DAY_WEDNESDAY   ("wed"),
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "thu".
-     */
+    /** The enumeration type when the bind rule has specified dayofweek type of "thu". */
     DAY_THURSDAY    ("thu"),
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "fri".
-     */
+    /** The enumeration type when the bind rule has specified dayofweek type of "fri". */
     DAY_FRIDAY      ("fri"),
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "sat".
-     */
+    /** The enumeration type when the bind rule has specified dayofweek type of "sat". */
     DAY_SATURDAY    ("sat"),
-    /**
-     * The enumeration type when the bind rule has specified dayofweek type of
-     * "sun".
-     */
+    /** The enumeration type when the bind rule has specified dayofweek type of "sun". */
     DAY_SUNDAY      ("sun");
 
     /** The bind rule dayofweek type name. */
-    private String day = null;
+    private final String day;
 
     /**
      * Creates a new enumeration type for the specified bind rule dayofweek

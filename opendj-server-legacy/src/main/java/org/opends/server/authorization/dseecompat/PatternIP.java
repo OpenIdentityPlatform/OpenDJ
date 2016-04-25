@@ -12,19 +12,20 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
-
 package org.opends.server.authorization.dseecompat;
-import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.AccessControlMessages.*;
-import java.util.BitSet;
-import java.util.HashMap;
+
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.net.Inet6Address;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A class representing a single IP address parsed from a IP bind rule
@@ -32,25 +33,21 @@ import java.net.Inet6Address;
  * using the information parsed from the IP bind rule expression.
  */
 public class PatternIP {
-
-    /**
-     * Enumeration that represents if the pattern is IPv5 or
-     * IPv4.
-     */
-     enum IPType {
+    /** Enumeration that represents if the pattern is IPv5 or IPv4. */
+    private enum IPType {
         IPv4, IPv6
     }
 
     /** The IP address type (v6 or v4). */
-    private IPType ipType;
+    private final IPType ipType;
 
     /** IPv4 sizes of addresses and prefixes. */
-    private static int IN4ADDRSZ = 4;
-    private static int IPV4MAXPREFIX = 32;
+    private static final int IN4ADDRSZ = 4;
+    private static final int IPV4MAXPREFIX = 32;
 
     /** IPv6 sizes of addresses and prefixes. */
-    private static int IN6ADDRSZ = 16;
-    private static int IPV6MAXPREFIX = 128;
+    private static final int IN6ADDRSZ = 16;
+    private static final int IPV6MAXPREFIX = 128;
 
     /**
       Byte arrays used to match the remote IP address. The ruleAddrByte array
@@ -58,16 +55,13 @@ public class PatternIP {
       rulePrefixBytes array contains the bytes of the cidr prefix or netmask
       representation.
      */
-    private byte[] ruleAddrBytes, rulePrefixBytes;
+    private final byte[] ruleAddrBytes, rulePrefixBytes;
 
-    /**
-      Bit set that holds the wild-card information of processed IPv4 addresses.
-     */
-    private BitSet wildCardBitSet;
+    /** Bit set that holds the wild-card information of processed IPv4 addresses. */
+    private final BitSet wildCardBitSet;
 
-    /** Hash map of valid netmask strings. Used in parsing netmask values. */
-    private static HashMap<String,String> validNetMasks = new HashMap<>();
-
+    /** Map of valid netmask strings. Used in parsing netmask values. */
+    private static final Map<String, String> validNetMasks = new HashMap<>();
     /** Initialize valid netmask hash map. */
     static {
         initNetMask(
@@ -212,7 +206,6 @@ public class PatternIP {
     private static int
     getPrefixValue(IPType ipType, int numParts, String expr, String prefixStr)
     throws AciException {
-
         int prefix = IPV4MAXPREFIX;
         int maxPrefix= IPV4MAXPREFIX;
         if(ipType == IPType.IPv6) {
@@ -231,15 +224,12 @@ public class PatternIP {
             }
             //Must be between 0 to maxprefix.
             if(prefix < 0 || prefix > maxPrefix) {
-                LocalizableMessage message =
-                    WARN_ACI_SYNTAX_INVALID_PREFIX_VALUE.get(expr);
-                throw new AciException(message);
+                throw new AciException(WARN_ACI_SYNTAX_INVALID_PREFIX_VALUE.get(expr));
             }
+            return prefix;
         } catch(NumberFormatException nfex) {
-            LocalizableMessage msg = WARN_ACI_SYNTAX_PREFIX_NOT_NUMERIC.get(expr);
-            throw new AciException(msg);
+            throw new AciException(WARN_ACI_SYNTAX_PREFIX_NOT_NUMERIC.get(expr));
         }
-        return prefix;
     }
 
     /**

@@ -12,29 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
-/**
- * This class provides an enumeration of the allowed bind rule boolean types.
- */
-public enum EnumBooleanTypes {
-
-    /**
-     * The enumeration type when the bind rule has specified boolean type of
-     * "AND".
-     */
+/** This class provides an enumeration of the allowed bind rule boolean types. */
+enum EnumBooleanTypes {
+    /** The enumeration type when the bind rule has specified boolean type of "AND". */
     AND_BOOLEAN_TYPE               ("and"),
-    /**
-     * The enumeration type when the bind rule has specified boolean type of
-     * "OR".
-     */
+    /** The enumeration type when the bind rule has specified boolean type of "OR". */
     OR_BOOLEAN_TYPE                ("or"),
-    /**
-     * The enumeration type when the bind rule has specified boolean type of
-     * "NOT".
-     */
+    /** The enumeration type when the bind rule has specified boolean type of "NOT". */
     NOT_BOOLEAN_TYPE                ("not");
 
     /** The bind rule boolean type name. */
