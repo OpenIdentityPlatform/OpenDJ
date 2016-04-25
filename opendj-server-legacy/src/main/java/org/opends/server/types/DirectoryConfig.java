@@ -18,7 +18,6 @@ package org.opends.server.types;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -26,6 +25,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -365,8 +365,7 @@ public final class DirectoryConfig
    * @return  The set of matching rule uses defined in the Directory
    *          Server.
    */
-  public static Map<MatchingRule,MatchingRuleUse>
-       getMatchingRuleUses()
+  public static Collection<MatchingRuleUse> getMatchingRuleUses()
   {
     return DirectoryServer.getMatchingRuleUses();
   }

@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.CollectionUtils;
@@ -3845,7 +3846,10 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void assertSchemaDoesNotHaveMatchingRuleUse(MatchingRule matchingRule)
   {
-    assertFalse(DirectoryServer.getSchema().getMatchingRuleUses().containsKey(matchingRule));
+    for (MatchingRuleUse matchingRuleUse : DirectoryServer.getSchema().getMatchingRuleUses())
+    {
+      assertFalse(matchingRuleUse.getMatchingRule().equals(matchingRule));
+    }
   }
 
   /**
@@ -3958,12 +3962,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
-
     assertEquals(runModify(argsNotPermissive(), ldif, System.err), 0);
-
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-    assertNull(mru);
+    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
   }
 
   /**

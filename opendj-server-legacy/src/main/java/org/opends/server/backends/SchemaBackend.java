@@ -64,6 +64,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
@@ -82,9 +83,9 @@ import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -103,7 +104,6 @@ import org.opends.server.types.LDAPSyntaxDescription;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
@@ -593,7 +593,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         operationalAttrs, ditContentRulesType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getDITStructureRulesByID().values(), userAttrs,
         operationalAttrs, ditStructureRulesType, includeSchemaFile, false, true);
-    buildSchemaAttribute(schema.getMatchingRuleUses().values(), userAttrs,
+    buildSchemaAttribute(schema.getMatchingRuleUses(), userAttrs,
         operationalAttrs, matchingRuleUsesType, includeSchemaFile, false, true);
 
     // Add the lastmod attributes.
@@ -856,21 +856,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              MatchingRuleUse mru;
-              try
-              {
-                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              MatchingRuleUse mru = newSchema.parseMatchingRuleUse(v.toString());
               addMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
             }
           }
@@ -1009,21 +995,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              MatchingRuleUse mru;
-              try
-              {
-                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              MatchingRuleUse mru = newSchema.parseMatchingRuleUse(v.toString());
               removeMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
             }
           }
@@ -1261,6 +1233,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return schemaFile == null ? finalFile : null;
   }
 
+  /**
+   * Update list of modified files and return the schema file to use for the
+   * added element (may be null).
+   */
+  private String addNewSchemaElement(Set<String> modifiedSchemaFiles, ServerSchemaElement elem)
+  {
+    String schemaFile = elem.getSchemaFile();
+    String finalFile = schemaFile != null ? schemaFile : FILE_USER_SCHEMA_ELEMENTS;
+    modifiedSchemaFiles.add(finalFile);
+    return schemaFile == null ? finalFile : null;
+  }
+
   private <T extends SchemaFileElement> void replaceExistingSchemaElement(
       Set<String> modifiedSchemaFiles, T newElem, T existingElem)
   {
@@ -1290,6 +1274,36 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   /** Update list of modified files and return the schema file to use for the new element (may be null). */
   private String replaceExistingSchemaElement(
       Set<String> modifiedSchemaFiles, SomeSchemaElement newElem, SomeSchemaElement existingElem)
+  {
+    String newSchemaFile = newElem.getSchemaFile();
+    String oldSchemaFile = existingElem.getSchemaFile();
+    if (newSchemaFile == null)
+    {
+      if (oldSchemaFile == null)
+      {
+        oldSchemaFile = FILE_USER_SCHEMA_ELEMENTS;
+      }
+      modifiedSchemaFiles.add(oldSchemaFile);
+      return oldSchemaFile;
+    }
+    else if (oldSchemaFile == null || oldSchemaFile.equals(newSchemaFile))
+    {
+      modifiedSchemaFiles.add(newSchemaFile);
+    }
+    else
+    {
+      modifiedSchemaFiles.add(newSchemaFile);
+      modifiedSchemaFiles.add(oldSchemaFile);
+    }
+    return null;
+  }
+
+  /**
+   * Update list of modified files and return the schema file to use for the new
+   * element (may be null).
+   */
+  private String replaceExistingSchemaElement(Set<String> modifiedSchemaFiles, ServerSchemaElement newElem,
+      ServerSchemaElement existingElem)
   {
     String newSchemaFile = newElem.getSchemaFile();
     String oldSchemaFile = existingElem.getSchemaFile();
@@ -1412,9 +1426,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the attribute type isn't referenced by any matching rule
-    // use.
-    for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
+    // Make sure that the attribute type isn't referenced by any matching rule use.
+    for (MatchingRuleUse mru : schema.getMatchingRuleUses())
     {
       if (mru.getAttributes().contains(removeType))
       {
@@ -2391,9 +2404,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // be more than one match (although if there is, then we'll refuse the
     // operation).
     MatchingRuleUse existingMRU = null;
-    for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
+    for (MatchingRuleUse mru : schema.getMatchingRuleUses())
     {
-      for (String name : matchingRuleUse.getNames().keySet())
+      for (String name : matchingRuleUse.getNames())
       {
         if (mru.hasName(name))
         {
@@ -2402,36 +2415,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
             existingMRU = mru;
             break;
           }
-          else
-          {
-            LocalizableMessage message =
-                    ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE.get(
-                            matchingRuleUse.getNameOrOID(),
-                            existingMRU.getNameOrOID(),
-                            mru.getNameOrOID());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-          }
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE.get(
+              matchingRuleUse.getNameOrOID(), existingMRU.getNameOrOID(), mru.getNameOrOID());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
     }
 
-    // Get the matching rule for the new matching rule use and see if there's
-    // already an existing matching rule use that is associated with that
-    // matching rule.  If there is, then it will only be acceptable if it's the
-    // matching rule use that we are replacing (in which case we really do want
-    // to use the "!=" operator).
+    // Obsolete matching rule and attribute types are not checked by the SDK
     MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
-    MatchingRuleUse existingMRUForRule =
-         schema.getMatchingRuleUse(matchingRule);
-    if (existingMRUForRule != null && existingMRUForRule != existingMRU)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE.
-          get(matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID(),
-              existingMRUForRule.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
     if (matchingRule.isObsolete())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_MR.get(
@@ -2439,17 +2431,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    // Make sure that the new matching rule use doesn't reference an undefined
-    // attribute type.
     for (AttributeType at : matchingRuleUse.getAttributes())
     {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR.get(
-            matchingRuleUse.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
+      if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR.get(
             matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID());
@@ -2462,15 +2446,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     if (existingMRU == null)
     {
       schema.registerMatchingRuleUse(matchingRuleUse, false);
-      addNewSchemaElement(modifiedSchemaFiles, matchingRuleUse);
+      addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse));
     }
     else
     {
       schema.deregisterMatchingRuleUse(existingMRU);
       schema.registerMatchingRuleUse(matchingRuleUse, false);
-      schema.rebuildDependentElements(existingMRU);
-      replaceExistingSchemaElement(modifiedSchemaFiles, matchingRuleUse,
-          existingMRU);
+      replaceExistingSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse),
+          new ServerSchemaElement(existingMRU));
     }
   }
 
@@ -2517,7 +2500,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
     schema.deregisterMatchingRuleUse(removeMRU);
-    String schemaFile = getSchemaFile(removeMRU);
+    String schemaFile = new ServerSchemaElement(removeMRU).getSchemaFile();
     if (schemaFile != null)
     {
       modifiedSchemaFiles.add(schemaFile);
@@ -2798,9 +2781,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // there is no hierarchical relationship between matching rule uses, we
     // don't need to worry about ordering.
     values = new LinkedHashSet<>();
-    for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
+    for (MatchingRuleUse mru : schema.getMatchingRuleUses())
     {
-      if (schemaFile.equals(getSchemaFile(mru)))
+      if (schemaFile.equals(new ServerSchemaElement(mru).getSchemaFile()))
       {
         values.add(ByteString.valueOfUtf8(mru.toString()));
       }

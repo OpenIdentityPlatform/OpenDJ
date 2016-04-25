@@ -16,6 +16,8 @@
  */
 package org.opends.server.types;
 
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -51,7 +53,10 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse.Builder;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Option;
@@ -60,7 +65,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
-import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.SomeSchemaElement;
@@ -114,13 +118,6 @@ public final class Schema
    * lowercase names and OID for the definition and the objectclass itself.
    */
   private ConcurrentHashMap<String,ObjectClass> objectClasses;
-
-  /**
-   * The set of matching rule uses for this schema, mapped between the matching
-   * rule for the definition and the matching rule use itself.
-   */
-  private ConcurrentHashMap<MatchingRule,MatchingRuleUse>
-               matchingRuleUses;
 
   /**
    * The set of DIT content rules for this schema, mapped between the structural
@@ -202,7 +199,6 @@ public final class Schema
     switchSchema(schemaNG);
 
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
-    matchingRuleUses = new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
     ditContentRules = new ConcurrentHashMap<ObjectClass,DITContentRule>();
     ditStructureRulesByID = new ConcurrentHashMap<Integer,DITStructureRule>();
     ditStructureRulesByNameForm = new ConcurrentHashMap<NameForm,DITStructureRule>();
@@ -322,6 +318,36 @@ public final class Schema
   }
 
   /**
+   * Parses a matching rule use from its provided definition.
+   *
+   * @param definition
+   *          The definition of the matching rule use
+   * @return the matching rule use
+   * @throws DirectoryException
+   *            If an error occurs
+   */
+  public MatchingRuleUse parseMatchingRuleUse(final String definition) throws DirectoryException
+  {
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.addMatchingRuleUse(definition, true);
+      org.forgerock.opendj.ldap.schema.Schema newSchema = builder.toSchema();
+      rejectSchemaWithWarnings(newSchema);
+      return newSchema.getMatchingRuleUse(parseMatchingRuleUseOID(definition));
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      LocalizableMessage msg = ERR_MATCHING_RULE_USE_CANNOT_REGISTER.get(definition);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+  }
+
+  /**
    * Registers a list of attribute types from their provided definitions.
    * <p>
    * This method allows to do only one schema change for multiple definitions,
@@ -346,8 +372,7 @@ public final class Schema
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
       for (String definition : definitions)
       {
-        String defWithFile = schemaFile != null ?
-            addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile) : definition;
+        String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
         builder.addAttributeType(defWithFile, overwrite);
       }
       switchSchema(builder.toSchema());
@@ -464,14 +489,19 @@ public final class Schema
     return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE);
   }
 
+  private String parseMatchingRuleUseOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE);
+  }
+
   /**
-   * Returns the OID from the provided attribute type definition, assuming the
+   * Returns the OID from the provided schema element definition, assuming the
    * definition is valid.
    * <p>
    * This method does not perform any check.
    *
    * @param definition
-   *          The definition, assumed to be valid
+   *          The definition of a schema element, assumed to be valid
    * @param parsingErrorResultCode the result code to use if a problem occurs while parsing the definition
    * @param parsingErrorMsg the message to use if a problem occurs while parsing the definition
    * @return the OID, which is never {@code null}
@@ -1039,7 +1069,18 @@ public final class Schema
     return schemaNG.hasMatchingRule(nameOrOid);
   }
 
-
+  /**
+   * Indicates whether this schema definition includes a matching rule use
+   * with the provided name or OID.
+   *
+   * @param  nameOrOid  The name or OID for which to make the determination, ignoring case considerations
+   * @return  {@code true} if this schema contains a matching rule use
+   *          with the provided name or OID, or {@code false} if not.
+   */
+  public boolean hasMatchingRuleUse(String nameOrOid)
+  {
+    return schemaNG.hasMatchingRuleUse(nameOrOid);
+  }
 
   /**
    * Retrieves the matching rule definition with the specified name or OID.
@@ -1120,7 +1161,7 @@ public final class Schema
    * @param matchingRule
    *          The matching rule to deregister with this schema.
    * @throws DirectoryException
-   *           If the matching rule is referenced by another schema element.
+   *           If the schema has constraints violations.
    */
   public void deregisterMatchingRule(final MatchingRule matchingRule) throws DirectoryException
   {
@@ -1148,10 +1189,9 @@ public final class Schema
    *
    * @return  The matching rule use definitions for this schema.
    */
-  public ConcurrentHashMap<MatchingRule,MatchingRuleUse>
-              getMatchingRuleUses()
+  public Collection<MatchingRuleUse> getMatchingRuleUses()
   {
-    return matchingRuleUses;
+    return schemaNG.getMatchingRuleUses();
   }
 
 
@@ -1168,7 +1208,7 @@ public final class Schema
    */
   public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
-    return matchingRuleUses.get(matchingRule);
+    return schemaNG.getMatchingRuleUse(matchingRule);
   }
 
 
@@ -1188,46 +1228,87 @@ public final class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public void registerMatchingRuleUse(MatchingRuleUse matchingRuleUse,
-                                      boolean overwriteExisting)
+  public void registerMatchingRuleUse(MatchingRuleUse matchingRuleUse, boolean overwriteExisting)
          throws DirectoryException
   {
-    synchronized (matchingRuleUses)
+    exclusiveLock.lock();
+    try
     {
-      MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
-
-      if (!overwriteExisting && matchingRuleUses.containsKey(matchingRule))
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      Builder mruBuilder = builder.buildMatchingRuleUse(matchingRuleUse);
+      if (overwriteExisting)
       {
-        MatchingRuleUse conflictingUse = matchingRuleUses.get(matchingRule);
-
-        LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
-            get(matchingRuleUse.getNameOrOID(),
-                matchingRule.getNameOrOID(),
-                conflictingUse.getNameOrOID());
-        throw new DirectoryException(
-                       ResultCode.CONSTRAINT_VIOLATION, message);
+        mruBuilder.addToSchemaOverwrite();
       }
-
-      matchingRuleUses.put(matchingRule, matchingRuleUse);
+      else
+      {
+        mruBuilder.addToSchema();
+      }
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
+  /**
+   * Registers the provided matching rule use definition with this schema.
+   *
+   * @param definition
+   *          The matching rule use definition to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another matching rule use with the same matching rule).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           <CODE>false</CODE>
+   */
+  public void registerMatchingRuleUse(String definition, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+      switchSchema(new SchemaBuilder(schemaNG)
+        .addMatchingRuleUse(definitionWithFile, overwriteExisting)
+        .toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
 
+  private String getDefinitionWithSchemaFile(String definition, String schemaFile)
+  {
+    return schemaFile != null ? addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile) : definition;
+  }
 
   /**
-   * Deregisters the provided matching rule use definition with this
-   * schema.
+   * Deregisters the provided matching rule use definition with this schema.
    *
-   * @param  matchingRuleUse  The matching rule use to deregister with
-   *                          this schema.
+   * @param matchingRuleUse
+   *          The matching rule use to deregister with this schema.
+   * @throws DirectoryException
+   *            If the schema has constraints violations.
    */
-  public void deregisterMatchingRuleUse(
-                   MatchingRuleUse matchingRuleUse)
+  public void deregisterMatchingRuleUse(org.forgerock.opendj.ldap.schema.MatchingRuleUse matchingRuleUse)
+      throws DirectoryException
   {
-    synchronized (matchingRuleUses)
+    exclusiveLock.lock();
+    try
     {
-      matchingRuleUses.remove(matchingRuleUse.getMatchingRule(),
-                              matchingRuleUse);
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeMatchingRuleUse(matchingRuleUse.getNameOrOID());
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -1886,13 +1967,12 @@ public final class Schema
       }
     }
 
-    for (MatchingRuleUse mru : matchingRuleUses.values())
+    for (MatchingRuleUse mru : schemaNG.getMatchingRuleUses())
     {
       if (mru.getAttributes().contains(type))
       {
-        MatchingRuleUse newMRU = recreateFromDefinition(mru);
         deregisterMatchingRuleUse(mru);
-        registerMatchingRuleUse(newMRU, true);
+        registerMatchingRuleUse(mru.toString(), getSchemaFileName(mru), true);
       }
     }
   }
@@ -1965,9 +2045,9 @@ public final class Schema
     }
   }
 
-  private String getSchemaFileName(AttributeType attributeType)
+  private String getSchemaFileName(SchemaElement element)
   {
-    List<String> values = attributeType.getExtraProperties().get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    List<String> values = element.getExtraProperties().get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
     return values != null && ! values.isEmpty() ? values.get(0) : null;
   }
 
@@ -1988,16 +2068,6 @@ public final class Schema
     DITStructureRule copy =
         DITStructureRuleSyntax.decodeDITStructureRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dsr));
-    return copy;
-  }
-
-  private MatchingRuleUse recreateFromDefinition(MatchingRuleUse mru)
-      throws DirectoryException
-  {
-    ByteString value = ByteString.valueOfUtf8(mru.toString());
-    MatchingRuleUse copy =
-        MatchingRuleUseSyntax.decodeMatchingRuleUse(value, this, false);
-    setSchemaFile(copy, getSchemaFile(mru));
     return copy;
   }
 
@@ -2040,11 +2110,9 @@ public final class Schema
 
     dupSchema.subordinateTypes.putAll(subordinateTypes);
     dupSchema.objectClasses.putAll(objectClasses);
-    dupSchema.matchingRuleUses.putAll(matchingRuleUses);
     dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
-    dupSchema.ditStructureRulesByNameForm.putAll(
-         ditStructureRulesByNameForm);
+    dupSchema.ditStructureRulesByNameForm.putAll(ditStructureRulesByNameForm);
     dupSchema.nameFormsByOC.putAll(nameFormsByOC);
     dupSchema.nameFormsByName.putAll(nameFormsByName);
     dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
@@ -2491,12 +2559,6 @@ public final class Schema
     {
       ditStructureRulesByNameForm.clear();
       ditStructureRulesByNameForm = null;
-    }
-
-    if (matchingRuleUses != null)
-    {
-      matchingRuleUses.clear();
-      matchingRuleUses = null;
     }
 
     if (nameFormsByName != null)

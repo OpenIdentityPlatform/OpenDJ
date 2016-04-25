@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
-import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.Attribute;
@@ -44,7 +43,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
@@ -952,39 +950,12 @@ public class SchemaConfigManager
       {
         for (ByteString v : a)
         {
-          // Parse the matching rule use definition.
-          MatchingRuleUse mru;
-          try
-          {
-            mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v, schema, false);
-            mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            setSchemaFile(mru, schemaFile);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
-                    schemaFile, de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
-                    schemaFile, v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
           // Register it with the schema.  We will allow duplicates, with the
           // later definition overriding any earlier definition, but we want
           // to trap them and log a warning.
           try
           {
-            schema.registerMatchingRuleUse(mru, failOnError);
+            schema.registerMatchingRuleUse(v.toString(), schemaFile, failOnError);
           }
           catch (DirectoryException de)
           {
@@ -994,7 +965,7 @@ public class SchemaConfigManager
 
             try
             {
-              schema.registerMatchingRuleUse(mru, true);
+              schema.registerMatchingRuleUse(v.toString(), schemaFile, true);
             }
             catch (Exception e)
             {

@@ -42,6 +42,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.opends.server.core.DirectoryServer;
 
 /**
@@ -3224,9 +3225,8 @@ public final class SearchFilter
     // determine if it allows that attribute type.
     if (attributeType != null)
     {
-      MatchingRuleUse mru =
-           DirectoryServer.getMatchingRuleUse(matchingRule);
-      if (mru != null && !mru.appliesToAttribute(attributeType))
+      MatchingRuleUse mru = DirectoryServer.getMatchingRuleUse(matchingRule);
+      if (mru != null && !mru.hasAttribute(attributeType))
       {
         if (logger.isTraceEnabled())
         {

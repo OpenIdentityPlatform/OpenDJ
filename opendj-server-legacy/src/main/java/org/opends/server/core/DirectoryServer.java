@@ -17,7 +17,6 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -75,6 +74,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
@@ -155,7 +155,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LockManager;
-import org.opends.server.types.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
@@ -2685,8 +2685,7 @@ public final class DirectoryServer
    *
    * @return  The set of matching rule uses defined in the Directory Server.
    */
-  public static ConcurrentMap<MatchingRule, MatchingRuleUse>
-                     getMatchingRuleUses()
+  public static Collection<MatchingRuleUse> getMatchingRuleUses()
   {
     return directoryServer.schema.getMatchingRuleUses();
   }
@@ -2702,7 +2701,14 @@ public final class DirectoryServer
    */
   public static MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
-    return directoryServer.schema.getMatchingRuleUse(matchingRule);
+    try
+    {
+      return directoryServer.schema.getMatchingRuleUse(matchingRule);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      return null;
+    }
   }
 
   /**
@@ -2732,8 +2738,10 @@ public final class DirectoryServer
    *
    * @param  matchingRuleUse  The matching rule use to deregister with the
    *                          server.
+   * @throws DirectoryException
+   *            If the resulting schema contains warning.
    */
-  public static void deregisterMatchingRuleUse(MatchingRuleUse matchingRuleUse)
+  public static void deregisterMatchingRuleUse(MatchingRuleUse matchingRuleUse) throws DirectoryException
   {
     directoryServer.schema.deregisterMatchingRuleUse(matchingRuleUse);
   }
