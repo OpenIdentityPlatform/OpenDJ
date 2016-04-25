@@ -31,8 +31,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -299,7 +299,7 @@ public class EncodePassword
     {
       if (authPasswordSyntax.isPresent())
       {
-        listPasswordStorageSchemes(out, err, DirectoryServer.getAuthPasswordStorageSchemes(), true);
+        listPasswordStorageSchemes(out, err, DirectoryServer.getAuthPasswordStorageSchemes().values(), true);
       }
       else
       {
@@ -520,7 +520,7 @@ public class EncodePassword
   }
 
   private static void listPasswordStorageSchemes(PrintStream out, PrintStream err,
-      ConcurrentHashMap<String, PasswordStorageScheme<?>> storageSchemes, boolean authPasswordSchemeName)
+      Collection<PasswordStorageScheme<?>> storageSchemes, boolean authPasswordSchemeName)
   {
     if (storageSchemes.isEmpty())
     {
@@ -529,7 +529,7 @@ public class EncodePassword
     else
     {
       ArrayList<String> nameList = new ArrayList<>(storageSchemes.size());
-      for (PasswordStorageScheme<?> s : storageSchemes.values())
+      for (PasswordStorageScheme<?> s : storageSchemes)
       {
         if (authPasswordSchemeName)
         {

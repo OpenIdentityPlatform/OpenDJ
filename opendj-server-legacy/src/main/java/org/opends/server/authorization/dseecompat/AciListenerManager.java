@@ -16,11 +16,15 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -53,11 +57,6 @@ import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
-
-import static org.opends.messages.AccessControlMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * The AciListenerManager updates an ACI list after each modification
@@ -310,12 +309,9 @@ public class AciListenerManager implements
     this.plugin = new AciChangeListenerPlugin();
 
     // Process ACI from already registered backends.
-    Map<String, Backend<?>> backendMap = DirectoryServer.getBackends();
-    if (backendMap != null) {
-      for (Backend<?> backend : backendMap.values())
-      {
-        performBackendPreInitializationProcessing(backend);
-      }
+    for (Backend<?> backend : DirectoryServer.getBackends())
+    {
+      performBackendPreInitializationProcessing(backend);
     }
 
     DirectoryServer.registerInternalPlugin(plugin);

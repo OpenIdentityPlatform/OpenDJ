@@ -16,7 +16,6 @@
  */
 package org.opends.server.monitors;
 
-import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.Test;
@@ -43,12 +42,9 @@ public class BackendMonitorTestCase extends GenericMonitorTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  protected MonitorProvider getMonitorInstance()
-         throws Exception
+  protected MonitorProvider<?> getMonitorInstance() throws Exception
   {
-    String monitorName = "userroot backend";
-    MonitorProvider<? extends MonitorProviderCfg> provider =
-         DirectoryServer.getMonitorProvider(monitorName);
+    MonitorProvider<?> provider = DirectoryServer.getMonitorProviders().get("userroot backend");
     provider.initializeMonitorProvider(null);
     return provider;
   }

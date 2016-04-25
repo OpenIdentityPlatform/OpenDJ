@@ -163,20 +163,20 @@ public class LastModPluginTestCase
     AttributeType mtType = DirectoryServer.getAttributeType("modifytimestamp");
     AttributeType mnType = DirectoryServer.getAttributeType("modifiersname");
 
-    DirectoryServer.deregisterAttributeType(ctType);
-    DirectoryServer.deregisterAttributeType(cnType);
-    DirectoryServer.deregisterAttributeType(mtType);
-    DirectoryServer.deregisterAttributeType(mnType);
+    DirectoryServer.getSchema().deregisterAttributeType(ctType);
+    DirectoryServer.getSchema().deregisterAttributeType(cnType);
+    DirectoryServer.getSchema().deregisterAttributeType(mtType);
+    DirectoryServer.getSchema().deregisterAttributeType(mnType);
 
 
     LastModPlugin plugin = pp(e);
     plugin.finalizePlugin();
 
 
-    DirectoryServer.registerAttributeType(ctType, false);
-    DirectoryServer.registerAttributeType(cnType, false);
-    DirectoryServer.registerAttributeType(mtType, false);
-    DirectoryServer.registerAttributeType(mnType, false);
+    DirectoryServer.getSchema().registerAttributeType(ctType, false);
+    DirectoryServer.getSchema().registerAttributeType(cnType, false);
+    DirectoryServer.getSchema().registerAttributeType(mtType, false);
+    DirectoryServer.getSchema().registerAttributeType(mnType, false);
   }
 
 

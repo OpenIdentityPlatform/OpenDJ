@@ -52,7 +52,7 @@ public class GenericBackendTestCase extends BackendTestCase
   @DataProvider(name = "backends")
   public Object[][] getBackends()
   {
-    List<Backend<?>> backendList = new ArrayList<>(DirectoryServer.getBackends().values());
+    List<Backend<?>> backendList = new ArrayList<>(DirectoryServer.getBackends());
     Object[][] objectArray = new Object[backendList.size()][1];
     for (int i=0; i < objectArray.length; i++)
     {

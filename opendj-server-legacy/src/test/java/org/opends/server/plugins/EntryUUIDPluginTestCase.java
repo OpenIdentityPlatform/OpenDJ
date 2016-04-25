@@ -139,13 +139,13 @@ public class EntryUUIDPluginTestCase
          throws Exception
   {
     AttributeType entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
-    DirectoryServer.deregisterAttributeType(entryUUIDType);
+    DirectoryServer.getSchema().deregisterAttributeType(entryUUIDType);
 
     EntryUUIDPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
 
 
-    DirectoryServer.registerAttributeType(entryUUIDType, false);
+    DirectoryServer.getSchema().registerAttributeType(entryUUIDType, false);
   }
 
 

@@ -444,7 +444,7 @@ public class RootDSEBackend
 
     // Add the "supportedExtension" attribute.
     Attribute supportedExtensionAttr = createAttribute(
-        ATTR_SUPPORTED_EXTENSION, DirectoryServer.getSupportedExtensions().keySet());
+        ATTR_SUPPORTED_EXTENSION, DirectoryServer.getSupportedExtensions());
     addAttribute(supportedExtensionAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedFeature" attribute.
@@ -454,7 +454,7 @@ public class RootDSEBackend
 
     // Add the "supportedSASLMechanisms" attribute.
     Attribute supportedSASLMechAttr = createAttribute(
-        ATTR_SUPPORTED_SASL_MECHANISMS, DirectoryServer.getSupportedSASLMechanisms().keySet());
+        ATTR_SUPPORTED_SASL_MECHANISMS, DirectoryServer.getSupportedSASLMechanisms());
     addAttribute(supportedSASLMechAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedLDAPVersions" attribute.
@@ -744,7 +744,7 @@ public class RootDSEBackend
     {
       return subordinateBaseDNs;
     }
-    return (Map) DirectoryServer.getPublicNamingContexts();
+    return DirectoryServer.getPublicNamingContexts();
   }
 
   @Override

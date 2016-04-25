@@ -215,22 +215,6 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves the set of objectclasses registered with the Directory
-   * Server.  The mapping will be between the lowercase name or OID
-   * for each objectclass and the objectclass implementation.  The
-   * same objectclass instance may be included multiple times with
-   * different keys.  The returned map must not be altered by the
-   * caller.
-   *
-   * @return  The set of objectclasses defined in the Directory
-   *          Server.
-   */
-  public static Map<String,ObjectClass> getObjectClasses()
-  {
-    return DirectoryServer.getObjectClasses();
-  }
-
-  /**
    * Retrieves the objectclass for the provided lowercase name or OID.
    * It can optionally return a generated "default" version if the
    * requested objectclass is not defined in the schema.
@@ -404,21 +388,6 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves the set of DIT content rules defined in the Directory
-   * Server.  The mapping will be between the structural objectclass
-   * and its corresponding DIT content rule.  The returned map must
-   * not be altered by the caller.
-   *
-   * @return  The set of DIT content rules defined in the Directory
-   *          Server.
-   */
-  public static Map<ObjectClass,DITContentRule>
-       getDITContentRules()
-  {
-    return DirectoryServer.getDITContentRules();
-  }
-
-  /**
    * Retrieves the DIT content rule associated with the specified
    * objectclass.
    *
@@ -432,21 +401,6 @@ public final class DirectoryConfig
        getDITContentRule(ObjectClass objectClass)
   {
     return DirectoryServer.getDITContentRule(objectClass);
-  }
-
-  /**
-   * Retrieves the set of DIT structure rules defined in the Directory
-   * Server.  The mapping will be between the name form and its
-   * corresponding DIT structure rule.  The returned map must not be
-   * altered by the caller.
-   *
-   * @return  The set of DIT structure rules defined in the Directory
-   *          Server.
-   */
-  public static Map<NameForm,DITStructureRule>
-       getDITStructureRules()
-  {
-    return DirectoryServer.getDITStructureRules();
   }
 
   /**
@@ -478,19 +432,6 @@ public final class DirectoryConfig
        getDITStructureRule(NameForm nameForm)
   {
     return DirectoryServer.getDITStructureRule(nameForm);
-  }
-
-  /**
-   * Retrieves the set of name forms defined in the Directory Server.
-   * The mapping will be between the structural objectclass and its
-   * corresponding name forms.  The returned map must not be altered
-   * by the caller.
-   *
-   * @return  The set of name forms defined in the Directory Server.
-   */
-  public static Map<ObjectClass,List<NameForm>> getNameForms()
-  {
-    return DirectoryServer.getNameForms();
   }
 
   /**
@@ -727,21 +668,6 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves the set of extended operations that may be processed by
-   * the Directory Server.  The mapping will be between the OID and
-   * the extended operation handler providing the logic for the
-   * extended operation with that OID.  The returned map must not be
-   * altered by the caller.
-   *
-   * @return  The set of extended operations that may be processed by
-   *          the Directory Server.
-   */
-  public static Map<String, ExtendedOperationHandler<?>> getSupportedExtensions()
-  {
-    return DirectoryServer.getSupportedExtensions();
-  }
-
-  /**
    * Retrieves the handler for the extended operation for the provided
    * extended operation OID.
    *
@@ -777,20 +703,6 @@ public final class DirectoryConfig
   public static void deregisterSupportedExtension(String oid)
   {
     DirectoryServer.deregisterSupportedExtension(oid);
-  }
-
-  /**
-   * Retrieves the set of SASL mechanisms that are supported by the
-   * Directory Server.  The mapping will be between the mechanism name
-   * and the SASL mechanism handler that implements support for that
-   * mechanism.  The returned map must not be altered by the caller.
-   *
-   * @return  The set of SASL mechanisms that are supported by the
-   *          Directory Server.
-   */
-  public static Map<String, SASLMechanismHandler<?>> getSupportedSASLMechanisms()
-  {
-    return DirectoryServer.getSupportedSASLMechanisms();
   }
 
   /**

@@ -569,7 +569,8 @@ public final class TestCaseUtils {
 
   private static void clearJEBackends() throws Exception
   {
-    for (Backend<?> backend : DirectoryServer.getBackends().values()) {
+    for (Backend<?> backend : DirectoryServer.getBackends())
+    {
       if (backend instanceof BackendImpl) {
         clearBackend(backend.getBackendID());
       }

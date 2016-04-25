@@ -16,12 +16,15 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -38,22 +41,20 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.JMXAlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.DirectoryServerMBean;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class provides an implementation of a Directory Server alert handler
@@ -189,9 +190,8 @@ public class JMXAlertHandler
   @Override
   public MBeanNotificationInfo[] getNotificationInfo()
   {
-    ArrayList<MBeanNotificationInfo> notifications = new ArrayList<>();
-    ConcurrentHashMap<DN,JMXMBean> mBeans = DirectoryServer.getJMXMBeans();
-    for (JMXMBean mBean : mBeans.values())
+    List<MBeanNotificationInfo> notifications = new ArrayList<>();
+    for (JMXMBean mBean : DirectoryServer.getJMXMBeans())
     {
       MBeanInfo mBeanInfo = mBean.getMBeanInfo();
       Collections.addAll(notifications, mBeanInfo.getNotifications());

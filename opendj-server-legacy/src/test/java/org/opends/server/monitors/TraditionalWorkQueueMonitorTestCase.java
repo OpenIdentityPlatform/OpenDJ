@@ -40,7 +40,6 @@ public class TraditionalWorkQueueMonitorTestCase
   @Override
   protected MonitorProvider<?> getMonitorInstance() throws Exception
   {
-    String monitorName = "work queue";
-    return DirectoryServer.getMonitorProvider(monitorName);
+    return DirectoryServer.getMonitorProviders().get("work queue");
   }
 }
