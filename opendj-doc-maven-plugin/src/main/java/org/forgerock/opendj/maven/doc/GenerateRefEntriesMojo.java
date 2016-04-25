@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -122,7 +122,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         try {
             // Tools tend to use System.exit() so run them as separate processes.
             ProcessBuilder builder = new ProcessBuilder(commands);
-            Process process = builder.start();
+            Process process = builder.redirectError(ProcessBuilder.Redirect.INHERIT).start();
             writeToFile(process.getInputStream(), manPage);
             process.waitFor();
             final int result = process.exitValue();

@@ -109,7 +109,7 @@ public class GenerateConfigurationReferenceMojo extends AbstractMojo {
 
         try {
             ProcessBuilder builder = new ProcessBuilder(commands);
-            Process process = builder.start();
+            Process process = builder.redirectError(ProcessBuilder.Redirect.INHERIT).start();
             process.waitFor();
             final int result = process.exitValue();
             if (result != 0) {
