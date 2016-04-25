@@ -17,6 +17,7 @@
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -40,8 +41,7 @@ import static org.opends.server.util.ServerConstants.*;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public final class NameForm
-       implements SchemaFileElement
+public final class NameForm implements SchemaElement
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -275,6 +275,7 @@ public final class NameForm
    * @return  The description for this name form, or {@code true} if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     return description;

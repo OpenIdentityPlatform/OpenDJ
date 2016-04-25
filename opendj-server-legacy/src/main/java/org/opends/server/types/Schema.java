@@ -1861,7 +1861,7 @@ public final class Schema
    * @throws  DirectoryException  If a problem occurs while rebuilding
    *                              any of the schema elements.
    */
-  public void rebuildDependentElements(SchemaFileElement element) throws DirectoryException
+  public void rebuildDependentElements(SchemaElement element) throws DirectoryException
   {
     try
     {
@@ -1907,7 +1907,7 @@ public final class Schema
     }
   }
 
-  private void circularityCheck(int depth, SchemaFileElement element) throws DirectoryException
+  private void circularityCheck(int depth, SchemaElement element) throws DirectoryException
   {
     if (depth > 20)
     {

@@ -24,11 +24,11 @@ import java.util.Map;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.opends.server.util.ServerConstants;
 
@@ -41,7 +41,7 @@ import org.opends.server.util.ServerConstants;
  */
 @RemoveOnceSDKSchemaIsUsed("This class is a temporary mechanism"
     + " to manage in the same way SDK and server schema element classes")
-public class SomeSchemaElement implements SchemaFileElement
+public class SomeSchemaElement implements SchemaElement
 {
   private final ObjectClass objectClass;
   private AttributeType attributeType;
@@ -293,5 +293,11 @@ public class SomeSchemaElement implements SchemaFileElement
       .addToSchemaOverwrite()
       .toSchema();
     return schema.getAttributeType(attributeType.getNameOrOID());
+  }
+
+  @Override
+  public String getDescription()
+  {
+    return attributeType != null ? attributeType.getDescription() : objectClass.getDescription();
   }
 }

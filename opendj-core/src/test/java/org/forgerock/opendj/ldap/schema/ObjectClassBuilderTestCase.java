@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -184,7 +184,8 @@ public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
         }
     }
 
-    private boolean assertSchemaElementsContains(final Set<? extends AbstractSchemaElement> elements, final String nameOrOID) {
+    private boolean assertSchemaElementsContains(final Set<? extends AbstractSchemaElement> elements,
+            final String nameOrOID) {
         for (final AbstractSchemaElement element : elements) {
             final String oid = element instanceof AttributeType ? ((AttributeType) element).getNameOrOID()
                                                             : ((ObjectClass) element).getNameOrOID();

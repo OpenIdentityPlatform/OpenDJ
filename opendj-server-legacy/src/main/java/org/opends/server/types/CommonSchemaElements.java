@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -62,7 +63,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public abstract class CommonSchemaElements implements SchemaFileElement {
+public abstract class CommonSchemaElements implements SchemaElement {
   /** Indicates whether this definition is declared "obsolete". */
   private final boolean isObsolete;
 
@@ -301,7 +302,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    *         for this schema definition, or <code>null</code> if it
    *         is not known or if it is not stored in any schema file.
    */
-  public static String getSchemaFile(SchemaFileElement elem)
+  public static String getSchemaFile(SchemaElement elem)
   {
     return getSingleValueProperty(elem, SCHEMA_PROPERTY_FILENAME);
   }
@@ -314,7 +315,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return The single value for this property, or <code>null</code> if it
    *         is this property is not set.
    */
-  public static String getSingleValueProperty(SchemaFileElement elem,
+  public static String getSingleValueProperty(SchemaElement elem,
       String propertyName)
   {
     List<String> values = elem.getExtraProperties().get(propertyName);
@@ -335,7 +336,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @param  schemaFile  The name of the schema file that contains the
    *                     definition for this schema element.
    */
-  public static void setSchemaFile(SchemaFileElement elem, String schemaFile)
+  public static void setSchemaFile(SchemaElement elem, String schemaFile)
   {
     setExtraProperty(elem, SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
@@ -346,6 +347,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return The description for this schema definition, or
    *         <code>null</code> if there is no description.
    */
+  @Override
   public final String getDescription() {
     return description;
   }
@@ -378,7 +380,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @param  value  The value for the "extra" property.  If it is
    *                {@code null}, then any existing definition will be removed.
    */
-  public static void setExtraProperty(SchemaFileElement elem,
+  public static void setExtraProperty(SchemaElement elem,
       String name, String value)
   {
     ifNull(name);
@@ -463,7 +465,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    * @return  The definition string used to create this attribute
    *          type including the X-SCHEMA-FILE extension.
    */
-  public static String getDefinitionWithFileName(SchemaFileElement elem)
+  public static String getDefinitionWithFileName(SchemaElement elem)
   {
     final String schemaFile = getSchemaFile(elem);
     final String definition = elem.toString();

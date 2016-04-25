@@ -17,6 +17,7 @@
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -41,8 +42,7 @@ import static org.opends.server.util.ServerConstants.*;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public final class DITContentRule
-       implements SchemaFileElement
+public final class DITContentRule implements SchemaElement
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -496,6 +496,14 @@ public final class DITContentRule
   public String toString()
   {
     return definition;
+  }
+
+
+
+  @Override
+  public String getDescription()
+  {
+    return description;
   }
 
 }

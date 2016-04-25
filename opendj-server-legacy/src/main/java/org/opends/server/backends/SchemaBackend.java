@@ -66,6 +66,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
@@ -110,7 +111,6 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.Schema;
-import org.opends.server.types.SchemaFileElement;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BackupManager;
 import org.opends.server.util.BuildVersion;
@@ -1213,7 +1213,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  private void addNewSchemaElement(Set<String> modifiedSchemaFiles, SchemaFileElement elem)
+  private void addNewSchemaElement(Set<String> modifiedSchemaFiles, SchemaElement elem)
   {
     String schemaFile = getSchemaFile(elem);
     if (schemaFile == null || schemaFile.length() == 0)
@@ -1245,7 +1245,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return schemaFile == null ? finalFile : null;
   }
 
-  private <T extends SchemaFileElement> void replaceExistingSchemaElement(
+  private <T extends SchemaElement> void replaceExistingSchemaElement(
       Set<String> modifiedSchemaFiles, T newElem, T existingElem)
   {
     String newSchemaFile = getSchemaFile(newElem);

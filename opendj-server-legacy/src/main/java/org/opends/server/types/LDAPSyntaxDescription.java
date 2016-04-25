@@ -24,6 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.schema.SchemaElement;
+
 /**
  * This class defines a data structure for storing and interacting
  * with an ldap syntax, which defines the custom ldap syntaxes.
@@ -34,8 +36,7 @@ import java.util.Map;
      mayExtend=false,
      mayInvoke=true)
 
-public final class LDAPSyntaxDescription
-       implements SchemaFileElement
+public final class LDAPSyntaxDescription implements SchemaElement
 {
   /**
    * The set of additional name-value pairs associated with this ldap
@@ -229,6 +230,12 @@ public final class LDAPSyntaxDescription
   public String toString()
   {
     return definition;
+  }
+
+  @Override
+  public String getDescription()
+  {
+    return "";
   }
 
 }
