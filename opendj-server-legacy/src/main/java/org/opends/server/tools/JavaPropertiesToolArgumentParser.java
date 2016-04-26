@@ -16,9 +16,9 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 
@@ -42,7 +42,7 @@ import com.forgerock.opendj.cli.StringArgument;
 public class JavaPropertiesToolArgumentParser extends ArgumentParser
 {
   /** Usage argument. */
-  BooleanArgument   showUsageArg;
+  private BooleanArgument showUsageArg;
   /** Quiet argument. */
   BooleanArgument   quietArg;
   /** The file containing the properties. */

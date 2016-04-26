@@ -15,21 +15,16 @@
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Random;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ToolMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a tag that may be used to generate random values.  It has
@@ -61,64 +56,36 @@ public class RandomTag
    * The value that indicates that the value is to be generated from a fixed
    * number of characters from a given character set.
    */
-  public static final int RANDOM_TYPE_CHARS_FIXED = 1;
-
-
-
+  private static final int RANDOM_TYPE_CHARS_FIXED = 1;
   /**
    * The value that indicates that the value is to be generated from a variable
    * number of characters from a given character set.
    */
-  public static final int RANDOM_TYPE_CHARS_VARIABLE = 2;
-
-
-
+  private static final int RANDOM_TYPE_CHARS_VARIABLE = 2;
   /** The value that indicates that the value should be a random number. */
-  public static final int RANDOM_TYPE_NUMERIC = 3;
-
-
-
+  private static final int RANDOM_TYPE_NUMERIC = 3;
   /** The value that indicates that the value should be a random month. */
-  public static final int RANDOM_TYPE_MONTH = 4;
-
-
-
+  private static final int RANDOM_TYPE_MONTH = 4;
   /** The value that indicates that the value should be a telephone number. */
-  public static final int RANDOM_TYPE_TELEPHONE = 5;
-
-
+  private static final int RANDOM_TYPE_TELEPHONE = 5;
 
   /** The character set that will be used for alphabetic characters. */
-  public static final char[] ALPHA_CHARS =
+  private static final char[] ALPHA_CHARS =
        "abcdefghijklmnopqrstuvwxyz".toCharArray();
-
-
-
   /** The character set that will be used for numeric characters. */
-  public static final char[] NUMERIC_CHARS = "01234567890".toCharArray();
-
-
-
+  private static final char[] NUMERIC_CHARS = "01234567890".toCharArray();
   /** The character set that will be used for alphanumeric characters. */
-  public static final char[] ALPHANUMERIC_CHARS =
+  private static final char[] ALPHANUMERIC_CHARS =
        "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
-
-
-
   /** The character set that will be used for hexadecimal characters. */
-  public static final char[] HEX_CHARS = "01234567890abcdef".toCharArray();
-
-
-
+  private static final char[] HEX_CHARS = "01234567890abcdef".toCharArray();
   /** The character set that will be used for base64 characters. */
-  public static final char[] BASE64_CHARS =
+  private static final char[] BASE64_CHARS =
        ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
         "01234567890+/").toCharArray();
 
-
-
   /** The set of month names that will be used. */
-  public static final String[] MONTHS =
+  private static final String[] MONTHS =
   {
     "January",
     "February",
@@ -144,22 +111,17 @@ public class RandomTag
 
   /** The number of characters between the minimum and maximum length (inclusive). */
   private int lengthRange;
-
   /** The maximum number of characters to include in the value. */
   private int maxLength;
-
   /** The minimum number of characters to include in the value. */
   private int minLength;
-
   /** The type of random value that should be generated. */
   private int randomType;
 
   /** The maximum numeric value that should be generated. */
   private long maxValue;
-
   /** The minimum numeric value that should be generated. */
   private long minValue;
-
   /** The number of values between the minimum and maximum value (inclusive). */
   private long valueRange;
 

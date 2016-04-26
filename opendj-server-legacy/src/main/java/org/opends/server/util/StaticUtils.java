@@ -19,23 +19,17 @@ package org.opends.server.util;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,7 +42,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.RandomAccess;
 import java.util.TimeZone;
 
 import javax.naming.InitialContext;
@@ -66,7 +59,6 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
@@ -478,109 +470,6 @@ public final class StaticUtils
   }
 
   /**
-   * Appends a string representation of the remaining unread data in the
-   * provided byte buffer to the given buffer using the specified indent.
-   * The data will be formatted with sixteen hex bytes in a row followed by
-   * the ASCII representation, then wrapping to a new line as necessary.
-   * The state of the byte buffer is not changed.
-   *
-   * @param  buffer  The buffer to which the information is to be appended.
-   * @param  b       The byte buffer containing the data to write.
-   *                 The data from the position to the limit is written.
-   * @param  indent  The number of spaces to indent the output.
-   */
-  public static void byteArrayToHexPlusAscii(StringBuilder buffer, ByteBuffer b,
-                                             int indent)
-  {
-    StringBuilder indentBuf = new StringBuilder(indent);
-    for (int i=0 ; i < indent; i++)
-    {
-      indentBuf.append(' ');
-    }
-
-
-    int position = b.position();
-    int limit    = b.limit();
-    int length   = limit - position;
-    int pos      = 0;
-    while (length - pos >= 16)
-    {
-      StringBuilder asciiBuf = new StringBuilder(17);
-
-      byte currentByte = b.get();
-      buffer.append(indentBuf);
-      buffer.append(byteToHex(currentByte));
-      asciiBuf.append(byteToASCII(currentByte));
-      pos++;
-
-      for (int i=1; i < 16; i++, pos++)
-      {
-        currentByte = b.get();
-        buffer.append(' ');
-        buffer.append(byteToHex(currentByte));
-        asciiBuf.append(byteToASCII(currentByte));
-
-        if (i == 7)
-        {
-          buffer.append("  ");
-          asciiBuf.append(' ');
-        }
-      }
-
-      buffer.append("  ");
-      buffer.append(asciiBuf);
-      buffer.append(EOL);
-    }
-
-
-    int remaining = length - pos;
-    if (remaining > 0)
-    {
-      StringBuilder asciiBuf = new StringBuilder(remaining+1);
-
-      byte currentByte = b.get();
-      buffer.append(indentBuf);
-      buffer.append(byteToHex(currentByte));
-      asciiBuf.append(byteToASCII(currentByte));
-
-      for (int i=1; i < 16; i++)
-      {
-        buffer.append(' ');
-
-        if (i < remaining)
-        {
-          currentByte = b.get();
-          buffer.append(byteToHex(currentByte));
-          asciiBuf.append(byteToASCII(currentByte));
-        }
-        else
-        {
-          buffer.append("  ");
-        }
-
-        if (i == 7)
-        {
-          buffer.append("  ");
-
-          if (i < remaining)
-          {
-            asciiBuf.append(' ');
-          }
-        }
-      }
-
-      buffer.append("  ");
-      buffer.append(asciiBuf);
-      buffer.append(EOL);
-    }
-
-    b.position(position);
-    b.limit(limit);
-  }
-
-
-
-  /**
    * Compare two byte arrays for order. Returns a negative integer,
    * zero, or a positive integer as the first argument is less than,
    * equal to, or greater than the second.
@@ -620,69 +509,6 @@ public final class StaticUtils
     }
 
     return a.length - a2.length;
-  }
-
-
-
-  /**
-   * Indicates whether the two array lists are equal. They will be
-   * considered equal if they have the same number of elements, and
-   * the corresponding elements between them are equal (in the same
-   * order).
-   *
-   * @param list1
-   *          The first list for which to make the determination.
-   * @param list2
-   *          The second list for which to make the determination.
-   * @return {@code true} if the two array lists are equal, or
-   *         {@code false} if they are not.
-   */
-  public static boolean listsAreEqual(List<?> list1, List<?> list2)
-  {
-    if (list1 == null)
-    {
-      return list2 == null;
-    }
-    else if (list2 == null)
-    {
-      return false;
-    }
-
-    int numElements = list1.size();
-    if (numElements != list2.size())
-    {
-      return false;
-    }
-
-    // If either of the lists doesn't support random access, then fall back
-    // on their equals methods and go ahead and create some garbage with the
-    // iterators.
-    if (!(list1 instanceof RandomAccess) ||
-        !(list2 instanceof RandomAccess))
-    {
-      return list1.equals(list2);
-    }
-
-    // Otherwise we can just retrieve the elements efficiently via their index.
-    for (int i=0; i < numElements; i++)
-    {
-      Object o1 = list1.get(i);
-      Object o2 = list2.get(i);
-
-      if (o1 == null)
-      {
-        if (o2 != null)
-        {
-          return false;
-        }
-      }
-      else if (! o1.equals(o2))
-      {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   /**
@@ -736,23 +562,6 @@ public final class StaticUtils
     return com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(t, DynamicConstants.DEBUG_BUILD);
   }
 
-
-
-  /**
-   * Appends a single-line string representation of the provided exception to
-   * the given buffer.
-   *
-   * @param  buffer  The buffer to which the information is to be appended.
-   * @param  t       The exception for which to retrieve the stack trace.
-   */
-  public static void stackTraceToSingleLineString(StringBuilder buffer,
-                                                  Throwable t)
-  {
-    com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(buffer, t, DynamicConstants.DEBUG_BUILD);
-  }
-
-
-
   /**
    * Retrieves a string representation of the stack trace for the provided
    * exception.
@@ -801,7 +610,7 @@ public final class StaticUtils
    * @param  buffer  The buffer to which the information is to be appended.
    * @param  t       The exception for which to retrieve the stack trace.
    */
-  public static void stackTraceToString(StringBuilder buffer, Throwable t)
+  private static void stackTraceToString(StringBuilder buffer, Throwable t)
   {
     if (t == null)
     {
@@ -1296,126 +1105,10 @@ public final class StaticUtils
    * @return  {@code true} if the use of the exec method should be allowed,
    *          or {@code false} if it should not be allowed.
    */
-  public static boolean mayUseExec()
+  private static boolean mayUseExec()
   {
     return !DirectoryServer.getEnvironmentConfig().disableExec();
   }
-
-
-
-  /**
-   * Executes the specified command on the system and captures its output.  This
-   * will not return until the specified process has completed.
-   *
-   * @param  command           The command to execute.
-   * @param  args              The set of arguments to provide to the command.
-   * @param  workingDirectory  The working directory to use for the command, or
-   *                           {@code null} if the default directory
-   *                           should be used.
-   * @param  environment       The set of environment variables that should be
-   *                           set when executing the command, or
-   *                           {@code null} if none are needed.
-   * @param  output            The output generated by the command while it was
-   *                           running.  This will include both standard
-   *                           output and standard error.  It may be
-   *                           {@code null} if the output does not need to
-   *                           be captured.
-   *
-   * @return  The exit code for the command.
-   *
-   * @throws  IOException  If an I/O problem occurs while trying to execute the
-   *                       command.
-   *
-   * @throws  SecurityException  If the security policy will not allow the
-   *                             command to be executed.
-   *
-   * @throws InterruptedException If the current thread is interrupted by
-   *                              another thread while it is waiting, then
-   *                              the wait is ended and an InterruptedException
-   *                              is thrown.
-   */
-  public static int exec(String command, String[] args, File workingDirectory,
-                         Map<String,String> environment, List<String> output)
-         throws IOException, SecurityException, InterruptedException
-  {
-    // See whether we'll allow the use of exec on this system.  If not, then
-    // throw an exception.
-    if (! mayUseExec())
-    {
-      throw new SecurityException(ERR_EXEC_DISABLED.get(command).toString());
-    }
-
-
-    ArrayList<String> commandAndArgs = new ArrayList<>();
-    commandAndArgs.add(command);
-    if (args != null && args.length > 0)
-    {
-      Collections.addAll(commandAndArgs, args);
-    }
-
-    ProcessBuilder processBuilder = new ProcessBuilder(commandAndArgs);
-    processBuilder.redirectErrorStream(true);
-
-    if (workingDirectory != null && workingDirectory.isDirectory())
-    {
-      processBuilder.directory(workingDirectory);
-    }
-
-    if (environment != null && !environment.isEmpty())
-    {
-      processBuilder.environment().putAll(environment);
-    }
-
-    Process process = processBuilder.start();
-
-    // We must exhaust stdout and stderr before calling waitfor. Since we
-    // redirected the error stream, we just have to read from stdout.
-    InputStream processStream =  process.getInputStream();
-    BufferedReader reader =
-        new BufferedReader(new InputStreamReader(processStream));
-    String line = null;
-
-    try
-    {
-      while((line = reader.readLine()) != null)
-      {
-        if(output != null)
-        {
-          output.add(line);
-        }
-      }
-    }
-    catch(IOException ioe)
-    {
-      // If this happens, then we have no choice but to forcefully terminate
-      // the process.
-      try
-      {
-        process.destroy();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-
-      throw ioe;
-    }
-    finally
-    {
-      try
-      {
-        reader.close();
-      }
-      catch(IOException e)
-      {
-        logger.traceException(e);
-      }
-    }
-
-    return process.waitFor();
-  }
-
-
 
   /**
    * Indicates whether the provided string contains a name or OID for a schema
@@ -1716,7 +1409,7 @@ public final class StaticUtils
    * @param  buffer  The buffer to which the uppercase form of the string should
    *                 be appended.
    */
-  public static void toUpperCase(String s, StringBuilder buffer)
+  private static void toUpperCase(String s, StringBuilder buffer)
   {
     if (s == null)
     {
@@ -2024,29 +1717,6 @@ public final class StaticUtils
     return builder;
   }
 
-
-
-  /**
-   * Retrieves a string array containing the contents of the provided
-   * list of strings.
-   *
-   * @param stringList
-   *          The string list to convert to an array.
-   * @return A string array containing the contents of the provided list
-   *         of strings.
-   */
-  public static String[] listToArray(List<String> stringList)
-  {
-    if (stringList == null)
-    {
-      return null;
-    }
-
-    String[] stringArray = new String[stringList.size()];
-    stringList.toArray(stringArray);
-    return stringArray;
-  }
-
   /**
    * Retrieves an array list containing the contents of the provided array.
    *
@@ -2202,24 +1872,6 @@ public final class StaticUtils
       }
     }
   }
-
-
-  /**
-   * Indicates whether the provided path refers to a relative path rather than
-   * an absolute path.
-   *
-   * @param  path  The path string for which to make the determination.
-   *
-   * @return  {@code true} if the provided path is relative, or
-   *          {@code false} if it is absolute.
-   */
-  public static boolean isRelativePath(String path)
-  {
-    File f = new File(path);
-    return !f.isAbsolute();
-  }
-
-
 
   /**
    * Retrieves a {@code File} object corresponding to the specified path.
@@ -2531,132 +2183,6 @@ public final class StaticUtils
 
   }
 
-
-
-  /**
-   * Writes the contents of the provided buffer to the client,
-   * terminating the connection if the write is unsuccessful for too
-   * long (e.g., if the client is unresponsive or there is a network
-   * problem). If possible, it will attempt to use the selector returned
-   * by the {@code ClientConnection.getWriteSelector} method, but it is
-   * capable of working even if that method returns {@code null}. <BR>
-   *
-   * Note that the original position and limit values will not be
-   * preserved, so if that is important to the caller, then it should
-   * record them before calling this method and restore them after it
-   * returns.
-   *
-   * @param clientConnection
-   *          The client connection to which the data is to be written.
-   * @param buffer
-   *          The data to be written to the client.
-   * @return {@code true} if all the data in the provided buffer was
-   *         written to the client and the connection may remain
-   *         established, or {@code false} if a problem occurred
-   *         and the client connection is no longer valid. Note that if
-   *         this method does return {@code false}, then it must
-   *         have already disconnected the client.
-   * @throws IOException
-   *           If a problem occurs while attempting to write data to the
-   *           client. The caller will be responsible for catching this
-   *           and terminating the client connection.
-   */
-  public static boolean writeWithTimeout(ClientConnection clientConnection,
-      ByteBuffer buffer) throws IOException
-  {
-    SocketChannel socketChannel = clientConnection.getSocketChannel();
-    long startTime = System.currentTimeMillis();
-    long waitTime = clientConnection.getMaxBlockedWriteTimeLimit();
-    if (waitTime <= 0)
-    {
-      // We won't support an infinite time limit, so fall back to using
-      // five minutes, which is a very long timeout given that we're
-      // blocking a worker thread.
-      waitTime = 300000L;
-    }
-
-    long stopTime = startTime + waitTime;
-
-    Selector selector = clientConnection.getWriteSelector();
-    if (selector == null)
-    {
-      // The client connection does not provide a selector, so we'll
-      // fall back
-      // to a more inefficient way that will work without a selector.
-      while (buffer.hasRemaining()
-          && System.currentTimeMillis() < stopTime)
-      {
-        if (socketChannel.write(buffer) < 0)
-        {
-          // The client connection has been closed.
-          return false;
-        }
-      }
-
-      if (buffer.hasRemaining())
-      {
-        // If we've gotten here, then the write timed out.
-        return false;
-      }
-
-      return true;
-    }
-
-    // Register with the selector for handling write operations.
-    SelectionKey key =
-        socketChannel.register(selector, SelectionKey.OP_WRITE);
-
-    try
-    {
-      selector.select(waitTime);
-      while (buffer.hasRemaining())
-      {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime >= stopTime)
-        {
-          // We've been blocked for too long.
-          return false;
-        }
-        waitTime = stopTime - currentTime;
-
-        Iterator<SelectionKey> iterator =
-            selector.selectedKeys().iterator();
-        while (iterator.hasNext())
-        {
-          SelectionKey k = iterator.next();
-          if (k.isWritable())
-          {
-            int bytesWritten = socketChannel.write(buffer);
-            if (bytesWritten < 0)
-            {
-              // The client connection has been closed.
-              return false;
-            }
-
-            iterator.remove();
-          }
-        }
-
-        if (buffer.hasRemaining())
-        {
-          selector.select(waitTime);
-        }
-      }
-
-      return true;
-    }
-    finally
-    {
-      if (key.isValid())
-      {
-        key.cancel();
-        selector.selectNow();
-      }
-    }
-  }
-
-
-
   /**
    * Add all of the superior objectclasses to the specified objectclass
    * map if they don't already exist. Used by add and import-ldif to
@@ -2830,22 +2356,6 @@ public final class StaticUtils
    */
   public static boolean hasDescriptor(LocalizableMessage msg,
       LocalizableMessageDescriptor.Arg1<?> desc)
-  {
-    return msg.ordinal() == desc.ordinal()
-        && msg.resourceName().equals(desc.resourceName());
-  }
-
-  /**
-   * Test if the provided message corresponds to the provided descriptor.
-   *
-   * @param msg
-   *          The i18n message.
-   * @param desc
-   *          The message descriptor.
-   * @return {@code true} if message corresponds to descriptor
-   */
-  public static boolean hasDescriptor(LocalizableMessage msg,
-      LocalizableMessageDescriptor.Arg2<?, ?> desc)
   {
     return msg.ordinal() == desc.ordinal()
         && msg.resourceName().equals(desc.resourceName());

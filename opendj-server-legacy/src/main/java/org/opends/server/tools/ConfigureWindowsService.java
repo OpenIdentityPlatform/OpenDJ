@@ -16,9 +16,9 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.opends.messages.ToolMessages.*;
 
@@ -83,9 +83,9 @@ public class ConfigureWindowsService
   /** The service was already enabled. */
   public static final int SERVICE_ALREADY_ENABLED = 1;
   /** The service name was already in use. */
-  public static final int SERVICE_NAME_ALREADY_IN_USE = 2;
+  private static final int SERVICE_NAME_ALREADY_IN_USE = 2;
   /** An error occurred enabling the service. */
-  public static final int SERVICE_ENABLE_ERROR = 3;
+  private static final int SERVICE_ENABLE_ERROR = 3;
 
   /** Return codes for the method disableService. */
   /** The service was successfully disabled. */
@@ -93,7 +93,7 @@ public class ConfigureWindowsService
   /** The service was already disabled. */
   public static final int SERVICE_ALREADY_DISABLED = 1;
   /** The service is marked for deletion. */
-  public static final int SERVICE_MARKED_FOR_DELETION = 2;
+  private static final int SERVICE_MARKED_FOR_DELETION = 2;
   /** An error occurred disabling the service. */
   public static final int SERVICE_DISABLE_ERROR = 3;
 
@@ -101,19 +101,19 @@ public class ConfigureWindowsService
   /** The service is enabled. */
   public static final int SERVICE_STATE_ENABLED = 0;
   /** The service is disabled. */
-  public static final int SERVICE_STATE_DISABLED = 1;
+  private static final int SERVICE_STATE_DISABLED = 1;
   /** An error occurred checking the service state. */
-  public static final int SERVICE_STATE_ERROR = 2;
+  private static final int SERVICE_STATE_ERROR = 2;
 
   /** Return codes for the method cleanupService. */
   /** The service cleanup worked. */
-  public static final int SERVICE_CLEANUP_SUCCESS = 0;
+  private static final int SERVICE_CLEANUP_SUCCESS = 0;
   /** The service could not be found. */
-  public static final int SERVICE_NOT_FOUND = 1;
+  private static final int SERVICE_NOT_FOUND = 1;
   /** An error occurred cleaning up the service. */
-  public static final int SERVICE_CLEANUP_ERROR = 2;
+  private static final int SERVICE_CLEANUP_ERROR = 2;
   /** The service is marked for deletion. */
-  public static final int SERVICE_CLEANUP_MARKED_FOR_DELETION = 3;
+  private static final int SERVICE_CLEANUP_MARKED_FOR_DELETION = 3;
 
   /**
    * Configures the Windows service for this instance on this machine. This tool
@@ -144,7 +144,7 @@ public class ConfigureWindowsService
    * @return the integer code describing if the operation could be completed or
    *         not.
    */
-  public static int configureWindowsService(String[] args, OutputStream outStream, OutputStream errStream)
+  private static int configureWindowsService(String[] args, OutputStream outStream, OutputStream errStream)
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
@@ -342,7 +342,7 @@ public class ConfigureWindowsService
    *         <CODE>SERVICE_ALREADY_ENABLED</CODE> depending on whether the
    *         service could be enabled or not.
    */
-  public static int enableService(PrintStream out, PrintStream err, String serviceName, String serviceDescription)
+  private static int enableService(PrintStream out, PrintStream err, String serviceName, String serviceDescription)
   {
     String serverRoot = getServerRoot();
     String[] cmd;
@@ -511,8 +511,7 @@ public class ConfigureWindowsService
    *         <CODE>SERVICE_CLEANUP_ERROR</CODE> depending on whether the service
    *         could be found or not.
    */
-  public static int cleanupService(String serviceName, PrintStream out,
-      PrintStream err)
+  private static int cleanupService(String serviceName, PrintStream out, PrintStream err)
   {
     String[] cmd;
     if (hasUAC())
@@ -593,7 +592,7 @@ public class ConfigureWindowsService
    *         <CODE>SERVICE_STATE_ERROR</CODE> depending on the state of the
    *         service.
    */
-  public static int serviceState(PrintStream out, PrintStream err)
+  private static int serviceState(PrintStream out, PrintStream err)
   {
     String serviceName = null;
 

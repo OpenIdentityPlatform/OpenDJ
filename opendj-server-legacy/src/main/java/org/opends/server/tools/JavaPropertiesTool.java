@@ -12,15 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,52 +43,34 @@ import org.opends.server.types.NullOutputStream;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 
-
 /**
  * This class is used to update the scripts that are used to launch the command
  * lines.  We read the contents of a given properties file and we update the
  * scripts setting the arguments and JVM to be used by the different scripts.
- *
  */
 public class JavaPropertiesTool extends ConsoleApplication
 {
   /** The argument parser. */
   private JavaPropertiesToolArgumentParser argParser;
 
-  /**
-   * The enumeration containing the different return codes that the command-line
-   * can have.
-   *
-   */
+  /** The enumeration containing the different return codes that the command-line can have. */
   public enum ErrorReturnCode
   {
-    /**
-     * Successful setup.
-     */
+    /** Successful setup. */
     SUCCESSFUL(0),
-    /**
-     * We did no have an error but the setup was not executed (displayed version
-     * or usage).
-     */
+    /** We did no have an error but the setup was not executed (displayed version or usage). */
     SUCCESSFUL_NOP(0),
-    /**
-     * Unexpected error (potential bug).
-     */
+    /** Unexpected error (potential bug). */
     ERROR_UNEXPECTED(1),
-    /**
-     * Cannot parse arguments or data provided by user is not valid.
-     */
+    /** Cannot parse arguments or data provided by user is not valid. */
     ERROR_USER_DATA(2),
-    /**
-     * Error writing to destination file.
-     */
+    /** Error writing to destination file. */
     ERROR_WRITING_FILE(3),
-    /**
-     * Conflicting command line arguments.
-     */
+    /** Conflicting command line arguments. */
     CONFLICTING_ARGS(18);
 
-    private int returnCode;
+    private final int returnCode;
+
     private ErrorReturnCode(int returnCode)
     {
       this.returnCode = returnCode;
@@ -119,7 +101,7 @@ public class JavaPropertiesTool extends ConsoleApplication
    * @param err the print stream to use for standard error.
    * @param in the input stream to use for standard input.
    */
-  public JavaPropertiesTool(PrintStream out, PrintStream err, InputStream in)
+  private JavaPropertiesTool(PrintStream out, PrintStream err, InputStream in)
   {
     super(out, err);
   }
@@ -341,7 +323,6 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     println();
 
-
     return ErrorReturnCode.SUCCESSFUL.getReturnCode();
   }
 
@@ -422,40 +403,33 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInteractive()
   {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return true;

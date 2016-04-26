@@ -14,7 +14,6 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import java.io.BufferedReader;
@@ -110,7 +109,7 @@ public class LicenseFile
   {
     // Reads the inputstream content.
     try (InputStream input = new FileInputStream(getFile());
-        BufferedReader br = new BufferedReader(new InputStreamReader(input));)
+        BufferedReader br = new BufferedReader(new InputStreamReader(input)))
     {
       final StringBuilder sb = new StringBuilder();
       String read;
@@ -142,12 +141,12 @@ public class LicenseFile
   /**
    * Sets the license approval status.
    *
-   * @param p_approved
+   * @param approved
    *          the license approval status
    */
-  public static void setApproval(boolean p_approved)
+  public static void setApproval(boolean approved)
   {
-    approved = p_approved;
+    LicenseFile.approved = approved;
   }
 
   /**
@@ -190,5 +189,4 @@ public class LicenseFile
   {
     return new File(getInstanceLegalDirectory(), ACCEPTED_LICENSE_FILE_NAME).exists();
   }
-
 }

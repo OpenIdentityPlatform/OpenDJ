@@ -36,7 +36,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
  */
 public class BackendTypeHelper
 {
-
   /**
    * Filter the provided backend name by removing the backend suffix.
    *
@@ -104,7 +103,6 @@ public class BackendTypeHelper
     {
       return backend;
     }
-
   }
 
   private final List<ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg>> backends;
@@ -149,7 +147,6 @@ public class BackendTypeHelper
       // The backend is not supported in the running version.
     }
   }
-
 
   ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> retrieveBackendTypeFromName(
       final String backendTypeStr)
@@ -227,10 +224,9 @@ public class BackendTypeHelper
    *          the backend type to adapt.
    * @return a BackendTypeUIAdapter which adapts the provided backend.
    */
-  public static BackendTypeUIAdapter getBackendTypeAdapter(
+  private static BackendTypeUIAdapter getBackendTypeAdapter(
       ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backend)
   {
     return new BackendTypeUIAdapter(backend);
   }
-
 }

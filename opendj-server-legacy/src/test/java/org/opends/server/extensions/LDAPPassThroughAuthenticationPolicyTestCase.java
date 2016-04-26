@@ -1989,10 +1989,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
           ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
@@ -2004,7 +2002,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.unblock();
       server.stop();
     }
@@ -2031,10 +2028,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
           ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
@@ -2046,7 +2041,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2075,10 +2069,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
           ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
@@ -2090,7 +2082,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2117,10 +2108,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
           ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
@@ -2132,7 +2121,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2158,10 +2146,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
           ByteString.valueOfUtf8(userPassword));
       fail("Bind attempt should have failed");
@@ -2172,7 +2158,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2197,16 +2182,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.simpleBind(ByteString.valueOfUtf8(searchBindDNString),
           ByteString.valueOfUtf8(userPassword));
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2259,20 +2241,14 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", port, cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       fail("Connect attempt should have failed");
     }
     catch (final DirectoryException e)
     {
       assertEquals(e.getResultCode(), ResultCode.CLIENT_SIDE_CONNECT_ERROR,
           e.getMessage());
-    }
-    finally
-    {
-      StaticUtils.close(connection);
     }
   }
 
@@ -2292,20 +2268,14 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // FIXME: can we guarantee that "unknownhost" does not exist?
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "unknownhost", 31415, cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       fail("Connect attempt should have failed");
     }
     catch (final DirectoryException e)
     {
       assertEquals(e.getResultCode(), ResultCode.CLIENT_SIDE_CONNECT_ERROR,
           e.getMessage());
-    }
-    finally
-    {
-      StaticUtils.close(connection);
     }
   }
 
@@ -2329,10 +2299,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE, SearchFilter.objectClassPresent());
       fail("Search attempt should have timed out");
     }
@@ -2343,7 +2311,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.unblock();
       server.stop();
     }
@@ -2373,10 +2340,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2388,7 +2353,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2418,10 +2382,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2433,7 +2395,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2461,10 +2422,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2476,7 +2435,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2504,10 +2462,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2519,7 +2475,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2549,10 +2504,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2564,7 +2517,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2592,10 +2544,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       final ByteString username = connection.search(searchBindDN,
           SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
@@ -2603,7 +2553,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2633,10 +2582,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2648,7 +2595,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }
@@ -2678,10 +2624,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Test connect and close.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
+    try (Connection connection = factory.getConnection())
     {
-      connection = factory.getConnection();
       connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
           SearchFilter.createFilterFromString("(uid=aduser)"));
       fail("Search attempt should have failed");
@@ -2693,7 +2637,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     finally
     {
-      StaticUtils.close(connection);
       server.stop();
     }
   }

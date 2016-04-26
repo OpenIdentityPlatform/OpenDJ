@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.tasks;
 
@@ -70,14 +70,9 @@ import org.opends.server.util.StaticUtils;
  */
 public class TaskClient {
 
-  /**
-   * Connection through which task scheduling will take place.
-   */
-  protected LDAPConnection connection;
-
-  /**
-   * Keeps track of message IDs.
-   */
+  /** Connection through which task scheduling will take place. */
+  private LDAPConnection connection;
+  /** Keeps track of message IDs. */
   private final AtomicInteger nextMessageID = new AtomicInteger(0);
 
   /**
@@ -95,20 +90,12 @@ public class TaskClient {
    */
   public static String getTaskID(List<RawAttribute> taskAttributes)
   {
-    String taskID = null;
-
-    RawAttribute recurringIDAttr = getAttribute(ATTR_RECURRING_TASK_ID,
-        taskAttributes);
-
+    RawAttribute recurringIDAttr = getAttribute(ATTR_RECURRING_TASK_ID, taskAttributes);
     if (recurringIDAttr != null) {
-      taskID = recurringIDAttr.getValues().get(0).toString();
-    } else {
-      RawAttribute taskIDAttr = getAttribute(ATTR_TASK_ID,
-          taskAttributes);
-      taskID = taskIDAttr.getValues().get(0).toString();
+      return recurringIDAttr.getValues().get(0).toString();
     }
-
-    return taskID;
+    RawAttribute taskIDAttr = getAttribute(ATTR_TASK_ID, taskAttributes);
+    return taskIDAttr.getValues().get(0).toString();
   }
 
   private static RawAttribute getAttribute(String attrName,
@@ -323,17 +310,17 @@ public class TaskClient {
         throw new LDAPException(
                 LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                 ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get());
-      } else {
-        opType = responseMessage.getProtocolOpType();
-        if (opType == LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY) {
-          SearchResultEntryProtocolOp searchEntryOp =
-                  responseMessage.getSearchResultEntryProtocolOp();
-          SearchResultEntry entry = searchEntryOp.toSearchResultEntry();
-          entries.add(entry);
-        }
+      }
+      opType = responseMessage.getProtocolOpType();
+      if (opType == LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY)
+      {
+        SearchResultEntryProtocolOp searchEntryOp = responseMessage.getSearchResultEntryProtocolOp();
+        SearchResultEntry entry = searchEntryOp.toSearchResultEntry();
+        entries.add(entry);
       }
     }
     while (opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);
+
     List<TaskEntry> taskEntries = new ArrayList<>(entries.size());
     for (Entry entry : entries) {
       taskEntries.add(new TaskEntry(entry));
@@ -374,13 +361,12 @@ public class TaskClient {
       if (responseMessage == null) {
         LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
         throw new LDAPException(UNAVAILABLE.intValue(), message);
-      } else {
-        opType = responseMessage.getProtocolOpType();
-        if (opType == LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY) {
-          SearchResultEntryProtocolOp searchEntryOp =
-                  responseMessage.getSearchResultEntryProtocolOp();
-          entry = searchEntryOp.toSearchResultEntry();
-        }
+      }
+      opType = responseMessage.getProtocolOpType();
+      if (opType == LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY)
+      {
+        SearchResultEntryProtocolOp searchEntryOp = responseMessage.getSearchResultEntryProtocolOp();
+        entry = searchEntryOp.toSearchResultEntry();
       }
     }
     while (opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);
@@ -389,7 +375,6 @@ public class TaskClient {
     }
     return new TaskEntry(entry);
   }
-
 
   /**
    * Changes that the state of the task in the backend to a canceled state.
@@ -409,98 +394,95 @@ public class TaskClient {
 
     TaskEntry entry = getTaskEntry(id);
     TaskState state = entry.getTaskState();
-    if (state != null) {
-      if (!TaskState.isDone(state)) {
-
-        ByteString dn = ByteString.valueOfUtf8(entry.getDN().toString());
-
-        ArrayList<RawModification> mods = new ArrayList<>();
-
-        String newState;
-        if (TaskState.isPending(state)) {
-          newState = TaskState.CANCELED_BEFORE_STARTING.name();
-        } else {
-          newState = TaskState.STOPPED_BY_ADMINISTRATOR.name();
-        }
-        LDAPAttribute attr = new LDAPAttribute(ATTR_TASK_STATE, newState);
-        mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-
-        ModifyRequestProtocolOp modRequest =
-                new ModifyRequestProtocolOp(dn, mods);
-        LDAPMessage requestMessage =
-             new LDAPMessage(nextMessageID.getAndIncrement(), modRequest, null);
-
-        writer.writeMessage(requestMessage);
-
-        LDAPMessage responseMessage = reader.readMessage();
-
-        if (responseMessage == null) {
-          LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
-          throw new LDAPException(UNAVAILABLE.intValue(), message);
-        }
-
-        if (responseMessage.getProtocolOpType() !=
-                LDAPConstants.OP_TYPE_MODIFY_RESPONSE)
-        {
-          throw new LDAPException(
-                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                  ERR_TASK_CLIENT_INVALID_RESPONSE_TYPE.get(
-                    responseMessage.getProtocolOpName()));
-        }
-
-        ModifyResponseProtocolOp modResponse =
-                responseMessage.getModifyResponseProtocolOp();
-        LocalizableMessage errorMessage = modResponse.getErrorMessage();
-        if (errorMessage != null) {
-          throw new LDAPException(
-                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                  errorMessage);
-        }
-      } else if (TaskState.isRecurring(state)) {
-
-        ByteString dn = ByteString.valueOfUtf8(entry.getDN().toString());
-        DeleteRequestProtocolOp deleteRequest =
-          new DeleteRequestProtocolOp(dn);
-
-        LDAPMessage requestMessage = new LDAPMessage(
-          nextMessageID.getAndIncrement(), deleteRequest, null);
-
-        writer.writeMessage(requestMessage);
-
-        LDAPMessage responseMessage = reader.readMessage();
-
-        if (responseMessage == null) {
-          LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
-          throw new LDAPException(UNAVAILABLE.intValue(), message);
-        }
-
-        if (responseMessage.getProtocolOpType() !=
-                LDAPConstants.OP_TYPE_DELETE_RESPONSE)
-        {
-          throw new LDAPException(
-                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                  ERR_TASK_CLIENT_INVALID_RESPONSE_TYPE.get(
-                    responseMessage.getProtocolOpName()));
-        }
-
-        DeleteResponseProtocolOp deleteResponse =
-                responseMessage.getDeleteResponseProtocolOp();
-        LocalizableMessage errorMessage = deleteResponse.getErrorMessage();
-        if (errorMessage != null) {
-          throw new LDAPException(
-                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                  errorMessage);
-        }
-      } else {
-        throw new TaskClientException(
-                ERR_TASK_CLIENT_UNCANCELABLE_TASK.get(id));
-      }
-    } else {
-      throw new TaskClientException(
-              ERR_TASK_CLIENT_TASK_STATE_UNKNOWN.get(id));
+    if (state == null)
+    {
+      throw new TaskClientException(ERR_TASK_CLIENT_TASK_STATE_UNKNOWN.get(id));
+    }
+    if (!TaskState.isDone(state))
+    {
+      cancelNotDoneTask(entry, state, writer, reader);
+    }
+    else if (TaskState.isRecurring(state))
+    {
+      cancelRecurringTask(entry, writer, reader);
+    }
+    else
+    {
+      throw new TaskClientException(ERR_TASK_CLIENT_UNCANCELABLE_TASK.get(id));
     }
   }
 
+  private void cancelNotDoneTask(TaskEntry entry, TaskState state, LDAPWriter writer, LDAPReader reader)
+      throws IOException, LDAPException
+  {
+    ByteString dn = ByteString.valueOfUtf8(entry.getDN().toString());
+
+    ArrayList<RawModification> mods = new ArrayList<>();
+
+    String newState;
+    if (TaskState.isPending(state))
+    {
+      newState = TaskState.CANCELED_BEFORE_STARTING.name();
+    }
+    else
+    {
+      newState = TaskState.STOPPED_BY_ADMINISTRATOR.name();
+    }
+    LDAPAttribute attr = new LDAPAttribute(ATTR_TASK_STATE, newState);
+    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
+
+    ModifyRequestProtocolOp modRequest = new ModifyRequestProtocolOp(dn, mods);
+    LDAPMessage requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(), modRequest, null);
+
+    writer.writeMessage(requestMessage);
+
+    LDAPMessage responseMessage = reader.readMessage();
+    if (responseMessage == null)
+    {
+      LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
+      throw new LDAPException(UNAVAILABLE.intValue(), message);
+    }
+    if (responseMessage.getProtocolOpType() != LDAPConstants.OP_TYPE_MODIFY_RESPONSE)
+    {
+      throw new LDAPException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, ERR_TASK_CLIENT_INVALID_RESPONSE_TYPE
+          .get(responseMessage.getProtocolOpName()));
+    }
+
+    ModifyResponseProtocolOp modResponse = responseMessage.getModifyResponseProtocolOp();
+    LocalizableMessage errorMessage = modResponse.getErrorMessage();
+    if (errorMessage != null)
+    {
+      throw new LDAPException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, errorMessage);
+    }
+  }
+
+  private void cancelRecurringTask(TaskEntry entry, LDAPWriter writer, LDAPReader reader)
+      throws IOException, LDAPException
+  {
+    ByteString dn = ByteString.valueOfUtf8(entry.getDN().toString());
+    DeleteRequestProtocolOp deleteRequest = new DeleteRequestProtocolOp(dn);
+    LDAPMessage requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(), deleteRequest, null);
+    writer.writeMessage(requestMessage);
+
+    LDAPMessage responseMessage = reader.readMessage();
+    if (responseMessage == null)
+    {
+      LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
+      throw new LDAPException(UNAVAILABLE.intValue(), message);
+    }
+    if (responseMessage.getProtocolOpType() != LDAPConstants.OP_TYPE_DELETE_RESPONSE)
+    {
+      LocalizableMessage msg = ERR_TASK_CLIENT_INVALID_RESPONSE_TYPE.get(responseMessage.getProtocolOpName());
+      throw new LDAPException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, msg);
+    }
+
+    DeleteResponseProtocolOp deleteResponse = responseMessage.getDeleteResponseProtocolOp();
+    LocalizableMessage errorMessage = deleteResponse.getErrorMessage();
+    if (errorMessage != null)
+    {
+      throw new LDAPException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, errorMessage);
+    }
+  }
 
   /**
    * Writes a search to the directory writer.
@@ -518,5 +500,4 @@ public class TaskClient {
     // Send the request to the server and read the response.
     writer.writeMessage(requestMessage);
   }
-
 }

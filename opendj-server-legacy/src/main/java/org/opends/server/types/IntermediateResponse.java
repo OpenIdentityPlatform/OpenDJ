@@ -16,13 +16,11 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
-
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class defines a data structure for holding information that
@@ -32,23 +30,17 @@ import java.util.List;
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=true,
-     mayExtend=false,
      mayInvoke=true)
 public final class IntermediateResponse
 {
   /** The value for this intermediate response. */
   private ByteString value;
-
   /** The set of controls for this intermediate response. */
-  private List<Control> controls;
-
+  private final List<Control> controls;
   /** The operation with which this intermediate response is associated. */
-  private Operation operation;
-
+  private final Operation operation;
   /** The OID for this intermediate response. */
   private String oid;
-
-
 
   /**
    * Creates a new intermediate response with the provided
@@ -69,17 +61,15 @@ public final class IntermediateResponse
     this.oid       = oid;
     this.value     = value;
 
-    if (controls == null)
-    {
-      this.controls = new ArrayList<>(0);
-    }
-    else
+    if (controls != null)
     {
       this.controls = controls;
     }
+    else
+    {
+      this.controls = new ArrayList<>(0);
+    }
   }
-
-
 
   /**
    * Retrieves the operation with which this intermediate response
@@ -93,8 +83,6 @@ public final class IntermediateResponse
     return operation;
   }
 
-
-
   /**
    * Retrieves the OID for this intermediate response.
    *
@@ -106,8 +94,6 @@ public final class IntermediateResponse
     return oid;
   }
 
-
-
   /**
    * Specifies the OID for this intermediate response.
    *
@@ -117,8 +103,6 @@ public final class IntermediateResponse
   {
     this.oid = oid;
   }
-
-
 
   /**
    * Retrieves the value for this intermediate response.
@@ -131,8 +115,6 @@ public final class IntermediateResponse
     return value;
   }
 
-
-
   /**
    * Specifies the value for this intermediate response.
    *
@@ -142,8 +124,6 @@ public final class IntermediateResponse
   {
     this.value = value;
   }
-
-
 
   /**
    * Retrieves the set of controls for this intermediate response.
@@ -156,8 +136,6 @@ public final class IntermediateResponse
   {
     return controls;
   }
-
-
 
   /**
    * Retrieves a string representation of this intermediate response.
@@ -172,8 +150,6 @@ public final class IntermediateResponse
     return buffer.toString();
   }
 
-
-
   /**
    * Appends a string representation of this intermediate response to
    * the provided buffer.
@@ -181,7 +157,7 @@ public final class IntermediateResponse
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
-  public void toString(StringBuilder buffer)
+  private void toString(StringBuilder buffer)
   {
     buffer.append("IntermediateResponse(operation=");
     operation.toString(buffer);
@@ -207,4 +183,3 @@ public final class IntermediateResponse
     buffer.append(")");
   }
 }
-

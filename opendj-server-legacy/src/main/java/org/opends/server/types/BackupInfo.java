@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -47,51 +49,51 @@ public final class BackupInfo
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The name of the property that holds the date that the backup was created. */
-  public static final String PROPERTY_BACKUP_DATE = "backup_date";
+  private static final String PROPERTY_BACKUP_DATE = "backup_date";
   /** The name of the property that holds the backup ID in encoded representations. */
-  public static final String PROPERTY_BACKUP_ID = "backup_id";
+  private static final String PROPERTY_BACKUP_ID = "backup_id";
 
   /** The name of the property that holds the incremental flag in encoded representations. */
-  public static final String PROPERTY_IS_INCREMENTAL = "incremental";
+  private static final String PROPERTY_IS_INCREMENTAL = "incremental";
   /** The name of the property that holds the compressed flag in encoded representations. */
-  public static final String PROPERTY_IS_COMPRESSED = "compressed";
+  private static final String PROPERTY_IS_COMPRESSED = "compressed";
   /** The name of the property that holds the encrypted flag in encoded representations. */
-  public static final String PROPERTY_IS_ENCRYPTED = "encrypted";
+  private static final String PROPERTY_IS_ENCRYPTED = "encrypted";
   /** The name of the property that holds the unsigned hash in encoded representations. */
-  public static final String PROPERTY_UNSIGNED_HASH = "hash";
+  private static final String PROPERTY_UNSIGNED_HASH = "hash";
   /** The name of the property that holds the signed hash in encoded representations. */
-  public static final String PROPERTY_SIGNED_HASH = "signed_hash";
+  private static final String PROPERTY_SIGNED_HASH = "signed_hash";
   /**
    * The name of the property that holds the set of dependencies in
    * encoded representations (one dependency per instance).
    */
-  public static final String PROPERTY_DEPENDENCY = "dependency";
+  private static final String PROPERTY_DEPENDENCY = "dependency";
   /**
    * The prefix to use with custom backup properties.  The name of the
    * property will be appended to this prefix.
    */
-  public static final String PROPERTY_CUSTOM_PREFIX = "property.";
+  private static final String PROPERTY_CUSTOM_PREFIX = "property.";
 
   /** The backup directory with which this backup info structure is associated. */
-  private BackupDirectory backupDirectory;
+  private final BackupDirectory backupDirectory;
 
   /** Indicates whether this backup is compressed. */
-  private boolean isCompressed;
+  private final boolean isCompressed;
   /** Indicates whether this backup is encrypted. */
-  private boolean isEncrypted;
+  private final boolean isEncrypted;
   /** Indicates whether this is an incremental backup. */
-  private boolean isIncremental;
+  private final boolean isIncremental;
 
   /** The signed hash for this backup, if appropriate. */
-  private byte[] signedHash;
+  private final byte[] signedHash;
   /** The unsigned hash for this backup, if appropriate. */
-  private byte[] unsignedHash;
+  private final byte[] unsignedHash;
 
   /** The time that this backup was created. */
-  private Date backupDate;
+  private final Date backupDate;
 
   /** The set of backup ID(s) on which this backup is dependent. */
-  private HashSet<String> dependencies;
+  private final Set<String> dependencies;
 
   /**
    * The set of additional properties associated with this backup.
@@ -101,10 +103,10 @@ public final class BackupInfo
    * the name must not contain an equal sign and neither the name nor
    * the value may contain line breaks;
    */
-  private HashMap<String,String> backupProperties;
+  private final Map<String, String> backupProperties;
 
   /** The unique ID for this backup. */
-  private String backupID;
+  private final String backupID;
 
   /**
    * Creates a new backup info structure with the provided
@@ -269,7 +271,7 @@ public final class BackupInfo
    * @return  The set of the backup IDs for the backups on which this
    *          backup is dependent.
    */
-  public HashSet<String> getDependencies()
+  public Set<String> getDependencies()
   {
     return dependencies;
   }
@@ -303,23 +305,9 @@ public final class BackupInfo
    * @return  A set of additional properties that should be associated
    *          with this backup.
    */
-  public HashMap<String,String> getBackupProperties()
+  public Map<String, String> getBackupProperties()
   {
     return backupProperties;
-  }
-
-  /**
-   * Retrieves the value of the backup property with the specified
-   * name.
-   *
-   * @param  name  The name of the backup property to retrieve.
-   *
-   * @return  The value of the backup property with the specified
-   *          name, or <CODE>null</CODE> if there is no such property.
-   */
-  public String getBackupProperty(String name)
-  {
-    return backupProperties.get(name);
   }
 
   /**
@@ -330,7 +318,7 @@ public final class BackupInfo
    * @return  A multi-line string representation of this backup info
    *          structure.
    */
-  public LinkedList<String> encode()
+  public List<String> encode()
   {
     LinkedList<String> list = new LinkedList<>();
     SimpleDateFormat   dateFormat =
@@ -545,10 +533,9 @@ public final class BackupInfo
    * @param  buffer  The buffer to which the information should be
    *                 written.
    */
-  public void toString(StringBuilder buffer)
+  private void toString(StringBuilder buffer)
   {
-    LinkedList<String> lines = encode();
-    for (String line : lines)
+    for (String line : encode())
     {
       buffer.append(line);
       buffer.append(EOL);

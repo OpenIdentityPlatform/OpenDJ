@@ -61,7 +61,7 @@ public class ExportTask extends Task
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Stores mapping between configuration attribute name and its label. */
-  private static Map<String,LocalizableMessage> argDisplayMap = new HashMap<>();
+  private static final Map<String, LocalizableMessage> argDisplayMap = new HashMap<>();
   static {
     argDisplayMap.put(ATTR_TASK_EXPORT_LDIF_FILE, INFO_EXPORT_ARG_LDIF_FILE.get());
     argDisplayMap.put(ATTR_TASK_EXPORT_BACKEND_ID, INFO_EXPORT_ARG_BACKEND_ID.get());

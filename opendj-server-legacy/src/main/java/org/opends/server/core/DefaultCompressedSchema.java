@@ -79,20 +79,18 @@ public final class DefaultCompressedSchema extends CompressedSchema
   /** Loads the compressed schema information from disk. */
   private void load()
   {
-    FileInputStream inputStream = null;
-
-    try
+    // Determine the location of the compressed schema data file. It should
+    // be in the config directory with a name of "schematokens.dat". If that
+    // file doesn't exist, then don't do anything.
+    final String path = DirectoryServer.getInstanceRoot() + File.separator
+        + CONFIG_DIR_NAME + File.separator + COMPRESSED_SCHEMA_FILE_NAME;
+    if (!new File(path).exists())
     {
-      // Determine the location of the compressed schema data file. It should
-      // be in the config directory with a name of "schematokens.dat". If that
-      // file doesn't exist, then don't do anything.
-      final String path = DirectoryServer.getInstanceRoot() + File.separator
-          + CONFIG_DIR_NAME + File.separator + COMPRESSED_SCHEMA_FILE_NAME;
-      if (!new File(path).exists())
-      {
-        return;
-      }
-      inputStream = new FileInputStream(path);
+      return;
+    }
+
+    try (FileInputStream inputStream = new FileInputStream(path))
+    {
       final ASN1Reader reader = ASN1.getReader(inputStream);
 
       // The first element in the file should be a sequence of object class
@@ -151,10 +149,6 @@ public final class DefaultCompressedSchema extends CompressedSchema
       // FIXME -- Should we do something else here?
       throw new RuntimeException(e);
     }
-    finally
-    {
-      close(inputStream);
-    }
   }
 
   /**
@@ -167,17 +161,13 @@ public final class DefaultCompressedSchema extends CompressedSchema
   {
     synchronized (saveLock)
     {
-      FileOutputStream outputStream = null;
-      try
+      // Determine the location of the "live" compressed schema data file, and
+      // then append ".tmp" to get the name of the temporary file that we will use.
+      final String path = DirectoryServer.getInstanceRoot() + File.separator
+          + CONFIG_DIR_NAME + File.separator + COMPRESSED_SCHEMA_FILE_NAME;
+      final String tempPath = path + ".tmp";
+      try (FileOutputStream outputStream = new FileOutputStream(tempPath))
       {
-        // Determine the location of the "live" compressed schema data file, and
-        // then append ".tmp" to get the name of the temporary file that we will
-        // use.
-        final String path = DirectoryServer.getInstanceRoot() + File.separator
-            + CONFIG_DIR_NAME + File.separator + COMPRESSED_SCHEMA_FILE_NAME;
-        final String tempPath = path + ".tmp";
-
-        outputStream = new FileOutputStream(tempPath);
         final ASN1Writer writer = ASN1.getWriter(outputStream);
 
         // The first element in the file should be a sequence of object class
@@ -255,10 +245,6 @@ public final class DefaultCompressedSchema extends CompressedSchema
             .get(stackTraceToSingleLineString(e));
         throw new DirectoryException(
             DirectoryServer.getServerErrorResultCode(), message, e);
-      }
-      finally
-      {
-        close(outputStream);
       }
     }
   }

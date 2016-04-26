@@ -54,11 +54,11 @@ public final class LDAPURL
   /** The default scheme that will be used if none is provided. */
   public static final String DEFAULT_SCHEME = "ldap";
   /** The default port value that will be used if none is provided. */
-  public static final int DEFAULT_PORT = 389;
+  private static final int DEFAULT_PORT = 389;
   /** The default base DN that will be used if none is provided. */
-  public static final DN DEFAULT_BASE_DN = DN.rootDN();
+  private static final DN DEFAULT_BASE_DN = DN.rootDN();
   /** The default search scope that will be used if none is provided. */
-  public static final SearchScope DEFAULT_SEARCH_SCOPE =
+  private static final SearchScope DEFAULT_SEARCH_SCOPE =
        SearchScope.BASE_OBJECT;
   /** The default search filter that will be used if none is provided. */
   public static final SearchFilter DEFAULT_SEARCH_FILTER =
@@ -82,9 +82,9 @@ public final class LDAPURL
   private String rawFilter;
 
   /** The set of attributes for this LDAP URL. */
-  private LinkedHashSet<String> attributes;
+  private final LinkedHashSet<String> attributes;
   /** The set of extensions for this LDAP URL. */
-  private LinkedList<String> extensions;
+  private final List<String> extensions;
 
 
   /** The scheme (i.e., protocol) for this LDAP URL. */
@@ -110,7 +110,7 @@ public final class LDAPURL
   public LDAPURL(String scheme, String host, int port,
                  String rawBaseDN, LinkedHashSet<String> attributes,
                  SearchScope scope, String rawFilter,
-                 LinkedList<String> extensions)
+                 List<String> extensions)
   {
     this.host = toLowerCase(host);
 
@@ -193,7 +193,7 @@ public final class LDAPURL
    */
   public LDAPURL(String scheme, String host, int port, DN baseDN,
                  LinkedHashSet<String> attributes, SearchScope scope,
-                 SearchFilter filter, LinkedList<String> extensions)
+                 SearchFilter filter, List<String> extensions)
   {
     this.host = toLowerCase(host);
 
@@ -377,10 +377,7 @@ public final class LDAPURL
                          DEFAULT_SEARCH_SCOPE, DEFAULT_SEARCH_FILTER,
                          null);
     }
-    else
-    {
-      startPos = pos;
-    }
+    startPos = pos;
 
 
     // The next delimiter should be a question mark.  If there isn't
@@ -1180,7 +1177,7 @@ public final class LDAPURL
    *
    * @return  The set of extensions for this LDAP URL.
    */
-  public LinkedList<String> getExtensions()
+  public List<String> getExtensions()
   {
     return extensions;
   }

@@ -78,7 +78,7 @@ public final class UpgradeContext
    *          The call-back handler for interacting with the upgrade
    *          application.
    */
-  public UpgradeContext(final BuildVersion fromVersion,
+  private UpgradeContext(final BuildVersion fromVersion,
       final BuildVersion toVersion, CallbackHandler handler)
   {
     this.fromVersion = fromVersion;
@@ -150,16 +150,6 @@ public final class UpgradeContext
   {
     this.isAcceptLicenseMode = isAcceptLicenseMode;
     return this;
-  }
-
-  /**
-   * Returns the callback handler.
-   *
-   * @return The actual callback handler.
-   */
-  CallbackHandler getHandler()
-  {
-    return handler;
   }
 
   /**

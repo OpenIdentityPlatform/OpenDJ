@@ -14,7 +14,6 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -26,12 +25,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.tools.ManageTasks;
 import org.opends.server.tools.tasks.TaskEntry;
 
@@ -174,30 +174,27 @@ public class CancelTaskTask extends Task
 
         arguments.toArray(args);
 
-        returnCode = ManageTasks.mainTaskInfo(args, System.in,
-            outPrintStream, errorPrintStream, false);
+        returnCode = ManageTasks.mainTaskInfo(args, outPrintStream, errorPrintStream, false);
         if (returnCode != 0)
         {
           break;
         }
-        else
+
+        numberCanceled++;
+        final int fNumberCanceled = numberCanceled;
+        SwingUtilities.invokeLater(new Runnable()
         {
-          numberCanceled ++;
-          final int fNumberCanceled = numberCanceled;
-          SwingUtilities.invokeLater(new Runnable()
+          @Override
+          public void run()
           {
-            @Override
-            public void run()
+            JProgressBar progressBar = getProgressDialog().getProgressBar();
+            if (fNumberCanceled == 1)
             {
-              if (fNumberCanceled == 1)
-              {
-                getProgressDialog().getProgressBar().setIndeterminate(false);
-              }
-              getProgressDialog().getProgressBar().setValue(
-                  (fNumberCanceled * 100) / totalNumber);
+              progressBar.setIndeterminate(false);
             }
-          });
-        }
+            progressBar.setValue((fNumberCanceled * 100) / totalNumber);
+          }
+        });
       }
       if (returnCode != 0)
       {

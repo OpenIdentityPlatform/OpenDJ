@@ -16,9 +16,9 @@
  */
 package org.opends.server.util.cli;
 
-import static org.opends.messages.ToolMessages.*;
-
 import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
 import java.util.LinkedList;
@@ -52,7 +52,6 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public class LDAPConnectionArgumentParser extends ArgumentParser
 {
-
   private SecureConnectionCliArgs args;
 
   /**
@@ -305,34 +304,6 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
    *          with which to connect
    * @param options
    *          with which to connect
-   * @param out
-   *          stream to write messages
-   * @param err
-   *          stream to write error messages
-   * @return LDAPConnection created by this class from parsed arguments
-   * @throws LDAPConnectionException
-   *           if there was a problem connecting to the server indicated by the
-   *           input arguments
-   */
-  public LDAPConnection connect(String host, int port, String bindDN, String bindPw, LDAPConnectionOptions options,
-      PrintStream out, PrintStream err) throws LDAPConnectionException
-  {
-    return connect(host, port, bindDN, bindPw, options, 0, out, err);
-  }
-
-  /**
-   * Creates a connection from information provided.
-   *
-   * @param host
-   *          of the server
-   * @param port
-   *          of the server
-   * @param bindDN
-   *          with which to connect
-   * @param bindPw
-   *          with which to connect
-   * @param options
-   *          with which to connect
    * @param timeout
    *          the timeout to establish the connection in milliseconds. Use
    *          {@code 0} to express no timeout
@@ -345,7 +316,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
    *           if there was a problem connecting to the server indicated by the
    *           input arguments
    */
-  public LDAPConnection connect(String host, int port, String bindDN, String bindPw, LDAPConnectionOptions options,
+  private LDAPConnection connect(String host, int port, String bindDN, String bindPw, LDAPConnectionOptions options,
       int timeout, PrintStream out, PrintStream err) throws LDAPConnectionException
   {
     // Attempt to connect and authenticate to the Directory Server.

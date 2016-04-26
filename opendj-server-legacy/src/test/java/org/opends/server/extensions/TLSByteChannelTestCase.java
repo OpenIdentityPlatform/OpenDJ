@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -35,22 +35,16 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
-/**
- * Tests for {@link TLSByteChannel} class.
- */
-@Test(groups = { "slow" }, sequential = true)
+/** Tests for {@link TLSByteChannel} class. */
+@Test(groups = "slow", sequential = true)
 public class TLSByteChannelTestCase extends DirectoryServerTestCase
 {
-
-  /**
-   * Cipher suite hardcoded from the IANA registry on internet.
-   */
+  /** Cipher suite hardcoded from the IANA registry on internet. */
   static final String[][] HARDCODED_CIPHER_SUITE = new String[][] {
         { "TLS_NULL_WITH_NULL_NULL" },
         { "TLS_RSA_WITH_NULL_MD5" },
@@ -378,9 +372,8 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
     String url =
         "http://www.iana.org/assignments/tls-parameters/tls-parameters.xml";
     URLConnection conn = new URL(url).openConnection();
-    BufferedInputStream bis = new BufferedInputStream(conn.getInputStream());
 
-    try
+    try (BufferedInputStream bis = new BufferedInputStream(conn.getInputStream()))
     {
       // JAXP boilerplate
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -394,10 +387,6 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
           "//registry[@id='tls-parameters-4']/record/description/text()";
       List<String> realCiphers = retrieveRealCiphers(doc, xpath, xPathExpr);
       return toDataProviderResult(realCiphers);
-    }
-    finally
-    {
-      StaticUtils.close(bis);
     }
   }
 
@@ -496,9 +485,7 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
         .getSSF("TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA"));
   }
 
-  /**
-   * Ensures that no new overlapping cipher strings are added to the cipher map.
-   */
+  /** Ensures that no new overlapping cipher strings are added to the cipher map. */
   @Test
   public void checkNoUnknownOverlappingCiphers()
   {
@@ -520,15 +507,11 @@ public class TLSByteChannelTestCase extends DirectoryServerTestCase
     }
   }
 
-  /**
-   * Ensure the set (cipher1, cipher2) is different from the set (match1,
-   * match2).
-   */
+  /** Ensure the set (cipher1, cipher2) is different from the set (match1, match2). */
   private boolean not(String cipher1, String cipher2, String match1,
       String match2)
   {
     return (!cipher1.equals(match1) || !cipher2.equals(match2))
         && (!cipher2.equals(match1) || !cipher1.equals(match2));
   }
-
 }

@@ -16,6 +16,15 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,15 +75,6 @@ import org.opends.server.types.operation.PostSynchronizationAddOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.types.AbstractOperation.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
-
 /**
  * This class defines an operation used to add an entry in a local backend
  * of the Directory Server.
@@ -94,7 +94,6 @@ public class LocalBackendAddOperation
 
   /** The DN of the entry to be added. */
   private DN entryDN;
-
   /** The entry being added to the server. */
   private Entry entry;
 
@@ -103,10 +102,8 @@ public class LocalBackendAddOperation
 
   /** The set of object classes for the entry to add. */
   private Map<ObjectClass, String> objectClasses;
-
   /** The set of operational attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> operationalAttributes;
-
   /** The set of user attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> userAttributes;
 
@@ -243,8 +240,7 @@ public class LocalBackendAddOperation
         }
         else
         {
-          // The entry doesn't have a parent but isn't a suffix.  This is not
-          // allowed.
+          // The entry doesn't have a parent but isn't a suffix. This is not allowed.
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_ADD_ENTRY_NOT_SUFFIX.get(entryDN));
         }
       }
@@ -609,35 +605,6 @@ public class LocalBackendAddOperation
     attrList.add(Attributes.create(t, n, v));
   }
 
-
-
-  /**
-   * Adds the provided objectClass to the entry, along with its superior classes
-   * if appropriate.
-   *
-   * @param  objectClass  The objectclass to add to the entry.
-   */
-  public final void addObjectClassChain(ObjectClass objectClass)
-  {
-    Map<ObjectClass, String> objectClasses = getObjectClasses();
-    if (objectClasses != null){
-      if (! objectClasses.containsKey(objectClass))
-      {
-        objectClasses.put(objectClass, objectClass.getNameOrOID());
-      }
-
-      for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
-      {
-        if (!objectClasses.containsKey(superiorClass))
-        {
-          addObjectClassChain(superiorClass);
-        }
-      }
-    }
-  }
-
-
-
   /**
    * Performs all password policy processing necessary for the provided add
    * operation.
@@ -645,7 +612,7 @@ public class LocalBackendAddOperation
    * @throws  DirectoryException  If a problem occurs while performing password
    *                              policy processing for the add operation.
    */
-  public final void handlePasswordPolicy()
+  private final void handlePasswordPolicy()
          throws DirectoryException
   {
     // Construct any virtual/collective attributes which might
@@ -654,8 +621,7 @@ public class LocalBackendAddOperation
     AuthenticationPolicy policy = AuthenticationPolicy.forUser(copy, false);
     if (!policy.isPasswordPolicy())
     {
-      // The entry doesn't have a locally managed password, so no action is
-      // required.
+      // The entry doesn't have a locally managed password, so no action is required.
       return;
     }
     PasswordPolicy passwordPolicy = (PasswordPolicy) policy;
@@ -695,8 +661,7 @@ public class LocalBackendAddOperation
         && !passwordPolicy.isAllowMultiplePasswordValues()
         && passwordAttr.size() > 1)
     {
-      // FIXME -- What if they're pre-encoded and might all be the
-      // same?
+      // FIXME -- What if they're pre-encoded and might all be the same?
       addPWPolicyControl(PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED);
 
       LocalizableMessage message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED
@@ -710,29 +675,12 @@ public class LocalBackendAddOperation
     for (ByteString value : passwordAttr)
     {
       // See if the password is pre-encoded.
-      if (passwordPolicy.isAuthPasswordSyntax())
+      boolean isPreEncoded = passwordPolicy.isAuthPasswordSyntax()
+          ? AuthPasswordSyntax.isEncoded(value)
+          : UserPasswordSyntax.isEncoded(value);
+      if (isPreEncoded)
       {
-        if (AuthPasswordSyntax.isEncoded(value))
-        {
-          if (isInternalOperation()
-              || passwordPolicy.isAllowPreEncodedPasswords())
-          {
-            builder.add(value);
-            continue;
-          }
-          else
-          {
-            addPWPolicyControl(PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
-
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(passwordAttribute.getNameOrOID()));
-          }
-        }
-      }
-      else if (UserPasswordSyntax.isEncoded(value))
-      {
-        if (isInternalOperation()
-            || passwordPolicy.isAllowPreEncodedPasswords())
+        if (isInternalOperation() || passwordPolicy.isAllowPreEncodedPasswords())
         {
           builder.add(value);
           continue;
@@ -741,8 +689,8 @@ public class LocalBackendAddOperation
         {
           addPWPolicyControl(PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(passwordAttribute.getNameOrOID()));
+          LocalizableMessage msg = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(passwordAttribute.getNameOrOID());
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, msg);
         }
       }
 
@@ -810,8 +758,6 @@ public class LocalBackendAddOperation
       entry.putAttribute(reset.getAttributeDescription().getAttributeType(), newArrayList(reset));
     }
   }
-
-
 
   /**
    * Adds a password policy response control if the corresponding request

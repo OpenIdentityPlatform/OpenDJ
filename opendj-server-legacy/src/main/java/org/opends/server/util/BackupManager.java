@@ -82,9 +82,7 @@ public class BackupManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The common prefix for archive files.
-   */
+  /** The common prefix for archive files. */
   private static final String BACKUP_BASE_FILENAME = "backup-";
 
   /**
@@ -99,7 +97,6 @@ public class BackupManager
    */
   private static final String PROPERTY_LAST_LOGFILE_SIZE = "last_logfile_size";
 
-
   /**
    * The name of the entry in an incremental backup archive file
    * containing a list of log files that are unchanged since the
@@ -113,10 +110,7 @@ public class BackupManager
    */
   private static final String ZIPENTRY_EMPTY_PLACEHOLDER = "empty.placeholder";
 
-
-  /**
-   * The backend ID.
-   */
+  /** The backend ID. */
   private final String backendID;
 
   /**
@@ -258,13 +252,11 @@ public class BackupManager
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
       }
     }
-
   }
 
   /** Represents the cryptographic engine with no hash used for a backup. */
   private static final class NoHashCryptoEngine extends CryptoEngine
   {
-
     NoHashCryptoEngine(boolean shouldEncrypt)
     {
       super(shouldEncrypt);
@@ -294,12 +286,9 @@ public class BackupManager
       // check never fails because bytes are always null
       return null;
     }
-
   }
 
-  /**
-   * Represents the cryptographic engine with signed hash.
-   */
+  /** Represents the cryptographic engine with signed hash. */
   private static final class MacCryptoEngine extends CryptoEngine
   {
     private Mac mac;
@@ -328,7 +317,7 @@ public class BackupManager
     private MacCryptoEngine(BackupInfo backupInfo) throws DirectoryException
     {
       super(backupInfo.isEncrypted());
-      HashMap<String,String> backupProperties = backupInfo.getBackupProperties();
+      Map<String, String> backupProperties = backupInfo.getBackupProperties();
       String macKeyID = backupProperties.get(BACKUP_PROPERTY_MAC_KEY_ID);
       retrieveMacEngine(macKeyID);
     }
@@ -346,14 +335,12 @@ public class BackupManager
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     void updateHashWith(String s)
     {
       mac.update(getBytes(s));
     }
 
-    /** {@inheritDoc} */
     @Override
     void updateHashWith(byte[] buffer, int offset, int len)
     {
@@ -383,7 +370,6 @@ public class BackupManager
     {
       return "MacCryptoEngine [mac=" + mac + "]";
     }
-
   }
 
   /** Represents the cryptographic engine with unsigned hash used for a backup. */
@@ -404,7 +390,7 @@ public class BackupManager
     private DigestCryptoEngine(BackupInfo backupInfo) throws DirectoryException
     {
       super(backupInfo.isEncrypted());
-      HashMap<String, String> backupProperties = backupInfo.getBackupProperties();
+      Map<String, String> backupProperties = backupInfo.getBackupProperties();
       String digestAlgorithm = backupProperties.get(BACKUP_PROPERTY_DIGEST_ALGORITHM);
       digest = retrieveMessageDigest(digestAlgorithm);
     }
@@ -423,28 +409,24 @@ public class BackupManager
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void updateHashWith(String s)
     {
       digest.update(getBytes(s));
     }
 
-    /** {@inheritDoc} */
     @Override
     public void updateHashWith(byte[] buffer, int offset, int len)
     {
       digest.update(buffer, offset, len);
     }
 
-    /** {@inheritDoc} */
     @Override
     public byte[] generateBytes()
     {
       return digest.digest();
     }
 
-    /** {@inheritDoc} */
     @Override
     LocalizableMessage getErrorMessageForCheck(String backupID)
     {
@@ -456,12 +438,9 @@ public class BackupManager
     {
       return "DigestCryptoEngine [digest=" + digest + "]";
     }
-
   }
 
-  /**
-   * Contains all parameters for creation of a new backup.
-   */
+  /** Contains all parameters for creation of a new backup. */
   private static final class NewBackupParams
   {
     final String backupID;
@@ -520,12 +499,10 @@ public class BackupManager
     {
       return "BackupCreationParams [backupID=" + backupID + ", backupDir=" + backupDir.getPath() + "]";
     }
-
   }
 
   /** Represents a new backup archive. */
   private static final class NewBackupArchive {
-
     private final String archiveFilename;
 
     private String latestFileName;
@@ -545,7 +522,7 @@ public class BackupManager
       dependencies = new HashSet<>();
       if (backupParams.isIncremental)
       {
-        HashMap<String,String> properties = backupParams.baseBackupInfo.getBackupProperties();
+        Map<String, String> properties = backupParams.baseBackupInfo.getBackupProperties();
         latestFileName = properties.get(PROPERTY_LAST_LOGFILE_NAME);
         latestFileSize = Long.parseLong(properties.get(PROPERTY_LAST_LOGFILE_SIZE));
       }
@@ -613,12 +590,10 @@ public class BackupManager
       return "NewArchive [archive file=" + archiveFilename + ", latestFileName=" + latestFileName
           + ", backendID=" + backendID + "]";
     }
-
   }
 
   /** Represents an existing backup archive. */
   private static final class ExistingBackupArchive {
-
     private final String backupID;
     private final BackupDirectory backupDir;
     private final BackupInfo backupInfo;
@@ -700,12 +675,10 @@ public class BackupManager
 
       return archiveFile.delete();
     }
-
   }
 
   /** Represents a writer of a backup archive. */
   private static final class BackupArchiveWriter implements Closeable {
-
     private final ZipOutputStream zipOutputStream;
     private final NewBackupArchive archive;
     private final CryptoEngine cryptoEngine;
@@ -745,10 +718,8 @@ public class BackupManager
 
       cryptoMethod.updateHashWith(relativePath);
 
-      InputStream inputStream = null;
       long totalBytesRead = 0;
-      try {
-        inputStream = new FileInputStream(file.toFile());
+      try (InputStream inputStream = new FileInputStream(file.toFile())) {
         byte[] buffer = new byte[8192];
         int bytesRead = inputStream.read(buffer);
         while (bytesRead > 0 && !backupConfig.isCancelled())
@@ -758,9 +729,6 @@ public class BackupManager
           totalBytesRead += bytesRead;
           bytesRead = inputStream.read(buffer);
         }
-      }
-      finally {
-        StaticUtils.close(inputStream);
       }
 
       zipOutputStream.closeEntry();
@@ -824,7 +792,6 @@ public class BackupManager
      * <p>
      * The unchanged files names are listed in the "unchanged.txt" file, which
      * is put in the archive.
-     *
      */
     void writeUnchangedFiles(Path rootDirectory, ListIterator<Path> files, BackupConfig backupConfig)
         throws DirectoryException
@@ -869,9 +836,7 @@ public class BackupManager
       archive.addBaseBackupAsDependency();
     }
 
-    /**
-     * Writes the new files in the archive.
-     */
+    /** Writes the new files in the archive. */
     void writeChangedFiles(Path rootDirectory, ListIterator<Path> files, BackupConfig backupConfig)
         throws DirectoryException
     {
@@ -957,12 +922,10 @@ public class BackupManager
       return "BackupArchiveWriter [archive file=" + archive.getArchiveFilename() + ", backendId="
           + archive.getBackendID() + "]";
     }
-
   }
 
   /** Represents a reader of a backup archive. */
   private static final class BackupArchiveReader {
-
     private final CryptoEngine cryptoEngine;
     private final File archiveFile;
     private final String identifier;
@@ -998,10 +961,8 @@ public class BackupManager
     Set<String> readUnchangedDependentFiles() throws DirectoryException
     {
       Set<String> hashSet = new HashSet<>();
-      ZipInputStream zipStream = null;
-      try
+      try (ZipInputStream zipStream = openZipStream())
       {
-        zipStream = openZipStream();
 
         // Iterate through the entries in the zip file.
         ZipEntry zipEntry = zipStream.getNextEntry();
@@ -1023,9 +984,6 @@ public class BackupManager
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_BACKUP_CANNOT_RESTORE.get(
             identifier, stackTraceToSingleLineString(e)), e);
       }
-      finally {
-        StaticUtils.close(zipStream);
-      }
     }
 
     /**
@@ -1046,7 +1004,7 @@ public class BackupManager
     {
       try
       {
-        restoreArchive0(restoreDir, filesToRestore, restoreConfig, backupable);
+        restoreArchive0(restoreDir, filesToRestore, restoreConfig);
       }
       catch (IOException e)
       {
@@ -1060,13 +1018,11 @@ public class BackupManager
       cryptoEngine.check(hash, backupInfo.getBackupID());
     }
 
-    private void restoreArchive0(Path restoreDir, Set<String> filesToRestore, RestoreConfig restoreConfig,
-        Backupable backupable) throws DirectoryException, IOException {
-
-      ZipInputStream zipStream = null;
-      try {
-          zipStream = openZipStream();
-
+    private void restoreArchive0(Path restoreDir, Set<String> filesToRestore, RestoreConfig restoreConfig)
+        throws DirectoryException, IOException
+    {
+      try (ZipInputStream zipStream = openZipStream())
+      {
           ZipEntry zipEntry = zipStream.getNextEntry();
           while (zipEntry != null && !restoreConfig.isCancelled())
           {
@@ -1092,9 +1048,6 @@ public class BackupManager
 
             zipEntry = zipStream.getNextEntry();
           }
-      }
-      finally {
-        StaticUtils.close(zipStream);
       }
     }
 
@@ -1127,9 +1080,7 @@ public class BackupManager
       return Pair.of(false, null);
     }
 
-    /**
-     * Restores a zip entry virtually (no actual write on disk).
-     */
+    /** Restores a zip entry virtually (no actual write on disk). */
     private void restoreZipEntryVirtual(String zipEntryName, ZipInputStream zipStream, RestoreConfig restoreConfig)
             throws FileNotFoundException, IOException
     {
@@ -1141,26 +1092,18 @@ public class BackupManager
       restoreFile(zipStream, null, restoreConfig);
     }
 
-    /**
-     * Restores a zip entry with actual write on disk.
-     */
+    /** Restores a zip entry with actual write on disk. */
     private void restoreZipEntry(String zipEntryName, ZipInputStream zipStream, Path restoreDir,
         RestoreConfig restoreConfig) throws IOException, DirectoryException
     {
-      OutputStream outputStream = null;
-      long totalBytesRead = 0;
-      try
+      Path fileToRestore = restoreDir.resolve(zipEntryName);
+      ensureFileCanBeRestored(fileToRestore);
+
+      try (OutputStream outputStream = new FileOutputStream(fileToRestore.toFile()))
       {
-        Path fileToRestore = restoreDir.resolve(zipEntryName);
-        ensureFileCanBeRestored(fileToRestore);
-        outputStream = new FileOutputStream(fileToRestore.toFile());
         cryptoEngine.updateHashWith(zipEntryName);
-        totalBytesRead = restoreFile(zipStream, outputStream, restoreConfig);
+        long totalBytesRead = restoreFile(zipStream, outputStream, restoreConfig);
         logger.info(NOTE_BACKUP_RESTORED_FILE, zipEntryName, totalBytesRead);
-      }
-      finally
-      {
-        StaticUtils.close(outputStream);
       }
     }
 
@@ -1265,13 +1208,10 @@ public class BackupManager
     final CryptoEngine cryptoEngine = CryptoEngine.forCreation(backupConfig, backupParams);
     final NewBackupArchive newArchive = new NewBackupArchive(backendID, backupParams, cryptoEngine);
 
-    BackupArchiveWriter archiveWriter = null;
-    try
+    final ListIterator<Path> files = backupable.getFilesToBackup();
+    final Path rootDirectory = backupable.getDirectory().toPath();
+    try (BackupArchiveWriter archiveWriter = new BackupArchiveWriter(newArchive))
     {
-      final ListIterator<Path> files = backupable.getFilesToBackup();
-      final Path rootDirectory = backupable.getDirectory().toPath();
-      archiveWriter = new BackupArchiveWriter(newArchive);
-
       if (files.hasNext())
       {
         if (backupParams.isIncremental) {
@@ -1283,9 +1223,11 @@ public class BackupManager
         archiveWriter.writeEmptyPlaceHolder();
       }
     }
-    finally
+    catch (IOException e)
     {
-      closeArchiveWriter(archiveWriter, newArchive.getArchiveFilename(), backupParams.backupDir.getPath());
+      logger.traceException(e);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
+          newArchive.getArchiveFilename(), backupParams.backupDir.getPath(), stackTraceToSingleLineString(e)), e);
     }
 
     newArchive.updateBackupDirectory();
@@ -1617,5 +1559,4 @@ public class BackupManager
     }
     return highestNumber;
   }
-
 }

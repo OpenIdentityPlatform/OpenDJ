@@ -29,11 +29,11 @@ public class PointAdder implements Runnable
   private Thread t;
   private boolean stopPointAdder;
   private boolean pointAdderStopped;
-  private long periodTime = DEFAULT_PERIOD_TIME;
+  private final long periodTime;
   private final ProgressMessageFormatter formatter;
 
   /** The default period time used to write points in the output. */
-  public static final long DEFAULT_PERIOD_TIME = 3000;
+  private static final long DEFAULT_PERIOD_TIME = 3000;
 
   /**
    * Default constructor.
@@ -57,7 +57,7 @@ public class PointAdder implements Runnable
    * @param formatter
    *          The text formatter.
    */
-  public PointAdder(ConsoleApplication app, long periodTime, ProgressMessageFormatter formatter)
+  private PointAdder(ConsoleApplication app, long periodTime, ProgressMessageFormatter formatter)
   {
     this.app = app;
     this.periodTime = periodTime;

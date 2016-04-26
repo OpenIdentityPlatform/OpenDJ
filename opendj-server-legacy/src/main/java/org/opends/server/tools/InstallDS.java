@@ -29,7 +29,6 @@ import static org.opends.messages.UtilityMessages.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -41,13 +40,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.naming.ldap.LdapName;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.messages.QuickSetupMessages;
@@ -205,7 +204,6 @@ public class InstallDS extends ConsoleApplication
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
   /**
    * Constructor for the InstallDS object.
    *
@@ -213,12 +211,10 @@ public class InstallDS extends ConsoleApplication
    *          the print stream to use for standard output.
    * @param err
    *          the print stream to use for standard error.
-   * @param in
-   *          the input stream to use for standard input.
    * @param tempLogFile
    *          the temporary log file where messages will be logged.
    */
-  public InstallDS(PrintStream out, PrintStream err, InputStream in, TempLogFile tempLogFile)
+  private InstallDS(PrintStream out, PrintStream err, TempLogFile tempLogFile)
   {
     super(out, err);
     this.tempLogFile = tempLogFile;
@@ -236,7 +232,7 @@ public class InstallDS extends ConsoleApplication
    */
   public static int mainCLI(String[] args, final TempLogFile tempLogFile)
   {
-    return mainCLI(args, System.out, System.err, System.in, tempLogFile);
+    return mainCLI(args, System.out, System.err, tempLogFile);
   }
 
   /**
@@ -251,21 +247,19 @@ public class InstallDS extends ConsoleApplication
    * @param errStream
    *          The output stream to use for standard error, or <CODE>null</CODE>
    *          if standard error is not needed.
-   * @param inStream
-   *          The input stream to use for standard input.
    * @param tempLogFile
    *          the temporary log file where messages will be logged.
    * @return The error code.
    */
-  public static int mainCLI(
-      String[] args, OutputStream outStream, OutputStream errStream, InputStream inStream, TempLogFile tempLogFile)
+  private static int mainCLI(
+      String[] args, OutputStream outStream, OutputStream errStream, TempLogFile tempLogFile)
   {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-    final InstallDS install = new InstallDS(out, err, inStream, tempLogFile);
+    final InstallDS install = new InstallDS(out, err, tempLogFile);
 
     return install.execute(args);
   }
@@ -278,7 +272,7 @@ public class InstallDS extends ConsoleApplication
    *          the command-line arguments provided to this program.
    * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG).
    */
-  public int execute(String[] args)
+  private int execute(String[] args)
   {
     argParser = new InstallDSArgumentParser(InstallDS.class.getName());
     try
@@ -342,7 +336,6 @@ public class InstallDS extends ConsoleApplication
     {
       return printAndReturnErrorCode(e.getMessageObject()).getReturnCode();
     }
-
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     final Installer installer = new Installer();
@@ -511,7 +504,6 @@ public class InstallDS extends ConsoleApplication
     println();
   }
 
-
   private InstallReturnCode printAndReturnErrorCode(LocalizableMessage message)
   {
     println(message);
@@ -562,40 +554,33 @@ public class InstallDS extends ConsoleApplication
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isInteractive()
   {
     return !argParser.noPromptArg.isPresent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return argParser.verboseArg.isPresent();
@@ -685,9 +670,9 @@ public class InstallDS extends ConsoleApplication
   {
     try
     {
-      new LdapName(baseDN);
+      DN.valueOf(baseDN);
     }
-    catch (final Exception e)
+    catch (final LocalizedIllegalArgumentException | NullPointerException e)
     {
       errorMessages.add(ERR_INSTALLDS_CANNOT_PARSE_DN.get(baseDN, e.getMessage()));
     }
@@ -1010,7 +995,7 @@ public class InstallDS extends ConsoleApplication
       {
         try
         {
-          new LdapName(dn);
+          DN.valueOf(dn);
           if (dn.trim().length() == 0)
           {
             toRemove.add(dn);
@@ -1199,7 +1184,6 @@ public class InstallDS extends ConsoleApplication
     final List<String> baseDNs = promptIfRequiredForDNs(
             argParser.baseDNArg, lastResetBaseDN, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
     return promptIfRequiredForDataOptions(baseDNs);
-
   }
 
   private ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> getOrPromptForBackendType()
@@ -1611,7 +1595,6 @@ public class InstallDS extends ConsoleApplication
           INFO_INSTALLDS_CERT_OPTION_PKCS12.get(),
           INFO_INSTALLDS_CERT_OPTION_PKCS11.get()
       };
-
 
       final MenuBuilder<Integer> builder = new MenuBuilder<>(this);
       builder.setPrompt(INFO_INSTALLDS_HEADER_CERT_TYPE.get());
@@ -2555,5 +2538,4 @@ public class InstallDS extends ConsoleApplication
   {
     return argParser.getConnectTimeout();
   }
-
 }

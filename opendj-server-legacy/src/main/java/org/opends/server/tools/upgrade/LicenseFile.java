@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.opends.server.tools.upgrade;
@@ -174,7 +174,7 @@ class LicenseFile
    * @return <CODE>true</CODE> if the license has been accepted by the user
    *         <CODE>false</CODE> otherwise.
    */
-  static boolean getApproval()
+  private static boolean getApproval()
   {
     return approved;
   }

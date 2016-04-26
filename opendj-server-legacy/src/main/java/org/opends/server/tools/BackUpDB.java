@@ -93,18 +93,6 @@ public class BackUpDB extends TaskTool
   /**
    * Processes the command-line arguments and invokes the backup process.
    *
-   * @param  args  The command-line arguments provided to this program.
-   *
-   * @return The error code.
-   */
-  public static int mainBackUpDB(String[] args)
-  {
-    return mainBackUpDB(args, true, System.out, System.err);
-  }
-
-  /**
-   * Processes the command-line arguments and invokes the backup process.
-   *
    * @param  args              The command-line arguments provided to this
    *                           program.
    * @param  initializeServer  Indicates whether to initialize the server.

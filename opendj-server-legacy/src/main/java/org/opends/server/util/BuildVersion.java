@@ -152,7 +152,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
    * @param point
    *          Point release version number.
    */
-  public BuildVersion(final int major, final int minor, final int point)
+  private BuildVersion(final int major, final int minor, final int point)
   {
     this(major, minor, point, "");
   }
@@ -169,7 +169,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
    * @param rev
    *          VCS revision.
    */
-  public BuildVersion(final int major, final int minor, final int point, final String rev)
+  private BuildVersion(final int major, final int minor, final int point, final String rev)
   {
     this.major = major;
     this.minor = minor;

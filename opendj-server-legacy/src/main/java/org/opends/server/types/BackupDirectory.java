@@ -16,9 +16,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,9 +27,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -58,7 +57,7 @@ public final class BackupDirectory
    * the configuration entry for the backend associated with the
    * backups in this directory.
    */
-  public static final String PROPERTY_BACKEND_CONFIG_DN = "backend_dn";
+  private static final String PROPERTY_BACKEND_CONFIG_DN = "backend_dn";
 
   /**
    * The DN of the configuration entry for the backend with which this
@@ -101,7 +100,7 @@ public final class BackupDirectory
    *          Information about the set of backups available within the
    *          specified directory.
    */
-  public BackupDirectory(String path, DN configEntryDN, LinkedHashMap<String, BackupInfo> backups)
+  private BackupDirectory(String path, DN configEntryDN, LinkedHashMap<String, BackupInfo> backups)
   {
     this.path = path;
     this.configEntryDN = configEntryDN;
@@ -269,8 +268,7 @@ public final class BackupDirectory
       // Iterate through all of the backups and add them to the file.
       for (BackupInfo backup : backups.values())
       {
-        List<String> backupLines = backup.encode();
-        for (String line : backupLines)
+        for (String line : backup.encode())
         {
           writer.write(line);
           writer.newLine();

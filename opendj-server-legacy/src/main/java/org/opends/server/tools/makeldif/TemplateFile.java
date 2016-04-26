@@ -16,13 +16,12 @@
  */
 package org.opends.server.tools.makeldif;
 
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,13 +31,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a template file, which is a collection of constant
@@ -47,16 +44,15 @@ import static org.opends.server.util.StaticUtils.*;
 public class TemplateFile
 {
   /** The name of the file holding the list of first names. */
-  public static final String FIRST_NAME_FILE = "first.names";
+  private static final String FIRST_NAME_FILE = "first.names";
   /** The name of the file holding the list of last names. */
-  public static final String LAST_NAME_FILE = "last.names";
-
+  private static final String LAST_NAME_FILE = "last.names";
 
   /**
    * A map of the contents of various text files used during the parsing
    * process, mapped from absolute path to the array of lines in the file.
    */
-  private final HashMap<String, String[]> fileLines = new HashMap<>();
+  private final Map<String, String[]> fileLines = new HashMap<>();
 
   /** The index of the next first name value that should be used. */
   private int firstNameIndex;
@@ -84,18 +80,15 @@ public class TemplateFile
   private final LinkedHashMap<String, Template> templates = new LinkedHashMap<>();
 
   /** The random number generator for this template file. */
-  private Random random;
+  private final Random random;
 
   /** The next first name that should be used. */
   private String firstName;
   /** The next last name that should be used. */
   private String lastName;
 
-  /**
-   * The resource path to use for filesystem elements that cannot be found
-   * anywhere else.
-   */
-  private String resourcePath;
+  /** The resource path to use for filesystem elements that cannot be found anywhere else. */
+  private final String resourcePath;
   /** The path to the directory containing the template file, if available. */
   private String templatePath;
 
@@ -103,22 +96,6 @@ public class TemplateFile
   private String[] firstNames;
   /** The set of last names to use when generating the LDIF. */
   private String[] lastNames;
-
-
-
-  /**
-   * Creates a new, empty template file structure.
-   *
-   * @param  resourcePath  The path to the directory that may contain additional
-   *                       resource files needed during the LDIF generation
-   *                       process.
-   */
-  public TemplateFile(String resourcePath)
-  {
-    this(resourcePath, new Random());
-  }
-
-
 
   /**
    * Creates a new, empty template file structure.
@@ -153,8 +130,6 @@ public class TemplateFile
     }
   }
 
-
-
   /**
    * Retrieves the set of tags that have been registered.  They will be in the
    * form of a mapping between the name of the tag (in all lowercase characters)
@@ -167,8 +142,6 @@ public class TemplateFile
     return registeredTags;
   }
 
-
-
   /**
    * Retrieves the tag with the specified name.
    *
@@ -178,69 +151,15 @@ public class TemplateFile
    * @return  The requested tag, or <CODE>null</CODE> if no such tag has been
    *          registered.
    */
-  public Tag getTag(String lowerName)
+  private Tag getTag(String lowerName)
   {
     return registeredTags.get(lowerName);
   }
 
-
-
-  /**
-   * Registers the specified class as a tag that may be used in templates.
-   *
-   * @param  tagClass  The fully-qualified name of the class to register as a
-   *                   tag.
-   *
-   * @throws  MakeLDIFException  If a problem occurs while attempting to
-   *                             register the specified tag.
-   */
-  public void registerTag(String tagClass)
-         throws MakeLDIFException
-  {
-    Class c;
-    try
-    {
-      c = Class.forName(tagClass);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(tagClass);
-      throw new MakeLDIFException(message, e);
-    }
-
-    Tag t;
-    try
-    {
-      t = (Tag) c.newInstance();
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(tagClass);
-      throw new MakeLDIFException(message, e);
-    }
-
-    String lowerName = toLowerCase(t.getName());
-    if (registeredTags.containsKey(lowerName))
-    {
-      LocalizableMessage message =
-          ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(tagClass, t.getName());
-      throw new MakeLDIFException(message);
-    }
-    else
-    {
-      registeredTags.put(lowerName, t);
-    }
-  }
-
-
-
-  /**
-   * Registers the set of tags that will always be available for use in
-   * templates.
-   */
+  /** Registers the set of tags that will always be available for use in templates. */
   private void registerDefaultTags()
   {
-    Class[] defaultTagClasses = new Class[]
+    Class<?>[] defaultTagClasses =
     {
       AttributeValueTag.class,
       DNTag.class,
@@ -261,7 +180,7 @@ public class TemplateFile
       UnderscoreParentDNTag.class
     };
 
-    for (Class c : defaultTagClasses)
+    for (Class<?> c : defaultTagClasses)
     {
       try
       {
@@ -276,8 +195,6 @@ public class TemplateFile
     }
   }
 
-
-
   /**
    * Retrieves the set of constants defined for this template file.
    *
@@ -287,37 +204,6 @@ public class TemplateFile
   {
     return constants;
   }
-
-
-
-  /**
-   * Retrieves the value of the constant with the specified name.
-   *
-   * @param  lowerName  The name of the constant to retrieve, in all lowercase
-   *                    characters.
-   *
-   * @return  The value of the constant with the specified name, or
-   *          <CODE>null</CODE> if there is no such constant.
-   */
-  public String getConstant(String lowerName)
-  {
-    return constants.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided constant for use in the template.
-   *
-   * @param  name   The name for the constant.
-   * @param  value  The value for the constant.
-   */
-  public void registerConstant(String name, String value)
-  {
-    constants.put(toLowerCase(name), value);
-  }
-
-
 
   /**
    * Retrieves the set of branches defined in this template file.
@@ -329,35 +215,6 @@ public class TemplateFile
     return branches;
   }
 
-
-
-  /**
-   * Retrieves the branch registered with the specified DN.
-   *
-   * @param  branchDN  The DN for which to retrieve the corresponding branch.
-   *
-   * @return  The requested branch, or <CODE>null</CODE> if no such branch has
-   *          been registered.
-   */
-  public Branch getBranch(DN branchDN)
-  {
-    return branches.get(branchDN);
-  }
-
-
-
-  /**
-   * Registers the provided branch in this template file.
-   *
-   * @param  branch  The branch to be registered.
-   */
-  public void registerBranch(Branch branch)
-  {
-    branches.put(branch.getBranchDN(), branch);
-  }
-
-
-
   /**
    * Retrieves the set of templates defined in this template file.
    *
@@ -368,36 +225,6 @@ public class TemplateFile
     return templates;
   }
 
-
-
-  /**
-   * Retrieves the template with the specified name.
-   *
-   * @param  lowerName  The name of the template to retrieve, in all lowercase
-   *                    characters.
-   *
-   * @return  The requested template, or <CODE>null</CODE> if there is no such
-   *          template.
-   */
-  public Template getTemplate(String lowerName)
-  {
-    return templates.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided template for use in this template file.
-   *
-   * @param  template  The template to be registered.
-   */
-  public void registerTemplate(Template template)
-  {
-    templates.put(toLowerCase(template.getName()), template);
-  }
-
-
-
   /**
    * Retrieves the random number generator for this template file.
    *
@@ -407,8 +234,6 @@ public class TemplateFile
   {
     return random;
   }
-
-
 
   /**
    * Reads the contents of the first and last name files into the appropriate
@@ -449,8 +274,6 @@ public class TemplateFile
     }
   }
 
-
-
   /**
    * Updates the first and last name indexes to choose new values.  The
    * algorithm used is designed to ensure that the combination of first and last
@@ -462,7 +285,6 @@ public class TemplateFile
   {
     firstName = firstNames[firstNameIndex++];
     lastName  = lastNames[lastNameIndex++];
-
 
     // If we've already exhausted every possible combination, then append an
     // integer to the last name.
@@ -506,8 +328,6 @@ public class TemplateFile
     }
   }
 
-
-
   /**
    * Retrieves the first name value that should be used for the current entry.
    *
@@ -518,8 +338,6 @@ public class TemplateFile
     return firstName;
   }
 
-
-
   /**
    * Retrieves the last name value that should be used for the current entry.
    *
@@ -529,8 +347,6 @@ public class TemplateFile
   {
     return lastName;
   }
-
-
 
   /**
    * Parses the contents of the specified file as a MakeLDIF template file
@@ -561,55 +377,9 @@ public class TemplateFile
     templatePath = f.getParentFile().getAbsolutePath();
 
     List<String> fileLines = readLines(f);
-    String[] lines = new String[fileLines.size()];
-    fileLines.toArray(lines);
+    String[] lines = fileLines.toArray(new String[fileLines.size()]);
     parse(lines, warnings);
   }
-
-
-
-  /**
-   * Parses the data read from the provided input stream as a MakeLDIF template
-   * file definition.
-   *
-   * @param  inputStream  The input stream from which to read the template file
-   *                      data.
-   * @param  warnings     A list into which any warnings identified may be
-   *                      placed.
-   *
-   * @throws  IOException  If a problem occurs while attempting to read data
-   *                       from the provided input stream.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   any of the MakeLDIF components.
-   *
-   * @throws  MakeLDIFException  If any other problem occurs while parsing the
-   *                             template file.
-   */
-  public void parse(InputStream inputStream, List<LocalizableMessage> warnings)
-         throws IOException, InitializationException, MakeLDIFException
-  {
-    ArrayList<String> fileLines = new ArrayList<>();
-
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream)))
-    {
-      while (true)
-      {
-        String line = reader.readLine();
-        if (line == null)
-        {
-          break;
-        }
-        fileLines.add(line);
-      }
-    }
-
-    String[] lines = new String[fileLines.size()];
-    fileLines.toArray(lines);
-    parse(lines, warnings);
-  }
-
-
 
   /**
    * Parses the provided data as a MakeLDIF template file definition.
@@ -652,7 +422,7 @@ public class TemplateFile
         // no conflicts.
         String className = line.substring(8).trim();
 
-        Class tagClass;
+        Class<?> tagClass;
         try
         {
           tagClass = Class.forName(className);
@@ -755,10 +525,7 @@ public class TemplateFile
           LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_BRANCH_DN.get(branchDN, startLineNumber);
           throw new MakeLDIFException(message);
         }
-        else
-        {
-          templateFileBranches.put(branchDN, b);
-        }
+        templateFileBranches.put(branchDN, b);
       }
       else if (lowerLine.startsWith("template: "))
       {
@@ -804,7 +571,6 @@ public class TemplateFile
       }
     }
 
-
     // If we've gotten here, then we're almost done.  We just need to finalize
     // the branch and template definitions and then update the template file
     // variables.
@@ -823,7 +589,6 @@ public class TemplateFile
     branches.putAll(templateFileBranches);
     templates.putAll(templateFileTemplates);
   }
-
 
   /**
    * Parse a line and replace all constants within [ ] with their
@@ -925,7 +690,6 @@ public class TemplateFile
       throw new MakeLDIFException(message);
     }
 
-
     // Create a new branch that will be used for the verification process.
     Branch branch = new Branch(this, branchDN);
 
@@ -995,8 +759,6 @@ public class TemplateFile
     return branch;
   }
 
-
-
   /**
    * Parses the information contained in the provided set of lines as a MakeLDIF
    * template definition.
@@ -1031,7 +793,6 @@ public class TemplateFile
   {
     // The first line must be "template: " followed by the template name.
     String templateName = templateLines[0].substring(10).trim();
-
 
     // The next line may start with either "extends: ", "rdnAttr: ", or
     // "subordinateTemplate: ".  Keep reading until we find something that's
@@ -1165,19 +926,11 @@ public class TemplateFile
         // It's a comment, so we should ignore it.
         continue;
       }
-      else
-      {
-        TemplateLine templateLine = parseTemplateLine(line, lowerLine,
-                                                      lineNumber, null,
-                                                      template, tags, warnings);
-        template.addTemplateLine(templateLine);
-      }
+      template.addTemplateLine(parseTemplateLine(line, lowerLine, lineNumber, null, template, tags, warnings));
     }
 
     return template;
   }
-
-
 
   /**
    * Parses the provided line as a template line.  Note that exactly one of the
@@ -1285,7 +1038,6 @@ public class TemplateFile
         warnings.add(message);
       }
     }
-
 
     // Define constants that specify what we're currently parsing.
     final int PARSING_STATIC_TEXT     = 0;
@@ -1413,8 +1165,6 @@ public class TemplateFile
         valueIsBase64);
   }
 
-
-
   /**
    * Parses the provided string as a replacement tag.  Exactly one of the branch
    * or template must be null, and the other must be non-null.
@@ -1469,7 +1219,6 @@ public class TemplateFile
     String[] args = new String[argList.size()];
     argList.toArray(args);
 
-
     Tag newTag;
     try
     {
@@ -1480,29 +1229,21 @@ public class TemplateFile
       throw new MakeLDIFException(ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber, e), e);
     }
 
-
     if (branch == null)
     {
       newTag.initializeForTemplate(this, template, args, lineNumber, warnings);
     }
+    else if (newTag.allowedInBranch())
+    {
+      newTag.initializeForBranch(this, branch, args, lineNumber, warnings);
+    }
     else
     {
-      if (newTag.allowedInBranch())
-      {
-        newTag.initializeForBranch(this, branch, args, lineNumber, warnings);
-      }
-      else
-      {
-        LocalizableMessage message = ERR_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH.get(
-            newTag.getName(), lineNumber);
-        throw new MakeLDIFException(message);
-      }
+      throw new MakeLDIFException(ERR_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(), lineNumber));
     }
 
     return newTag;
   }
-
-
 
   /**
    * Parses the provided string as an attribute tag.  Exactly one of the branch
@@ -1543,19 +1284,17 @@ public class TemplateFile
     argList.toArray(args);
 
     AttributeValueTag tag = new AttributeValueTag();
-    if (branch == null)
+    if (branch != null)
     {
-      tag.initializeForTemplate(this, template, args, lineNumber, warnings);
+      tag.initializeForBranch(this, branch, args, lineNumber, warnings);
     }
     else
     {
-      tag.initializeForBranch(this, branch, args, lineNumber, warnings);
+      tag.initializeForTemplate(this, template, args, lineNumber, warnings);
     }
 
     return tag;
   }
-
-
 
   /**
    * Retrieves a File object based on the provided path.  If the given path is
@@ -1580,14 +1319,12 @@ public class TemplateFile
       return f;
     }
 
-
     // If the provided path was absolute, then use it anyway, even though we
     // couldn't find the file.
     if (f.isAbsolute())
     {
       return f;
     }
-
 
     // Try a path relative to the resource directory.
     String newPath = resourcePath + File.separator + path;
@@ -1596,7 +1333,6 @@ public class TemplateFile
     {
       return f;
     }
-
 
     // Try a path relative to the template directory, if it's available.
     if (templatePath != null)
@@ -1611,8 +1347,6 @@ public class TemplateFile
 
     return null;
   }
-
-
 
   /**
    * Retrieves the lines of the specified file as a string array.  If the result
@@ -1643,8 +1377,6 @@ public class TemplateFile
     return lines;
   }
 
-
-
   /**
    * Generates the LDIF content and writes it to the provided LDIF writer.
    *
@@ -1673,4 +1405,3 @@ public class TemplateFile
     return TagResult.SUCCESS_RESULT;
   }
 }
-

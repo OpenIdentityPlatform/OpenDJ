@@ -35,13 +35,10 @@ import static org.forgerock.util.Reject.*;
      mayInvoke=true)
 public final class AuthenticationInfo
 {
-
   /** Indicates whether this connection is currently authenticated. */
   private boolean isAuthenticated;
-
   /** Indicates whether this connection is authenticated as a root user. */
   private boolean isRoot;
-
   /**
    * Indicates whether the user's password must be changed before any other
    * operation will be allowed.
@@ -50,26 +47,16 @@ public final class AuthenticationInfo
 
   /** The entry of the user that is currently authenticated. */
   private Entry authenticationEntry;
-
-  /**
-   * The entry of the user that will be used as the default authorization
-   * identity.
-   */
+  /** The entry of the user that will be used as the default authorization identity. */
   private Entry authorizationEntry;
-
   /** The type of authentication performed on this connection. */
   private AuthenticationType authenticationType;
-
   /** The SASL mechanism used to authenticate. */
   private String saslMechanism;
-
   /** The bind DN used to authenticate using simple authentication. */
-  private DN simpleBindDN;
+  private final DN simpleBindDN;
 
-  /**
-   * Creates a new set of authentication information to be used for
-   * unauthenticated clients.
-   */
+  /** Creates a new set of authentication information to be used for unauthenticated clients. */
   public AuthenticationInfo()
   {
     isAuthenticated     = false;
@@ -81,8 +68,6 @@ public final class AuthenticationInfo
     simpleBindDN        = null;
     saslMechanism       = null;
   }
-
-
 
   /**
    * Creates a new set of authentication information to be used for
@@ -135,8 +120,6 @@ public final class AuthenticationInfo
     this.authenticationType  = AuthenticationType.SIMPLE;
   }
 
-
-
   /**
    * Creates a new set of authentication information to be used for
    * clients that have authenticated using a SASL mechanism.
@@ -167,8 +150,6 @@ public final class AuthenticationInfo
     this.authenticationType = AuthenticationType.SASL;
     this.saslMechanism      = saslMechanism;
   }
-
-
 
   /**
    * Creates a new set of authentication information to be used for
@@ -212,8 +193,6 @@ public final class AuthenticationInfo
     this.saslMechanism      = saslMechanism;
   }
 
-
-
   /**
    * Indicates whether this client has successfully authenticated to
    * the server.
@@ -226,8 +205,6 @@ public final class AuthenticationInfo
     return isAuthenticated;
   }
 
-
-
   /**
    * Indicates whether this client should be considered a root user.
    *
@@ -238,8 +215,6 @@ public final class AuthenticationInfo
   {
     return isRoot;
   }
-
-
 
   /**
    * Indicates whether the authenticated user must change his/her
@@ -254,8 +229,6 @@ public final class AuthenticationInfo
     return mustChangePassword;
   }
 
-
-
   /**
    * Specifies whether the authenticated user must change his/her
    * password before any other operation will be allowed.
@@ -269,8 +242,6 @@ public final class AuthenticationInfo
   {
     this.mustChangePassword = mustChangePassword;
   }
-
-
 
   /**
    * Indicates whether this client has authenticated using the
@@ -288,8 +259,6 @@ public final class AuthenticationInfo
     return this.authenticationType == authenticationType;
   }
 
-
-
   /**
    * Retrieves the entry for the user as whom the client is
    * authenticated.
@@ -302,8 +271,6 @@ public final class AuthenticationInfo
   {
     return authenticationEntry;
   }
-
-
 
   /**
    * Retrieves the DN of the user as whom the client is authenticated.
@@ -320,8 +287,6 @@ public final class AuthenticationInfo
     return null;
   }
 
-
-
   /**
    * Sets the DN of the user as whom the client is authenticated,
    * does nothing if the client is unauthenticated.
@@ -336,8 +301,6 @@ public final class AuthenticationInfo
     }
   }
 
-
-
   /**
    * Retrieves the entry for the user that should be used as the
    * default authorization identity.
@@ -351,8 +314,6 @@ public final class AuthenticationInfo
   {
     return authorizationEntry;
   }
-
-
 
   /**
    * Retrieves the DN for the user that should be used as the default
@@ -372,8 +333,6 @@ public final class AuthenticationInfo
     return null;
   }
 
-
-
   /**
    * Sets the DN for the user that should be used as the default
    * authorization identity, does nothing if the client is
@@ -389,8 +348,6 @@ public final class AuthenticationInfo
     }
   }
 
-
-
   /**
    * Retrieves the bind DN that the client used for simple
    * authentication.
@@ -403,8 +360,6 @@ public final class AuthenticationInfo
   {
     return simpleBindDN;
   }
-
-
 
   /**
    * Indicates whether the client is currently authenticated using the
@@ -438,8 +393,6 @@ public final class AuthenticationInfo
     return buffer.toString();
   }
 
-
-
   /**
    * Appends a string representation of this authentication info
    * structure to the provided buffer.
@@ -447,7 +400,7 @@ public final class AuthenticationInfo
    * @param  buffer  The buffer to which the information is to be
    *                 appended.
    */
-  public void toString(StringBuilder buffer)
+  private void toString(StringBuilder buffer)
   {
     buffer.append("AuthenticationInfo(isAuthenticated=");
     buffer.append(isAuthenticated);
@@ -488,8 +441,6 @@ public final class AuthenticationInfo
     buffer.append(")");
   }
 
-
-
   /**
    * Creates a duplicate of this {@code AuthenticationInfo} object
    * with the new authentication and authorization entries.
@@ -522,4 +473,3 @@ public final class AuthenticationInfo
     return authInfo;
   }
 }
-

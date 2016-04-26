@@ -19,6 +19,13 @@ package org.opends.server.util;
 
 
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -41,20 +48,13 @@ import javax.mail.internet.MimeMultipart;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.core.DirectoryServer;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
-import static com.forgerock.opendj.cli.CommonArguments.*;
 
 
 
@@ -77,7 +77,7 @@ public final class EMailMessage
   private List<String> recipients;
 
   /** The set of attachments to include in this message. */
-  private LinkedList<MimeBodyPart> attachments;
+  private final List<MimeBodyPart> attachments;
 
   /** The MIME type for the message body. */
   private String bodyMIMEType;
@@ -90,29 +90,6 @@ public final class EMailMessage
 
   /** The body for the mail message. */
   private LocalizableMessageBuilder body;
-
-
-
-  /**
-   * Creates a new e-mail message with the provided information.
-   *
-   * @param  sender     The address of the sender for the message.
-   * @param  recipient  The address of the recipient for the message.
-   * @param  subject    The subject to use for the message.
-   */
-  public EMailMessage(String sender, String recipient, String subject)
-  {
-    this.sender  = sender;
-    this.subject = subject;
-
-    recipients = CollectionUtils.newArrayList(recipient);
-
-    body         = new LocalizableMessageBuilder();
-    attachments  = new LinkedList<>();
-    bodyMIMEType = "text/plain";
-  }
-
-
 
   /**
    * Creates a new e-mail message with the provided information.
@@ -294,7 +271,7 @@ public final class EMailMessage
    *
    * @return  The set of attachments for this message.
    */
-  public LinkedList<MimeBodyPart> getAttachments()
+  public List<MimeBodyPart> getAttachments()
   {
     return attachments;
   }
@@ -339,7 +316,7 @@ public final class EMailMessage
    * @throws  MessagingException  If there is a problem of some type with the
    *                              attachment.
    */
-  public void addAttachment(File attachmentFile)
+  private void addAttachment(File attachmentFile)
          throws MessagingException
   {
     MimeBodyPart attachment = new MimeBodyPart();
@@ -383,7 +360,7 @@ public final class EMailMessage
    * @throws  MessagingException  If a problem occurred while attempting to send
    *                              the message.
    */
-  public void send(List<Properties> mailServerPropertySets)
+  private void send(List<Properties> mailServerPropertySets)
          throws MessagingException
   {
     // Get information about the available mail servers that we can use.
@@ -490,15 +467,11 @@ public final class EMailMessage
     // If we've gotten here, then we've tried all of the servers in the list and
     // still failed.  If we captured an earlier exception, then throw it.
     // Otherwise, throw a generic exception.
-    if (sendException == null)
-    {
-      LocalizableMessage message = ERR_EMAILMSG_CANNOT_SEND.get();
-      throw new MessagingException(message.toString());
-    }
-    else
+    if (sendException != null)
     {
       throw sendException;
     }
+    throw new MessagingException(ERR_EMAILMSG_CANNOT_SEND.get().toString());
   }
 
 

@@ -13,7 +13,7 @@
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2006 Brighton Consulting, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -21,27 +21,30 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tools.ToolsTestCase;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the MakeLDIF tool.
- */
-public class MakeLDIFTestCase
-    extends ToolsTestCase
+/** A set of test cases for the MakeLDIF tool. */
+@SuppressWarnings("javadoc")
+public class MakeLDIFTestCase extends ToolsTestCase
 {
   private String resourcePath;
 
@@ -77,7 +80,7 @@ public class MakeLDIFTestCase
     // Test must show "missingVar" missing on line 1.
     // Previous behaviour showed "missingVar" on line 5.
 
-    TemplateFile templateFile = new TemplateFile(resourcePath);
+    TemplateFile templateFile = new TemplateFile(resourcePath, new Random());
     List<LocalizableMessage> warns = new ArrayList<>();
 
     try
@@ -143,14 +146,12 @@ public class MakeLDIFTestCase
     };
   }
 
-  /**
-   * Test for parsing escaped  character in templates.
-   */
+  /** Test for parsing escaped character in templates. */
   @Test(dataProvider = "validTemplates")
   public void testParsingEscapeCharInTemplate(String testName, String[] lines)
       throws Exception
   {
-    TemplateFile templateFile = new TemplateFile(resourcePath);
+    TemplateFile templateFile = new TemplateFile(resourcePath, new Random());
     List<LocalizableMessage> warns = new ArrayList<>();
     templateFile.parse(lines, warns);
     assertTrue(warns.isEmpty(),"Warnings in parsing test template " + testName );
@@ -302,10 +303,8 @@ public class MakeLDIFTestCase
     };
   }
 
-  /**
-   * Test for escaped characters in templates, check LDIF output.
-   */
-  @Test(dataProvider="templatesToTestLDIFOutput", dependsOnMethods = { "testParsingEscapeCharInTemplate"})
+  /** Test for escaped characters in templates, check LDIF output. */
+  @Test(dataProvider = "templatesToTestLDIFOutput", dependsOnMethods = "testParsingEscapeCharInTemplate")
   public void testLDIFOutputFromTemplate(String testName, String[] lines,
                                          String attrName, String expectedValue) throws Exception
   {
@@ -339,7 +338,7 @@ public class MakeLDIFTestCase
    * Test for escaped characters in templates, check LDIF output when
    * the templates combines escaped characters and variables.
    */
-  @Test(dependsOnMethods = { "testParsingEscapeCharInTemplate"})
+  @Test(dependsOnMethods = "testParsingEscapeCharInTemplate")
   public void testOutputCombineEscapeCharInTemplate() throws Exception
   {
     String[] lines =
@@ -357,7 +356,6 @@ public class MakeLDIFTestCase
             "cn: Foo \\<<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>\\>\\{1\\}{sn}",
             "",
         };
-
 
     File tmpFile = File.createTempFile("combineEscapeChar", "out.ldif");
     tmpFile.deleteOnExit();

@@ -12,13 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
-import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -34,11 +35,11 @@ import org.opends.server.types.NullOutputStream;
 public class StopWindowsService
 {
   /** The service was successfully stopped. */
-  public static final int SERVICE_STOP_SUCCESSFUL = 0;
+  private static final int SERVICE_STOP_SUCCESSFUL = 0;
   /** The service could not be found. */
-  public static final int SERVICE_NOT_FOUND = 1;
+  private static final int SERVICE_NOT_FOUND = 1;
   /** The service could not be stopped. */
-  public static final int SERVICE_STOP_ERROR = 3;
+  private static final int SERVICE_STOP_ERROR = 3;
 
   /**
    * Invokes the net stop on the service corresponding to this server.
@@ -62,7 +63,7 @@ public class StopWindowsService
    * @param errStream
    *          The stream to write error messages.
    */
-  public static int stopWindowsService(OutputStream outStream, OutputStream errStream)
+  private static int stopWindowsService(OutputStream outStream, OutputStream errStream)
   {
     NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
@@ -116,4 +117,3 @@ public class StopWindowsService
     }
   }
 }
-

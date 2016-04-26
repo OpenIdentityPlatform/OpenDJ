@@ -74,13 +74,12 @@ public final class UpgradeTasks
   static int countErrors;
 
   /** Contains all the indexes to rebuild. */
-  static Set<String> indexesToRebuild = new HashSet<>();
+  private static final Set<String> indexesToRebuild = new HashSet<>();
 
   /** A flag to avoid rebuild single indexes if 'rebuild all' is selected. */
-  static boolean isRebuildAllIndexesIsPresent;
-
+  private static boolean isRebuildAllIndexesIsPresent;
   /** A flag for marking 'rebuild all' task accepted by user. */
-  static boolean isRebuildAllIndexesTaskAccepted;
+  private static boolean isRebuildAllIndexesTaskAccepted;
 
   private static final List<String> SUPPORTED_LOCALES_FOR_3_0_0 = Arrays.asList(
       "ca_ES", "de", "es", "fr", "ja", "ko", "pl", "zh_CN", "zh_TW");
@@ -1102,14 +1101,14 @@ public final class UpgradeTasks
   }
 
   /** This inner classes causes JE to be lazily linked and prevents runtime errors if JE is not in the classpath. */
-  static final class JEHelper {
+  private static final class JEHelper {
     private static ClientException clientException(final File backendDirectory, final DatabaseException e) {
       logger.error(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return new ClientException(ReturnCode.CONSTRAINT_VIOLATION,
                                  INFO_UPGRADE_TASK_MIGRATE_JE_ENV_UNREADABLE.get(backendDirectory), e);
     }
 
-    static Set<String> listDatabases(final File backendDirectory) throws ClientException {
+    private static Set<String> listDatabases(final File backendDirectory) throws ClientException {
       try (Environment je = new Environment(backendDirectory, null)) {
         Set<String> databases = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         databases.addAll(je.getDatabaseNames());
@@ -1119,7 +1118,8 @@ public final class UpgradeTasks
       }
     }
 
-    static void migrateDatabases(final File envDir, final Map<String, String> renamedDbs) throws ClientException {
+    private static void migrateDatabases(final File envDir, final Map<String, String> renamedDbs)
+          throws ClientException {
       EnvironmentConfig config = new EnvironmentConfig().setTransactional(true);
       try (Environment je = new Environment(envDir, config)) {
         final Transaction txn = je.beginTransaction(null, new TransactionConfig());
@@ -1366,7 +1366,6 @@ public final class UpgradeTasks
         }
       }
     };
-
   }
 
   /** Prevent instantiation. */

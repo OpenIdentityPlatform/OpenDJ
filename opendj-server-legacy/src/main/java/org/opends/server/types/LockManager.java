@@ -103,9 +103,7 @@ import org.forgerock.util.Reject;
     mayInstantiate = false, mayExtend = false, mayInvoke = true)
 public final class LockManager
 {
-  /**
-   * A lock on an entry or subtree. A lock can only be unlocked once.
-   */
+  /** A lock on an entry or subtree. A lock can only be unlocked once. */
   public final class DNLock
   {
     private final DNLockHolder lock;
@@ -145,16 +143,14 @@ public final class LockManager
       isLocked = false;
     }
 
-    // For unit testing.
+    /** For unit testing. */
     int refCount()
     {
       return lock.refCount.get();
     }
   }
 
-  /**
-   * Lock implementation
-   */
+  /** Lock implementation. */
   private final class DNLockHolder
   {
     private final AtomicInteger refCount = new AtomicInteger();
@@ -177,9 +173,7 @@ public final class LockManager
       return "\"" + dn + "\" : " + refCount;
     }
 
-    /**
-     * Unlocks the subtree read lock from the parent of this lock up to the root.
-     */
+    /** Unlocks the subtree read lock from the parent of this lock up to the root. */
     void releaseParentSubtreeReadLock()
     {
       for (DNLockHolder lock = parent; lock != null; lock = lock.parent)
@@ -203,9 +197,7 @@ public final class LockManager
       return tryLock(subtreeLock.writeLock(), entryLock.writeLock());
     }
 
-    /**
-     * Locks the subtree read lock from the root down to the parent of this lock.
-     */
+    /** Locks the subtree read lock from the root down to the parent of this lock. */
     private boolean tryAcquireParentSubtreeReadLock()
     {
       // First lock the parents of the parent.
@@ -274,7 +266,7 @@ public final class LockManager
   private final long lockTimeout;
   private final TimeUnit lockTimeoutUnits;
 
-  // Avoid sub-classing in order to workaround class leaks in app servers.
+  /** Avoid sub-classing in order to workaround class leaks in app servers. */
   private final ThreadLocal<LinkedList<DNLockHolder>> threadLocalCache = new ThreadLocal<>();
 
   /**
@@ -311,7 +303,7 @@ public final class LockManager
    *          The number of buckets to use in the lock table. The minimum number of buckets is 64.
    */
   @SuppressWarnings("unchecked")
-  public LockManager(final long lockTimeout, final TimeUnit lockTimeoutUnit, final int numberOfBuckets)
+  private LockManager(final long lockTimeout, final TimeUnit lockTimeoutUnit, final int numberOfBuckets)
   {
     Reject.ifFalse(lockTimeout >= 0, "lockTimeout must be a non-negative integer");
     Reject.ifNull(lockTimeoutUnit, "lockTimeoutUnit must be non-null");
@@ -386,7 +378,7 @@ public final class LockManager
     return acquireLockFromCache(subtree).tryWriteLockSubtree();
   }
 
-  // For unit testing.
+  /** For unit testing. */
   int getLockTableRefCountFor(final DN dn)
   {
     final int dnHashCode = dn.hashCode();
@@ -404,7 +396,7 @@ public final class LockManager
     }
   }
 
-  //For unit testing.
+  /** For unit testing. */
   int getThreadLocalCacheRefCountFor(final DN dn)
   {
     final LinkedList<DNLockHolder> cache = threadLocalCache.get();
@@ -522,7 +514,7 @@ public final class LockManager
     return lockTable[dnHashCode & numberOfBuckets - 1];
   }
 
-  /*
+  /**
    * Ensure that the number of buckets is a power of 2 in order to make it easier to map hash codes
    * to bucket indexes.
    */

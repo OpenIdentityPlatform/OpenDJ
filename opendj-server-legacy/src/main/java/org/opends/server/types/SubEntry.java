@@ -41,7 +41,7 @@ public class SubEntry {
    * that already contain one or more real values for the associated
    * collective attribute.
    */
-  public static enum CollectiveConflictBehavior {
+  public enum CollectiveConflictBehavior {
     /**
      * Indicates that the virtual attribute provider is to preserve
      * any real values contained in the entry and merge them with the
@@ -83,34 +83,34 @@ public class SubEntry {
   }
 
   /** The lowercased name of the "collectiveConflictBehavior" attribute type. */
-  public static final String ATTR_COLLECTIVE_CONFLICT_BEHAVIOR_LC = "collectiveconflictbehavior";
+  private static final String ATTR_COLLECTIVE_CONFLICT_BEHAVIOR_LC = "collectiveconflictbehavior";
   /** The lowercased name of the "inheritFromDNAttribute" attribute type. */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_DN_LC = "inheritfromdnattribute";
+  private static final String ATTR_INHERIT_COLLECTIVE_FROM_DN_LC = "inheritfromdnattribute";
   /** The lowercased name of the "inheritFromRDNAttribute" attribute type. */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_LC = "inheritfromrdnattribute";
+  private static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_LC = "inheritfromrdnattribute";
   /** The lowercased name of the "inheritFromRDNType" attribute type. */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE_LC = "inheritfromrdntype";
+  private static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE_LC = "inheritfromrdntype";
   /** The lowercased name of the "inheritFromBaseRDN" attribute type. */
-  public static final String ATTR_INHERIT_COLLECTIVE_FROM_BASE_LC = "inheritfrombaserdn";
+  private static final String ATTR_INHERIT_COLLECTIVE_FROM_BASE_LC = "inheritfrombaserdn";
   /** The lowercased name of the "inheritAttribute" attribute type. */
-  public static final String ATTR_INHERIT_COLLECTIVE_ATTR_LC = "inheritattribute";
+  private static final String ATTR_INHERIT_COLLECTIVE_ATTR_LC = "inheritattribute";
   /** Attribute option to mark attributes collective. */
   private static final String ATTR_OPTION_COLLECTIVE = "collective";
 
   /** Entry object. */
-  private Entry entry;
+  private final Entry entry;
 
   /** Subtree specification. */
   private final SubtreeSpecification subTreeSpec;
 
   /** Collective subentry flag. */
-  private boolean isCollective;
+  private final boolean isCollective;
   /** Inherited collective subentry flag. */
-  private boolean isInheritedCollective;
+  private final boolean isInheritedCollective;
   /** Inherited collective from DN subentry flag. */
-  private boolean isInheritedFromDNCollective;
+  private final boolean isInheritedFromDNCollective;
   /** Inherited collective from RDN subentry flag. */
-  private boolean isInheritedFromRDNCollective;
+  private final boolean isInheritedFromRDNCollective;
 
   /** Inherited collective DN attribute type. */
   private AttributeType inheritFromDNType;
@@ -118,7 +118,6 @@ public class SubEntry {
   private AttributeType inheritFromRDNAttrType;
   /** Inherited collective RDN type attribute type. */
   private AttributeType inheritFromRDNType;
-
   /** Inherited collective RDN attribute value. */
   private ByteString inheritFromRDNAttrValue;
   /** Inherited collective from DN value. */
@@ -151,6 +150,11 @@ public class SubEntry {
     {
       this.isInheritedFromDNCollective = entry.isInheritedFromDNCollectiveAttributeSubentry();
       this.isInheritedFromRDNCollective = entry.isInheritedFromRDNCollectiveAttributeSubentry();
+    }
+    else
+    {
+      this.isInheritedFromDNCollective = false;
+      this.isInheritedFromRDNCollective = false;
     }
 
     // Process collective attributes.

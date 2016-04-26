@@ -41,12 +41,12 @@ public class BackendCreationHelper
   /** Describes an attribute index which should be created during installation. */
   public static final class DefaultIndex
   {
-    static DefaultIndex withEqualityAndSubstring(final String name)
+    private static DefaultIndex withEqualityAndSubstring(final String name)
     {
       return new DefaultIndex(name, true);
     }
 
-    static DefaultIndex withEquality(final String name)
+    private static DefaultIndex withEquality(final String name)
     {
       return new DefaultIndex(name, false);
     }
@@ -133,7 +133,7 @@ public class BackendCreationHelper
    * @throws Exception
    *           If any problems occurred
    */
-  public static void createBackend(RootCfgClient rootConfiguration, String backendName, Collection<DN> baseDNs,
+  private static void createBackend(RootCfgClient rootConfiguration, String backendName, Collection<DN> baseDNs,
       ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType) throws Exception
   {
       final BackendCfgClient backendCfgClient = rootConfiguration.createBackend(backendType, backendName, null);

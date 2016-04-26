@@ -78,23 +78,10 @@ public class ExportLDIF extends TaskTool {
   public static void main(String[] args)
   {
     int retCode = mainExportLDIF(args, true, System.out, System.err);
-
     if(retCode != 0)
     {
       System.exit(filterExitCode(retCode));
     }
-  }
-
-  /**
-   * Processes the command-line arguments and invokes the export process.
-   *
-   * @param  args  The command-line arguments provided to this program.
-   *
-   * @return The error code.
-   */
-  public static int mainExportLDIF(String[] args)
-  {
-    return mainExportLDIF(args, true, System.out, System.err);
   }
 
   /**
@@ -243,13 +230,13 @@ public class ExportLDIF extends TaskTool {
               BooleanArgument.builder("encryptLDIF")
                       .shortIdentifier('y')
                       .description(INFO_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF.get())
-                      .hidden() // See issue #27
+                      .hidden() // See issue OPENDJ-448
                       .buildAndAddToParser(argParser);
       signHash =
               BooleanArgument.builder("signHash")
                       .shortIdentifier('s')
                       .description(INFO_LDIFEXPORT_DESCRIPTION_SIGN_HASH.get())
-                      .hidden() // See issue #28
+                      .hidden() // See issue OPENDJ-448
                       .buildAndAddToParser(argParser);
 
       displayUsage = showUsageArgument();
@@ -306,7 +293,6 @@ public class ExportLDIF extends TaskTool {
     return process(argParser, initializeServer, out, err);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
@@ -660,7 +646,6 @@ public class ExportLDIF extends TaskTool {
     return results;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getTaskId() {
     // NYI.

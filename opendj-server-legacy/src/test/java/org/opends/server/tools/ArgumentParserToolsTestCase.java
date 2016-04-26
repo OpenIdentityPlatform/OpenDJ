@@ -199,7 +199,7 @@ public class ArgumentParserToolsTestCase extends ToolsTestCase
   @Test(dataProvider = "invalidArg")
   public void testManageTasks(final String[] args)
   {
-    assertToolFailsWithUsage(ManageTasks.mainTaskInfo(args, null, outStream, errStream, false), ERRORS_ON_STDOUT);
+    assertToolFailsWithUsage(ManageTasks.mainTaskInfo(args, outStream, errStream, false), ERRORS_ON_STDOUT);
   }
 
   @Test(dataProvider = "invalidArgs")
@@ -217,7 +217,7 @@ public class ArgumentParserToolsTestCase extends ToolsTestCase
   @Test(dataProvider = "invalidArg")
   public void testStatus(final String[] args)
   {
-    assertToolFailsWithUsage(StatusCli.mainCLI(args, false, outStream, errStream, null), ERRORS_ON_STDOUT);
+    assertToolFailsWithUsage(StatusCli.mainCLI(args, outStream, errStream), ERRORS_ON_STDOUT);
   }
 
   @Test(dataProvider = "invalidArgs")

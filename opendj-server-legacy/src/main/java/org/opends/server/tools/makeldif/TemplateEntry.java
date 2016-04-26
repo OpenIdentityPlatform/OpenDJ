@@ -44,11 +44,11 @@ import org.opends.server.util.LDIFException;
 public class TemplateEntry
 {
   /** The branch used to generate this entry (if it is associated with a branch). */
-  private Branch branch;
+  private final Branch branch;
   /** The DN for this template entry, if it is known. */
   private DN dn;
   /** The DN of the parent entry for this template entry, if it is available. */
-  private DN parentDN;
+  private final DN parentDN;
 
   /**
    * The set of attributes associated with this template entry, mapped from the
@@ -57,7 +57,7 @@ public class TemplateEntry
   private final LinkedHashMap<AttributeType, ArrayList<TemplateValue>> attributes = new LinkedHashMap<>();
 
   /** The template used to generate this entry (if it is associated with a template). */
-  private Template template;
+  private final Template template;
 
 
   /**
@@ -69,8 +69,9 @@ public class TemplateEntry
   public TemplateEntry(Branch branch)
   {
     this.branch = branch;
-
     dn         = branch.getBranchDN();
+    template = null;
+    parentDN = null;
   }
 
 
@@ -84,6 +85,8 @@ public class TemplateEntry
    */
   public TemplateEntry(Template template, DN parentDN)
   {
+    this.branch = null;
+    dn = null;
     this.template = template;
     this.parentDN = parentDN;
   }
@@ -157,25 +160,6 @@ public class TemplateEntry
 
     return dn;
   }
-
-
-
-  /**
-   * Indicates whether this entry contains one or more values for the specified
-   * attribute type.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   *
-   * @return  <CODE>true</CODE> if this entry contains one or more values for
-   *          the specified attribute type, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAttribute(AttributeType attributeType)
-  {
-    return attributes.containsKey(attributeType);
-  }
-
-
 
   /**
    * Retrieves the value for the specified attribute, if defined.  If the

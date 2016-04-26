@@ -86,7 +86,7 @@ public final class DirectoryEnvironmentConfig
    * @param checkIfServerIsRunning
    *            If {@code true}, prevent any change when server is running.
    */
-  public DirectoryEnvironmentConfig(Properties properties, boolean checkIfServerIsRunning)
+  private DirectoryEnvironmentConfig(Properties properties, boolean checkIfServerIsRunning)
   {
     this.checkIfServerIsRunning = checkIfServerIsRunning;
     configProperties = new HashMap<>();
@@ -102,33 +102,6 @@ public final class DirectoryEnvironmentConfig
     }
   }
 
-
-
-  /**
-   * Creates a new directory environment configuration initialized
-   * with a copy of the provided set of properties.
-   *
-   * @param  properties  The properties to use when initializing this
-   *                     environment configuration, or {@code null}
-   *                     to use an empty set of properties.
-   * @param checkIfServerIsRunning
-   *            If {@code true}, prevent any change when server is running.
-   */
-  public DirectoryEnvironmentConfig(Map<String,String> properties, boolean checkIfServerIsRunning)
-  {
-    this.checkIfServerIsRunning = checkIfServerIsRunning;
-    if (properties == null)
-    {
-      configProperties = new HashMap<>();
-    }
-    else
-    {
-      configProperties = new HashMap<>(properties);
-    }
-  }
-
-
-
   /**
    * Retrieves the property with the specified name.  The check will
    * first be made in the local config properties, but if no value is
@@ -139,14 +112,13 @@ public final class DirectoryEnvironmentConfig
    * @return  The property with the specified name, or {@code null} if
    *          no such property is defined.
    */
-  public String getProperty(String name)
+  private String getProperty(String name)
   {
     String value = configProperties.get(name);
     if (value == null)
     {
       value = System.getProperty(name);
     }
-
     return value;
   }
 
@@ -328,7 +300,7 @@ public final class DirectoryEnvironmentConfig
    * @return  The directory that should be considered the instance
    *          root, or {@code null} if it is not defined.
    */
-  public static File getInstanceRootFromServerRoot(File serverRoot)
+  private static File getInstanceRootFromServerRoot(File serverRoot)
   {
     return new File(Utils.getInstancePathFromInstallPath(serverRoot.getAbsolutePath()));
   }
@@ -444,26 +416,23 @@ public final class DirectoryEnvironmentConfig
   public File getConfigFile()
   {
     String configFilePath = getProperty(PROPERTY_CONFIG_FILE);
-    if (configFilePath == null)
-    {
-      File serverRoot = getServerRoot();
-      if (serverRoot != null)
-      {
-        File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
-        File configDir = new File(instanceRoot, CONFIG_DIR_NAME);
-        File configFile = new File(configDir, CONFIG_FILE_NAME);
-        if (configFile.exists())
-        {
-          return configFile;
-        }
-      }
-
-      return null;
-    }
-    else
+    if (configFilePath != null)
     {
       return new File(configFilePath);
     }
+
+    File serverRoot = getServerRoot();
+    if (serverRoot != null)
+    {
+      File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
+      File configDir = new File(instanceRoot, CONFIG_DIR_NAME);
+      File configFile = new File(configDir, CONFIG_FILE_NAME);
+      if (configFile.exists())
+      {
+        return configFile;
+      }
+    }
+    return null;
   }
 
 
@@ -531,34 +500,6 @@ public final class DirectoryEnvironmentConfig
   {
     return "true".equalsIgnoreCase(getProperty(propertyName));
   }
-
-  /**
-   * Specifies whether the Directory Server should attempt to start
-   * using the last known good configuration rather than the
-   * current active configuration.
-   *
-   * @param  useLastKnownGoodConfiguration  Indicates whether the
-   *                                        Directory Server should
-   *                                        attempt to start using the
-   *                                        last known good
-   *                                        configuration.
-   *
-   * @return  The previous setting for this configuration option.  If
-   *          no previous value was specified, then {@code false} will
-   *          be returned.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running.
-   */
-  public boolean setUseLastKnownGoodConfiguration(
-                      boolean useLastKnownGoodConfiguration)
-         throws InitializationException
-  {
-    return setBooleanProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
-        useLastKnownGoodConfiguration);
-  }
-
-
 
   /**
    * Indicates whether the Directory Server should maintain an archive
@@ -629,79 +570,13 @@ public final class DirectoryEnvironmentConfig
     try
     {
       int maxSize = Integer.parseInt(maxSizeStr);
-      if (maxSize > 0)
-      {
-        return maxSize;
-      }
-      else
-      {
-        return 0;
-      }
+      return maxSize > 0 ? maxSize : 0;
     }
     catch (Exception e)
     {
       return 0;
     }
   }
-
-
-
-  /**
-   * Specifies the maximum number of archived configurations that the
-   * Directory Server should maintain.  A value that is less than or
-   * equal to zero may be used to indicate that there should not be
-   * any limit to the number of archived configurations.
-   *
-   * @param  maxConfigArchiveSize  The maximum number of archived
-   *                               configurations that the Directory
-   *                               Server should maintain.
-   *
-   * @return  The previous setting for this configuration option.  If
-   *          no previous value was specified, then zero will be
-   *          returned.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running.
-   */
-  public int setMaxConfigArchiveSize(int maxConfigArchiveSize)
-         throws InitializationException
-  {
-    checkServerIsRunning();
-
-    if (maxConfigArchiveSize < 0)
-    {
-      maxConfigArchiveSize = 0;
-    }
-
-    String oldMaxSizeStr =
-         setProperty(PROPERTY_MAX_CONFIG_ARCHIVE_SIZE,
-                     String.valueOf(maxConfigArchiveSize));
-    if (oldMaxSizeStr == null)
-    {
-      return 0;
-    }
-    else
-    {
-      try
-      {
-        int oldMaxSize = Integer.parseInt(oldMaxSizeStr);
-        if (oldMaxSize > 0)
-        {
-          return oldMaxSize;
-        }
-        else
-        {
-          return 0;
-        }
-      }
-      catch (Exception e)
-      {
-        return 0;
-      }
-    }
-  }
-
-
 
   /**
    * Retrieves the directory that contains the server schema
@@ -714,28 +589,23 @@ public final class DirectoryEnvironmentConfig
    */
   public File getSchemaDirectory()
   {
-    String schemaDirectoryPath =
-         getProperty(PROPERTY_SCHEMA_DIRECTORY);
-    if (schemaDirectoryPath == null)
-    {
-      File serverRoot = getServerRoot();
-      if (serverRoot != null)
-      {
-        File instanceRoot =
-          getInstanceRootFromServerRoot(serverRoot);
-        File schemaDir = new File(instanceRoot.getAbsolutePath()
-            + File.separator + PATH_SCHEMA_DIR);
-        if (schemaDir.exists() && schemaDir.isDirectory())
-        {
-          return schemaDir;
-        }
-      }
-      return null;
-    }
-    else
+    String schemaDirectoryPath = getProperty(PROPERTY_SCHEMA_DIRECTORY);
+    if (schemaDirectoryPath != null)
     {
       return new File(schemaDirectoryPath);
     }
+
+    File serverRoot = getServerRoot();
+    if (serverRoot != null)
+    {
+      File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
+      File schemaDir = new File(instanceRoot.getAbsolutePath() + File.separator + PATH_SCHEMA_DIR);
+      if (schemaDir.exists() && schemaDir.isDirectory())
+      {
+        return schemaDir;
+      }
+    }
+    return null;
   }
 
 
@@ -783,75 +653,19 @@ public final class DirectoryEnvironmentConfig
   public File getLockDirectory()
   {
     String lockFilePath = getProperty(PROPERTY_LOCK_DIRECTORY);
-    if (lockFilePath == null)
-    {
-      File serverRoot = getServerRoot();
-      if (serverRoot == null)
-      {
-        return null;
-      }
-      else
-      {
-        File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
-        return new File(instanceRoot, LOCKS_DIRECTORY);
-      }
-    }
-    else
+    if (lockFilePath != null)
     {
       return new File(lockFilePath);
     }
-  }
 
-
-
-  /**
-   * Specifies the directory that should be used to hold the server
-   * lock files.  If the specified path already exists, then it must
-   * be a directory and its contents must be writable by the server.
-   * If it does not exist, then its parent directory must exist and
-   * the server should have permission to create a new subdirectory in
-   * it.
-   *
-   * @param  lockDirectory  The directory that should be used to hold
-   *                        the server lock files.
-   *
-   * @return  The previously-defined lock directory, or {@code null}
-   *          if none was defined.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running or there is a
-   *                                   problem with the provided lock
-   *                                   directory.
-   */
-  public File setLockDirectory(File lockDirectory)
-         throws InitializationException
-  {
-    checkServerIsRunning();
-
-    if (lockDirectory.exists())
+    File serverRoot = getServerRoot();
+    if (serverRoot != null)
     {
-      if (! lockDirectory.isDirectory())
-      {
-        throw new InitializationException(
-                ERR_DIRCFG_INVALID_LOCK_DIRECTORY.get(
-                        lockDirectory.getAbsolutePath()));
-      }
+      File instanceRoot = getInstanceRootFromServerRoot(serverRoot);
+      return new File(instanceRoot, LOCKS_DIRECTORY);
     }
-    else
-    {
-      File parentFile = lockDirectory.getParentFile();
-      if (!parentFile.exists() || !parentFile.isDirectory())
-      {
-        throw new InitializationException(
-                ERR_DIRCFG_INVALID_LOCK_DIRECTORY.get(
-                        lockDirectory.getAbsolutePath()));
-      }
-    }
-
-    return setPathProperty(PROPERTY_LOCK_DIRECTORY, lockDirectory);
+    return null;
   }
-
-
 
   /**
    * Indicates whether the Directory Server startup process should
@@ -992,32 +806,6 @@ public final class DirectoryEnvironmentConfig
   {
     return isPropertyTrue(PROPERTY_DISABLE_EXEC);
   }
-
-
-
-  /**
-   * Specifies whether the Directory Server should be allowed to use
-   * the {@code Runtime.exec()} method to be able to launch external
-   * commands on the underlying system.
-   *
-   * @param  disableExec  Indicates whether the Directory Server
-   *                      should be allowed to launch external
-   *                      commands on the underlying system.
-   *
-   * @return  The previous setting for this configuration option.  If
-   *          no previous value was specified, then {@code false} will
-   *          be returned.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running.
-   */
-  public boolean setDisableExec(boolean disableExec)
-         throws InitializationException
-  {
-    return setBooleanProperty(PROPERTY_DISABLE_EXEC, disableExec);
-  }
-
-
 
   /** Throws an exception if server is running and it is not allowed. */
   private void checkServerIsRunning() throws InitializationException

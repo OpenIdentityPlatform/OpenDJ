@@ -40,7 +40,7 @@ import org.opends.server.util.StaticUtils;
 class FileManager
 {
   /** Describes the approach taken to deleting a file or directory. */
-  public static enum DeletionPolicy
+  private static enum DeletionPolicy
   {
     /** Delete the file or directory immediately. */
     DELETE_IMMEDIATELY,

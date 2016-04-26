@@ -12,9 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
+
+import static org.opends.messages.UtilityMessages.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,8 +31,6 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.UtilityMessages.*;
 
 /**
  * This class provides a mechanism for setting file permissions in a
@@ -48,82 +48,45 @@ import static org.opends.messages.UtilityMessages.*;
      mayInvoke=true)
 public class FilePermission
 {
-  /**
-   * The bitmask that should be used for indicating whether a file is
-   * readable by its owner.
-   */
-  public static final int OWNER_READABLE = 0x0100;
-
-
-
-  /**
-   * The bitmask that should be used for indicating whether a file is
-   * writable by its owner.
-   */
-  public static final int OWNER_WRITABLE = 0x0080;
-
-
-
-  /**
-   * The bitmask that should be used for indicating whether a file is
-   * executable by its owner.
-   */
-  public static final int OWNER_EXECUTABLE = 0x0040;
-
-
-
+  /** The bitmask that should be used for indicating whether a file is readable by its owner. */
+  private static final int OWNER_READABLE = 0x0100;
+  /** The bitmask that should be used for indicating whether a file is writable by its owner. */
+  private static final int OWNER_WRITABLE = 0x0080;
+  /** The bitmask that should be used for indicating whether a file is executable by its owner. */
+  private static final int OWNER_EXECUTABLE = 0x0040;
   /**
    * The bitmask that should be used for indicating whether a file is
    * readable by members of its group.
    */
-  public static final int GROUP_READABLE = 0x0020;
-
-
-
+  private static final int GROUP_READABLE = 0x0020;
   /**
    * The bitmask that should be used for indicating whether a file is
    * writable by members of its group.
    */
-  public static final int GROUP_WRITABLE = 0x0010;
-
-
-
+  private static final int GROUP_WRITABLE = 0x0010;
   /**
    * The bitmask that should be used for indicating whether a file is
    * executable by members of its group.
    */
-  public static final int GROUP_EXECUTABLE = 0x0008;
-
-
-
+  private static final int GROUP_EXECUTABLE = 0x0008;
   /**
    * The bitmask that should be used for indicating whether a file is
    * readable by users other than the owner or group members.
    */
-  public static final int OTHER_READABLE = 0x0004;
-
-
-
+  private static final int OTHER_READABLE = 0x0004;
   /**
    * The bitmask that should be used for indicating whether a file is
    * writable by users other than the owner or group members.
    */
-  public static final int OTHER_WRITABLE = 0x0002;
-
-
-
+  private static final int OTHER_WRITABLE = 0x0002;
   /**
    * The bitmask that should be used for indicating whether a file is
    * executable by users other than the owner or group members.
    */
-  public static final int OTHER_EXECUTABLE = 0x0001;
-
-
+  private static final int OTHER_EXECUTABLE = 0x0001;
 
   /** The encoded representation for this file permission. */
   private int encodedPermission;
-
-
 
   /**
    * Creates a new file permission object with the provided encoded
@@ -137,123 +100,6 @@ public class FilePermission
     this.encodedPermission = encodedPermission;
   }
 
-
-
-  /**
-   * Creates a new file permission with the specified rights for the
-   * file owner.  Users other than the owner will not have any rights.
-   *
-   * @param  ownerReadable    Indicates whether the owner should have
-   *                          the read permission.
-   * @param  ownerWritable    Indicates whether the owner should have
-   *                          the write permission.
-   * @param  ownerExecutable  Indicates whether the owner should have
-   *                          the execute permission.
-   */
-  public FilePermission(boolean ownerReadable, boolean ownerWritable,
-                        boolean ownerExecutable)
-  {
-    encodedPermission = 0x0000;
-
-    if (ownerReadable)
-    {
-      encodedPermission |= OWNER_READABLE;
-    }
-
-    if (ownerWritable)
-    {
-      encodedPermission |= OWNER_WRITABLE;
-    }
-
-    if (ownerExecutable)
-    {
-      encodedPermission |= OWNER_EXECUTABLE;
-    }
-  }
-
-
-
-  /**
-   * Creates a new file permission with the specified rights for the
-   * file owner, group members, and other users.
-   *
-   * @param  ownerReadable    Indicates whether the owner should have
-   *                          the read permission.
-   * @param  ownerWritable    Indicates whether the owner should have
-   *                          the write permission.
-   * @param  ownerExecutable  Indicates whether the owner should have
-   *                          the execute permission.
-   * @param  groupReadable    Indicates whether members of the file's
-   *                          group should have the read permission.
-   * @param  groupWritable    Indicates whether members of the file's
-   *                          group should have the write permission.
-   * @param  groupExecutable  Indicates whether members of the file's
-   *                          group should have the execute
-   *                          permission.
-   * @param  otherReadable    Indicates whether other users should
-   *                          have the read permission.
-   * @param  otherWritable    Indicates whether other users should
-   *                          have the write permission.
-   * @param  otherExecutable  Indicates whether other users should
-   *                          have the execute permission.
-   */
-  public FilePermission(boolean ownerReadable, boolean ownerWritable,
-                        boolean ownerExecutable,
-                        boolean groupReadable, boolean groupWritable,
-                        boolean groupExecutable,
-                        boolean otherReadable, boolean otherWritable,
-                        boolean otherExecutable)
-  {
-    encodedPermission = 0x0000;
-
-    if (ownerReadable)
-    {
-      encodedPermission |= OWNER_READABLE;
-    }
-
-    if (ownerWritable)
-    {
-      encodedPermission |= OWNER_WRITABLE;
-    }
-
-    if (ownerExecutable)
-    {
-      encodedPermission |= OWNER_EXECUTABLE;
-    }
-
-    if (groupReadable)
-    {
-      encodedPermission |= GROUP_READABLE;
-    }
-
-    if (groupWritable)
-    {
-      encodedPermission |= GROUP_WRITABLE;
-    }
-
-    if (groupExecutable)
-    {
-      encodedPermission |= GROUP_EXECUTABLE;
-    }
-
-    if (otherReadable)
-    {
-      encodedPermission |= OTHER_READABLE;
-    }
-
-    if (otherWritable)
-    {
-      encodedPermission |= OTHER_WRITABLE;
-    }
-
-    if (otherExecutable)
-    {
-      encodedPermission |= OTHER_EXECUTABLE;
-    }
-  }
-
-
-
   /**
    * Indicates whether this file permission includes the owner read
    * permission.
@@ -265,8 +111,6 @@ public class FilePermission
   {
     return is(encodedPermission, OWNER_READABLE);
   }
-
-
 
   /**
    * Indicates whether this file permission includes the owner write
@@ -280,8 +124,6 @@ public class FilePermission
     return is(encodedPermission, OWNER_WRITABLE);
   }
 
-
-
   /**
    * Indicates whether this file permission includes the owner execute
    * permission.
@@ -293,8 +135,6 @@ public class FilePermission
   {
     return is(encodedPermission, OWNER_EXECUTABLE);
   }
-
-
 
   /**
    * Indicates whether this file permission includes the group read
@@ -308,8 +148,6 @@ public class FilePermission
     return is(encodedPermission, GROUP_READABLE);
   }
 
-
-
   /**
    * Indicates whether this file permission includes the group write
    * permission.
@@ -321,8 +159,6 @@ public class FilePermission
   {
     return is(encodedPermission, GROUP_WRITABLE);
   }
-
-
 
   /**
    * Indicates whether this file permission includes the group execute
@@ -336,8 +172,6 @@ public class FilePermission
     return is(encodedPermission, GROUP_EXECUTABLE);
   }
 
-
-
   /**
    * Indicates whether this file permission includes the other read
    * permission.
@@ -350,8 +184,6 @@ public class FilePermission
     return is(encodedPermission, OTHER_READABLE);
   }
 
-
-
   /**
    * Indicates whether this file permission includes the other write
    * permission.
@@ -363,8 +195,6 @@ public class FilePermission
   {
     return is(encodedPermission, OTHER_WRITABLE);
   }
-
-
 
   /**
    * Indicates whether this file permission includes the other execute
@@ -487,8 +317,6 @@ public class FilePermission
     return buffer.toString();
   }
 
-
-
   /**
    * Appends a three-character string that is the UNIX mode for the
    * provided file permission to the given buffer.  Each character of
@@ -498,7 +326,7 @@ public class FilePermission
    *                 appended.
    * @param  p       The permission to retrieve as a UNIX mode string.
    */
-  public static void toUNIXMode(StringBuilder buffer,
+  private static void toUNIXMode(StringBuilder buffer,
                                 FilePermission p)
   {
     byte modeByte = 0x00;
@@ -546,8 +374,6 @@ public class FilePermission
     }
     buffer.append(modeByte);
   }
-
-
 
   /**
    * Decodes the provided string as a UNIX mode and retrieves the
@@ -669,8 +495,6 @@ public class FilePermission
     return new FilePermission(encodedPermission);
   }
 
-
-
   /**
    * Build a file permissions string in the "rwx" form expected by NIO,
    * but with optional prefix strings before each three character block.
@@ -702,8 +526,6 @@ public class FilePermission
     buffer.append(p.isOtherExecutable() ? "x" : "-");
   }
 
-
-
   /**
    * Retrieves a string representation of this file permission.
    *
@@ -717,17 +539,14 @@ public class FilePermission
     return buffer.toString();
   }
 
-
-
   /**
    * Appends a string representation of this file permission to the
    * given buffer.
    *
    * @param  buffer  The buffer to which the data should be appended.
    */
-  public void toString(StringBuilder buffer)
+  private void toString(StringBuilder buffer)
   {
     toPOSIXString(this, buffer, "Owner=", ", Group=", ", Other=");
   }
 }
-

@@ -73,14 +73,10 @@ import com.forgerock.opendj.cli.StringArgument;
  * server process (e.g., via the tasks interface).
  */
 public class ImportLDIF extends TaskTool {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The buffer size that should be used when reading data from LDIF.
-   */
-  public static final int LDIF_BUFFER_SIZE = 1048576;
-
+  /** The buffer size that should be used when reading data from LDIF. */
+  private static final int LDIF_BUFFER_SIZE = 1048576;
 
   /**
    * The main method for ImportLDIF tool.
@@ -90,22 +86,10 @@ public class ImportLDIF extends TaskTool {
   public static void main(String[] args)
   {
     int retCode = mainImportLDIF(args, true, System.out, System.err);
-
     if(retCode != 0)
     {
       System.exit(filterExitCode(retCode));
     }
-  }
-
-  /**
-   * Processes the command-line arguments and invokes the import process.
-   *
-   * @param  args  The command-line arguments provided to this program.
-   * @return The error code.
-   */
-  public static int mainImportLDIF(String[] args)
-  {
-    return mainImportLDIF(args, true, System.out, System.err);
   }
 
   /**
@@ -157,13 +141,11 @@ public class ImportLDIF extends TaskTool {
 
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream) {
-
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.disableLogging();
 
     // FIXME -- Need to add a mechanism for verifying the file signature.
-
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser =
@@ -203,12 +185,10 @@ public class ImportLDIF extends TaskTool {
       return 1;
     }
 
-
     if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }
-
 
     // Make sure that either the "ldifFile" argument or the "templateFile"
     // argument was provided, but not both.
@@ -617,7 +597,6 @@ public class ImportLDIF extends TaskTool {
       }
     }
 
-
     // Get information about the backends defined in the server.  Iterate
     // through them, finding the one backend into which the LDIF should be
     // imported and finding backends with subordinate base DNs that should be
@@ -747,7 +726,6 @@ public class ImportLDIF extends TaskTool {
       }
     }
 
-
     // See if the data should be read from LDIF files or generated via MakeLDIF.
     LDIFImportConfig importConfig;
     if (ldifFiles.isPresent())
@@ -790,7 +768,6 @@ public class ImportLDIF extends TaskTool {
 
       importConfig = new LDIFImportConfig(tf);
     }
-
 
     // Create the LDIF import configuration to use when reading the LDIF.
     importConfig.setCompressed(isCompressed.isPresent());
@@ -876,7 +853,6 @@ public class ImportLDIF extends TaskTool {
     DN[] baseDNs = new DN[defaultIncludeBranches.size()];
     defaultIncludeBranches.toArray(baseDNs);
 
-
     // Acquire an exclusive lock for the backend.
     try
     {
@@ -893,7 +869,6 @@ public class ImportLDIF extends TaskTool {
       logger.error(ERR_LDIFIMPORT_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       return 1;
     }
-
 
     // Launch the import.
     int retCode = 0;
@@ -933,7 +908,6 @@ public class ImportLDIF extends TaskTool {
       retCode = 1;
     }
 
-
     // Release the exclusive lock on the backend.
     try
     {
@@ -950,7 +924,6 @@ public class ImportLDIF extends TaskTool {
       logger.warn(WARN_LDIFIMPORT_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
       retCode = 1;
     }
-
 
     // Clean up after the import by closing the import config.
     importConfig.close();

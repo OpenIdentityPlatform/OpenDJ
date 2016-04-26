@@ -16,18 +16,17 @@
  */
 package org.opends.server.tools.makeldif;
 
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
  * This class defines a template, which is a pattern that may be used to
@@ -40,56 +39,21 @@ public class Template
    * The attribute types that are used in the RDN for entries generated using
    * this template.
    */
-  private AttributeType[] rdnAttributes;
-
+  private final AttributeType[] rdnAttributes;
   /** The number of entries to create for each subordinate template. */
-  private int[] numEntriesPerTemplate;
-
+  private final int[] numEntriesPerTemplate;
   /** The name for this template. */
-  private String name;
+  private final String name;
 
   /** The names of the subordinate templates below this template. */
   private String[] subordinateTemplateNames;
-
   /** The subordinate templates below this template. */
   private Template[] subordinateTemplates;
-
   /** The template file that contains this template. */
-  private TemplateFile templateFile;
-
+  private final TemplateFile templateFile;
   /** The set of template lines for this template. */
   private TemplateLine[] templateLines;
 
-
-
-  /**
-   * Creates a new template with the provided information.
-   *
-   * @param  templateFile              The template file that contains this
-   *                                   template.
-   * @param  name                      The name for this template.
-   * @param  rdnAttributes             The set of attribute types that are used
-   *                                   in the RDN for entries generated using
-   *                                   this template.
-   * @param  subordinateTemplateNames  The names of the subordinate templates
-   *                                   below this template.
-   * @param  numEntriesPerTemplate     The number of entries to create below
-   *                                   each subordinate template.
-   */
-  public Template(TemplateFile templateFile, String name,
-                  AttributeType[] rdnAttributes,
-                  String[] subordinateTemplateNames,
-                  int[] numEntriesPerTemplate)
-  {
-    this.templateFile             = templateFile;
-    this.name                     = name;
-    this.rdnAttributes            = rdnAttributes;
-    this.subordinateTemplateNames = subordinateTemplateNames;
-    this.numEntriesPerTemplate    = numEntriesPerTemplate;
-
-    templateLines        = new TemplateLine[0];
-    subordinateTemplates = null;
-  }
 
 
 

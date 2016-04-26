@@ -69,12 +69,9 @@ import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
 import static org.opends.server.util.ChangeOperationType.*;
 
-/**
- * Common utility methods needed by the upgrade.
- */
+/** Common utility methods needed by the upgrade. */
 final class UpgradeUtils
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The config folder of the current instance. */
@@ -82,7 +79,7 @@ final class UpgradeUtils
   /** The config/schema folder of the current instance. */
   static final File configSchemaDirectory = new File(configDirectory, SCHEMA_PATH_RELATIVE);
   /** The template folder of the current installation. */
-  static final File templateDirectory = new File(getInstallationPath(), TEMPLATE_RELATIVE_PATH);
+  private static final File templateDirectory = new File(getInstallationPath(), TEMPLATE_RELATIVE_PATH);
   /** The template/config folder of the current installation. */
   static final File templateConfigDirectory = new File(templateDirectory, CONFIG_PATH_RELATIVE);
   /** The template/config/schema folder of the current installation. */
@@ -96,7 +93,7 @@ final class UpgradeUtils
   static final File binDirectory = new File(getInstallationPath(), UNIX_BINARIES_PATH_RELATIVE);
   /** The bat folder of the current installation. */
   static final File batDirectory = new File(getInstallationPath(), WINDOWS_BINARIES_PATH_RELATIVE);
-  /** The server configuration file path */
+  /** The server configuration file path. */
   static final String CONFIG_FILE_PATH =
       Paths.get(configDirectory.getAbsolutePath(), CURRENT_CONFIG_FILE_NAME).toString();
 
@@ -106,7 +103,7 @@ final class UpgradeUtils
    *
    * @return the path of the installation of the directory server.
    */
-  static String getInstallPathFromClasspath()
+  private static String getInstallPathFromClasspath()
   {
     String installPath = DirectoryServer.getServerRoot();
     if (installPath != null)
@@ -226,71 +223,10 @@ final class UpgradeUtils
     }
   }
 
-  /**
-   * Returns the absolute path for the given parentPath and relativePath.
-   *
-   * @param parentPath
-   *          the parent path.
-   * @param relativePath
-   *          the relative path.
-   * @return the absolute path for the given parentPath and relativePath.
-   */
-  static String getPath(final String parentPath, final String relativePath)
-  {
-    return getPath(new File(new File(parentPath), relativePath));
-  }
-
   static File getFileForPath(String path)
   {
     final File f = new File(path);
     return f.isAbsolute() ? f : new File(getInstancePath(), path);
-  }
-
-  /**
-   * Determines whether one file is the parent of another.
-   *
-   * @param ancestor
-   *          possible parent of <code>descendant</code>
-   * @param descendant
-   *          possible child 0f <code>ancestor</code>
-   * @return return true if ancestor is a parent of descendant
-   */
-  static boolean isParentOf(final File ancestor, File descendant)
-  {
-    if (ancestor != null)
-    {
-      if (ancestor.equals(descendant))
-      {
-        return false;
-      }
-      while (descendant != null && !ancestor.equals(descendant))
-      {
-        descendant = descendant.getParentFile();
-      }
-    }
-    return ancestor != null && descendant != null;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if the first provided path is under the second
-   * path in the file system.
-   * @param descendant the descendant candidate path.
-   * @param path the path.
-   * @return <CODE>true</CODE> if the first provided path is under the second
-   * path in the file system; <code>false</code> otherwise or if
-   * either of the files are null
-   */
-  static boolean isDescendant(File descendant, File path) {
-    if (descendant != null && path != null) {
-      File parent = descendant.getParentFile();
-      while (parent != null) {
-        if (path.equals(parent)) {
-          return true;
-        }
-        parent = parent.getParentFile();
-      }
-    }
-    return false;
   }
 
   /**
@@ -763,7 +699,8 @@ final class UpgradeUtils
    *
    * @return A schema which may used in the upgrade context.
    */
-  static Schema getUpgradeSchema() {
+  private static Schema getUpgradeSchema()
+  {
     final SchemaBuilder sb = new SchemaBuilder(Schema.getCoreSchema())
         .setOption(DEFAULT_MATCHING_RULE_OID, getCaseExactMatchingRule().getOID())
         .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID());

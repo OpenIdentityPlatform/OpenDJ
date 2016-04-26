@@ -16,6 +16,7 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 
@@ -25,8 +26,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -70,23 +69,16 @@ public final class DITContentRule implements SchemaElement
    * user-defined name for that class.
    */
   private final Set<ObjectClass> auxiliaryClasses;
-
   /** The set of optional attribute types for this DIT content rule. */
   private final Set<AttributeType> optionalAttributes;
-
   /** The set of prohibited attribute types for this DIT content rule. */
   private final Set<AttributeType> prohibitedAttributes;
-
   /** The set of required attribute types for this DIT content rule. */
   private final Set<AttributeType> requiredAttributes;
-
   /** The definition string used to create this DIT content rule. */
   private final String definition;
-
   /** The description for this DIT content rule. */
   private final String description;
-
-
 
   /**
    * Creates a new DIT content rule definition with the provided
@@ -128,7 +120,7 @@ public final class DITContentRule implements SchemaElement
     ifNull(definition, structuralClass);
 
     this.structuralClass = structuralClass;
-    this.description     = description;
+    this.description = description;
     this.isObsolete      = isObsolete;
 
     int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
@@ -252,14 +244,7 @@ public final class DITContentRule implements SchemaElement
    */
   public String getNameOrOID()
   {
-    if (names.isEmpty())
-    {
-      return null;
-    }
-    else
-    {
-      return names.values().iterator().next();
-    }
+    return !names.isEmpty() ? names.values().iterator().next() : null;
   }
 
 
@@ -308,25 +293,6 @@ public final class DITContentRule implements SchemaElement
     return requiredAttributes;
   }
 
-
-
-  /**
-   * Indicates whether the provided attribute type is included in the
-   * required attribute list for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   *
-   * @return  {@code true} if the provided attribute type is required
-   *          by this DIT content rule, or {@code false} if not.
-   */
-  public boolean isRequired(AttributeType attributeType)
-  {
-    return requiredAttributes.contains(attributeType);
-  }
-
-
-
   /**
    * Retrieves the set of optional attributes for this DIT content
    * rule.
@@ -337,23 +303,6 @@ public final class DITContentRule implements SchemaElement
   public Set<AttributeType> getOptionalAttributes()
   {
     return optionalAttributes;
-  }
-
-
-
-  /**
-   * Indicates whether the provided attribute type is included in the
-   * optional attribute list for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   *
-   * @return  {@code true} if the provided attribute type is optional
-   *          for this DIT content rule, or {@code false} if not.
-   */
-  public boolean isOptional(AttributeType attributeType)
-  {
-    return optionalAttributes.contains(attributeType);
   }
 
 

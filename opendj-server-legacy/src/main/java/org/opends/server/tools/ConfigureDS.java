@@ -16,18 +16,18 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_JMXPORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
+import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -46,22 +46,21 @@ import javax.crypto.Cipher;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.adapter.server3x.Converters;
+import org.forgerock.opendj.config.DefaultBehaviorProvider;
+import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.StringPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
-import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.quicksetup.installer.Installer;
-import org.forgerock.opendj.config.DefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.StringPropertyDefinition;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
-import org.opends.server.types.Entry;
 import org.opends.server.core.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -69,6 +68,7 @@ import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
@@ -185,36 +185,26 @@ public class ConfigureDS
       + "ds-cfg-trust-store-type: JCEKS" + NEW_LINE
       + "ds-cfg-trust-store-file: config/truststore" + NEW_LINE;
 
-  /** The fully-qualified name of this class. */
-  private static final String CLASS_NAME = "org.opends.server.tools.ConfigureDS";
-
   /** The DN of the configuration entry defining the LDAP connection handler. */
-  public static final String DN_LDAP_CONNECTION_HANDLER = "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
-
+  private static final String DN_LDAP_CONNECTION_HANDLER = "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
   /** The DN of the configuration entry defining the Administration connector. */
-  public static final String DN_ADMIN_CONNECTOR = "cn=Administration Connector," + DN_CONFIG_ROOT;
-
+  private static final String DN_ADMIN_CONNECTOR = "cn=Administration Connector," + DN_CONFIG_ROOT;
   /** The DN of the configuration entry defining the LDAPS connection handler. */
   private static final String DN_LDAPS_CONNECTION_HANDLER = "cn=LDAPS Connection Handler," + DN_CONNHANDLER_BASE;
-
   /** The DN of the configuration entry defining the HTTP connection handler. */
   private static final String DN_HTTP_CONNECTION_HANDLER =
       "cn=HTTP Connection Handler,cn=Connection Handlers,cn=config";
-
   /** The DN of the configuration entry defining the JMX connection handler. */
   private static final String DN_JMX_CONNECTION_HANDLER = "cn=JMX Connection Handler," + DN_CONNHANDLER_BASE;
-
   /** The DN of the configuration entry defining the initial root user. */
-  public static final String DN_ROOT_USER = "cn=Directory Manager," + DN_ROOT_DN_CONFIG_BASE;
-
+  private static final String DN_ROOT_USER = "cn=Directory Manager," + DN_ROOT_DN_CONFIG_BASE;
   /** The DN of the Crypto Manager. */
-  public static final String DN_CRYPTO_MANAGER = "cn=Crypto Manager,cn=config";
-
+  private static final String DN_CRYPTO_MANAGER = "cn=Crypto Manager,cn=config";
   /** The DN of the DIGEST-MD5 SASL mechanism handler. */
-  public static final String DN_DIGEST_MD5_SASL_MECHANISM = "cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config";
+  private static final String DN_DIGEST_MD5_SASL_MECHANISM = "cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config";
 
-  private static int SUCCESS = 0;
-  private static int ERROR = 1;
+  private static final int SUCCESS = 0;
+  private static final int ERROR = 1;
 
   /**
    * Provides the command-line arguments to the <CODE>configMain</CODE> method
@@ -283,7 +273,7 @@ public class ConfigureDS
     arguments = args;
     out = NullOutputStream.wrapOrNullStream(outStream);
     err = NullOutputStream.wrapOrNullStream(errStream);
-    argParser = new ArgumentParser(CLASS_NAME, INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
+    argParser = new ArgumentParser(ConfigureDS.class.getName(), INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
   }
 
   private int run()
@@ -1188,27 +1178,25 @@ public class ConfigureDS
    * Returns <CODE>null</CODE> if no alternative cipher could be found.
    * @return a cipher that is supported by the JVM we are running at.
    */
-  public static String getAlternativeCipher()
+  private static String getAlternativeCipher()
   {
     final String[] preferredAlternativeCiphers =
     {
         "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING",
         "RSA/ECB/PKCS1Padding"
     };
-    String alternativeCipher = null;
     for (final String cipher : preferredAlternativeCiphers)
     {
       try
       {
         Cipher.getInstance(cipher);
-        alternativeCipher = cipher;
-        break;
+        return cipher;
       }
-      catch (final Throwable t)
+      catch (final Throwable ignored)
       {
+        // ignored
       }
     }
-    return alternativeCipher;
+    return null;
   }
 }
-

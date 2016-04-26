@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -610,7 +609,7 @@ public class BackupBackend
     putBoolean(userAttrs, ATTR_BACKUP_ENCRYPTED, backupInfo.isEncrypted());
     putBoolean(userAttrs, ATTR_BACKUP_INCREMENTAL, backupInfo.isIncremental());
 
-    HashSet<String> dependencies = backupInfo.getDependencies();
+    Set<String> dependencies = backupInfo.getDependencies();
     if (dependencies != null && !dependencies.isEmpty()) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DEPENDENCY);
       AttributeBuilder builder = new AttributeBuilder(t);
@@ -628,7 +627,7 @@ public class BackupBackend
       putByteString(userAttrs, ATTR_BACKUP_UNSIGNED_HASH, unsignedHash);
     }
 
-    HashMap<String, String> properties = backupInfo.getBackupProperties();
+    Map<String, String> properties = backupInfo.getBackupProperties();
     if (properties != null && !properties.isEmpty()) {
       for (Map.Entry<String, String> e : properties.entrySet()) {
         t = DirectoryServer.getAttributeType(toLowerCase(e.getKey()));

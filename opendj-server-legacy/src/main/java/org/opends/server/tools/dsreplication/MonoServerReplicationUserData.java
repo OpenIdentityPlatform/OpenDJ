@@ -22,8 +22,6 @@ import org.opends.server.types.HostPort;
 abstract class MonoServerReplicationUserData extends ReplicationUserData
 {
   private HostPort hostPort = new HostPort(null, 0);
-  private boolean useStartTLS;
-  private boolean useSSL;
 
   /**
    * Returns the host name and port of the server.
@@ -41,45 +39,5 @@ abstract class MonoServerReplicationUserData extends ReplicationUserData
   public void setHostPort(HostPort hostPort)
   {
     this.hostPort = hostPort;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we must use SSL to connect to the server and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we must use SSL to connect to the server and
-   * <CODE>false</CODE> otherwise.
-   */
-  boolean useSSL()
-  {
-    return useSSL;
-  }
-
-  /**
-   * Sets whether we must use SSL to connect to the server or not.
-   * @param useSSL whether we must use SSL to connect to the server or not.
-   */
-  void setUseSSL(boolean useSSL)
-  {
-    this.useSSL = useSSL;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we must use StartTLS to connect to the server
-   * and <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we must use StartTLS to connect to the server
-   * and <CODE>false</CODE> otherwise.
-   */
-  boolean useStartTLS()
-  {
-    return useStartTLS;
-  }
-
-  /**
-   * Sets whether we must use StartTLS to connect to the server or not.
-   * @param useStartTLS whether we must use SSL to connect to the server or not.
-   */
-  void setUseStartTLS(boolean useStartTLS)
-  {
-    this.useStartTLS = useStartTLS;
   }
 }

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -34,9 +34,7 @@ import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the Upgrade tool.
- */
+/** A set of test cases for the Upgrade tool. */
 @SuppressWarnings("javadoc")
 public class UpgradeTestCase extends ToolsTestCase
 {
@@ -83,121 +81,77 @@ public class UpgradeTestCase extends ToolsTestCase
     Assertions.assertThat(out).contains(expected);
   }
 
-  /**
-   * Tests display help information.
-   */
+  /** Tests display help information. */
   @Test
-  public void testUpgradeToolDisplaysHelpUsage()
+  public void testUpgradeToolDisplaysHelpUsage() throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    final PrintStream ps = new PrintStream(baos);
-
-    try
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
     {
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("--help"), true, ps, ps), 0);
       assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
     }
-    finally
-    {
-      StaticUtils.close(ps, baos);
-    }
   }
 
-  /**
-   * Tests display help information.
-   */
+  /** Tests display help information. */
   @Test
-  public void testUpgradeToolDisplaysHelpUsage2()
+  public void testUpgradeToolDisplaysHelpUsage2() throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    final PrintStream ps = new PrintStream(baos);
-
-    try
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
     {
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("-H"), true, ps, ps), 0);
       assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
     }
-    finally
-    {
-      StaticUtils.close(ps, baos);
-    }
   }
 
-  /**
-   * Tests display help information.
-   */
+  /** Tests display help information. */
   @Test
-  public void testUpgradeToolDisplaysHelpUsage3()
+  public void testUpgradeToolDisplaysHelpUsage3() throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    final PrintStream ps = new PrintStream(baos);
-
-    try
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
     {
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("-?"), true, ps, ps), 0);
       assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
     }
-    finally
-    {
-      StaticUtils.close(ps, baos);
-    }
   }
 
-  /**
-   * Tests the upgrade tool with an invalid sub-command.
-   */
+  /** Tests the upgrade tool with an invalid sub-command. */
   @Test
-  public void testUpgradeToolDoesntAllowWrongSubcommand()
+  public void testUpgradeToolDoesntAllowWrongSubcommand() throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    final PrintStream ps = new PrintStream(baos);
-
-    try
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
     {
       // The 'main' should exit with an error code.
       assertEquals(UpgradeCli.main(setArgs("-- wrong"), true, ps, ps), 1);
       assertContainsMessage(baos.toString(), ERR_ERROR_PARSING_ARGS.get(""));
     }
-    finally
-    {
-      StaticUtils.close(ps, baos);
-    }
   }
 
-  /**
-   * Tests the upgrade tool with an invalid sub-command.
-   */
+  /** Tests the upgrade tool with an invalid sub-command. */
   @Test
-  public void testUpgradeToolDoesntAllowWrongSubcommand2()
+  public void testUpgradeToolDoesntAllowWrongSubcommand2() throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    final PrintStream ps = new PrintStream(baos);
-
-    try
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
     {
       // The 'main' should exit with an error code.
       assertEquals(UpgradeCli.main(setArgs("--wrong"), true, ps, ps), 1);
       assertContainsMessage(baos.toString(), ERR_ERROR_PARSING_ARGS.get(""));
     }
-    finally
-    {
-      StaticUtils.close(ps, baos);
-    }
   }
 
-  /**
-   * The upgrade tool disallows the force sub-command used with 'interactive
-   * mode'.
-   */
+  /** The upgrade tool disallows the force sub-command used with 'interactive mode'. */
   @Test
-  public void testUpgradeToolDoesntAllowInteractiveAndForce()
+  public void testUpgradeToolDoesntAllowInteractiveAndForce() throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    final PrintStream ps = new PrintStream(baos);
-    try
+    try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos))
     {
       // The 'main' should exit with an error code.
       assertEquals(UpgradeCli.main(setArgs("--force"), true, ps, ps), 1);
@@ -206,15 +160,9 @@ public class UpgradeTestCase extends ToolsTestCase
       assertContainsMessage(baos.toString(), ERR_UPGRADE_INCOMPATIBLE_ARGS.get(
           OPTION_LONG_FORCE_UPGRADE, "interactive mode"));
     }
-    finally
-    {
-      StaticUtils.close(ps, baos);
-    }
   }
 
-  /**
-   * Upgrade tool allows use of force and no-prompt sub-commands.
-   */
+  /** Upgrade tool allows use of force and no-prompt sub-commands. */
   @Test
   public void testUpgradeToolAllowsNonInteractiveAndForce() throws Exception
   {

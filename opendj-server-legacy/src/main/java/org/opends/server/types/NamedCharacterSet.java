@@ -12,23 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.types;
-
-import org.forgerock.i18n.LocalizableMessage;
-
 
 import java.security.SecureRandom;
 import java.util.Random;
 import java.util.SortedSet;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a data structure that makes it possible to
@@ -44,10 +40,8 @@ public final class NamedCharacterSet
 {
   /** The characters contained in this character set. */
   private final char[] characters;
-
   /** The random number generator to use with this character set. */
   private final Random random;
-
   /** The name assigned to this character set. */
   private final String name;
 
@@ -63,7 +57,7 @@ public final class NamedCharacterSet
    * @throws  ConfigException  If the provided name contains one or
    *                           more illegal characters.
    */
-  public NamedCharacterSet(String name, char[] characters)
+  private NamedCharacterSet(String name, char[] characters)
          throws ConfigException
   {
     this(name, characters, new SecureRandom());
@@ -83,7 +77,7 @@ public final class NamedCharacterSet
    * @throws  ConfigException  If the provided name contains one or
    *                           more illegal characters.
    */
-  public NamedCharacterSet(String name, char[] characters,
+  private NamedCharacterSet(String name, char[] characters,
                            Random random)
          throws ConfigException
   {
@@ -171,22 +165,6 @@ public final class NamedCharacterSet
       buffer.append(characters[random.nextInt(characters.length)]);
     }
   }
-
-
-
-  /**
-   * Encodes this character set to a form suitable for use in the
-   * value of a configuration attribute.
-   *
-   * @return  The encoded character set in a form suitable for use in
-   *          the value of a configuration attribute.
-   */
-  public String encode()
-  {
-    return name + ":" + new String(characters);
-  }
-
-
 
   /**
    * Decodes the values of the provided configuration attribute as a

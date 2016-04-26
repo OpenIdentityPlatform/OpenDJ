@@ -16,16 +16,17 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_JMXPORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_KEYSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_ROOT_USER_PWD_FILE_PLACEHOLDER;
-import static com.forgerock.opendj.cli.Utils.addErrorMessageIfArgumentsConflict;
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.addErrorMessageIfArgumentsConflict;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.messages.ToolMessages.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -63,14 +64,14 @@ public class InstallDSArgumentParser extends ArgumentParser
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  BooleanArgument   cliArg;
+  private BooleanArgument cliArg;
   BooleanArgument   addBaseEntryArg;
-  BooleanArgument   showUsageArg;
+  private BooleanArgument showUsageArg;
   BooleanArgument   quietArg;
   BooleanArgument   noPromptArg;
   BooleanArgument   verboseArg;
-  StringArgument    propertiesFileArgument;
-  BooleanArgument   noPropertiesFileArgument;
+  private StringArgument propertiesFileArgument;
+  private BooleanArgument noPropertiesFileArgument;
   BooleanArgument   skipPortCheckArg;
   BooleanArgument   enableWindowsServiceArg;
   BooleanArgument   doNotStartArg;
@@ -78,8 +79,8 @@ public class InstallDSArgumentParser extends ArgumentParser
   BooleanArgument   generateSelfSignedCertificateArg;
   StringArgument    hostNameArg;
   BooleanArgument   usePkcs11Arg;
-  FileBasedArgument directoryManagerPwdFileArg;
-  FileBasedArgument keyStorePasswordFileArg;
+  private FileBasedArgument directoryManagerPwdFileArg;
+  private FileBasedArgument keyStorePasswordFileArg;
   IntegerArgument   ldapPortArg;
   IntegerArgument   adminConnectorPortArg;
   IntegerArgument   ldapsPortArg;
@@ -90,14 +91,14 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    rejectedImportFileArg;
   StringArgument    skippedImportFileArg;
   StringArgument    directoryManagerDNArg;
-  StringArgument    directoryManagerPwdStringArg;
+  private StringArgument directoryManagerPwdStringArg;
   StringArgument    useJavaKeyStoreArg;
   StringArgument    useJCEKSArg;
   StringArgument    usePkcs12Arg;
-  StringArgument    keyStorePasswordArg;
+  private StringArgument keyStorePasswordArg;
   StringArgument    certNicknameArg;
-  StringArgument    progNameArg;
-  IntegerArgument   connectTimeoutArg;
+  private StringArgument progNameArg;
+  private IntegerArgument connectTimeoutArg;
   BooleanArgument   acceptLicense;
   StringArgument    backendTypeArg;
 
@@ -418,7 +419,6 @@ public class InstallDSArgumentParser extends ArgumentParser
     return cliArg.isPresent();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
@@ -539,13 +539,9 @@ public class InstallDSArgumentParser extends ArgumentParser
   private void checkPortAlreadyUsed(Set<Integer> ports, int port, Collection<LocalizableMessage> errorMessages,
       Arg1<Object> errorMsg)
   {
-    if (ports.contains(port))
+    if (!ports.add(port))
     {
       errorMessages.add(errorMsg.get(port));
-    }
-    else
-    {
-      ports.add(port);
     }
   }
 

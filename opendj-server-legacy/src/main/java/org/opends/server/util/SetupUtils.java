@@ -12,13 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
-import static org.forgerock.util.Utils.closeSilently;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,22 +59,6 @@ public class SetupUtils
   public static final String OPENDJ_JAVA_ARGS = "OPENDJ_JAVA_ARGS";
 
   /**
-   * Java property used to know which are the jar files that must be downloaded
-   * lazily.  The current code in WebStartDownloader that uses this property
-   * assumes that the URL are separated with an space.
-   */
-  public static final String LAZY_JAR_URLS =
-      "org.opends.quicksetup.lazyjarurls";
-
-  /**
-   * Java property used to know which is the name of the zip file that must
-   * be unzipped and whose contents must be extracted during the Web Start
-   * based setup.
-   */
-  public static final String ZIP_FILE_NAME =
-      "org.opends.quicksetup.zipfilename";
-
-  /**
    * The relative path where all the libraries (jar files) are.
    */
   public static final String LIBRARIES_PATH_RELATIVE = "lib";
@@ -102,8 +90,6 @@ public class SetupUtils
   public static final String URL_REPOSITORY = "URL Repository";
   /** The version qualifier. */
   public static final String VERSION_QUALIFIER = "Version Qualifier";
-  /** Incompatibilities found between builds (used by the upgrade tool). */
-  public static final String INCOMPATIBILITY_EVENTS = "Upgrade Event IDs";
   /** Fix IDs associated with the build. */
   public static final String FIX_IDS = "Fix IDs";
   /** Debug build identifier. */
@@ -221,16 +207,14 @@ public class SetupUtils
       lines.add("description: This is the description for {cn}.");
     }
 
-    BufferedWriter writer = new BufferedWriter(new FileWriter(templateFile));
-    for (String line : lines)
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(templateFile)))
     {
-      writer.write(line);
-      writer.newLine();
+      for (String line : lines)
+      {
+        writer.write(line);
+        writer.newLine();
+      }
     }
-
-    writer.flush();
-    writer.close();
-
     return templateFile;
   }
 
@@ -243,11 +227,9 @@ public class SetupUtils
    * @return {@code true} if the provided port is free and we can use it,
    * {@code false} otherwise.
    */
-  public static boolean canUseAsPort(String hostname, int port)
+  private static boolean canUseAsPort(String hostname, int port)
   {
-    boolean canUseAsPort = false;
-    ServerSocket serverSocket = null;
-    try
+    try (ServerSocket serverSocket = new ServerSocket())
     {
       InetSocketAddress socketAddress;
       if (hostname != null)
@@ -258,59 +240,29 @@ public class SetupUtils
       {
         socketAddress = new InetSocketAddress(port);
       }
-      serverSocket = new ServerSocket();
       if (!OperatingSystem.isWindows())
       {
         serverSocket.setReuseAddress(true);
       }
       serverSocket.bind(socketAddress);
-      canUseAsPort = true;
-
       serverSocket.close();
 
       /* Try to create a socket because sometimes even if we can create a server
        * socket there is already someone listening to the port (is the case
        * of products as Sun DS 6.0).
        */
-      Socket s = null;
-      try
+      try (Socket s = new Socket())
       {
-        s = new Socket();
         s.connect(socketAddress, 1000);
-        canUseAsPort = false;
+        return false;
       } catch (Throwable t)
       {
       }
-      finally
-      {
-        if (s != null)
-        {
-          try
-          {
-            s.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
-      }
+      return true;
     } catch (IOException ex)
     {
-      canUseAsPort = false;
-    } finally
-    {
-      try
-      {
-        if (serverSocket != null)
-        {
-          serverSocket.close();
-        }
-      } catch (Exception ex)
-      {
-      }
+      return false;
     }
-
-    return canUseAsPort;
   }
 
   /**
@@ -399,14 +351,9 @@ public class SetupUtils
         certManager.getCertificate(alias != null ? alias : certManager.getCertificateAliases()[0]);
     byte[] certificateBytes = certificate.getEncoded();
 
-    FileOutputStream outputStream = new FileOutputStream(path, false);
-    try
+    try (FileOutputStream outputStream = new FileOutputStream(path, false))
     {
       outputStream.write(certificateBytes);
-    }
-    finally
-    {
-      closeSilently(outputStream);
     }
   }
 
@@ -475,10 +422,8 @@ public class SetupUtils
   {
     String hostName = null;
     File f = new File(installationRoot + File.separator + HOST_NAME_FILE);
-    BufferedReader br = null;
-    try
+    try (BufferedReader br = new BufferedReader(new FileReader(f)))
     {
-      br = new BufferedReader(new FileReader(f));
       String s = br.readLine();
       s = s.trim();
 
@@ -490,10 +435,6 @@ public class SetupUtils
     }
     catch (IOException ioe)
     {
-    }
-    finally
-    {
-      closeSilently(br);
     }
     if (hostName == null)
     {

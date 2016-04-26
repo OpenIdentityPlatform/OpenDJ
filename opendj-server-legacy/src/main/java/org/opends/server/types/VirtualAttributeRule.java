@@ -25,9 +25,9 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Utils;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
 import org.forgerock.opendj.server.config.server.VirtualAttributeCfg;
+import org.forgerock.util.Utils;
 import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
@@ -208,34 +208,14 @@ public final class VirtualAttributeRule
     // potentially most expensive are done last.  First, check to see
     // if real values should override virtual ones and if so whether
     // the entry already has virtual values.
-    if (conflictBehavior == VirtualAttributeCfgDefn.ConflictBehavior.
-                                REAL_OVERRIDES_VIRTUAL
-        && entry.hasAttribute(attributeType))
-    {
-      return false;
-    }
-
-    // If there are any base DNs defined, then the entry must be below one of them.
-    if (!baseDNs.isEmpty() && !matchesAnyBaseDN(entry.getName()))
-    {
-      return false;
-    }
-
-    // If there are any search filters defined, then the entry must match one of them.
-    if (!filters.isEmpty() && !matchesAnyFilter(entry))
-    {
-      return false;
-    }
-
-    // If there are any group memberships defined, then the entry must
-    // be a member of one of them.
-    if (!groupDNs.isEmpty() && !isMemberOfAnyGroup(entry))
-    {
-      return false;
-    }
-
-    // If we've gotten here, then the rule is applicable.
-    return true;
+    return (conflictBehavior != VirtualAttributeCfgDefn.ConflictBehavior.REAL_OVERRIDES_VIRTUAL
+            || !entry.hasAttribute(attributeType))
+        // If there are any base DNs defined, then the entry must be below one of them.
+        && (baseDNs.isEmpty() || matchesAnyBaseDN(entry.getName()))
+        // If there are any search filters defined, then the entry must match one of them.
+        && (filters.isEmpty() || matchesAnyFilter(entry))
+        // If there are any group memberships defined, then the entry must be a member of one of them.
+        && (groupDNs.isEmpty() || isMemberOfAnyGroup(entry));
   }
 
   private boolean matchesAnyBaseDN(DN entryDN)
@@ -303,7 +283,7 @@ public final class VirtualAttributeRule
    *
    * @param  buffer  The buffer to which the information should be written.
    */
-  public void toString(StringBuilder buffer)
+  private void toString(StringBuilder buffer)
   {
     buffer.append("VirtualAttributeRule(attrType=");
     buffer.append(attributeType.getNameOrOID());

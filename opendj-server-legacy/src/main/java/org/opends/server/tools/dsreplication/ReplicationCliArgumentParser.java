@@ -19,8 +19,8 @@ package org.opends.server.tools.dsreplication;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_BINDPWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -81,7 +81,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     BooleanArgument onlyReplicationServerArg;
     /** The 'secureReplication' argument for the first server. */
     BooleanArgument secureReplicationArg;
-
 
     /**
      * Get the password which has to be used for the command to connect to this server without
@@ -149,23 +148,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private IntegerArgument portDestinationArg;
   /** The 'suffixes' global argument. */
   StringArgument baseDNsArg;
-  /**The 'quiet' argument.   */
+  /** The 'quiet' argument. */
   private BooleanArgument quietArg;
-  /**The 'scriptFriendly' argument.   */
+  /** The 'scriptFriendly' argument. */
   BooleanArgument scriptFriendlyArg;
-  /**Properties file argument.   */
+  /** Properties file argument. */
   StringArgument propertiesFileArgument;
-  /**No-properties file argument.   */
+  /** No-properties file argument. */
   BooleanArgument noPropertiesFileArgument;
-  /**
-   * The argument that the user must set to display the equivalent
-   * non-interactive mode argument.
-   */
+  /** The argument that the user must set to display the equivalent non-interactive mode argument. */
   BooleanArgument displayEquivalentArgument;
-  /**
-   * The argument that allows the user to dump the equivalent non-interactive
-   * command to a file.
-   */
+  /** The argument that allows the user to dump the equivalent non-interactive command to a file. */
   StringArgument equivalentCommandFileArgument;
   /** The argument that the user must set to have advanced options in interactive mode. */
   BooleanArgument advancedArg;
@@ -181,7 +174,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /** The 'maximumDuration' argument for the purge of historical. */
   IntegerArgument maximumDurationArg;
 
-  /** the 'change-number' argument for task reset-changenumber. */
+  /** The 'change-number' argument for task reset-changenumber. */
   IntegerArgument resetChangeNumber;
 
   /** The text of the enable replication subcommand. */
@@ -272,7 +265,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     validateSubcommandOptions(buf);
   }
 
-  /** {@inheritDoc} */
   @Override
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
@@ -331,7 +323,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {
           errors.add(ERR_REPLICATION_NOT_A_VALID_BASEDN.get(dn));
         }
-        if (dn.equalsIgnoreCase(Constants.REPLICATION_CHANGES_DN))
+        if (Constants.REPLICATION_CHANGES_DN.equalsIgnoreCase(dn))
         {
           errors.add(ERR_REPLICATION_NOT_A_USER_SUFFIX.get(Constants.REPLICATION_CHANGES_DN));
         }
@@ -466,7 +458,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
           ArgumentGroup argGroup)
   throws ArgumentException
   {
-
     for (Argument arg : args)
     {
       if (arg == advancedArg)
@@ -485,10 +476,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     setFilePropertiesArgument(propertiesFileArg);
   }
 
-  /**
-   * Creates the enable replication subcommand and all the specific options
-   * for the subcommand.
-   */
+  /** Creates the enable replication subcommand and all the specific options for the subcommand. */
   private void createEnableReplicationSubCommand() throws ArgumentException
   {
     createServerArgs1();
@@ -796,7 +784,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
             hostNameSourceArg, portSourceArg, hostNameDestinationArg, portDestinationArg, resetChangeNumber);
   }
 
-  IntegerArgument newChangeNumberArgument() throws ArgumentException
+  private IntegerArgument newChangeNumberArgument() throws ArgumentException
   {
     return IntegerArgument.builder("change-number")
             .description(INFO_DESCRIPTION_START_CHANGE_NUMBER.get())

@@ -16,10 +16,16 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -27,11 +33,9 @@ import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for holding configuration
@@ -45,37 +49,19 @@ import static org.opends.server.util.StaticUtils.*;
 public final class LDIFExportConfig extends OperationConfig
   implements Closeable
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   /** Indicates whether the data should be compressed as it is written. */
   private boolean compressData;
-
   /** Indicates whether the data should be encrypted as it is written. */
   private boolean encryptData;
-
-  /**
-   * Indicates whether to generate a cryptographic hash of the data as it is
-   * written.
-   */
+  /** Indicates whether to generate a cryptographic hash of the data as it is written. */
   private boolean hashData;
-
-  /**
-   * Indicates whether to include the objectclasses in the entries written in
-   * the export.
-   */
+  /** Indicates whether to include the objectclasses in the entries written in the export. */
   private boolean includeObjectClasses;
-
-  /**
-   * Indicates whether to include operational attributes in the export.
-   */
+  /** Indicates whether to include operational attributes in the export. */
   private boolean includeOperationalAttributes;
-
   /** Indicates whether to include virtual attributes in the export. */
   private boolean includeVirtualAttributes;
-
-  /**
-   * Indicates whether to invoke LDIF export plugins on entries being exported.
-   */
+  /** Indicates whether to invoke LDIF export plugins on entries being exported. */
   private boolean invokeExportPlugins;
 
   /**
@@ -83,51 +69,39 @@ public final class LDIFExportConfig extends OperationConfig
    */
   private boolean signHash;
 
-  /**
-   * Indicates whether to include attribute types (i.e., names) only or both
-   * types and values.
-   */
+  /** Indicates whether to include attribute types (i.e., names) only or both types and values. */
   private boolean typesOnly;
 
+  /** The path to the LDIF file that should be written. */
+  private final String ldifFile;
   /** The buffered writer to which the LDIF data should be written. */
   private BufferedWriter writer;
+  /** The output stream to which the LDIF data should be written. */
+  private OutputStream ldifOutputStream;
 
   /**
    * The behavior that should be used when writing an LDIF file and a file with
    * the same name already exists.
    */
-  private ExistingFileBehavior existingFileBehavior;
+  private final ExistingFileBehavior existingFileBehavior;
 
   /** The column number at which long lines should be wrapped. */
   private int wrapColumn;
 
   /** The set of base DNs to exclude from the export. */
   private List<DN> excludeBranches;
-
   /** The set of base DNs to include from the export. */
   private List<DN> includeBranches;
 
   /** The set of search filters for entries to exclude from the export. */
   private List<SearchFilter> excludeFilters;
-
   /** The set of search filters for entries to include in the export. */
   private List<SearchFilter> includeFilters;
 
-  /** The output stream to which the LDIF data should be written. */
-  private OutputStream ldifOutputStream;
-
-  /**
-   * The set of attribute types that should be excluded from the export.
-   */
+  /** The set of attribute types that should be excluded from the export. */
   private Set<AttributeType> excludeAttributes;
-
   /** The set of attribute types that should be included in the export. */
   private Set<AttributeType> includeAttributes;
-
-  /** The path to the LDIF file that should be written. */
-  private String ldifFile;
-
-
 
   /**
    * Creates a new LDIF export configuration that will write to the
@@ -164,8 +138,6 @@ public final class LDIFExportConfig extends OperationConfig
     wrapColumn                   = -1;
   }
 
-
-
   /**
    * Creates a new LDIF export configuration that will write to the
    * provided output stream.
@@ -197,8 +169,6 @@ public final class LDIFExportConfig extends OperationConfig
     includeAttributes            = new HashSet<>();
     wrapColumn                   = -1;
   }
-
-
 
   /**
    * Retrieves the writer that should be used to write the LDIF data.
@@ -248,13 +218,10 @@ public final class LDIFExportConfig extends OperationConfig
             LocalizableMessage message = ERR_LDIF_FILE_EXISTS.get(ldifFile);
             throw new IOException(message.toString());
           }
-          else
-          {
-            // Create new file ensuring that we can set its permissions.
-            f.createNewFile();
-            mustSetPermissions = true;
-            ldifOutputStream = new FileOutputStream(ldifFile);
-          }
+          // Create new file ensuring that we can set its permissions.
+          f.createNewFile();
+          mustSetPermissions = true;
+          ldifOutputStream = new FileOutputStream(ldifFile);
           break;
         }
 
@@ -275,7 +242,6 @@ public final class LDIFExportConfig extends OperationConfig
         }
       }
 
-
       // See if we should compress the output.
       OutputStream outputStream;
       if (compressData)
@@ -291,7 +257,7 @@ public final class LDIFExportConfig extends OperationConfig
       // See if we should encrypt the output.
       if (encryptData)
       {
-        // FIXME -- Implement this.
+        // FIXME -- To be implemented: See OPENDJ-448.
       }
 
 
@@ -301,8 +267,6 @@ public final class LDIFExportConfig extends OperationConfig
 
     return writer;
   }
-
-
 
   /**
    * Indicates whether the LDIF export plugins should be invoked for
@@ -317,8 +281,6 @@ public final class LDIFExportConfig extends OperationConfig
     return invokeExportPlugins;
   }
 
-
-
   /**
    * Specifies whether the LDIF export plugins should be invoked for
    * entries as they are exported.
@@ -331,22 +293,6 @@ public final class LDIFExportConfig extends OperationConfig
   {
     this.invokeExportPlugins = invokeExportPlugins;
   }
-
-
-
-  /**
-   * Indicates whether the LDIF data should be compressed as it is
-   * written.
-   *
-   * @return  <CODE>true</CODE> if the LDIF data should be compressed
-   *          as it is written, or <CODE>false</CODE> if not.
-   */
-  public boolean compressData()
-  {
-    return compressData;
-  }
-
-
 
   /**
    * Specifies whether the LDIF data should be compressed as it is
@@ -467,8 +413,6 @@ public final class LDIFExportConfig extends OperationConfig
     return typesOnly;
   }
 
-
-
   /**
    * Specifies whether the LDIF generated should include attribute
    * types (i.e., attribute names) only or both attribute types and
@@ -483,8 +427,6 @@ public final class LDIFExportConfig extends OperationConfig
     this.typesOnly = typesOnly;
   }
 
-
-
   /**
    * Retrieves the column at which long lines should be wrapped.
    *
@@ -496,8 +438,6 @@ public final class LDIFExportConfig extends OperationConfig
   {
     return wrapColumn;
   }
-
-
 
   /**
    * Specifies the column at which long lines should be wrapped.  A
@@ -512,8 +452,6 @@ public final class LDIFExportConfig extends OperationConfig
     this.wrapColumn = wrapColumn;
   }
 
-
-
   /**
    * Retrieves the set of base DNs that specify the set of entries to
    * exclude from the export.  The list that is returned may be
@@ -527,8 +465,6 @@ public final class LDIFExportConfig extends OperationConfig
     return excludeBranches;
   }
 
-
-
   /**
    * Specifies the set of base DNs that specify the set of entries to
    * exclude from the export.
@@ -538,17 +474,15 @@ public final class LDIFExportConfig extends OperationConfig
    */
   public void setExcludeBranches(List<DN> excludeBranches)
   {
-    if (excludeBranches == null)
-    {
-      this.excludeBranches = new ArrayList<>(0);
-    }
-    else
+    if (excludeBranches != null)
     {
       this.excludeBranches = excludeBranches;
     }
+    else
+    {
+      this.excludeBranches = new ArrayList<>(0);
+    }
   }
-
-
 
   /**
    * Retrieves the set of base DNs that specify the set of entries to
@@ -563,8 +497,6 @@ public final class LDIFExportConfig extends OperationConfig
     return includeBranches;
   }
 
-
-
   /**
    * Specifies the set of base DNs that specify the set of entries to
    * include in the export.
@@ -574,17 +506,15 @@ public final class LDIFExportConfig extends OperationConfig
    */
   public void setIncludeBranches(List<DN> includeBranches)
   {
-    if (includeBranches == null)
-    {
-      this.includeBranches = new ArrayList<>(0);
-    }
-    else
+    if (includeBranches != null)
     {
       this.includeBranches = includeBranches;
     }
+    else
+    {
+      this.includeBranches = new ArrayList<>(0);
+    }
   }
-
-
 
   /**
    * Indicates whether the set of objectclasses should be included in
@@ -599,8 +529,6 @@ public final class LDIFExportConfig extends OperationConfig
     return includeObjectClasses;
   }
 
-
-
   /**
    * Indicates whether the set of operational attributes should be
    * included in the export.
@@ -612,8 +540,6 @@ public final class LDIFExportConfig extends OperationConfig
   {
     return includeOperationalAttributes;
   }
-
-
 
   /**
    * Specifies whether the  objectclasss attribute should be
@@ -644,8 +570,6 @@ public final class LDIFExportConfig extends OperationConfig
     this.includeOperationalAttributes = includeOperationalAttributes;
   }
 
-
-
   /**
    * Indicates whether virtual attributes should be included in the
    * export.
@@ -657,8 +581,6 @@ public final class LDIFExportConfig extends OperationConfig
   {
     return includeVirtualAttributes;
   }
-
-
 
   /**
    * Specifies whether virtual attributes should be included in the
@@ -674,8 +596,6 @@ public final class LDIFExportConfig extends OperationConfig
     this.includeVirtualAttributes = includeVirtualAttributes;
   }
 
-
-
   /**
    * Retrieves the set of attributes that should be excluded from the
    * entries written to LDIF.  The set that is returned may be altered
@@ -689,8 +609,6 @@ public final class LDIFExportConfig extends OperationConfig
     return excludeAttributes;
   }
 
-
-
   /**
    * Specifies the set of attributes that should be excluded from the
    * entries written to LDIF.
@@ -702,17 +620,15 @@ public final class LDIFExportConfig extends OperationConfig
   public void setExcludeAttributes(
                    Set<AttributeType> excludeAttributes)
   {
-    if (excludeAttributes == null)
-    {
-      this.excludeAttributes = new HashSet<>(0);
-    }
-    else
+    if (excludeAttributes != null)
     {
       this.excludeAttributes = excludeAttributes;
     }
+    else
+    {
+      this.excludeAttributes = new HashSet<>(0);
+    }
   }
-
-
 
   /**
    * Retrieves the set of attributes that should be included in the
@@ -727,8 +643,6 @@ public final class LDIFExportConfig extends OperationConfig
     return includeAttributes;
   }
 
-
-
   /**
    * Specifies the set of attributes that should be included in the
    * entries written to LDIF.
@@ -739,17 +653,15 @@ public final class LDIFExportConfig extends OperationConfig
    */
   public void setIncludeAttributes(Set<AttributeType> includeAttributes)
   {
-    if (includeAttributes == null)
-    {
-      this.includeAttributes = new HashSet<>(0);
-    }
-    else
+    if (includeAttributes != null)
     {
       this.includeAttributes = includeAttributes;
     }
+    else
+    {
+      this.includeAttributes = new HashSet<>(0);
+    }
   }
-
-
 
   /**
    * Indicates whether the specified attribute should be included in
@@ -770,8 +682,6 @@ public final class LDIFExportConfig extends OperationConfig
               || includeAttributes.contains(attributeType));
   }
 
-
-
   /**
    * Retrieves the set of search filters that should be used to
    * determine which entries to exclude from the LDIF.  The list that
@@ -785,8 +695,6 @@ public final class LDIFExportConfig extends OperationConfig
     return excludeFilters;
   }
 
-
-
   /**
    * Specifies the set of search filters that should be used to
    * determine which entries to exclude from the LDIF.
@@ -797,17 +705,15 @@ public final class LDIFExportConfig extends OperationConfig
    */
   public void setExcludeFilters(List<SearchFilter> excludeFilters)
   {
-    if (excludeFilters == null)
-    {
-      this.excludeFilters = new ArrayList<>(0);
-    }
-    else
+    if (excludeFilters != null)
     {
       this.excludeFilters = excludeFilters;
     }
+    else
+    {
+      this.excludeFilters = new ArrayList<>(0);
+    }
   }
-
-
 
   /**
    * Retrieves the set of search filters that should be used to
@@ -822,8 +728,6 @@ public final class LDIFExportConfig extends OperationConfig
     return includeFilters;
   }
 
-
-
   /**
    * Specifies the set of search filters that should be used to
    * determine which entries to include in the LDIF.
@@ -834,17 +738,15 @@ public final class LDIFExportConfig extends OperationConfig
    */
   public void setIncludeFilters(List<SearchFilter> includeFilters)
   {
-    if (includeFilters == null)
-    {
-      this.includeFilters = new ArrayList<>(0);
-    }
-    else
+    if (includeFilters != null)
     {
       this.includeFilters = includeFilters;
     }
+    else
+    {
+      this.includeFilters = new ArrayList<>(0);
+    }
   }
-
-
 
   /**
    * Indicates whether the specified entry should be included in the
@@ -914,11 +816,7 @@ public final class LDIFExportConfig extends OperationConfig
     return true;
   }
 
-
-
-  /**
-   * Closes any resources that this export config might have open.
-   */
+  /** Closes any resources that this export config might have open. */
   @Override
   public void close()
   {

@@ -43,7 +43,6 @@ import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
@@ -55,8 +54,8 @@ import java.util.TreeMap;
 import static org.opends.messages.ToolMessages.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 /** Tool for getting information and managing tasks in the Directory Server. */
 public class ManageTasks extends ConsoleApplication {
@@ -69,29 +68,16 @@ public class ManageTasks extends ConsoleApplication {
    * @param args The command-line arguments provided to this program.
    */
   public static void main(String[] args) {
-    int retCode = mainTaskInfo(args, System.in, System.out, System.err);
-
+    int retCode = mainTaskInfo(args, System.out, System.err);
     if (retCode != 0) {
       System.exit(filterExitCode(retCode));
     }
   }
 
   /**
-   * Processes the command-line arguments and invokes the process for
-   * displaying task information.
-   *
-   * @param args The command-line arguments provided to this program.
-   * @return int return code
-   */
-  public static int mainTaskInfo(String[] args) {
-    return mainTaskInfo(args, System.in, System.out, System.err);
-  }
-
-  /**
    * Processes the command-line arguments and invokes the export process.
    *
    * @param args             The command-line arguments provided to this
-   * @param in               Input stream from which to solicit user input.
    * @param out              The output stream to use for standard output, or
    *                         {@code null} if standard output is not needed.
    * @param err              The output stream to use for standard error, or
@@ -100,11 +86,10 @@ public class ManageTasks extends ConsoleApplication {
    * @return int return code
    */
   public static int mainTaskInfo(String[] args,
-                                 InputStream in,
                                  OutputStream out,
                                  OutputStream err,
                                  boolean initializeServer) {
-    ManageTasks tool = new ManageTasks(in, out, err);
+    ManageTasks tool = new ManageTasks(out, err);
     return tool.process(args, initializeServer);
   }
 
@@ -112,18 +97,16 @@ public class ManageTasks extends ConsoleApplication {
    * Processes the command-line arguments and invokes the export process.
    *
    * @param args             The command-line arguments provided to this
-   * @param in               Input stream from which to solicit user input.
    * @param out              The output stream to use for standard output, or
    *                         {@code null} if standard output is not needed.
    * @param err              The output stream to use for standard error, or
    *                         {@code null} if standard error is not needed.
    * @return int return code
    */
-  public static int mainTaskInfo(String[] args,
-                                 InputStream in,
+  private static int mainTaskInfo(String[] args,
                                  OutputStream out,
                                  OutputStream err) {
-    return mainTaskInfo(args, in, out, err, true);
+    return mainTaskInfo(args, out, err, true);
   }
 
   private static final int INDENT = 2;
@@ -142,28 +125,14 @@ public class ManageTasks extends ConsoleApplication {
 
   /**
    * Constructs a parameterized instance.
-   *
-   * @param in               Input stream from which to solicit user input.
    * @param out              The output stream to use for standard output, or
    *                         {@code null} if standard output is not needed.
    * @param err              The output stream to use for standard error, or
    *                         {@code null} if standard error is not needed.
    */
-  public ManageTasks(InputStream in, OutputStream out, OutputStream err)
+  private ManageTasks(OutputStream out, OutputStream err)
   {
     super(new PrintStream(out), new PrintStream(err));
-  }
-
-  /**
-   * Processes the command-line arguments and invokes the export process.
-   *
-   * @param args       The command-line arguments provided to this
-   *                   program.
-   * @return The error code.
-   */
-  public int process(String[] args)
-  {
-    return process(args, true);
   }
 
   /**
@@ -174,7 +143,7 @@ public class ManageTasks extends ConsoleApplication {
    * @param initializeServer  Indicates whether to initialize the server.
    * @return The error code.
    */
-  public int process(String[] args, boolean initializeServer)
+  private int process(String[] args, boolean initializeServer)
   {
     if (initializeServer)
     {

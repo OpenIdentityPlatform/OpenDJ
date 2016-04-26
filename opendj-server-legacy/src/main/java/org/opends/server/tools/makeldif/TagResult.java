@@ -12,11 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
-
-
 
 /**
  * This class defines a data structure that provides information about the
@@ -24,44 +22,24 @@ package org.opends.server.tools.makeldif;
  */
 public class TagResult
 {
-  /**
-   * A tag result in which all components have a value of <CODE>true</CODE>.
-   */
-  public static final TagResult SUCCESS_RESULT =
-       new TagResult(true, true, true, true);
-
-
-
+  /** A tag result in which all components have a value of <CODE>true</CODE>. */
+  public static final TagResult SUCCESS_RESULT = new TagResult(true, true, true, true);
   /**
    * A tag result that indicates the value should not be included in the entry,
    * but all other processing should continue.
    */
-  public static final TagResult OMIT_FROM_ENTRY =
-       new TagResult(false, true, true, true);
-
-
-
-  /**
-   * A tag result in whihc all components have a value of <CODE>false</CODE>.
-   */
-  public static final TagResult STOP_PROCESSING =
-       new TagResult(false, false, false, false);
-
-
+  public static final TagResult OMIT_FROM_ENTRY = new TagResult(false, true, true, true);
+  /** A tag result in which all components have a value of <CODE>false</CODE>. */
+  public static final TagResult STOP_PROCESSING = new TagResult(false, false, false, false);
 
   /** Indicates whether to keep processing the associated line. */
-  private boolean keepProcessingLine;
-
+  private final boolean keepProcessingLine;
   /** Indicates whether to keep processing the associated entry. */
-  private boolean keepProcessingEntry;
-
+  private final boolean keepProcessingEntry;
   /** Indicates whether to keep processing entries below the associated parent. */
-  private boolean keepProcessingParent;
-
+  private final boolean keepProcessingParent;
   /** Indicates whether to keep processing entries for the template file. */
-  private boolean keepProcessingTemplateFile;
-
-
+  private final boolean keepProcessingTemplateFile;
 
   /**
    * Creates a new tag result object with the provided information.
@@ -81,7 +59,7 @@ public class TagResult
    *                                     processing entries for the template
    *                                     file.
    */
-  public TagResult(boolean keepProcessingLine, boolean keepProcessingEntry,
+  private TagResult(boolean keepProcessingLine, boolean keepProcessingEntry,
                    boolean keepProcessingParent,
                    boolean keepProcessingTemplateFile)
   {
@@ -91,12 +69,10 @@ public class TagResult
     this.keepProcessingTemplateFile = keepProcessingTemplateFile;
   }
 
-
-
   /**
    * Indicates whether to continue processing for the current line.  If this is
    * <CODE>false</CODE>, then the current line will not be included in the
-   * entry.  It will have no impact on whehter the entry itself is included in
+   * entry.  It will have no impact on whether the entry itself is included in
    * the generated LDIF.
    *
    * @return  <CODE>true</CODE> if the line should be included in the entry, or
@@ -106,8 +82,6 @@ public class TagResult
   {
     return keepProcessingLine;
   }
-
-
 
   /**
    * Indicates whether to continue processing for the current entry.  If this is
@@ -123,8 +97,6 @@ public class TagResult
     return keepProcessingEntry;
   }
 
-
-
   /**
    * Indicates whether to continue processing entries below the current parent.
    * If this is <CODE>false</CODE>, then the current entry will not be included,
@@ -137,8 +109,6 @@ public class TagResult
   {
     return keepProcessingParent;
   }
-
-
 
   /**
    * Indicates whether to keep processing entries for the template file.  If
@@ -153,4 +123,3 @@ public class TagResult
     return keepProcessingTemplateFile;
   }
 }
-
