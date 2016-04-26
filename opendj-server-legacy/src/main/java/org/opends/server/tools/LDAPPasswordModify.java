@@ -29,7 +29,6 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -654,38 +653,32 @@ public class LDAPPasswordModify
 
     // See if the response included any controls that we recognize, and if so
     // then handle them.
-    List<Control> responseControls = responseMessage.getControls();
-    if (responseControls != null)
+    for (Control c : responseMessage.getControls())
     {
-      for (Control c : responseControls)
+      if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
       {
-        if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+        try
         {
-          try
-          {
-            PasswordPolicyResponseControl pwPolicyControl =
-              PasswordPolicyResponseControl.DECODER
-                .decode(c.isCritical(), ((LDAPControl) c).getValue());
+          PasswordPolicyResponseControl pwPolicyControl =
+            PasswordPolicyResponseControl.DECODER
+              .decode(c.isCritical(), ((LDAPControl) c).getValue());
 
-            PasswordPolicyWarningType pwPolicyWarningType =
-                 pwPolicyControl.getWarningType();
-            if (pwPolicyWarningType != null)
-            {
-              printWrappedText(
-                      out, INFO_LDAPPWMOD_PWPOLICY_WARNING.get(pwPolicyWarningType, pwPolicyControl.getWarningValue()));
-            }
-
-            PasswordPolicyErrorType pwPolicyErrorType =
-                 pwPolicyControl.getErrorType();
-            if (pwPolicyErrorType != null)
-            {
-              printWrappedText(out, INFO_LDAPPWMOD_PWPOLICY_ERROR.get(pwPolicyErrorType));
-            }
-          }
-          catch (Exception e)
+          PasswordPolicyWarningType pwPolicyWarningType = pwPolicyControl.getWarningType();
+          if (pwPolicyWarningType != null)
           {
-            printWrappedText(err, ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(e));
+            printWrappedText(
+                    out, INFO_LDAPPWMOD_PWPOLICY_WARNING.get(pwPolicyWarningType, pwPolicyControl.getWarningValue()));
           }
+
+          PasswordPolicyErrorType pwPolicyErrorType = pwPolicyControl.getErrorType();
+          if (pwPolicyErrorType != null)
+          {
+            printWrappedText(out, INFO_LDAPPWMOD_PWPOLICY_ERROR.get(pwPolicyErrorType));
+          }
+        }
+        catch (Exception e)
+        {
+          printWrappedText(err, ERR_LDAPPWMOD_CANNOT_DECODE_PWPOLICY_CONTROL.get(e));
         }
       }
     }

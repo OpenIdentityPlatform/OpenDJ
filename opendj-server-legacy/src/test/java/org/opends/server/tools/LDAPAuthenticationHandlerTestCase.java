@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SASLMechanismHandler;
@@ -46,9 +45,7 @@ import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.ClientException;
 
-/**
- * A set of test cases for the LDAP authentication handler.
- */
+/** A set of test cases for the LDAP authentication handler. */
 public class LDAPAuthenticationHandlerTestCase
        extends ToolsTestCase
 {
@@ -66,8 +63,6 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.startServer();
     getFQDN();
   }
-
-
 
   /**
    * Retrieves the names of the supported SASL mechanisms.
@@ -87,8 +82,6 @@ public class LDAPAuthenticationHandlerTestCase
       new Object[] { "PLAIN" }
     };
   }
-
-
 
   /**
    * Tests the <CODE>getSupportedSASLMechanisms</CODE> method.
@@ -114,28 +107,15 @@ public class LDAPAuthenticationHandlerTestCase
   @Test(dataProvider = "saslMechanisms")
   public void testGetSASLProperties(String saslMechanismName)
   {
-    LinkedHashMap<String, LocalizableMessage> properties =
-         LDAPAuthenticationHandler.getSASLProperties(saslMechanismName);
-
-    assertNotNull(properties);
+    assertNotNull(LDAPAuthenticationHandler.getSASLProperties(saslMechanismName));
   }
 
-
-
-  /**
-   * Tests the <CODE>getSASLProperties</CODE> method with an unsupported
-   * mechanism name.
-   */
+  /** Tests the <CODE>getSASLProperties</CODE> method with an unsupported mechanism name. */
   @Test
-  public void testGetSASLPropertiesInvlaid()
+  public void testGetSASLPropertiesInvalid()
   {
-    LinkedHashMap<String,LocalizableMessage> properties =
-         LDAPAuthenticationHandler.getSASLProperties("unsupportedMechanism");
-
-    assertNull(properties);
+    assertNull(LDAPAuthenticationHandler.getSASLProperties("unsupportedMechanism"));
   }
-
-
 
   /**
    * Tests the <CODE>doSimpleBind</CODE> method with a valid DN and password and
@@ -147,8 +127,8 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithValidDNAndPWNoControls()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -156,8 +136,6 @@ public class LDAPAuthenticationHandlerTestCase
           requestControls, responseControls);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSimpleBind</CODE> method with a null DN and password and
@@ -169,16 +147,14 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithNullDNAndPWNoControls()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       authHandler.doSimpleBind(3, null, null, requestControls, responseControls);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSimpleBind</CODE> method with an empty DN and password
@@ -190,8 +166,8 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithEmptyDNAndPWNoControls()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -199,20 +175,18 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSimpleBind</CODE> method with an valid DN but no
    * password.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSimpleBindWithDNButNoPassword()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
 
     try (Socket s = newSocket())
     {
@@ -223,20 +197,18 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSimpleBind</CODE> method with an valid DN but an invalid
    * password.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSimpleBindWithDNButInvalidPassword()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
 
     try (Socket s = newSocket())
     {
@@ -246,8 +218,6 @@ public class LDAPAuthenticationHandlerTestCase
                                requestControls, responseControls);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSimpleBind</CODE> method with the password policy
@@ -259,8 +229,8 @@ public class LDAPAuthenticationHandlerTestCase
   public void testDoSimpleBindWithPasswordPolicyControl()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     requestControls.add(new PasswordPolicyRequestControl());
     try (Socket s = newSocket())
     {
@@ -270,20 +240,18 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method with a null mechanism.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindNullMechanism()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     try (Socket s = newSocket())
     {
@@ -292,20 +260,18 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method with an empty mechanism.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindEmptyMechanism()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     try (Socket s = newSocket())
     {
@@ -314,20 +280,18 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method with an invalid mechanism.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindInvalidMechanism()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     try (Socket s = newSocket())
     {
@@ -337,19 +301,17 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which ANONYMOUS
    * authentication is disabled in the server.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindAnonymousDisabled()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("trace", newArrayList("testDoSASLBindAnonymousDisabled"));
 
     try (Socket s = newSocket())
@@ -358,8 +320,6 @@ public class LDAPAuthenticationHandlerTestCase
       anonymous(authHandler, saslProperties);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which ANONYMOUS
@@ -374,7 +334,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
 
     try (Socket s = newSocket())
@@ -399,7 +359,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = newSocket())
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -408,8 +368,6 @@ public class LDAPAuthenticationHandlerTestCase
     handler.finalizeSASLMechanismHandler();
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which ANONYMOUS
    * authentication is enabled in the server and multiple trace values are
@@ -417,14 +375,14 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindAnonymousMultivaluedTrace()
          throws Exception
   {
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("trace",
         newArrayList("testDoSASLBindAnonymousMultivaluedTrace", "aSecondTraceStringWhichIsInvalid"));
 
@@ -439,8 +397,6 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which ANONYMOUS
    * authentication is enabled in the server and an invalid SASL property is
@@ -448,14 +404,14 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindAnonymousInvalidProperty()
          throws Exception
   {
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("invalid", newArrayList("testDoSASLBindAnonymousInvalidProperty"));
 
     try (Socket s = newSocket())
@@ -468,8 +424,6 @@ public class LDAPAuthenticationHandlerTestCase
       handler.finalizeSASLMechanismHandler();
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which ANONYMOUS
@@ -485,10 +439,10 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     requestControls.add(new PasswordPolicyRequestControl());
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
     try (Socket s = newSocket())
     {
@@ -499,15 +453,13 @@ public class LDAPAuthenticationHandlerTestCase
     handler.finalizeSASLMechanismHandler();
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which CRAM-MD5
    * authentication is disabled in the server.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindCRAMMD5Disabled()
          throws Exception
   {
@@ -530,8 +482,7 @@ public class LDAPAuthenticationHandlerTestCase
          DirectoryServer.getSASLMechanismHandler("CRAM-MD5");
     DirectoryServer.deregisterSASLMechanismHandler("CRAM-MD5");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try
@@ -543,8 +494,6 @@ public class LDAPAuthenticationHandlerTestCase
       DirectoryServer.registerSASLMechanismHandler("CRAM-MD5", cramMD5Handler);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which CRAM-MD5
@@ -571,13 +520,10 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -585,19 +531,17 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindCRAMMD5InvalidAuthID()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -605,19 +549,17 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindCRAMMD5EmptyAuthID()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList(""));
 
     cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -625,7 +567,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindCRAMMD5InvalidPassword()
          throws Exception
   {
@@ -644,8 +586,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try (Socket s = newSocket())
@@ -655,15 +596,13 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
    * which the specified user doesn't have a reversible password.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindCRAMMD5NoReversiblePassword()
          throws Exception
   {
@@ -680,14 +619,11 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -695,15 +631,14 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindCRAMMD5NullProperties()
          throws Exception
   {
-    LinkedHashMap<String,List<String>> saslProperties = null;
+    Map<String, List<String>> saslProperties = null;
 
     cramMd5SaslBind(saslProperties);
   }
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -711,16 +646,14 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindCRAMMD5EmptyProperties()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method using CRAM-MD5 for the case in
@@ -728,13 +661,13 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindCRAMMD5MultipleAuthIDs()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
     cramMd5SaslBind(saslProperties);
@@ -746,20 +679,18 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindCRAMMD5InvalidSASLProperty()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("invalid", newArrayList("foo"));
 
     cramMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which CRAM-MD5
@@ -787,11 +718,10 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     requestControls.add(new PasswordPolicyRequestControl());
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
@@ -802,15 +732,13 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which DIGEST-MD5
    * authentication is disabled in the server.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindDigestMD5Disabled()
          throws Exception
   {
@@ -829,13 +757,11 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
     SASLMechanismHandler<?> digestMD5Handler =
          DirectoryServer.getSASLMechanismHandler("DIGEST-MD5");
     DirectoryServer.deregisterSASLMechanismHandler("DIGEST-MD5");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
 
@@ -849,8 +775,6 @@ public class LDAPAuthenticationHandlerTestCase
       DirectoryServer.registerSASLMechanismHandler("DIGEST-MD5", digestMD5Handler);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which DIGEST-MD5
@@ -877,8 +801,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try (Socket s = newSocket())
@@ -887,8 +810,6 @@ public class LDAPAuthenticationHandlerTestCase
       digestMD5(authHandler, saslProperties);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which DIGEST-MD5
@@ -915,8 +836,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try (Socket s = newSocket())
@@ -926,25 +846,20 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
    * DIGEST-MD5 SASL properties are <CODE>null</CODE>.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5NullProperties()
          throws Exception
   {
-
-    LinkedHashMap<String,List<String>> saslProperties = null;
+    Map<String, List<String>> saslProperties = null;
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -952,16 +867,14 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5EmptyProperties()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -969,17 +882,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5InvalidProperty()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("invalid", newArrayList("foo"));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -987,20 +898,18 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5MultipleAuthIDs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
-    ArrayList<String> propList = newArrayList("dn:uid=test.user,o=test");
+    List<String> propList = newArrayList("dn:uid=test.user,o=test");
     propList.add("u:test.user");
     saslProperties.put("authid", propList);
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -1008,17 +917,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5MEmptyAuthID()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList(""));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -1026,18 +933,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5MultipleRealms()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test", "dc=example,dc=com"));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -1064,8 +969,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("qop", newArrayList("auth"));
 
@@ -1083,19 +987,17 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5UnsupportedQoPAuthInt()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
     saslProperties.put("qop", newArrayList("auth-int"));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -1104,11 +1006,11 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5UnsupportedQoPAuthConf()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
     saslProperties.put("qop", newArrayList("auth-conf"));
@@ -1116,19 +1018,17 @@ public class LDAPAuthenticationHandlerTestCase
     digestMd5SaslBind(saslProperties);
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
    * DIGEST-MD5 SASL properties contain an invalid quality of protection.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5InvalidQoP()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
     saslProperties.put("qop", newArrayList("invalid"));
@@ -1136,18 +1036,17 @@ public class LDAPAuthenticationHandlerTestCase
     digestMd5SaslBind(saslProperties);
   }
 
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
    * DIGEST-MD5 SASL properties contain multiple quality of protection values.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5MultipleQoPs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
     saslProperties.put("qop", newArrayList("auth", "auth-int", "auth-conf"));
@@ -1155,19 +1054,17 @@ public class LDAPAuthenticationHandlerTestCase
     digestMd5SaslBind(saslProperties);
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
    * DIGEST-MD5 SASL properties contain multiple digest URIs.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5MultipleDigestURIs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
     saslProperties.put("digest-uri", newArrayList("ldap/value1", "ldap/value2"));
@@ -1175,18 +1072,17 @@ public class LDAPAuthenticationHandlerTestCase
     digestMd5SaslBind(saslProperties);
   }
 
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
    * DIGEST-MD5 SASL properties contain multiple authorization IDs.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindDigestMD5MultipleAuthzIDs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("realm", newArrayList("o=test"));
     saslProperties.put("authzid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
@@ -1194,26 +1090,22 @@ public class LDAPAuthenticationHandlerTestCase
     digestMd5SaslBind(saslProperties);
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
    * DIGEST-MD5 SASL properties contain an invalid auth ID in the DN form.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindDigestMD5InvalidAuthDN()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:invalid"));
     saslProperties.put("realm", newArrayList("o=test"));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the
@@ -1221,20 +1113,18 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindDigestMD5NonExistentAuthID()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:nosuchuser"));
     saslProperties.put("realm", newArrayList("o=test"));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which an invalid
@@ -1242,7 +1132,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindDigestMD5InvalidPassword()
          throws Exception
   {
@@ -1261,8 +1151,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:nosuchuser"));
     saslProperties.put("realm", newArrayList("o=test"));
 
@@ -1273,15 +1162,13 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the target
    * user does not have a reversible password.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindDigestMD5NoReversiblePassword()
          throws Exception
   {
@@ -1298,15 +1185,12 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:nosuchuser"));
     saslProperties.put("realm", newArrayList("o=test"));
 
     digestMd5SaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which DIGEST-MD5
@@ -1334,11 +1218,10 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     requestControls.add(new PasswordPolicyRequestControl());
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try (Socket s = newSocket())
@@ -1349,15 +1232,13 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which EXTERNAL
    * authentication is not enabled in the server.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindExternalDisabled()
          throws Exception
   {
@@ -1373,24 +1254,20 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User");
 
-
     SASLMechanismHandler<?> externalHandler =
          DirectoryServer.getSASLMechanismHandler("EXTERNAL");
     DirectoryServer.deregisterSASLMechanismHandler("EXTERNAL");
-
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-
     SSLConnectionFactory factory = new SSLConnectionFactory();
     factory.init(false, keyStorePath, "password", "client-cert",
                  trustStorePath, "password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -1401,8 +1278,6 @@ public class LDAPAuthenticationHandlerTestCase
       DirectoryServer.registerSASLMechanismHandler("EXTERNAL", externalHandler);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which EXTERNAL
@@ -1426,27 +1301,22 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User");
 
-
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-
     SSLConnectionFactory factory = new SSLConnectionFactory();
     factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
                  "password");
 
-
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
-      LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+      Map<String, List<String>> saslProperties = new LinkedHashMap<>();
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in the EXTERNAL SASL
@@ -1454,7 +1324,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindExternalInvalidProperties()
          throws Exception
   {
@@ -1470,27 +1340,23 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User");
 
-
     SASLMechanismHandler<?> externalHandler =
          DirectoryServer.getSASLMechanismHandler("EXTERNAL");
     DirectoryServer.deregisterSASLMechanismHandler("EXTERNAL");
-
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-
     SSLConnectionFactory factory = new SSLConnectionFactory();
     factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
                  "password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("invalid", newArrayList("foo"));
 
-    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort());)
+    try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
@@ -1524,22 +1390,19 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User");
 
-
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-
     SSLConnectionFactory factory = new SSLConnectionFactory();
     factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
                  "password");
 
-
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     requestControls.add(new PasswordPolicyRequestControl());
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -1548,24 +1411,20 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
    * provided properties list was null.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPINullProperties()
          throws Exception
   {
-    LinkedHashMap<String,List<String>> saslProperties = null;
+    Map<String, List<String>> saslProperties = null;
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1573,11 +1432,11 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIEmptyProperties()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     gssapiSaslBind(saslProperties);
   }
@@ -1641,7 +1500,7 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-  private void cramMd5SaslBind(LinkedHashMap<String, List<String>> saslProperties) throws Exception
+  private void cramMd5SaslBind(Map<String, List<String>> saslProperties) throws Exception
   {
     try (Socket s = newSocket())
     {
@@ -1649,7 +1508,7 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-  private void digestMd5SaslBind(LinkedHashMap<String, List<String>> saslProperties) throws Exception
+  private void digestMd5SaslBind(Map<String, List<String>> saslProperties) throws Exception
   {
     try (Socket s = newSocket())
     {
@@ -1657,7 +1516,7 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-  private void gssapiSaslBind(LinkedHashMap<String, List<String>> saslProperties) throws Exception
+  private void gssapiSaslBind(Map<String, List<String>> saslProperties) throws Exception
   {
     try (Socket s = newSocket())
     {
@@ -1671,17 +1530,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIEmptyAuthID()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList(""));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1689,17 +1546,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIMultipleAuthIDs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user", "dn:uid=test.user,o=test"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1707,18 +1562,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIMultipleAuthzIDs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("authzid", newArrayList("u:test.user", "dn:uid=test.user,o=test"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1726,18 +1579,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIMultipleKDCs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("kdc", newArrayList("kdc1", "kdc2"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1745,18 +1596,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIMultipleQoPs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("qop", newArrayList("auth", "auth-int", "auth-conf"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1765,18 +1614,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIUnsupportedQoPAuthInt()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("qop", newArrayList("auth-int"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1785,18 +1632,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIUnsupportedQoPAuthConf()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("qop", newArrayList("auth-conf"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1804,18 +1649,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIInvalidQoP()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("qop", newArrayList("invalid"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1823,18 +1666,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIMultipleRealms()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("realm", newArrayList("realm1", "realm2"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1842,17 +1683,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPIInvalidProperty()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("u:test.user"));
     saslProperties.put("invalid", newArrayList("foo"));
 
     gssapiSaslBind(saslProperties);
   }
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for GSSAPI authentication when the
@@ -1860,17 +1700,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindGSSAPINoAuthID()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("qop", newArrayList("auth"));
 
     gssapiSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which PLAIN
@@ -1878,7 +1716,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindPlainDisabled()
          throws Exception
   {
@@ -1895,13 +1733,11 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
     SASLMechanismHandler<?> plainHandler =
          DirectoryServer.getSASLMechanismHandler("PLAIN");
     DirectoryServer.deregisterSASLMechanismHandler("PLAIN");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try (Socket s = newSocket())
@@ -1914,8 +1750,6 @@ public class LDAPAuthenticationHandlerTestCase
       DirectoryServer.registerSASLMechanismHandler("PLAIN", plainHandler);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which PLAIN
@@ -1940,8 +1774,7 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
@@ -1950,24 +1783,20 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
    * SASL properties are null.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainNullProperties()
          throws Exception
   {
-    LinkedHashMap<String,List<String>> saslProperties = null;
+    Map<String, List<String>> saslProperties = null;
 
     plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
@@ -1975,16 +1804,14 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainEmptyProperties()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
 
     plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
@@ -1992,11 +1819,11 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainMultipleAuthIDs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
     plainSaslBind(saslProperties);
@@ -2008,17 +1835,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainZeroLengthAuthID()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList(""));
 
     plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
@@ -2026,18 +1851,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainMultipleAuthzIDs()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("authzid", newArrayList("dn:uid=test.user,o=test", "u:test.user"));
 
     plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
@@ -2045,18 +1868,16 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainInvalidProperty()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     saslProperties.put("invalid", newArrayList("foo"));
 
     plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which the PLAIN
@@ -2064,17 +1885,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ClientException.class })
+  @Test(expectedExceptions = ClientException.class)
   public void testDoSASLBindPlainNoAuthID()
          throws Exception
   {
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authzid", newArrayList("dn:uid=test.user,o=test"));
 
     plainSaslBind(saslProperties);
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for PLAIN authentication in which
@@ -2082,16 +1901,15 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindPlainNonExistentUser()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-
     try (Socket s = newSocket())
     {
-      LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+      Map<String, List<String>> saslProperties = new LinkedHashMap<>();
       saslProperties.put("authid", newArrayList("dn:uid=does.not.exist,o=test"));
 
       plain(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
@@ -2105,7 +1923,7 @@ public class LDAPAuthenticationHandlerTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { LDAPException.class })
+  @Test(expectedExceptions = LDAPException.class)
   public void testDoSASLBindPlainWrongPassword()
          throws Exception
   {
@@ -2122,8 +1940,7 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=does.not.exist,o=test"));
     try (Socket s = newSocket())
     {
@@ -2131,8 +1948,6 @@ public class LDAPAuthenticationHandlerTestCase
       doSASLBind("PLAIN", "wrongPassword", authHandler, saslProperties);
     }
   }
-
-
 
   /**
    * Tests the <CODE>doSASLBind</CODE> method for the case in which PLAIN
@@ -2158,11 +1973,10 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     requestControls.add(new PasswordPolicyRequestControl());
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
@@ -2171,8 +1985,6 @@ public class LDAPAuthenticationHandlerTestCase
           requestControls, responseControls);
     }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for an
@@ -2191,8 +2003,6 @@ public class LDAPAuthenticationHandlerTestCase
     }
   }
 
-
-
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
    * connection after a simple anonymous bind.
@@ -2203,8 +2013,8 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentitySimpleAnonymous()
          throws Exception
   {
-    ArrayList<Control> requestControls = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
 
     try (Socket s = newSocket())
     {
@@ -2224,8 +2034,8 @@ public class LDAPAuthenticationHandlerTestCase
   public void testRequestAuthorizationIdentitySimpleRootUser()
          throws Exception
   {
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -2234,8 +2044,6 @@ public class LDAPAuthenticationHandlerTestCase
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -2260,9 +2068,8 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    ArrayList<Control> requestControls  = new ArrayList<>();
-    ArrayList<Control> responseControls = new ArrayList<>();
+    List<Control> requestControls = new ArrayList<>();
+    List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -2271,8 +2078,6 @@ public class LDAPAuthenticationHandlerTestCase
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -2287,7 +2092,7 @@ public class LDAPAuthenticationHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
     try (Socket s = newSocket())
     {
@@ -2297,8 +2102,6 @@ public class LDAPAuthenticationHandlerTestCase
     }
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -2325,8 +2128,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
@@ -2335,8 +2137,6 @@ public class LDAPAuthenticationHandlerTestCase
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -2363,8 +2163,7 @@ public class LDAPAuthenticationHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
 
     try (Socket s = newSocket())
@@ -2374,8 +2173,6 @@ public class LDAPAuthenticationHandlerTestCase
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -2399,19 +2196,16 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User");
 
-
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.keystore";
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "client.truststore";
 
-
     SSLConnectionFactory factory = new SSLConnectionFactory();
     factory.init(false, keyStorePath, "password", "client-cert", trustStorePath,
                  "password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
       LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
@@ -2419,8 +2213,6 @@ public class LDAPAuthenticationHandlerTestCase
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
   }
-
-
 
   /**
    * Tests the <CODE>requestAuthorizationIdentity</CODE> method for a a client
@@ -2445,8 +2237,7 @@ public class LDAPAuthenticationHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-
-    LinkedHashMap<String, List<String>> saslProperties = new LinkedHashMap<>();
+    Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {

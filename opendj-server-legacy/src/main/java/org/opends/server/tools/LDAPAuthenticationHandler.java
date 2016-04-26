@@ -16,6 +16,13 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -31,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,11 +52,10 @@ import javax.security.auth.login.LoginContext;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.ReturnCode;
-
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -61,12 +68,9 @@ import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
 import org.opends.server.util.Base64;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ReturnCode;
 
 /**
  * This class provides a generic interface that LDAP clients can use to perform
@@ -88,42 +92,32 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPAuthenticationHandler
        implements PrivilegedExceptionAction<Object>, CallbackHandler
 {
-  /** The bind DN for GSSAPI authentication. */
-  private ByteSequence gssapiBindDN;
-
   /** The LDAP reader that will be used to read data from the server. */
   private final LDAPReader reader;
-
   /** The LDAP writer that will be used to send data to the server. */
   private final LDAPWriter writer;
 
-  /**
-   * The atomic integer that will be used to obtain message IDs for request
-   * messages.
-   */
+  /** The atomic integer that will be used to obtain message IDs for request messages. */
   private final AtomicInteger nextMessageID;
 
   /** An array filled with the inner pad byte. */
   private byte[] iPad;
-
   /** An array filled with the outer pad byte. */
   private byte[] oPad;
 
-  /** The authentication password for GSSAPI authentication. */
-  private char[] gssapiAuthPW;
-
   /** The message digest that will be used to create MD5 hashes. */
   private MessageDigest md5Digest;
-
   /** The secure random number generator for use by this authentication handler. */
   private SecureRandom secureRandom;
 
+  /** The bind DN for GSSAPI authentication. */
+  private ByteSequence gssapiBindDN;
   /** The authentication ID for GSSAPI authentication. */
   private String gssapiAuthID;
-
   /** The authorization ID for GSSAPI authentication. */
   private String gssapiAuthzID;
-
+  /** The authentication password for GSSAPI authentication. */
+  private char[] gssapiAuthPW;
   /** The quality of protection for GSSAPI authentication. */
   private String gssapiQoP;
 
@@ -200,36 +194,23 @@ public class LDAPAuthenticationHandler
    *          specified SASL mechanism, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,LocalizableMessage> getSASLProperties(
-          String mechanism)
+  public static Map<String, LocalizableMessage> getSASLProperties(String mechanism)
   {
-    String upperName = toUpperCase(mechanism);
-    if (upperName.equals(SASL_MECHANISM_ANONYMOUS))
+    switch (toUpperCase(mechanism))
     {
+    case SASL_MECHANISM_ANONYMOUS:
       return getSASLAnonymousProperties();
-    }
-    else if (upperName.equals(SASL_MECHANISM_CRAM_MD5))
-    {
+    case SASL_MECHANISM_CRAM_MD5:
       return getSASLCRAMMD5Properties();
-    }
-    else if (upperName.equals(SASL_MECHANISM_DIGEST_MD5))
-    {
+    case SASL_MECHANISM_DIGEST_MD5:
       return getSASLDigestMD5Properties();
-    }
-    else if (upperName.equals(SASL_MECHANISM_EXTERNAL))
-    {
+    case SASL_MECHANISM_EXTERNAL:
       return getSASLExternalProperties();
-    }
-    else if (upperName.equals(SASL_MECHANISM_GSSAPI))
-    {
+    case SASL_MECHANISM_GSSAPI:
       return getSASLGSSAPIProperties();
-    }
-    else if (upperName.equals(SASL_MECHANISM_PLAIN))
-    {
+    case SASL_MECHANISM_PLAIN:
       return getSASLPlainProperties();
-    }
-    else
-    {
+    default:
       // This is an unsupported mechanism.
       return null;
     }
@@ -279,21 +260,26 @@ public class LDAPAuthenticationHandler
         bindPassword = ByteString.empty();
     }
 
-
     // Make sure that critical elements aren't null.
     if (bindDN == null)
     {
       bindDN = ByteString.empty();
     }
 
+    sendSimpleBindRequest(ldapVersion, bindDN, bindPassword, requestControls);
 
-    // Create the bind request and send it to the server.
+    LDAPMessage responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE);
+    responseControls.addAll(responseMessage.getControls());
+    checkConnected(responseMessage);
+    return checkSuccessfulSimpleBind(responseMessage);
+  }
+
+  private void sendSimpleBindRequest(int ldapVersion, ByteSequence bindDN, ByteSequence bindPassword,
+      List<Control> requestControls) throws ClientException
+  {
     BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN.toByteString(), ldapVersion,
-             bindPassword.toByteString());
-    LDAPMessage bindRequestMessage =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
-                         requestControls);
+        new BindRequestProtocolOp(bindDN.toByteString(), ldapVersion, bindPassword.toByteString());
+    LDAPMessage bindRequestMessage = new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest, requestControls);
 
     try
     {
@@ -301,87 +287,44 @@ public class LDAPAuthenticationHandler
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(ioe));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(e));
+      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(e));
       throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
     }
-
-
-    // Read the response from the server.
-    LDAPMessage responseMessage;
-    try
-    {
-      responseMessage = reader.readMessage();
-      if (responseMessage == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
-      throw new ClientException(
-          ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(
-          ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // See if there are any controls in the response.  If so, then add them to
-    // the response controls list.
-    List<Control> respControls = responseMessage.getControls();
-    if (respControls != null && !respControls.isEmpty())
-    {
-      responseControls.addAll(respControls);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    generateError(responseMessage);
-
-
-    BindResponseProtocolOp bindResponse =
-         responseMessage.getBindResponseProtocolOp();
-    int resultCode = bindResponse.getResultCode();
-    if (resultCode == ReturnCode.SUCCESS.get())
-    {
-      // FIXME -- Need to look for things like password expiration warning,
-      // reset notice, etc.
-      return null;
-    }
-
-    // FIXME -- Add support for referrals.
-
-    LocalizableMessage message = ERR_LDAPAUTH_SIMPLE_BIND_FAILED.get();
-    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            message, bindResponse.getMatchedDN(), null);
   }
 
+  private BindResponseProtocolOp checkSuccessfulBind(LDAPMessage responseMessage, String saslMechanism)
+      throws LDAPException
+  {
+    BindResponseProtocolOp bindResponse = responseMessage.getBindResponseProtocolOp();
+    int resultCode = bindResponse.getResultCode();
+    if (resultCode != ReturnCode.SUCCESS.get())
+    {
+      // FIXME -- Add support for referrals.
+      LocalizableMessage message = ERR_LDAPAUTH_SASL_BIND_FAILED.get(saslMechanism);
+      throw new LDAPException(resultCode, bindResponse.getErrorMessage(), message, bindResponse.getMatchedDN(), null);
+    }
+    // FIXME -- Need to look for things like password expiration warning, reset notice, etc.
+    return bindResponse;
+  }
 
+  private String checkSuccessfulSimpleBind(LDAPMessage responseMessage) throws LDAPException
+  {
+    BindResponseProtocolOp bindResponse = responseMessage.getBindResponseProtocolOp();
+    int resultCode = bindResponse.getResultCode();
+    if (resultCode != ReturnCode.SUCCESS.get())
+    {
+      // FIXME -- Add support for referrals.
+      LocalizableMessage message = ERR_LDAPAUTH_SIMPLE_BIND_FAILED.get();
+      throw new LDAPException(resultCode, bindResponse.getErrorMessage(), message, bindResponse.getMatchedDN(), null);
+    }
+    // FIXME -- Need to look for things like password expiration warning, reset notice, etc.
+    return null;
+  }
 
   /**
    * Processes a SASL bind using the provided information.  If the bind fails,
@@ -431,49 +374,29 @@ public class LDAPAuthenticationHandler
     if (mechanism == null || mechanism.length() == 0)
     {
       LocalizableMessage message = ERR_LDAPAUTH_NO_SASL_MECHANISM.get();
-      throw new ClientException(
-          ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
-    // Look at the mechanism name and call the appropriate method to process
-    // the request.
+    // Look at the mechanism name and call the appropriate method to process the request.
     saslMechanism = toUpperCase(mechanism);
-    if (saslMechanism.equals(SASL_MECHANISM_ANONYMOUS))
+    switch (saslMechanism)
     {
-      return doSASLAnonymous(bindDN, saslProperties, requestControls,
-                             responseControls);
-    }
-    else if (saslMechanism.equals(SASL_MECHANISM_CRAM_MD5))
-    {
-      return doSASLCRAMMD5(bindDN, bindPassword, saslProperties,
-                           requestControls, responseControls);
-    }
-    else if (saslMechanism.equals(SASL_MECHANISM_DIGEST_MD5))
-    {
-      return doSASLDigestMD5(bindDN, bindPassword, saslProperties,
-                             requestControls, responseControls);
-    }
-    else if (saslMechanism.equals(SASL_MECHANISM_EXTERNAL))
-    {
-      return doSASLExternal(bindDN, saslProperties, requestControls,
-                            responseControls);
-    }
-    else if (saslMechanism.equals(SASL_MECHANISM_GSSAPI))
-    {
-      return doSASLGSSAPI(bindDN, bindPassword, saslProperties, requestControls,
-                          responseControls);
-    }
-    else if (saslMechanism.equals(SASL_MECHANISM_PLAIN))
-    {
-      return doSASLPlain(bindDN, bindPassword, saslProperties, requestControls,
-                         responseControls);
-    }
-    else
-    {
+    case SASL_MECHANISM_ANONYMOUS:
+      return doSASLAnonymous(bindDN, saslProperties, requestControls, responseControls);
+    case SASL_MECHANISM_CRAM_MD5:
+      return doSASLCRAMMD5(bindDN, bindPassword, saslProperties, requestControls, responseControls);
+    case SASL_MECHANISM_DIGEST_MD5:
+      return doSASLDigestMD5(bindDN, bindPassword, saslProperties, requestControls, responseControls);
+    case SASL_MECHANISM_EXTERNAL:
+      return doSASLExternal(bindDN, saslProperties, requestControls, responseControls);
+    case SASL_MECHANISM_GSSAPI:
+      return doSASLGSSAPI(bindDN, bindPassword, saslProperties, requestControls, responseControls);
+    case SASL_MECHANISM_PLAIN:
+      return doSASLPlain(bindDN, bindPassword, saslProperties, requestControls, responseControls);
+    default:
       LocalizableMessage message = ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM.get(mechanism);
-      throw new ClientException(
-          ReturnCode.CLIENT_SIDE_AUTH_UNKNOWN, message);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_AUTH_UNKNOWN, message);
     }
   }
 
@@ -502,7 +425,7 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLAnonymous(ByteSequence bindDN,
+  private String doSASLAnonymous(ByteSequence bindDN,
                      Map<String,List<String>> saslProperties,
                      List<Control> requestControls,
                      List<Control> responseControls)
@@ -510,150 +433,37 @@ public class LDAPAuthenticationHandler
   {
     String trace = null;
 
-
-    // Evaluate the properties provided.  The only one we'll allow is the trace
-    // property, but it is not required.
-    if (saslProperties == null || saslProperties.isEmpty())
+    // The only allowed property is the trace property, but it is not required.
+    if (saslProperties != null)
     {
-      // This is fine because there are no required properties for this mechanism.
-    }
-    else
-    {
-      for (String name : saslProperties.keySet())
+      for (Entry<String, List<String>> entry : saslProperties.entrySet())
       {
+        String name = entry.getKey();
+        List<String> values = entry.getValue();
         if (name.equalsIgnoreCase(SASL_PROPERTY_TRACE))
         {
           // This is acceptable, and we'll take any single value.
-          List<String> values = saslProperties.get(name);
-          Iterator<String> iterator = values.iterator();
-          if (iterator.hasNext())
-          {
-            trace = iterator.next();
-
-            if (iterator.hasNext())
-            {
-              LocalizableMessage message = ERR_LDAPAUTH_TRACE_SINGLE_VALUED.get();
-              throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
-            }
-          }
+          trace = getSingleValue(values, ERR_LDAPAUTH_TRACE_SINGLE_VALUED);
         }
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
               name, SASL_MECHANISM_ANONYMOUS);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                    message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
         }
       }
     }
 
-
     // Construct the bind request and send it to the server.
-    ByteString saslCredentials;
-    if (trace == null)
-    {
-      saslCredentials = null;
-    }
-    else
-    {
-      saslCredentials = ByteString.valueOfUtf8(trace);
-    }
+    ByteString saslCredentials = trace != null ? ByteString.valueOfUtf8(trace) : null;
+    sendBindRequest(SASL_MECHANISM_ANONYMOUS, bindDN, saslCredentials, requestControls);
 
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_ANONYMOUS, saslCredentials);
-    LDAPMessage requestMessage =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
-                         requestControls);
-
-    try
-    {
-      writer.writeMessage(requestMessage);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-          SASL_MECHANISM_ANONYMOUS, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-          SASL_MECHANISM_ANONYMOUS, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
-    }
-
-
-    // Read the response from the server.
-    LDAPMessage responseMessage;
-    try
-    {
-      responseMessage = reader.readMessage();
-      if (responseMessage == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // See if there are any controls in the response.  If so, then add them to
-    // the response controls list.
-    List<Control> respControls = responseMessage.getControls();
-    if (respControls != null && ! respControls.isEmpty())
-    {
-      responseControls.addAll(respControls);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    generateError(responseMessage);
-
-
-    BindResponseProtocolOp bindResponse =
-         responseMessage.getBindResponseProtocolOp();
-    int resultCode = bindResponse.getResultCode();
-    if (resultCode == ReturnCode.SUCCESS.get())
-    {
-      // FIXME -- Need to look for things like password expiration warning,
-      // reset notice, etc.
-      return null;
-    }
-
-    // FIXME -- Add support for referrals.
-
-    LocalizableMessage message =
-        ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_ANONYMOUS);
-    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            message, bindResponse.getMatchedDN(), null);
+    LDAPMessage responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE);
+    responseControls.addAll(responseMessage.getControls());
+    checkConnected(responseMessage);
+    checkSuccessfulBind(responseMessage, SASL_MECHANISM_ANONYMOUS);
+    return null;
   }
-
-
 
   /**
    * Retrieves the set of properties that a client may provide when performing a
@@ -664,7 +474,7 @@ public class LDAPAuthenticationHandler
    *          SASL ANONYMOUS bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String, LocalizableMessage> getSASLAnonymousProperties()
+  private static LinkedHashMap<String, LocalizableMessage> getSASLAnonymousProperties()
   {
     LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(1);
 
@@ -701,7 +511,7 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLCRAMMD5(ByteSequence bindDN,
+  private String doSASLCRAMMD5(ByteSequence bindDN,
                      ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
                      List<Control> requestControls,
@@ -721,20 +531,21 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    for (String name : saslProperties.keySet())
+    for (Entry<String, List<String>> entry : saslProperties.entrySet())
     {
+      String name = entry.getKey();
+      List<String> values = entry.getValue();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        authID = getAuthID(saslProperties, authID, name);
+        authID = getSingleValue(values, ERR_LDAPAUTH_AUTHID_SINGLE_VALUED);
       }
       else
       {
         LocalizableMessage message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
             name, SASL_MECHANISM_CRAM_MD5);
-        throw new ClientException(
-                ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -755,108 +566,13 @@ public class LDAPAuthenticationHandler
         bindPassword = ByteString.empty();
     }
 
+    sendInitialBindRequest(SASL_MECHANISM_CRAM_MD5, bindDN);
 
-    // Construct the initial bind request to send to the server.  In this case,
-    // we'll simply indicate that we want to use CRAM-MD5 so the server will
-    // send us the challenge.
-    BindRequestProtocolOp bindRequest1 =
-         new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_CRAM_MD5, null);
-    // FIXME -- Should we include request controls in both stages or just the
-    // second stage?
-    LDAPMessage requestMessage1 =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest1);
+    LDAPMessage responseMessage1 =
+        readBindResponse(ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE, SASL_MECHANISM_CRAM_MD5);
+    checkConnected(responseMessage1);
 
-    try
-    {
-      writer.writeMessage(requestMessage1);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
-    }
-
-
-    // Read the response from the server.
-    LDAPMessage responseMessage1;
-    try
-    {
-      responseMessage1 = reader.readMessage();
-      if (responseMessage1 == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-              SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage1.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage1.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if (responseOID != null &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage1.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
-
-
-    // Make sure that the bind response has the "SASL bind in progress" result
-    // code.
+    // Make sure that the bind response has the "SASL bind in progress" result code.
     BindResponseProtocolOp bindResponse1 =
          responseMessage1.getBindResponseProtocolOp();
     int resultCode1 = bindResponse1.getResultCode();
@@ -885,157 +601,75 @@ public class LDAPAuthenticationHandler
       throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
+    // Use the provided password and credentials to generate the CRAM-MD5 response.
+    String salsCredentials = authID + ' ' + generateCRAMMD5Digest(bindPassword, serverChallenge);
+    sendSecondBindRequest(SASL_MECHANISM_CRAM_MD5, bindDN, salsCredentials, requestControls);
 
-    // Use the provided password and credentials to generate the CRAM-MD5
-    // response.
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(authID);
-    buffer.append(' ');
-    buffer.append(generateCRAMMD5Digest(bindPassword, serverChallenge));
+    LDAPMessage responseMessage2 =
+        readBindResponse(ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE, SASL_MECHANISM_CRAM_MD5);
+    responseControls.addAll(responseMessage2.getControls());
+    checkConnected(responseMessage2);
+    checkSuccessfulBind(responseMessage2, SASL_MECHANISM_CRAM_MD5);
+    return null;
+  }
 
-
-    // Create and send the second bind request to the server.
-    BindRequestProtocolOp bindRequest2 =
-         new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_CRAM_MD5, ByteString.valueOfUtf8(buffer.toString()));
-    LDAPMessage requestMessage2 =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2,
-                         requestControls);
+  /**
+   * Construct the initial bind request to send to the server. We'll simply indicate the SASL
+   * mechanism we want to use so the server will send us the challenge.
+   */
+  private void sendInitialBindRequest(String saslMechanism, ByteSequence bindDN) throws ClientException
+  {
+    // FIXME -- Should we include request controls in both stages or just the second stage?
+    BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(bindDN.toByteString(), saslMechanism, null);
+    LDAPMessage requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest);
 
     try
     {
-      writer.writeMessage(requestMessage2);
+      writer.writeMessage(requestMessage);
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+      LocalizableMessage message =
+          ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(saslMechanism, getExceptionMessage(ioe));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+      LocalizableMessage message =
+          ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(saslMechanism, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
     }
+  }
 
-
-    // Read the response from the server.
-    LDAPMessage responseMessage2;
+  private LDAPMessage readBindResponse(Arg2<Object, Object> errCannotReadBindResponse, String saslMechanism)
+      throws ClientException
+  {
     try
     {
-      responseMessage2 = reader.readMessage();
-      if (responseMessage2 == null)
+      LDAPMessage responseMessage = reader.readMessage();
+      if (responseMessage != null)
       {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
+        return responseMessage;
       }
+      LocalizableMessage message = ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message);
     }
     catch (DecodeException | LDAPException e)
     {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-              SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
+      LocalizableMessage message = errCannotReadBindResponse.get(saslMechanism, getExceptionMessage(e));
       throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+      LocalizableMessage message = errCannotReadBindResponse.get(saslMechanism, getExceptionMessage(ioe));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-          SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+      LocalizableMessage message = errCannotReadBindResponse.get(saslMechanism, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
-
-
-    // See if there are any controls in the response.  If so, then add them to
-    // the response controls list.
-    List<Control> respControls = responseMessage2.getControls();
-    if (respControls != null && ! respControls.isEmpty())
-    {
-      responseControls.addAll(respControls);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage2.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage2.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if (responseOID != null &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage2.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
-
-
-    BindResponseProtocolOp bindResponse2 =
-         responseMessage2.getBindResponseProtocolOp();
-    int resultCode2 = bindResponse2.getResultCode();
-    if (resultCode2 == ReturnCode.SUCCESS.get())
-    {
-      // FIXME -- Need to look for things like password expiration warning,
-      // reset notice, etc.
-      return null;
-    }
-
-    // FIXME -- Add support for referrals.
-
-    LocalizableMessage message =
-        ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_CRAM_MD5);
-    throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
-                            message, bindResponse2.getMatchedDN(), null);
   }
-
-  private String getAuthID(Map<String, List<String>> saslProperties, String authID, String name) throws ClientException
-  {
-    List<String> values = saslProperties.get(name);
-    Iterator<String> iterator = values.iterator();
-    if (iterator.hasNext())
-    {
-      authID = iterator.next();
-
-      if (iterator.hasNext())
-      {
-        LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
-      }
-    }
-    return authID;
-  }
-
-
 
   /**
    * Generates the appropriate HMAC-MD5 digest for a CRAM-MD5 authentication
@@ -1141,7 +775,7 @@ public class LDAPAuthenticationHandler
    *          SASL CRAM-MD5 bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,LocalizableMessage> getSASLCRAMMD5Properties()
+  private static LinkedHashMap<String, LocalizableMessage> getSASLCRAMMD5Properties()
   {
     LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(1);
 
@@ -1178,7 +812,7 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLDigestMD5(ByteSequence bindDN,
+  private String doSASLDigestMD5(ByteSequence bindDN,
                      ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
                      List<Control> requestControls,
@@ -1202,17 +836,18 @@ public class LDAPAuthenticationHandler
       throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    for (String name : saslProperties.keySet())
+    for (Entry<String, List<String>> entry : saslProperties.entrySet())
     {
+      String name = entry.getKey();
+      List<String> values = entry.getValue();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        authID = getAuthID(saslProperties, authID, name);
+        authID = getSingleValue(values, ERR_LDAPAUTH_AUTHID_SINGLE_VALUED);
       }
       else if (lowerName.equals(SASL_PROPERTY_REALM))
       {
-        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1229,7 +864,6 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_QOP))
       {
-        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -1264,42 +898,17 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_DIGEST_URI))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          digestURI = toLowerCase(iterator.next());
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_DIGEST_URI_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        digestURI = toLowerCase(getSingleValue(values, ERR_LDAPAUTH_DIGEST_URI_SINGLE_VALUED));
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          authzID = toLowerCase(iterator.next());
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        authzID = toLowerCase(getSingleValue(values, ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED));
       }
       else
       {
         LocalizableMessage message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
             name, SASL_MECHANISM_DIGEST_MD5);
-        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -1321,108 +930,13 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // Construct the initial bind request to send to the server.  In this case,
-    // we'll simply indicate that we want to use DIGEST-MD5 so the server will
-    // send us the challenge.
-    BindRequestProtocolOp bindRequest1 =
-         new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_DIGEST_MD5, null);
-    // FIXME -- Should we include request controls in both stages or just the
-    // second stage?
-    LDAPMessage requestMessage1 =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest1);
+    sendInitialBindRequest(SASL_MECHANISM_DIGEST_MD5, bindDN);
 
-    try
-    {
-      writer.writeMessage(requestMessage1);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
-    }
+    LDAPMessage responseMessage1 =
+        readBindResponse(ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE, SASL_MECHANISM_DIGEST_MD5);
+    checkConnected(responseMessage1);
 
-
-    // Read the response from the server.
-    LDAPMessage responseMessage1;
-    try
-    {
-      responseMessage1 = reader.readMessage();
-      if (responseMessage1 == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-              SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage1.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage1.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if (responseOID != null &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage1.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
-
-
-    // Make sure that the bind response has the "SASL bind in progress" result
-    // code.
+    // Make sure that the bind response has the "SASL bind in progress" result code.
     BindResponseProtocolOp bindResponse1 =
          responseMessage1.getBindResponseProtocolOp();
     int resultCode1 = bindResponse1.getResultCode();
@@ -1591,163 +1105,33 @@ public class LDAPAuthenticationHandler
 
     // Generate the SASL credentials for the second bind request.
     StringBuilder credBuffer = new StringBuilder();
-    credBuffer.append("username=\"");
-    credBuffer.append(authID);
-    credBuffer.append("\"");
-
+    credBuffer.append("username=\"").append(authID).append("\"");
     if (realm != null)
     {
-      credBuffer.append(",realm=\"");
-      credBuffer.append(realm);
-      credBuffer.append("\"");
+      credBuffer.append(",realm=\"").append(realm).append("\"");
     }
-
-    credBuffer.append(",nonce=\"");
-    credBuffer.append(nonce);
-    credBuffer.append("\",cnonce=\"");
-    credBuffer.append(cnonce);
-    credBuffer.append("\",nc=");
-    credBuffer.append(nonceCount);
-    credBuffer.append(",qop=");
-    credBuffer.append(qop);
-    credBuffer.append(",digest-uri=\"");
-    credBuffer.append(digestURI);
-    credBuffer.append("\",response=");
-    credBuffer.append(responseDigest);
-
+    credBuffer.append(",nonce=\"").append(nonce);
+    credBuffer.append("\",cnonce=\"").append(cnonce);
+    credBuffer.append("\",nc=").append(nonceCount);
+    credBuffer.append(",qop=").append(qop);
+    credBuffer.append(",digest-uri=\"").append(digestURI);
+    credBuffer.append("\",response=").append(responseDigest);
     if (useUTF8)
     {
       credBuffer.append(",charset=utf-8");
     }
-
     if (authzID != null)
     {
-      credBuffer.append(",authzid=\"");
-      credBuffer.append(authzID);
-      credBuffer.append("\"");
+      credBuffer.append(",authzid=\"").append(authzID).append("\"");
     }
 
+    sendSecondBindRequest(SASL_MECHANISM_DIGEST_MD5, bindDN, credBuffer.toString(), requestControls);
 
-    // Generate and send the second bind request.
-    BindRequestProtocolOp bindRequest2 =
-         new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_DIGEST_MD5,
-             ByteString.valueOfUtf8(credBuffer.toString()));
-    LDAPMessage requestMessage2 =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2,
-                         requestControls);
-
-    try
-    {
-      writer.writeMessage(requestMessage2);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
-    }
-
-
-    // Read the response from the server.
-    LDAPMessage responseMessage2;
-    try
-    {
-      responseMessage2 = reader.readMessage();
-      if (responseMessage2 == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-              SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
-          SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // See if there are any controls in the response.  If so, then add them to
-    // the response controls list.
-    List<Control> respControls = responseMessage2.getControls();
-    if (respControls != null && ! respControls.isEmpty())
-    {
-      responseControls.addAll(respControls);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage2.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage2.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if (responseOID != null &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage2.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
-
-
-    BindResponseProtocolOp bindResponse2 =
-         responseMessage2.getBindResponseProtocolOp();
-    int resultCode2 = bindResponse2.getResultCode();
-    if (resultCode2 != ReturnCode.SUCCESS.get())
-    {
-      // FIXME -- Add support for referrals.
-
-      LocalizableMessage message =
-          ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_DIGEST_MD5);
-      throw new LDAPException(resultCode2, bindResponse2.getErrorMessage(),
-                              message, bindResponse2.getMatchedDN(),
-                              null);
-    }
+    LDAPMessage responseMessage2 =
+        readBindResponse(ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE, SASL_MECHANISM_DIGEST_MD5);
+    responseControls.addAll(responseMessage2.getControls());
+    checkConnected(responseMessage2);
+    BindResponseProtocolOp bindResponse2 = checkSuccessfulBind(responseMessage2, SASL_MECHANISM_DIGEST_MD5);
 
 
     // Make sure that the bind response included server SASL credentials with
@@ -1802,12 +1186,34 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
-    // FIXME -- Need to look for things like password expiration warning,
-    // reset notice, etc.
+    // FIXME -- Need to look for things like password expiration warning, reset notice, etc.
     return null;
   }
 
+  private void sendSecondBindRequest(String saslMechanism, ByteSequence bindDN, String saslCredentials,
+      List<Control> requestControls) throws ClientException
+  {
+    // Generate and send the second bind request.
+    BindRequestProtocolOp bindRequest2 =
+        new BindRequestProtocolOp(bindDN.toByteString(), saslMechanism, ByteString.valueOfUtf8(saslCredentials));
+    LDAPMessage requestMessage2 = new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest2, requestControls);
 
+    try
+    {
+      writer.writeMessage(requestMessage2);
+    }
+    catch (IOException ioe)
+    {
+      LocalizableMessage message =
+          ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(saslMechanism, getExceptionMessage(ioe));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(saslMechanism, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
+    }
+  }
 
   /**
    * Reads the next token from the provided credentials string using the
@@ -1891,14 +1297,11 @@ public class LDAPAuthenticationHandler
       {
         // If this is a quoted string, then this comma is part of the token.
         // Otherwise, it's the end of the token.
-        if (isQuoted)
-        {
-          token.append(c);
-        }
-        else
+        if (!isQuoted)
         {
           break;
         }
+        token.append(c);
       }
       else if (c == '"')
       {
@@ -1911,23 +1314,17 @@ public class LDAPAuthenticationHandler
             // We have hit the end of the string, so this is fine.
             break;
           }
+          char c2 = credentials.charAt(pos++);
+          if (c2 == ',')
+          {
+            // We have hit the end of the token, so this is fine.
+            break;
+          }
           else
           {
-            char c2 = credentials.charAt(pos++);
-            if (c2 == ',')
-            {
-              // We have hit the end of the token, so this is fine.
-              break;
-            }
-            else
-            {
-              // We found the closing quote before the end of the token.  This
-              // is not fine.
-              LocalizableMessage message =
-                  ERR_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS.get(pos-2);
-              throw new LDAPException(ReturnCode.INVALID_CREDENTIALS.get(),
-                                      message);
-            }
+            // We found the closing quote before the end of the token. This is not fine.
+            LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS.get(pos - 2);
+            throw new LDAPException(ReturnCode.INVALID_CREDENTIALS.get(), message);
           }
         }
         else
@@ -2028,20 +1425,13 @@ public class LDAPAuthenticationHandler
       }
     }
 
-
     // Get a hash of "username:realm:password".
-    StringBuilder a1String1 = new StringBuilder();
-    a1String1.append(authID);
-    a1String1.append(':');
-    a1String1.append((realm == null) ? "" : realm);
-    a1String1.append(':');
-
-    byte[] a1Bytes1a = a1String1.toString().getBytes(charset);
+    String a1String1 = authID + ':' + ((realm == null) ? "" : realm) + ':';
+    byte[] a1Bytes1a = a1String1.getBytes(charset);
     byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length()];
     System.arraycopy(a1Bytes1a, 0, a1Bytes1, 0, a1Bytes1a.length);
     password.copyTo(a1Bytes1, a1Bytes1a.length);
     byte[] urpHash = md5Digest.digest(a1Bytes1);
-
 
     // Next, get a hash of "urpHash:nonce:cnonce[:authzid]".
     StringBuilder a1String2 = new StringBuilder();
@@ -2060,36 +1450,19 @@ public class LDAPAuthenticationHandler
     System.arraycopy(a1Bytes2a, 0, a1Bytes2, urpHash.length, a1Bytes2a.length);
     byte[] a1Hash = md5Digest.digest(a1Bytes2);
 
-
     // Next, get a hash of "AUTHENTICATE:digesturi".
     byte[] a2Bytes = ("AUTHENTICATE:" + digestURI).getBytes(charset);
     byte[] a2Hash  = md5Digest.digest(a2Bytes);
-
 
     // Get hex string representations of the last two hashes.
     String a1HashHex = getHexString(a1Hash);
     String a2HashHex = getHexString(a2Hash);
 
-
     // Put together the final string to hash, consisting of
     // "a1HashHex:nonce:nonceCount:cnonce:qop:a2HashHex" and get its digest.
-    StringBuilder kdStr = new StringBuilder();
-    kdStr.append(a1HashHex);
-    kdStr.append(':');
-    kdStr.append(nonce);
-    kdStr.append(':');
-    kdStr.append(nonceCount);
-    kdStr.append(':');
-    kdStr.append(cnonce);
-    kdStr.append(':');
-    kdStr.append(qop);
-    kdStr.append(':');
-    kdStr.append(a2HashHex);
-
-    return getHexString(md5Digest.digest(kdStr.toString().getBytes(charset)));
+    String kdStr = a1HashHex + ':' + nonce + ':' + nonceCount + ':' + cnonce + ':' + qop + ':' + a2HashHex;
+    return getHexString(md5Digest.digest(kdStr.getBytes(charset)));
   }
-
-
 
   /**
    * Generates the appropriate DIGEST-MD5 rspauth digest using the provided
@@ -2118,7 +1491,7 @@ public class LDAPAuthenticationHandler
    * @throws  UnsupportedEncodingException  If the specified character set is
    *                                        invalid for some reason.
    */
-  public byte[] generateDigestMD5RspAuth(String authID, String authzID,
+  private byte[] generateDigestMD5RspAuth(String authID, String authzID,
                                          ByteSequence password, String realm,
                                          String nonce, String cnonce,
                                          String nonceCount, String digestURI,
@@ -2126,13 +1499,9 @@ public class LDAPAuthenticationHandler
          throws UnsupportedEncodingException
   {
     // First, get a hash of "username:realm:password".
-    StringBuilder a1String1 = new StringBuilder();
-    a1String1.append(authID);
-    a1String1.append(':');
-    a1String1.append(realm);
-    a1String1.append(':');
+    String a1String1 = authID + ':' + realm + ':';
 
-    byte[] a1Bytes1a = a1String1.toString().getBytes(charset);
+    byte[] a1Bytes1a = a1String1.getBytes(charset);
     byte[] a1Bytes1  = new byte[a1Bytes1a.length + password.length()];
     System.arraycopy(a1Bytes1a, 0, a1Bytes1, 0, a1Bytes1a.length);
     password.copyTo(a1Bytes1, a1Bytes1a.length);
@@ -2172,25 +1541,11 @@ public class LDAPAuthenticationHandler
     String a1HashHex = getHexString(a1Hash);
     String a2HashHex = getHexString(a2Hash);
 
-
     // Put together the final string to hash, consisting of
     // "a1HashHex:nonce:nonceCount:cnonce:qop:a2HashHex" and get its digest.
-    StringBuilder kdStr = new StringBuilder();
-    kdStr.append(a1HashHex);
-    kdStr.append(':');
-    kdStr.append(nonce);
-    kdStr.append(':');
-    kdStr.append(nonceCount);
-    kdStr.append(':');
-    kdStr.append(cnonce);
-    kdStr.append(':');
-    kdStr.append(qop);
-    kdStr.append(':');
-    kdStr.append(a2HashHex);
-    return md5Digest.digest(kdStr.toString().getBytes(charset));
+    String kdStr = a1HashHex + ':' + nonce + ':' + nonceCount + ':' + cnonce + ':' + qop + ':' + a2HashHex;
+    return md5Digest.digest(kdStr.getBytes(charset));
   }
-
-
 
   /**
    * Retrieves a hexadecimal string representation of the contents of the
@@ -2224,7 +1579,7 @@ public class LDAPAuthenticationHandler
    *          SASL DIGEST-MD5 bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,LocalizableMessage> getSASLDigestMD5Properties()
+  private static LinkedHashMap<String, LocalizableMessage> getSASLDigestMD5Properties()
   {
     LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(5);
 
@@ -2285,111 +1640,11 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // Construct the bind request and send it to the server.
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN.toByteString(),
-             SASL_MECHANISM_EXTERNAL, null);
-    LDAPMessage requestMessage =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
-                         requestControls);
+    sendBindRequest(SASL_MECHANISM_EXTERNAL, bindDN, null, requestControls);
 
-    try
-    {
-      writer.writeMessage(requestMessage);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-          SASL_MECHANISM_EXTERNAL, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-          SASL_MECHANISM_EXTERNAL, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
-    }
-
-
-    // Read the response from the server.
-    LDAPMessage responseMessage;
-    try
-    {
-      responseMessage = reader.readMessage();
-      if (responseMessage == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // See if there are any controls in the response.  If so, then add them to
-    // the response controls list.
-    List<Control> respControls = responseMessage.getControls();
-    if (respControls != null && ! respControls.isEmpty())
-    {
-      responseControls.addAll(respControls);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    switch (responseMessage.getProtocolOpType())
-    {
-      case OP_TYPE_BIND_RESPONSE:
-        // We'll deal with this later.
-        break;
-
-      case OP_TYPE_EXTENDED_RESPONSE:
-        ExtendedResponseProtocolOp extendedResponse =
-             responseMessage.getExtendedResponseProtocolOp();
-        String responseOID = extendedResponse.getOID();
-        if (responseOID != null &&
-            responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_SERVER_DISCONNECT.
-              get(extendedResponse.getResultCode(),
-                  extendedResponse.getErrorMessage());
-          throw new LDAPException(extendedResponse.getResultCode(), message);
-        }
-        else
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-        }
-
-      default:
-        LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
-    }
-
+    LDAPMessage responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE);
+    responseControls.addAll(responseMessage.getControls());
+    checkConnected(responseMessage);
 
     BindResponseProtocolOp bindResponse =
          responseMessage.getBindResponseProtocolOp();
@@ -2409,7 +1664,57 @@ public class LDAPAuthenticationHandler
                             message, bindResponse.getMatchedDN(), null);
   }
 
+  private void sendBindRequest(String saslMechanism, ByteSequence bindDN, ByteString saslCredentials,
+      List<Control> requestControls) throws ClientException
+  {
+    BindRequestProtocolOp bindRequest =
+        new BindRequestProtocolOp(bindDN.toByteString(), saslMechanism, saslCredentials);
+    LDAPMessage requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest, requestControls);
 
+    try
+    {
+      writer.writeMessage(requestMessage);
+    }
+    catch (IOException ioe)
+    {
+      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(saslMechanism, getExceptionMessage(ioe));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(saslMechanism, getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR, message, e);
+    }
+  }
+
+  private LDAPMessage readBindResponse(Arg1<Object> errCannotReadBindResponse) throws ClientException
+  {
+    try
+    {
+      LDAPMessage responseMessage = reader.readMessage();
+      if (responseMessage != null)
+      {
+        return responseMessage;
+      }
+      LocalizableMessage message = ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message);
+    }
+    catch (DecodeException | LDAPException e)
+    {
+      LocalizableMessage message = errCannotReadBindResponse.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
+    }
+    catch (IOException ioe)
+    {
+      LocalizableMessage message = errCannotReadBindResponse.get(getExceptionMessage(ioe));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = errCannotReadBindResponse.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+    }
+  }
 
   /**
    * Retrieves the set of properties that a client may provide when performing a
@@ -2420,7 +1725,7 @@ public class LDAPAuthenticationHandler
    *          SASL EXTERNAL bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,LocalizableMessage> getSASLExternalProperties()
+  private static LinkedHashMap<String, LocalizableMessage> getSASLExternalProperties()
   {
     // There are no properties for the SASL EXTERNAL mechanism.
     return new LinkedHashMap<>(0);
@@ -2455,7 +1760,7 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If the bind fails or some other server-side problem
    *                         occurs during processing.
    */
-  public String doSASLGSSAPI(ByteSequence bindDN,
+  private String doSASLGSSAPI(ByteSequence bindDN,
                      ByteSequence bindPassword,
                      Map<String,List<String>> saslProperties,
                      List<Control> requestControls,
@@ -2469,16 +1774,7 @@ public class LDAPAuthenticationHandler
     gssapiAuthID  = null;
     gssapiAuthzID = null;
     gssapiQoP     = "auth";
-
-    if (bindPassword == null)
-    {
-      gssapiAuthPW = null;
-    }
-    else
-    {
-      gssapiAuthPW = bindPassword.toString().toCharArray();
-    }
-
+    gssapiAuthPW = bindPassword != null ? bindPassword.toString().toCharArray() : null;
 
     // Evaluate the properties provided.  The authID is required.  The authzID,
     // KDC, QoP, and realm are optional.
@@ -2490,60 +1786,26 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    for (String name : saslProperties.keySet())
+    for (Entry<String, List<String>> entry : saslProperties.entrySet())
     {
+      String name = entry.getKey();
       String lowerName = toLowerCase(name);
+      List<String> values = entry.getValue();
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          gssapiAuthID = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
-          }
-        }
+        gssapiAuthID = getSingleValue(values, ERR_LDAPAUTH_AUTHID_SINGLE_VALUED);
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          gssapiAuthzID = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        gssapiAuthzID = getSingleValue(values, ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED);
       }
       else if (lowerName.equals(SASL_PROPERTY_KDC))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          kdc = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_KDC_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        kdc = getSingleValue(values, ERR_LDAPAUTH_KDC_SINGLE_VALUED);
       }
       else if (lowerName.equals(SASL_PROPERTY_QOP))
       {
-        List<String> values = saslProperties.get(name);
         Iterator<String> iterator = values.iterator();
         if (iterator.hasNext())
         {
@@ -2580,19 +1842,7 @@ public class LDAPAuthenticationHandler
       }
       else if (lowerName.equals(SASL_PROPERTY_REALM))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          realm = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_REALM_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        realm = getSingleValue(values, ERR_LDAPAUTH_REALM_SINGLE_VALUED);
       }
       else
       {
@@ -2645,20 +1895,17 @@ public class LDAPAuthenticationHandler
       File tempFile = File.createTempFile("login", "conf");
       configFileName = tempFile.getAbsolutePath();
       tempFile.deleteOnExit();
-      BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false));
+      try (BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false))) {
+        w.write(getClass().getName() + " {");
+        w.newLine();
 
-      w.write(getClass().getName() + " {");
-      w.newLine();
+        w.write("  com.sun.security.auth.module.Krb5LoginModule required " +
+            "client=TRUE useTicketCache=TRUE;");
+        w.newLine();
 
-      w.write("  com.sun.security.auth.module.Krb5LoginModule required " +
-              "client=TRUE useTicketCache=TRUE;");
-      w.newLine();
-
-      w.write("};");
-      w.newLine();
-
-      w.flush();
-      w.close();
+        w.write("};");
+        w.newLine();
+      }
     }
     catch (Exception e)
     {
@@ -2710,13 +1957,25 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // FIXME --  Need to make sure we handle request and response controls
-    // properly, and also check for any possible message to send back to the
-    // client.
+    // FIXME -- Need to make sure we handle request and response controls properly,
+    // and also check for any possible message to send back to the client.
     return null;
   }
 
-
+  private String getSingleValue(List<String> values, Arg0 singleValuedErrMsg) throws ClientException
+  {
+    Iterator<String> it = values.iterator();
+    if (it.hasNext())
+    {
+      String result = it.next();
+      if (it.hasNext())
+      {
+        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, singleValuedErrMsg.get());
+      }
+      return result;
+    }
+    return null;
+  }
 
   /**
    * Retrieves the set of properties that a client may provide when performing a
@@ -2727,7 +1986,7 @@ public class LDAPAuthenticationHandler
    *          SASL EXTERNAL bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,LocalizableMessage> getSASLGSSAPIProperties()
+  private static LinkedHashMap<String, LocalizableMessage> getSASLGSSAPIProperties()
   {
     LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(4);
 
@@ -2791,29 +2050,19 @@ public class LDAPAuthenticationHandler
               ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
-    for (String name : saslProperties.keySet())
+    for (Entry<String, List<String>> entry : saslProperties.entrySet())
     {
+      String name = entry.getKey();
+      List<String> values = entry.getValue();
       String lowerName = toLowerCase(name);
 
       if (lowerName.equals(SASL_PROPERTY_AUTHID))
       {
-        authID = getAuthID(saslProperties, authID, name);
+        authID = getSingleValue(values, ERR_LDAPAUTH_AUTHID_SINGLE_VALUED);
       }
       else if (lowerName.equals(SASL_PROPERTY_AUTHZID))
       {
-        List<String> values = saslProperties.get(name);
-        Iterator<String> iterator = values.iterator();
-        if (iterator.hasNext())
-        {
-          authzID = iterator.next();
-
-          if (iterator.hasNext())
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
-                                      message);
-          }
-        }
+        authzID = getSingleValue(values, ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED);
       }
       else
       {
@@ -2841,115 +2090,16 @@ public class LDAPAuthenticationHandler
         bindPassword = ByteString.empty();
     }
 
-
     // Construct the bind request and send it to the server.
-    StringBuilder credBuffer = new StringBuilder();
-    if (authzID != null)
-    {
-      credBuffer.append(authzID);
-    }
-    credBuffer.append('\u0000');
-    credBuffer.append(authID);
-    credBuffer.append('\u0000');
-    credBuffer.append(bindPassword.toString());
+    String saslCredentials = (authzID != null ? authzID : "") + '\u0000' + authID + '\u0000' + bindPassword;
+    sendBindRequest(SASL_MECHANISM_PLAIN, bindDN, ByteString.valueOfUtf8(saslCredentials), requestControls);
 
-    ByteString saslCredentials =
-        ByteString.valueOfUtf8(credBuffer.toString());
-    BindRequestProtocolOp bindRequest =
-         new BindRequestProtocolOp(bindDN.toByteString(), SASL_MECHANISM_PLAIN,
-                                saslCredentials);
-    LDAPMessage requestMessage =
-         new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest,
-                         requestControls);
-
-    try
-    {
-      writer.writeMessage(requestMessage);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-          SASL_MECHANISM_PLAIN, getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-          SASL_MECHANISM_PLAIN, getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                message, e);
-    }
-
-
-    // Read the response from the server.
-    LDAPMessage responseMessage;
-    try
-    {
-      responseMessage = reader.readMessage();
-      if (responseMessage == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
-
-    // See if there are any controls in the response.  If so, then add them to
-    // the response controls list.
-    List<Control> respControls = responseMessage.getControls();
-    if (respControls != null && !respControls.isEmpty())
-    {
-      responseControls.addAll(respControls);
-    }
-
-
-    // Look at the protocol op from the response.  If it's a bind response, then
-    // continue.  If it's an extended response, then it could be a notice of
-    // disconnection so check for that.  Otherwise, generate an error.
-    generateError(responseMessage);
-
-
-    BindResponseProtocolOp bindResponse =
-         responseMessage.getBindResponseProtocolOp();
-    int resultCode = bindResponse.getResultCode();
-    if (resultCode == ReturnCode.SUCCESS.get())
-    {
-      // FIXME -- Need to look for things like password expiration warning,
-      // reset notice, etc.
-      return null;
-    }
-
-    // FIXME -- Add support for referrals.
-
-    LocalizableMessage message = ERR_LDAPAUTH_SASL_BIND_FAILED.get(SASL_MECHANISM_PLAIN);
-    throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                            message, bindResponse.getMatchedDN(), null);
+    LDAPMessage responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE);
+    responseControls.addAll(responseMessage.getControls());
+    checkConnected(responseMessage);
+    checkSuccessfulBind(responseMessage, SASL_MECHANISM_PLAIN);
+    return null;
   }
-
-
 
   /**
    * Retrieves the set of properties that a client may provide when performing a
@@ -2960,7 +2110,7 @@ public class LDAPAuthenticationHandler
    *          SASL PLAIN bind, mapped from the property names to their
    *          corresponding descriptions.
    */
-  public static LinkedHashMap<String,LocalizableMessage> getSASLPlainProperties()
+  private static LinkedHashMap<String, LocalizableMessage> getSASLPlainProperties()
   {
     LinkedHashMap<String,LocalizableMessage> properties = new LinkedHashMap<>(2);
 
@@ -2988,8 +2138,7 @@ public class LDAPAuthenticationHandler
    *                         processing.
    */
   @Override
-  public Object run()
-         throws ClientException, LDAPException
+  public Object run() throws ClientException, LDAPException
   {
     if (saslMechanism == null)
     {
@@ -2999,290 +2148,151 @@ public class LDAPAuthenticationHandler
     }
     else if (saslMechanism.equals(SASL_MECHANISM_GSSAPI))
     {
-      // Create the property map that will be used by the internal SASL handler.
-      HashMap<String,String> saslProperties = new HashMap<>();
-      saslProperties.put(Sasl.QOP, gssapiQoP);
-      saslProperties.put(Sasl.SERVER_AUTH, "true");
-
-
-      // Create the SASL client that we will use to actually perform the
-      // authentication.
-      SaslClient saslClient;
-      try
-      {
-        saslClient =
-             Sasl.createSaslClient(new String[] { SASL_MECHANISM_GSSAPI },
-                                   gssapiAuthzID, "ldap", hostName,
-                                   saslProperties, this);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT.get(
-            getExceptionMessage(e));
-        throw new ClientException(
-                ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-      }
-
-
-      // Get the SASL credentials to include in the initial bind request.
-      ByteString saslCredentials;
-      if (saslClient.hasInitialResponse())
-      {
-        try
-        {
-          byte[] credBytes = saslClient.evaluateChallenge(new byte[0]);
-          saslCredentials = ByteString.wrap(credBytes);
-        }
-        catch (Exception e)
-        {
-          LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE.
-              get(getExceptionMessage(e));
-          throw new ClientException(
-                  ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
-                                    message, e);
-        }
-      }
-      else
-      {
-        saslCredentials = null;
-      }
-
-
-      BindRequestProtocolOp bindRequest =
-           new BindRequestProtocolOp(gssapiBindDN.toByteString(),
-               SASL_MECHANISM_GSSAPI, saslCredentials);
-      // FIXME -- Add controls here?
-      LDAPMessage requestMessage =
-           new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest);
-
-      try
-      {
-        writer.writeMessage(requestMessage);
-      }
-      catch (IOException ioe)
-      {
-        LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-            SASL_MECHANISM_GSSAPI, getExceptionMessage(ioe));
-        throw new ClientException(
-                ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-            SASL_MECHANISM_GSSAPI, getExceptionMessage(e));
-        throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                  message, e);
-      }
-
-
-      // Read the response from the server.
-      LDAPMessage responseMessage;
-      try
-      {
-        responseMessage = reader.readMessage();
-        if (responseMessage == null)
-        {
-          LocalizableMessage message =
-              ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-          throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                    message);
-        }
-      }
-      catch (DecodeException | LDAPException e)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-        throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-      }
-      catch (IOException ioe)
-      {
-        LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
-            getExceptionMessage(ioe));
-        throw new ClientException(
-                ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-        throw new ClientException(
-                ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-      }
-
-
-      // FIXME -- Handle response controls.
-
-
-      // Look at the protocol op from the response.  If it's a bind response,
-      // then continue.  If it's an extended response, then it could be a notice
-      // of disconnection so check for that.  Otherwise, generate an error.
-      generateError(responseMessage);
-
-
-      while (true)
-      {
-        BindResponseProtocolOp bindResponse =
-             responseMessage.getBindResponseProtocolOp();
-        int resultCode = bindResponse.getResultCode();
-        if (resultCode == ReturnCode.SUCCESS.get())
-        {
-          // We should be done after this, but we still need to look for and
-          // handle the server SASL credentials.
-          ByteString serverSASLCredentials =
-               bindResponse.getServerSASLCredentials();
-          if (serverSASLCredentials != null)
-          {
-            try
-            {
-              saslClient.evaluateChallenge(serverSASLCredentials.toByteArray());
-            }
-            catch (Exception e)
-            {
-              LocalizableMessage message =
-                  ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.
-                    get(getExceptionMessage(e));
-              throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
-                                        message, e);
-            }
-          }
-
-
-          // Just to be sure, check that the login really is complete.
-          if (! saslClient.isComplete())
-          {
-            LocalizableMessage message =
-                ERR_LDAPAUTH_GSSAPI_UNEXPECTED_SUCCESS_RESPONSE.get();
-            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      message);
-          }
-
-          break;
-        }
-        else if (resultCode == ReturnCode.SASL_BIND_IN_PROGRESS.get())
-        {
-          // Read the response and process the server SASL credentials.
-          ByteString serverSASLCredentials =
-               bindResponse.getServerSASLCredentials();
-          byte[] credBytes;
-          try
-          {
-            if (serverSASLCredentials == null)
-            {
-              credBytes = saslClient.evaluateChallenge(new byte[0]);
-            }
-            else
-            {
-              credBytes = saslClient.evaluateChallenge(
-                  serverSASLCredentials.toByteArray());
-            }
-          }
-          catch (Exception e)
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.
-                get(getExceptionMessage(e));
-            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      message, e);
-          }
-
-
-          // Send the next bind in the sequence to the server.
-          bindRequest =
-               new BindRequestProtocolOp(gssapiBindDN.toByteString(),
-                   SASL_MECHANISM_GSSAPI, ByteString.wrap(credBytes));
-          // FIXME -- Add controls here?
-          requestMessage =
-               new LDAPMessage(nextMessageID.getAndIncrement(), bindRequest);
-
-
-          try
-          {
-            writer.writeMessage(requestMessage);
-          }
-          catch (IOException ioe)
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-                SASL_MECHANISM_GSSAPI, getExceptionMessage(ioe));
-            throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                      message, ioe);
-          }
-          catch (Exception e)
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
-                SASL_MECHANISM_GSSAPI, getExceptionMessage(e));
-            throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
-                                      message, e);
-          }
-
-
-          // Read the response from the server.
-          try
-          {
-            responseMessage = reader.readMessage();
-            if (responseMessage == null)
-            {
-              LocalizableMessage message =
-                  ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-              throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                        message);
-            }
-          }
-          catch (DecodeException | LDAPException e)
-          {
-            LocalizableMessage message =
-                ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
-            throw new ClientException(
-                ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-          }
-          catch (IOException ioe)
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
-                getExceptionMessage(ioe));
-            throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                      message, ioe);
-          }
-          catch (Exception e)
-          {
-            LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
-                getExceptionMessage(e));
-            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
-                                      message, e);
-          }
-
-
-          // FIXME -- Handle response controls.
-
-
-          // Look at the protocol op from the response.  If it's a bind
-          // response, then continue.  If it's an extended response, then it
-          // could be a notice of disconnection so check for that.  Otherwise,
-          // generate an error.
-          generateError(responseMessage);
-        }
-        else
-        {
-          // This is an error.
-          LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_BIND_FAILED.get();
-          throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
-                                  message, bindResponse.getMatchedDN(),
-                                  null);
-        }
-      }
+      doSASLGSSAPI2();
+      return null;
     }
     else
     {
       LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RUN_INVOCATION.get(
           saslMechanism, getBacktrace());
+      throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
+    }
+  }
+
+  private void doSASLGSSAPI2() throws ClientException, LDAPException
+  {
+    // Create the property map that will be used by the internal SASL handler.
+    Map<String, String> saslProperties = new HashMap<>();
+    saslProperties.put(Sasl.QOP, gssapiQoP);
+    saslProperties.put(Sasl.SERVER_AUTH, "true");
+
+
+    // Create the SASL client that we will use to actually perform the
+    // authentication.
+    SaslClient saslClient;
+    try
+    {
+      saslClient =
+           Sasl.createSaslClient(new String[] { SASL_MECHANISM_GSSAPI },
+                                 gssapiAuthzID, "ldap", hostName,
+                                 saslProperties, this);
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT.get(
+          getExceptionMessage(e));
       throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
+    // FIXME -- Add controls here?
+    ByteString saslCredentials = getSaslCredentialsForInitialBind(saslClient);
+    sendBindRequest(SASL_MECHANISM_GSSAPI, gssapiBindDN, saslCredentials, null);
 
-    // FIXME -- Need to look for things like password expiration warning, reset
-    // notice, etc.
+    LDAPMessage responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE);
+    // FIXME -- Handle response controls.
+    checkConnected(responseMessage);
+
+    while (true)
+    {
+      BindResponseProtocolOp bindResponse =
+           responseMessage.getBindResponseProtocolOp();
+      int resultCode = bindResponse.getResultCode();
+      if (resultCode == ReturnCode.SUCCESS.get())
+      {
+        evaluateGSSAPIChallenge(saslClient, bindResponse);
+        break;
+      }
+      else if (resultCode == ReturnCode.SASL_BIND_IN_PROGRESS.get())
+      {
+        // FIXME -- Add controls here?
+        ByteString credBytes = evaluateSaslChallenge(saslClient, bindResponse);
+        sendBindRequest(SASL_MECHANISM_GSSAPI, gssapiBindDN, credBytes, null);
+
+        responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE);
+        // FIXME -- Handle response controls.
+        checkConnected(responseMessage);
+      }
+      else
+      {
+        // This is an error.
+        LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_BIND_FAILED.get();
+        throw new LDAPException(resultCode, bindResponse.getErrorMessage(),
+                                message, bindResponse.getMatchedDN(),
+                                null);
+      }
+    }
+    // FIXME -- Need to look for things like password expiration warning, reset notice, etc.
+  }
+
+
+  private void evaluateGSSAPIChallenge(SaslClient saslClient, BindResponseProtocolOp bindResponse)
+      throws ClientException
+  {
+    // We should be done after this, but we still need to look for and
+    // handle the server SASL credentials.
+    ByteString serverSASLCredentials = bindResponse.getServerSASLCredentials();
+    if (serverSASLCredentials != null)
+    {
+      try
+      {
+        saslClient.evaluateChallenge(serverSASLCredentials.toByteArray());
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.get(getExceptionMessage(e));
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+      }
+    }
+
+    // Just to be sure, check that the login really is complete.
+    if (!saslClient.isComplete())
+    {
+      LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_UNEXPECTED_SUCCESS_RESPONSE.get();
+      throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
+    }
+  }
+
+  private ByteString evaluateSaslChallenge(SaslClient saslClient, BindResponseProtocolOp bindResponse)
+      throws ClientException
+  {
+    try
+    {
+      ByteString saslCredentials = bindResponse.getServerSASLCredentials();
+      byte[] bs = saslCredentials != null ? saslCredentials.toByteArray() : new byte[0];
+      return ByteString.wrap(saslClient.evaluateChallenge(bs));
+    }
+    catch (Exception e)
+    {
+      LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.get(getExceptionMessage(e));
+      throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+    }
+  }
+
+  private ByteString getSaslCredentialsForInitialBind(SaslClient saslClient) throws ClientException
+  {
+    if (saslClient.hasInitialResponse())
+    {
+      try
+      {
+        return ByteString.wrap(saslClient.evaluateChallenge(new byte[0]));
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE.get(getExceptionMessage(e));
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+      }
+    }
     return null;
   }
 
-  private void generateError(LDAPMessage responseMessage) throws LDAPException, ClientException
+  /**
+   * Look at the protocol op from the response.
+   * If it's a bind response, then continue.
+   * If it's an extended response, then check it is not a notice of disconnection.
+   * Otherwise, generate an error.
+   */
+  private void checkConnected(LDAPMessage responseMessage) throws LDAPException, ClientException
   {
     switch (responseMessage.getProtocolOpType())
     {
@@ -3417,40 +2427,7 @@ public class LDAPAuthenticationHandler
     }
 
 
-    // Read the response from the server.
-    LDAPMessage responseMessage;
-    try
-    {
-      responseMessage = reader.readMessage();
-      if (responseMessage == null)
-      {
-        LocalizableMessage message =
-            ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
-                                  message);
-      }
-    }
-    catch (DecodeException | LDAPException e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
-    }
-    catch (IOException ioe)
-    {
-      LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(
-          getExceptionMessage(ioe));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(e));
-      throw new ClientException(
-              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
-    }
-
+    LDAPMessage responseMessage = readBindResponse(ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE);
 
     // If the protocol op isn't an extended response, then that's a problem.
     if (responseMessage.getProtocolOpType() != OP_TYPE_EXTENDED_RESPONSE)
@@ -3493,13 +2470,10 @@ public class LDAPAuthenticationHandler
       return null;
     }
 
-    String valueString = authzID.toString();
-    if (valueString == null || valueString.length() == 0 ||
-        valueString.equalsIgnoreCase("dn:"))
+    if (!"dn:".equalsIgnoreCase(authzID.toString()))
     {
-      return null;
+      return authzID;
     }
-
-    return authzID;
+    return null;
   }
 }

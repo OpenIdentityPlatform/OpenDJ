@@ -16,12 +16,24 @@
  */
 package org.opends.server.protocols.ldap;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.*;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Iterator;
@@ -45,22 +57,37 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.core.*;
+import org.opends.server.core.AbandonOperationBasis;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.BindOperationBasis;
+import org.opends.server.core.CompareOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperationBasis;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.PluginConfigManager;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.SearchOperationBasis;
+import org.opends.server.core.UnbindOperationBasis;
 import org.opends.server.extensions.ConnectionSecurityProvider;
 import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.extensions.TLSCapableConnection;
-import org.opends.server.types.*;
+import org.opends.server.types.AuthenticationType;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an LDAP client connection, which is a type of
@@ -231,13 +258,9 @@ public final class LDAPClientConnection extends ClientConnection implements
               // We've been blocked for too long.
               throw new ClosedChannelException();
             }
-            else
-            {
-              waitTime = stopTime - currentTime;
-            }
+            waitTime = stopTime - currentTime;
 
-            Iterator<SelectionKey> iterator = selector.selectedKeys()
-                .iterator();
+            Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
             while (iterator.hasNext())
             {
               SelectionKey k = iterator.next();
@@ -375,7 +398,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   private final LDAPConnectionHandler connectionHandler;
   /** The statistics tracker associated with this client connection. */
   private final LDAPStatistics statTracker;
-  private boolean useNanoTime;
+  private final boolean useNanoTime;
 
   /** The connection ID assigned to this connection. */
   private final long connectionID;
@@ -395,7 +418,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   /** The string representation of the address of the server to which the client has connected. */
   private final String serverAddress;
 
-  private ASN1ByteChannelReader asn1Reader;
+  private final ASN1ByteChannelReader asn1Reader;
   private final int bufferSize;
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
@@ -440,20 +463,20 @@ public final class LDAPClientConnection extends ClientConnection implements
     serverPort = socket.getLocalPort();
 
     statTracker = this.connectionHandler.getStatTracker();
-
     if (keepStats)
     {
       statTracker.updateConnect();
       this.useNanoTime=DirectoryServer.getUseNanoTime();
     }
+    else
+    {
+      this.useNanoTime = false;
+    }
 
     bufferSize = connectionHandler.getBufferSize();
 
-    tlsChannel =
-        RedirectingByteChannel.getRedirectingByteChannel(
-            timeoutClientChannel);
-    saslChannel =
-        RedirectingByteChannel.getRedirectingByteChannel(tlsChannel);
+    tlsChannel = RedirectingByteChannel.getRedirectingByteChannel(timeoutClientChannel);
+    saslChannel = RedirectingByteChannel.getRedirectingByteChannel(tlsChannel);
     this.asn1Reader = new ASN1ByteChannelReader(saslChannel, bufferSize, connectionHandler.getMaxRequestSize());
 
     if (connectionHandler.useSSL())
@@ -981,20 +1004,20 @@ public final class LDAPClientConnection extends ClientConnection implements
     // Indicate that this connection is no longer valid.
     connectionValid = false;
 
+    final LocalizableMessage cancelMessage;
     if (message != null)
     {
-      LocalizableMessageBuilder msgBuilder = new LocalizableMessageBuilder();
-      msgBuilder.append(disconnectReason.getClosureMessage());
-      msgBuilder.append(": ");
-      msgBuilder.append(message);
-      cancelAllOperations(new CancelRequest(true, msgBuilder
-          .toMessage()));
+      cancelMessage = new LocalizableMessageBuilder()
+          .append(disconnectReason.getClosureMessage())
+          .append(": ")
+          .append(message)
+          .toMessage();
     }
     else
     {
-      cancelAllOperations(new CancelRequest(true, disconnectReason
-          .getClosureMessage()));
+      cancelMessage = disconnectReason.getClosureMessage();
     }
+    cancelAllOperations(new CancelRequest(true, cancelMessage));
     finalizeConnectionInternal();
 
     // If there is a write selector for this connection, then close it.
@@ -1008,45 +1031,8 @@ public final class LDAPClientConnection extends ClientConnection implements
     {
       try
       {
-        int resultCode;
-        switch (disconnectReason)
-        {
-        case PROTOCOL_ERROR:
-          resultCode = LDAPResultCode.PROTOCOL_ERROR;
-          break;
-        case SERVER_SHUTDOWN:
-          resultCode = LDAPResultCode.UNAVAILABLE;
-          break;
-        case SERVER_ERROR:
-          resultCode = DirectoryServer.getServerErrorResultCode().intValue();
-          break;
-        case ADMIN_LIMIT_EXCEEDED:
-        case IDLE_TIME_LIMIT_EXCEEDED:
-        case MAX_REQUEST_SIZE_EXCEEDED:
-        case IO_TIMEOUT:
-          resultCode = LDAPResultCode.ADMIN_LIMIT_EXCEEDED;
-          break;
-        case CONNECTION_REJECTED:
-          resultCode = LDAPResultCode.CONSTRAINT_VIOLATION;
-          break;
-        case INVALID_CREDENTIALS:
-          resultCode = LDAPResultCode.INVALID_CREDENTIALS;
-          break;
-        default:
-          resultCode = LDAPResultCode.OTHER;
-          break;
-        }
-
-        LocalizableMessage errMsg;
-        if (message == null)
-        {
-          errMsg =
-              INFO_LDAP_CLIENT_GENERIC_NOTICE_OF_DISCONNECTION.get();
-        }
-        else
-        {
-          errMsg = message;
-        }
+        int resultCode = toResultCode(disconnectReason);
+        LocalizableMessage errMsg = message != null ? message : INFO_LDAP_CLIENT_GENERIC_NOTICE_OF_DISCONNECTION.get();
 
         ExtendedResponseProtocolOp notificationOp =
             new ExtendedResponseProtocolOp(resultCode, errMsg, null,
@@ -1069,19 +1055,40 @@ public final class LDAPClientConnection extends ClientConnection implements
     // NYI -- Deregister the client connection from any server components that
     // might know about it.
 
-    // Log a disconnect message.
     logDisconnect(this, disconnectReason, message);
 
     try
     {
-      PluginConfigManager pluginManager =
-          DirectoryServer.getPluginConfigManager();
-      pluginManager.invokePostDisconnectPlugins(this, disconnectReason,
-          message);
+      PluginConfigManager pluginManager = DirectoryServer.getPluginConfigManager();
+      pluginManager.invokePostDisconnectPlugins(this, disconnectReason, message);
     }
     catch (Exception e)
     {
       logger.traceException(e);
+    }
+  }
+
+  private int toResultCode(DisconnectReason disconnectReason)
+  {
+    switch (disconnectReason)
+    {
+    case PROTOCOL_ERROR:
+      return LDAPResultCode.PROTOCOL_ERROR;
+    case SERVER_SHUTDOWN:
+      return LDAPResultCode.UNAVAILABLE;
+    case SERVER_ERROR:
+      return DirectoryServer.getServerErrorResultCode().intValue();
+    case ADMIN_LIMIT_EXCEEDED:
+    case IDLE_TIME_LIMIT_EXCEEDED:
+    case MAX_REQUEST_SIZE_EXCEEDED:
+    case IO_TIMEOUT:
+      return LDAPResultCode.ADMIN_LIMIT_EXCEEDED;
+    case CONNECTION_REJECTED:
+      return LDAPResultCode.CONSTRAINT_VIOLATION;
+    case INVALID_CREDENTIALS:
+      return LDAPResultCode.INVALID_CREDENTIALS;
+    default:
+      return LDAPResultCode.OTHER;
     }
   }
 
@@ -1235,27 +1242,23 @@ public final class LDAPClientConnection extends ClientConnection implements
       CancelRequest cancelRequest)
   {
     Operation op = operationsInProgress.get(messageID);
-    if (op == null)
-    {
-      // See if the operation is in the list of persistent searches.
-      for (PersistentSearch ps : getPersistentSearches())
-      {
-        if (ps.getMessageID() == messageID)
-        {
-          // We only need to find the first persistent search
-          // associated with the provided message ID. The persistent
-          // search will ensure that all other related persistent
-          // searches are cancelled.
-          return ps.cancel();
-        }
-      }
-
-      return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
-    }
-    else
+    if (op != null)
     {
       return op.cancel(cancelRequest);
     }
+
+    // See if the operation is in the list of persistent searches.
+    for (PersistentSearch ps : getPersistentSearches())
+    {
+      if (ps.getMessageID() == messageID)
+      {
+        // We only need to find the first persistent search
+        // associated with the provided message ID. The persistent search
+        // will ensure that all other related persistent searches are cancelled.
+        return ps.cancel();
+      }
+    }
+    return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
   }
 
   /**
@@ -1535,15 +1538,13 @@ public final class LDAPClientConnection extends ClientConnection implements
       switch (message.getProtocolOpType())
       {
       case OP_TYPE_ABANDON_REQUEST:
-        result = processAbandonRequest(message, opControls);
-        return result;
+        return processAbandonRequest(message, opControls);
       case OP_TYPE_ADD_REQUEST:
-        result = processAddRequest(message, opControls);
-        return result;
+        return processAddRequest(message, opControls);
       case OP_TYPE_BIND_REQUEST:
+        boolean isSaslBind = message.getBindRequestProtocolOp().getAuthenticationType() == AuthenticationType.SASL;
         bindInProgress.set(true);
-        if(message.getBindRequestProtocolOp().
-            getAuthenticationType() == AuthenticationType.SASL)
+        if (isSaslBind)
         {
           saslBindInProgress.set(true);
         }
@@ -1551,45 +1552,36 @@ public final class LDAPClientConnection extends ClientConnection implements
         if(!result)
         {
           bindInProgress.set(false);
-          if(message.getBindRequestProtocolOp().
-              getAuthenticationType() == AuthenticationType.SASL)
+          if (isSaslBind)
           {
             saslBindInProgress.set(false);
           }
         }
         return result;
       case OP_TYPE_COMPARE_REQUEST:
-        result = processCompareRequest(message, opControls);
-        return result;
+        return processCompareRequest(message, opControls);
       case OP_TYPE_DELETE_REQUEST:
-        result = processDeleteRequest(message, opControls);
-        return result;
+        return processDeleteRequest(message, opControls);
       case OP_TYPE_EXTENDED_REQUEST:
-        if(message.getExtendedRequestProtocolOp().getOID().equals(
-            OID_START_TLS_REQUEST))
+        boolean isStartTlsRequest = OID_START_TLS_REQUEST.equals(message.getExtendedRequestProtocolOp().getOID());
+        if (isStartTlsRequest)
         {
           startTLSInProgress.set(true);
         }
         result = processExtendedRequest(message, opControls);
-        if(!result &&
-            message.getExtendedRequestProtocolOp().getOID().equals(
-                OID_START_TLS_REQUEST))
+        if (!result && isStartTlsRequest)
         {
           startTLSInProgress.set(false);
         }
         return result;
       case OP_TYPE_MODIFY_REQUEST:
-        result = processModifyRequest(message, opControls);
-        return result;
+        return processModifyRequest(message, opControls);
       case OP_TYPE_MODIFY_DN_REQUEST:
-        result = processModifyDNRequest(message, opControls);
-        return result;
+        return processModifyDNRequest(message, opControls);
       case OP_TYPE_SEARCH_REQUEST:
-        result = processSearchRequest(message, opControls);
-        return result;
+        return processSearchRequest(message, opControls);
       case OP_TYPE_UNBIND_REQUEST:
-        result = processUnbindRequest(message, opControls);
-        return result;
+        return processUnbindRequest(message, opControls);
       default:
         LocalizableMessage msg =
             ERR_LDAP_DISCONNECT_DUE_TO_INVALID_REQUEST_TYPE.get(message
@@ -1626,11 +1618,9 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private boolean processAbandonRequest(LDAPMessage message, List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
-      // LDAPv2 clients aren't allowed to send controls.
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-              ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      disconnectControlsNotAllowed();
       return false;
     }
 
@@ -1672,16 +1662,14 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private boolean processAddRequest(LDAPMessage message, List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       AddResponseProtocolOp responseOp =
           new AddResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
               ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-          responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      sendLDAPMessage(message, responseOp);
+      disconnectControlsNotAllowed();
       return false;
     }
 
@@ -1710,6 +1698,16 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
 
     return connectionValid;
+  }
+
+  private void sendLDAPMessage(LDAPMessage message, ProtocolOp responseOp)
+  {
+    sendLDAPMessage(new LDAPMessage(message.getMessageID(), responseOp));
+  }
+
+  private void disconnectControlsNotAllowed()
+  {
+    disconnect(DisconnectReason.PROTOCOL_ERROR, false, ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
   }
 
   /**
@@ -1752,16 +1750,14 @@ public final class LDAPClientConnection extends ClientConnection implements
         return false;
       }
 
-      if (controls != null && !controls.isEmpty())
+      if (!controls.isEmpty())
       {
         // LDAPv2 clients aren't allowed to send controls.
         BindResponseProtocolOp responseOp =
             new BindResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
                 ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-        sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-            responseOp));
-        disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-            ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+        sendLDAPMessage(message, responseOp);
+        disconnectControlsNotAllowed();
         return false;
       }
 
@@ -1857,16 +1853,14 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private boolean processCompareRequest(LDAPMessage message, List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       CompareResponseProtocolOp responseOp =
           new CompareResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
               ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-          responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      sendLDAPMessage(message, responseOp);
+      disconnectControlsNotAllowed();
       return false;
     }
 
@@ -1913,16 +1907,14 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private boolean processDeleteRequest(LDAPMessage message, List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       DeleteResponseProtocolOp responseOp =
           new DeleteResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
               ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-          responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      sendLDAPMessage(message, responseOp);
+      disconnectControlsNotAllowed();
       return false;
     }
 
@@ -2031,16 +2023,14 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private boolean processModifyRequest(LDAPMessage message, List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       ModifyResponseProtocolOp responseOp =
           new ModifyResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
               ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-          responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      sendLDAPMessage(message, responseOp);
+      disconnectControlsNotAllowed();
       return false;
     }
 
@@ -2088,16 +2078,14 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private boolean processModifyDNRequest(LDAPMessage message, List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       ModifyDNResponseProtocolOp responseOp =
           new ModifyDNResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
               ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-          responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      sendLDAPMessage(message, responseOp);
+      disconnectControlsNotAllowed();
       return false;
     }
 
@@ -2145,16 +2133,14 @@ public final class LDAPClientConnection extends ClientConnection implements
   private boolean processSearchRequest(LDAPMessage message,
       List<Control> controls)
   {
-    if (ldapVersion == 2 && controls != null && !controls.isEmpty())
+    if (ldapVersion == 2 && !controls.isEmpty())
     {
       // LDAPv2 clients aren't allowed to send controls.
       SearchResultDoneProtocolOp responseOp =
           new SearchResultDoneProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
               ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
-      sendLDAPMessage(new LDAPMessage(message.getMessageID(),
-          responseOp));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
-          ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
+      sendLDAPMessage(message, responseOp);
+      disconnectControlsNotAllowed();
       return false;
     }
 
