@@ -390,9 +390,12 @@ class StatsThread extends Thread {
     }
 
     void addResponseTime(final long responseTimeNs) {
-        if (!warmingUp) {
-            waitDurationNsCount.inc(responseTimeNs);
+        // The computed response time might be negative if the difference between the two
+        // System.nanoTime() calls (Just before sending the request and right after receiving the response)
+        // is incoherent. See OPENDJ-2968 for more details.
+        if (!warmingUp && responseTimeNs >= 0) {
             responseTimes.update(responseTimeNs);
+            waitDurationNsCount.inc(responseTimeNs);
         }
     }
 
