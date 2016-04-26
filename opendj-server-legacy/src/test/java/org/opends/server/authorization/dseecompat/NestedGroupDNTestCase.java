@@ -12,17 +12,17 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.testng.Assert;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
+import static org.testng.Assert.*;
 
 /**
  * Test the groupdn keyword using nested groups.
@@ -73,7 +73,7 @@ public class NestedGroupDNTestCase extends AciTestCase {
             LDAPSearchParams(user5, PWD, null, null, null,
                     user5, filter, null);
     //Access to user5 should be denied, user5 is not in any groups.
-    Assert.assertEquals(userResults, "");
+    assertEquals(userResults, "");
     //Add user5 to group1.
     String member5Ldif=makeAddLDIF("member", group3DN, user5);
     LDIFModify(member5Ldif, DIR_MGR_DN, PWD);
@@ -104,7 +104,7 @@ public class NestedGroupDNTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user5, PWD, null, null, null,
                     user5, filter, null);
-    Assert.assertEquals(userResults, "");
+    assertEquals(userResults, "");
     //Add group4 (dynamic) to group3.
     String group3Ldif=makeAddLDIF("member", group3DN, group4DN);
     LDIFModify(group3Ldif, DIR_MGR_DN, PWD);
@@ -133,7 +133,7 @@ public class NestedGroupDNTestCase extends AciTestCase {
     String userResults =
             LDAPSearchParams(user5, PWD, null, null, null,
                     user5, filter, null);
-    Assert.assertEquals(userResults, "");
+    assertEquals(userResults, "");
     //Nest group1 in group3, creating circular nesting.
     String group3Ldif=makeAddLDIF("member", group3DN, group1DN);
     LDIFModify(group3Ldif, DIR_MGR_DN, PWD);
@@ -145,6 +145,6 @@ public class NestedGroupDNTestCase extends AciTestCase {
             LDAPSearchParams(user5, PWD, null, null, null,
                     user5, filter, null);
     //Results should not be returned because of circular condition.
-    Assert.assertEquals(userResults1, "");
+    assertEquals(userResults1, "");
   }
 }
