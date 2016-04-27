@@ -42,12 +42,9 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DirectoryServer.InitializationBuilder;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.ImportTask;
 import org.opends.server.tools.makeldif.TemplateFile;
@@ -487,40 +484,24 @@ public class ImportLDIF extends TaskTool {
   }
 
   @Override
-  protected int processLocal(boolean initializeServer,
-                           PrintStream out,
-                           PrintStream err) {
-
-
+  protected int processLocal(boolean initializeServer, PrintStream out, PrintStream err) {
     if (initializeServer)
     {
       try
       {
-        new DirectoryServer.InitializationBuilder(configFile.getValue())
+        InitializationBuilder initBuilder = new DirectoryServer.InitializationBuilder(configFile.getValue())
             .requireCryptoServices()
-            .requireUserPlugins(PluginType.LDIF_IMPORT)
-            .initialize();
+            .requireUserPlugins(PluginType.LDIF_IMPORT);
+        if (!quietMode.isPresent())
+        {
+          initBuilder.requireErrorAndDebugLogPublisher(out, err);
+        }
+        initBuilder.initialize();
       }
       catch (InitializationException e)
       {
         printWrappedText(err, ERR_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(e.getLocalizedMessage()));
         return 1;
-      }
-      if (! quietMode.isPresent())
-      {
-        try
-        {
-          ErrorLogPublisher errorLogPublisher =
-              TextErrorLogPublisher.getToolStartupTextErrorPublisher(
-                  new TextWriter.STREAM(out));
-          ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
-        }
-        catch(Exception e)
-        {
-          err.println("Error installing the custom error logger: " +
-              stackTraceToSingleLineString(e));
-          return 1;
-        }
       }
     }
 
