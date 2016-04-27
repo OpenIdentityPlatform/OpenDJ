@@ -100,10 +100,11 @@ public class NewSchemaElementsTask extends Task
   @Override
   public boolean canLaunch(Task taskToBeLaunched, Collection<LocalizableMessage> incompatibilityReasons)
   {
+    Type taskTypeToBeLaunched = taskToBeLaunched.getType();
     if (state == State.RUNNING &&
-        (taskToBeLaunched.getType() == Task.Type.DELETE_SCHEMA_ELEMENT ||
-         taskToBeLaunched.getType() == Task.Type.MODIFY_SCHEMA_ELEMENT ||
-         taskToBeLaunched.getType() == Task.Type.NEW_SCHEMA_ELEMENT))
+        (taskTypeToBeLaunched == Task.Type.DELETE_SCHEMA_ELEMENT
+            || taskTypeToBeLaunched == Task.Type.MODIFY_SCHEMA_ELEMENT
+            || taskTypeToBeLaunched == Task.Type.NEW_SCHEMA_ELEMENT))
     {
       incompatibilityReasons.add(getIncompatibilityMessage(this, taskToBeLaunched));
       return false;
@@ -150,18 +151,19 @@ public class NewSchemaElementsTask extends Task
     {
       final List<String> attrNames = getElementsNameOrOID(attributeTypesToSchemaElements(attrsToAdd));
       final List<String> ocNames = getElementsNameOrOID(objectClassesToSchemaElements(ocsToAdd));
+      String attrNamesStr = joinAsString(", ", attrNames);
+      String ocNamesStr = joinAsString(", ", ocNames);
       if (ocNames.isEmpty())
       {
-        return INFO_CTRL_PANEL_NEW_ATTRIBUTES_TASK_DESCRIPTION.get(joinAsString(", ", attrNames));
+        return INFO_CTRL_PANEL_NEW_ATTRIBUTES_TASK_DESCRIPTION.get(attrNamesStr);
       }
       else if (attrNames.isEmpty())
       {
-        return INFO_CTRL_PANEL_NEW_OBJECTCLASSES_TASK_DESCRIPTION.get(joinAsString(", ", ocNames));
+        return INFO_CTRL_PANEL_NEW_OBJECTCLASSES_TASK_DESCRIPTION.get(ocNamesStr);
       }
       else
       {
-        return INFO_CTRL_PANEL_NEW_SCHEMA_ELEMENTS_TASK_DESCRIPTION.get(
-            joinAsString(", ", attrNames), joinAsString(", ", ocNames));
+        return INFO_CTRL_PANEL_NEW_SCHEMA_ELEMENTS_TASK_DESCRIPTION.get(attrNamesStr, ocNamesStr);
       }
     }
   }
@@ -430,12 +432,13 @@ public class NewSchemaElementsTask extends Task
   {
     if (!schemaElements.isEmpty())
     {
-      final Iterator<SomeSchemaElement> iterator = schemaElements.iterator();
-      final String firstOID = iterator.next().getOID();
-      buffer.append(" ").append(label).append(" ( ").append(firstOID);
-      while (iterator.hasNext())
+      buffer.append(" ").append(label).append(" ( ");
+
+      final Iterator<SomeSchemaElement> it = schemaElements.iterator();
+      buffer.append(it.next().getOID());
+      while (it.hasNext())
       {
-        buffer.append(" $ ").append(iterator.next().getOID());
+        buffer.append(" $ ").append(it.next().getOID());
       }
       buffer.append(" )");
     }
@@ -523,16 +526,16 @@ public class NewSchemaElementsTask extends Task
 
   private void appendCollection(final StringBuilder buffer, final String property, final Collection<String> values)
   {
-    final Iterator<String> iterator = values.iterator();
     final boolean isMultiValued = values.size() > 1;
-    if (iterator.hasNext())
+    if (!values.isEmpty())
     {
-      final String first = iterator.next();
       buffer.append(" ").append(property);
-      buffer.append(isMultiValued ? " ( '" : " '").append(first).append("' ");
-      while (iterator.hasNext())
+      buffer.append(isMultiValued ? " ( '" : " '");
+      final Iterator<String> it = values.iterator();
+      buffer.append(it.next()).append("' ");
+      while (it.hasNext())
       {
-        buffer.append("'").append(iterator.next()).append("' ");
+        buffer.append("'").append(it.next()).append("' ");
       }
       if (isMultiValued)
       {
