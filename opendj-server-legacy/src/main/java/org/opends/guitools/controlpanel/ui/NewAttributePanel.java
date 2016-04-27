@@ -17,6 +17,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -26,8 +27,8 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -155,24 +156,7 @@ public class NewAttributePanel extends StatusGenericPanel
     final boolean[] repack = { firstSchema };
     final boolean[] error = { false };
 
-    boolean schemaChanged;
-    if (schema != null && s != null)
-    {
-      schemaChanged = !ServerDescriptor.areSchemasEqual(s, schema);
-    }
-    else if (schema == null && s != null)
-    {
-      schemaChanged = true;
-    }
-    else if (s == null && schema != null)
-    {
-      schemaChanged = false;
-    }
-    else
-    {
-      schemaChanged = false;
-    }
-    if (schemaChanged)
+    if (hasSchemaChanged(s))
     {
       schema = s;
       Map<String, Syntax> syntaxNameMap = new HashMap<>();
@@ -285,6 +269,15 @@ public class NewAttributePanel extends StatusGenericPanel
     }
   }
 
+  private boolean hasSchemaChanged(Schema s)
+  {
+    if (s != null)
+    {
+      return schema == null || !ServerDescriptor.areSchemasEqual(s, schema);
+    }
+    return false;
+  }
+
   @Override
   public void okClicked()
   {
@@ -373,10 +366,8 @@ public class NewAttributePanel extends StatusGenericPanel
     NewSchemaElementsTask newTask = null;
     if (errors.isEmpty())
     {
-      Set<AttributeType> attributes = new LinkedHashSet<>();
-      attributes.add(getAttribute());
-      Set<ObjectClass> ocs = new LinkedHashSet<>(0);
-      newTask = new NewSchemaElementsTask(getInfo(), dlg, ocs, attributes);
+      Set<ObjectClass> ocs = Collections.emptySet();
+      newTask = new NewSchemaElementsTask(getInfo(), dlg, ocs, newHashSet(getAttribute()));
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);
@@ -693,7 +684,7 @@ public class NewAttributePanel extends StatusGenericPanel
   {
     AttributeType superior = getSuperior();
     Syntax selectedSyntax = (Syntax) syntax.getSelectedItem();
-    return new SchemaBuilder().buildAttributeType(getOID())
+    return new SchemaBuilder(schema.getSchemaNG()).buildAttributeType(getOID())
       .names(getAllNames())
       .description(getDescription())
       .superiorType(superior != null ? superior.getNameOrOID() : null)
