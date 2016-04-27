@@ -97,18 +97,18 @@ public class NewAttributePanel extends StatusGenericPanel
     lApproximate, lEquality, lOrdering, lSubstring, lType };
 
   private final JTextField name = Utilities.createMediumTextField();
-  private final JComboBox parent = Utilities.createComboBox();
+  private final JComboBox<AttributeType> parent = Utilities.createComboBox();
   private final JTextField oid = Utilities.createMediumTextField();
   private final JTextField aliases = Utilities.createLongTextField();
   private final JTextField description = Utilities.createLongTextField();
   private final JTextField origin = Utilities.createLongTextField();
   private final JTextField file = Utilities.createLongTextField();
   private final JComboBox<AttributeUsage> usage = Utilities.createComboBox();
-  private final JComboBox syntax = Utilities.createComboBox();
-  private final JComboBox approximate = Utilities.createComboBox();
-  private final JComboBox equality = Utilities.createComboBox();
-  private final JComboBox ordering = Utilities.createComboBox();
-  private final JComboBox substring = Utilities.createComboBox();
+  private final JComboBox<Syntax> syntax = Utilities.createComboBox();
+  private final JComboBox<MatchingRule> approximate = Utilities.createComboBox();
+  private final JComboBox<MatchingRule> equality = Utilities.createComboBox();
+  private final JComboBox<MatchingRule> ordering = Utilities.createComboBox();
+  private final JComboBox<MatchingRule> substring = Utilities.createComboBox();
   private final JCheckBox nonModifiable = Utilities.createCheckBox(
       INFO_CTRL_PANEL_ATTRIBUTE_NON_MODIFIABLE_LABEL.get());
   private final JCheckBox singleValued = Utilities.createCheckBox(INFO_CTRL_PANEL_ATTRIBUTE_SINGLE_VALUED_LABEL.get());
@@ -193,7 +193,7 @@ public class NewAttributePanel extends StatusGenericPanel
       {
         newSyntaxes.add(syntaxNameMap.get(key));
       }
-      updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
+      updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel<Syntax>) syntax.getModel());
 
       Map<String, AttributeType> attributeNameMap = new HashMap<>();
       for (AttributeType attr : schema.getAttributeTypes())
@@ -208,7 +208,7 @@ public class NewAttributePanel extends StatusGenericPanel
         newParents.add(attributeNameMap.get(key));
       }
       newParents.add(0, NO_PARENT);
-      updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
+      updateComboBoxModel(newParents, (DefaultComboBoxModel<AttributeType>) parent.getModel());
 
       final List<MatchingRule> availableMatchingRules = new ArrayList<>();
       final Map<String, MatchingRule> matchingRuleNameMap = new HashMap<>();
@@ -254,7 +254,7 @@ public class NewAttributePanel extends StatusGenericPanel
         {
           for (int i = 0; i < syntax.getModel().getSize(); i++)
           {
-            Syntax syn = (Syntax) syntax.getModel().getElementAt(i);
+            Syntax syn = syntax.getModel().getElementAt(i);
             if ("DirectoryString".equals(syn.getName()))
             {
               syntax.setSelectedIndex(i);
@@ -485,7 +485,7 @@ public class NewAttributePanel extends StatusGenericPanel
     gbc.anchor = GridBagConstraints.WEST;
     gbc.insets.bottom = 0;
 
-    JComboBox[] comboBoxes = { parent, syntax, approximate, equality, ordering, substring };
+    JComboBox<?>[] comboBoxes = { parent, syntax, approximate, equality, ordering, substring };
     LocalizableMessage[] defaultValues =
         { NO_PARENT, LocalizableMessage.EMPTY, NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE, NO_MATCHING_RULE };
     SchemaElementComboBoxCellRenderer renderer = new SchemaElementComboBoxCellRenderer(syntax);
@@ -590,7 +590,7 @@ public class NewAttributePanel extends StatusGenericPanel
     {
       MatchingRule[] rules = { syn.getApproximateMatchingRule(), syn.getSubstringMatchingRule(),
         syn.getEqualityMatchingRule(), syn.getOrderingMatchingRule() };
-      JComboBox[] combos = { approximate, substring, equality, ordering };
+      JComboBox<?>[] combos = { approximate, substring, equality, ordering };
       for (int i = 0; i < rules.length; i++)
       {
         DefaultComboBoxModel model = (DefaultComboBoxModel) combos[i].getModel();
@@ -657,31 +657,11 @@ public class NewAttributePanel extends StatusGenericPanel
     return (AttributeType) o;
   }
 
-  private MatchingRule getApproximateMatchingRule()
-  {
-    return getMatchingRule(approximate);
-  }
-
-  private MatchingRule getEqualityMatchingRule()
-  {
-    return getMatchingRule(equality);
-  }
-
-  private MatchingRule getSubstringMatchingRule()
-  {
-    return getMatchingRule(substring);
-  }
-
-  private MatchingRule getOrderingMatchingRule()
-  {
-    return getMatchingRule(ordering);
-  }
-
-  private MatchingRule getMatchingRule(JComboBox comboBox)
+  private String getMatchingRuleOID(JComboBox<MatchingRule> comboBox)
   {
     if (comboBox.getSelectedIndex() != 0)
     {
-      return (MatchingRule) comboBox.getSelectedItem();
+      return ((MatchingRule) comboBox.getSelectedItem()).getOID();
     }
     return null;
   }
@@ -711,16 +691,18 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private AttributeType getAttribute()
   {
+    AttributeType superior = getSuperior();
+    Syntax selectedSyntax = (Syntax) syntax.getSelectedItem();
     return new SchemaBuilder().buildAttributeType(getOID())
       .names(getAllNames())
       .description(getDescription())
-      .superiorType(getSuperior().getNameOrOID())
-      .syntax(((Syntax) syntax.getSelectedItem()).getOID())
-      .approximateMatchingRule(getApproximateMatchingRule().getOID())
-      .equalityMatchingRule(getEqualityMatchingRule().getOID())
-      .orderingMatchingRule(getOrderingMatchingRule().getOID())
-      .substringMatchingRule(getSubstringMatchingRule().getOID())
-      .usage((AttributeUsage)usage.getSelectedItem())
+      .superiorType(superior != null ? superior.getNameOrOID() : null)
+      .syntax(selectedSyntax != null ? selectedSyntax.getOID() : null)
+      .approximateMatchingRule(getMatchingRuleOID(approximate))
+      .equalityMatchingRule(getMatchingRuleOID(equality))
+      .orderingMatchingRule(getMatchingRuleOID(ordering))
+      .substringMatchingRule(getMatchingRuleOID(substring))
+      .usage((AttributeUsage) usage.getSelectedItem())
       .collective(collective.isSelected())
       .obsolete(obsolete.isSelected())
       .noUserModification(nonModifiable.isSelected())
