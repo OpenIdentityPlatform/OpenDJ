@@ -785,10 +785,12 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @see #localName(int) for the reverse operation (starting from the left)
      */
     public DN parent(final int index) {
-        // We allow size + 1 so that we can return null as the parent of the
-        // Root DN.
-        Reject.ifFalse(index >= 0, "index less than zero");
+        // We allow size + 1 so that we can return null as the parent of the Root DN.
+        Reject.ifTrue(index < 0, "index less than zero");
 
+        if (index > size) {
+            return null;
+        }
         DN parentDN = this;
         for (int i = 0; parentDN != null && i < index; i++) {
             parentDN = parentDN.parent;
