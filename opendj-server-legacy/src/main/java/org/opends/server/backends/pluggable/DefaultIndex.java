@@ -291,10 +291,10 @@ class DefaultIndex extends AbstractTree implements Index
   }
 
   @Override
-  public boolean setProtected(boolean protectIndex)
+  public boolean setConfidential(boolean indexConfidential)
   {
-    final boolean rebuildRequired = this.encryptValues != protectIndex;
-    this.encryptValues = protectIndex;
+    final boolean rebuildRequired = !this.encryptValues && indexConfidential;
+    this.encryptValues = indexConfidential;
     return rebuildRequired;
   }
 

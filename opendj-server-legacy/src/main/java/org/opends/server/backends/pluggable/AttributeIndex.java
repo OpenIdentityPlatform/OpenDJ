@@ -939,10 +939,17 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         entryContainer.unlock();
       }
 
-      for (Index updatedIndex : updatedIndexes.values())
+      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
-        updateIndex(updatedIndex, newConfiguration, ccr);
-      }
+        @Override
+        public void run(WriteableTransaction txn) throws Exception
+        {
+          for (final Index updatedIndex : updatedIndexes.values())
+          {
+            updateIndex(updatedIndex, newConfiguration, ccr, txn);
+          }
+        }
+      });
     }
     catch (Exception e)
     {
@@ -963,18 +970,26 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
   }
 
-  private static void updateIndex(Index updatedIndex, BackendIndexCfg newConfig, ConfigChangeResult ccr)
+  private static void updateIndex(Index updatedIndex, BackendIndexCfg newConfig, ConfigChangeResult ccr,
+      WriteableTransaction txn)
   {
     // This index could still be used since a new smaller index size limit doesn't impact validity of the results.
-    if (updatedIndex.setIndexEntryLimit(newConfig.getIndexEntryLimit()))
+    boolean newLimitRequiresRebuild = updatedIndex.setIndexEntryLimit(newConfig.getIndexEntryLimit());
+    if (newLimitRequiresRebuild)
     {
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(updatedIndex.getName()));
     }
-    if (updatedIndex.setProtected(newConfig.isConfidentialityEnabled()))
+    // This index could still be used when disabling confidentiality.
+    boolean newConfidentialityRequiresRebuild = updatedIndex.setConfidential(newConfig.isConfidentialityEnabled());
+    if (newConfidentialityRequiresRebuild)
     {
       ccr.setAdminActionRequired(true);
       ccr.addMessage(NOTE_CONFIG_INDEX_CONFIDENTIALITY_REQUIRES_REBUILD.get(updatedIndex.getName()));
+    }
+    if (newLimitRequiresRebuild || newConfidentialityRequiresRebuild)
+    {
+      updatedIndex.setTrusted(txn, false);
     }
   }
 

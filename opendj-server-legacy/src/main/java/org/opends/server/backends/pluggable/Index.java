@@ -39,7 +39,7 @@ interface Index extends Tree
 
   boolean setIndexEntryLimit(int indexEntryLimit);
 
-  boolean setProtected(boolean protectIndex);
+  boolean setConfidential(boolean indexConfidential);
 
   void setTrusted(WriteableTransaction txn, boolean trusted);
 
