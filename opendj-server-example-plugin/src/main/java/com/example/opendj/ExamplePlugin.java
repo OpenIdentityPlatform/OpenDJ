@@ -12,49 +12,94 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package com.example.opendj;
 
-import java.util.List;
+import static com.example.opendj.ExamplePluginMessages.*;
 
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.types.InitializationException;
 
 import com.example.opendj.server.ExamplePluginCfg;
 
 /**
- * The example plugin implementation class. This plugin will output the
- * configured message to the error log during server start up.
+ * The example plugin implementation class. This plugin will output the configured message to the
+ * error log during server start up.
  */
-public class ExamplePlugin implements ConfigurationChangeListener<ExamplePluginCfg> {
-    // FIXME: fill in the remainder of this class once the server plugin API is migrated.
+public class ExamplePlugin extends DirectoryServerPlugin<ExamplePluginCfg>
+                           implements ConfigurationChangeListener<ExamplePluginCfg> {
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * Default constructor.
-     */
+    /** The current configuration. */
+    private ExamplePluginCfg config;
+
+    /** Default constructor. */
     public ExamplePlugin() {
-        // No implementation required.
+        super();
     }
 
-    /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationChange(final ExamplePluginCfg config) {
+    public void initializePlugin(Set<PluginType> pluginTypes, ExamplePluginCfg configuration)
+            throws ConfigException, InitializationException {
+        // This plugin may only be used as a server startup plugin.
+        for (PluginType t : pluginTypes) {
+            switch (t) {
+            case STARTUP:
+                // This is fine.
+                break;
+            default:
+                throw new ConfigException(ERR_INITIALIZE_PLUGIN.get(String.valueOf(t)));
+            }
+        }
+
+        // Register change listeners. These are not really necessary for this plugin
+        // since it is only used during server start-up.
+        configuration.addExampleChangeListener(this);
+
+        // Save the configuration.
+        this.config = configuration;
+    }
+
+    @Override
+    public PluginResult.Startup doStartup() {
+        // Log the provided message.
+        logger.info(NOTE_DO_STARTUP, StringUtils.upperCase(config.getMessage()));
+        return PluginResult.Startup.continueStartup();
+    }
+
+    @Override
+    public ConfigChangeResult applyConfigurationChange(ExamplePluginCfg config) {
         // The new configuration has already been validated.
+
+        // Log a message to say that the configuration has changed.
+        // This is not necessary, but we'll do it just to show that the change
+        // has taken effect.
+        logger.info(NOTE_APPLY_CONFIGURATION_CHANGE, this.config.getMessage(), config.getMessage());
+
+        // Update the configuration.
+        this.config = config;
 
         // Update was successful, no restart required.
         return new ConfigChangeResult();
     }
 
-    /** {@inheritDoc} */
     @Override
-    public boolean isConfigurationChangeAcceptable(final ExamplePluginCfg config,
-            final List<LocalizableMessage> messages) {
-        /*
-         * The only thing that can be validated here is the plugin's message.
-         * However, it is always going to be valid, so let's always return true.
-         */
+    public boolean isConfigurationChangeAcceptable(ExamplePluginCfg config, List<LocalizableMessage> messages) {
+        // The only thing that can be validated here is the plugin's message.
+        // However, it is always going to be valid, so let's always return true.
         return true;
     }
 }
+

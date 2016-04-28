@@ -14,19 +14,11 @@ steps while the server is stopped:
 
      cd example-plugin
 
-  3. And build the plugin (this requires Ant version 7 and Xalan-Java):
+  3. And build the plugin (this requires Maven version 3):
 
-     ant install
+     mvn clean install
 
-     If this step fails for you as is, you can find Ant 7 and Xalan-Java
-     in the OpenDJ ext/ directory after checking the source out with
-     Subversion. Substitute your full path to OpenDJ sources for /src
-     in the following command:
-
-     /src/ext/ant/bin/ant -Dxalan.directory=/src/ext/xalan-j/ install
-
-  4. This will copy the following files into the parent OpenDJ
-     installation:
+  4. This will copy the following files into the parent OpenDJ installation:
 
      lib/extensions/example-plugin.jar
      config/example-plugin.ldif
@@ -38,10 +30,9 @@ steps while the server is stopped:
      ./start-ds
      ./dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
       create-plugin --plugin-name "Example Plugin" --type example
-      --set enabled:true --set plugin-type:startup
-      --set java-class:com.example.opends.ExamplePlugin -X -n
+      --set enabled:true --set plugin-type:startup -X -n
 
-  6. Restart the server and look for the "hello world" notice in the start
+  6. Restart the server and look for the "HELLO WORLD" notice in the start
      up log:
 
      ./stop-ds --restart

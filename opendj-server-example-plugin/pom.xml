@@ -30,19 +30,15 @@
   <dependencies>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
+      <artifactId>opendj-server-legacy</artifactId>
+      <version>${project.version}</version>
     </dependency>
+    <!-- This adds an external dependency for the plugin.
+         Also update src/main/assembly/descriptor.xml file to include the dependency -->
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-config</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.commons</groupId>
-      <artifactId>i18n-slf4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.3.2</version>
     </dependency>
   </dependencies>
   <build>
