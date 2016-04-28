@@ -33,11 +33,13 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.quicksetup.Application;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Step;
+import org.opends.quicksetup.TempLogFile;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.UserDataConfirmationException;
 import org.opends.quicksetup.UserDataException;
@@ -47,6 +49,8 @@ import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.util.SetupUtils;
 
 /**
@@ -79,6 +83,56 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   /** The full pathname of the MacOS X LaunchServices OPEN(1) helper. */
   private static final String MAC_APPLICATIONS_OPENER = "/usr/bin/open";
+
+  /**
+   * This method creates the install/uninstall dialogs and to check the current
+   * install status. This method must be called outside the event thread because
+   * it can perform long operations which can make the user think that the UI is
+   * blocked.
+   *
+   * @param tempLogFile
+   *          temporary log file where messages will be logged.
+   * @param args
+   *          for the moment this parameter is not used but we keep it in order
+   *          to (in case of need) pass parameters through the command line.
+   */
+  public void initialize(final TempLogFile tempLogFile, String[] args)
+  {
+    ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
+
+    installStatus = new CurrentInstallStatus();
+
+    application = Application.create();
+    application.setProgressMessageFormatter(formatter);
+    application.setCurrentInstallStatus(installStatus);
+    application.setTempLogFile(tempLogFile);
+    if (args != null)
+    {
+      application.setUserArguments(args);
+    }
+    else
+    {
+      application.setUserArguments(new String[] {});
+    }
+    try
+    {
+      initLookAndFeel();
+    }
+    catch (Throwable t)
+    {
+      // This is likely a bug.
+      t.printStackTrace();
+    }
+
+    /* In the calls to setCurrentStep the dialog will be created */
+    setCurrentStep(application.getFirstWizardStep());
+  }
+
+  /** This method displays the setup dialog. This method must be called from the event thread. */
+  public void display()
+  {
+    getDialog().packAndShow();
+  }
 
   /**
    * ButtonActionListener implementation. It assumes that we are called in the
@@ -560,6 +614,12 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   public void displayFieldInvalid(FieldName fieldName, boolean invalid)
   {
     getDialog().displayFieldInvalid(fieldName, invalid);
+  }
+
+  /** A method to initialize the look and feel. */
+  private void initLookAndFeel() throws Throwable
+  {
+    UIFactory.initialize();
   }
 
   /**

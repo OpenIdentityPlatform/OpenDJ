@@ -38,6 +38,8 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
+import org.opends.quicksetup.event.MinimumSizeComponentListener;
+
 /**
  * This class represents the dialog used by quicksetup applications.
  *
@@ -92,6 +94,20 @@ public class QuickSetupDialog
     });
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     Utilities.setFrameIcon(frame);
+  }
+
+  /** Packs and displays this dialog. */
+  public void packAndShow()
+  {
+    frame.pack();
+    int minWidth = (int) frame.getPreferredSize().getWidth();
+    int minHeight = (int) frame.getPreferredSize().getHeight();
+    Utilities.centerOnScreen(frame);
+    setFocusOnButton(application.getInitialFocusButtonName());
+    frame.addComponentListener(new MinimumSizeComponentListener(frame,
+        minWidth, minHeight));
+
+    frame.setVisible(true);
   }
 
   /**

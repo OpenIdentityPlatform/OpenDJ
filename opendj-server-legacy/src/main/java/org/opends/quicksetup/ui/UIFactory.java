@@ -53,6 +53,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class provides constants an methods to create Swing objects and to
@@ -63,7 +64,9 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public class UIFactory
 {
+  private static boolean initialized;
   private static String parentPackagePath;
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Specifies the horizontal insets between buttons. */
   public static final int HORIZONTAL_INSET_BETWEEN_BUTTONS = 5;
@@ -412,6 +415,33 @@ public class UIFactory
     if (ts[0] != null)
     {
       throw ts[0];
+    }
+  }
+
+  /**
+   * This method initialize the look and feel and UI settings specific to quick
+   * setup.
+   *
+   * @throws Throwable
+   *           if there is a problem initializing the look and feel.
+   */
+  public static void initialize() throws Throwable
+  {
+    if (!initialized)
+    {
+      try
+      {
+        UIManager.put("OptionPane.background", getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
+        UIManager.put("Panel.background", getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
+        UIManager.put("ComboBox.background", getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
+      }
+      catch (Throwable t)
+      {
+        // This might occur when we do not get the display
+        logger.warn(LocalizableMessage.raw("Error updating UIManager: " + t, t));
+      }
+      initializeLookAndFeel();
+      initialized = true;
     }
   }
 

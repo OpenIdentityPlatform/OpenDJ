@@ -41,6 +41,7 @@ import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
@@ -75,6 +76,49 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   /** Temporary log file where messages will be logged. */
   protected TempLogFile tempLogFile;
+
+  /**
+   * Creates an application by instantiating the Application class
+   * denoted by the System property
+   * <code>org.opends.quicksetup.Application.class</code>.
+   * @return Application object that was newly instantiated
+   * @throws RuntimeException if there was a problem
+   *  creating the new Application object
+   */
+  public static GuiApplication create() throws RuntimeException {
+    GuiApplication app;
+    String appClassName =
+        System.getProperty("org.opends.quicksetup.Application.class");
+    if (appClassName != null) {
+      Class<?> appClass = null;
+      try {
+        appClass = Class.forName(appClassName);
+        app = (GuiApplication) appClass.newInstance();
+      } catch (ClassNotFoundException e) {
+        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
+        String msg = "Application class " + appClass + " not found";
+        throw new RuntimeException(msg, e);
+      } catch (IllegalAccessException e) {
+        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
+        String msg = "Could not access class " + appClass;
+        throw new RuntimeException(msg, e);
+      } catch (InstantiationException e) {
+        logger.info(LocalizableMessage.raw("error creating quicksetup application", e));
+        String msg = "Error instantiating class " + appClass;
+        throw new RuntimeException(msg, e);
+      } catch (ClassCastException e) {
+        String msg = "The class indicated by the system property " +
+            "'org.opends.quicksetup.Application.class' must " +
+            " must be of type Application";
+        throw new RuntimeException(msg, e);
+      }
+    } else {
+      String msg = "System property 'org.opends.quicksetup.Application.class'" +
+          " must specify class quicksetup application";
+      throw new RuntimeException(msg);
+    }
+    return app;
+  }
 
   /**
    * Sets this instances user data.
