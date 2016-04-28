@@ -743,16 +743,15 @@ public final class ServerManagementContext {
         } catch (ConfigException e) {
             debugLogger.trace("Unable to perform post add", e);
 
-            LocalizableMessage message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(String.valueOf(dn),
-                    stackTraceToSingleLineString(e, true));
+            LocalizableMessage message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+                    dn, stackTraceToSingleLineString(e, true));
             throw new ConfigException(message, e);
         }
 
         // The configuration handler is free to return null indicating
         // that the entry does not exist.
         if (configEntry == null) {
-            LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.get(String.valueOf(dn));
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.get(dn));
         }
 
         return configEntry;

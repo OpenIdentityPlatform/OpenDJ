@@ -1196,8 +1196,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
 
         // No parent entry could be found.
-        LocalizableMessage message = ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER.get(String.valueOf(baseDN));
-        throw new ConfigException(message);
+        throw new ConfigException(ERR_ADMIN_UNABLE_TO_REGISTER_LISTENER.get(baseDN));
     }
 
     /**

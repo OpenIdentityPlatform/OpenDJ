@@ -245,7 +245,7 @@ public abstract class PropertyDefinitionVisitor<R, P> {
      *             Visitor implementations may optionally throw this exception.
      */
     public <T> R visitUnknown(PropertyDefinition<T> pd, P p) {
-        throw PropertyException.unknownPropertyDefinitionException(pd, p);
+        throw PropertyException.unknownPropertyDefinitionException(pd);
     }
 
 }

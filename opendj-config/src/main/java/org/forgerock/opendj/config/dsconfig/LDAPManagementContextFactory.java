@@ -21,6 +21,7 @@ import static org.forgerock.util.Utils.closeSilently;
 
 import javax.net.ssl.SSLException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
@@ -33,7 +34,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
 
 /** An LDAP management context factory for the DSConfig tool. */
@@ -82,15 +82,13 @@ public final class LDAPManagementContextFactory {
     /**
      * Gets the management context which sub-commands should use in order to manage the directory server.
      *
-     * @param app
-     *            The console application instance.
      * @return Returns the management context which sub-commands should use in order to manage the directory server.
      * @throws ArgumentException
      *             If a management context related argument could not be parsed successfully.
      * @throws ClientException
      *             If the management context could not be created.
      */
-    public ManagementContext getManagementContext(ConsoleApplication app) throws ArgumentException, ClientException {
+    public ManagementContext getManagementContext() throws ArgumentException, ClientException {
         // Lazily create the LDAP management context.
         if (context == null) {
             Connection connection;
@@ -100,13 +98,10 @@ public final class LDAPManagementContextFactory {
                 connection = factory.getConnection();
                 BuildVersion.checkVersionMismatch(connection);
             } catch (LdapException e) {
-                if (e.getCause() instanceof SSLException) {
-                    throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                            ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, String.valueOf(port)));
-                } else {
-                    throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                            ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String.valueOf(port)));
-                }
+                LocalizableMessage msg = e.getCause() instanceof SSLException
+                    ? ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, port)
+                    : ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, port);
+                throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, msg);
             } catch (ConfigException e) {
                 throw new ClientException(ReturnCode.ERROR_USER_DATA, e.getMessageObject());
             } catch (Exception ex) {

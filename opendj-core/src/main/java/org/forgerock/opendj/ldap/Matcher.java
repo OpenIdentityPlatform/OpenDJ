@@ -29,9 +29,7 @@ import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
 import com.forgerock.opendj.util.StaticUtils;
 
-/**
- * An interface for determining whether entries match a {@code Filter}.
- */
+/** An interface for determining whether entries match a {@code Filter}. */
 public final class Matcher {
     private static final class AndMatcherImpl extends MatcherImpl {
         private final List<MatcherImpl> subMatchers;
@@ -52,17 +50,22 @@ public final class Matcher {
             }
             return r;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("and(");
+            for (MatcherImpl subMatcher : subMatchers) {
+                subMatcher.toString(sb);
+            }
+            sb.append(")");
+        }
     }
 
     private static final class AssertionMatcherImpl extends MatcherImpl {
         private final Assertion assertion;
-
         private final AttributeDescription attributeDescription;
-
         private final boolean dnAttributes;
-
         private final MatchingRule rule;
-
         private final MatchingRuleUse ruleUse;
 
         private AssertionMatcherImpl(final AttributeDescription attributeDescription,
@@ -130,6 +133,19 @@ public final class Matcher {
             }
             return r;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            // @Checkstyle:off
+            sb.append("assertion(")
+              .append("assertion=").append(assertion)
+              .append(", attributeDescription=").append(attributeDescription)
+              .append(", dnAttributes=").append(dnAttributes)
+              .append(", rule=").append(rule)
+              .append(", ruleUse=").append(ruleUse)
+              .append(")");
+            // @Checkstyle:on
+        }
     }
 
     private static class FalseMatcherImpl extends MatcherImpl {
@@ -137,10 +153,24 @@ public final class Matcher {
         public ConditionResult matches(final Entry entry) {
             return ConditionResult.FALSE;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("false");
+        }
     }
 
     private static abstract class MatcherImpl {
         public abstract ConditionResult matches(Entry entry);
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            toString(sb);
+            return sb.toString();
+        }
+
+        abstract void toString(StringBuilder sb);
     }
 
     private static final class NotMatcherImpl extends MatcherImpl {
@@ -153,6 +183,13 @@ public final class Matcher {
         @Override
         public ConditionResult matches(final Entry entry) {
             return ConditionResult.not(subFilter.matches(entry));
+        }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("not(");
+            subFilter.toString(sb);
+            sb.append(")");
         }
     }
 
@@ -175,6 +212,15 @@ public final class Matcher {
             }
             return r;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("or(");
+            for (MatcherImpl subMatcher : subMatchers) {
+                subMatcher.toString(sb);
+            }
+            sb.append(")");
+        }
     }
 
     private static final class PresentMatcherImpl extends MatcherImpl {
@@ -186,8 +232,12 @@ public final class Matcher {
 
         @Override
         public ConditionResult matches(final Entry entry) {
-            return entry.getAttribute(attribute) == null ? ConditionResult.FALSE
-                    : ConditionResult.TRUE;
+            return ConditionResult.valueOf(entry.getAttribute(attribute) != null);
+        }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("present(").append(attribute).append(")");
         }
     }
 
@@ -196,6 +246,11 @@ public final class Matcher {
         public ConditionResult matches(final Entry entry) {
             return ConditionResult.TRUE;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("true");
+        }
     }
 
     private static class UndefinedMatcherImpl extends MatcherImpl {
@@ -203,11 +258,14 @@ public final class Matcher {
         public ConditionResult matches(final Entry entry) {
             return ConditionResult.UNDEFINED;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+            sb.append("undefined");
+        }
     }
 
-    /**
-     * A visitor which is used to transform a filter into a matcher.
-     */
+    /** A visitor which is used to transform a filter into a matcher. */
     private static final class Visitor implements FilterVisitor<MatcherImpl, Schema> {
         @Override
         public MatcherImpl visitAndFilter(final Schema schema, final List<Filter> subFilters) {
@@ -563,5 +621,10 @@ public final class Matcher {
      */
     public ConditionResult matches(final Entry entry) {
         return impl.matches(entry);
+    }
+
+    @Override
+    public String toString() {
+        return impl.toString();
     }
 }

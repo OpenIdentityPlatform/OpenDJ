@@ -208,7 +208,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
         // Get the targeted managed object.
         LocalizableMessage ufn = path.getRelationDefinition().getUserFriendlyName();
-        ManagementContext context = factory.getManagementContext(app);
+        ManagementContext context = factory.getManagementContext();
         MenuResult<ManagedObject<?>> result;
         try {
             result = getManagedObject(app, context, path, names);

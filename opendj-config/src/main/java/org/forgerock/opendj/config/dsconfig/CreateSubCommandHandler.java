@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -963,7 +964,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         updateCommandBuilderWithSubCommand();
 
         // Add the child managed object.
-        ManagementContext context = factory.getManagementContext(app);
+        ManagementContext context = factory.getManagementContext();
         MenuResult<ManagedObject<?>> result;
         try {
             result = getManagedObject(app, context, path, names);
@@ -1288,10 +1289,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
      * @return the type name for the provided ManagedObjectDefinition.
      */
     private String getTypeName(ManagedObjectDefinition<? extends C, ? extends S> d) {
-        for (String key : types.keySet()) {
-            ManagedObjectDefinition<? extends C, ? extends S> current = types.get(key);
-            if (current.equals(d)) {
-                return key;
+        for (Entry<String, ManagedObjectDefinition<? extends C, ? extends S>> mapEntry : types.entrySet()) {
+            if (d.equals(mapEntry.getValue())) {
+                return mapEntry.getKey();
             }
         }
         return d.getName();

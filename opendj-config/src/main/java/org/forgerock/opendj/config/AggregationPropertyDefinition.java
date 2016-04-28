@@ -258,7 +258,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 debugLogger.trace("Unable to perform post add", e);
                 LocalizableMessage message =
                     ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo.getManagedObjectDefinition()
-                        .getUserFriendlyName(), String.valueOf(mo.getDN()), getExceptionMessage(e));
+                        .getUserFriendlyName(), mo.getDN(), getExceptionMessage(e));
                 LocalizedLogger logger =
                     LocalizedLogger.getLocalizedLogger(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.resourceName());
                 logger.error(message);

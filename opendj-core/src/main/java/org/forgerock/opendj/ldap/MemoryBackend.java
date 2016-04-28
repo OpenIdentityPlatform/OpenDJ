@@ -230,7 +230,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 if (entries.containsKey(dn)) {
                     throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '" + dn + "' already exists");
                 } else if (parent != null && !entries.containsKey(parent)) {
-                    noSuchObject(parent);
+                    throw noSuchObject(parent);
                 } else {
                     entries.put(dn, request);
                 }
@@ -585,32 +585,34 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     private Entry getRequiredEntry(final Request request, final DN dn) throws LdapException {
         final Entry entry = entries.get(dn);
         if (entry == null) {
-            noSuchObject(dn);
-        } else if (request != null) {
-            AssertionRequestControl control;
-            try {
-                control = request.getControl(AssertionRequestControl.DECODER, decodeOptions);
-            } catch (final DecodeException e) {
-                throw newLdapException(ResultCode.PROTOCOL_ERROR, e);
-            }
-            if (control != null) {
-                final Filter filter = control.getFilter();
-                final Matcher matcher = filter.matcher(schema);
-                if (!matcher.matches(entry).toBoolean()) {
-                    throw newLdapException(ResultCode.ASSERTION_FAILED,
-                            "The filter '" + filter + "' did not match the entry '" + entry.getName() + "'");
-                }
+            throw noSuchObject(dn);
+        }
+        AssertionRequestControl control = decodeAssertionRequestControl(request);
+        if (control != null) {
+            final Filter filter = control.getFilter();
+            final Matcher matcher = filter.matcher(schema);
+            if (!matcher.matches(entry).toBoolean()) {
+                throw newLdapException(ResultCode.ASSERTION_FAILED,
+                        "The filter '" + filter + "' did not match the entry '" + entry.getName() + "'");
             }
         }
         return entry;
+    }
+
+    private AssertionRequestControl decodeAssertionRequestControl(final Request request) throws LdapException {
+        try {
+            return request != null ? request.getControl(AssertionRequestControl.DECODER, decodeOptions) : null;
+        } catch (final DecodeException e) {
+            throw newLdapException(ResultCode.PROTOCOL_ERROR, e);
+        }
     }
 
     private Result getResult(final Request request, final Entry before, final Entry after) throws LdapException {
         return addResultControls(request, before, after, newResult(ResultCode.SUCCESS));
     }
 
-    private void noSuchObject(final DN dn) throws LdapException {
-        throw newLdapException(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn + "' does not exist");
+    private LdapException noSuchObject(final DN dn) {
+        return newLdapException(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn + "' does not exist");
     }
 
     private boolean sendEntry(final AttributeFilter filter,

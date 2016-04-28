@@ -203,7 +203,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         }
 
         // List the children.
-        ManagementContext context = factory.getManagementContext(app);
+        ManagementContext context = factory.getManagementContext();
         MenuResult<ManagedObject<?>> result;
         try {
             result = getManagedObject(app, context, path, names);

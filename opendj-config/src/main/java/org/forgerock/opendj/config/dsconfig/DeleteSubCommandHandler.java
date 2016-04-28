@@ -186,7 +186,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         setCommandBuilderUseful(false);
 
         // Delete the child managed object.
-        ManagementContext context = factory.getManagementContext(app);
+        ManagementContext context = factory.getManagementContext();
         MenuResult<ManagedObject<?>> result;
         LocalizableMessage ufn = relation.getUserFriendlyName();
         try {

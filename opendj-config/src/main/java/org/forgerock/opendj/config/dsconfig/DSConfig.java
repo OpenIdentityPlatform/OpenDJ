@@ -1199,7 +1199,7 @@ public final class DSConfig extends ConsoleApplication {
 
         try {
             // Force retrieval of management context.
-            factory.getManagementContext(app);
+            factory.getManagementContext();
         } catch (ArgumentException e) {
             parser.displayMessageAndUsageReference(getErrStream(), e.getMessageObject());
             return ReturnCode.ERROR_USER_DATA.get();

@@ -253,12 +253,12 @@ public final class ConfigurationFramework {
         if (loader != null) {
             throw new IllegalStateException("configuration framework already initialized.");
         }
-        this.installPath = installPath == null ? System.getenv("INSTALL_ROOT") : installPath;
+        this.installPath = installPath != null ? installPath : System.getenv("INSTALL_ROOT");
         if (instancePath != null) {
             this.instancePath = instancePath;
         } else {
-            this.instancePath = System.getenv("INSTANCE_ROOT") != null ? System.getenv("INSTANCE_ROOT")
-                    : this.installPath;
+            String instanceRoot = System.getenv("INSTANCE_ROOT");
+            this.instancePath = instanceRoot != null ? instanceRoot : this.installPath;
         }
         this.parent = parent;
         initialize0();
@@ -327,8 +327,7 @@ public final class ConfigurationFramework {
 
     private void printExtensionDetails(PrintStream ps, File extension) {
         // retrieve MANIFEST entry and display name, build number and revision number
-        try {
-            JarFile jarFile = new JarFile(extension);
+        try (JarFile jarFile = new JarFile(extension)) {
             JarEntry entry = jarFile.getJarEntry(MANIFEST_RELATIVE_PATH);
             if (entry == null) {
                 return;
@@ -502,15 +501,13 @@ public final class ConfigurationFramework {
         try {
             if (!extensionsPath.exists()) {
                 // The extensions directory does not exist. This is not a critical problem.
-                adminLogger.warn(WARN_ADMIN_NO_EXTENSIONS_DIR, String.valueOf(extensionsPath));
+                adminLogger.warn(WARN_ADMIN_NO_EXTENSIONS_DIR, extensionsPath);
                 return;
             }
 
             if (!extensionsPath.isDirectory()) {
                 // The extensions directory is not a directory. This is more critical.
-                final LocalizableMessage message =
-                        ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(String.valueOf(extensionsPath));
-                throw new ConfigException(message);
+                throw new ConfigException(ERR_ADMIN_EXTENSIONS_DIR_NOT_DIRECTORY.get(extensionsPath));
             }
 
             // Add and initialize the extensions.
@@ -520,9 +517,8 @@ public final class ConfigurationFramework {
             throw e;
         } catch (final Exception e) {
             debugLogger.trace("Unable to initialize all extensions", e);
-            final LocalizableMessage message =
-                    ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(String.valueOf(extensionsPath),
-                            stackTraceToSingleLineString(e, true));
+            final LocalizableMessage message = ERR_ADMIN_EXTENSIONS_CANNOT_LIST_FILES.get(
+                extensionsPath, stackTraceToSingleLineString(e, true));
             throw new ConfigException(message, e);
         }
     }
@@ -551,17 +547,14 @@ public final class ConfigurationFramework {
     private void initializeCoreComponents() throws ConfigException {
         final InputStream is = RootCfgDefn.class.getResourceAsStream(MANIFEST_ABSOLUTE_PATH);
         if (is == null) {
-            final LocalizableMessage message = ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST_ABSOLUTE_PATH);
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_ADMIN_CANNOT_FIND_CORE_MANIFEST.get(MANIFEST_ABSOLUTE_PATH));
         }
         try {
             loadDefinitionClasses(is);
         } catch (final ConfigException e) {
             debugLogger.trace("Unable to initialize core components", e);
-            final LocalizableMessage message =
-                    ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(MANIFEST_ABSOLUTE_PATH, stackTraceToSingleLineString(e,
-                            true));
-            throw new ConfigException(message);
+            throw new ConfigException(ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(
+                MANIFEST_ABSOLUTE_PATH, stackTraceToSingleLineString(e, true)));
         }
     }
 
@@ -594,17 +587,15 @@ public final class ConfigurationFramework {
                 loadDefinitionClasses(is);
             } catch (final ConfigException e) {
                 debugLogger.trace("Unable to load classes from input stream", e);
-                final LocalizableMessage message =
-                        ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile.getName(), MANIFEST_RELATIVE_PATH,
-                                stackTraceToSingleLineString(e, true));
+                final LocalizableMessage message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(
+                    jarFile.getName(), MANIFEST_RELATIVE_PATH, stackTraceToSingleLineString(e, true));
                 throw new ConfigException(message);
             }
             try {
                 // Log build information of extensions in the error log
                 final String[] information = getBuildInformation(jarFile);
-                final LocalizableMessage message =
-                        NOTE_LOG_EXTENSION_INFORMATION.get(jarFile.getName(), information[1],
-                                information[2]);
+                final LocalizableMessage message = NOTE_LOG_EXTENSION_INFORMATION.get(
+                    jarFile.getName(), information[1], information[2]);
                 LocalizedLogger.getLocalizedLogger(message.resourceName()).info(message);
             } catch (final Exception e) {
                 // Do not log information for that extension
@@ -613,16 +604,15 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Forcefully load configuration definition classes named in a manifest
-     * file.
+     * Forcefully load configuration definition classes named in a manifest file.
      *
      * @param is
      *            The manifest file input stream.
      * @throws ConfigException
-     *             If the definition classes could not be loaded and
-     *             initialized.
+     *             If the definition classes could not be loaded and initialized.
      */
     private void loadDefinitionClasses(final InputStream is) throws ConfigException {
+        // Cannot use ServiceLoader because constructors are private
         final BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         final List<AbstractManagedObjectDefinition<?, ?>> definitions = new LinkedList<>();
         while (true) {
@@ -631,8 +621,7 @@ public final class ConfigurationFramework {
                 className = reader.readLine();
             } catch (final IOException e) {
                 final LocalizableMessage msg =
-                        ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String.valueOf(e
-                                .getMessage()));
+                        ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(e.getMessage());
                 throw new ConfigException(msg, e);
             }
 
@@ -641,14 +630,9 @@ public final class ConfigurationFramework {
                 break;
             }
 
-            // Skip blank lines.
             className = className.trim();
-            if (className.length() == 0) {
-                continue;
-            }
-
-            // Skip lines beginning with #.
-            if (className.startsWith("#")) {
+            // Skip blank lines or lines beginning with #.
+            if (className.isEmpty() || className.startsWith("#")) {
                 continue;
             }
 
@@ -660,20 +644,17 @@ public final class ConfigurationFramework {
                 theClass = Class.forName(className, true, loader);
             } catch (final Exception e) {
                 final LocalizableMessage msg =
-                        ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String.valueOf(e
-                                .getMessage()));
+                        ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, e.getMessage());
                 throw new ConfigException(msg, e);
             }
             if (AbstractManagedObjectDefinition.class.isAssignableFrom(theClass)) {
-                // We need to instantiate it using its getInstance() static
-                // method.
+                // We need to instantiate it using its getInstance() static method.
                 Method method;
                 try {
                     method = theClass.getMethod("getInstance");
                 } catch (final Exception e) {
                     final LocalizableMessage msg =
-                            ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(className, String
-                                    .valueOf(e.getMessage()));
+                            ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(className, e.getMessage());
                     throw new ConfigException(msg, e);
                 }
 
@@ -683,8 +664,7 @@ public final class ConfigurationFramework {
                     d = (AbstractManagedObjectDefinition<?, ?>) method.invoke(null);
                 } catch (final Exception e) {
                     final LocalizableMessage msg =
-                            ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(className,
-                                    String.valueOf(e.getMessage()));
+                            ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(className, e.getMessage());
                     throw new ConfigException(msg, e);
                 }
                 definitions.add(d);
@@ -696,9 +676,8 @@ public final class ConfigurationFramework {
             try {
                 d.initialize();
             } catch (final Exception e) {
-                final LocalizableMessage msg =
-                        ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(), d.getClass()
-                                .getName(), String.valueOf(e.getMessage()));
+                final LocalizableMessage msg = ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(
+                    d.getName(), d.getClass().getName(), e.getMessage());
                 throw new ConfigException(msg, e);
             }
         }
@@ -735,5 +714,4 @@ public final class ConfigurationFramework {
     public String getInstancePath() {
         return instancePath;
     }
-
 }
