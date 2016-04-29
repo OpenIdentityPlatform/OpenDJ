@@ -141,6 +141,14 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
     }
 
     @Override
+    // @Checkstyle:ignore
+    public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> then(Function<? super R, VOUT, EOUT> onResult,
+            Function<? super LdapException, VOUT, EOUT> onException,
+            Function<? super RuntimeException, VOUT, EOUT> onRuntimeException) {
+        return wrappedPromise.then(onResult, onException, onRuntimeException);
+    }
+
+    @Override
     public LdapPromise<R> thenOnResultOrException(ResultHandler<? super R> onResult,
                                                   ExceptionHandler<? super LdapException> onException) {
         wrappedPromise.thenOnResultOrException(onResult, onException);
@@ -169,8 +177,28 @@ class LdapPromiseWrapper<R, P extends Promise<R, LdapException>> implements Ldap
 
     @Override
     // @Checkstyle:ignore
+    public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> thenAsync(AsyncFunction<? super R, VOUT, EOUT> onResult,
+            AsyncFunction<? super LdapException, VOUT, EOUT> onException,
+            AsyncFunction<? super RuntimeException, VOUT, EOUT> onRuntimeException) {
+        return wrappedPromise.thenAsync(onResult, onException, onRuntimeException);
+    }
+
+    @Override
+    // @Checkstyle:ignore
     public <EOUT extends Exception> Promise<R, EOUT> thenCatch(Function<? super LdapException, R, EOUT> onException) {
         return wrappedPromise.thenCatch(onException);
+    }
+
+    @Override
+    public Promise<R, LdapException> thenCatchRuntimeException(
+            Function<? super RuntimeException, R, LdapException> onRuntimeException) {
+        return wrappedPromise.thenCatchRuntimeException(onRuntimeException);
+    }
+
+    @Override
+    public Promise<R, LdapException> thenCatchRuntimeExceptionAsync(
+            AsyncFunction<? super RuntimeException, R, LdapException> onRuntimeException) {
+        return wrappedPromise.thenCatchRuntimeExceptionAsync(onRuntimeException);
     }
 
     @Override
