@@ -169,7 +169,7 @@ public class ErrorLogger extends AbstractLogger
   private void adjustJulLevel()
   {
     final ServerContext serverContext = getServerContext();
-    if (serverContext != null)
+    if (serverContext != null && serverContext.getLoggerConfigManager() != null)
     {
       serverContext.getLoggerConfigManager().adjustJulLevel();
     }
