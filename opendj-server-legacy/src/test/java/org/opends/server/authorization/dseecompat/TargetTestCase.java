@@ -86,11 +86,14 @@ public class TargetTestCase extends AciTestCase
               "uid=bjensen"
          },
          {
-              "uid=dmiller, **, ou=branch level two, **, ou=aci branches, " +
-                   "dc=example,dc=com",
+              "uid=dmiller, **, ou=branch level two, **, ou=aci branches, dc=example,dc=com",
               "uid=dmiller, ou=branch level three, ou=branch level two, " +
                    "ou=branch level one, ou=aci branches, dc=example,dc=com"
          },
+         {
+              "\"\"",
+              ""
+         }
     };
   }
 
@@ -124,8 +127,7 @@ public class TargetTestCase extends AciTestCase
               "sn=jensen+uid=bjensen,ou=people,dc=example,dc=com"
          },
          {
-              "uid=dmiller, **, ou=Bad branch level, **, ou=aci branches, " +
-                   "dc=example,dc=com",
+              "uid=dmiller, **, ou=Bad branch level, **, ou=aci branches, dc=example,dc=com",
               "uid=dmiller, ou=branch level three, ou=branch level two, " +
                    "ou=branch level one, ou=aci branches, dc=example,dc=com"
          },

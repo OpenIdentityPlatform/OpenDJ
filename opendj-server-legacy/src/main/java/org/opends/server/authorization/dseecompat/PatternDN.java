@@ -279,7 +279,9 @@ public class PatternDN
     }
 
     int length = dnString.length();
-    if (length == 0)
+    if (length == 0
+        // Special pattern "" to express rootDSE aka empty DN
+        || "\"\"".equals(dnString))
     {
       return new PatternDN();
     }
