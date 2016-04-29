@@ -289,7 +289,7 @@ public class FileBasedKeyManagerProviderTestCase
     initializeKeyManagerProvider(e);
   }
 
-  private FileBasedKeyManagerProvider initializeKeyManagerProvider(Entry e) throws ConfigException, InitializationException {
+  private FileBasedKeyManagerProvider initializeKeyManagerProvider(Entry e) throws Exception {
     return InitializationUtils.initializeKeyManagerProvider(
         new FileBasedKeyManagerProvider(), e, FileBasedKeyManagerProviderCfgDefn.getInstance());
   }

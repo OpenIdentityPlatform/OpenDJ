@@ -12,22 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
-
-import org.forgerock.opendj.io.ASN1Reader;
-import org.opends.server.protocols.ldap.ASN1ByteChannelReader;
-import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.IllegalBlockingModeException;
 
-/**
- * Test class for ASN1ByteChannelReader.
- */
+import org.forgerock.opendj.io.ASN1Reader;
+import org.testng.annotations.Test;
+
+/** Test class for ASN1ByteChannelReader. */
 public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
 {
   @Override
@@ -48,7 +45,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeShortArrayAsNull()
       throws Exception
   {
@@ -62,7 +59,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeShortArrayAsInteger()
       throws Exception
   {
@@ -76,7 +73,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeShortArrayAsEnumerated()
       throws Exception
   {
@@ -90,7 +87,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeShortArrayAsBoolean()
       throws Exception
   {
@@ -104,7 +101,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions  = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeShortArrayAsOctetString()
       throws Exception
   {
@@ -118,7 +115,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeShortArrayAsSequence()
       throws Exception
   {
@@ -132,7 +129,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeLengthMismatchArrayAsBoolean()
       throws Exception
   {
@@ -146,7 +143,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeLengthMismatchArrayAsInteger()
       throws Exception
   {
@@ -160,7 +157,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeLengthMismatchArrayAsEnumerated()
       throws Exception
   {
@@ -174,7 +171,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions  = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeLengthMismatchArrayAsOctetString()
       throws Exception
   {
@@ -188,7 +185,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeTruncatedLengthArrayAsBoolean()
       throws Exception
   {
@@ -202,7 +199,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeTruncatedLengthArrayAsInteger()
       throws Exception
   {
@@ -216,7 +213,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeTruncatedLengthArrayAsEnumerated()
       throws Exception
   {
@@ -230,7 +227,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeTruncatedLengthArrayAsNull()
       throws Exception
   {
@@ -244,7 +241,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions  = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeTruncatedLengthArrayAsOctetString()
       throws Exception
   {
@@ -258,7 +255,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeTruncatedLengthArrayAsSequence()
       throws Exception
   {
@@ -272,7 +269,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testDecodeSequencePrematureEof()
       throws Exception
   {
@@ -285,7 +282,7 @@ public class ASN1ByteChannelReaderTestCase extends ASN1ReaderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Override
-  @Test(expectedExceptions = { IllegalBlockingModeException.class })
+  @Test(expectedExceptions = IllegalBlockingModeException.class)
   public void testSkipElementIncompleteRead()
       throws Exception
   {

@@ -20,31 +20,28 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.CharacterSetPasswordValidatorCfgDefn;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.server.config.meta.CharacterSetPasswordValidatorCfgDefn;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the character set password validator.
- */
+/** A set of test cases for the character set password validator. */
 public class CharacterSetPasswordValidatorTestCase
        extends ExtensionsTestCase
 {
@@ -59,8 +56,6 @@ public class CharacterSetPasswordValidatorTestCase
   {
     TestCaseUtils.startServer();
   }
-
-
 
   /**
    * Retrieves a set of valid configuration entries that may be used to
@@ -174,8 +169,6 @@ public class CharacterSetPasswordValidatorTestCase
     return array;
   }
 
-
-
   /**
    * Tests the process of initializing the server with valid configurations.
    *
@@ -183,7 +176,7 @@ public class CharacterSetPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(dataProvider = "validConfigs", groups= { "slow" })
+  @Test(dataProvider = "validConfigs", groups = "slow")
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
@@ -191,7 +184,7 @@ public class CharacterSetPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 
-  private CharacterSetPasswordValidator initializePasswordValidator(Entry e) throws ConfigException, InitializationException {
+  private CharacterSetPasswordValidator initializePasswordValidator(Entry e) throws Exception {
     return InitializationUtils.initializePasswordValidator(
         new CharacterSetPasswordValidator(), e, CharacterSetPasswordValidatorCfgDefn.getInstance());
   }
@@ -466,8 +459,6 @@ public class CharacterSetPasswordValidatorTestCase
     return array;
   }
 
-
-
   /**
    * Tests the process of initializing the server with invalid configurations.
    *
@@ -491,8 +482,6 @@ public class CharacterSetPasswordValidatorTestCase
     }
     fail(buffer.toString());
   }
-
-
 
   /**
    * Retrieves a set of data to use when testing a given password with a
@@ -928,8 +917,6 @@ public class CharacterSetPasswordValidatorTestCase
     };
   }
 
-
-
   /**
    * Tests the {@code passwordIsAcceptable} method using the provided
    * information.
@@ -966,10 +953,8 @@ public class CharacterSetPasswordValidatorTestCase
     ArrayList<Modification> mods = newArrayList(
         new Modification(REPLACE, Attributes.create("userpassword", password)));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
@@ -982,4 +967,3 @@ public class CharacterSetPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 }
-

@@ -55,9 +55,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for bind operations.
- */
+/** A set of test cases for bind operations. */
 public class BindOperationTestCase
        extends OperationTestCase
 {
@@ -72,67 +70,33 @@ public class BindOperationTestCase
   public Object[][] getSimpleBindOperations()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     ArrayList<Control> noControls = new ArrayList<>(0);
     ByteString nullOS = null;
     DN nullDN = null;
 
-    BindOperation[] simpleBinds = new BindOperation[]
-    {
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", ByteString.empty(),
-                        ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", ByteString.empty(),
-                        ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullOS, ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullOS, ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", ByteString.empty(), nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", ByteString.empty(), nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullOS, nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullOS, nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3",
-                        ByteString.valueOfUtf8("cn=Directory Manager"),
-                        ByteString.valueOfUtf8("password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.rootDN(), ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.rootDN(), ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullDN, ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullDN, ByteString.empty()),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.rootDN(), nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.rootDN(), nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullDN, nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullDN, nullOS),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.valueOf("cn=Directory Manager"),
-                        ByteString.valueOfUtf8("password"))
+    return new Object[][] {
+      // @formatter:off
+      { newBindOp(null, ByteString.empty(), ByteString.empty()) },
+      { newBindOp(noControls, ByteString.empty(), ByteString.empty()) },
+      { newBindOp(null, nullOS, ByteString.empty()) },
+      { newBindOp(noControls, nullOS, ByteString.empty()) },
+      { newBindOp(null, ByteString.empty(), nullOS) },
+      { newBindOp(noControls, ByteString.empty(), nullOS) },
+      { newBindOp(null, nullOS, nullOS) },
+      { newBindOp(noControls, nullOS, nullOS) },
+      { newBindOp(noControls, bs("cn=Directory Manager"), bs("password")) },
+      { newBindOp(null, DN.rootDN(), ByteString.empty()) },
+      { newBindOp(noControls, DN.rootDN(), ByteString.empty()) },
+      { newBindOp(null, nullDN, ByteString.empty()) },
+      { newBindOp(noControls, nullDN, ByteString.empty()) },
+      { newBindOp(null, DN.rootDN(), nullOS) },
+      { newBindOp(noControls, DN.rootDN(), nullOS) },
+      { newBindOp(null, nullDN, nullOS) },
+      { newBindOp(noControls, nullDN, nullOS) },
+      { newBindOp(noControls, DN.valueOf("cn=Directory Manager"), bs("password")) },
+      // @formatter:on
     };
-
-    Object[][] array = new Object[simpleBinds.length][1];
-    for (int i=0; i < simpleBinds.length; i++)
-    {
-      array[i][0] = simpleBinds[i];
-    }
-
-    return array;
   }
-
-
 
   /**
    * Retrieves a set of bind operation objects using SASL authentication.
@@ -145,70 +109,65 @@ public class BindOperationTestCase
   public Object[][] getSASLBindOperations()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     ArrayList<Control> noControls = new ArrayList<>(0);
     ByteString nullOS = null;
     DN nullDN = null;
 
-    BindOperation[] saslBinds = new BindOperation[]
-    {
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", ByteString.empty(), "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", ByteString.empty(), "EXTERNAL",
-                        null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullOS, "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullOS, "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", ByteString.empty(), "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", ByteString.empty(), "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullOS, "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullOS, "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.rootDN(), "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.rootDN(), "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullDN, "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullDN, "EXTERNAL", null),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", DN.rootDN(), "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", DN.rootDN(), "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        null, "3", nullDN, "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password")),
-      new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                        noControls, "3", nullDN, "PLAIN",
-                        ByteString.valueOfUtf8("\u0000u:test.user\u0000password"))
+    return new Object[][] {
+      // @formatter:off
+      { newBindOp(null, ByteString.empty(), "EXTERNAL", null) },
+      { newBindOp(noControls, ByteString.empty(), "EXTERNAL", null) },
+      { newBindOp(null, nullOS, "EXTERNAL", null) },
+      { newBindOp(noControls, nullOS, "EXTERNAL", null) },
+      { newBindOp(null, ByteString.empty(), "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(noControls, ByteString.empty(), "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(null, nullOS, "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(noControls, nullOS, "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(null, DN.rootDN(), "EXTERNAL", null) },
+      { newBindOp(noControls, DN.rootDN(), "EXTERNAL", null) },
+      { newBindOp(null, nullDN, "EXTERNAL", null) },
+      { newBindOp(noControls, nullDN, "EXTERNAL", null) },
+      { newBindOp(null, DN.rootDN(), "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(noControls, DN.rootDN(), "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(null, nullDN, "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      { newBindOp(noControls, nullDN, "PLAIN", bs("\u0000u:test.user\u0000password")) },
+      // @formatter:on
     };
-
-    Object[][] array = new Object[saslBinds.length][1];
-    for (int i=0; i < saslBinds.length; i++)
-    {
-      array[i][0] = saslBinds[i];
-    }
-
-    return array;
   }
 
-  /** {@inheritDoc} */
+  private BindOperation newBindOp(List<Control> requestControls, ByteString rawBindDN, ByteString simplePassword)
+  {
+    return new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        requestControls, "3", rawBindDN, simplePassword);
+  }
+
+  private BindOperation newBindOp(List<Control> requestControls, DN bindDN, ByteString simplePassword)
+  {
+    return new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        requestControls, "3", bindDN, simplePassword);
+  }
+
+  private BindOperation newBindOp(List<Control> requestControls,
+      ByteString rawBindDN, String saslMechanism, ByteString saslCredentials)
+  {
+    return new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        requestControls, "3", rawBindDN, saslMechanism, saslCredentials);
+  }
+
+  private BindOperation newBindOp(List<Control> requestControls,
+      DN bindDN, String saslMechanism, ByteString saslCredentials)
+  {
+    return new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+        requestControls, "3", bindDN, saslMechanism, saslCredentials);
+  }
+
+  private ByteString bs(String s)
+  {
+    return ByteString.valueOfUtf8(s);
+  }
+
   @Override
-  protected Operation[] createTestOperations()
-         throws Exception
+  protected Operation[] createTestOperations() throws Exception
   {
     Object[][] simpleBinds = getSimpleBindOperations();
     Object[][] saslBinds   = getSASLBindOperations();
@@ -229,8 +188,6 @@ public class BindOperationTestCase
     return bindOps;
   }
 
-
-
   /**
    * Tests the <CODE>getAuthenticationType</CODE> method for simple bind
    * operations.
@@ -243,8 +200,6 @@ public class BindOperationTestCase
     assertEquals(o.getAuthenticationType(), AuthenticationType.SIMPLE);
   }
 
-
-
   /**
    * Tests the <CODE>getAuthenticationType</CODE> method for SASL bind
    * operations.
@@ -256,8 +211,6 @@ public class BindOperationTestCase
   {
     assertEquals(o.getAuthenticationType(), AuthenticationType.SASL);
   }
-
-
 
   /**
    * Tests the <CODE>getGetProtocolVersion</CODE> method for simple bind
@@ -272,8 +225,6 @@ public class BindOperationTestCase
     assertTrue(o.getProtocolVersion().length() > 0);
   }
 
-
-
   /**
    * Tests the <CODE>getProtocolVersion</CODE> method for SASL bind operations.
    *
@@ -286,8 +237,6 @@ public class BindOperationTestCase
     assertTrue(o.getProtocolVersion().length() > 0);
   }
 
-
-
   /**
    * Tests the <CODE>getRawBindDN</CODE> method for simple bind operations.
    *
@@ -299,8 +248,6 @@ public class BindOperationTestCase
     assertNotNull(o.getRawBindDN());
   }
 
-
-
   /**
    * Tests the <CODE>getRawBindDN</CODE> method for SASL bind operations.
    *
@@ -311,8 +258,6 @@ public class BindOperationTestCase
   {
     assertNotNull(o.getRawBindDN());
   }
-
-
 
   /**
    * Tests the <CODE>setRawBindDN()</CODE> method for simple bind operations.
@@ -338,8 +283,6 @@ public class BindOperationTestCase
     assertEquals(o.getRawBindDN(), originalRawBindDN);
   }
 
-
-
   /**
    * Tests the <CODE>setRawBindDN()</CODE> method for SASL bind operations.
    *
@@ -364,8 +307,6 @@ public class BindOperationTestCase
     assertEquals(o.getRawBindDN(), originalRawBindDN);
   }
 
-
-
   /**
    * Tests the <CODE>getBindDN</CODE> method on bind operations using simple
    * authentication.
@@ -381,8 +322,6 @@ public class BindOperationTestCase
     o.getBindDN();
   }
 
-
-
   /**
    * Tests the <CODE>getSimplePassword</CODE> method for bind operations using
    * simple authentication.
@@ -394,8 +333,6 @@ public class BindOperationTestCase
   {
     assertNotNull(o.getSimplePassword());
   }
-
-
 
   /**
    * Tests the <CODE>getSimplePassword</CODE> method for bind operations using
@@ -409,8 +346,6 @@ public class BindOperationTestCase
     assertNull(o.getSimplePassword());
   }
 
-
-
   /**
    * Tests the <CODE>getSASLMechanism</CODE> method for bind operations using
    * simple authentication.
@@ -422,8 +357,6 @@ public class BindOperationTestCase
   {
     assertNull(o.getSASLMechanism());
   }
-
-
 
   /**
    * Tests the <CODE>getSASLMechanism</CODE> method for bind operations using
@@ -437,8 +370,6 @@ public class BindOperationTestCase
     assertNotNull(o.getSASLMechanism());
   }
 
-
-
   /**
    * Tests the <CODE>getSASLCredentials</CODE> method for bind operations using
    * simple authentication.
@@ -450,8 +381,6 @@ public class BindOperationTestCase
   {
     assertNull(o.getSASLCredentials());
   }
-
-
 
   /**
    * Tests the <CODE>getSASLCredentials</CODE> method for bind operations using
@@ -466,8 +395,6 @@ public class BindOperationTestCase
     // bother checking what it returns.
     o.getSASLCredentials();
   }
-
-
 
   /**
    * Tests the ability to change a simple bind operation to a SASL bind
@@ -506,8 +433,6 @@ public class BindOperationTestCase
     assertNull(o.getSASLMechanism());
     assertNull(o.getSASLCredentials());
   }
-
-
 
   /**
    * Tests the ability to change a SASL bind operation to a simple bind
@@ -550,8 +475,6 @@ public class BindOperationTestCase
     assertNull(o.getSimplePassword());
   }
 
-
-
   /**
    * Tests the <CODE>getServerSASLCredentials</CODE> method for bind operations
    * using simple authentication.
@@ -563,8 +486,6 @@ public class BindOperationTestCase
   {
     assertNull(o.getServerSASLCredentials());
   }
-
-
 
   /**
    * Tests the <CODE>getServerSASLCredentials</CODE> method for bind operations
@@ -578,8 +499,6 @@ public class BindOperationTestCase
     assertNull(o.getServerSASLCredentials());
   }
 
-
-
   /**
    * Tests the <CODE>getSASLAuthUserEntry</CODE> method for bind operations
    * using simple authentication.
@@ -592,8 +511,6 @@ public class BindOperationTestCase
     assertNull(o.getSASLAuthUserEntry());
   }
 
-
-
   /**
    * Tests the <CODE>getSASLAuthUserEntry</CODE> method for bind operations
    * using SASL authentication.
@@ -605,8 +522,6 @@ public class BindOperationTestCase
   {
     assertNull(o.getSASLAuthUserEntry());
   }
-
-
 
   /**
    * Tests the <CODE>getSASLAuthUserEntry</CODE> method for completed SASL bind
@@ -623,8 +538,6 @@ public class BindOperationTestCase
     assertNotNull(bindOperation.getSASLAuthUserEntry());
   }
 
-
-
   /**
    * Tests the <CODE>getUserEntryDN</CODE> method for bind operations using
    * simple authentication.
@@ -636,8 +549,6 @@ public class BindOperationTestCase
   {
     assertNull(o.getUserEntryDN());
   }
-
-
 
   /**
    * Tests the <CODE>getUserEntryDN</CODE> method for a completed bind operation
@@ -656,8 +567,6 @@ public class BindOperationTestCase
     assertNotNull(bindOperation.getUserEntryDN());
   }
 
-
-
   /**
    * Tests the <CODE>getUserEntryDN</CODE> method for bind operations using SASL
    * authentication.
@@ -669,8 +578,6 @@ public class BindOperationTestCase
 {
     assertNull(o.getUserEntryDN());
   }
-
-
 
   /**
    * Tests the <CODE>getUserEntryDN</CODE> method for a completed bind operation
@@ -686,8 +593,6 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(bindOperation.getUserEntryDN());
   }
-
-
 
   /**
    * Tests the <CODE>getProcessingStartTime</CODE>,
@@ -710,8 +615,6 @@ public class BindOperationTestCase
     assertTrue(bindOperation.getProcessingTime() >= 0);
   }
 
-
-
   /**
    * Tests the <CODE>getProcessingStartTime</CODE>,
    * <CODE>getProcessingStopTime</CODE>, and <CODE>getProcessingTime()</CODE>
@@ -731,8 +634,6 @@ public class BindOperationTestCase
     assertTrue(bindOperation.getProcessingTime() >= 0);
   }
 
-
-
   /**
    * Tests the <CODE>getOperationType</CODE> method for bind operations using
    * simple authentication.
@@ -744,8 +645,6 @@ public class BindOperationTestCase
   {
     assertEquals(o.getOperationType(), OperationType.BIND);
   }
-
-
 
   /**
    * Tests the <CODE>getOperationType</CODE> method for bind operations using
@@ -759,12 +658,7 @@ public class BindOperationTestCase
     assertEquals(o.getOperationType(), OperationType.BIND);
   }
 
-
-
-  /**
-   * Tests a simple bind operation to ensure that all plugin types are invoked
-   * as expected.
-   */
+  /** Tests a simple bind operation to ensure that all plugin types are invoked as expected. */
   @Test
   public void testAllPluginsCalledSimple()
   {
@@ -785,12 +679,7 @@ public class BindOperationTestCase
 //    assertTrue(InvocationCounterPlugin.getPostResponseCount() > 0);
   }
 
-
-
-  /**
-   * Tests a SASL bind operation to ensure that all plugin types are invoked
-   * as expected.
-   */
+  /** Tests a SASL bind operation to ensure that all plugin types are invoked as expected. */
   @Test
   public void testAllPluginsCalledSASL()
   {
@@ -808,8 +697,6 @@ public class BindOperationTestCase
     ensurePostReponseHasRun();
 //    assertTrue(InvocationCounterPlugin.getPostResponseCount() > 0);
   }
-
-
 
   /**
    * Tests an anonymous simple bind operation to ensure that it's treated
@@ -834,8 +721,6 @@ public class BindOperationTestCase
       }
     }
   }
-
-
 
   /**
    * Tests an anonymous simple bind operation to ensure that it's treated
@@ -862,8 +747,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests an anonymous simple bind operation to ensure that it's treated
    * properly if the client connection is lost in post-operation plugin
@@ -889,8 +772,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests an anonymous simple bind operation to ensure that it's treated
    * properly if the client connection is lost in post-response plugin
@@ -914,8 +795,6 @@ public class BindOperationTestCase
       }
     }
   }
-
-
 
   /**
    * Tests an authenticated simple bind operation to ensure that it's treated
@@ -988,8 +867,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests an authenticated simple bind operation to ensure that it's treated
    * properly if the client connection is lost in post-operation plugin
@@ -1015,8 +892,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests an authenticated simple bind operation to ensure that it's treated
    * properly if the client connection is lost in post-response plugin
@@ -1041,8 +916,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests a SASL bind operation to ensure that it's treated properly if the
    * client connection is lost in pre-parse plugin processing.
@@ -1066,8 +939,6 @@ public class BindOperationTestCase
       }
     }
   }
-
-
 
   /**
    * Tests a SASL bind operation to ensure that it's treated properly if the
@@ -1094,8 +965,6 @@ public class BindOperationTestCase
       }
     }
   }
-
-
 
   /**
    * Tests a SASL bind operation to ensure that it's treated properly if the
@@ -1165,8 +1034,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests an anonymous simple bind operation to ensure that it's treated
    * properly if the operation gets short-circuited in pre-operation plugin
@@ -1209,8 +1076,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests an authenticated simple bind operation to ensure that it's treated
    * properly if the operation gets short-circuited in pre-operation plugin
@@ -1232,8 +1097,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests a SASL bind operation to ensure that it's treated properly if the
    * operation gets short-circuited in pre-parse plugin processing.
@@ -1253,8 +1116,6 @@ public class BindOperationTestCase
       assertEquals(bindResponse.getResultCode(), 80);
     }
   }
-
-
 
   /**
    * Tests a SASL bind operation to ensure that it's treated properly if the
@@ -1276,11 +1137,7 @@ public class BindOperationTestCase
     }
   }
 
-
-
-  /**
-   * Tests performing a simple bind operation with an invalid user DN.
-   */
+  /** Tests performing a simple bind operation with an invalid user DN. */
   @Test
   public void testSimpleBindInvalidDN()
   {
@@ -1293,11 +1150,7 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
-
-
-  /**
-   * Tests performing a SASL bind operation with an invalid user DN.
-   */
+  /** Tests performing a SASL bind operation with an invalid user DN. */
   @Test
   public void testSASLBindInvalidDN()
   {
@@ -1307,8 +1160,6 @@ public class BindOperationTestCase
     BindOperation bindOperation = conn.processSASLBind(ByteString.valueOfUtf8("invaliddn"), "PLAIN", saslCreds());
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
-
-
 
   /**
    * Tests performing a simple bind operation with an unsupported control that
@@ -1324,20 +1175,14 @@ public class BindOperationTestCase
     requestControls.add(new LDAPControl("1.2.3.4", true));
 
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           requestControls, "3", DN.rootDN(),
-                        ByteString.empty());
+         new BindOperationBasis(conn, nextOperationID(), nextMessageID(),
+                           requestControls, "3", DN.rootDN(), ByteString.empty());
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(),
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
   }
 
-
-
-  /**
-   * Tests performing a SASL bind operation with an unsupported control that is
-   * marked critical.
-   */
+  /** Tests performing a SASL bind operation with an unsupported control that is marked critical. */
   @Test
   public void testSASLBindUnsupportedCriticalControl()
   {
@@ -1356,8 +1201,6 @@ public class BindOperationTestCase
                  ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
   }
 
-
-
   /**
    * Tests performing a simple bind operation with an unsupported control that
    * is not marked critical.
@@ -1372,15 +1215,12 @@ public class BindOperationTestCase
     requestControls.add(new LDAPControl("1.2.3.4", false));
 
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                           requestControls, "3", DN.rootDN(),
-                           ByteString.empty());
+         new BindOperationBasis(conn, nextOperationID(), nextMessageID(),
+                           requestControls, "3", DN.rootDN(), ByteString.empty());
 
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
-
-
 
   /**
    * Tests performing a SASL bind operation with an unsupported control that is
@@ -1403,8 +1243,6 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-
-
   /**
    * Tests performing a simple bind operation with the DN of a user that doesn't
    * exist.
@@ -1425,8 +1263,6 @@ public class BindOperationTestCase
                                 ByteString.valueOfUtf8("password"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
-
-
 
   /**
    * Tests performing a simple bind operation with the DN of a valid user but
@@ -1450,8 +1286,6 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(),
                            ResultCode.UNWILLING_TO_PERFORM);
   }
-
-
 
   /**
    * Tests performing a simple bind operation with the DN of a valid user but
@@ -1511,8 +1345,6 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
-
-
   /**
    * Tests performing a simple bind operation as a user who exists on
    * another server for which a named subordinate reference exists.
@@ -1546,12 +1378,7 @@ public class BindOperationTestCase
     assertEquals(referralURLs.get(0), "ldap://example.com:1389/uid=test,ou=people,o=test");
   }
 
-
-
-  /**
-   * Tests performing a simple bind operation with a valid DN but incorrect
-   * password.
-   */
+  /** Tests performing a simple bind operation with a valid DN but incorrect password. */
   @Test
   public void testSimpleBindWrongPassword()
   {
@@ -1564,11 +1391,7 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
   }
 
-
-
-  /**
-   * Tests the behavior of the returnBindErrorMessage configuration option.
-   */
+  /** Tests the behavior of the returnBindErrorMessage configuration option. */
   @Test
   public void testReturnBindErrorMessage()
   {
@@ -1582,7 +1405,6 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertThat(bindOperation.getErrorMessage()).isEmpty();
 
-
     // Change the server configuration so that error messages should be
     // returned.
     TestCaseUtils.dsconfig(
@@ -1594,7 +1416,6 @@ public class BindOperationTestCase
                                 ByteString.valueOfUtf8("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertTrue(bindOperation.getErrorMessage().length() > 0);
-
 
     // Change the configuration back and make sure that the error message goes
     // away.
@@ -1608,8 +1429,6 @@ public class BindOperationTestCase
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     assertThat(bindOperation.getErrorMessage()).isEmpty();
   }
-
-
 
   /**
    * Tests to ensure that performing multiple binds on a client connection will
@@ -1653,8 +1472,6 @@ public class BindOperationTestCase
       assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
     }
   }
-
-
 
   /**
    * Tests to ensure that performing subtree delete will
@@ -1715,8 +1532,6 @@ public class BindOperationTestCase
       TestCaseUtils.clearBackend("userRoot");
     }
   }
-
-
 
   /**
    * Tests to ensure that performing subtree modify will
@@ -1783,8 +1598,6 @@ public class BindOperationTestCase
       TestCaseUtils.clearBackend("userRoot");
     }
   }
-
-
 
   /**
    * Tests to ensure that the "ignore" password policy state update policy
@@ -1878,8 +1691,6 @@ public class BindOperationTestCase
     }
   }
 
-
-
   /**
    * Tests to ensure that the "reactive" password policy state update policy
    * works as expected.
@@ -1972,8 +1783,6 @@ public class BindOperationTestCase
       );
     }
   }
-
-
 
   /**
    * Tests to ensure that the "proactive" password policy state update policy
@@ -2101,4 +1910,3 @@ public class BindOperationTestCase
     assertNull(bindOperation.getCancelRequest());
   }
 }
-

@@ -81,6 +81,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy.*;
 import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
@@ -522,7 +523,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
-    MockPolicyCfg withMappedSearchBindPasswordEnvironmentVariable(final String value)
+    MockPolicyCfg withMappedSearchBindPasswordEnvVariable(final String value)
     {
       this.mappedSearchBindPasswordEnvVar = value;
       return this;
@@ -1811,17 +1812,22 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         { mockCfg().withSecondaryServer("test:1000000"), false },
 
         // Test mapped search parameters.
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH), true },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindDN(null).withMappedSearchBindPassword(null), true },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPassword(null), false },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordProperty("org.opendj.dummy.property"), false },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordProperty("java.version"), true },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordEnvironmentVariable("ORG_OPENDJ_DUMMY_ENVVAR"), false },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordFile("dummy_file.txt"), false },
-        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordFile("config/admin-keystore.pin"), true },
+        { mockCfgWithPolicy(MAPPED_SEARCH), true },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindDN(null).withMappedSearchBindPassword(null), true },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPassword(null), false },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordProperty("org.opendj.dummy.property"), false },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordProperty("java.version"), true },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordEnvVariable("ORG_OPENDJ_DUMMY_ENVVAR"), false },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordFile("dummy_file.txt"), false },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordFile("config/admin-keystore.pin"), true },
 
     };
     // @formatter:on
+  }
+
+  private MockPolicyCfg mockCfgWithPolicy(MappingPolicy mappingPolicy)
+  {
+    return mockCfg().withMappingPolicy(mappingPolicy);
   }
 
   /**

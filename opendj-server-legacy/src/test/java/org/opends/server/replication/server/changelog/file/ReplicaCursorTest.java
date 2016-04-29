@@ -11,28 +11,24 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
+
+import static org.assertj.core.api.Assertions.*;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.file.ReplicaCursor;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import static org.assertj.core.api.Assertions.*;
-
-/**
- * Test the {@link ReplicaCursor} class.
- */
+/** Test the {@link ReplicaCursor} class. */
 @SuppressWarnings("javadoc")
 public class ReplicaCursorTest extends ReplicationTestCase
 {
-
   private int timestamp;
   private DBCursor<UpdateMsg> delegateCursor;
 
@@ -122,5 +118,4 @@ public class ReplicaCursorTest extends ReplicationTestCase
   {
     return new ReplicaCursor(delegateCursor, offlineCSN, null, null);
   }
-
 }

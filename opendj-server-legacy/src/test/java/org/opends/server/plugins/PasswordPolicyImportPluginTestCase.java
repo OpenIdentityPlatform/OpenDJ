@@ -157,7 +157,7 @@ public class PasswordPolicyImportPluginTestCase
 
   private PasswordPolicyImportPlugin initializePlugin(Entry e) throws ConfigException, InitializationException {
     return InitializationUtils.initializePlugin(
-    		new PasswordPolicyImportPlugin(), e, PasswordPolicyImportPluginCfgDefn.getInstance());
+                new PasswordPolicyImportPlugin(), e, PasswordPolicyImportPluginCfgDefn.getInstance());
   }
 
   /**

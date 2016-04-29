@@ -12,24 +12,23 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyrighted [year] [name of copyright owner]".
  
-  Copyright 2012-2015 ForgeRock AS. All rights reserved.
+  Copyright 2012-2016 ForgeRock AS. All rights reserved.
 -->
 <!DOCTYPE suppressions PUBLIC
     "-//Puppy Crawl//DTD Suppressions 1.1//EN"
     "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
- <!-- 
+ <!--
     This Checkstyle suppressions file contains suppressions for any checks
     that we don't want to enforce against unit tests.
-    
-    It is not possible to rely on same file provided by forgerock-build-tools because 
-    lot of classes are violating others suppressions.
-    Once additional suppressions added at the end of the file can be removed due to code 
-    cleaning, then this file may be deleted and replaced by equivalent in 
-    forgerock-build-tools. 
 
+    It is not possible to rely on same file provided by forgerock-build-tools because
+    lot of classes are violating others suppressions.
+    Once additional suppressions added at the end of the file can be removed due to code
+    cleaning, then this file may be deleted and replaced by equivalent in
+    forgerock-build-tools.
   -->
- 
+
  <!-- check-src-default.xml -->
  <suppress checks="JavadocPackage"              files="/src/test/java" />
  <suppress checks="JavadocType"                 files="/src/test/java" />
@@ -45,7 +44,7 @@
  <suppress checks="HideUtilityClassConstructor" files="/src/test/java" />
  <suppress checks="InterfaceIsType"             files="/src/test/java" />
  <suppress checks="VisibilityModifier"          files="/src/test/java" />
- 
+
  <suppress checks="Translation"                 files="/src/test/java" />
  <suppress checks="FileLength"                  files="/src/test/java" />
  <suppress checks="MethodLength"                files="/src/test/java" />
@@ -54,14 +53,7 @@
  <suppress checks="DesignForExtension"          files="/src/test/java" />
  <suppress checks="TodoComment"                 files="/src/test/java" />
 
- <!-- Additional suppressions (compared to forgerock-build-tools equivalent file)  --> 
- <suppress checks="LineLength"                  files="/src/test/java" />
- <suppress checks="RegexpSingleline"            files="/src/test/java" />
- <suppress checks="FileTabCharacter"            files="/src/test/java" />
- <suppress checks="LineLength"                  files="/src/test/java" />
- <suppress checks="RedundantImport"             files="/src/test/java" />
- <suppress checks="UnusedImports"               files="/src/test/java" />
- <suppress checks="EmptyStatement"              files="/src/test/java" />
+ <!-- Additional suppressions (compared to forgerock-build-tools equivalent file)  -->
  <suppress checks="EqualsHashCode"              files="/src/test/java" />
 
 </suppressions>

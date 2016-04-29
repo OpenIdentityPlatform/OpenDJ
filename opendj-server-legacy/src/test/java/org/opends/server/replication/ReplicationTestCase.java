@@ -850,8 +850,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   private static ReplicationMsg waitForSpecificMsgs(Session session, ReplicationBroker broker, Class<?>... msgTypes)
       throws Exception
   {
-    assertTrue(session != null || broker != null, "One of Session or ReplicationBroker parameter must not be null");
-    assertTrue(session == null || broker == null, "Only one of Session or ReplicationBroker parameter must not be null");
+    assertTrue(session != null || broker != null,
+        "One of Session or ReplicationBroker parameter must not be null");
+    assertTrue(session == null || broker == null,
+        "Only one of Session or ReplicationBroker parameter must not be null");
 
     List<Class<?>> msgTypes2 = Arrays.asList(msgTypes);
 
@@ -913,7 +915,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     });
   }
 
-  protected void waitConnected(int dsId, int rsId, int rsPort, LDAPReplicationDomain rd, String msg) throws InterruptedException
+  protected void waitConnected(int dsId, int rsId, int rsPort, LDAPReplicationDomain rd, String msg)
+      throws InterruptedException
   {
     final int secTimeout = 30;
     int nSec = 0;

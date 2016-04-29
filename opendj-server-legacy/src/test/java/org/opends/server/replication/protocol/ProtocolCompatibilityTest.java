@@ -55,6 +55,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.common.AssuredMode.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -480,6 +481,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
     List<Attribute> entryAttrList = newArrayList(eattr1, eattr2);
 
+    // @Checkstyle:off
     return new Object[][] {
         { csn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte) 0, null },
         { csn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte) 1, entryAttrList },
@@ -492,6 +494,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         { csn2, "dc=test with long mod", mods4, true, AssuredMode.SAFE_READ_MODE, (byte) 120, entryAttrList },
         { csn2, "dc=testDsaOperation", mods5, true, AssuredMode.SAFE_DATA_MODE, (byte) 99, null },
         };
+    // @Checkstyle:on
   }
 
   /**
@@ -652,6 +655,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
     List<Attribute> entryAttrList = newArrayList(eattr1, eattr2);
 
+    // @Checkstyle:off
     return new Object[][] {
         {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
         {"dc=test,dc=com", "dc=new", "33333333-3333-3333-3333-333333333333", "44444444-4444-4444-4444-444444444444", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1, entryAttrList},
@@ -659,6 +663,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn",
                    "dc=new", "77777777-7777-7777-7777-777777777777", "88888888-8888-8888-8888-888888888888",true, null, mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99, entryAttrList},
         };
+    // @Checkstyle:on
   }
 
   /**
@@ -985,16 +990,13 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         "ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
     DSInfo dsInfo1 = new DSInfo(13, "", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
-      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), new HashSet<String>(), (short)-1);
-
+      false, SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), new HashSet<String>(), (short)-1);
     DSInfo dsInfo2 = new DSInfo(-436, "", 493, -227896, ServerStatus.DEGRADED_STATUS,
-      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), new HashSet<String>(), (short)-1);
-
+      true,  SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), new HashSet<String>(), (short)-1);
     DSInfo dsInfo3 = new DSInfo(2436, "", 591, 0, ServerStatus.NORMAL_STATUS,
-      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), new HashSet<String>(), (short)-1);
-
+      false, SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), new HashSet<String>(), (short)-1);
     DSInfo dsInfo4 = new DSInfo(415, "", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
-      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
+      true,  SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     Set<DSInfo> dsList1 = newHashSet(dsInfo1);
     Set<DSInfo> dsList2 = newHashSet();
@@ -1264,9 +1266,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createEntryMsgV3")
   public Object[][] createEntryMsgV3()
   {
+    // @Checkstyle:off
     return new Object[][] {
         {"0c32003100646e3a206f753d50656f706c652c64633d6578616d706c652c64633d636f6d0a6f626a656374436c6173733a20746f700a6f626a656374436c6173733a206f7267616e697a6174696f6e616c556e69740a6f753a2050656f706c650a656e747279555549443a2032313131313131312d313131312d313131312d313131312d3131313131313131313131320a0a00",
           1, 2}};
+    // @Checkstyle:on
   }
   @Test(dataProvider = "createEntryMsgV3")
   public void entryMsgPDUV3(String pduV3, int dest, int sender) throws Exception
@@ -1284,9 +1288,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createErrorMsgV3")
   public Object[][] createErrorMsgV3()
   {
+    // @Checkstyle:off
     return new Object[][] {
         {"0e380039003135313338383933004f6e207375666669782064633d6578616d706c652c64633d636f6d2c207265706c69636174696f6e2073657276657220392070726573656e7465642067656e65726174696f6e2049443d2d31207768656e2065787065637465642067656e65726174696f6e2049443d343800",
           9, 8, "On suffix dc=example,dc=com, replication server 9 presented generation ID=-1 when expected generation ID=48"}};
+    // @Checkstyle:on
   }
   @Test(dataProvider = "createErrorMsgV3")
   public void errorMsgPDUV3(

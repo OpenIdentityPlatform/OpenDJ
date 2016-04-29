@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -24,9 +24,26 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.testng.*;
+import org.testng.IClass;
+import org.testng.IReporter;
+import org.testng.ISuite;
+import org.testng.ITestContext;
+import org.testng.ITestNGMethod;
+import org.testng.ITestResult;
+import org.testng.TestListenerAdapter;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.xml.XmlSuite;
@@ -130,7 +147,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  private static final String DIVIDER_LINE = "-------------------------------------------------------------------------------" + EOL;
+  private static final String DIVIDER_LINE =
+      "-------------------------------------------------------------------------------" + EOL;
 
   @Override
   public void onStart(ITestContext testContext) {
@@ -169,7 +187,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     try {
       reportStream = new PrintStream(new FileOutputStream(reportFile));
     } catch (FileNotFoundException e) {
-      originalSystemErr.println("Could not open " + reportFile + " for writing.  Will write the unit test report to the console instead.");
+      originalSystemErr.println(
+          "Could not open " + reportFile + " for writing.  Will write the unit test report to the console instead.");
       e.printStackTrace(originalSystemErr);
       reportStream = originalSystemErr;
     }
@@ -203,7 +222,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     if (countTestsWithStatus(ITestResult.FAILURE) == 0
         && countTestsWithStatus(ITestResult.SKIP) != 0) {
-      originalSystemErr.println("There were no explicit test failures, but some tests were skipped (possibly due to errors in @Before* or @After* methods).");
+      originalSystemErr.println("There were no explicit test failures,"
+          + " but some tests were skipped (possibly due to errors in @Before* or @After* methods).");
       System.exit(-1);
     }
   }
@@ -553,9 +573,9 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
 
-    Class<?> classWithTestAnnotation = findClassWithTestAnnotation(testClass);
+    Class<?> annotatedClass = findClassWithTestAnnotation(testClass);
 
-    if (classWithTestAnnotation == null) {
+    if (annotatedClass == null) {
       String errorMessage =
               "The test class " + testClass.getName() + " does not have a @Test annotation.  " +
               "All test classes must have a @Test annotation, and this annotation must have " +
@@ -564,12 +584,13 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       throw new RuntimeException(errorMessage);
     }
 
-    Test testAnnotation = classWithTestAnnotation.getAnnotation(Test.class);
+    Test testAnnotation = annotatedClass.getAnnotation(Test.class);
     if (!testAnnotation.sequential()) {
       // Give an error message that is as specific as possible.
+      boolean isTestClass = annotatedClass.equals(testClass);
       String errorMessage =
               "The @Test annotation for class " + testClass.getName() +
-              (classWithTestAnnotation.equals(testClass) ? " " : (", which is declared by class " + classWithTestAnnotation.getName() + ", ")) +
+              (isTestClass ? " " : (", which is declared by class " + annotatedClass.getName() + ", ")) +
               "must include sequential=true to ensure that tests for a single class are run together.";
       TestCaseUtils.originalSystemErr.println("\n\nERROR: " + errorMessage + "\n\n");
       throw new RuntimeException(errorMessage);
@@ -664,31 +685,38 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
 
     if (doProgressTime) {
-      originalSystemErr.println("  Test duration status: {Total min:sec.  Since last status sec.}");
+      originalSystemErr.println(
+          "  Test duration status: {Total min:sec.  Since last status sec.}");
     }
 
     if (doProgressTestCount) {
-      originalSystemErr.println("  Test count status:  {# test classes  # test methods  # test method invocations  # test failures}.");
+      originalSystemErr.println(
+          "  Test count status:  {# test classes  # test methods  # test method invocations  # test failures}.");
     }
 
     if (doProgressMemory) {
-      originalSystemErr.println("  Memory usage status: {MB in use  +/-change since last status}");
+      originalSystemErr.println(
+          "  Memory usage status: {MB in use  +/-change since last status}");
     }
 
     if (doProgressMemoryGcs) {
-      originalSystemErr.println("  GCs during status:  {GCs done to settle used memory   time to do it}");
+      originalSystemErr.println(
+          "  GCs during status:  {GCs done to settle used memory   time to do it}");
     }
 
     if (doProgressThreadCount) {
-      originalSystemErr.println("  Thread count status:  {#td number of active threads}");
+      originalSystemErr.println(
+          "  Thread count status:  {#td number of active threads}");
     }
 
     if (doProgressRestarts) {
-      originalSystemErr.println("  In core restart status: {#rs number of in-core restarts}");
+      originalSystemErr.println(
+          "  In core restart status: {#rs number of in-core restarts}");
     }
 
     if (doProgressThreadChange) {
-      originalSystemErr.println("  Thread change status: +/- thread name for new or finished threads since last status");
+      originalSystemErr.println(
+          "  Thread change status: +/- thread name for new or finished threads since last status");
     }
 
     originalSystemErr.println("  TestClass (the class that just completed)");

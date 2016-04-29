@@ -17,6 +17,7 @@
 package org.opends.server.crypto;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
@@ -27,8 +28,6 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
@@ -37,11 +36,13 @@ import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the symmetric key extended operation.
  */
+@SuppressWarnings("javadoc")
 public class GetSymmetricKeyExtendedOperationTestCase
      extends CryptoTestCase {
   /**
@@ -79,10 +80,16 @@ public class GetSymmetricKeyExtendedOperationTestCase
     final DN baseDN = DN.valueOf(baseDNStr);
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + OC_CRYPTO_CIPHER_KEY + ")";
     final String FILTER_NOT_COMPROMISED = "(!(" + ATTR_CRYPTO_KEY_COMPROMISED_TIME + "=*))";
-    final String FILTER_CIPHER_TRANSFORMATION_NAME = "(" + ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME + "=" + cipherTransformationName + ")";
+    final String FILTER_CIPHER_TRANSFORMATION_NAME =
+        "(" + ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME + "=" + cipherTransformationName + ")";
     final String FILTER_CIPHER_KEY_LENGTH = "(" + ATTR_CRYPTO_KEY_LENGTH_BITS + "=" + cipherKeyLength + ")";
     final String searchFilter =
-        "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + FILTER_CIPHER_TRANSFORMATION_NAME + FILTER_CIPHER_KEY_LENGTH + ")";
+        "(&"
+        + FILTER_OC_INSTANCE_KEY
+        + FILTER_NOT_COMPROMISED
+        + FILTER_CIPHER_TRANSFORMATION_NAME
+        + FILTER_CIPHER_KEY_LENGTH
+        + ")";
     final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter)
         .addAttribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
     InternalSearchOperation searchOp = getRootConnection().processSearch(request);

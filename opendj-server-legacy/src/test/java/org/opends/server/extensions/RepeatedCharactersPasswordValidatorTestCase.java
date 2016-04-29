@@ -236,7 +236,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
   private RepeatedCharactersPasswordValidator initializePasswordValidator(Entry e)
         throws ConfigException, InitializationException {
     return InitializationUtils.initializePasswordValidator(
-        new RepeatedCharactersPasswordValidator(), e, RepeatedCharactersPasswordValidatorCfgDefn.getInstance());  
+        new RepeatedCharactersPasswordValidator(), e, RepeatedCharactersPasswordValidatorCfgDefn.getInstance());
   }
 
   /**

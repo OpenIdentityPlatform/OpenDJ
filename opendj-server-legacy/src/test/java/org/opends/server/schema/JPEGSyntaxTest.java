@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -22,27 +22,22 @@ import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test the JPEGSyntax.
- */
+/** Test the JPEGSyntax. */
 @RemoveOnceSDKSchemaIsUsed
 @Test
 public class JPEGSyntaxTest extends BinaryAttributeSyntaxTest
 {
-
-  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax<?> getRule()
   {
     return new JPEGSyntax();
   }
 
-  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()
   {
-	  String jfif_image =
+      String jfif_image =
           "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDACMYGh4aFiMeHB4nJSMpNFc4NDAwNGpM" +
           "UD9Xfm+EgnxveneLnMipi5S9lnd6ru2wvc7V4OLgh6f1//PZ/8jb4Nf/2wBDASUn" +
           "JzQuNGY4OGbXj3qP19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX" +
@@ -62,11 +57,10 @@ public class JPEGSyntaxTest extends BinaryAttributeSyntaxTest
         return new Object [][] {
           {ByteString.wrap(Base64.decode(jfif_image)), true},
         };
-	  }
+      }
       catch (Exception e)
       {
         return new Object[][] {};
       }
   }
-
 }

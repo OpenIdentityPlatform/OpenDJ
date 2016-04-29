@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  * Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.authorization.dseecompat;
@@ -23,15 +23,32 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.*;
+import org.opends.server.tools.LDAPCompare;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.LDIFDiff;
+import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFReader;
@@ -212,10 +229,12 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_USERDN_PARENT = "userdn=\"ldap:///parent\"";
   private static final String BIND_RULE_USERDN_CN_RDN = "userdn=\"ldap:///CN=*,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_NOT_UID_RDN = "userdn!=\"ldap:///uid=*,dc=example,dc=com\"";
+  // @Checkstyle:off
   private static final String BIND_RULE_USERDN_UID_OR_CN_RDN = "userdn=\"ldap:///uid=*,dc=example,dc=com || ldap:///cn=*,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_ALL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??sub?(cn=*admin*)\"";
   /** TODO: this might be invalid? */
   private static final String BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??one?(cn=*admin*)\"";
+  // @Checkstyle:on
   private static final String BIND_RULE_GROUPDN_GROUP_1 =
                                     "groupdn=\"ldap:///" + OU_GROUP_1_DN + "\"";
   private static final String BIND_RULE_IP_LOCALHOST = "ip=\"127.0.0.1\"";
@@ -236,6 +255,7 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_AUTHMETHOD_SSL = "authmethod=\"ssl\"";
   private static final String BIND_RULE_AUTHMETHOD_SASL_DIGEST_MD5 = "authmethod=\"sasl DIGEST-MD5\"";
 
+  // @Checkstyle:off
   /** Admin, but not anonymous. */
   private static final String BIND_RULE_USERDN_NOT_ADMIN = and(not(BIND_RULE_USERDN_ADMIN), BIND_RULE_AUTHMETHOD_SIMPLE);
 
@@ -247,13 +267,16 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_IP_NOT_LOCALHOST_OR_USERDN_ADMIN = or(BIND_RULE_IP_NOT_LOCALHOST, BIND_RULE_USERDN_ADMIN);
 
   private static final String BIND_RULE_ADMIN_AND_LOCALHOST_OR_SSL = and(BIND_RULE_USERDN_ADMIN, or(BIND_RULE_AUTHMETHOD_SSL, BIND_RULE_DNS_LOCALHOST));
+  // @Checkstyle:on
 
 
   // These are made up
+  // @Checkstyle:off
   private static final String BIND_RULE_GROUPDN_1 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_2 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_3 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_USERDN_FILTER = "userdn=\"ldap:///dc=example,dc=com??one?(|(ou=eng)(ou=acct))\"";
+  // @Checkstyle:on
 
   //bind rule user attr ACIs
   private static final String BIND_RULE_USERATTR_USERDN = "userattr=\"manager#USERDN\"";
@@ -274,6 +297,7 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_NOON_AND_AFTER = "timeofday>=\"1200\"";
   private static final String BIND_RULE_BEFORE_NOON = "timeofday<\"1200\"";
   private static final String BIND_RULE_NOON_AND_BEFORE = "timeofday<=\"1200\"";
+  // @Checkstyle:off
   //targattrfilters
   private static final String TARG_ATTR_FILTERS =  "add=cn:(!(cn=superAdmin))";
   private static final String TARG_ATTR_FILTERS_1 =  "add=cn:(!(cn=superAdmin)) && telephoneNumber:(telephoneNumber=123*)";
@@ -291,12 +315,15 @@ public class AciTests extends AciTestCase {
   private static final String TARG_ATTR_FILTERS_ATTR_TYPE_NAME =  "del=cn:(&(cn=foo)(cn=f*)) && 1sn_:(1sn_=joe*)";
 
   private static final String SELF_MODIFY_ACI = "aci: (targetattr=\"*\")(version 3.0; acl \"self modify\";allow(all) userdn=\"userdn=\"ldap:///self\";)";
+  // @Checkstyle:on
 
   private static final String ALLOW_ALL_TO_ALL =
              buildAciValue("name", "allow all", "targetattr", "*", "allow(all)", BIND_RULE_USERDN_ALL);
 
+  // @Checkstyle:off
   private static final String ALLOW_ALL_TO_COMPARE =
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
+  // @Checkstyle:on
 
   private static final String DENY_READ_CN_SN_IF_PERSON = buildAciValue("name",
       "deny read cn sn if person", "targetfilter", "objectClass=person",
@@ -336,6 +363,7 @@ public class AciTests extends AciTestCase {
           buildAciValue("name", "allow proxy to userdn level1", "targetattr", "*",
                      "allow(proxy)", BIND_RULE_USERDN_LEVEL_1);
 
+  // @Checkstyle:off
   private static final String ALLOW_ALL_TO_IMPORT_MGR_NEW =
              buildAciValue("name", "allow import mgr new tree", "target", MGR_NEW_DN_URL, "allow(import)", BIND_RULE_USERDN_ALL);
 
@@ -523,7 +551,7 @@ public class AciTests extends AciTestCase {
 
   private static final String ALLOW_SEARCH_OU_AND_PERSON_TO_SIMPLE =
           buildAciValue("name", "allow search ou and person to localhost", "targetattr", "*", "targetfilter", "(|(objectclass=organizationalunit)(objectclass=person))", "allow(search, read)", BIND_RULE_AUTHMETHOD_SIMPLE);
-
+  // @Checkstyle:on
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -581,6 +609,7 @@ public class AciTests extends AciTestCase {
     // Test each feature in isolation.
 // <PASSES>
 //    // TARGETS
+    // @Checkstyle:off
     buildAciValue("name", "self mod", "allow (write)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "parenthesis (dummy) and ( ) and () test", "allow (read)", BIND_RULE_USERDN_SELF),
     buildAciValue("name", "w/ target", "target", LDAP_URL_OU_INNER, "allow (write)", BIND_RULE_USERDN_SELF),
@@ -660,6 +689,7 @@ public class AciTests extends AciTestCase {
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN_INHERITANCE),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN_INHERITANCE),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_VALUE),
+    // @Checkstyle:on
     // BUG!  These work with DS 5.2p4, but not with OpenDS.
 // <FAIL>
 //    DENY_ALL_TO_LOCALHOST_SUBNET,
@@ -711,6 +741,7 @@ public class AciTests extends AciTestCase {
           buildAciValue("name", "invalid", "targetattr", "cn ||", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "not/an/attr", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "cn", "allow (write)", BIND_RULE_INVALID_DAY),
+          // @Checkstyle:off
           /* Test cases for OPENDJ-433 */
           buildAciValue("name", "invalid", "targetattr", "cn", "garbage allow (read)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "invalid", "targetattr", "cn", "allow (read)", BIND_RULE_USERDN_SELF, "garbage allow (search)", BIND_RULE_USERDN_SELF),
@@ -737,7 +768,7 @@ public class AciTests extends AciTestCase {
           // OpenDJ 2.5 doesn't support acis with options
           buildAciValue("name", "unsupported option in targetattr", "targetattr", "locality;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
           buildAciValue("name", "complicated unsupported option in targetattr", "targetattr", "1ocal_ity;lang-fr-ca", "allow (write)", BIND_RULE_USERDN_SELF),
-
+          // @Checkstyle:on
 // </PASSES>
   };
 
@@ -761,8 +792,8 @@ public class AciTests extends AciTestCase {
 //           "---------------\"\"-------------\"-------\"--"},
 
            // TODO: this generates some failures.
-//          {"(version3.0;acl\"\";allow(read,write,add,delete,search,compare,selfwrite,all,proxy)userdn=\"ldap:///self\";)",
-//           "XXXXXXXXXXXXXXX\'\'X----------------------------------------------------------------------\"-----XX-----\"XX"},
+//    {"(version3.0;acl\"\";allow(read,write,add,delete,search,compare,selfwrite,all,proxy)userdn=\"ldap:///self\";)",
+//     "XXXXXXXXXXXXXXX\'\'X----------------------------------------------------------------------\"-----XX-----\"XX"},
 
             // TODO: this generates some failures.
 //          {"(version3.0;acl\"\";allow(read)userdn=\"ldap:///o=b\";)",
@@ -801,7 +832,7 @@ public class AciTests extends AciTestCase {
 
   @DataProvider
   public Object[][] validBasisOfValidityTests() throws Exception {
-    TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
+    TestCaseUtils.startServer();  // Apparently necessary since the DataProviders can be called before @BeforeClass.
 
     List<String> acis = new ArrayList<>();
     for (String[] aciAndMask: INVALID_ACIS_IF_ANY_CHAR_REMOVED) {
@@ -815,7 +846,8 @@ public class AciTests extends AciTestCase {
    * tests are valid acis.
    */
   @Test(dataProvider = "validBasisOfValidityTests")
-  public void testBasisOfInvalidityTestsAreValid(String modifierDn, String modifierPw, String aciModLdif) throws Throwable {
+  public void testBasisOfInvalidityTestsAreValid(String modifierDn, String modifierPw, String aciModLdif)
+      throws Throwable {
     if (TESTS_ARE_DISABLED) {  // This is a hack to make sure we can disable the tests.
       return;
     }
@@ -824,14 +856,14 @@ public class AciTests extends AciTestCase {
 
   @DataProvider
   public Object[][] validAcis() throws Exception {
-    TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
+    TestCaseUtils.startServer();  // Apparently necessary since the DataProviders can be called before @BeforeClass.
 
     return buildAciValidationParams(Arrays.asList(VALID_ACIS), false /*test once per aci*/);
   }
 
   @DataProvider
   public Object[][] invalidAcis() throws Exception {
-    TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
+    TestCaseUtils.startServer();  // Apparently necessary since the DataProviders can be called before @BeforeClass.
 
     List<String> invalid = newArrayList(INVALID_ACIS);
     for (String[] aciAndMask: INVALID_ACIS_IF_ANY_CHAR_REMOVED) {
@@ -929,10 +961,10 @@ public class AciTests extends AciTestCase {
       // Test that we can add entries with valid ACIs as well as set valid ACIs on a an entry
       modEntries(aciModLdif, modifierDn, modifierPw);
     } catch (Throwable e) {
-      System.err.println("Started with dit:\nldapmodify -a -D \"cn=Directory Manager\" -w etegrity -p 13324\n" + VALIDITY_TESTS_DIT +
-              "and as '" + modifierDn + "' failed to perform these modifications:\n" +
-              "ldapmodify -D \"" + modifierDn + "\" -w " + modifierPw + " -p 13324\n" +
-              aciModLdif);
+      System.err.println("Started with dit:\nldapmodify -a -D \"cn=Directory Manager\" -w etegrity -p 13324\n"
+          + VALIDITY_TESTS_DIT + "and as '" + modifierDn + "' failed to perform these modifications:\n"
+          + "ldapmodify -D \"" + modifierDn + "\" -w " + modifierPw + " -p 13324\n"
+          + aciModLdif);
       throw e;
     }
   }
@@ -951,17 +983,17 @@ public class AciTests extends AciTestCase {
       // Test that we can add entries with valid ACIs as well as set valid ACIs on a an entry
       modEntriesExpectFailure(aciModLdif, modifierDn, modifierPw);
     } catch (Throwable e) {
-      System.err.println("Started with dit:\nldapmodify -a -D \"cn=Directory Manager\" -w etegrity -p 13324\n" + VALIDITY_TESTS_DIT +
-              "and as '" + modifierDn + "' successfully added an invalid aci:\n" +
-              "ldapmodify -D \"" + modifierDn + "\" -w " + modifierPw + " -p 13324\n" +
-              aciModLdif);
+      System.err.println("Started with dit:\nldapmodify -a -D \"cn=Directory Manager\" -w etegrity -p 13324\n"
+          + VALIDITY_TESTS_DIT + "and as '" + modifierDn + "' successfully added an invalid aci:\n"
+          + "ldapmodify -D \"" + modifierDn + "\" -w " + modifierPw + " -p 13324\n"
+          + aciModLdif);
       throw e;
     }
   }
 
   @DataProvider
   public Object[][] invalidAcisMultiCombos() throws Exception {
-    TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
+    TestCaseUtils.startServer();  // Apparently necessary since the DataProviders can be called before @BeforeClass.
 
     List<String> invalid = new ArrayList<>();
     invalid.add(INVALID_ACIS[0]);
@@ -993,11 +1025,12 @@ public class AciTests extends AciTestCase {
 
   private static final String ADMIN_LDIF__SEARCH_TESTS = makeUserLdif(ADMIN_DN, "aci", "admin", ADMIN_PW);
   private static final String USER_LDIF__SEARCH_TESTS = makeUserLdif(USER_DN, "some", "user", USER_PW);
+  // @Checkstyle:off
   private static final String LEVEL_1_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_1_USER_DN, "level1", "user", "pa$$word");
   private static final String LEVEL_2_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_2_USER_DN, "level2", "user", "pa$$word");
   private static final String LEVEL_3_USER_LDIF__SEARCH_TESTS = makeUserLdif(LEVEL_3_USER_DN, "level3", "user", "pa$$word");
-  private static final String PROXY_USER_LDIF__SEARCH_TESTS =
-                       makeUserLdif(PROXY_USER_DN, "proxy", "user", "pa$$word");
+  private static final String PROXY_USER_LDIF__SEARCH_TESTS = makeUserLdif(PROXY_USER_DN, "proxy", "user", "pa$$word");
+  // @Checkstyle:on
 
 
     private static final String SALES_USER_1__SEARCH_TESTS =
@@ -1720,9 +1753,11 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       _equivalentAciLdifs = Arrays.asList(equivalentAciLdifs);
     }
 
-    private void addSingleSearch(String bindDn, String searchBaseDn, String searchFilter, String searchScope, String expectedResultsLdif) {
+    private void addSingleSearch(
+        String bindDn, String searchBaseDn, String searchFilter, String searchScope, String expectedResultsLdif) {
       for (String equivalentAci: _equivalentAciLdifs) {
-        _searchTests.add(SingleSearchParams.nonProxiedSearch(bindDn, DN_TO_PW.get(bindDn), searchBaseDn, searchFilter, searchScope, expectedResultsLdif, _initialDitLdif, equivalentAci));
+        _searchTests.add(SingleSearchParams.nonProxiedSearch(bindDn, DN_TO_PW.get(bindDn), searchBaseDn,
+            searchFilter, searchScope, expectedResultsLdif, _initialDitLdif, equivalentAci));
       }
     }
 
@@ -1747,7 +1782,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
   @DataProvider
   private Object[][] searchTestParams() throws Throwable {
-    TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
+    TestCaseUtils.startServer();  // Apparently necessary since the DataProviders can be called before @BeforeClass.
 
     try {
       List<Object[]> allTestParams = new ArrayList<>();
@@ -2445,7 +2480,8 @@ private static String _buildAciValue(String attr, String... aciFields) {
     }
     anyAttr += ")";
 
-    Pattern pattern = Pattern.compile("^" + anyAttr + "\\:(.*?)^", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    Pattern pattern = Pattern.compile("^" + anyAttr + "\\:(.*?)^",
+        Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     return pattern.matcher(ldif).replaceAll("");
   }
 

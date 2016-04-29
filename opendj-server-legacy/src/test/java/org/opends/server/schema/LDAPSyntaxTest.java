@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -28,7 +29,6 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
@@ -120,14 +120,16 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
               {"   (    2.5.4.3    DESC  ' syntax description'    )", true},
               {"( 2.5.4.3 DESC 'Test syntax' X-SCHEMA-FILE '00-core.ldif' )", true},
               {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", true},
-              {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' X-SCHEMA-FILE '00-core.ldif' )", true},
-              {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SCHEMA-FILE '00-core.ldif' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", true},
+    {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' X-SCHEMA-FILE '00-core.ldif' )",
+                  true},
+    {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SCHEMA-FILE '00-core.ldif' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )",
+                  true},
               {"( 2.5.4.3 DESC 'Test X-PATTERN Extensions' X-PATTERN '[0-9]+' )", true},
               {"( 2.5.4.3 DESC 'Test X-PATTERN Extensions' X-PATTERN '[0-9]+' X-SCHEMA-FILE '00-core.ldif' )", true},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) )", true},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'white' 'white' ) )", false},
               {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM )", false},
-              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) X-SCHEMA-FILE '00-core.ldif' )", true},
+      { "( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) X-SCHEMA-FILE '00-core.ldif' )", true },
               {"( 2.5.4.3 DESC syntax description )", false},
               {"($%^*&!@ DESC 'syntax description' )", false},
               {"(temp-oid DESC 'syntax description' )", true},

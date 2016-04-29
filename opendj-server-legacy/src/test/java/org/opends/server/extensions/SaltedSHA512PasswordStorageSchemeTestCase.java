@@ -56,7 +56,8 @@ public class SaltedSHA512PasswordStorageSchemeTestCase
   {
     return new Object[][]
     {
-      new Object[] { "secret", "{SSHA512}8gRXO3lD2fGN3JIhbNJOsh31IRFKnWbDNl+cPH3HoJCkUpxZPG617TnN6Nvl2mVMSBLlzPu2eMpOhCDKoolNG6QCsYf2hppQTAVaqfx25PUJ1ngbuBiNDCpK6Xj5PYZiFwa+cpkY/Pzs77bLn3VMxmHhwa+vowfGhy5RRW+6npQ=" }
+      { "secret", "{SSHA512}8gRXO3lD2fGN3JIhbNJOsh31IRFKnWbDNl+cPH3HoJCkUpxZPG617TnN6Nvl2mVMSBLlzPu2eMpOhCD"
+                  + "KoolNG6QCsYf2hppQTAVaqfx25PUJ1ngbuBiNDCpK6Xj5PYZiFwa+cpkY/Pzs77bLn3VMxmHhwa+vowfGhy5RRW+6npQ=" }
     };
   }
 

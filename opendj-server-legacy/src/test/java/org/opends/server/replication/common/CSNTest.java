@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -28,16 +28,11 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/**
- * Test {@link CSN} and {@link CSNGenerator}.
- */
+/** Test {@link CSN} and {@link CSNGenerator}. */
 @SuppressWarnings("javadoc")
 public class CSNTest extends ReplicationTestCase
 {
-
-  /**
-   * Create CSN Data.
-   */
+  /** Create CSN Data. */
   @DataProvider(name = "csnData")
   public Object[][] createConstructorData() {
     long time = 0x12ABC;
@@ -64,9 +59,7 @@ public class CSNTest extends ReplicationTestCase
     new CSN(time,   seq,   id+1);
   }
 
-  /**
-   * Test toString and constructor from String.
-   */
+  /** Test toString and constructor from String. */
  @Test(dataProvider = "csnData")
  public void csnEncodeDecode(long time, int seq, int id, String str) throws Exception
  {
@@ -80,9 +73,7 @@ public class CSNTest extends ReplicationTestCase
        "The encoding/decoding of CSN is not reversible for toString()");
  }
 
-  /**
-   * Create CSN.
-   */
+  /** Create CSN. */
   @DataProvider(name = "createCSN")
   public Object[][] createCSNData()
   {
@@ -137,10 +128,10 @@ public class CSNTest extends ReplicationTestCase
   @Test(dataProvider = "createCSN")
   public void csnCompare(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
-    assertTrue(CSN.compare(null, null) == 0);
+    assertEquals(CSN.compare(null, null), 0);
     assertTrue(CSN.compare(null, csn2) < 0);
     assertTrue(CSN.compare(csn1, null) > 0);
-    assertTrue(CSN.compare(csn1, csn2) == 0);
+    assertEquals(CSN.compare(csn1, csn2), 0);
     assertTrue(CSN.compare(csn1, csn3) < 0);
     assertTrue(CSN.compare(csn3, csn1) > 0);
     assertTrue(CSN.compare(csn1, csn4) < 0);
@@ -193,7 +184,6 @@ public class CSNTest extends ReplicationTestCase
     assertFalse(csn1.isNewerThanOrEqualTo(csn5));
   }
 
-
   /**
    * Create a {@link CSNGenerator}, then call {@link CSNGenerator#newCSN()} and
    * {@link CSNGenerator#adjust()}
@@ -217,13 +207,13 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(csn1.compareTo(csn2) != 0);
 
     // Generate a CSN separated by 10 milliseconds
-		// and check that they are different
+    // and check that they are different
     Thread.sleep(10);
     csn2 = csng.newCSN();
     assertTrue(csn1.compareTo(csn2) != 0);
 
     // Generate a CSN separated by 300 milliseconds
-		// and check that they are different
+    // and check that they are different
     Thread.sleep(300);
     csn2 = csng.newCSN();
     assertTrue(csn1.compareTo(csn2) != 0);
@@ -258,9 +248,7 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(csn1.compareTo(csn2) != 0 );
   }
 
-  /**
-   * Test the difference in seq num between 2 CSNs.
-   */
+  /** Test the difference in seq num between 2 CSNs. */
   @Test
   public void csnDiffSeqNum() throws Exception
   {
@@ -368,5 +356,4 @@ public class CSNTest extends ReplicationTestCase
       assertEquals(csn1.hashCode(), csn2.hashCode());
     }
   }
-
 }

@@ -66,6 +66,7 @@ import org.testng.annotations.Test;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.replication.common.AssuredMode.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -136,17 +137,17 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     List<Attribute> eclIncludes = getEntryAttributes();
     return new Object[][] {
-        { csn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
-        { csn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)1, eclIncludes},
+        { csn1, "dc=test", mods1, false, SAFE_DATA_MODE, (byte)0, null},
+        { csn2, "dc=cn2", mods1, true, SAFE_READ_MODE, (byte)1, eclIncludes},
         { csn2, "dc=test with a much longer dn in case this would "
-               + "make a difference", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
-        { csn2, "dc=test, cn=with a, o=more complex, ou=dn", mods1, false, AssuredMode.SAFE_READ_MODE, (byte)5, eclIncludes},
-        { csn2, "cn=use\\, backslash", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
-        { csn2, "dc=test with several mod", mods2, false, AssuredMode.SAFE_DATA_MODE, (byte)16, eclIncludes},
-        { csn2, "dc=test with several values", mods3, false, AssuredMode.SAFE_READ_MODE, (byte)3, null},
-        { csn2, "dc=test with long mod", mods4, true, AssuredMode.SAFE_READ_MODE, (byte)120, eclIncludes},
-        { csn2, "dc=testDsaOperation", mods5, true, AssuredMode.SAFE_DATA_MODE, (byte)99, null},
-        { csn3, "dc=serverIdLargerThan32767", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)1, null},
+               + "make a difference", mods1, true, SAFE_READ_MODE, (byte)3, null},
+        { csn2, "dc=test, cn=with a, o=more complex, ou=dn", mods1, false, SAFE_READ_MODE, (byte)5, eclIncludes},
+        { csn2, "cn=use\\, backslash", mods1, true, SAFE_READ_MODE, (byte)3, null},
+        { csn2, "dc=test with several mod", mods2, false, SAFE_DATA_MODE, (byte)16, eclIncludes},
+        { csn2, "dc=test with several values", mods3, false, SAFE_READ_MODE, (byte)3, null},
+        { csn2, "dc=test with long mod", mods4, true, SAFE_READ_MODE, (byte)120, eclIncludes},
+        { csn2, "dc=testDsaOperation", mods5, true, SAFE_DATA_MODE, (byte)99, null},
+        { csn3, "dc=serverIdLargerThan32767", mods1, true, SAFE_READ_MODE, (byte)1, null},
         };
   }
 
@@ -221,7 +222,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.isAssured(), isAssured);
 
     // Check assured mode
-    assertEquals(msg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
+    assertEquals(msg.getAssuredMode(), SAFE_DATA_MODE);
     msg.setAssuredMode(assuredMode);
     assertEquals(msg.getAssuredMode(), assuredMode);
 
@@ -364,12 +365,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     List<Attribute> entryAttrList = getEntryAttributes();
     return new Object[][] {
-        {"dc=test,dc=com", "dc=new", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, entryAttrList},
-        {"dc=test,dc=com", "dc=new", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1, null},
+        {"dc=test,dc=com", "dc=new", false, "dc=change", mods1, false, SAFE_DATA_MODE, (byte)0, entryAttrList},
+        {"dc=test,dc=com", "dc=new", true, "dc=change", mods2, true, SAFE_READ_MODE, (byte)1, null},
         // testNG does not like null argument so use "" for the newSuperior instead of null
-        {"dc=test,dc=com", "dc=new", false, "", mods3, true, AssuredMode.SAFE_READ_MODE, (byte)3, entryAttrList},
+        {"dc=test,dc=com", "dc=new", false, "", mods3, true, SAFE_READ_MODE, (byte)3, entryAttrList},
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn",
-                   "dc=new", true, "", mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99, null},
+                   "dc=new", true, "", mods4, true, SAFE_DATA_MODE, (byte)99, null},
         };
   }
 
@@ -441,9 +442,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     List<Attribute> entryAttrList = getEntryAttributes();
     return new Object[][] {
-        {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, entryAttrList},
-        {"o=test", true, AssuredMode.SAFE_READ_MODE, (byte)1, null},
-        {"o=group,dc=example,dc=com", true, AssuredMode.SAFE_READ_MODE, (byte)3, entryAttrList}};
+        {"dc=example,dc=com", false, SAFE_DATA_MODE, (byte)0, entryAttrList},
+        {"o=test", true, SAFE_READ_MODE, (byte)1, null},
+        {"o=group,dc=example,dc=com", true, SAFE_READ_MODE, (byte)3, entryAttrList}};
   }
 
   @Test(enabled=true,dataProvider = "createAddData")
@@ -810,15 +811,15 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Set<String> a4 = newHashSet();
 
     DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
-      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
+      false, SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
     DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, -227896, ServerStatus.DEGRADED_STATUS,
-      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, a2, (short)2);
+      true, SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, a2, (short)2);
     DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, 0, ServerStatus.NORMAL_STATUS,
-      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, a3, (short)3);
+      false, SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, a3, (short)3);
     DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
-      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, a4, (short)4);
+      true, SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, a4, (short)4);
     DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, 0, ServerStatus.NORMAL_STATUS,
-      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
+      false, SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
     List<DSInfo> dsList1 = newArrayList(dsInfo1);
     List<DSInfo> dsList2 = newArrayList();
@@ -894,12 +895,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Set<String> a3 = newHashSet("dc", "uid");
 
     return new Object[][]{
-      {ServerStatus.NORMAL_STATUS, urls1, true, AssuredMode.SAFE_DATA_MODE, (byte)1, a1},
-      {ServerStatus.DEGRADED_STATUS, urls2, false, AssuredMode.SAFE_READ_MODE, (byte)123, a2},
-      {ServerStatus.FULL_UPDATE_STATUS, urls3, false, AssuredMode.SAFE_DATA_MODE, (byte)111, a3},
-      {ServerStatus.NORMAL_STATUS, urls4, true, AssuredMode.SAFE_READ_MODE, (byte)-1, a1},
-      {ServerStatus.DEGRADED_STATUS, urls5, true, AssuredMode.SAFE_DATA_MODE, (byte)97, a2},
-      {ServerStatus.FULL_UPDATE_STATUS, urls6, false, AssuredMode.SAFE_READ_MODE, (byte)-13, a3}
+      {ServerStatus.NORMAL_STATUS, urls1, true, SAFE_DATA_MODE, (byte)1, a1},
+      {ServerStatus.DEGRADED_STATUS, urls2, false, SAFE_READ_MODE, (byte)123, a2},
+      {ServerStatus.FULL_UPDATE_STATUS, urls3, false, SAFE_DATA_MODE, (byte)111, a3},
+      {ServerStatus.NORMAL_STATUS, urls4, true, SAFE_READ_MODE, (byte)-1, a1},
+      {ServerStatus.DEGRADED_STATUS, urls5, true, SAFE_DATA_MODE, (byte)97, a2},
+      {ServerStatus.FULL_UPDATE_STATUS, urls6, false, SAFE_READ_MODE, (byte)-13, a3}
     };
   }
 

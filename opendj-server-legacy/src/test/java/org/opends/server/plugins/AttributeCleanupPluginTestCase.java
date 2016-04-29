@@ -396,7 +396,8 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
 
   private ModifyOperationBasis modify(String entryDN, RawModification... rawMods)
   {
-    return new ModifyOperationBasis(getRootConnection(), 1, 1, null, ByteString.valueOfUtf8(entryDN), newArrayList(rawMods));
+    return new ModifyOperationBasis(
+        getRootConnection(), 1, 1, null, ByteString.valueOfUtf8(entryDN), newArrayList(rawMods));
   }
 
   /**

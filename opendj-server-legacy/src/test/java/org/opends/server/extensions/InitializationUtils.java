@@ -61,12 +61,13 @@ public final class InitializationUtils {
     return mapper;
   }
 
-  public static <H extends ExtendedOperationHandler<C>, C extends ExtendedOperationHandlerCfg> H initializeExtendedOperationHandler(
-      H handler, Entry e, ManagedObjectDefinition<?, C> cfgDefn) throws ConfigException, InitializationException {
+  public static <H extends ExtendedOperationHandler<C>, C extends ExtendedOperationHandlerCfg> H
+      initializeExtendedOperationHandler(
+          H handler, Entry e, ManagedObjectDefinition<?, C> cfgDefn) throws ConfigException, InitializationException {
     handler.initializeExtendedOperationHandler(getConfiguration(cfgDefn, e));
     return handler;
   }
-  
+
   public static <P extends KeyManagerProvider<C>, C extends KeyManagerProviderCfg> P initializeKeyManagerProvider(
       P provider, Entry e, ManagedObjectDefinition<?, C> cfgDefn) throws ConfigException, InitializationException {
     provider.initializeKeyManagerProvider(getConfiguration(cfgDefn, e));

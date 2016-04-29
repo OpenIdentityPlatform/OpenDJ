@@ -16,41 +16,63 @@
  */
 package org.opends.server.replication.server;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.*;
-import java.util.concurrent.TimeoutException;
-
-import org.assertj.core.api.SoftAssertions;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
-import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.*;
-import org.opends.server.replication.plugin.DomainFakeCfg;
-import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.service.ReplicationDomain;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.HostPort;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import static java.util.Arrays.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.util.concurrent.TimeoutException;
+
+import org.assertj.core.api.SoftAssertions;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.AssuredMode;
+import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.DSInfo;
+import org.opends.server.replication.common.RSInfo;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.plugin.DomainFakeCfg;
+import org.opends.server.replication.plugin.MultimasterReplication;
+import org.opends.server.replication.protocol.AckMsg;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.ReplServerStartMsg;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.service.ReplicationDomain;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test Server part of the assured feature in both safe data and
@@ -614,17 +636,26 @@ public class AssuredReplicationServerTest
     public void runAsserts()
     {
       final SoftAssertions softly = new SoftAssertions();
-      softly.assertThat(domain.getAssuredSrSentUpdates()).as("sentUpdates").isEqualTo(sentUpdates);
-      softly.assertThat(domain.getAssuredSrAcknowledgedUpdates()).as("acknowledgedUpdates").isEqualTo(acknowledgedUpdates);
-      softly.assertThat(domain.getAssuredSrNotAcknowledgedUpdates()).as("notAcknowledgedUpdates").isEqualTo(notAcknowledgedUpdates);
-      softly.assertThat(domain.getAssuredSrTimeoutUpdates()).as("timeoutUpdates").isEqualTo(timeoutUpdates);
-      softly.assertThat(domain.getAssuredSrWrongStatusUpdates()).as("wrongStatusUpdates").isEqualTo(wrongStatusUpdates);
-      softly.assertThat(domain.getAssuredSrReplayErrorUpdates()).as("replayErrorUpdates").isEqualTo(replayErrorUpdates);
-      softly.assertThat(domain.getAssuredSrServerNotAcknowledgedUpdates()).as("serverNotAcknowledgedUpdates").isEqualTo(
-          serverNotAcknowledgedUpdates);
-      softly.assertThat(domain.getAssuredSrReceivedUpdates()).as("receivedUpdates").isEqualTo(receivedUpdates);
-      softly.assertThat(domain.getAssuredSrReceivedUpdatesAcked()).as("receivedUpdatesAcked").isEqualTo(receivedUpdatesAcked);
-      softly.assertThat(domain.getAssuredSrReceivedUpdatesNotAcked()).as("receivedUpdatesNotAcked").isEqualTo(receivedUpdatesNotAcked);
+      softly.assertThat(domain.getAssuredSrSentUpdates())
+          .as("sentUpdates").isEqualTo(sentUpdates);
+      softly.assertThat(domain.getAssuredSrAcknowledgedUpdates())
+          .as("acknowledgedUpdates").isEqualTo(acknowledgedUpdates);
+      softly.assertThat(domain.getAssuredSrNotAcknowledgedUpdates())
+          .as("notAcknowledgedUpdates").isEqualTo(notAcknowledgedUpdates);
+      softly.assertThat(domain.getAssuredSrTimeoutUpdates())
+          .as("timeoutUpdates").isEqualTo(timeoutUpdates);
+      softly.assertThat(domain.getAssuredSrWrongStatusUpdates())
+          .as("wrongStatusUpdates").isEqualTo(wrongStatusUpdates);
+      softly.assertThat(domain.getAssuredSrReplayErrorUpdates())
+          .as("replayErrorUpdates").isEqualTo(replayErrorUpdates);
+      softly.assertThat(domain.getAssuredSrServerNotAcknowledgedUpdates())
+          .as("serverNotAcknowledgedUpdates").isEqualTo(serverNotAcknowledgedUpdates);
+      softly.assertThat(domain.getAssuredSrReceivedUpdates())
+          .as("receivedUpdates").isEqualTo(receivedUpdates);
+      softly.assertThat(domain.getAssuredSrReceivedUpdatesAcked())
+          .as("receivedUpdatesAcked").isEqualTo(receivedUpdatesAcked);
+      softly.assertThat(domain.getAssuredSrReceivedUpdatesNotAcked())
+          .as("receivedUpdatesNotAcked").isEqualTo(receivedUpdatesNotAcked);
       softly.assertAll();
     }
 
@@ -1170,7 +1201,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       if (mainDsGid == DEFAULT_GID)
       {
         // Check monitoring values (check that ack has been correctly received)
@@ -1188,7 +1219,7 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd1.getAssuredSdServerTimeoutUpdates().size(), 0);
 
       // Sanity check
-      Thread.sleep(500);           // Let time to update to reach other servers
+      sleepWhileUpdatePropagates(500);
       fakeRd1.assertReceivedUpdates(0);
       if (otherFakeDS)
       {
@@ -1212,16 +1243,36 @@ public class AssuredReplicationServerTest
   {
     return new Object[][]
     {
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO}
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO,
+                                             DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO}
     };
   }
 
@@ -1229,9 +1280,11 @@ public class AssuredReplicationServerTest
    * See testSafeDataLevelHigh comment.
    */
   @Test(dataProvider = "testSafeDataLevelHighPrecommitProvider", groups = "slow", enabled = true)
-  public void testSafeDataLevelHighPrecommit(int sdLevel, boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
-    int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
-    int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen) throws Exception
+  public void testSafeDataLevelHighPrecommit(int sdLevel,
+      boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
+      int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
+      int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
+      int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen) throws Exception
   {
     testSafeDataLevelHigh(sdLevel, otherFakeDS, otherFakeDsGid, otherFakeDsGenId,
     fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen,
@@ -1246,35 +1299,90 @@ public class AssuredReplicationServerTest
   {
     return new Object[][]
     {
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
-      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO}
-
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, TIMEOUT_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          OTHER_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID,
+                                                        OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 2, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, TIMEOUT_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          OTHER_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO, OTHER_GID,
+                                                        OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, OTHER_GID, OTHER_GENID, TIMEOUT_RS_SCENARIO, OTHER_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                        DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
+      { 3, true, DEFAULT_GID, DEFAULT_GENID, DEFAULT_GID, OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          OTHER_GENID, REPLY_OK_RS_SCENARIO, DEFAULT_GID,
+                                                          DEFAULT_GENID, REPLY_OK_RS_SCENARIO}
     };
   }
 
@@ -1282,9 +1390,11 @@ public class AssuredReplicationServerTest
    * See testSafeDataLevelHigh comment.
    */
   @Test(dataProvider = "testSafeDataLevelHighNightlyProvider", groups = "slow", enabled = true)
-  public void testSafeDataLevelHighNightly(int sdLevel, boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
-    int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen, int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
-    int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen) throws Exception
+  public void testSafeDataLevelHighNightly(int sdLevel,
+      boolean otherFakeDS, int otherFakeDsGid, long otherFakeDsGenId,
+      int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
+      int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
+      int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen) throws Exception
   {
     testSafeDataLevelHigh(sdLevel, otherFakeDS, otherFakeDsGid, otherFakeDsGenId,
     fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen,
@@ -1486,20 +1596,23 @@ public class AssuredReplicationServerTest
       int acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       int timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       Map<Integer,Integer> serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are eligible for receiving an assured update
-      List<Integer> eligibleServers = computeEligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, fakeRs3Gid, fakeRs3GenId);
-      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
-      List<Integer> expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen, fakeRs3Gid, fakeRs3GenId, fakeRs3Scen);
+      List<Integer> eligibleServers = computeEligibleServersSafeData(
+          fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, fakeRs3Gid, fakeRs3GenId);
+      List<Integer> expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen,
+                                                                     fakeRs2Gid, fakeRs2GenId, fakeRs2Scen,
+                                                                     fakeRs3Gid, fakeRs3GenId, fakeRs3Scen);
 
       // Send update
       long startTime = System.currentTimeMillis();
       fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
+      sleepWhileUpdatePropagates(500);
       // Check
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(1, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
-      checkWhatHasBeenReceivedSafeData(1, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, fakeRs2GenId, fakeRs3GenId, expectedServers);
+      checkTimeAndMonitoringSafeData(1, acknowledgedUpdates, timeoutUpdates, serverErrors,
+          sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
+      checkWhatHasBeenReceivedSafeData(1, otherFakeDS, otherFakeDsGenId,
+          fakeRs1GenId, fakeRs2GenId, fakeRs3GenId, expectedServers);
 
       /***********************************************************************
        * Send update from DS 1 (2 fake RSs available) and check what happened
@@ -1517,20 +1630,22 @@ public class AssuredReplicationServerTest
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are eligible for receiving an assured update
       eligibleServers = computeEligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs2Gid, fakeRs2GenId, -1, -1L);
-      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
-      expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, fakeRs2Gid, fakeRs2GenId, fakeRs2Scen, -1, -1L, -1);
+      expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen,
+                                                       fakeRs2Gid, fakeRs2GenId, fakeRs2Scen,
+                                                       -1, -1L, -1);
 
       // Send update
       startTime = System.currentTimeMillis();
       fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
+      sleepWhileUpdatePropagates(500);
       // Check
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(2, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
-      checkWhatHasBeenReceivedSafeData(2, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, fakeRs2GenId, -1L, expectedServers);
+      checkTimeAndMonitoringSafeData(2, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime,
+          nWishedServers, eligibleServers, expectedServers);
+      checkWhatHasBeenReceivedSafeData(2, otherFakeDS, otherFakeDsGenId,
+          fakeRs1GenId, fakeRs2GenId, -1L, expectedServers);
 
       /***********************************************************************
        * Send update from DS 1 (1 fake RS available) and check what happened
@@ -1548,10 +1663,9 @@ public class AssuredReplicationServerTest
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are eligible for receiving an assured update
       eligibleServers = computeEligibleServersSafeData(fakeRs1Gid, fakeRs1GenId, -1, -1L, -1, -1L);
-      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
-      expectedServers = computeExpectedServersSafeData(fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, -1, -1L, -1, -1, -1L, -1);
+      expectedServers = computeExpectedServersSafeData(
+          fakeRs1Gid, fakeRs1GenId, fakeRs1Scen, -1, -1L, -1, -1, -1L, -1);
 
       // Send update
       startTime = System.currentTimeMillis();
@@ -1559,8 +1673,9 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(3, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
+      sleepWhileUpdatePropagates(500);
+      checkTimeAndMonitoringSafeData(3, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime,
+          nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(3, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, -1L, -1L, expectedServers);
 
       /***********************************************************************
@@ -1579,9 +1694,7 @@ public class AssuredReplicationServerTest
       acknowledgedUpdates = fakeRd1.getAssuredSdAcknowledgedUpdates();
       timeoutUpdates = fakeRd1.getAssuredSdTimeoutUpdates();
       serverErrors = fakeRd1.getAssuredSdServerTimeoutUpdates();
-      // Compute the list of servers that are eligible for receiving an assured update
       eligibleServers = computeEligibleServersSafeData(-1, -1L, -1, -1L, -1, -1L);
-      // Compute the list of servers that are eligible for receiving an assured update and that are expected to effectively ack the update
       expectedServers = computeExpectedServersSafeData(-1, -1L, -1, -1, -1L, -1, -1, -1L, -1);
 
       // Send update
@@ -1590,8 +1703,9 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
-      checkTimeAndMonitoringSafeData(4, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
+      sleepWhileUpdatePropagates(500);
+      checkTimeAndMonitoringSafeData(4, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime,
+          nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(4, otherFakeDS, otherFakeDsGenId, -1L, -1L, -1L, expectedServers);
     } finally
     {
@@ -1600,11 +1714,22 @@ public class AssuredReplicationServerTest
   }
 
   /**
+   * Sleep a while:
+   * counters are updated just after sending thread is unblocked
+   * and let time for the update to reach other servers.
+   */
+  private void sleepWhileUpdatePropagates(int millis) throws InterruptedException
+  {
+    Thread.sleep(millis);
+  }
+
+  /**
    * Check that the DSs and the fake RSs of the topology have received/acked
    * what is expected according to the test step (the number of updates).
    * -1 for a gen id means no need to test the matching fake RS
    */
-  private void checkWhatHasBeenReceivedSafeData(int nSentUpdates, boolean otherFakeDS, long otherFakeDsGenId, long fakeRs1GenId, long fakeRs2GenId, long fakeRs3GenId, List<Integer> expectedServers)
+  private void checkWhatHasBeenReceivedSafeData(int nSentUpdates, boolean otherFakeDS, long otherFakeDsGenId,
+      long fakeRs1GenId, long fakeRs2GenId, long fakeRs3GenId, List<Integer> expectedServers)
   {
     final FakeReplicationDomain fakeRd1 = fakeRDs[1];
     final FakeReplicationDomain fakeRd2 = fakeRDs[2];
@@ -1642,8 +1767,9 @@ public class AssuredReplicationServerTest
    * Check the time the sending of the safe data assured update took and the monitoring
    * values according to the test configuration.
    */
-  private void checkTimeAndMonitoringSafeData(int nSentUpdates, int prevNAckUpdates, int prevNTimeoutUpdates, Map<Integer,Integer> prevNServerErrors, long sendUpdateTime,
-    int nWishedServers, List<Integer> eligibleServers, List<Integer> expectedServers)
+  private void checkTimeAndMonitoringSafeData(int nSentUpdates, int prevNAckUpdates, int prevNTimeoutUpdates,
+      Map<Integer, Integer> prevNServerErrors, long sendUpdateTime, int nWishedServers,
+      List<Integer> eligibleServers, List<Integer> expectedServers)
   {
     final FakeReplicationDomain fakeRd1 = fakeRDs[1];
     assertEquals(fakeRd1.getAssuredSdSentUpdates(), nSentUpdates);
@@ -1687,7 +1813,8 @@ public class AssuredReplicationServerTest
     // Check monitoring values (check that ack has been correctly received)
     assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates + 1);
     assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates);
-    checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, null); // Should have same value as previous one
+    // Should have same value as previous one
+    checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, null);
   }
 
   private void checkTimeOutOccured(long sendUpdateTime, int prevNAckUpdates,
@@ -1723,7 +1850,10 @@ public class AssuredReplicationServerTest
    * <li>if expectedServersInError is null or empty, both map should be equal</li>
    * </ul>
    */
-  private void checkServerErrors(Map<Integer,Integer> measuredServerErrors, Map<Integer,Integer> prevServerErrors, Set<Integer> expectedServersInError)
+  private void checkServerErrors(
+      Map<Integer, Integer> measuredServerErrors,
+      Map<Integer, Integer> prevServerErrors,
+      Set<Integer> expectedServersInError)
   {
     if (expectedServersInError != null)
     {
@@ -1776,11 +1906,13 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Compute the list of servers that are eligible for receiving a safe data
-   * assured update according to their group id and generation id. If -1 is
-   * used, the server is out of scope
+   * Compute the list of servers that are eligible for receiving a safe data assured update
+   * according to their group id and generation id.
+   * <p>
+   * If -1 is used, the server is out of scope
    */
-  private List<Integer> computeEligibleServersSafeData(int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
+  private List<Integer> computeEligibleServersSafeData(
+      int fakeRs1Gid, long fakeRs1GenId, int fakeRs2Gid, long fakeRs2GenId, int fakeRs3Gid, long fakeRs3GenId)
   {
     List<Integer> eligibleServers = new ArrayList<>(3);
     if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
@@ -1811,9 +1943,10 @@ public class AssuredReplicationServerTest
   }
 
   /**
-   * Compute the list of fake servers that are eligible for receiving a safe
-   * data assured update and that are expected to effectively ack the update. If
-   * -1 is used, the server is out of scope
+   * Compute the list of fake servers that are eligible for receiving a safe data assured update
+   * and that are expected to effectively ack the update.
+   * <p>
+   * If -1 is used, the server is out of scope.
    */
   private List<Integer> computeExpectedServersSafeData(
       int rs1Gid, long rs1GenId, int rs1Scen,
@@ -2028,7 +2161,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       assertEquals(fakeRd1.getAssuredSdSentUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), 0);
@@ -2083,7 +2216,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
 
       checkDSSentAndAcked(fakeRd1, 1);
       fakeRd1.assertReceivedUpdates(0);
@@ -2113,7 +2246,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
 
       final FakeReplicationDomain fakeRd2 = fakeRDs[2];
       checkDSSentAndAcked(fakeRd1, 2);
@@ -2143,7 +2276,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       checkDSSentAndAcked(fakeRd1, 3);
       checkDSReceivedAndAcked(fakeRd2, 2);
 
@@ -2173,7 +2306,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       checkDSSentAndAcked(fakeRd1, 4);
 
       // Sanity check
@@ -2202,7 +2335,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
 
       checkDSSentAndAcked(fakeRd1, 5);
       fakeRd1.assertReceivedUpdates(0);
@@ -2225,8 +2358,8 @@ public class AssuredReplicationServerTest
       {DEFAULT_GID, DEFAULT_GENID, REPLAY_ERROR_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
       {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, TIMEOUT_RS_SCENARIO},
       {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, DS_TIMEOUT_RS_SCENARIO_SAFE_READ},
-      {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ},
-      {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ},
+ {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ},
+ {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ},
       {OTHER_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, DEFAULT_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO},
       {DEFAULT_GID, DEFAULT_GENID, REPLY_OK_DS_SCENARIO, OTHER_GID, DEFAULT_GENID, REPLY_OK_RS_SCENARIO}
     };
@@ -2256,30 +2389,39 @@ public class AssuredReplicationServerTest
     // Other additional DS generation id
     objectArrayList = addPossibleParameters(objectArrayList, DEFAULT_GENID, OTHER_GENID);
     // Other additional DS scenario
-    objectArrayList = addPossibleParameters(objectArrayList, REPLY_OK_DS_SCENARIO, TIMEOUT_DS_SCENARIO, REPLAY_ERROR_DS_SCENARIO);
+    objectArrayList = addPossibleParameters(objectArrayList,
+        REPLY_OK_DS_SCENARIO, TIMEOUT_DS_SCENARIO, REPLAY_ERROR_DS_SCENARIO);
     // Other additional RS group id
     objectArrayList = addPossibleParameters(objectArrayList, DEFAULT_GID, OTHER_GID);
     // Other additional RS generation id
     objectArrayList = addPossibleParameters(objectArrayList, DEFAULT_GENID, OTHER_GENID);
     // Other additional RS scenario
-    objectArrayList = addPossibleParameters(objectArrayList, REPLY_OK_RS_SCENARIO, TIMEOUT_RS_SCENARIO, DS_TIMEOUT_RS_SCENARIO_SAFE_READ, DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ, DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ);
+    objectArrayList = addPossibleParameters(objectArrayList,
+        REPLY_OK_RS_SCENARIO, TIMEOUT_RS_SCENARIO, DS_TIMEOUT_RS_SCENARIO_SAFE_READ,
+        DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ, DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ);
 
     return toDataProvider(objectArrayList);
   }
 
   /**
-   * Test safe read mode with only one real RS deployment.
-   * Test that the RS is able to acknowledge SR updates with level higher than 1
-   * and also to return errors is some errors occur.
-   * - 1 main fake DS connected to the RS
-   * - 1 other fake DS connected to the RS, with same GID as RS and same GENID as RS and always acking without error
-   * - 1 other fake DS connected to the RS, with GID, GENID, scenario...changed through the provider
-   * - 1 fake RS connected to the RS (emulating one fake DS connected to it), with same GID as RS and always acking without error
-   * - 1 other fake RS connected to the RS (emulating one fake DS connected to it), with GID scenario...changed through the provider
-   *
+   * Test safe read mode with only one real RS deployment. Test that the RS is able to acknowledge
+   * SR updates with level higher than 1 and also to return errors is some errors occur.
+   * <ul>
+   * <li>1 main fake DS connected to the RS</li>
+   * <li>1 other fake DS connected to the RS, with same GID as RS and same GENID as RS and always
+   * acking without error</li>
+   * <li>1 other fake DS connected to the RS, with GID, GENID, scenario...changed through the
+   * provider</li>
+   * <li>1 fake RS connected to the RS (emulating one fake DS connected to it), with same GID as RS
+   * and always acking without error</li>
+   * <li>1 other fake RS connected to the RS (emulating one fake DS connected to it), with GID
+   * scenario...changed through the provider</li>
+   * <ul>
    * All possible combinations tested thanks to the provider.
+   * <p>
+   * Note: it is working but disabled as 17.5 minutes to run
    */
-  @Test(dataProvider = "testSafeReadOneRSComplexProvider", groups = "slow", enabled = false) // Working but disabled as 17.5 minutes to run
+  @Test(dataProvider = "testSafeReadOneRSComplexProvider", groups = "slow", enabled = false)
   public void testSafeReadOneRSComplex(int otherFakeDsGid, long otherFakeDsGenId, int otherFakeDsScen,
     int otherFakeRsGid, long otherFakeRsGenId, int otherFakeRsScen) throws Exception
   {
@@ -2352,7 +2494,8 @@ public class AssuredReplicationServerTest
       boolean shouldSeeTimeout = false;
       boolean shouldSeeWrongStatus = false;
       boolean shouldSeeReplayError = false;
-      // Booleans to tell if we expect to see the ds, rs and virtual ds connected to fake rs in server id error list
+      // Booleans to tell if we expect to see the ds, rs and virtual ds connected to fake rs
+      // in server id error list
       boolean shouldSeeDsIdInError = false;
       boolean shouldSeeRsIdInError = false;
       boolean shouldSeeDsRsIdInError = false;
@@ -2416,13 +2559,14 @@ public class AssuredReplicationServerTest
         assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, LONG_TIMEOUT);
       }
 
-      // Sleep a while as counters are updated just after sending thread is unblocked
-      Thread.sleep(500);
+      sleepWhileUpdatePropagates(500);
 
       // Check monitoring values in DS 1
       final SafeReadAssertions srAssertsRD1 = fakeRd1.newSafeReadAssertions().sentUpdates(1);
-      if ((otherFakeDsGid == DEFAULT_GID && otherFakeDsGenId == DEFAULT_GENID && otherFakeDsScen != REPLY_OK_DS_SCENARIO)
-         || (otherFakeRsGid == DEFAULT_GID && otherFakeRsGenId == DEFAULT_GENID && otherFakeRsScen != REPLY_OK_RS_SCENARIO))
+      if ((otherFakeDsGid == DEFAULT_GID && otherFakeDsGenId == DEFAULT_GENID
+                                         && otherFakeDsScen != REPLY_OK_DS_SCENARIO)
+         || (otherFakeRsGid == DEFAULT_GID && otherFakeRsGenId == DEFAULT_GENID
+                                           && otherFakeRsScen != REPLY_OK_RS_SCENARIO))
       {
         srAssertsRD1.notAcknowledgedUpdates(1);
       }
@@ -2478,7 +2622,8 @@ public class AssuredReplicationServerTest
         + "> inclusive");
   }
 
-  private void addExpectedErrors(SafeReadAssertions srAsserts, boolean dsInError, boolean rsInError, boolean dsRsInError)
+  private void addExpectedErrors(
+      SafeReadAssertions srAsserts, boolean dsInError, boolean rsInError, boolean dsRsInError)
   {
     if (dsInError)
     {
@@ -2537,16 +2682,12 @@ public class AssuredReplicationServerTest
       int numberOfRealRSs = 4;
 
       // Create real RS 1, 2, 3
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, numberOfRealRSs);
-      rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, numberOfRealRSs);
-      rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, numberOfRealRSs);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, numberOfRealRSs);
+      rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, numberOfRealRSs);
+      rs3 = createReplicationServer(RS3_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, numberOfRealRSs);
 
       // Create real RS 4 (different GID 2)
-      rs4 = createReplicationServer(RS4_ID, OTHER_GID_BIS, SMALL_TIMEOUT,
-        testCase, numberOfRealRSs);
+      rs4 = createReplicationServer(RS4_ID, OTHER_GID_BIS, SMALL_TIMEOUT, testCase, numberOfRealRSs);
 
       /*
        * Start DS 1 that will send assured updates
@@ -2649,7 +2790,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(1000);
 
       checkDSSentAndAcked(fakeRd1, 1);
 
@@ -2678,7 +2819,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(1000);
 
       checkDSSentAndAcked(fakeRd1, 2);
 
@@ -2764,10 +2905,8 @@ public class AssuredReplicationServerTest
       int numberOfRealRSs = 2;
 
       // Create real RS 1, 2
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT,
-        testCase, numberOfRealRSs);
-      rs2 = createReplicationServer(RS2_ID, OTHER_GID, SMALL_TIMEOUT,
-        testCase, numberOfRealRSs);
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT, testCase, numberOfRealRSs);
+      rs2 = createReplicationServer(RS2_ID, OTHER_GID, SMALL_TIMEOUT, testCase, numberOfRealRSs);
 
       /*
        * Start DSs with GID=DEFAULT_GID, connected to RS1
@@ -2808,7 +2947,7 @@ public class AssuredReplicationServerTest
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
 
       checkDSSentAndAcked(fakeRDs[1], 1);
       checkDSReceivedAndAcked(fakeRDs[2], 1);
@@ -2865,7 +3004,8 @@ public class AssuredReplicationServerTest
       int numberOfRealRSs = 2;
 
       // Create real RS 1, 2
-      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT + 1000, // Be sure DS2 timeout is seen from DS1
+      // Be sure DS2 timeout is seen from DS1
+      rs1 = createReplicationServer(RS1_ID, DEFAULT_GID, SMALL_TIMEOUT + 1000,
         testCase, numberOfRealRSs);
       rs2 = createReplicationServer(RS2_ID, DEFAULT_GID, SMALL_TIMEOUT,
         testCase, numberOfRealRSs);
@@ -2908,7 +3048,7 @@ public class AssuredReplicationServerTest
       }
 
       // Check monitoring values (check that ack has been correctly received)
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
 
       final FakeReplicationDomain fakeRd2 = fakeRDs[2];
       if (fakeDsIsEligible)
@@ -3027,7 +3167,7 @@ public class AssuredReplicationServerTest
       // Wait for DS2 being degraded
       expectStatusForDS(fakeRd1, ServerStatus.DEGRADED_STATUS, FDS2_ID);
 
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       fakeRd1.newSafeReadAssertions()
           .sentUpdates(4)
           .notAcknowledgedUpdates(4)
@@ -3051,7 +3191,7 @@ public class AssuredReplicationServerTest
       // RS should ack quickly as DS2 degraded and not eligible for assured
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       fakeRd1.newSafeReadAssertions()
           .sentUpdates(5)
           .acknowledgedUpdates(1)
@@ -3102,7 +3242,7 @@ public class AssuredReplicationServerTest
       // RS should ack quickly as DS2 degraded and not eligible for assured
       assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
-      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      sleepWhileUpdatePropagates(500);
       fakeRd1.newSafeReadAssertions()
           .sentUpdates(6)
           .acknowledgedUpdates(2)

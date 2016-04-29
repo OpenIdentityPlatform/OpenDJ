@@ -26,14 +26,13 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.AttributeValuePasswordValidatorCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
@@ -407,9 +406,8 @@ public class AttributeValuePasswordValidatorTestCase
     ArrayList<Modification> mods = CollectionUtils.newArrayList(
         new Modification(ModificationType.REPLACE, Attributes.create("userpassword", password)));
 
-    InternalClientConnection conn = getRootConnection();
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
@@ -422,7 +420,7 @@ public class AttributeValuePasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 
-  private AttributeValuePasswordValidator initializePasswordValidator(Entry configEntry) throws ConfigException, InitializationException {
+  private AttributeValuePasswordValidator initializePasswordValidator(Entry configEntry) throws Exception {
     return InitializationUtils.initializePasswordValidator(
         new AttributeValuePasswordValidator(), configEntry, AttributeValuePasswordValidatorCfgDefn.getInstance());
   }

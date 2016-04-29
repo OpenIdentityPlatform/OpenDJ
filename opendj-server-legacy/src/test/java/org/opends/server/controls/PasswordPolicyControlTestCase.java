@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.controls.PasswordPolicyErrorType.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -108,7 +109,7 @@ public class PasswordPolicyControlTestCase
       SimpleBindRequest bindRequest = newSimpleBindRequest("uid=test.user,o=test", "password".toCharArray())
           .addControl(newPasswordPolicyControl());
       LDAPMessage bindMessage = conn.bind(bindRequest, false);
-      assertTrue(passwordPolicyControlExists(bindMessage.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(bindMessage.getControls(), CHANGE_AFTER_RESET));
 
       AddRequest addRequest = newAddRequest("ou=People,o=test")
           .addAttribute("objectClass", "organizationalUnit")
@@ -118,7 +119,7 @@ public class PasswordPolicyControlTestCase
 
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), CHANGE_AFTER_RESET));
     }
     finally
     {
@@ -153,7 +154,7 @@ public class PasswordPolicyControlTestCase
       LDAPMessage message = c.add(addRequest, false);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
+      assertTrue(passwordPolicyControlExists(message.getControls(), INSUFFICIENT_PASSWORD_QUALITY));
     }
   }
 
@@ -212,7 +213,7 @@ public class PasswordPolicyControlTestCase
       LDAPMessage message = c.add(addRequest, false);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertNotEquals(addResponse.getResultCode(), LDAPResultCode.SUCCESS);
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY));
+      assertTrue(passwordPolicyControlExists(message.getControls(), INSUFFICIENT_PASSWORD_QUALITY));
     }
     finally
     {
@@ -267,7 +268,7 @@ public class PasswordPolicyControlTestCase
 
       LDAPMessage message = c.bind(request, false);
       assertNotEquals(message.getBindResponseProtocolOp().getResultCode(), LDAPResultCode.SUCCESS);
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.ACCOUNT_LOCKED));
+      assertTrue(passwordPolicyControlExists(message.getControls(), ACCOUNT_LOCKED));
     }
     finally
     {
@@ -312,7 +313,7 @@ public class PasswordPolicyControlTestCase
       CompareResponseProtocolOp compareResponse = message.getCompareResponseProtocolOp();
       assertNotEquals(compareResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), CHANGE_AFTER_RESET));
     }
     finally
     {
@@ -368,7 +369,7 @@ public class PasswordPolicyControlTestCase
       DeleteResponseProtocolOp deleteResponse = message.getDeleteResponseProtocolOp();
       assertNotEquals(deleteResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), CHANGE_AFTER_RESET));
     }
     finally
     {
@@ -489,8 +490,7 @@ public class PasswordPolicyControlTestCase
             pwpControl = (PasswordPolicyResponseControl)c;
           }
           if (changeAfterReset) {
-            assertEquals(pwpControl.getErrorType(),
-                         PasswordPolicyErrorType.CHANGE_AFTER_RESET);
+            assertEquals(pwpControl.getErrorType(), CHANGE_AFTER_RESET);
           } else {
             assertNull(pwpControl.getErrorType());
           }
@@ -579,7 +579,7 @@ public class PasswordPolicyControlTestCase
       ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertEquals(modifyResponse.getResultCode(), LDAPResultCode.CONSTRAINT_VIOLATION);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), CHANGE_AFTER_RESET));
     }
     finally
     {
@@ -628,7 +628,7 @@ public class PasswordPolicyControlTestCase
       ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PASSWORD_MOD_NOT_ALLOWED));
     }
     finally
     {
@@ -675,7 +675,7 @@ public class PasswordPolicyControlTestCase
       ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.PASSWORD_IN_HISTORY));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PASSWORD_IN_HISTORY));
     }
     finally
     {
@@ -724,7 +724,7 @@ public class PasswordPolicyControlTestCase
       ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD));
+      assertTrue(passwordPolicyControlExists(message.getControls(), MUST_SUPPLY_OLD_PASSWORD));
     }
     finally
     {
@@ -773,7 +773,7 @@ public class PasswordPolicyControlTestCase
       ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
       assertNotEquals(modifyResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.PASSWORD_TOO_YOUNG));
+      assertTrue(passwordPolicyControlExists(message.getControls(), PASSWORD_TOO_YOUNG));
     }
     finally
     {
@@ -826,7 +826,7 @@ public class PasswordPolicyControlTestCase
       ModifyDNResponseProtocolOp modifyDNResponse = message.getModifyDNResponseProtocolOp();
       assertNotEquals(modifyDNResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), CHANGE_AFTER_RESET));
     }
     finally
     {
@@ -872,7 +872,7 @@ public class PasswordPolicyControlTestCase
       SearchResultDoneProtocolOp searchDone = message.getSearchResultDoneProtocolOp();
       assertNotEquals(searchDone.getResultCode(), LDAPResultCode.SUCCESS);
 
-      assertTrue(passwordPolicyControlExists(message.getControls(), PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+      assertTrue(passwordPolicyControlExists(message.getControls(), CHANGE_AFTER_RESET));
     }
     finally
     {

@@ -12,38 +12,27 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2013-2014 Manuel Gaupp
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-import org.opends.server.protocols.asn1.GSERParser;
-import org.opends.server.protocols.asn1.GSERException;
 import org.opends.server.DirectoryServerTestCase;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-/**
- * This class tests the GSERParser.
- */
+/** This class tests the GSERParser. */
 public class GSERParserTestCase extends DirectoryServerTestCase
 {
-
-  /**
-   * Try to create a GSER Parser with <CODE>null</CODE> as parameter.
-   */
-  @Test(expectedExceptions = { NullPointerException.class })
+  /** Try to create a GSER Parser with <CODE>null</CODE> as parameter. */
+  @Test(expectedExceptions = NullPointerException.class)
   public void testGSERParserInitWithNull () throws Exception
   {
-    GSERParser parser = new GSERParser(null);
+    new GSERParser(null);
   }
 
-
-
-  /**
-   * Test the <CODE>hasNext</CODE> method.
-   */
+  /** Test the <CODE>hasNext</CODE> method. */
   @Test
   public void testHasNext() throws Exception
   {
@@ -53,11 +42,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     assertFalse(parser.hasNext());
   }
 
-
-
-  /**
-   * Test the <CODE>skipSP</CODE> method.
-   */
+  /** Test the <CODE>skipSP</CODE> method. */
   @Test
   public void testSkipSP() throws Exception
   {
@@ -70,11 +55,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     }
   }
 
-
-
-  /**
-   * Test the <CODE>skipMSP</CODE> method.
-   */
+  /** Test the <CODE>skipMSP</CODE> method. */
   @Test
   public void testSkipMSP() throws Exception
   {
@@ -87,23 +68,15 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     }
   }
 
-
-
-  /**
-   * Verify that <CODE>skipMSP</CODE> requires at least one space.
-   */
-  @Test(expectedExceptions = { GSERException.class })
+  /** Verify that <CODE>skipMSP</CODE> requires at least one space. */
+  @Test(expectedExceptions = GSERException.class)
   public void testSkipMSPwithZeroSpaces() throws Exception
   {
     GSERParser parser = new GSERParser("42");
     parser.skipMSP();
   }
 
-
-
-  /**
-   * Create data for the <CODE>testSequence</CODE> test case.
-   */
+  /** Create data for the <CODE>testSequence</CODE> test case. */
   @DataProvider(name="sequenceValues")
   public Object[][] createSequenceValues()
   {
@@ -119,17 +92,13 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     };
   }
 
-
-
-  /**
-   * Test sequence parsing.
-   */
+  /** Test sequence parsing. */
   @Test(dataProvider="sequenceValues")
   public void testSequence(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);
     boolean result = true;
-    try 
+    try
     {
       parser.readStartSequence();
       parser.nextInteger();
@@ -148,11 +117,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     assertEquals(expectedResult,result);
   }
 
-
-
-  /**
-   * Create data for the <CODE>testString</CODE> test case.
-   */
+  /** Create data for the <CODE>testString</CODE> test case. */
   @DataProvider(name="stringValues")
   public Object[][] createStringValues()
   {
@@ -167,17 +132,13 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     };
   }
 
-
-
-  /**
-   * Test the parsing of String values.
-   */
+  /** Test the parsing of String values. */
   @Test(dataProvider="stringValues")
   public void testString(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);
     boolean result = true;
-    try 
+    try
     {
       assertNotNull(parser.nextString());
       if (parser.hasNext())
@@ -192,11 +153,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     assertEquals(expectedResult,result);
   }
 
-
-
-  /**
-   * Create data for the <CODE>testInteger</CODE> test case.
-   */
+  /** Create data for the <CODE>testInteger</CODE> test case. */
   @DataProvider(name="integerValues")
   public Object[][] createIntegerValues()
   {
@@ -211,11 +168,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     };
   }
 
-
-
-  /**
-   * Create data for the <CODE>testBigInteger</CODE> test case.
-   */
+  /** Create data for the <CODE>testBigInteger</CODE> test case. */
   @DataProvider(name="bigIntegerValues")
   public Object[][] createBigIntegerValues()
   {
@@ -231,17 +184,13 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     };
   }
 
-
-
-  /**
-   * Test the parsing of Integer values.
-   */
+  /** Test the parsing of Integer values. */
   @Test(dataProvider="integerValues")
   public void testInteger(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);
     boolean result = true;
-    try 
+    try
     {
       parser.nextInteger();
       if (parser.hasNext())
@@ -256,17 +205,13 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     assertEquals(expectedResult,result);
   }
 
-
-
-  /**
-   * Test the parsing of BigInteger values.
-   */
+  /** Test the parsing of BigInteger values. */
   @Test(dataProvider="bigIntegerValues")
   public void testBigInteger(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);
     boolean result = true;
-    try 
+    try
     {
       parser.nextBigInteger();
       if (parser.hasNext())
@@ -281,11 +226,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     assertEquals(expectedResult,result);
   }
 
-
-
-  /**
-   * Create data for the <CODE>testNamedValueIdentifier</CODE> test case.
-   */
+  /** Create data for the <CODE>testNamedValueIdentifier</CODE> test case. */
   @DataProvider(name="namedValueIdentifierValues")
   public Object[][] createNamedValueIdentifierValues()
   {
@@ -299,17 +240,13 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     };
   }
 
-
-
-  /**
-   * Test the parsing of NamedValue identifiers.
-   */
+  /** Test the parsing of NamedValue identifiers. */
   @Test(dataProvider="namedValueIdentifierValues")
   public void testNamedValueIdentifier(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);
     boolean result = true;
-    try 
+    try
     {
       assertNotNull(parser.nextNamedValueIdentifier());
       if (parser.hasNext())
@@ -324,11 +261,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     assertEquals(expectedResult,result);
   }
 
-
-
-  /**
-   * Create data for the <CODE>testIdentifiedChoiceIdentifier</CODE> test case.
-   */
+  /** Create data for the <CODE>testIdentifiedChoiceIdentifier</CODE> test case. */
   @DataProvider(name="identifiedChoicdeIdentifierValues")
   public Object[][] createIdentifiedChoicdeIdentifierValues()
   {
@@ -342,17 +275,13 @@ public class GSERParserTestCase extends DirectoryServerTestCase
     };
   }
 
-
-
-  /**
-   * Test the parsing of IdentifiedChoice identifiers.
-   */
+  /** Test the parsing of IdentifiedChoice identifiers. */
   @Test(dataProvider="identifiedChoicdeIdentifierValues")
   public void testIdentifiedChoicdeIdentifier(String value, boolean expectedResult) throws Exception
   {
     GSERParser parser = new GSERParser(value);
     boolean result = true;
-    try 
+    try
     {
       assertNotNull(parser.nextChoiceValueIdentifier());
       if (parser.hasNext())

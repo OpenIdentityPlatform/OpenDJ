@@ -19,16 +19,16 @@ package org.opends.server.extensions;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.server.config.meta.FileBasedTrustManagerProviderCfgDefn;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.server.config.meta.FileBasedTrustManagerProviderCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
 
@@ -155,7 +155,7 @@ public class FileBasedTrustManagerProviderTestCase
          throws Exception
   {
     FileBasedTrustManagerProvider provider = initializeTrustManagerProvider(e);
-	provider.finalizeTrustManagerProvider();
+    provider.finalizeTrustManagerProvider();
   }
 
 
@@ -281,7 +281,7 @@ public class FileBasedTrustManagerProviderTestCase
     }
   }
 
-  private FileBasedTrustManagerProvider initializeTrustManagerProvider(Entry e) throws ConfigException, InitializationException {
+  private FileBasedTrustManagerProvider initializeTrustManagerProvider(Entry e) throws Exception {
     return InitializationUtils.initializeTrustManagerProvider(
         new FileBasedTrustManagerProvider(), e, FileBasedTrustManagerProviderCfgDefn.getInstance());
   }

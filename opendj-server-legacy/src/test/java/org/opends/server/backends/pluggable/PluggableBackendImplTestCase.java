@@ -858,7 +858,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     searchOperation = new InternalSearchOperation(connection, 1, 1, request, null);
     searchOperation.run();
     assertThat(searchOperation.getResultCode()).isEqualTo(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-    assertThat(searchOperation.getErrorMessage().toString()).contains("not have sufficient privileges", "unindexed search");
+    assertThat(searchOperation.getErrorMessage().toString())
+    .contains("not have sufficient privileges", "unindexed search");
     assertThat(searchOperation.getEntriesSent()).isEqualTo(0);
   }
 
@@ -963,7 +964,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     assertEquals(backend.getNumberOfChildren(testBaseDN), 1,
                  "Not enough entries in DIT.");
     /** -2 for baseDn and People entry */
-    assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))), getTotalNumberOfLDIFEntries() - 2,
+    assertEquals(backend.getNumberOfChildren(testBaseDN.child(DN.valueOf("ou=People"))),
+                 getTotalNumberOfLDIFEntries() - 2,
                  "Not enough entries in DIT.");
 
     VerifyConfig config = new VerifyConfig();
@@ -1048,7 +1050,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   {
     final EntryContainer entryContainer =  backend.getRootContainer().getEntryContainers().iterator().next();
 
-    final Set<String> dirtyIndexes = new HashSet<>(Arrays.asList(new String[] { "sn", "uid", "telephoneNumber" }));
+    final Set<String> dirtyIndexes = new HashSet<>(Arrays.asList("sn", "uid", "telephoneNumber"));
     assertThat(backendIndexes.keySet()).containsAll(dirtyIndexes);
 
     // Delete all the indexes
@@ -1100,7 +1102,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
   {
     final Storage storage = backend.getRootContainer().getStorage();
     final DN2ID dn2ID = backend.getRootContainer().getEntryContainer(testBaseDN).getDN2ID();
-    final ID2ChildrenCount id2ChildrenCount = backend.getRootContainer().getEntryContainer(testBaseDN).getID2ChildrenCount();
+    final ID2ChildrenCount id2ChildrenCount =
+        backend.getRootContainer().getEntryContainer(testBaseDN).getID2ChildrenCount();
 
     final VerifyConfig config = new VerifyConfig();
     config.setBaseDN(DN.valueOf("dc=test,dc=com"));
@@ -1171,7 +1174,9 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
         @Override
         public void run(WriteableTransaction txn) throws Exception
         {
-          txn.put(new TreeName("dc=test,dc=com", "id2entry"), ByteString.valueOfUtf8("key"), ByteString.valueOfUtf8("value"));
+          txn.put(new TreeName("dc=test,dc=com", "id2entry"),
+                  ByteString.valueOfUtf8("key"),
+                  ByteString.valueOfUtf8("value"));
         }
       });
     }

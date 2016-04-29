@@ -181,9 +181,8 @@ public class PersistentSearchControlTest extends ControlsTestCase
     }
     catch (LDAPException expected)
     {
-      assertEquals(
-          expected.getMessage(),
-          "The provided integer value indicated that there were no persistent search change types, which is not allowed");
+      assertEquals(expected.getMessage(),
+      "The provided integer value indicated that there were no persistent search change types, which is not allowed");
     }
 
     // We should have an exception

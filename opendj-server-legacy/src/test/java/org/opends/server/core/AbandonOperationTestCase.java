@@ -203,7 +203,8 @@ public class AbandonOperationTestCase
     {
       // Send the abandon request to the server and wait a few seconds to ensure
       // it has completed before closing the connection.
-      conn.writeMessage(new AbandonRequestProtocolOp(1), DisconnectClientPlugin.createDisconnectControlList("PreParse"));
+      conn.writeMessage(new AbandonRequestProtocolOp(1),
+                        DisconnectClientPlugin.createDisconnectControlList("PreParse"));
 
       Thread.sleep(3000);
     }

@@ -341,7 +341,7 @@ public class LengthBasedPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 
-  private LengthBasedPasswordValidator initializePasswordValidator(Entry validatorEntry) throws ConfigException, InitializationException {
+  private LengthBasedPasswordValidator initializePasswordValidator(Entry validatorEntry) throws Exception {
     return InitializationUtils.initializePasswordValidator(
         new LengthBasedPasswordValidator(), validatorEntry, LengthBasedPasswordValidatorCfgDefn.getInstance());
   }

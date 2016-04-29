@@ -54,7 +54,8 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
       { "o=test1:", "o=test1:;" },
       { ";;o=test1:;;", ":;o=test1:;" },
       { cookie, cookie + ";" },
-      { "o=test1:" + csn1 + ";o=test2:" + csn2 + ";;o=test6:", ":;o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:;" },
+      { "o=test1:" + csn1 + ";o=test2:" + csn2 + ";;o=test6:",
+        ":;o=test1:" + csn1 + ";o=test2:" + csn2 + ";o=test6:;" },
     };
   }
 

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -120,9 +120,9 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
 
     assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
-  
+
   /**
-   *  --bindPassword and the --bindPasswordFile arguments can not be provided 
+   *  --bindPassword and the --bindPasswordFile arguments can not be provided
    *  together.
    */
   @Test
@@ -163,7 +163,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
 
     assertEquals(DSConfig.main(args, System.out, System.err), CONFLICTING_ARGS.get());
   }
-  
+
   /**
    * Tests list-connection-handlers with an invalid password.
    */
@@ -254,7 +254,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
 
     assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
-  
+
   /**
    * Tests list-connection-handlers over SSL using a trust store.
    */
@@ -263,7 +263,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "admin-truststore";
-    
+
     String[] args =
     {
       "-n",

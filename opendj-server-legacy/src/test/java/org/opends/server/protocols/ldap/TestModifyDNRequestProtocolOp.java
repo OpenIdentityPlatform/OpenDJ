@@ -12,71 +12,44 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
-import org.forgerock.opendj.io.*;
-import org.opends.server.types.LDAPException;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.types.LDAPException;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocol.ldap.ModifyDNRequestProtocolOp class.
  */
 public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
-  /**
-   * The protocol op type for modify DN requests.
-   */
+  /** The protocol op type for modify DN requests. */
   public static final byte OP_TYPE_MODIFY_DN_REQUEST = 0x6C;
-
-
-
-  /**
-   * The protocol op type for modify DN responses.
-   */
+  /** The protocol op type for modify DN responses. */
   public static final byte OP_TYPE_MODIFY_DN_RESPONSE = 0x6D;
 
-  /**
-   * The DN for modify DN requests in this test case.
-   */
-  private static final ByteString dn =
-      ByteString.valueOfUtf8("dc=example,dc=com");
-
-  /**
-   * The alt DN for modify DN requests in this test case.
-   */
-  private static final ByteString altDn =
-      ByteString.valueOfUtf8("dc=alt,dc=example,dc=com");
-
-  /**
-   * The new DN for modify DN requests in this test case.
-   */
-  private static final ByteString newRdn =
-      ByteString.valueOfUtf8("dc=example-new");
-
-  /**
-   * The alt new DN for modify DN requests in this test case.
-   */
-  private static final ByteString altNewRdn =
-      ByteString.valueOfUtf8("ou=alt,dc=example-new");
-
-  /**
-   * The new superiour DN for modify DN requests in this test case.
-   */
-  private static final ByteString newSuperiorDn =
-      ByteString.valueOfUtf8("dc=widget,dc=com");
-
-  /**
-   * The alt new superiour DN for modify DN requests in this test case.
-   */
-  private static final ByteString altNewSuperiorDn =
-      ByteString.valueOfUtf8("dc=alt,dc=widget,dc=com");
+  /** The DN for modify DN requests in this test case. */
+  private static final ByteString dn = ByteString.valueOfUtf8("dc=example,dc=com");
+  /** The alt DN for modify DN requests in this test case. */
+  private static final ByteString altDn = ByteString.valueOfUtf8("dc=alt,dc=example,dc=com");
+  /** The new DN for modify DN requests in this test case. */
+  private static final ByteString newRdn = ByteString.valueOfUtf8("dc=example-new");
+  /** The alt new DN for modify DN requests in this test case. */
+  private static final ByteString altNewRdn = ByteString.valueOfUtf8("ou=alt,dc=example-new");
+  /** The new superiour DN for modify DN requests in this test case. */
+  private static final ByteString newSuperiorDn = ByteString.valueOfUtf8("dc=widget,dc=com");
+  /** The alt new superiour DN for modify DN requests in this test case. */
+  private static final ByteString altNewSuperiorDn = ByteString.valueOfUtf8("dc=alt,dc=widget,dc=com");
 
   /**
    * Test to make sure the class processes the right LDAP op type.
@@ -283,16 +256,15 @@ public class TestModifyDNRequestProtocolOp extends DirectoryServerTestCase {
   {
     ModifyDNRequestProtocolOp modifyRequest;
     StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
 
-    modifyRequest = new ModifyDNRequestProtocolOp(dn, newRdn, true,
-                                                  newSuperiorDn);
+    modifyRequest = new ModifyDNRequestProtocolOp(dn, newRdn, true, newSuperiorDn);
     modifyRequest.toString(buffer);
 
-    key.append("ModifyDNRequest(dn=").append(dn).append(", newRDN=").append(newRdn).append(", ").append("deleteOldRDN=").append(true).append(", newSuperior=")
-        .append(newSuperiorDn).append(")");
+    String expected =
+        "ModifyDNRequest(dn=" + dn + ", newRDN=" + newRdn + ", " + "deleteOldRDN=" + true + ", newSuperior="
+            + newSuperiorDn + ")";
 
-    assertEquals(buffer.toString(), key.toString());
+    assertEquals(buffer.toString(), expected);
   }
 
   /**

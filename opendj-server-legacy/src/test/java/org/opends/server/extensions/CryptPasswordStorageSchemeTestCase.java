@@ -131,15 +131,18 @@ public class CryptPasswordStorageSchemeTestCase
   {
     return new Object[][]
     {
-      new Object[] { "secret12", "{CRYPT}$1$X40CcMaA$dd3ndknBLcpkED4/RciyD1" },
-      new Object[] { "#1 Strong Password!", "{CRYPT}$1$7jHbWKyy$gAmpOSdaYVap55MwsQnK5/" },
-      new Object[] { "foo", "{CRYPT}$1$ac/Z7Q3s$5kTVLqMSq9KMqUVyEBfiw0" },
-      new Object[] { "secret12", "{CRYPT}$5$miWe9yahchas7aiy$b/6oTh5QF3bqbdIDWmjtdOxD8df75426zTHwF.MJuyB" },
-      new Object[] { "foo", "{CRYPT}$5$aZoothaeDai0nooG$5LDMuhK6gWtH6/mrrqZbRc5aIRROfrKri4Tvl/D6Z.0"},
-      new Object[] { "#1 Strong Password!", "{CRYPT}$5$aZoothaeDai0nooG$6o0Sbx/RtTA4K/A8uflMsSCid3i7TYktcwWxIp5NFy2"},
-      new Object[] { "secret12", "{CRYPT}$6$miWe9yahchas7aiy$RQASn5qZMCu2FDsR69RHk1RoLVi3skFUhS0qGNCo.MymgkYoWAedMji09UzxMFzOj8fW2GnzsXT4RVn9gcNmf0" },
-      new Object[] { "#1 Strong Password!", "{CRYPT}$6$p0NJY6r4$VV2JfNtRaTmy8hBtVpdgeIUYQIAUyfdLyhiH6VxzsDIw.28oCsVeMQ5ARiL/PoOambM9dAU3vk4ll8uEB/nnx0"},
-      new Object[] { "foo", "{CRYPT}$6$aZoothaeDai0nooG$1K9ePro8ujsqRy/Ag77OVuev8Y8hyN1Jp10S2t9S.1RMtkKn/SbxQbl2MezoL0UJFYjrEzL0zVdO8PcfT3yXS."}
+      { "secret12", "{CRYPT}$1$X40CcMaA$dd3ndknBLcpkED4/RciyD1" },
+      { "#1 Strong Password!", "{CRYPT}$1$7jHbWKyy$gAmpOSdaYVap55MwsQnK5/" },
+      { "foo", "{CRYPT}$1$ac/Z7Q3s$5kTVLqMSq9KMqUVyEBfiw0" },
+      { "secret12", "{CRYPT}$5$miWe9yahchas7aiy$b/6oTh5QF3bqbdIDWmjtdOxD8df75426zTHwF.MJuyB" },
+      { "foo", "{CRYPT}$5$aZoothaeDai0nooG$5LDMuhK6gWtH6/mrrqZbRc5aIRROfrKri4Tvl/D6Z.0"},
+      { "#1 Strong Password!", "{CRYPT}$5$aZoothaeDai0nooG$6o0Sbx/RtTA4K/A8uflMsSCid3i7TYktcwWxIp5NFy2"},
+      { "secret12",
+ "{CRYPT}$6$miWe9yahchas7aiy$RQASn5qZMCu2FDsR69RHk1RoLVi3skFUhS0qGNCo.MymgkYoWAedMji09UzxMFzOj8fW2GnzsXT4RVn9gcNmf0" },
+      { "#1 Strong Password!",
+ "{CRYPT}$6$p0NJY6r4$VV2JfNtRaTmy8hBtVpdgeIUYQIAUyfdLyhiH6VxzsDIw.28oCsVeMQ5ARiL/PoOambM9dAU3vk4ll8uEB/nnx0"},
+      { "foo",
+ "{CRYPT}$6$aZoothaeDai0nooG$1K9ePro8ujsqRy/Ag77OVuev8Y8hyN1Jp10S2t9S.1RMtkKn/SbxQbl2MezoL0UJFYjrEzL0zVdO8PcfT3yXS."}
     };
   }
 

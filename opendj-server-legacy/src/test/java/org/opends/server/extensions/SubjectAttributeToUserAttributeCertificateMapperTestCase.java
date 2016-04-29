@@ -181,9 +181,9 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
          throws Exception
   {
     InitializationUtils.initializeCertificateMapper(
-    		new SubjectAttributeToUserAttributeCertificateMapper(),
-    		e,
-    		SubjectAttributeToUserAttributeCertificateMapperCfgDefn.getInstance());
+                new SubjectAttributeToUserAttributeCertificateMapper(),
+                e,
+                SubjectAttributeToUserAttributeCertificateMapperCfgDefn.getInstance());
   }
 
 

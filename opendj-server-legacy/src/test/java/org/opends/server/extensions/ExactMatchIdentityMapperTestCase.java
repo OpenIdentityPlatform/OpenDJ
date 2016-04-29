@@ -702,8 +702,7 @@ public class ExactMatchIdentityMapperTestCase
     mapper.finalizeIdentityMapper();
   }
 
-  private ExactMatchIdentityMapper initializeIdentityMapper(Entry mapperEntry)
-      throws ConfigException, InitializationException {
+  private ExactMatchIdentityMapper initializeIdentityMapper(Entry mapperEntry) throws Exception {
     return InitializationUtils.initializeIdentityMapper(
         new ExactMatchIdentityMapper(), mapperEntry, ExactMatchIdentityMapperCfgDefn.getInstance());
   }

@@ -21,26 +21,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
 
-import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.server.config.meta.DictionaryPasswordValidatorCfgDefn;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.Control;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.server.config.meta.DictionaryPasswordValidatorCfgDefn;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -644,10 +644,8 @@ public class DictionaryPasswordValidatorTestCase
     ArrayList<Modification> mods = newArrayList(
         new Modification(REPLACE, Attributes.create("userpassword", password)));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(),
                              DN.valueOf("uid=test.user,o=test"), mods);
 
@@ -660,8 +658,7 @@ public class DictionaryPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 
-  private DictionaryPasswordValidator initializePasswordValidator(Entry configEntry)
-      throws ConfigException, InitializationException {
+  private DictionaryPasswordValidator initializePasswordValidator(Entry configEntry) throws Exception {
     return InitializationUtils.initializePasswordValidator(
         new DictionaryPasswordValidator(), configEntry, DictionaryPasswordValidatorCfgDefn.getInstance());
   }

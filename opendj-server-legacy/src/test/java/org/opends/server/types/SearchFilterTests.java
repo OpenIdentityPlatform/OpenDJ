@@ -17,8 +17,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -97,12 +96,10 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     runRecreateFilterTest(originalFilter, expectedToStringFilter);
   }
 
-  private void runRecreateFilterTest(
-          String originalFilter,
-          String expectedToStringFilter
-  ) throws DirectoryException {
+  private void runRecreateFilterTest(String originalFilter, String expectedToStringFilter) throws DirectoryException {
     String regenerated = SearchFilter.createFilterFromString(originalFilter).toString();
-    Assert.assertEquals(regenerated, expectedToStringFilter, "original=" + originalFilter + ", expected=" + expectedToStringFilter);
+    assertEquals(regenerated, expectedToStringFilter,
+        "original=" + originalFilter + ", expected=" + expectedToStringFilter);
   }
 
   /** These are valid filters. */
@@ -974,7 +971,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   @Test(dataProvider = "equalsTest")
-  public void testEquals(String stringFilter1, String stringFilter2, boolean expectEquals, boolean expectStringEquals) throws Exception {
+  public void testEquals(String stringFilter1, String stringFilter2, boolean expectEquals, boolean expectStringEquals)
+      throws Exception {
     SearchFilter filter1 = SearchFilter.createFilterFromString(stringFilter1);
     SearchFilter filter2 = SearchFilter.createFilterFromString(stringFilter2);
 

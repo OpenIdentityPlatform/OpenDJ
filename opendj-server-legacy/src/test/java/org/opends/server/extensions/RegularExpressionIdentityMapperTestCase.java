@@ -143,8 +143,7 @@ public class RegularExpressionIdentityMapperTestCase
     mapper.initializeIdentityMapper(configuration);
   }
 
-  private RegularExpressionIdentityMapper initializeIdentityMapper(Entry mapperEntry)
-      throws ConfigException, InitializationException {
+  private RegularExpressionIdentityMapper initializeIdentityMapper(Entry mapperEntry) throws Exception {
     RegularExpressionIdentityMapperCfg configuration = getConfiguration(mapperEntry);
     RegularExpressionIdentityMapper mapper = new RegularExpressionIdentityMapper();
     assertTrue(mapper.isConfigurationAcceptable(configuration, new LinkedList<LocalizableMessage>()));

@@ -299,7 +299,8 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     for (Pair<Long, Integer> region : regions)
     {
       buffer.position(region.getFirst().intValue()).limit(buffer.position() + region.getSecond());
-      assertThat(toPairs(new FileRegion.Cursor("test", buffer.slice()))).containsExactlyElementsOf(content(contents[regionNumber]));
+      assertThat(toPairs(new FileRegion.Cursor("test", buffer.slice())))
+          .containsExactlyElementsOf(content(contents[regionNumber]));
       regionNumber++;
     }
   }

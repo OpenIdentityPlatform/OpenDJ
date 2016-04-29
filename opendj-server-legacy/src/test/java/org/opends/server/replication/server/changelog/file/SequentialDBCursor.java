@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -24,7 +24,6 @@ import org.opends.server.util.CollectionUtils;
 @SuppressWarnings("javadoc")
 class SequentialDBCursor implements DBCursor<UpdateMsg>
 {
-
   private final List<UpdateMsg> msgs;
   private UpdateMsg current;
 
@@ -45,14 +44,12 @@ class SequentialDBCursor implements DBCursor<UpdateMsg>
     this.msgs.add(msg);
   }
 
-  /** {@inheritDoc} */
   @Override
   public UpdateMsg getRecord()
   {
     return current;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean next()
   {
@@ -65,19 +62,15 @@ class SequentialDBCursor implements DBCursor<UpdateMsg>
     return false;
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
     // nothing to do
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-		return getClass().getSimpleName() + "(currentRecord=" + current
-				+ " nextMessages=" + msgs + ")";
+    return getClass().getSimpleName() + "(currentRecord=" + current + " nextMessages=" + msgs + ")";
   }
-
 }

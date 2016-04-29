@@ -76,7 +76,8 @@ public class InternalSearchOperationTestCase
   public void testConstructor1WithListener() throws Exception
   {
     SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
-    new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request, new TestInternalSearchListener());
+    new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(),
+        request, new TestInternalSearchListener());
   }
 
 

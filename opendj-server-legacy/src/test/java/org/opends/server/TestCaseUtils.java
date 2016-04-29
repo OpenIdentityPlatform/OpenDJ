@@ -39,7 +39,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -647,7 +646,6 @@ public final class TestCaseUtils {
    * @return the bounded Server socket.
    *
    * @throws IOException in case of underlying exception.
-   * @throws SocketException in case of underlying exception.
    */
   private static ServerSocket bindPort(int port)
           throws IOException
@@ -663,7 +661,6 @@ public final class TestCaseUtils {
    * @return the bounded Server socket.
    *
    * @throws IOException in case of underlying exception.
-   * @throws SocketException in case of underlying exception.
    */
   public static ServerSocket bindFreePort() throws IOException
   {

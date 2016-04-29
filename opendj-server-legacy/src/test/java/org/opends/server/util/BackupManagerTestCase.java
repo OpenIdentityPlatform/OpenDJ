@@ -29,25 +29,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backupable;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.RestoreConfig;
-
-import org.opends.server.util.StaticUtils;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-@Test(groups = { "precommit" }, sequential = true)
+@Test(groups = "precommit", sequential = true)
 public class BackupManagerTestCase extends DirectoryServerTestCase
 {
-
   private static final String ENTRY_DN = "dc=example,dc=com";
 
   private static final String FILE_NAME_PREFIX = "file_";
@@ -64,7 +61,6 @@ public class BackupManagerTestCase extends DirectoryServerTestCase
 
   @DataProvider
   Object[][] backupData() throws Exception {
-
     // For each case is provided
     // - a label identifying the case (not used in method but allow to identify easily the case in IDE)
     // - a mock of a backupable (building the mock also involves creating directory and files to backup)
@@ -169,7 +165,7 @@ public class BackupManagerTestCase extends DirectoryServerTestCase
    *
    * It allows to ensure that a backup can actually be restored.
    */
-  @Test()
+  @Test
   public void testCreateIncrementalBackupThenRestoreThenRemove() throws Exception
   {
     Path sourceDirectory = createSourceDirectory("incremental");
@@ -294,8 +290,7 @@ public class BackupManagerTestCase extends DirectoryServerTestCase
   {
     File backupDirectory = TestCaseUtils.createTemporaryDirectory("backupDirectory-" + label + "-");
     Reporter.log("Create backup directory:" + backupDirectory, true);
-    BackupDirectory backupDir = new BackupDirectory(backupDirectory.getAbsolutePath(), DN.valueOf(ENTRY_DN));
-    return backupDir;
+    return new BackupDirectory(backupDirectory.getAbsolutePath(), DN.valueOf(ENTRY_DN));
   }
 
   private Backupable buildBackupable(Path sourceDirectory, int numberOfFiles) throws Exception
@@ -311,7 +306,7 @@ public class BackupManagerTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Create files in source directory + additional files under a subdirectory of source directory
+   * Create files in source directory + additional files under a subdirectory of source directory.
    */
   private Backupable buildBackupableForMultipleDirectoriesCase(Path sourceDirectory, int numberOfFiles)
       throws Exception
@@ -362,5 +357,4 @@ public class BackupManagerTestCase extends DirectoryServerTestCase
       close(output);
     }
   }
-
 }

@@ -169,14 +169,15 @@ public class MonitorTest extends ReplicationTestCase
     String chDir = "monitorTest" + changelogId + suffix + "Db";
     ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(chPort, chDir, 0, changelogId, 0, 100, servers);
     final DN testBaseDN = this.baseDN;
-    ReplicationServer replicationServer = new ReplicationServer(conf, new DSRSShutdownSync(), new ECLEnabledDomainPredicate()
-    {
-      @Override
-      public boolean isECLEnabledDomain(DN baseDN)
-      {
-        return testBaseDN.equals(baseDN);
-      }
-    });
+    ReplicationServer replicationServer = new ReplicationServer(conf, new DSRSShutdownSync(),
+        new ECLEnabledDomainPredicate()
+        {
+          @Override
+          public boolean isECLEnabledDomain(DN baseDN)
+          {
+            return testBaseDN.equals(baseDN);
+          }
+        });
     Thread.sleep(1000);
 
     return replicationServer;

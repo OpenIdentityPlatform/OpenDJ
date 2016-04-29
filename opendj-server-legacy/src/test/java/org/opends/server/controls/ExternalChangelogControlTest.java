@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -44,7 +44,8 @@ public class ExternalChangelogControlTest extends ControlsTestCase
         {false, "o=test:;" },
         {false, "o=test:000001210b6f21e904b100000002;" },
         {false, "o=test:000001210b6f21e904b100000001;o=test2:000001210b6f21e904b100000002;" },
-        {false, "o=test:000001210b6f21e904b100000001 000001210b6f21e904b200000001;o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;" },
+        {false, "o=test:000001210b6f21e904b100000001 000001210b6f21e904b200000001;"
+                + "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;" },
         };
   }
 

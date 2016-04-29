@@ -173,7 +173,7 @@ public class LDAPADListPluginTestCase
     LDAPADListPlugin plugin = initializePlugin0(e);
     plugin.finalizePlugin();
   }
-  
+
   private LDAPADListPlugin initializePlugin0(Entry e) throws ConfigException, InitializationException {
     return InitializationUtils.initializePlugin(
         new LDAPADListPlugin(), e, LDAPAttributeDescriptionListPluginCfgDefn.getInstance());

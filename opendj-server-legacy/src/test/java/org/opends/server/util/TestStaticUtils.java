@@ -33,7 +33,6 @@ import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.testng.Assert;
@@ -45,6 +44,7 @@ import org.testng.annotations.Test;
  * This class defines a set of tests for the
  * {@link org.opends.server.util.StaticUtils} class.
  */
+@SuppressWarnings("javadoc")
 public final class TestStaticUtils extends UtilTestCase {
   /** Lower case hex digit lookup table. */
   private static final char[] HEX_DIGITS_LOWER = new char[] { '0', '1',
@@ -579,7 +579,7 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
-   * Tests the {@link StaticUtils#needsBase64Encoding(ByteSequence)} method.
+   * Tests the {@link StaticUtils#needsBase64Encoding(org.forgerock.opendj.ldap.ByteSequence)} method.
    *
    * @param s
    *          The test string.
@@ -606,17 +606,10 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testMoveFileNonExistentSrc() throws Exception {
     File src = File.createTempFile("src", null);
     File dst = TestCaseUtils.createTemporaryDirectory("dst");
-    File newSrc = new File(dst, src.getName());
 
     src.delete();
 
-    try {
-      StaticUtils.moveFile(src, dst);
-    } finally {
-      src.delete();
-      dst.delete();
-      newSrc.delete();
-    }
+    moveFile(src, dst);
   }
 
   /**
@@ -630,17 +623,10 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testMoveFileNonExistentDst() throws Exception {
     File src = File.createTempFile("src", null);
     File dst = TestCaseUtils.createTemporaryDirectory("dst");
-    File newSrc = new File(dst, src.getName());
 
     dst.delete();
 
-    try {
-      StaticUtils.moveFile(src, dst);
-    } finally {
-      src.delete();
-      dst.delete();
-      newSrc.delete();
-    }
+    moveFile(src, dst);
   }
 
   /**
@@ -654,15 +640,8 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testMoveFileSrcNotFile() throws Exception {
     File src = TestCaseUtils.createTemporaryDirectory("src");
     File dst = TestCaseUtils.createTemporaryDirectory("dst");
-    File newSrc = new File(dst, src.getName());
 
-    try {
-      StaticUtils.moveFile(src, dst);
-    } finally {
-      src.delete();
-      dst.delete();
-      newSrc.delete();
-    }
+    moveFile(src, dst);
   }
 
   /**
@@ -676,8 +655,13 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testMoveFileDstNotDirectory() throws Exception {
     File src = File.createTempFile("src", null);
     File dst = File.createTempFile("dst", null);
-    File newSrc = new File(dst, src.getName());
 
+    moveFile(src, dst);
+  }
+
+  private void moveFile(File src, File dst) throws IOException
+  {
+    File newSrc = new File(dst, src.getName());
     try {
       StaticUtils.moveFile(src, dst);
     } finally {
@@ -915,7 +899,7 @@ public final class TestStaticUtils extends UtilTestCase {
 
   /**
    * Tests the
-   * {@link StaticUtils#toLowerCase(ByteSequence, StringBuilder, boolean)}
+   * {@link StaticUtils#toLowerCase(org.forgerock.opendj.ldap.ByteSequence, StringBuilder, boolean)}
    * method.
    *
    * @param input
@@ -978,8 +962,9 @@ public final class TestStaticUtils extends UtilTestCase {
   }
 
   /**
-   * Create test strings for the {@link StaticUtils#toLowerCase(ByteSequence, StringBuilder, boolean)} method
-   * with trimming enabled.
+   * Create test strings for the
+   * {@link StaticUtils#toLowerCase(org.forgerock.opendj.ldap.ByteSequence, StringBuilder, boolean)}
+   * method with trimming enabled.
    *
    * @return Returns an array of test data.
    */
@@ -1049,13 +1034,16 @@ public final class TestStaticUtils extends UtilTestCase {
   @Test
   public void testStackTraceHasCause() throws Exception
   {
-    boolean hasCause = StaticUtils.stackTraceContainsCause(new RuntimeException(new ArithmeticException()), ArithmeticException.class);
+    boolean hasCause = StaticUtils.stackTraceContainsCause(
+        new RuntimeException(new ArithmeticException()), ArithmeticException.class);
     Assert.assertTrue(hasCause, "First case : ArithmeticException should be detected as a cause");
 
-    hasCause = StaticUtils.stackTraceContainsCause(new RuntimeException(new RuntimeException()), ArithmeticException.class);
+    hasCause = StaticUtils.stackTraceContainsCause(
+        new RuntimeException(new RuntimeException()), ArithmeticException.class);
     Assert.assertFalse(hasCause, "Second case : ArithmeticException should not be detected as a cause");
 
-    hasCause = StaticUtils.stackTraceContainsCause(new RuntimeException(new IllegalThreadStateException()), IllegalArgumentException.class);
+    hasCause = StaticUtils.stackTraceContainsCause(
+        new RuntimeException(new IllegalThreadStateException()), IllegalArgumentException.class);
     Assert.assertTrue(hasCause, "Third case : IllegalThreadStateException should be detected as a cause");
   }
 }

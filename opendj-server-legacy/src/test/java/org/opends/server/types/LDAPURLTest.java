@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -242,8 +242,8 @@ public class LDAPURLTest extends TypesTestCase
   @Test
   public void decodeComplexSampleWithUrlDecode() throws Exception
   {
-    final String sample =
-        "ld%2Fap://ldap.netsca%2Fpe.com:1389/ou=Sa%2Fles,o=Netscape,c=US?c%2Fn,tel,mail?sub?(objectclass=per%2Fson)?ext%2F1,ext%2F2,ext%2F3";
+    final String sample = "ld%2Fap://ldap.netsca%2Fpe.com:1389/ou=Sa%2Fles,o=Netscape,"
+        + "c=US?c%2Fn,tel,mail?sub?(objectclass=per%2Fson)?ext%2F1,ext%2F2,ext%2F3";
     final LDAPURL ldapURL = LDAPURL.decode(sample, true);
     assertThat(ldapURL.getScheme()).isEqualTo("ld/ap");
     assertThat(ldapURL.getHost()).isEqualTo("ldap.netsca/pe.com");

@@ -20,7 +20,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.types.Entry;
@@ -35,6 +34,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
@@ -301,7 +301,7 @@ public abstract class PasswordStorageSchemeTestCase
       PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
       final boolean previousValue = p.isAllowPreEncodedPasswords();
 
-      ModifyRequest modifyRequest = Requests.newModifyRequest("cn=Default Password Policy,cn=Password Policies,cn=config")
+      ModifyRequest modifyRequest = newModifyRequest("cn=Default Password Policy,cn=Password Policies,cn=config")
           .addModification(REPLACE, "ds-cfg-allow-pre-encoded-passwords", allowPreencoded);
       ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

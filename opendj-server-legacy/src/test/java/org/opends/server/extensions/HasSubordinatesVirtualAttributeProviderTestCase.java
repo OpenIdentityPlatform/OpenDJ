@@ -37,6 +37,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -343,7 +344,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrInMatchingFilter(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(hasSubordinates=" + hasSubs + ")")
+    final SearchRequest request = newSearchRequest(entryDN, BASE_OBJECT, "(hasSubordinates=" + hasSubs + ")")
         .addAttribute("hasSubordinates");
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
@@ -366,8 +367,8 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrInNonMatchingFilter(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(hasSubordinates=wrong)").addAttribute("hasSubordinates");
+    final SearchRequest request = newSearchRequest(entryDN, BASE_OBJECT, "(hasSubordinates=wrong)")
+        .addAttribute("hasSubordinates");
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }

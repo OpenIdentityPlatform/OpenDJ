@@ -120,7 +120,8 @@ public class DependencyTest extends ReplicationTestCase
           "objectClass: organization",
           "entryuuid: " + stringUID(1));
 
-      replServer = newReplicationServer(replServerId, addSequenceLength * 5 + 100, "dependencyTestAddModDelDependencyTestDb");
+      replServer = newReplicationServer(
+          replServerId, addSequenceLength * 5 + 100, "dependencyTestAddModDelDependencyTestDb");
 
       ReplicationBroker broker = openReplicationSession(
           baseDN, brokerId, 1000, replServer.getReplicationPort(), 1000, CLEAN_DB_GENERATION_ID);
@@ -348,7 +349,8 @@ public class DependencyTest extends ReplicationTestCase
           "objectClass: top",
           "objectClass: organization");
 
-      replServer = newReplicationServer(replServerId, 5 * addSequenceLength + 100, "dependencyTestAddDelAddDependencyTestDb");
+      replServer = newReplicationServer(
+          replServerId, 5 * addSequenceLength + 100, "dependencyTestAddDelAddDependencyTestDb");
 
       ReplicationBroker broker = openReplicationSession(
           baseDN, brokerId, 100, replServer.getReplicationPort(), 1000, CLEAN_DB_GENERATION_ID);
@@ -452,7 +454,8 @@ public class DependencyTest extends ReplicationTestCase
           "objectClass: top",
           "objectClass: organization");
 
-      replServer = newReplicationServer(replServerId, 5 * addSequenceLength + 100, "dependencyTestAddModdnDependencyTestDb");
+      replServer = newReplicationServer(
+          replServerId, 5 * addSequenceLength + 100, "dependencyTestAddModdnDependencyTestDb");
 
       ReplicationBroker broker = openReplicationSession(
           baseDN, brokerId, 100, replServer.getReplicationPort(), 1000, CLEAN_DB_GENERATION_ID);

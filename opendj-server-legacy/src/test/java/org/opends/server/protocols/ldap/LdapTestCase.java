@@ -14,7 +14,7 @@
  * Copyright 2006-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
-package org.opends.server.protocols.ldap ;
+package org.opends.server.protocols.ldap;
 
 import static org.mockito.Mockito.mock;
 
@@ -23,13 +23,13 @@ import static org.opends.server.config.ConfigConstants.*;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.InitializationUtils;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
@@ -83,9 +83,9 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    */
   static void toString(ProtocolOp op) throws Exception
   {
-	  StringBuilder sb = new StringBuilder();
-	  op.toString(sb);
-	  op.toString(sb, 1);
+    StringBuilder sb = new StringBuilder();
+    op.toString(sb);
+    op.toString(sb, 1);
   }
 
   /**

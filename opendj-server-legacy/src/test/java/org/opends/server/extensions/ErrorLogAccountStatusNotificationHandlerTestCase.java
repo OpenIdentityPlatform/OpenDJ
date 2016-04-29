@@ -138,7 +138,9 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
          throws Exception
   {
     InitializationUtils.initializeStatusNotificationHandler(
-        new ErrorLogAccountStatusNotificationHandler(), configEntry, ErrorLogAccountStatusNotificationHandlerCfgDefn.getInstance());
+        new ErrorLogAccountStatusNotificationHandler(),
+        configEntry,
+        ErrorLogAccountStatusNotificationHandlerCfgDefn.getInstance());
   }
 
 

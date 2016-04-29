@@ -348,7 +348,12 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     final String FILTER_CIPHER_KEY_LENGTH =
         "(" + ATTR_CRYPTO_KEY_LENGTH_BITS + "=" + cipherKeyLength + ")";
     final String searchFilter =
-        "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + FILTER_CIPHER_TRANSFORMATION_NAME + FILTER_CIPHER_KEY_LENGTH + ")";
+        "(&"
+        + FILTER_OC_INSTANCE_KEY
+        + FILTER_NOT_COMPROMISED
+        + FILTER_CIPHER_TRANSFORMATION_NAME
+        + FILTER_CIPHER_KEY_LENGTH
+        + ")";
     final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter).addAttribute("dn");
     InternalSearchOperation searchOp = getRootConnection().processSearch(request);
     assertFalse(searchOp.getSearchEntries().isEmpty());

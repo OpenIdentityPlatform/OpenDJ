@@ -137,9 +137,12 @@ public class UniqueCharactersPasswordValidatorTestCase
     validator.finalizePasswordValidator();
   }
 
-  private static UniqueCharactersPasswordValidator initializePasswordValidator0(Entry validatorEntry) throws ConfigException, InitializationException {
+  private static UniqueCharactersPasswordValidator initializePasswordValidator0(Entry validatorEntry)
+        throws ConfigException, InitializationException {
     return initializePasswordValidator(
-        new UniqueCharactersPasswordValidator(), validatorEntry, UniqueCharactersPasswordValidatorCfgDefn.getInstance());
+        new UniqueCharactersPasswordValidator(),
+        validatorEntry,
+        UniqueCharactersPasswordValidatorCfgDefn.getInstance());
   }
 
   /**

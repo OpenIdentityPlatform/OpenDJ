@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -23,14 +23,12 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.file.CompositeDBCursor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @SuppressWarnings({ "javadoc", "unchecked" })
 public class CompositeDBCursorTest extends DirectoryServerTestCase
 {
-
   private final class ConcreteCompositeDBCursor extends CompositeDBCursor<String>
   {
     @Override
@@ -245,5 +243,4 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     assertSame(compCursor.getRecord(), expected.getFirst());
     assertSame(compCursor.getData(), expected.getSecond());
   }
-
 }

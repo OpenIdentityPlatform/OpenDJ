@@ -18,6 +18,7 @@ package org.opends.server.replication.server.changelog.file;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.DN;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.opends.server.DirectoryServerTestCase;
@@ -25,25 +26,20 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.api.DBCursor.CursorOptions;
-import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
-import org.opends.server.replication.server.changelog.file.ECLMultiDomainDBCursor;
-import org.opends.server.replication.server.changelog.file.MultiDomainDBCursor;
-import org.forgerock.opendj.ldap.DN;
+import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 @SuppressWarnings("javadoc")
 public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
 {
-
   @Mock
   private ReplicationDomainDB domainDB;
   private CursorOptions options;
@@ -58,7 +54,6 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
       return eclEnabledDomains.contains(baseDN);
     }
   };
-
 
   @BeforeMethod
   public void setup() throws Exception

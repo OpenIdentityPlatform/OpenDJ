@@ -824,7 +824,9 @@ public class ModifyConflictTest extends ReplicationTestCase
     List<Modification> mods2 = new LinkedList<>(mods);
     replayModifies(entry, hist, 12, mods);
     assertEquals(hist.encodeAndPurge(), attrDel);
-    assertThat(mods).as("DEL one value, del by Replace of the same attribute was not correct").containsExactly(mod1, mod2);
+    assertThat(mods)
+      .as("DEL one value, del by Replace of the same attribute was not correct")
+      .containsExactly(mod1, mod2);
 
     // Replay the same modifs again
     replayModifies(entry, hist, 12, mods2);

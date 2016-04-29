@@ -536,7 +536,9 @@ public class StateMachineTest extends ReplicationTestCase
        * DS2 sends reset gen id order with bad gen id: DS1 should go in bad gen id status
        * (from degraded status this time)
        */
-      resetGenId(ds2, -1); // -1 to allow next step full update and flush RS db so that DS1 can reconnect after full update
+      // -1 to allow next step full update and flush RS db so that DS1 can reconnect after full
+      // update
+      resetGenId(ds2, -1);
       waitUntilStatusEquals(ds1, ServerStatus.BAD_GEN_ID_STATUS);
       bw.pause();
 
@@ -1120,7 +1122,8 @@ public class StateMachineTest extends ReplicationTestCase
    * @param domain The domain whose status we want to test
    * @param expectedStatus The expected domain status
    */
-  private void waitUntilStatusEquals(final LDAPReplicationDomain domain, final ServerStatus expectedStatus) throws Exception
+  private void waitUntilStatusEquals(final LDAPReplicationDomain domain, final ServerStatus expectedStatus)
+      throws Exception
   {
     assertNotNull(domain);
     assertNotNull(expectedStatus);

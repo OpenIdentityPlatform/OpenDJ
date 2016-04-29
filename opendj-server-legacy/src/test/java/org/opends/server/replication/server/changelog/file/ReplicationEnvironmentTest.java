@@ -114,7 +114,8 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     try
     {
       File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
-      List<DN> domainDNs = Arrays.asList(DN.valueOf(DN1_AS_STRING), DN.valueOf(DN2_AS_STRING), DN.valueOf(DN3_AS_STRING));
+      List<DN> domainDNs = Arrays.asList(
+          DN.valueOf(DN1_AS_STRING), DN.valueOf(DN2_AS_STRING), DN.valueOf(DN3_AS_STRING));
       ReplicationEnvironment environment = createReplicationEnv(rootPath);
       cnDB = environment.getOrCreateCNIndexDB();
       for (int i = 0; i <= 2 ; i++)

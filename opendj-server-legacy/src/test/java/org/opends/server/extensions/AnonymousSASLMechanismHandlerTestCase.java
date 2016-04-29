@@ -16,31 +16,23 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.BindOperationBasis;
+import org.opends.server.tools.LDAPSearch;
+import org.opends.server.types.Control;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.BindOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-import static org.opends.server.util.ServerConstants.*;
-
-
-
-/**
- * A set of test cases for the ANONYMOUS SASL mechanism handler.
- */
+/** A set of test cases for the ANONYMOUS SASL mechanism handler. */
 public class AnonymousSASLMechanismHandlerTestCase
        extends ExtensionsTestCase
 {
@@ -56,8 +48,6 @@ public class AnonymousSASLMechanismHandlerTestCase
     TestCaseUtils.startServer();
   }
 
-
-
   /**
    * Tests the process of initializing and finalizing the ANONYMOUS SASL
    * mechanism handler.
@@ -72,8 +62,6 @@ public class AnonymousSASLMechanismHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Tests the <CODE>isPasswordBased</CODE> method.
@@ -92,8 +80,6 @@ public class AnonymousSASLMechanismHandlerTestCase
     handler.finalizeSASLMechanismHandler();
   }
 
-
-
   /**
    * Tests the <CODE>isSecure</CODE> method.
    *
@@ -111,8 +97,6 @@ public class AnonymousSASLMechanismHandlerTestCase
     handler.finalizeSASLMechanismHandler();
   }
 
-
-
   /**
    * Tests the <CODE>processSASLBind</CODE> method with no credentials.
    *
@@ -125,10 +109,8 @@ public class AnonymousSASLMechanismHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS, null);
     handler.processSASLBind(bindOperation);
@@ -136,8 +118,6 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Tests the <CODE>processSASLBind</CODE> method with an empty set of
@@ -152,10 +132,8 @@ public class AnonymousSASLMechanismHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS, ByteString.empty());
     handler.processSASLBind(bindOperation);
@@ -163,8 +141,6 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Tests the <CODE>processSASLBind</CODE> method with trace information.
@@ -178,10 +154,8 @@ public class AnonymousSASLMechanismHandlerTestCase
     AnonymousSASLMechanismHandler handler = new AnonymousSASLMechanismHandler();
     handler.initializeSASLMechanismHandler(null);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     BindOperationBasis bindOperation =
-         new BindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new BindOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                            new ArrayList<Control>(), "3", DN.rootDN(),
                            SASL_MECHANISM_ANONYMOUS,
                            ByteString.valueOfUtf8("Internal Trace String"));
@@ -190,8 +164,6 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Performs a SASL ANONYMOUS bind over LDAP with no credentials.
@@ -219,8 +191,6 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     handler.finalizeSASLMechanismHandler();
   }
-
-
 
   /**
    * Performs a SASL ANONYMOUS bind over LDAP with trace information.
@@ -250,4 +220,3 @@ public class AnonymousSASLMechanismHandlerTestCase
     handler.finalizeSASLMechanismHandler();
   }
 }
-

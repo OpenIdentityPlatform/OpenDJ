@@ -136,7 +136,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
       AddMsg addMsg =  (AddMsg) msg;
 
       Operation receivedOp = addMsg.createOperation(connection);
-      assertEquals(OperationType.ADD.compareTo(receivedOp.getOperationType()), 0, "The received Replication message is not an ADD msg");
+      assertEquals(OperationType.ADD.compareTo(receivedOp.getOperationType()), 0,
+          "The received Replication message is not an ADD msg");
 
       assertEquals(addMsg.getDN(), personEntry.getName(),
         "The received ADD Replication message is not for the excepted DN");

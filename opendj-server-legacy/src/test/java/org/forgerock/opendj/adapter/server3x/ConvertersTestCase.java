@@ -350,9 +350,10 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         Modification mod = new Modification(ModificationType.ADD, attribute);
 
         org.opends.server.types.Modification srvModification = toModification(mod);
+        Attribute attr = srvModification.getAttribute();
         assertThat(srvModification.getModificationType()).isEqualTo(ModificationType.ADD);
-        assertThat(srvModification.getAttribute().getAttributeDescription().getAttributeType().getNameOrOID()).isEqualTo("test");
-        assertThat(srvModification.getAttribute().size()).isEqualTo(2);
+        assertThat(attr.getAttributeDescription().getAttributeType().getNameOrOID()).isEqualTo("test");
+        assertThat(attr.size()).isEqualTo(2);
 
         mod = new Modification(ModificationType.INCREMENT, attribute);
         srvModification = toModification(mod);

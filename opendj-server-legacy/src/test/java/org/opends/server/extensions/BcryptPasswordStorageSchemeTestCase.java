@@ -20,14 +20,12 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * A set of test cases for the Bcrypt password storage scheme.
- */
+/** A set of test cases for the Bcrypt password storage scheme. */
 @SuppressWarnings("javadoc")
 public class BcryptPasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
-  /** Creates a new instance of this storage scheme test case.   */
+  /** Creates a new instance of this storage scheme test case. */
   public BcryptPasswordStorageSchemeTestCase()
   {
     super("cn=Bcrypt,cn=Password Storage Schemes,cn=config");
@@ -48,26 +46,22 @@ public class BcryptPasswordStorageSchemeTestCase
   /**
    * Retrieves a set of passwords (plain and bcrypt encrypted) that may
    * be used to test the compatibility of bcrypt passwords.
-   * The encrypted versions have been provided by external tools or
-   * users
+   * The encrypted versions have been provided by external tools or users
    *
    * @return  A set of couple (cleartext, encrypted) passwords that
    *          may be used to test the bcrypt password storage scheme
    */
-
   @DataProvider(name = "testBcryptPasswords")
-  public Object[][] getTestBcryptPasswords()
-      throws Exception
+  public Object[][] getTestBcryptPasswords() throws Exception
   {
-    return new Object[][]
-        {
-            new Object[] { "secret", "{BCRYPT}$2a$08$sxnezK9Dp9cQvU56LHRwIeI0RvfNn//fFzGnOgQ2l7TOZcZ1wbOVO" },
-            new Object[] { "5[g&f:\"U;#99]!_T", "{BCRYPT}$2a$08$Ttmg4fCbAcq2636pT83d1eM8weXLHbn8OFyVRanP2Tjej5hiZBnyu" },
-            new Object[] { "password", "{BCRYPT}$2a$05$bvIG6Nmid91Mu9RcmmWZfO5HJIMCT8riNW0hEp8f6/FuA2/mHZFpe"},
-            new Object[] { "Secret12!", "{BCRYPT}$2a$10$UOYhwLcHwGYdwWCYq1Xd2.66aPGYq8Q7HDzm8jzTRkdJyAjt/gfhO" },
-            new Object[] { "correctbatteryhorsestapler", "{BCRYPT}$2a$12$mACnM5lzNigHMaf7O1py1O3vlf6.BA8k8x3IoJ.Tq3IB/2e7g61Km"},
-            new Object[] { "TestingWith12%", "{BCRYPT}$2a$12$2nTgfUEOupc7Eb5PyGCnIOzoDG/VMEhIOTKTjIjY3UPjtTI..NoLO" }
-        };
+    return new Object[][] {
+      { "secret", "{BCRYPT}$2a$08$sxnezK9Dp9cQvU56LHRwIeI0RvfNn//fFzGnOgQ2l7TOZcZ1wbOVO" },
+      { "5[g&f:\"U;#99]!_T", "{BCRYPT}$2a$08$Ttmg4fCbAcq2636pT83d1eM8weXLHbn8OFyVRanP2Tjej5hiZBnyu" },
+      { "password", "{BCRYPT}$2a$05$bvIG6Nmid91Mu9RcmmWZfO5HJIMCT8riNW0hEp8f6/FuA2/mHZFpe"},
+      { "Secret12!", "{BCRYPT}$2a$10$UOYhwLcHwGYdwWCYq1Xd2.66aPGYq8Q7HDzm8jzTRkdJyAjt/gfhO" },
+      { "correctbatteryhorsestapler", "{BCRYPT}$2a$12$mACnM5lzNigHMaf7O1py1O3vlf6.BA8k8x3IoJ.Tq3IB/2e7g61Km"},
+      { "TestingWith12%", "{BCRYPT}$2a$12$2nTgfUEOupc7Eb5PyGCnIOzoDG/VMEhIOTKTjIjY3UPjtTI..NoLO" }
+    };
   }
 
   @Test(dataProvider = "testBcryptPasswords")
@@ -77,5 +71,4 @@ public class BcryptPasswordStorageSchemeTestCase
   {
     testAuthPasswords("TestBCrypt", plaintextPassword, encodedPassword);
   }
-
 }

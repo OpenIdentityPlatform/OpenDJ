@@ -47,6 +47,8 @@ import java.util.concurrent.Callable;
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
@@ -92,13 +94,11 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFWriter;
@@ -489,7 +489,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       {
         final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
         CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
-        try (DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(replicaId.getBaseDN(), csn.getServerId(), csn, options))
+        try (DBCursor<UpdateMsg> cursor =
+            domainDB.getCursorFrom(replicaId.getBaseDN(), csn.getServerId(), csn, options))
         {
           assertTrue(cursor.next(), "Expected to find at least one change in replicaDB for " + replicaId);
           assertEquals(cursor.getRecord().getCSN(), csn);
@@ -1177,14 +1178,15 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return csns;
   }
 
-  private UpdateMsg generateDeleteMsg(ReplicaId replicaId, CSN csn, String testName, int testIndex)      throws Exception
+  private UpdateMsg generateDeleteMsg(ReplicaId replicaId, CSN csn, String testName, int testIndex) throws Exception
   {
     assertSameServerId(replicaId, csn);
     String dn = "uid=" + testName + testIndex + "," + replicaId.getBaseDN();
     return new DeleteMsg(DN.valueOf(dn), csn, testName + "uuid" + testIndex);
   }
 
-  private UpdateMsg generateAddMsg(ReplicaId replicaId, CSN csn, String user1entryUUID, String testName)      throws Exception
+  private UpdateMsg generateAddMsg(ReplicaId replicaId, CSN csn, String user1entryUUID, String testName)
+      throws Exception
   {
     assertSameServerId(replicaId, csn);
     String baseUUID = "22222222-2222-2222-2222-222222222222";

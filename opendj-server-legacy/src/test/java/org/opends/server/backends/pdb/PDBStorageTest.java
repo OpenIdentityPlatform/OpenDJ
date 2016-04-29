@@ -43,7 +43,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
 {
   private final TreeName treeName = new TreeName("dc=test", "test");
   private PDBStorage storage;
-  
+
   @BeforeClass
   public static void startServer() throws Exception
   {
@@ -85,13 +85,13 @@ public class PDBStorageTest extends DirectoryServerTestCase
       }
     });
   }
-  
+
   @Test
   public void testExchangeWithSmallValuesAreReleasedToPool() throws Exception
   {
     final Exchange initial = storage.getNewExchange(treeName, true);
     storage.releaseExchange(initial);
-    
+
     storage.write(new WriteOperation()
     {
       @Override
@@ -100,10 +100,10 @@ public class PDBStorageTest extends DirectoryServerTestCase
         txn.put(treeName, valueOfUtf8("small"), valueOfBytes(new byte[512 * KB]));
       }
     });
-    
+
     assertThat(storage.getNewExchange(treeName, true)).isSameAs(initial);
   }
-  
+
   @Test
   public void testExchangeWithLargeValuesAreNotReleasedToPool() throws Exception
   {
@@ -118,7 +118,7 @@ public class PDBStorageTest extends DirectoryServerTestCase
         txn.put(treeName, valueOfUtf8("small"), valueOfBytes(new byte[16 * MB]));
       }
     });
-    
+
     assertThat(storage.getNewExchange(treeName, true)).isNotSameAs(initial);
   }
 
