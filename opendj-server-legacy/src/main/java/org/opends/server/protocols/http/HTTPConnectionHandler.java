@@ -19,6 +19,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.forgerock.http.grizzly.GrizzlySupport.newGrizzlyHttpHandler;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -45,7 +46,6 @@ import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
-import org.forgerock.http.servlet.HttpFrameworkServlet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -62,7 +62,6 @@ import org.glassfish.grizzly.http.server.NetworkListener;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
 import org.glassfish.grizzly.monitoring.MonitoringConfig;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.servlet.WebappContext;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.utils.Charsets;
@@ -681,10 +680,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
 
     this.httpServer = createHttpServer();
-
-    // Register servlet as default servlet and also able to serve REST requests
-    createAndRegisterServlet("OpenDJ HTTP servlet", "", "/*");
-
+    this.httpServer.getServerConfiguration().addHttpHandler(newGrizzlyHttpHandler(new RootHttpApplication()));
     logger.trace("Starting HTTP server...");
     this.httpServer.start();
     logger.trace("HTTP server started");
@@ -746,14 +742,6 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   private MonitoringConfig<HttpProbe> getHttpConfig(HttpServer server)
   {
     return server.getServerConfiguration().getMonitoringConfig().getHttpConfig();
-  }
-
-  private void createAndRegisterServlet(final String servletName, final String... urlPatterns) throws Exception
-  {
-    // Create and deploy the Web app context
-    final WebappContext ctx = new WebappContext(servletName);
-    ctx.addServlet(servletName, new HttpFrameworkServlet(new RootHttpApplication())).addMapping(urlPatterns);
-    ctx.deploy(this.httpServer);
   }
 
   private void stopHttpServer()

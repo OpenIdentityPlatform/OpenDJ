@@ -133,7 +133,7 @@
 
     <dependency>
       <groupId>org.forgerock.http</groupId>
-      <artifactId>chf-http-servlet</artifactId>
+      <artifactId>chf-http-grizzly</artifactId>
     </dependency>
 
     <!-- ForgeRock Common Audit libraries -->
@@ -173,19 +173,7 @@
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
 
-    <!-- servlet and mail -->
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.glassfish.grizzly</groupId>
-      <artifactId>grizzly-http-servlet</artifactId>
-      <version>${grizzly-framework.version}</version>
-    </dependency>
-
+    <!-- mail -->
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>
