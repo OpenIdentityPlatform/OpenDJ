@@ -28,16 +28,15 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-
 import java.util.LinkedList;
 import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
@@ -57,7 +56,6 @@ public class LDAPRequestHandler
 
   /** Indicates whether the Directory Server is in the process of shutting down. */
   private volatile boolean shutdownRequested;
-
   /** The current set of selection keys. */
   private volatile SelectionKey[] keys = new SelectionKey[0];
 
@@ -70,13 +68,10 @@ public class LDAPRequestHandler
 
   /** Lock object for synchronizing access to the pending connections queue. */
   private final Object pendingConnectionsLock = new Object();
-
   /** The list of connections ready for request processing. */
-  private LinkedList<LDAPClientConnection> readyConnections = new LinkedList<>();
-
+  private final LinkedList<LDAPClientConnection> readyConnections = new LinkedList<>();
   /** The selector that will be used to monitor the client connections. */
   private final Selector selector;
-
   /** The name to use for this request handler. */
   private final String handlerName;
 
@@ -459,41 +454,12 @@ public class LDAPRequestHandler
     return connList;
   }
 
-
-
-  /**
-   * Retrieves the human-readable name for this shutdown listener.
-   *
-   * @return  The human-readable name for this shutdown listener.
-   */
   @Override
   public String getShutdownListenerName()
   {
     return handlerName;
   }
 
-
-
-  /**
-   * Causes this request handler to register itself as a shutdown listener with
-   * the Directory Server.  This must be called if the connection handler is
-   * shut down without closing all associated connections, otherwise the thread
-   * would not be stopped by the server.
-   */
-  public void registerShutdownListener()
-  {
-    DirectoryServer.registerShutdownListener(this);
-  }
-
-
-
-  /**
-   * Indicates that the Directory Server has received a request to stop running
-   * and that this shutdown listener should take any action necessary to prepare
-   * for it.
-   *
-   * @param  reason  The human-readable reason for the shutdown.
-   */
   @Override
   public void processServerShutdown(LocalizableMessage reason)
   {

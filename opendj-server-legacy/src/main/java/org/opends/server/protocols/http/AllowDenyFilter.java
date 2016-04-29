@@ -76,14 +76,13 @@ final class AllowDenyFilter implements Filter
     return next.handle(context, request);
   }
 
-  static final Promise<Response, NeverThrowsException> forbidden()
+  private static final Promise<Response, NeverThrowsException> forbidden()
   {
     return Promises.newResultPromise(new Response(Status.FORBIDDEN));
   }
 
-  static final Promise<Response, NeverThrowsException> internalError()
+  private static final Promise<Response, NeverThrowsException> internalError()
   {
     return Promises.newResultPromise(new Response(Status.INTERNAL_SERVER_ERROR));
   }
-
 }

@@ -39,7 +39,6 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
@@ -100,8 +99,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @param isReadOnly whether the entry is read-only or not.
    * @param path the tree path associated with the entry in the tree.
    */
-  public abstract void update(CustomSearchResult sr, boolean isReadOnly,
-      TreePath path);
+  public abstract void update(CustomSearchResult sr, boolean isReadOnly, TreePath path);
 
   /**
    * Adds a title panel to the container.
@@ -163,13 +161,12 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     }
     // TODO: With big entries this is pretty slow.  Until there is a fix, try
     // simply to update the dn
-    Entry entry = null;
     String dn = getDisplayedDN();
     if (dn != null && !dn.equals(title.getText()))
     {
       title.setText(dn);
     }
-    LDAPEntryChangedEvent ev = new LDAPEntryChangedEvent(this, entry);
+    LDAPEntryChangedEvent ev = new LDAPEntryChangedEvent(this, null);
     for (LDAPEntryChangedListener listener : listeners)
     {
       listener.entryChanged(ev);
@@ -255,11 +252,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       {
         if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL)
         {
-          if (structuralObjectClass == null)
-          {
-            structuralObjectClass = objectClass;
-          }
-          else if (objectClass.isDescendantOf(structuralObjectClass))
+          if (structuralObjectClass == null || objectClass.isDescendantOf(structuralObjectClass))
           {
             structuralObjectClass = objectClass;
           }
@@ -350,22 +343,6 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   }
 
   /**
-   * Appends the LDIF lines corresponding to the different values of an
-   * attribute to the provided StringBuilder.
-   * @param sb the StringBuilder that must be updated.
-   * @param attrName the attribute name.
-   * @param values the attribute values.
-   */
-  protected void appendLDIFLines(StringBuilder sb, String attrName,
-      List<Object> values)
-  {
-    for (Object value : values)
-    {
-      appendLDIFLine(sb, attrName, value);
-    }
-  }
-
-  /**
    * Appends the LDIF line corresponding to the value of an
    * attribute to the provided StringBuilder.
    * @param sb the StringBuilder that must be updated.
@@ -450,34 +427,6 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided attribute name has certificate
-   * syntax and <CODE>false</CODE> otherwise.
-   * @param attrName the attribute name.
-   * @param schema the schema.
-   * @return <CODE>true</CODE> if the provided attribute name has certificate
-   * syntax and <CODE>false</CODE> otherwise.
-   */
-  protected boolean hasCertificateSyntax(String attrName, Schema schema)
-  {
-    boolean isCertificate = false;
-    // Check all the attributes that we consider binaries.
-    if (schema != null)
-    {
-      String attributeName = AttributeDescription.valueOf(attrName).getNameOrOID().toLowerCase();
-      if (schema.hasAttributeType(attributeName))
-      {
-        AttributeType attr = schema.getAttributeType(attributeName);
-        Syntax syntax = attr.getSyntax();
-        if (syntax != null)
-        {
-          isCertificate = SchemaConstants.SYNTAX_CERTIFICATE_OID.equals(syntax.getOID());
-        }
-      }
-    }
-    return isCertificate;
-  }
-
-  /**
    * Gets the values associated with a given attribute.  The values are the
    * ones displayed in the panel.
    * @param attrName the attribute name.
@@ -552,13 +501,11 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   }
 
   /**
-   * Returns the list of superior object classes (to top) for a given object
-   * class.
+   * Returns the list of superior object classes (to top) for a given object class.
    * @param oc the object class.
    * @return the set of superior object classes for a given object classes.
    */
-  protected Set<String> getObjectClassSuperiorValues(
-      ObjectClass oc)
+  protected Set<String> getObjectClassSuperiorValues(ObjectClass oc)
   {
     Set<String> names = new LinkedHashSet<>();
     Set<ObjectClass> parents = oc.getSuperiorClasses();
