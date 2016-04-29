@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.rest2ldap;
@@ -19,6 +19,7 @@ package org.forgerock.opendj.rest2ldap;
 import java.util.Set;
 
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -40,8 +41,8 @@ abstract class NameStrategy {
      * Returns a search request which can be used to obtain the specified REST
      * resource.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param baseDN
      *            The search base DN.
      * @param resourceId
@@ -49,40 +50,40 @@ abstract class NameStrategy {
      * @return A search request which can be used to obtain the specified REST
      *         resource.
      */
-    abstract SearchRequest createSearchRequest(RequestState requestState, DN baseDN, String resourceId);
+    abstract SearchRequest createSearchRequest(Connection connection, DN baseDN, String resourceId);
 
     /**
      * Adds the name of any LDAP attribute required by this name strategy to the
      * provided set.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param ldapAttributes
      *            The set into which any required LDAP attribute name should be
      *            put.
      */
-    abstract void getLDAPAttributes(RequestState requestState, Set<String> ldapAttributes);
+    abstract void getLDAPAttributes(Connection connection, Set<String> ldapAttributes);
 
     /**
      * Retrieves the resource ID from the provided LDAP entry. Implementations
      * may use the entry DN as well as any attributes in order to determine the
      * resource ID.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param entry
      *            The LDAP entry from which the resource ID should be obtained.
      * @return The resource ID.
      */
-    abstract String getResourceId(RequestState requestState, Entry entry);
+    abstract String getResourceId(Connection connection, Entry entry);
 
     /**
      * Sets the resource ID in the provided LDAP entry. Implementations are
      * responsible for setting the entry DN as well as any attributes associated
      * with the resource ID.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param baseDN
      *            The baseDN to use when constructing the entry's DN.
      * @param resourceId
@@ -93,7 +94,7 @@ abstract class NameStrategy {
      * @throws ResourceException
      *             If the resource ID cannot be determined.
      */
-    abstract void setResourceId(RequestState requestState, DN baseDN, String resourceId, Entry entry)
+    abstract void setResourceId(Connection connection, DN baseDN, String resourceId, Entry entry)
             throws ResourceException;
 
 }

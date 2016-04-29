@@ -24,6 +24,7 @@ import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.HTTPEndpointCfg;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -37,15 +38,21 @@ public abstract class HttpEndpoint<C extends HTTPEndpointCfg>
   /** Configuration of this endpoint. */
   protected final C configuration;
 
+  /** Context of this LDAP server. */
+  protected final ServerContext serverContext;
+
   /**
    * Create a new {@link HttpEndpoint} with the given configuration.
    *
    * @param configuration
-   *          Configuration of this {@link HttpEndpoint}.
+   *          Configuration of this {@link HttpEndpoint}
+   * @param serverContext
+   *          Context of this LDAP server
    */
-  public HttpEndpoint(C configuration)
+  public HttpEndpoint(C configuration, ServerContext serverContext)
   {
     this.configuration = configuration;
+    this.serverContext = serverContext;
   }
 
   /**

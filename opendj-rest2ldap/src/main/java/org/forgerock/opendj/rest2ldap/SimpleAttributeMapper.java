@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -26,6 +26,7 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.util.Function;
@@ -114,7 +115,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final RequestState requestState, final JsonPointer path,
+    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
             final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
         if (subPath.isEmpty()) {
             try {
@@ -136,7 +137,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
 
     @Override
     Promise<Attribute, ResourceException> getNewLDAPAttributes(
-            final RequestState requestState, final JsonPointer path, final List<Object> newValues) {
+            final Connection connection, final JsonPointer path, final List<Object> newValues) {
         try {
             return newResultPromise(jsonToAttribute(newValues, ldapAttributeName, encoder()));
         } catch (final Exception ex) {
@@ -152,7 +153,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    Promise<JsonValue, ResourceException> read(final RequestState requestState, final JsonPointer path, final Entry e) {
+    Promise<JsonValue, ResourceException> read(final Connection connection, final JsonPointer path, final Entry e) {
         try {
             final Object value;
             if (attributeIsSingleValued()) {

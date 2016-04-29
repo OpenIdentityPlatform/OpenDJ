@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -23,6 +23,7 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
@@ -50,8 +51,8 @@ public abstract class AttributeMapper {
      * action in this case, perhaps by substituting default LDAP values, or by
      * returning a failed promise with an appropriate {@link ResourceException}.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            attribute mapper. This may be used when constructing error
@@ -62,8 +63,7 @@ public abstract class AttributeMapper {
      *            in the resource.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Attribute>, ResourceException> create(
-            RequestState requestState, JsonPointer path, JsonValue v);
+    abstract Promise<List<Attribute>, ResourceException> create(Connection connection, JsonPointer path, JsonValue v);
 
     /**
      * Adds the names of the LDAP attributes required by this attribute mapper
@@ -72,8 +72,8 @@ public abstract class AttributeMapper {
      * Implementations should only add the names of attributes found in the LDAP
      * entry directly associated with the resource.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            attribute mapper. This may be used when constructing error
@@ -86,8 +86,8 @@ public abstract class AttributeMapper {
      *            The set into which the required LDAP attribute names should be
      *            put.
      */
-    abstract void getLDAPAttributes(
-            RequestState requestState, JsonPointer path, JsonPointer subPath, Set<String> ldapAttributes);
+    abstract void getLDAPAttributes(Connection connection, JsonPointer path, JsonPointer subPath,
+            Set<String> ldapAttributes);
 
     /**
      * Transforms the provided REST comparison filter parameters to an LDAP
@@ -98,8 +98,8 @@ public abstract class AttributeMapper {
      * promise must be returned with an appropriate {@link ResourceException}
      * indicating the problem which occurred.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            attribute mapper. This may be used when constructing error
@@ -119,7 +119,7 @@ public abstract class AttributeMapper {
      *            {@link FilterType#PRESENT}.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<Filter, ResourceException> getLDAPFilter(RequestState requestState, JsonPointer path,
+    abstract Promise<Filter, ResourceException> getLDAPFilter(Connection connection, JsonPointer path,
             JsonPointer subPath, FilterType type, String operator, Object valueAssertion);
 
     /**
@@ -127,8 +127,8 @@ public abstract class AttributeMapper {
      * a promise once the transformation has completed. This method is invoked
      * when a REST resource is modified using a patch request.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            attribute mapper. This may be used when constructing error
@@ -141,7 +141,7 @@ public abstract class AttributeMapper {
      * @return A {@link Promise} containing the result of the operation.
      */
     abstract Promise<List<Modification>, ResourceException> patch(
-            RequestState requestState, JsonPointer path, PatchOperation operation);
+            Connection connection, JsonPointer path, PatchOperation operation);
 
     /**
      * Maps one or more LDAP attributes to their JSON representation, returning
@@ -158,8 +158,8 @@ public abstract class AttributeMapper {
      * they contain unexpected content, then a failed promise must be returned
      * with an appropriate exception indicating the problem which occurred.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            attribute mapper. This may be used when constructing error
@@ -168,7 +168,7 @@ public abstract class AttributeMapper {
      *            The LDAP entry to be converted to JSON.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<JsonValue, ResourceException> read(RequestState requestState, JsonPointer path, Entry e);
+    abstract Promise<JsonValue, ResourceException> read(Connection connection, JsonPointer path, Entry e);
 
     /**
      * Maps a JSON value to one or more LDAP modifications, returning a promise
@@ -181,16 +181,16 @@ public abstract class AttributeMapper {
      * action in this case, perhaps by substituting default LDAP values, or by
      * returning a failed promise with an appropriate {@link ResourceException}.
      *
-     * @param requestState
-     *            The request state.
+     * @param connection
+     *            The LDAP connection to use to perform the operation.
      * @param v
      *            The JSON value to be converted to LDAP attributes, which may
      *            be {@code null} indicating that the JSON value was not present
      *            in the resource.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Modification>, ResourceException> update(
-            RequestState requestState, JsonPointer path, Entry e, JsonValue v);
+    abstract Promise<List<Modification>, ResourceException> update(Connection connection, JsonPointer path, Entry e,
+            JsonValue v);
 
     // TODO: methods for obtaining schema information (e.g. name, description, type information).
     // TODO: methods for creating sort controls.

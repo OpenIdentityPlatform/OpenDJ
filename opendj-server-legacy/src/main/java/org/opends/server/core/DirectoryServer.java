@@ -295,6 +295,9 @@ public final class DirectoryServer
   /** The configuration handler for the Directory Server. */
   private ConfigurationHandler configurationHandler;
 
+  /** The configuration manager that will handle HTTP endpoints. */
+  private HttpEndpointConfigManager httpEndpointConfigManager;
+
   /** The set of account status notification handlers defined in the server. */
   private ConcurrentMap<DN, AccountStatusNotificationHandler<?>>
                accountStatusNotificationHandlers;
@@ -1554,9 +1557,6 @@ public final class DirectoryServer
       identityMapperConfigManager = new IdentityMapperConfigManager(serverContext);
       identityMapperConfigManager.initializeIdentityMappers();
 
-      new HttpEndpointConfigManager(httpRouter)
-        .registerTo(serverContext.getServerManagementContext().getRootConfiguration());
-
       initializeRootDNConfigManager();
 
       initializeAuthenticatedUsers();
@@ -1644,6 +1644,9 @@ public final class DirectoryServer
         AdministrationDataSync admDataSync = new AdministrationDataSync(rootConnection);
         admDataSync.synchronize();
       }
+
+      httpEndpointConfigManager = new HttpEndpointConfigManager(serverContext);
+      httpEndpointConfigManager.registerTo(serverContext.getServerManagementContext().getRootConfiguration());
 
       deleteUnnecessaryFiles();
     }

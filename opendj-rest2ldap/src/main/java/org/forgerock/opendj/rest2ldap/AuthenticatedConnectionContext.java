@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -78,7 +78,7 @@ public final class AuthenticatedConnectionContext extends AbstractContext {
      * @return The cached pre-authenticated LDAP connection which should be
      *         re-used for subsequent LDAP operations.
      */
-    Connection getConnection() {
+    public Connection getConnection() {
         return connection;
     }
 }

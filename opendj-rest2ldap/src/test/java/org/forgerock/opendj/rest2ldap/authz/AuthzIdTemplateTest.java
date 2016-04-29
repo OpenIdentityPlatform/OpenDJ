@@ -13,14 +13,13 @@
  *
  * Copyright 2013-2016 ForgeRock AS.
  */
-package org.forgerock.opendj.rest2ldap;
+package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.forgerock.json.resource.ForbiddenException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.DataProvider;
@@ -101,7 +100,7 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
 
     }
 
-    @Test(dataProvider = "invalidTemplateData", expectedExceptions = ForbiddenException.class)
+    @Test(dataProvider = "invalidTemplateData", expectedExceptions = IllegalArgumentException.class)
     public void testInvalidTemplateData(final String template, Map<String, Object> principals)
             throws Exception {
         new AuthzIdTemplate(template).formatAsAuthzId(principals, Schema.getDefaultSchema());

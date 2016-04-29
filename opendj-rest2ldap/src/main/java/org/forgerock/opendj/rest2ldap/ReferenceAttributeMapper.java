@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -51,6 +51,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.ExceptionHandler;
@@ -70,14 +71,16 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     private static final int SEARCH_MAX_CANDIDATES = 1000;
 
     private final DN baseDN;
+    private final Schema schema;
     private Filter filter;
     private final AttributeMapper mapper;
     private final AttributeDescription primaryKey;
     private SearchScope scope = SearchScope.WHOLE_SUBTREE;
 
-    ReferenceAttributeMapper(final AttributeDescription ldapAttributeName, final DN baseDN,
+    ReferenceAttributeMapper(final Schema schema, final AttributeDescription ldapAttributeName, final DN baseDN,
         final AttributeDescription primaryKey, final AttributeMapper mapper) {
         super(ldapAttributeName);
+        this.schema = schema;
         this.baseDN = baseDN;
         this.primaryKey = primaryKey;
         this.mapper = mapper;
@@ -130,10 +133,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final RequestState requestState, final JsonPointer path,
+    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
             final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
-
-        return mapper.getLDAPFilter(requestState, path, subPath, type, operator, valueAssertion)
+        return mapper.getLDAPFilter(connection, path, subPath, type, operator, valueAssertion)
                 .thenAsync(new AsyncFunction<Filter, Filter, ResourceException>() {
                     @Override
                     public Promise<Filter, ResourceException> apply(final Filter result) {
@@ -141,56 +143,47 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                         final SearchRequest request = createSearchRequest(result);
                         final List<Filter> subFilters = new LinkedList<>();
 
-                        return requestState.getConnection().thenAsync(
-                                new AsyncFunction<Connection, Filter, ResourceException>() {
-                                    @Override
-                                    public Promise<Filter, ResourceException> apply(final Connection connection)
-                                            throws ResourceException {
-                                        return connection.searchAsync(request, new SearchResultHandler() {
-                                            @Override
-                                            public boolean handleEntry(final SearchResultEntry entry) {
-                                                if (subFilters.size() < SEARCH_MAX_CANDIDATES) {
-                                                    subFilters.add(Filter.equality(
-                                                            ldapAttributeName.toString(), entry.getName()));
-                                                    return true;
-                                                } else {
-                                                    // No point in continuing - maximum candidates reached.
-                                                    return false;
-                                                }
-                                            }
-
-                                            @Override
-                                            public boolean handleReference(final SearchResultReference reference) {
-                                                // Ignore references.
-                                                return true;
-                                            }
-                                        }).then(new Function<Result, Filter, ResourceException>() {
-                                            @Override
-                                            public Filter apply(Result result) throws ResourceException {
-                                                if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
-                                                    throw asResourceException(
-                                                            newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED));
-                                                } else if (subFilters.size() == 1) {
-                                                    return subFilters.get(0);
-                                                } else {
-                                                    return Filter.or(subFilters);
-                                                }
-                                            }
-                                        }, new Function<LdapException, Filter, ResourceException>() {
-                                            @Override
-                                            public Filter apply(LdapException exception) throws ResourceException {
-                                                throw asResourceException(exception);
-                                            }
-                                        });
-                                    }
-                                });
+                        return connection.searchAsync(request, new SearchResultHandler() {
+                            @Override
+                            public boolean handleEntry(final SearchResultEntry entry) {
+                                if (subFilters.size() < SEARCH_MAX_CANDIDATES) {
+                                    subFilters.add(Filter.equality(ldapAttributeName.toString(), entry.getName()));
+                                    return true;
+                                } else {
+                                    // No point in continuing - maximum candidates reached.
+                                    return false;
+                                }
+                            }
+                            @Override
+                            public boolean handleReference(final SearchResultReference reference) {
+                                // Ignore references.
+                                return true;
+                            }
+                        }).then(new Function<Result, Filter, ResourceException>() {
+                            @Override
+                            public Filter apply(Result result) throws ResourceException {
+                                if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
+                                    throw asResourceException(
+                                            newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED));
+                                } else if (subFilters.size() == 1) {
+                                    return subFilters.get(0);
+                                } else {
+                                    return Filter.or(subFilters);
+                                }
+                            }
+                        }, new Function<LdapException, Filter, ResourceException>() {
+                            @Override
+                            public Filter apply(LdapException exception) throws ResourceException {
+                                throw asResourceException(exception);
+                            }
+                        });
                     }
                 });
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLDAPAttributes(
-            final RequestState requestState, final JsonPointer path, final List<Object> newValues) {
+    Promise<Attribute, ResourceException> getNewLDAPAttributes(final Connection connection, final JsonPointer path,
+            final List<Object> newValues) {
         /*
          * For each value use the subordinate mapper to obtain the LDAP primary
          * key, the perform a search for each one to find the corresponding entries.
@@ -201,7 +194,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
         final PromiseImpl<Attribute, ResourceException> promise = PromiseImpl.create();
 
         for (final Object value : newValues) {
-            mapper.create(requestState, path, new JsonValue(value)).thenOnResult(new ResultHandler<List<Attribute>>() {
+            mapper.create(connection, path, new JsonValue(value)).thenOnResult(new ResultHandler<List<Attribute>>() {
                 @Override
                 public void handleResult(List<Attribute> result) {
                     Attribute primaryKeyAttribute = null;
@@ -228,43 +221,38 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                     final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
                     final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
                     final SearchRequest search = createSearchRequest(filter);
-                    requestState.getConnection().thenOnResult(new ResultHandler<Connection>() {
-                        @Override
-                        public void handleResult(Connection connection) {
-                            connection.searchSingleEntryAsync(search)
-                                      .thenOnResult(new ResultHandler<SearchResultEntry>() {
-                                          @Override
-                                          public void handleResult(final SearchResultEntry result) {
-                                              synchronized (newLDAPAttribute) {
-                                                  newLDAPAttribute.add(result.getName());
-                                              }
-                                              completeIfNecessary();
-                                          }
-                                      }).thenOnException(new ExceptionHandler<LdapException>() {
-                                          @Override
-                                          public void handleException(final LdapException error) {
-                                              ResourceException re;
-                                              try {
-                                                  throw error;
-                                              } catch (final EntryNotFoundException e) {
-                                                  re = new BadRequestException(i18n(
-                                                          "The request cannot be processed because the resource "
-                                                          + "'%s' referenced in field '%s' does not exist",
-                                                          primaryKeyValue.toString(), path));
-                                              } catch (final MultipleEntriesFoundException e) {
-                                                  re = new BadRequestException(i18n(
-                                                          "The request cannot be processed because the resource "
-                                                          + "'%s' referenced in field '%s' is ambiguous",
-                                                          primaryKeyValue.toString(), path));
-                                              } catch (final LdapException e) {
-                                                  re = asResourceException(e);
-                                              }
-                                              exception.compareAndSet(null, re);
-                                              completeIfNecessary();
-                                          }
-                                      });
-                        }
-                    });
+                    connection.searchSingleEntryAsync(search)
+                              .thenOnResult(new ResultHandler<SearchResultEntry>() {
+                                  @Override
+                                  public void handleResult(final SearchResultEntry result) {
+                                      synchronized (newLDAPAttribute) {
+                                          newLDAPAttribute.add(result.getName());
+                                      }
+                                      completeIfNecessary();
+                                  }
+                              }).thenOnException(new ExceptionHandler<LdapException>() {
+                                  @Override
+                                  public void handleException(final LdapException error) {
+                                      ResourceException re;
+                                      try {
+                                          throw error;
+                                      } catch (final EntryNotFoundException e) {
+                                          re = new BadRequestException(i18n(
+                                                  "The request cannot be processed because the resource "
+                                                  + "'%s' referenced in field '%s' does not exist",
+                                                  primaryKeyValue.toString(), path));
+                                      } catch (final MultipleEntriesFoundException e) {
+                                          re = new BadRequestException(i18n(
+                                                  "The request cannot be processed because the resource "
+                                                  + "'%s' referenced in field '%s' is ambiguous",
+                                                  primaryKeyValue.toString(), path));
+                                      } catch (final LdapException e) {
+                                          re = asResourceException(e);
+                                      }
+                                      exception.compareAndSet(null, re);
+                                      completeIfNecessary();
+                                  }
+                              });
                 }
 
                 private void completeIfNecessary() {
@@ -287,25 +275,25 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     }
 
     @Override
-    Promise<JsonValue, ResourceException> read(final RequestState c, final JsonPointer path, final Entry e) {
+    Promise<JsonValue, ResourceException> read(final Connection connection, final JsonPointer path, final Entry e) {
         final Attribute attribute = e.getAttribute(ldapAttributeName);
         if (attribute == null || attribute.isEmpty()) {
             return Promises.newResultPromise(null);
         } else if (attributeIsSingleValued()) {
             try {
-                final DN dn = attribute.parse().usingSchema(c.getConfig().schema()).asDN();
-                return readEntry(c, path, dn);
+                final DN dn = attribute.parse().usingSchema(schema).asDN();
+                return readEntry(connection, path, dn);
             } catch (final Exception ex) {
                 // The LDAP attribute could not be decoded.
                 return Promises.newExceptionPromise(asResourceException(ex));
             }
         } else {
             try {
-                final Set<DN> dns = attribute.parse().usingSchema(c.getConfig().schema()).asSetOfDN();
+                final Set<DN> dns = attribute.parse().usingSchema(schema).asSetOfDN();
 
                 final List<Promise<JsonValue, ResourceException>> promises = new ArrayList<>(dns.size());
                 for (final DN dn : dns) {
-                    promises.add(readEntry(c, path, dn));
+                    promises.add(readEntry(connection, path, dn));
                 }
 
                 return Promises.when(promises)
@@ -340,33 +328,30 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     }
 
     private Promise<JsonValue, ResourceException> readEntry(
-            final RequestState requestState, final JsonPointer path, final DN dn) {
+            final Connection connection, final JsonPointer path, final DN dn) {
         final Set<String> requestedLDAPAttributes = new LinkedHashSet<>();
-        mapper.getLDAPAttributes(requestState, path, new JsonPointer(), requestedLDAPAttributes);
-        return requestState.getConnection().thenAsync(new AsyncFunction<Connection, JsonValue, ResourceException>() {
-            @Override
-            public Promise<JsonValue, ResourceException> apply(Connection connection) throws ResourceException {
-                final Filter searchFilter = filter != null ? filter : Filter.alwaysTrue();
-                final String[] attributes = requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
-                final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT, searchFilter, attributes);
+        mapper.getLDAPAttributes(connection, path, new JsonPointer(), requestedLDAPAttributes);
 
-                return connection.searchSingleEntryAsync(request)
-                        .thenAsync(new AsyncFunction<SearchResultEntry, JsonValue, ResourceException>() {
-                            @Override
-                            public Promise<JsonValue, ResourceException> apply(final SearchResultEntry result) {
-                                return mapper.read(requestState, path, result);
-                            }
-                        }, new AsyncFunction<LdapException, JsonValue, ResourceException>() {
-                            @Override
-                            public Promise<JsonValue, ResourceException> apply(final LdapException error) {
-                                if (error instanceof EntryNotFoundException) {
-                                    // Ignore missing entry since it cannot be mapped.
-                                    return Promises.newResultPromise(null);
-                                }
-                                return Promises.newExceptionPromise(asResourceException(error));
-                            }
-                        });
-            }
-        });
+        final Filter searchFilter = filter != null ? filter : Filter.alwaysTrue();
+        final String[] attributes = requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
+        final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT, searchFilter, attributes);
+
+        return connection
+                .searchSingleEntryAsync(request)
+                .thenAsync(new AsyncFunction<SearchResultEntry, JsonValue, ResourceException>() {
+                    @Override
+                    public Promise<JsonValue, ResourceException> apply(final SearchResultEntry result) {
+                        return mapper.read(connection, path, result);
+                    }
+                }, new AsyncFunction<LdapException, JsonValue, ResourceException>() {
+                    @Override
+                    public Promise<JsonValue, ResourceException> apply(final LdapException error) {
+                        if (error instanceof EntryNotFoundException) {
+                            // Ignore missing entry since it cannot be mapped.
+                            return Promises.newResultPromise(null);
+                        }
+                        return Promises.newExceptionPromise(asResourceException(error));
+                    }
+                });
     }
 }

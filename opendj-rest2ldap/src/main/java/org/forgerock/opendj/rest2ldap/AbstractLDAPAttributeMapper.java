@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -36,6 +36,7 @@ import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
@@ -100,8 +101,8 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
 
     @Override
     Promise<List<Attribute>, ResourceException> create(
-            final RequestState requestState, final JsonPointer path, final JsonValue v) {
-        return getNewLDAPAttributes(requestState, path, v).then(
+            final Connection connection, final JsonPointer path, final JsonValue v) {
+        return getNewLDAPAttributes(connection, path, v).then(
             new Function<Attribute, List<Attribute>, ResourceException>() {
                 @Override
                 public List<Attribute> apply(Attribute newLDAPAttribute) throws ResourceException {
@@ -125,19 +126,19 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     }
 
     @Override
-    void getLDAPAttributes(final RequestState requestState, final JsonPointer path,
+    void getLDAPAttributes(final Connection connection, final JsonPointer path,
             final JsonPointer subPath, final Set<String> ldapAttributes) {
         ldapAttributes.add(ldapAttributeName.toString());
     }
 
-    abstract Promise<Attribute, ResourceException> getNewLDAPAttributes(
-                RequestState requestState, JsonPointer path, List<Object> newValues);
+    abstract Promise<Attribute, ResourceException> getNewLDAPAttributes(Connection connection, JsonPointer path,
+            List<Object> newValues);
 
     abstract T getThis();
 
     @Override
     Promise<List<Modification>, ResourceException> patch(
-                final RequestState requestState, final JsonPointer path, final PatchOperation operation) {
+                final Connection connection, final JsonPointer path, final PatchOperation operation) {
         try {
             final JsonPointer field = operation.getField();
             final JsonValue v = operation.getValue();
@@ -262,7 +263,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                         singletonList(new Modification(modType, emptyAttribute(ldapAttributeName))));
                 }
             } else {
-                return getNewLDAPAttributes(requestState, path, newValues)
+                return getNewLDAPAttributes(connection, path, newValues)
                         .then(new Function<Attribute, List<Modification>, ResourceException>() {
                             @Override
                             public List<Modification> apply(final Attribute value) {
@@ -278,9 +279,9 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> update(
-            final RequestState requestState, final JsonPointer path, final Entry e, final JsonValue v) {
-        return getNewLDAPAttributes(requestState, path, v).then(
+    Promise<List<Modification>, ResourceException> update(final Connection connection, final JsonPointer path,
+            final Entry e, final JsonValue v) {
+        return getNewLDAPAttributes(connection, path, v).then(
             new Function<Attribute, List<Modification>, ResourceException>() {
                 @Override
                 public List<Modification> apply(final Attribute newLDAPAttribute) throws ResourceException {
@@ -370,8 +371,8 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
         }
     }
 
-    private Promise<Attribute, ResourceException> getNewLDAPAttributes(
-            final RequestState requestState, final JsonPointer path, final JsonValue v) {
+    private Promise<Attribute, ResourceException> getNewLDAPAttributes(final Connection connection,
+            final JsonPointer path, final JsonValue v) {
         try {
             // Ensure that the value is of the correct type.
             checkSchema(path, v);
@@ -380,7 +381,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 // Skip sub-class implementation if there are no values.
                 return Promises.newResultPromise(emptyAttribute(ldapAttributeName));
             } else {
-                return getNewLDAPAttributes(requestState, path, newValues);
+                return getNewLDAPAttributes(connection, path, newValues);
             }
         } catch (final Exception ex) {
             return Promises.newExceptionPromise(asResourceException(ex));

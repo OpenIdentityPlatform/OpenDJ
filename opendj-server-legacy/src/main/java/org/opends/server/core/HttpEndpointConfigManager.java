@@ -49,22 +49,25 @@ import org.opends.server.types.InitializationException;
  * removals, or modifications to any HTTP endpoints while the server is running.
  */
 public class HttpEndpointConfigManager implements ConfigurationChangeListener<HTTPEndpointCfg>,
-    ConfigurationAddListener<HTTPEndpointCfg>, ConfigurationDeleteListener<HTTPEndpointCfg>
+                                                  ConfigurationAddListener<HTTPEndpointCfg>,
+                                                  ConfigurationDeleteListener<HTTPEndpointCfg>
 {
   private static final LocalizedLogger LOGGER = LocalizedLogger.getLoggerForThisClass();
 
+  private final ServerContext serverContext;
   private final Router router;
   private final Map<DN, HttpApplication> applications;
 
   /**
    * Creates a new instance of this HTTP endpoint config manager.
    *
-   * @param router
-   *          The {@link Router} where to register configured {@link HttpEndpoint}
+   * @param serverContext
+   *          The server context.
    */
-  public HttpEndpointConfigManager(Router router)
+  public HttpEndpointConfigManager(ServerContext serverContext)
   {
-    this.router = router;
+    this.serverContext = serverContext;
+    this.router = serverContext.getHTTPRouter();
     this.applications = new HashMap<>();
   }
 
@@ -197,7 +200,8 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
       final Class<? extends HttpEndpoint<?>> endpointClass =
           (Class<? extends HttpEndpoint<?>>) HTTPEndpointCfgDefn.getInstance().getJavaClassPropertyDefinition()
               .loadClass(configuration.getJavaClass(), HttpEndpoint.class);
-      return endpointClass.getDeclaredConstructor(configuration.configurationClass()).newInstance(configuration);
+      return endpointClass.getDeclaredConstructor(configuration.configurationClass(), ServerContext.class)
+                          .newInstance(configuration, serverContext);
     }
     catch (Exception e)
     {

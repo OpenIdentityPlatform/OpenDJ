@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -35,6 +35,7 @@ import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
@@ -87,8 +88,8 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    Promise<List<Attribute>, ResourceException> create(
-            final RequestState requestState, final JsonPointer path, final JsonValue v) {
+    Promise<List<Attribute>, ResourceException> create(final Connection connection, final JsonPointer path,
+            final JsonValue v) {
         try {
             /*
              * First check that the JSON value is an object and that the fields
@@ -104,13 +105,13 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                 for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
                     final Mapping mapping = getMapping(me.getKey());
                     final JsonValue subValue = new JsonValue(me.getValue());
-                    promises.add(mapping.mapper.create(requestState, path.child(me.getKey()), subValue));
+                    promises.add(mapping.mapper.create(connection, path.child(me.getKey()), subValue));
                 }
             }
 
             // Invoke mappings for which there were no values provided.
             for (final Mapping mapping : missingMappings.values()) {
-                promises.add(mapping.mapper.create(requestState, path.child(mapping.name), null));
+                promises.add(mapping.mapper.create(connection, path.child(mapping.name), null));
             }
 
             return Promises.when(promises)
@@ -121,29 +122,29 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void getLDAPAttributes(final RequestState requestState, final JsonPointer path, final JsonPointer subPath,
+    void getLDAPAttributes(final Connection connection, final JsonPointer path, final JsonPointer subPath,
             final Set<String> ldapAttributes) {
         if (subPath.isEmpty()) {
             // Request all subordinate mappings.
             for (final Mapping mapping : mappings.values()) {
-                mapping.mapper.getLDAPAttributes(requestState, path.child(mapping.name), subPath, ldapAttributes);
+                mapping.mapper.getLDAPAttributes(connection, path.child(mapping.name), subPath, ldapAttributes);
             }
         } else {
             // Request single subordinate mapping.
             final Mapping mapping = getMapping(subPath);
             if (mapping != null) {
                 mapping.mapper.getLDAPAttributes(
-                        requestState, path.child(subPath.get(0)), subPath.relativePointer(), ldapAttributes);
+                        connection, path.child(subPath.get(0)), subPath.relativePointer(), ldapAttributes);
             }
         }
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final RequestState requestState, final JsonPointer path,
+    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
             final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
         final Mapping mapping = getMapping(subPath);
         if (mapping != null) {
-            return mapping.mapper.getLDAPFilter(requestState, path.child(subPath.get(0)),
+            return mapping.mapper.getLDAPFilter(connection, path.child(subPath.get(0)),
                     subPath.relativePointer(), type, operator, valueAssertion);
         } else {
             /*
@@ -156,8 +157,8 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> patch(
-            final RequestState requestState, final JsonPointer path, final PatchOperation operation) {
+    Promise<List<Modification>, ResourceException> patch(final Connection connection, final JsonPointer path,
+            final PatchOperation operation) {
         try {
             final JsonPointer field = operation.getField();
             final JsonValue v = operation.getValue();
@@ -180,7 +181,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                         final JsonValue subValue = new JsonValue(me.getValue());
                         final PatchOperation subOperation =
                                 operation(operation.getOperation(), field /* empty */, subValue);
-                        promises.add(mapping.mapper.patch(requestState, path.child(me.getKey()), subOperation));
+                        promises.add(mapping.mapper.patch(connection, path.child(me.getKey()), subOperation));
                     }
                 }
 
@@ -201,7 +202,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                 }
                 final PatchOperation subOperation =
                         operation(operation.getOperation(), field.relativePointer(), v);
-                return mapping.mapper.patch(requestState, path.child(fieldName), subOperation);
+                return mapping.mapper.patch(connection, path.child(fieldName), subOperation);
             }
         } catch (final Exception ex) {
             return Promises.newExceptionPromise(asResourceException(ex));
@@ -209,7 +210,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    Promise<JsonValue, ResourceException> read(final RequestState requestState, final JsonPointer path, final Entry e) {
+    Promise<JsonValue, ResourceException> read(final Connection connection, final JsonPointer path, final Entry e) {
         /*
          * Use an accumulator which will aggregate the results from the
          * subordinate mappers into a single list. On completion, the
@@ -219,7 +220,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                 new ArrayList<>(mappings.size());
 
         for (final Mapping mapping : mappings.values()) {
-            promises.add(mapping.mapper.read(requestState, path.child(mapping.name), e)
+            promises.add(mapping.mapper.read(connection, path.child(mapping.name), e)
                     .then(new Function<JsonValue, Map.Entry<String, JsonValue>, ResourceException>() {
                         @Override
                         public Map.Entry<String, JsonValue> apply(final JsonValue value) {
@@ -255,7 +256,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
 
     @Override
     Promise<List<Modification>, ResourceException> update(
-            final RequestState requestState, final JsonPointer path, final Entry e, final JsonValue v) {
+            final Connection connection, final JsonPointer path, final Entry e, final JsonValue v) {
         try {
             // First check that the JSON value is an object and that the fields
             // it contains are known by this mapper.
@@ -269,13 +270,13 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                 for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
                     final Mapping mapping = getMapping(me.getKey());
                     final JsonValue subValue = new JsonValue(me.getValue());
-                    promises.add(mapping.mapper.update(requestState, path.child(me.getKey()), e, subValue));
+                    promises.add(mapping.mapper.update(connection, path.child(me.getKey()), e, subValue));
                 }
             }
 
             // Invoke mappings for which there were no values provided.
             for (final Mapping mapping : missingMappings.values()) {
-                promises.add(mapping.mapper.update(requestState, path.child(mapping.name), e, null));
+                promises.add(mapping.mapper.update(connection, path.child(mapping.name), e, null));
             }
 
             return Promises.when(promises)

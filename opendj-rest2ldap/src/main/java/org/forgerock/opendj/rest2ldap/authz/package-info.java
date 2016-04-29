@@ -11,16 +11,15 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2016 ForgeRock AS.
+ * Copyright 2016 ForgeRock AS.
  */
 
 /**
- * APIs for implementing REST to LDAP gateways. The API is implemented by
- * {@link org.forgerock.opendj.rest2ldap.LDAPCollectionResourceProvider} which is using a pre-established
- * {@link org.forgerock.opendj.ldap.Connection} encapsulated in the
- * {@link org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext}. This context is injected by the
- * {@link org.forgerock.opendj.rest2ldap.authz.ProxiedAuthV2Filter} depending on the
- * {@link org.forgerock.services.context.SecurityContext} injected by one of the configured authorization filters.
+ * This package contains {@link org.forgerock.http.Filter} to authenticate and authorize LDAP connections. Authorization
+ * filter injects a {@link org.forgerock.services.context.SecurityContext} populated with authorization information like
+ * user's id, user's DN or anything else. This {@link org.forgerock.services.context.SecurityContext} can then be used
+ * by {@link org.forgerock.opendj.rest2ldap.authz.ProxiedAuthV2Filter} to inject an
+ * {@link org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext} containing the
+ * {@link org.forgerock.opendj.ldap.Connection} with user specific privileges.
  */
-package org.forgerock.opendj.rest2ldap;
-
+package org.forgerock.opendj.rest2ldap.authz;

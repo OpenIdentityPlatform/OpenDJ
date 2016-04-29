@@ -15,22 +15,23 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.opends.messages.ProtocolMessages.*;
-
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
-import org.forgerock.http.protocol.Status;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.Promises;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.DisconnectReason;
+import org.opends.server.protocols.http.LDAPContext.InternalConnectionFactory;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 /**
  * Filter injecting the {@link LDAPContext} giving access to
@@ -41,45 +42,59 @@ final class LDAPContextInjectionFilter implements Filter
   private final ServerContext serverContext;
   private final HTTPConnectionHandler httpConnectionHandler;
 
-  LDAPContextInjectionFilter(ServerContext serverContext, HTTPConnectionHandler httpConnectionHandler) {
+  LDAPContextInjectionFilter(ServerContext serverContext, HTTPConnectionHandler httpConnectionHandler)
+  {
     this.serverContext = serverContext;
-    this.httpConnectionHandler= httpConnectionHandler;
+    this.httpConnectionHandler = httpConnectionHandler;
   }
 
   @Override
-  public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next)
+  public Promise<Response, NeverThrowsException> filter(final Context context, final Request request,
+      final Handler next)
   {
-    final HTTPClientConnection clientConnection =
-        new HTTPClientConnection(serverContext, httpConnectionHandler, context, request);
-    if (clientConnection.getConnectionID() < 0)
+    final LDAPContext djContext = new LDAPContext(context, new InternalConnectionFactory()
     {
-      clientConnection.disconnect(DisconnectReason.ADMIN_LIMIT_EXCEEDED, true,
-          ERR_CONNHANDLER_REJECTED_BY_SERVER.get());
-      return Promises.newResultPromise(new Response(Status.SERVICE_UNAVAILABLE));
-    }
-
-    final LDAPContext djContext  = new LDAPContext(context, new ConnectionFactory()
-    {
-      private final Connection connection = new SdkConnectionAdapter(clientConnection);
-
       @Override
-      public Promise<Connection, LdapException> getConnectionAsync()
+      public Connection getConnection(DN userDN) throws LdapException
       {
-        return Promises.newResultPromise(connection);
+        final HTTPClientConnection clientConnection =
+            new HTTPClientConnection(serverContext, httpConnectionHandler, context, request);
+        clientConnection.setAuthenticationInfo(getAuthInfoForDN(userDN));
+        if (clientConnection.getConnectionID() < 0)
+        {
+          throw LdapException.newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED);
+        }
+        httpConnectionHandler.addClientConnection(clientConnection);
+        return new SdkConnectionAdapter(clientConnection);
       }
 
-      @Override
-      public Connection getConnection() throws LdapException
+      private AuthenticationInfo getAuthInfoForDN(DN userDN) throws LdapException
       {
-        return connection;
-      }
-
-      @Override
-      public void close()
-      {
+        if (userDN == null || userDN.isRootDN())
+        {
+          return new AuthenticationInfo();
+        }
+        final DN rootUserDN = DirectoryServer.getActualRootBindDN(userDN);
+        if (rootUserDN != null)
+        {
+          userDN = rootUserDN;
+        }
+        Entry userEntry;
+        try
+        {
+          userEntry = DirectoryServer.getEntry(userDN);
+        }
+        catch (DirectoryException e)
+        {
+          throw LdapException.newLdapException(e.getResultCode());
+        }
+        if (userEntry == null)
+        {
+          throw LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS);
+        }
+        return new AuthenticationInfo(userEntry, DirectoryServer.isRootDN(userDN));
       }
     });
     return next.handle(djContext, request);
   }
-
 }

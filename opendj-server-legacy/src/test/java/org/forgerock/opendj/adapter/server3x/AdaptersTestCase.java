@@ -65,6 +65,8 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.util.Options;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -76,18 +78,6 @@ import org.testng.annotations.Test;
 public class AdaptersTestCase extends DirectoryServerTestCase {
     private static final String USER_0_DN_STRING = "uid=user.0,o=test";
 
-    /**
-     * Provides an anonymous connection factories.
-     *
-     * @return Anonymous connection factories.
-     */
-    @DataProvider
-    public Object[][] anonymousConnectionFactories() {
-        return new Object[][] {
-            { new LDAPConnectionFactory("localhost", getServerLdapPort()) },
-            { Adapters.newAnonymousConnectionFactory() } };
-    }
-
     private Integer getServerLdapPort() {
         return TestCaseUtils.getServerLdapPort();
     }
@@ -96,9 +86,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      * Provides root connection factories.
      *
      * @return Root connection factories.
+     * @throws DirectoryException 
      */
     @DataProvider
-    public Object[][] rootConnectionFactories() {
+    public Object[][] rootConnectionFactories() throws DirectoryException {
         return new Object[][] {
             { new LDAPConnectionFactory("localhost",
                                         getServerLdapPort(),
@@ -106,7 +97,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                                                .set(AUTHN_BIND_REQUEST,
                                                     newSimpleBindRequest("cn=directory manager",
                                                                                   "password".toCharArray()))) },
-            { Adapters.newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
+            { Adapters.newConnectionFactory(new InternalClientConnection(DN.valueOf("cn=directory manager"))) },
+            { Adapters.newRootConnectionFactory() } };
     }
 
     /**
@@ -120,7 +112,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         TestCaseUtils.startServer();
 
         // Creates a root connection to add data
-        final Connection connection = Adapters.newRootConnection();
+        final Connection connection = Adapters.newRootConnectionFactory().getConnection();
         // @formatter:off
         connection.add(
                 "dn: uid=user.0, o=test",
@@ -211,8 +203,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
-        try (Connection connection = factory.getConnection()) {
+        try (final LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+             final Connection connection = factory.getConnection()) {
             connection.bind("cn=Directory Manager", "password".toCharArray());
             assertThat(connection.isValid()).isTrue();
             assertThat(connection.isClosed()).isFalse();
@@ -228,12 +220,9 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
-        LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
-
-        PlainSASLBindRequest request =
-                Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
-
-        try (Connection connection = factory.getConnection()) {
+        final PlainSASLBindRequest request = Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
+        try (final LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+             final Connection connection = factory.getConnection()) {
             connection.bind(request);
         }
     }
@@ -244,25 +233,11 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      * @throws LdapException
      */
     @Test
-    public void testAdapterConnectionSASLBindRequest() throws LdapException,
-            GeneralSecurityException {
+    public void testAdapterConnectionSASLBindRequest() throws LdapException {
         PlainSASLBindRequest request =
                 Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
-        try (final Connection connection = Adapters.newRootConnection()) {
+        try (final Connection connection = Adapters.newRootConnectionFactory().getConnection()) {
             connection.bind(request);
-        }
-    }
-
-    /**
-     * This type of connection is not supported. Anonymous SASL Mechanisms is
-     * disabled in the config.ldif file.
-     *
-     * @throws LdapException
-     */
-    @Test(dataProvider = "anonymousConnectionFactories", expectedExceptions = LdapException.class)
-    public void testConnectionAnonymousSASLBindRequest(final ConnectionFactory factory) throws LdapException {
-        try (final Connection connection = factory.getConnection()) {
-            connection.bind(Requests.newAnonymousSASLBindRequest("anonymousSASLBindRequest"));
         }
     }
 
@@ -273,7 +248,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterConnectionSimpleBindAsRoot() throws Exception {
-        try (final Connection connection = Adapters.newRootConnection()) {
+        try (final Connection connection = Adapters.newRootConnectionFactory().getConnection()) {
             final BindResult result = connection.bind("cn=Directory Manager", "password".toCharArray());
             assertThat(connection.isValid()).isTrue();
             assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
@@ -287,7 +262,8 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterConnectionSimpleBindAsAUser() throws Exception {
-        try (final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING))) {
+        try (final Connection connection = Adapters.newConnectionFactory(
+                new InternalClientConnection(DN.valueOf(USER_0_DN_STRING))).getConnection()) {
             final BindResult result = connection.bind(USER_0_DN_STRING, "password".toCharArray());
             assertThat(result.getResultCode()).isEqualTo(ResultCode.SUCCESS);
         }
@@ -300,23 +276,10 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test(expectedExceptions = AuthenticationException.class)
     public void testAdapterConnectionSimpleBindAsAUserWrongPassword() throws Exception {
-        try (final Connection connection = Adapters.newConnectionForUser(DN.valueOf(USER_0_DN_STRING))) {
+        try (final Connection connection =  Adapters.newConnectionFactory(
+                new InternalClientConnection(DN.valueOf(USER_0_DN_STRING))).getConnection()) {
             // Invalid credentials
             connection.bind(USER_0_DN_STRING, "pass".toCharArray());
-        }
-    }
-
-    /**
-     * Tries to bind as anonymous.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testAdapterConnectionSimpleBind() throws Exception {
-        // Anonymous
-        try (final Connection connection = Adapters.newAnonymousConnection()) {
-            final BindResult result = connection.bind("", "".toCharArray());
-            assertThat(result.getDiagnosticMessage()).isEmpty();
         }
     }
 
@@ -327,7 +290,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterAddRequest() throws Exception {
-        final Connection connection = Adapters.newRootConnection();
+        final Connection connection = Adapters.newRootConnectionFactory().getConnection();
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
                 "dn: sn=carter,o=test",
@@ -383,7 +346,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterSearchRequest() throws Exception {
-        final Connection connection = Adapters.newRootConnection();
+        final Connection connection = Adapters.newRootConnectionFactory().getConnection();
 
         final SearchRequest request =
                 Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
@@ -564,7 +527,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
      */
     @Test
     public void testAdapterDeleteRequest() throws LdapException {
-        try (final Connection connection = Adapters.newRootConnection()) {
+        try (final Connection connection = Adapters.newRootConnectionFactory().getConnection()) {
             // Checks if the entry exists.
             SearchResultEntry sre =
                     connection.searchSingleEntry(Requests.newSearchRequest(
@@ -598,7 +561,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
                         PreReadRequestControl.newControl(true, "mail")).addModification(
                         ModificationType.ADD, "mail", "modified@example.com");
 
-        final Connection connection = Adapters.newRootConnection();
+        final Connection connection = Adapters.newRootConnectionFactory().getConnection();
         final Result result = connection.modify(changeRequest);
         assertThat(result.getDiagnosticMessage()).isEmpty();
         assertThat(result.getControls()).isNotEmpty();
@@ -746,150 +709,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
     }
 
     /**
-     * If an anonymous tries to delete, sends a result code : insufficient
-     * access rights.
-     *
-     * @throws LdapException
-     */
-    @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = AuthorizationException.class)
-    public void testAdapterAsAnonymousCannotPerformDeleteRequest(final ConnectionFactory factory)
-            throws LdapException {
-        final DeleteRequest deleteRequest =
-                Requests.newDeleteRequest("uid=user.2,o=test");
-
-        try (final Connection connection = factory.getConnection()) {
-            connection.delete(deleteRequest);
-        }
-    }
-
-    /**
-     * If an anonymous tries to do an add request, sends a result code :
-     * insufficient access rights.
-     *
-     * @throws LdapException
-     */
-    @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = AuthorizationException.class)
-    public void testAdapterAsAnonymousCannotPerformAddRequest(final ConnectionFactory factory)
-            throws LdapException {
-        // @formatter:off
-        final AddRequest addRequest = Requests.newAddRequest(
-                "dn: sn=scarter,o=test",
-                "objectClass: top",
-                "objectClass: person",
-                "cn: scarter");
-        // @formatter:on
-
-        try (final Connection connection = factory.getConnection()) {
-            connection.add(addRequest);
-        }
-    }
-
-    /**
-     * If an anonymous tries to do a modify DN request, sends a result code :
-     * insufficient access rights.
-     *
-     * @throws LdapException
-     */
-    @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = AuthorizationException.class)
-    public void testAdapterAsAnonymousCannotPerformModifyDNRequest(final ConnectionFactory factory)
-            throws LdapException {
-        final ModifyDNRequest changeRequest =
-                Requests.newModifyDNRequest("uid=user.2,o=test", "uid=user.test")
-                        .setDeleteOldRDN(true);
-        try (final Connection connection = factory.getConnection()) {
-            connection.modifyDN(changeRequest);
-        }
-    }
-
-    /**
-     * If an anonymous tries to do a modify request, sends a result code :
-     * insufficient access rights.
-     *
-     * @throws LdapException
-     */
-    @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = LdapException.class)
-    public void testAdapterAsAnonymousCannotPerformModifyRequest(final ConnectionFactory factory)
-            throws LdapException {
-        final ModifyRequest changeRequest =
-                Requests.newModifyRequest("uid=user.2,o=test").addControl(
-                        PreReadRequestControl.newControl(true, "mail")).addModification(
-                        ModificationType.REPLACE, "mail", "modified@example.com");
-
-        try (final Connection connection = factory.getConnection()) {
-            connection.modify(changeRequest);
-        }
-    }
-
-    /**
-     * The anonymous connection is allowed to perform compare request.
-     *
-     * @throws LdapException
-     */
-    @Test(dataProvider = "anonymousConnectionFactories")
-    public void testAdapterAsAnonymousPerformsCompareRequest(final ConnectionFactory factory)
-            throws LdapException {
-        final CompareRequest compareRequest =
-                Requests.newCompareRequest(USER_0_DN_STRING, "uid", "user.0");
-
-        try (final Connection connection = factory.getConnection()) {
-            final CompareResult result = connection.compare(compareRequest);
-            assertThat(result.getResultCode()).isEqualTo(ResultCode.COMPARE_TRUE);
-
-            assertThat(result.getDiagnosticMessage()).isEmpty();
-            assertThat(result.getControls()).isEmpty();
-            assertThat(result.getMatchedDN()).isEmpty();
-        }
-    }
-
-    /**
-     * The anonymous connection is allowed to perform search request.
-     *
-     * @throws Exception
-     */
-    @Test(dataProvider = "anonymousConnectionFactories")
-    public void testAdapterAsAnonymousPerformsSearchRequest(final ConnectionFactory factory)
-            throws Exception {
-        final SearchRequest request =
-                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
-                        "(uid=user.1)");
-
-        final Connection connection = factory.getConnection();
-        final ConnectionEntryReader reader = connection.search(request);
-
-        assertThat(reader.isEntry()).isTrue();
-        final SearchResultEntry entry = reader.readEntry();
-        assertThat(entry).isNotNull();
-        assertThat(entry.getName().toString()).isEqualTo("uid=user.1,o=test");
-        assertThat(reader.hasNext()).isFalse();
-    }
-
-    /**
-     * The anonymous connection is not allowed to perform search request
-     * associated with a control.
-     * <p>
-     * Unavailable Critical Extension: The request control with Object
-     * Identifier (OID) "x.x.x" cannot be used due to insufficient access
-     * rights.
-     *
-     * @throws Exception
-     */
-    @Test(dataProvider = "anonymousConnectionFactories", expectedExceptions = LdapException.class)
-    public void testAdapterAsAnonymousCannotPerformSearchRequestWithControl(
-            final ConnectionFactory factory) throws Exception {
-        final Connection connection = factory.getConnection();
-        final SearchRequest request =
-                Requests.newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE,
-                        "(uid=user.1)").addControl(ADNotificationRequestControl.newControl(true));
-
-        final ConnectionEntryReader reader = connection.search(request);
-        reader.readEntry();
-    }
-
-    /**
      * Creates an LDAP Connection and performs some basic calls like
      * add/delete/search and compare results with an SDK adapter connection
      * doing the same.
@@ -931,7 +750,7 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         assertThat(deleteResult.getResultCode()).isEqualTo(ResultCode.SUCCESS);
 
         // SDK Adapter connection
-        final Connection adapterConnection = Adapters.newRootConnection();
+        final Connection adapterConnection = Adapters.newRootConnectionFactory().getConnection();
         final Result sdkAddResult = adapterConnection.add(addRequest);
         final ConnectionEntryReader sdkReader = adapterConnection.search(searchRequest);
         final Result sdkDeleteResult = adapterConnection.delete(deleteRequest);

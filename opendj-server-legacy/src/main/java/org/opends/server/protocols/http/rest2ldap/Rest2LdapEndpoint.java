@@ -23,26 +23,39 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import org.forgerock.http.Filter;
 import org.forgerock.http.HttpApplication;
+import org.forgerock.opendj.adapter.server3x.Adapters;
+import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.rest2ldap.Rest2LDAPHttpApplication;
 import org.forgerock.opendj.server.config.server.Rest2ldapEndpointCfg;
+import org.forgerock.services.context.SecurityContext;
+import org.forgerock.util.Function;
 import org.opends.server.api.HttpEndpoint;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
 
 /**
- * Encapsulates configuration required to start a rest2ldap application in an
- * OpenDJ context. Acts as a factory for {@link Rest2LdapEmbeddedHttpApplication}.
+ * Encapsulates configuration required to start a REST2LDAP application embedded
+ * in this LDAP server. Acts as a factory for {@link Rest2LDAPHttpApplication}.
  */
 public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
 {
+
   /**
    * Create a new Rest2LdapEnpoint with the supplied configuration.
    *
    * @param configuration
    *          Configuration to use for the {@link HttpApplication}
+   * @param serverContext
+   *          Server of this LDAP server
    */
-  public Rest2LdapEndpoint(Rest2ldapEndpointCfg configuration)
+  public Rest2LdapEndpoint(Rest2ldapEndpointCfg configuration, ServerContext serverContext)
   {
-    super(configuration);
+    super(configuration, serverContext);
   }
 
   @Override
@@ -53,7 +66,7 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
       final URI configURI = new URI(configuration.getConfigUrl());
       final URL absoluteConfigUrl =
           configURI.isAbsolute() ? configURI.toURL() : getFileForPath(configuration.getConfigUrl()).toURI().toURL();
-      return new Rest2LdapEmbeddedHttpApplication(absoluteConfigUrl, configuration.isAuthenticationRequired());
+      return new InternalRest2LDAPHttpApplication(absoluteConfigUrl, serverContext.getSchemaNG());
     }
     catch (MalformedURLException | URISyntaxException e)
     {
@@ -62,4 +75,31 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
     }
   }
 
+  /**
+   * Specialized {@link Rest2LDAPHttpApplication} using internal connections to
+   * this local LDAP server.
+   */
+  private final class InternalRest2LDAPHttpApplication extends Rest2LDAPHttpApplication
+  {
+    private final ConnectionFactory rootInternalConnectionFactory = Adapters.newRootConnectionFactory();
+
+    InternalRest2LDAPHttpApplication(URL configURL, Schema schema)
+    {
+      super(configURL, schema);
+    }
+
+    @Override
+    protected Filter newProxyAuthzFilter(final ConnectionFactory connectionFactory,
+        final Function<SecurityContext, String, LdapException> authzIdProvider)
+    {
+      return new InternalProxyAuthzFilter(DirectoryServer.getProxiedAuthorizationIdentityMapper(), schema,
+          authzIdProvider);
+    }
+
+    @Override
+    protected ConnectionFactory getConnectionFactory(String name)
+    {
+      return rootInternalConnectionFactory;
+    }
+  }
 }

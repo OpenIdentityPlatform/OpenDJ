@@ -11,11 +11,10 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
-import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.schema.Schema;
 
@@ -23,37 +22,17 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * Common configuration options.
  */
 final class Config {
-    private final AuthorizationPolicy authzPolicy;
-    private final ConnectionFactory factory;
     private final DecodeOptions options;
-    private final AuthzIdTemplate proxiedAuthzTemplate;
     private final ReadOnUpdatePolicy readOnUpdatePolicy;
-    private final Schema schema;
     private final boolean useSubtreeDelete;
     private final boolean usePermissiveModify;
 
-    Config(final ConnectionFactory factory, final ReadOnUpdatePolicy readOnUpdatePolicy,
-            final AuthorizationPolicy authzPolicy, final AuthzIdTemplate proxiedAuthzTemplate,
-            final boolean useSubtreeDelete, final boolean usePermissiveModify, final Schema schema) {
-        this.factory = factory;
+    Config(final ReadOnUpdatePolicy readOnUpdatePolicy, final boolean useSubtreeDelete,
+            final boolean usePermissiveModify, final Schema schema) {
         this.readOnUpdatePolicy = readOnUpdatePolicy;
-        this.authzPolicy = authzPolicy;
-        this.proxiedAuthzTemplate = proxiedAuthzTemplate;
         this.useSubtreeDelete = useSubtreeDelete;
         this.usePermissiveModify = usePermissiveModify;
-        this.schema = schema;
         this.options = new DecodeOptions().setSchema(schema);
-    }
-
-    /**
-     * Returns the LDAP SDK connection factory which should be used when
-     * performing LDAP operations.
-     *
-     * @return The LDAP SDK connection factory which should be used when
-     *         performing LDAP operations.
-     */
-    ConnectionFactory connectionFactory() {
-        return factory;
     }
 
     /**
@@ -65,28 +44,6 @@ final class Config {
      */
     DecodeOptions decodeOptions() {
         return options;
-    }
-
-    /**
-     * Returns the authorization policy which should be used for performing LDAP
-     * operations.
-     *
-     * @return The authorization policy which should be used for performing LDAP
-     *         operations.
-     */
-    AuthorizationPolicy getAuthorizationPolicy() {
-        return authzPolicy;
-    }
-
-    /**
-     * Returns the authorization ID template which should be used when proxied
-     * authorization is enabled.
-     *
-     * @return The authorization ID template which should be used when proxied
-     *         authorization is enabled.
-     */
-    AuthzIdTemplate getProxiedAuthorizationTemplate() {
-        return proxiedAuthzTemplate;
     }
 
     /**
@@ -120,16 +77,5 @@ final class Config {
      */
     ReadOnUpdatePolicy readOnUpdatePolicy() {
         return readOnUpdatePolicy;
-    }
-
-    /**
-     * Returns the schema which should be used when attribute types and
-     * controls.
-     *
-     * @return The schema which should be used when attribute types and
-     *         controls.
-     */
-    Schema schema() {
-        return schema;
     }
 }

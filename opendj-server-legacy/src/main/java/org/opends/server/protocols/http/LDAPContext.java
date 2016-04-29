@@ -13,30 +13,64 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
+
 package org.opends.server.protocols.http;
 
-import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.services.context.AbstractContext;
 import org.forgerock.services.context.Context;
 
-/** Context provided by this LDAP server to the embedded {@link org.forgerock.http.HttpApplication}s. */
+/**
+ * Context provided by a Directory Server. It contains a reference to a
+ * {@link InternalConnectionFactory} which can be used to perform direct LDAP
+ * operation on this Directory Server without the network overhead.
+ */
 public final class LDAPContext extends AbstractContext
 {
-  private final ConnectionFactory ldapConnectionFactory;
+  private final InternalConnectionFactory internalConnectionFactory;
 
-  LDAPContext(final Context parent, ConnectionFactory ldapConnectionFactory)
+  /**
+   * Create a new LDAPContext.
+   *
+   * @param parent
+   *          The parent context.
+   * @param internalConnectionFactory
+   *          Internal connection factory of this LDAP server.
+   */
+  public LDAPContext(final Context parent, InternalConnectionFactory internalConnectionFactory)
   {
     super(parent, "LDAP context");
-    this.ldapConnectionFactory = ldapConnectionFactory;
+    this.internalConnectionFactory = internalConnectionFactory;
   }
 
   /**
-   * Get the {@link org.forgerock.opendj.ldap.LDAPConnectionFactory} attached to this context.
+   * Get the {@link InternalConnectionFactory} attached to this context.
    *
-   * @return The {@link org.forgerock.opendj.ldap.LDAPConnectionFactory} attached to this context.
+   * @return The {@link InternalConnectionFactory} attached to this context.
    */
-  public ConnectionFactory getLdapConnectionFactory()
+  public InternalConnectionFactory getInternalConnectionFactory()
   {
-    return ldapConnectionFactory;
+    return internalConnectionFactory;
+  }
+
+  /**
+   * An internal connection factory providing direct connection to this Directory
+   * Server without the network overhead.
+   */
+  public interface InternalConnectionFactory
+  {
+    /**
+     * Get a direct {@link Connection} to this Directory Server.
+     *
+     * @param userDN
+     *          DN of the user's used to validate authorization.
+     * @return A direct {@link Connection} to this Directory Server.
+     * @throws LdapException
+     *           If a connection cannot be create (i.e: because the userDN
+     *           doesn't exists).
+     */
+    Connection getConnection(DN userDN) throws LdapException;
   }
 }

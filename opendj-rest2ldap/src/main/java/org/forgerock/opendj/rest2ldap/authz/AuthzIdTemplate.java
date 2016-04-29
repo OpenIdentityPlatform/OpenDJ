@@ -11,12 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
-package org.forgerock.opendj.rest2ldap;
-
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
-import static org.forgerock.opendj.rest2ldap.Utils.isJSONPrimitive;
+package org.forgerock.opendj.rest2ldap.authz;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +22,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.forgerock.json.resource.ForbiddenException;
-import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.Schema;
 
@@ -38,23 +33,22 @@ import org.forgerock.opendj.ldap.schema.Schema;
  */
 final class AuthzIdTemplate {
     private static interface Impl {
-        String formatAsAuthzId(AuthzIdTemplate t, Object[] templateVariables, Schema schema)
-                throws ResourceException;
+        String formatAsAuthzId(AuthzIdTemplate t, Object[] templateVariables, Schema schema);
     }
 
     private static final Impl DN_IMPL = new Impl() {
 
         @Override
         public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
-                final Schema schema) throws ResourceException {
+                final Schema schema) {
             final String authzId = String.format(Locale.ENGLISH, t.formatString, templateVariables);
             try {
                 // Validate the DN.
                 DN.valueOf(authzId.substring(3), schema);
             } catch (final IllegalArgumentException e) {
-                throw new ForbiddenException(
-                        i18n("The request could not be authorized because the required "
-                                + "security principal was not a valid LDAP DN"));
+                throw new IllegalArgumentException(
+                        "The request could not be authorized because the required security principal "
+                        + "was not a valid LDAP DN");
             }
             return authzId;
         }
@@ -66,7 +60,7 @@ final class AuthzIdTemplate {
 
         @Override
         public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
-                final Schema schema) throws ResourceException {
+                final Schema schema) {
             return "dn:" + DN.format(t.dnFormatString, schema, templateVariables);
         }
 
@@ -78,7 +72,7 @@ final class AuthzIdTemplate {
 
         @Override
         public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
-                final Schema schema) throws ResourceException {
+                final Schema schema) {
             return String.format(Locale.ENGLISH, t.formatString, templateVariables);
         }
 
@@ -90,7 +84,15 @@ final class AuthzIdTemplate {
     private final Impl pimpl;
     private final String template;
 
-    AuthzIdTemplate(final String template) {
+    /**
+     * Create a new authorization ID template.
+     *
+     * @param template
+     *            Authorization ID template
+     * @throws IllegalArgumentException
+     *             if template doesn't start with "u:" or "dn:"
+     */
+    public AuthzIdTemplate(final String template) {
         if (!template.startsWith("u:") && !template.startsWith("dn:")) {
             throw new IllegalArgumentException("Invalid authorization ID template: " + template);
         }
@@ -120,14 +122,21 @@ final class AuthzIdTemplate {
         return template;
     }
 
-    String formatAsAuthzId(final Map<String, Object> principals, final Schema schema)
-            throws ResourceException {
+    /**
+     * Return the template with all the variable replaced.
+     *
+     * @param principals
+     *            Value to use to replace the variables.
+     * @param schema
+     *            Schema to perform validation.
+     * @return The template with all the variable replaced.
+     */
+    public String formatAsAuthzId(final Map<String, Object> principals, final Schema schema) {
         final String[] templateVariables = getPrincipalsForFormatting(principals);
         return pimpl.formatAsAuthzId(this, templateVariables, schema);
     }
 
-    private String[] getPrincipalsForFormatting(final Map<String, Object> principals)
-            throws ForbiddenException {
+    private String[] getPrincipalsForFormatting(final Map<String, Object> principals) {
         final String[] values = new String[keys.size()];
         for (int i = 0; i < values.length; i++) {
             final String key = keys.get(i);
@@ -135,15 +144,19 @@ final class AuthzIdTemplate {
             if (isJSONPrimitive(value)) {
                 values[i] = String.valueOf(value);
             } else if (value != null) {
-                throw new ForbiddenException(i18n(
+                throw new IllegalArgumentException(String.format(
                         "The request could not be authorized because the required "
                                 + "security principal '%s' had an invalid data type", key));
             } else {
-                throw new ForbiddenException(i18n(
+                throw new IllegalArgumentException(String.format(
                         "The request could not be authorized because the required "
                                 + "security principal '%s' could not be determined", key));
             }
         }
         return values;
+    }
+
+    static boolean isJSONPrimitive(final Object value) {
+        return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 }

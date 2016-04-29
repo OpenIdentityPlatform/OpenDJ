@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
@@ -92,12 +93,9 @@ public final class Rest2LDAP {
     /** A builder for incrementally constructing LDAP resource collections. */
     public static final class Builder {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<>();
-        private AuthorizationPolicy authzPolicy = AuthorizationPolicy.NONE;
         private DN baseDN; // TODO: support template variables.
         private AttributeDescription etagAttribute;
-        private ConnectionFactory factory;
         private NameStrategy nameStrategy;
-        private AuthzIdTemplate proxiedAuthzTemplate;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
         private AttributeMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
@@ -141,18 +139,6 @@ public final class Rest2LDAP {
         }
 
         /**
-         * Sets the policy which should be for performing authorization.
-         *
-         * @param policy
-         *            The policy which should be for performing authorization.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder authorizationPolicy(final AuthorizationPolicy policy) {
-            this.authzPolicy = ensureNotNull(policy);
-            return this;
-        }
-
-        /**
          * Sets the base DN beneath which LDAP entries (resources) are to be found.
          *
          * @param dn
@@ -186,30 +172,8 @@ public final class Rest2LDAP {
             if (rootMapper == null) {
                 throw new IllegalStateException("No mappings provided");
             }
-            switch (authzPolicy) {
-            case NONE:
-                if (factory == null) {
-                    throw new IllegalStateException(
-                            "A connection factory must be specified when the authorization policy is 'none'");
-                }
-                break;
-            case PROXY:
-                if (proxiedAuthzTemplate == null) {
-                    throw new IllegalStateException(
-                            "Proxied authorization enabled but no template defined");
-                }
-                if (factory == null) {
-                    throw new IllegalStateException(
-                            "A connection factory must be specified when using proxied authorization");
-                }
-                break;
-            case REUSE:
-                // This is always ok.
-                break;
-            }
-            return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy,
-                    etagAttribute, new Config(factory, readOnUpdatePolicy, authzPolicy,
-                            proxiedAuthzTemplate, useSubtreeDelete, usePermissiveModify, schema),
+            return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy, etagAttribute,
+                    new Config(readOnUpdatePolicy, useSubtreeDelete, usePermissiveModify, schema),
                     additionalLDAPAttributes);
         }
 
@@ -283,23 +247,6 @@ public final class Rest2LDAP {
         }
 
         /**
-         * Sets the LDAP connection factory to be used for accessing the LDAP
-         * directory. Each HTTP request will obtain a single connection from the
-         * factory and then close it once the HTTP response has been sent. It is
-         * recommended that the provided connection factory supports connection
-         * pooling.
-         *
-         * @param factory
-         *            The LDAP connection factory to be used for accessing the
-         *            LDAP directory.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder ldapConnectionFactory(final ConnectionFactory factory) {
-            this.factory = factory;
-            return this;
-        }
-
-        /**
          * Sets the attribute mapper which should be used for mapping JSON
          * resources to and from LDAP entries.
          *
@@ -309,23 +256,6 @@ public final class Rest2LDAP {
          */
         public Builder mapper(final AttributeMapper mapper) {
             this.rootMapper = mapper;
-            return this;
-        }
-
-        /**
-         * Sets the authorization ID template which will be used for proxied
-         * authorization. Template parameters are specified by including the
-         * parameter name surrounded by curly braces. The template should
-         * contain fields which are expected to be found in the security context
-         * create during authentication, e.g. "dn:{dn}" or "u:{id}".
-         *
-         * @param template
-         *            The authorization ID template which will be used for
-         *            proxied authorization.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder proxyAuthzIdTemplate(final String template) {
-            this.proxiedAuthzTemplate = template != null ? new AuthzIdTemplate(template) : null;
             return this;
         }
 
@@ -709,23 +639,23 @@ public final class Rest2LDAP {
         }
 
         @Override
-        SearchRequest createSearchRequest(final RequestState requestState, final DN baseDN, final String resourceId) {
+        SearchRequest createSearchRequest(final Connection connection, final DN baseDN, final String resourceId) {
             return newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, Filter.equality(idAttribute
                     .toString(), resourceId));
         }
 
         @Override
-        void getLDAPAttributes(final RequestState requestState, final Set<String> ldapAttributes) {
+        void getLDAPAttributes(final Connection connection, final Set<String> ldapAttributes) {
             ldapAttributes.add(idAttribute.toString());
         }
 
         @Override
-        String getResourceId(final RequestState requestState, final Entry entry) {
+        String getResourceId(final Connection connection, final Entry entry) {
             return entry.parseAttribute(idAttribute).asString();
         }
 
         @Override
-        void setResourceId(final RequestState requestState, final DN baseDN, final String resourceId,
+        void setResourceId(final Connection connection, final DN baseDN, final String resourceId,
                 final Entry entry) throws ResourceException {
             if (isServerProvided) {
                 if (resourceId != null) {
@@ -749,23 +679,23 @@ public final class Rest2LDAP {
         }
 
         @Override
-        SearchRequest createSearchRequest(final RequestState requestState, final DN baseDN, final String resourceId) {
+        SearchRequest createSearchRequest(final Connection connection, final DN baseDN, final String resourceId) {
             return newSearchRequest(baseDN.child(rdn(resourceId)), SearchScope.BASE_OBJECT, Filter
                     .objectClassPresent());
         }
 
         @Override
-        void getLDAPAttributes(final RequestState requestState, final Set<String> ldapAttributes) {
+        void getLDAPAttributes(final Connection connection, final Set<String> ldapAttributes) {
             ldapAttributes.add(attribute.toString());
         }
 
         @Override
-        String getResourceId(final RequestState requestState, final Entry entry) {
+        String getResourceId(final Connection connection, final Entry entry) {
             return entry.parseAttribute(attribute).asString();
         }
 
         @Override
-        void setResourceId(final RequestState requestState, final DN baseDN, final String resourceId,
+        void setResourceId(final Connection connection, final DN baseDN, final String resourceId,
                 final Entry entry) throws ResourceException {
             if (resourceId != null) {
                 entry.setName(baseDN.child(rdn(resourceId)));
@@ -929,7 +859,7 @@ public final class Rest2LDAP {
      */
     public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
             final DN baseDN, final AttributeDescription primaryKey, final AttributeMapper mapper) {
-        return new ReferenceAttributeMapper(attribute, baseDN, primaryKey, mapper);
+        return new ReferenceAttributeMapper(Schema.getDefaultSchema(), attribute, baseDN, primaryKey, mapper);
     }
 
     /**

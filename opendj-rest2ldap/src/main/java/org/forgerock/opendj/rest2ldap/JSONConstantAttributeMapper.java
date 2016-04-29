@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -32,6 +32,7 @@ import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
@@ -54,8 +55,8 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    Promise<List<Attribute>, ResourceException> create(
-            final RequestState requestState, final JsonPointer path, final JsonValue v) {
+    Promise<List<Attribute>, ResourceException> create(final Connection connection, final JsonPointer path,
+            final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
             return Promises.<List<Attribute>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
                     "The request cannot be processed because it attempts to create the read-only field '%s'", path)));
@@ -65,13 +66,13 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void getLDAPAttributes(final RequestState requestState, final JsonPointer path, final JsonPointer subPath,
+    void getLDAPAttributes(final Connection connection, final JsonPointer path, final JsonPointer subPath,
             final Set<String> ldapAttributes) {
         // Nothing to do.
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final RequestState requestState, final JsonPointer path,
+    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
             final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
         final Filter filter;
         final JsonValue subValue = value.get(subPath);
@@ -109,20 +110,20 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> patch(final RequestState requestState, final JsonPointer path,
+    Promise<List<Modification>, ResourceException> patch(final Connection connection, final JsonPointer path,
             final PatchOperation operation) {
         return Promises.<List<Modification>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
                 "The request cannot be processed because it attempts to patch the read-only field '%s'", path)));
     }
 
     @Override
-    Promise<JsonValue, ResourceException> read(final RequestState requestState, final JsonPointer path, final Entry e) {
+    Promise<JsonValue, ResourceException> read(final Connection connection, final JsonPointer path, final Entry e) {
         return Promises.newResultPromise(value.copy());
     }
 
     @Override
     Promise<List<Modification>, ResourceException> update(
-            final RequestState requestState, final JsonPointer path, final Entry e, final JsonValue v) {
+            final Connection connection, final JsonPointer path, final Entry e, final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
             return Promises.<List<Modification>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
                     "The request cannot be processed because it attempts to modify the read-only field '%s'", path)));
