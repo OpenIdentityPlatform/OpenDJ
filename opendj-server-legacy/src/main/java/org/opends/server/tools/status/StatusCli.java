@@ -21,6 +21,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.util.Utils.*;
+import static org.forgerock.util.time.Duration.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
@@ -61,7 +62,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.util.Options;
-import org.forgerock.util.time.Duration;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -1137,7 +1137,7 @@ public class StatusCli extends ConsoleApplication
     // This connection should always be secure. useSSL = true.
     Connection connection = null;
     final Options options = Options.defaultOptions();
-    options.set(CONNECT_TIMEOUT, new Duration((long) ci.getConnectTimeout(), TimeUnit.MILLISECONDS));
+    options.set(CONNECT_TIMEOUT, duration(ci.getConnectTimeout(), TimeUnit.MILLISECONDS));
     LDAPConnectionFactory factory = null;
     while (true)
     {

@@ -17,6 +17,7 @@ package org.opends.admin.ads.util;
 
 import static org.forgerock.opendj.config.client.ldap.LDAPManagementContext.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.util.time.Duration.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
@@ -43,7 +44,6 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.util.Options;
-import org.forgerock.util.time.Duration;
 import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
@@ -169,7 +169,7 @@ public class ConnectionWrapper implements Closeable
     final boolean isLdaps = LDAPS.equals(connectionType);
 
     Options options = Options.defaultOptions();
-    options.set(CONNECT_TIMEOUT, new Duration(connectTimeout, TimeUnit.MILLISECONDS));
+    options.set(CONNECT_TIMEOUT, duration(connectTimeout, TimeUnit.MILLISECONDS));
     if (isLdaps || isStartTls)
     {
       options.set(SSL_CONTEXT, getSSLContext(trustManager, keyManager))

@@ -25,6 +25,8 @@ import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
+import static org.forgerock.util.time.Duration.*;
+
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import java.io.File;
@@ -60,11 +62,8 @@ import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.util.Options;
-import org.forgerock.util.time.Duration;
 
-/**
- * A connection factory designed for use with command line tools.
- */
+/** A connection factory designed for use with command line tools. */
 public final class ConnectionFactoryProvider {
     /** The Logger. */
     static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -431,7 +430,7 @@ public final class ConnectionFactoryProvider {
                 options.set(SSL_CONTEXT, sslContext)
                     .set(SSL_USE_STARTTLS, useStartTLSArg.isPresent());
             }
-            options.set(CONNECT_TIMEOUT, new Duration((long) getConnectTimeout(), TimeUnit.MILLISECONDS));
+            options.set(CONNECT_TIMEOUT, duration(getConnectTimeout(), TimeUnit.MILLISECONDS));
             if (usePreAuthentication) {
                 options.set(AUTHN_BIND_REQUEST, getBindRequest());
             }

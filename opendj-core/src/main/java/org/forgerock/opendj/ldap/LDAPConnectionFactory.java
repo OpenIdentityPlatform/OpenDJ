@@ -12,9 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.HBCF_CONNECTION_CLOSED_BY_CLIENT;
@@ -22,7 +21,8 @@ import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_FAILED;
 import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_TIMEOUT;
 import static com.forgerock.opendj.ldap.CoreMessages.LDAP_CONNECTION_CONNECT_TIMEOUT;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.*;
+
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.requests.Requests.newStartTLSExtendedRequest;
@@ -34,6 +34,7 @@ import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.newLdapPromiseImpl;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.newFailedLdapPromise;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.forgerock.util.promise.Promises.newResultPromise;
+import static org.forgerock.util.time.Duration.*;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -120,6 +121,10 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  * pending bind or startTLS requests.
  */
 public final class LDAPConnectionFactory extends CommonLDAPOptions implements ConnectionFactory {
+    private static final String CONNECT_TIMEOUT_PROPERTY = "org.forgerock.opendj.io.connectTimeout";
+    private static final String REQUEST_TIMEOUT_PROPERTY = "org.forgerock.opendj.io.requestTimeout";
+    private static final String TIMEOUT_PROPERTY = "org.forgerock.opendj.io.timeout";
+
     /**
      * Configures the connection factory to return pre-authenticated connections using the specified {@link
      * BindRequest}. The connections returned by the connection factory will support all operations with the exception
@@ -140,8 +145,7 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
      * used.
      */
     public static final Option<Duration> CONNECT_TIMEOUT =
-            Option.withDefault(new Duration((long) getIntProperty("org.forgerock.opendj.io.connectTimeout", 10000),
-                                            TimeUnit.MILLISECONDS));
+            Option.withDefault(duration(getIntProperty(CONNECT_TIMEOUT_PROPERTY, 10000), MILLISECONDS));
 
     /**
      * Configures the connection factory to periodically send "heart-beat" or "keep-alive" requests to the Directory
@@ -176,7 +180,7 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
      *
      * @see #HEARTBEAT_ENABLED
      */
-    public static final Option<Duration> HEARTBEAT_INTERVAL = Option.withDefault(new Duration(10L, SECONDS));
+    public static final Option<Duration> HEARTBEAT_INTERVAL = Option.withDefault(duration(10, SECONDS));
 
     /**
      * Specifies the scheduler which will be used for periodically sending heart-beat requests. A system-wide scheduler
@@ -195,7 +199,7 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
      *
      * @see #HEARTBEAT_ENABLED
      */
-    public static final Option<Duration> HEARTBEAT_TIMEOUT = Option.withDefault(new Duration(3L, SECONDS));
+    public static final Option<Duration> HEARTBEAT_TIMEOUT = Option.withDefault(duration(3, SECONDS));
 
     /**
      * Specifies the operation timeout. If a response is not received from the Directory Server within the timeout
@@ -207,9 +211,9 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
      * property.
      */
     public static final Option<Duration> REQUEST_TIMEOUT =
-            Option.withDefault(new Duration((long) getIntProperty("org.forgerock.opendj.io.requestTimeout",
-                                                                  getIntProperty("org.forgerock.opendj.io.timeout", 0)),
-                                            TimeUnit.MILLISECONDS));
+            Option.withDefault(duration(getIntProperty(REQUEST_TIMEOUT_PROPERTY,
+                                                       getIntProperty(TIMEOUT_PROPERTY, 0)),
+                                        MILLISECONDS));
 
     /**
      * Specifies the SSL context which will be used when initiating connections with the Directory Server.
@@ -336,7 +340,7 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
                 heartBeatSent |= connection.sendHeartBeat();
             }
             if (heartBeatSent) {
-                scheduler.get().schedule(checkHeartBeatRunnable, heartBeatTimeoutMS, TimeUnit.MILLISECONDS);
+                scheduler.get().schedule(checkHeartBeatRunnable, heartBeatTimeoutMS, MILLISECONDS);
             }
         }
     };
@@ -453,7 +457,7 @@ public final class LDAPConnectionFactory extends CommonLDAPOptions implements Co
                         releaseScheduler();
                     }
                 }
-            }, connectTimeoutMS, TimeUnit.MILLISECONDS);
+            }, connectTimeoutMS, MILLISECONDS);
         } else {
             timeoutFuture = null;
         }

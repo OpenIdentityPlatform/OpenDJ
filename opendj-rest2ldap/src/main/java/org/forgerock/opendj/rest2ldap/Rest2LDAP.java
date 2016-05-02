@@ -26,6 +26,7 @@ import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
+import static org.forgerock.util.time.Duration.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -980,10 +981,10 @@ public final class Rest2LDAP {
     private static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
                                                                 final ClassLoader providerClassLoader) {
         final long heartBeatIntervalSeconds = configuration.get("heartBeatIntervalSeconds").defaultTo(30L).asLong();
-        final Duration heartBeatInterval = new Duration(Math.max(heartBeatIntervalSeconds, 1L), TimeUnit.SECONDS);
+        final Duration heartBeatInterval = duration(Math.max(heartBeatIntervalSeconds, 1L), TimeUnit.SECONDS);
 
         final long heartBeatTimeoutMillis = configuration.get("heartBeatTimeoutMilliSeconds").defaultTo(500L).asLong();
-        final Duration heartBeatTimeout = new Duration(Math.max(heartBeatTimeoutMillis, 100L), TimeUnit.MILLISECONDS);
+        final Duration heartBeatTimeout = duration(Math.max(heartBeatTimeoutMillis, 100L), TimeUnit.MILLISECONDS);
 
         final Options options = Options.defaultOptions()
                                        .set(TRANSPORT_PROVIDER_CLASS_LOADER, providerClassLoader)
