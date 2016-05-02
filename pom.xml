@@ -60,7 +60,7 @@
             ${opendj.osgi.import.additional},
             *
         </opendj.osgi.import>
-        <opendj-copyright-maven-plugin.version>1.0.0</opendj-copyright-maven-plugin.version>
+        <opendj-copyright-maven-plugin.version>1.0.1</opendj-copyright-maven-plugin.version>
     </properties>
 
     <inceptionYear>2011</inceptionYear>
