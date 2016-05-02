@@ -131,7 +131,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   private final Map<String, String> hmDisplayedNames = new HashMap<>();
   private final Map<String, JComponent> hmComponents = new HashMap<>();
 
-  private final String CONFIRM_PASSWORD = "confirm password";
+  private final String CONFIRM_PASSWORD = "opendj-confirm-password";
 
   /** Map containing as key the attribute name and as value a localizable message. */
   private final static Map<String, LocalizableMessage> hmFriendlyAttrNames = new HashMap<>();
