@@ -1393,4 +1393,19 @@ public class DNTestCase extends SdkTestCase {
     public void rdnShouldThrowIAEForNegativeIndexes() throws Exception {
         DN.valueOf("dc=example,dc=com").rdn(-1);
     }
+
+    @Test
+    public void testToStringOnExtremelyLongDNs() {
+        int numRDNs = 16384;
+        String rdn = "cn=verylongdn,";
+        String base = "dc=example,dc=com";
+        StringBuilder builder = new StringBuilder(rdn.length() * numRDNs + base.length());
+        for (int i = 0; i < numRDNs; i++) {
+            builder.append(rdn);
+        }
+        builder.append(base);
+        DN longDN = DN.valueOf(builder.toString());
+        assertEquals(longDN.toString(), builder.toString(),
+            "String representation of a very long DN does not match the source DN");
+    }
 }

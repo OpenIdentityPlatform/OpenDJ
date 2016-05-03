@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -1891,7 +1892,14 @@ public class LDAPFilter
     Set<String> options = Collections.emptySet();
     if (attributeDescription != null)
     {
-      attrDesc = AttributeDescription.valueOf(attributeDescription);
+      try
+      {
+        attrDesc = AttributeDescription.valueOf(attributeDescription);
+      }
+      catch (LocalizedIllegalArgumentException e)
+      {
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, e.getMessageObject(), e);
+      }
       attributeType = attrDesc.getAttributeType();
       options = toSet(attrDesc);
     }

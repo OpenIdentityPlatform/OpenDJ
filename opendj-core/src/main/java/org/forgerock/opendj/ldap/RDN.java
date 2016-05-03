@@ -493,10 +493,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         return stringValue;
     }
 
-    StringBuilder toString(final StringBuilder builder) {
-        return builder.append(this);
-    }
-
     /**
      * Returns the normalized byte string representation of this RDN.
      * <p>

@@ -19,6 +19,7 @@ package org.forgerock.opendj.ldap;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -28,6 +29,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.SubstringReader;
@@ -270,25 +272,41 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
                     ERR_DN_TYPE_NOT_FOUND.get(reader.getString(), e.getMessageObject()));
         }
 
-        if (reader.remaining() > 0 && reader.read() == ',') {
+        LinkedList<Pair<Integer, RDN>> parentRDNs = null;
+        DN parent = null;
+        while (reader.remaining() > 0 && reader.read() == ',') {
             reader.skipWhitespaces();
             if (reader.remaining() == 0) {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME.get(reader.getString()));
             }
             reader.mark();
             final String parentString = reader.read(reader.remaining());
-            DN parent = cache.get(parentString);
-            if (parent == null) {
-                reader.reset();
-                parent = decode(reader, schema, cache);
-
-                // Only cache parent DNs since leaf DNs are likely to make the cache to volatile.
-                cache.put(parentString, parent);
+            parent = cache.get(parentString);
+            if (parent != null) {
+                break;
             }
-            return new DN(schema, parent, rdn);
-        } else {
-            return new DN(schema, ROOT_DN, rdn);
+            reader.reset();
+            if (parentRDNs == null) {
+                parentRDNs = new LinkedList<>();
+            }
+            parentRDNs.add(Pair.of(reader.pos(), RDN.decode(reader, schema)));
         }
+        if (parent == null) {
+            parent = ROOT_DN;
+        }
+
+        if (parentRDNs != null) {
+            Iterator<Pair<Integer, RDN>> iter = parentRDNs.descendingIterator();
+            int parentsLeft = parentRDNs.size();
+            while (iter.hasNext()) {
+                Pair<Integer, RDN> parentRDN = iter.next();
+                parent = new DN(schema, parent, parentRDN.getSecond());
+                if (parentsLeft-- < DN_CACHE_SIZE) {
+                    cache.put(reader.getString().substring(parentRDN.getFirst()), parent);
+                }
+            }
+        }
+        return new DN(schema, parent, rdn);
     }
 
     @SuppressWarnings("serial")
@@ -877,10 +895,15 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     public String toString() {
         // We don't care about potential race conditions here.
         if (stringValue == null) {
-            final StringBuilder builder = rdn.toString(new StringBuilder());
-            if (!parent.isRootDN()) {
+            final StringBuilder builder = new StringBuilder();
+            builder.append(rdn);
+            for (DN dn = parent; dn.rdn != null; dn = dn.parent) {
                 builder.append(RDN_CHAR_SEPARATOR);
-                builder.append(parent);
+                if (dn.stringValue != null) {
+                    builder.append(dn.stringValue);
+                    break;
+                }
+                builder.append(dn.rdn);
             }
             stringValue = builder.toString();
         }
@@ -902,9 +925,14 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             if (rdn == null) {
                 normalizedDN = ByteString.empty();
             } else {
-                final ByteString normalizedParent = parent.toNormalizedByteString();
-                final ByteStringBuilder builder = new ByteStringBuilder(normalizedParent.length() + 16);
-                builder.appendBytes(normalizedParent);
+                final ByteStringBuilder builder = new ByteStringBuilder(size * 8);
+                if (parent.normalizedDN == null) {
+                    for (int i = size() - 1; i > 0; i--) {
+                        parent(i).rdn().toNormalizedByteString(builder);
+                    }
+                } else {
+                    builder.appendBytes(parent.normalizedDN);
+                }
                 rdn.toNormalizedByteString(builder);
                 normalizedDN = builder.toByteString();
             }

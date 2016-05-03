@@ -455,16 +455,19 @@ public class TextErrorLogPublisher
       StringBuilder sb = new StringBuilder();
       sb.append("[");
       sb.append(TimeThread.getLocalTime());
-      sb.append("] category=").append(category).
-      append(" severity=").append(severity).
-      append(" msgID=").append(message.resourceName())
-                       .append('.')
-                       .append(message.ordinal()).
-      append(" msg=").append(message);
+      sb.append("] category=")
+          .append(category)
+          .append(" severity=")
+          .append(severity)
+          .append(" msgID=")
+          .append(message.resourceName())
+          .append('.')
+          .append(message.ordinal())
+          .append(" msg=")
+          .append(message.toString());
       if (exception != null)
       {
-        sb.append(" exception=").append(
-            StaticUtils.stackTraceToSingleLineString(exception));
+        sb.append(" exception=").append(StaticUtils.stackTraceToSingleLineString(exception));
       }
 
       writer.writeRecord(sb.toString());

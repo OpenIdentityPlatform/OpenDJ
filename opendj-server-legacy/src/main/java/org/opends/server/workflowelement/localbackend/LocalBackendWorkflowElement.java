@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -898,14 +899,14 @@ public class LocalBackendWorkflowElement
 
   private static LocalBackendWorkflowElement getLocalBackendWorkflowElement(DN entryDN)
   {
-    while (entryDN != null)
+    if (entryDN.isRootDN())
     {
-      final LocalBackendWorkflowElement workflow = registeredLocalBackends.get(entryDN);
-      if (workflow != null)
-      {
-        return workflow;
-      }
-      entryDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      return registeredLocalBackends.get(entryDN);
+    }
+    Map.Entry<DN, LocalBackendWorkflowElement> backendWorkflow = registeredLocalBackends.floorEntry(entryDN);
+    if (backendWorkflow.getKey().isSuperiorOrEqualTo(entryDN))
+    {
+      return backendWorkflow.getValue();
     }
     return null;
   }
