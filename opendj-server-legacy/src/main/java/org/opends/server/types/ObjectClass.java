@@ -348,7 +348,7 @@ public final class ObjectClass
    * @return Returns an unmodifiable view of the set of optional
    *         attributes for this objectclass.
    */
-  public Set<AttributeType> getOptionalAttributes() {
+  public Set<AttributeType> getDeclaredOptionalAttributes() {
 
     return optionalAttributes;
   }

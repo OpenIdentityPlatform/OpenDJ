@@ -482,7 +482,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       availableModel.remove(attr);
       modelRequired.add(attr);
     }
-    for (AttributeType attr : oc.getOptionalAttributes())
+    for (AttributeType attr : oc.getDeclaredOptionalAttributes())
     {
       availableModel.remove(attr);
       modelAvailable.add(attr);

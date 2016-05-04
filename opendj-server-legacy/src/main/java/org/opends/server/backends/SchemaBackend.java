@@ -1382,7 +1382,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (oc.getDeclaredRequiredAttributes().contains(removeType) ||
-          oc.getOptionalAttributes().contains(removeType))
+          oc.getDeclaredOptionalAttributes().contains(removeType))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_OC.get(
             removeType.getNameOrOID(), oc.getNameOrOID());
@@ -1529,7 +1529,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    for (AttributeType at : objectClass.getOptionalAttributes())
+    for (AttributeType at : objectClass.getDeclaredOptionalAttributes())
     {
       if (! schema.hasAttributeType(at.getOID()))
       {

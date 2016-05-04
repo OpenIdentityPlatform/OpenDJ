@@ -530,14 +530,14 @@ public class DeleteSchemaElementsTask extends Task
       if (containsAttribute)
       {
         required = new HashSet<>(ocToDelete.getDeclaredRequiredAttributes());
-        optional = new HashSet<>(ocToDelete.getOptionalAttributes());
+        optional = new HashSet<>(ocToDelete.getDeclaredOptionalAttributes());
         required.removeAll(providedAttrsToDelete);
         optional.removeAll(providedAttrsToDelete);
       }
       else
       {
         required = ocToDelete.getDeclaredRequiredAttributes();
-        optional = ocToDelete.getOptionalAttributes();
+        optional = ocToDelete.getDeclaredOptionalAttributes();
       }
       return new ObjectClass("",
           ocToDelete.getPrimaryName(),

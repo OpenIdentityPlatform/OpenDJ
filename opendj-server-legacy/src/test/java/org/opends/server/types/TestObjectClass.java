@@ -591,7 +591,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
   /**
-   * Check the {@link ObjectClass#getOptionalAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredOptionalAttributes()} method with
    * no superior and no optional attributes.
    *
    * @throws Exception
@@ -603,13 +603,13 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClassBuilder builder = new ObjectClassBuilder("testType",
         "1.2.3");
     ObjectClass c = builder.getInstance();
-    Assert.assertTrue(c.getOptionalAttributes().isEmpty());
+    Assert.assertTrue(c.getDeclaredOptionalAttributes().isEmpty());
   }
 
 
 
   /**
-   * Check the {@link ObjectClass#getOptionalAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredOptionalAttributes()} method with
    * no superior and some optional attributes.
    *
    * @throws Exception
@@ -622,7 +622,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.addOptionalAttributeTypes(types[0], types[1], types[2]);
     ObjectClass c = builder.getInstance();
 
-    Set<AttributeType> chain = c.getOptionalAttributes();
+    Set<AttributeType> chain = c.getDeclaredOptionalAttributes();
     Assert.assertEquals(chain.size(), 3);
     Assert.assertTrue(chain.contains(types[0]));
     Assert.assertTrue(chain.contains(types[1]));
@@ -632,7 +632,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
   /**
-   * Check the {@link ObjectClass#getOptionalAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredOptionalAttributes()} method with
    * a superior but no optional attributes of its own.
    *
    * @throws Exception
@@ -649,13 +649,13 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
-    Assert.assertTrue(child.getOptionalAttributes().isEmpty());
+    Assert.assertTrue(child.getDeclaredOptionalAttributes().isEmpty());
   }
 
 
 
   /**
-   * Check the {@link ObjectClass#getOptionalAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredOptionalAttributes()} method with
    * a superior and some optional attributes of its own.
    *
    * @throws Exception
@@ -673,7 +673,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
-    Set<AttributeType> chain = child.getOptionalAttributes();
+    Set<AttributeType> chain = child.getDeclaredOptionalAttributes();
     Assert.assertEquals(chain.size(), 3);
     Assert.assertTrue(chain.contains(types[3]));
     Assert.assertTrue(chain.contains(types[4]));

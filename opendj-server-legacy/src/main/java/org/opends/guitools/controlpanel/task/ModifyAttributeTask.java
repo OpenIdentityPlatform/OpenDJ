@@ -167,7 +167,7 @@ public class ModifyAttributeTask extends Task
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
       Set<AttributeType> required = new HashSet<>(ocToDelete.getDeclaredRequiredAttributes());
-      Set<AttributeType> optional = new HashSet<>(ocToDelete.getOptionalAttributes());
+      Set<AttributeType> optional = new HashSet<>(ocToDelete.getDeclaredOptionalAttributes());
       if (required.contains(oldAttribute))
       {
         required.remove(oldAttribute);

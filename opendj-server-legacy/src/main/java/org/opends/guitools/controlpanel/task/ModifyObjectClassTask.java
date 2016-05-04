@@ -167,7 +167,7 @@ public class ModifyObjectClassTask extends Task
           ocToDelete.getDescription(),
           newSups,
           ocToDelete.getDeclaredRequiredAttributes(),
-          ocToDelete.getOptionalAttributes(),
+          ocToDelete.getDeclaredOptionalAttributes(),
           ocToDelete.getObjectClassType(),
           ocToDelete.isObsolete(),
           extraProperties);
