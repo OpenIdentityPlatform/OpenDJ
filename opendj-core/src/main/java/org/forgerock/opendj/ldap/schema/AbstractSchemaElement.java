@@ -143,9 +143,9 @@ abstract class AbstractSchemaElement implements SchemaElement {
         }
 
         T extraProperties0(final String extensionName, final String... extensionValues) {
-            if (this.extraProperties.get(extensionName) != null) {
-                final List<String> tempExtraProperties =
-                        new ArrayList<>(this.extraProperties.get(extensionName));
+            List<String> extraProps = this.extraProperties.get(extensionName);
+            if (extraProps != null) {
+                final List<String> tempExtraProperties = new ArrayList<>(extraProps);
                 tempExtraProperties.addAll(Arrays.asList(extensionValues));
                 this.extraProperties.put(extensionName, tempExtraProperties);
             } else {
@@ -174,13 +174,15 @@ abstract class AbstractSchemaElement implements SchemaElement {
         }
 
         T removeExtraProperty0(final String extensionName, final String... extensionValues) {
-            if (this.extraProperties.get(extensionName) != null && extensionValues.length > 0) {
-                final List<String> tempExtraProperties =
-                        new ArrayList<>(this.extraProperties.get(extensionName));
-                tempExtraProperties.removeAll(Arrays.asList(extensionValues));
-                this.extraProperties.put(extensionName, tempExtraProperties);
-            } else if (this.extraProperties.get(extensionName) != null) {
-                this.extraProperties.remove(extensionName);
+            final List<String> extraProps = this.extraProperties.get(extensionName);
+            if (extraProps != null) {
+                if (extensionValues.length > 0) {
+                    final List<String> tempExtraProperties = new ArrayList<>(extraProps);
+                    tempExtraProperties.removeAll(Arrays.asList(extensionValues));
+                    this.extraProperties.put(extensionName, tempExtraProperties);
+                } else {
+                    this.extraProperties.remove(extensionName);
+                }
             }
             return getThis();
         }

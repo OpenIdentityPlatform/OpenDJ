@@ -40,6 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
@@ -48,7 +49,6 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
@@ -488,16 +488,7 @@ public class DeleteSchemaElementsTask extends Task
 
   private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
   {
-    boolean containsAttribute = false;
-    for (AttributeType attr : providedAttrsToDelete)
-    {
-      if(ocToDelete.getRequiredAttributes().contains(attr) ||
-      ocToDelete.getOptionalAttributes().contains(attr))
-      {
-        containsAttribute = true;
-        break;
-      }
-    }
+    boolean containsAttribute = containsAttributeToDelete(ocToDelete);
     boolean hasSuperior = false;
     Set<ObjectClass> newSuperiors = new LinkedHashSet<>();
     for (ObjectClass sup : ocToDelete.getSuperiorClasses())
@@ -522,9 +513,7 @@ public class DeleteSchemaElementsTask extends Task
 
     if (containsAttribute || hasSuperior)
     {
-      ArrayList<String> allNames = new ArrayList<>(ocToDelete.getNormalizedNames());
-      Map<String, List<String>> extraProperties =
-        cloneExtraProperties(ocToDelete);
+      Map<String, List<String>> extraProperties = cloneExtraProperties(ocToDelete);
       Set<AttributeType> required;
       Set<AttributeType> optional;
       if (containsAttribute)
@@ -541,7 +530,7 @@ public class DeleteSchemaElementsTask extends Task
       }
       return new ObjectClass("",
           ocToDelete.getPrimaryName(),
-          allNames,
+          new ArrayList<>(ocToDelete.getNormalizedNames()),
           ocToDelete.getOID(),
           ocToDelete.getDescription(),
           newSuperiors,
@@ -556,6 +545,19 @@ public class DeleteSchemaElementsTask extends Task
       // Nothing to be changed in the definition of the object class itself.
       return ocToDelete;
     }
+  }
+
+  private boolean containsAttributeToDelete(ObjectClass ocToDelete)
+  {
+    for (AttributeType attr : providedAttrsToDelete)
+    {
+      if (ocToDelete.getRequiredAttributes().contains(attr)
+          || ocToDelete.getOptionalAttributes().contains(attr))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   private Set<ObjectClass> getNewSuperiors(ObjectClass currentSup)
@@ -633,11 +635,8 @@ public class DeleteSchemaElementsTask extends Task
     {
       for (ObjectClass oc : schema.getObjectClasses().values())
       {
-        if (oc.getRequiredAttributes().contains(attr))
-        {
-          dependentClasses.add(oc);
-        }
-        else if (oc.getOptionalAttributes().contains(attr))
+        if (oc.getRequiredAttributes().contains(attr)
+            || oc.getOptionalAttributes().contains(attr))
         {
           dependentClasses.add(oc);
         }
@@ -657,15 +656,13 @@ public class DeleteSchemaElementsTask extends Task
    * @param element the schema element.
    * @return the extra properties of the provided schema element.
    */
-  public static Map<String, List<String>> cloneExtraProperties(
-      CommonSchemaElements element)
+  public static Map<String, List<String>> cloneExtraProperties(SchemaElement element)
   {
     Map<String, List<String>> extraProperties = new HashMap<>();
     Map<String, List<String>> props = element.getExtraProperties();
     for (String name : props.keySet())
     {
-      List<String> values = new ArrayList<>(props.get(name));
-      extraProperties.put(name, values);
+      extraProperties.put(name, new ArrayList<>(props.get(name)));
     }
     return extraProperties;
   }
