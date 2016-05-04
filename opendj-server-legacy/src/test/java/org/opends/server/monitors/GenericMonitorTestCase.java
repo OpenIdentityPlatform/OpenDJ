@@ -18,6 +18,7 @@ package org.opends.server.monitors;
 
 
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 
@@ -38,32 +39,24 @@ import static org.testng.Assert.*;
 public abstract class GenericMonitorTestCase
        extends MonitorTestCase
 {
-  /** The configuration entry for this test case. */
+  private final String configEntryName;
   protected Entry configEntry;
 
+  GenericMonitorTestCase(String dnString)
+  {
+    configEntryName = dnString;
+  }
 
-
-  /**
-   * Creates a new instance of this monitor test case.
-   *
-   * @param  dnString  The DN of the configuration entry for this test case, or
-   *                   <CODE>null</CODE> if there is none.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  protected GenericMonitorTestCase(String dnString)
-            throws Exception
+  @BeforeClass
+  public void beforeClass() throws Exception
   {
     TestCaseUtils.startServer();
-
-    if (dnString != null)
+    if (configEntryName != null)
     {
-      configEntry = DirectoryServer.getEntry(DN.valueOf(dnString));
+      configEntry = DirectoryServer.getEntry(DN.valueOf(configEntryName));
       assertNotNull(configEntry);
     }
   }
-
-
 
   /**
    * Retrieves an initialized instance of the associated monitor provider.

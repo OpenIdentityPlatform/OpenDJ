@@ -34,6 +34,7 @@ import java.io.StringReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -421,10 +422,11 @@ public final class TestCaseUtils {
 
       // Find some free ports for the listeners and write them to the
       // config-chamges.ldif file.
-      serverLdapPort = getFreePort(PROPERTY_LDAP_PORT);
-      serverAdminPort = getFreePort(PROPERTY_ADMIN_PORT);
-      serverJmxPort = findFreePort();
-      serverLdapsPort = findFreePort();
+      final int[] ports = findFreePorts(4);
+      serverLdapPort = getFreePort(PROPERTY_LDAP_PORT, ports[0]);
+      serverAdminPort = getFreePort(PROPERTY_ADMIN_PORT, ports[1]);
+      serverJmxPort = ports[2];
+      serverLdapsPort = ports[3];
 
       String defaultConfigChangeFile = testResourceDir + File.separator
           + "config-changes.ldif";
@@ -497,12 +499,12 @@ public final class TestCaseUtils {
     }
   }
 
-  private static int getFreePort(String portPropertyName) throws IOException
+  private static int getFreePort(String portPropertyName, int defaultPort) throws IOException
   {
     String port = System.getProperty(portPropertyName);
     if (port == null)
     {
-      return findFreePort();
+      return defaultPort;
     }
     int portNb = Integer.parseInt(port);
     // Check this port is free
@@ -657,14 +659,29 @@ public final class TestCaseUtils {
   }
 
   /**
-   * Find and binds to a free server socket port on the local host.
+   * Find and binds to a free server socket port on the local host. Avoid allocating ephemeral ports since these may
+   * be used by client applications such as dsconfig. Instead scan through ports starting from a reasonably high number
+   * which avoids most reserved services (see /etc/services) and continues up to the beginning of the ephemeral port
+   * range. On most Linux OSes this is 32768, but may be higher.
+   *
    * @return the bounded Server socket.
    *
    * @throws IOException in case of underlying exception.
    */
   public static ServerSocket bindFreePort() throws IOException
   {
-    return bindPort(0);
+    for (int port = 10000; port < 32768; port++)
+    {
+      try
+      {
+        return bindPort(port);
+      }
+      catch (BindException e)
+      {
+        // Try next port.
+      }
+    }
+    throw new BindException("Unable to bind to a free port");
   }
 
   /**
