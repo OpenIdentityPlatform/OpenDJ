@@ -152,7 +152,7 @@ public class NullBackend extends Backend<BackendCfg>
     objectClasses.put(topOC, topOCName);
 
     String nulOCName = "nullbackendobject";
-    ObjectClass nulOC = DirectoryServer.getDefaultObjectClass(nulOCName);
+    ObjectClass nulOC = DirectoryServer.getObjectClass2(nulOCName);
     try {
       DirectoryServer.registerObjectClass(nulOC, false);
     } catch (DirectoryException de) {

@@ -16,8 +16,6 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -279,16 +277,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
         for (Object value : getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
-          String lowerOCName = toLowerCase(ocName);
-
-          ObjectClass objectClass =
-            DirectoryServer.getObjectClass(lowerOCName);
-          if (objectClass == null)
-          {
-            objectClass = DirectoryServer.getDefaultObjectClass(ocName);
-          }
-
-          objectClasses.put(objectClass, ocName);
+          objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
         }
       }
       else

@@ -220,19 +220,8 @@ public class RootDSEBackend
 
     // Construct the set of objectclasses to include in the root DSE entry.
     dseObjectClasses = new HashMap<>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
-    if (topOC == null)
-    {
-      topOC = DirectoryServer.getDefaultObjectClass(OC_TOP);
-    }
-    dseObjectClasses.put(topOC, OC_TOP);
-
-    ObjectClass rootDSEOC = DirectoryServer.getObjectClass(OC_ROOT_DSE);
-    if (rootDSEOC == null)
-    {
-      rootDSEOC = DirectoryServer.getDefaultObjectClass(OC_ROOT_DSE);
-    }
-    dseObjectClasses.put(rootDSEOC, OC_ROOT_DSE);
+    dseObjectClasses.put(DirectoryServer.getObjectClass2(OC_TOP), OC_TOP);
+    dseObjectClasses.put(DirectoryServer.getObjectClass2(OC_ROOT_DSE), OC_ROOT_DSE);
 
     // Set the backend ID for this backend. The identifier needs to be
     // specific enough to avoid conflict with user backend identifiers.

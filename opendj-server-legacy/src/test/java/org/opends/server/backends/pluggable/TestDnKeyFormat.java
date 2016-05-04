@@ -16,6 +16,10 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
@@ -23,20 +27,21 @@ import java.util.Map;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.EntryEncodeConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * DnKeyFormat Tester.
@@ -371,13 +376,8 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
 
         // check the object classes were not changed
         for (String ocBefore : entryBefore.getObjectClasses().values()) {
-          ObjectClass objectClass = DirectoryServer.getObjectClass(ocBefore
-              .toLowerCase());
-          if (objectClass == null) {
-            objectClass = DirectoryServer.getDefaultObjectClass(ocBefore);
-          }
+          ObjectClass objectClass = DirectoryServer.getObjectClass2(ocBefore);
           String ocAfter = entryAfter.getObjectClasses().get(objectClass);
-
           assertEquals(ocBefore, ocAfter);
         }
 

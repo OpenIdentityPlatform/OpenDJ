@@ -20,7 +20,6 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.LDIFReader.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -652,16 +651,7 @@ public class ManageTasksPanel extends StatusGenericPanel
         for (Object value : csr.getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
-          String lowerOCName = toLowerCase(ocName);
-
-          ObjectClass objectClass =
-            DirectoryServer.getObjectClass(lowerOCName);
-          if (objectClass == null)
-          {
-            objectClass = DirectoryServer.getDefaultObjectClass(ocName);
-          }
-
-          objectClasses.put(objectClass, ocName);
+          objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
         }
       }
       else

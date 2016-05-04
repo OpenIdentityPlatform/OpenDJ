@@ -1971,13 +1971,7 @@ public final class StaticUtils
       // then we'll need to include the extensibleObject class.
       if (!structuralClass.isRequiredOrOptional(attrType) && !extensibleObjectAdded)
       {
-        ObjectClass extensibleObjectOC =
-             DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC);
-        if (extensibleObjectOC == null)
-        {
-          extensibleObjectOC =
-               DirectoryServer.getDefaultObjectClass(OC_EXTENSIBLE_OBJECT);
-        }
+        ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass2(OC_EXTENSIBLE_OBJECT_LC);
         objectClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
         extensibleObjectAdded = true;
       }

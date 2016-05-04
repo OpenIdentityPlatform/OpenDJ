@@ -17,6 +17,7 @@ package org.forgerock.opendj.adapter.server3x;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
+
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -58,7 +59,6 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
@@ -89,12 +89,7 @@ public final class Converters {
                 if (attribute.getAttributeDescription().getAttributeType().isObjectClass()) {
                     for (ByteString attrName : attribute) {
                         try {
-                            final String ocName = attrName.toString();
-                            ObjectClass oc = DirectoryServer.getObjectClass(ocName);
-                            if (oc == null) {
-                                oc = DirectoryServer.getDefaultObjectClass(ocName);
-                            }
-                            entry.addObjectClass(oc);
+                            entry.addObjectClass(DirectoryServer.getObjectClass2(attrName.toString()));
                         } catch (DirectoryException e) {
                             throw new IllegalStateException(e.getMessage(), e);
                         }

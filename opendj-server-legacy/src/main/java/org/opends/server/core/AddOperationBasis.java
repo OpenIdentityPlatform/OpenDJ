@@ -52,7 +52,6 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
@@ -327,13 +326,7 @@ public class AddOperationBasis
             for (ByteString os : a.getValues())
             {
               String ocName = os.toString();
-              ObjectClass oc = DirectoryServer.getObjectClass(toLowerCase(ocName));
-              if (oc == null)
-              {
-                oc = DirectoryServer.getDefaultObjectClass(ocName);
-              }
-
-              objectClasses.put(oc,ocName);
+              objectClasses.put(getObjectClass2(ocName), ocName);
             }
           }
           else if (attrType.isOperational())
