@@ -35,12 +35,12 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
@@ -309,9 +309,7 @@ public class LDIFModify
           for (ByteString v : a)
           {
             String stringValue = v.toString();
-            String lowerValue  = toLowerCase(stringValue);
-            ObjectClass oc = DirectoryServer.getObjectClass(lowerValue, true);
-            objectClasses.put(oc, stringValue);
+            objectClasses.put(DirectoryServer.getObjectClass2(stringValue), stringValue);
           }
         }
         else if (t.isOperational())

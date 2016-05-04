@@ -17,7 +17,6 @@
 package org.opends.server.api;
 
 import static org.opends.messages.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
@@ -632,9 +631,7 @@ public class CompressedSchema
     final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(objectClassNames.size());
     for (final String name : objectClassNames)
     {
-      final String lowerName = toLowerCase(name);
-      final ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
-      ocMap.put(oc, name);
+      ocMap.put(DirectoryServer.getObjectClass2(name), name);
     }
     if (sync)
     {

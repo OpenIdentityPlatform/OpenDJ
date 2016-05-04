@@ -61,7 +61,6 @@ import org.opends.server.util.LDIFWriter;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -1345,9 +1344,7 @@ public class Entry
     for (ByteString v : a)
     {
       String ocName = v.toString();
-      String lowerName = toLowerCase(ocName);
-      ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
-      ocs.put(oc, ocName);
+      ocs.put(DirectoryServer.getObjectClass2(ocName), ocName);
     }
 
     AttributeDescription attrDesc = a.getAttributeDescription();
@@ -3494,9 +3491,7 @@ public class Entry
   {
     entryBuffer.position(startPos);
     final String ocName = entryBuffer.readStringUtf8(endPos - startPos);
-    final String lowerName = toLowerCase(ocName);
-    final ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
-    objectClasses.put(oc, ocName);
+    objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
   }
 
   /**
@@ -4231,7 +4226,7 @@ public class Entry
         String lowerName = toLowerName(rule, v);
 
         // Create a default object class if necessary.
-        ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
+        ObjectClass oc = DirectoryServer.getObjectClass2(lowerName);
 
         if (replace)
         {

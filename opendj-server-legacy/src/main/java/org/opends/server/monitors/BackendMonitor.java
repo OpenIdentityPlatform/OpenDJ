@@ -29,7 +29,7 @@ import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.DirectoryConfig;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ObjectClass;
 
 /**
@@ -81,7 +81,7 @@ public class BackendMonitor
   @Override
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryConfig.getObjectClass(OC_MONITOR_BACKEND, true);
+    return DirectoryServer.getObjectClass2(OC_MONITOR_BACKEND);
   }
 
   @Override

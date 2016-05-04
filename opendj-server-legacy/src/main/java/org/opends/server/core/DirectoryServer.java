@@ -17,6 +17,7 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -72,6 +73,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
@@ -155,7 +157,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LockManager;
-import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
@@ -2389,30 +2390,19 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the objectclass for the provided lowercase name or OID.  It can
+   * Retrieves the objectclass for the provided name or OID.  It can
    * optionally return a generated "default" version if the requested
    * objectclass is not defined in the schema.
    *
-   * @param  lowerName      The lowercase name or OID for the objectclass to
-   *                        retrieve.
-   * @param  returnDefault  Indicates whether to generate a default version if
-   *                        the requested objectclass is not defined in the
-   *                        server schema.
-   *
+   * @param  nameOrOid      The name or OID for the objectclass to retrieve.
    * @return  The objectclass type, or {@code null} if there is no
    *          objectclass with the specified name or OID defined in the server
    *          schema and a default class should not be returned.
    */
-  public static ObjectClass getObjectClass(String lowerName,
-                                           boolean returnDefault)
+  public static ObjectClass getObjectClass2(String nameOrOid)
   {
-    ObjectClass oc = directoryServer.schema.getObjectClass(lowerName);
-    if (returnDefault && oc == null)
-    {
-      oc = getDefaultObjectClass(lowerName);
-    }
-
-    return oc;
+    ObjectClass oc = getObjectClass(toLowerCase(nameOrOid));
+    return oc != null ? oc : getDefaultObjectClass(nameOrOid);
   }
 
   /**

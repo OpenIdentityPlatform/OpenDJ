@@ -193,12 +193,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     addAll(userDefinedAttributes, configEntry.getOperationalAttributes().values());
 
     // Construct the set of objectclasses to include in the base monitor entry.
-    final ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
-    monitorObjectClasses.put(topOC, OC_TOP);
-
-    final ObjectClass monitorOC = DirectoryServer.getObjectClass(
-        OC_MONITOR_ENTRY, true);
-    monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
+    monitorObjectClasses.put(DirectoryServer.getObjectClass2(OC_TOP), OC_TOP);
+    monitorObjectClasses.put(DirectoryServer.getObjectClass2(OC_MONITOR_ENTRY), OC_MONITOR_ENTRY);
 
     // Create the set of base DNs that we will handle. In this case, it's just
     // the DN of the base monitor entry.
@@ -564,7 +560,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private Entry getBaseMonitorEntry()
   {
-    final ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
+    final ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass2(OC_EXTENSIBLE_OBJECT_LC);
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs = new LinkedHashMap<>();
@@ -635,7 +631,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private Entry getBranchMonitorEntry(final DN dn)
   {
-    final ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_BRANCH, true);
+    final ObjectClass monitorOC = DirectoryServer.getObjectClass2(OC_MONITOR_BRANCH);
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, OC_MONITOR_BRANCH);
 
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs = new LinkedHashMap<>();

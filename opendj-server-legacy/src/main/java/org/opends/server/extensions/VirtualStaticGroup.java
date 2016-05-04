@@ -25,6 +25,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -33,13 +34,11 @@ import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 
 import static org.forgerock.util.Reject.*;
@@ -158,11 +157,8 @@ public class VirtualStaticGroup
   {
     ifNull(entry);
 
-    // FIXME -- This needs to exclude enhanced groups once we have support for
-    //them.
-    ObjectClass virtualStaticGroupClass =
-         DirectoryServer.getObjectClass(OC_VIRTUAL_STATIC_GROUP, true);
-    return entry.hasObjectClass(virtualStaticGroupClass);
+    // FIXME -- This needs to exclude enhanced groups once we have support for them.
+    return entry.hasObjectClass(DirectoryServer.getObjectClass2(OC_VIRTUAL_STATIC_GROUP));
   }
 
   @Override

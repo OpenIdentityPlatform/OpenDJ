@@ -28,7 +28,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.DirectoryConfig;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.ObjectClass;
 
@@ -91,7 +91,7 @@ public class ConnectionHandlerMonitor
   @Override
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLER, true);
+    return DirectoryServer.getObjectClass2(OC_MONITOR_CONNHANDLER);
   }
 
 

@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
-import org.opends.server.types.DirectoryConfig;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 
@@ -157,7 +157,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    */
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryConfig.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
+    return DirectoryServer.getObjectClass2(OC_EXTENSIBLE_OBJECT_LC);
   }
 
 

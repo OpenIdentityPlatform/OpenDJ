@@ -484,7 +484,7 @@ public class LDIFSearch
 
     for (String objectClassName : objectClassNames)
     {
-      ObjectClass c = DirectoryServer.getObjectClass(objectClassName, true);
+      ObjectClass c = DirectoryServer.getObjectClass2(objectClassName);
       for (AttributeType t : c.getRequiredAttributeChain())
       {
         if (t.isOperational())

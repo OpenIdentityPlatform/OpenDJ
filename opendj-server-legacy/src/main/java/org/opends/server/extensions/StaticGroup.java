@@ -47,7 +47,6 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -257,7 +256,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
   private boolean hasObjectClass(Entry entry, String ocName)
   {
-    return entry.hasObjectClass(DirectoryConfig.getObjectClass(ocName, true));
+    return entry.hasObjectClass(DirectoryServer.getObjectClass2(ocName));
   }
 
   @Override

@@ -24,10 +24,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.api.MonitorData;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.types.DirectoryConfig;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OperationType;
 
@@ -156,7 +156,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   @Override
   public ObjectClass getMonitorObjectClass()
   {
-      return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLERSTATS, true);
+    return DirectoryServer.getObjectClass2(OC_MONITOR_CONNHANDLERSTATS);
   }
 
   @Override

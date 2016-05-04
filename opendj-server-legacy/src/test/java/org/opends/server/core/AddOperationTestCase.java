@@ -284,7 +284,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    ObjectClass oc = DirectoryServer.getObjectClass("extensibleobject", true);
+    ObjectClass oc = DirectoryServer.getObjectClass2("extensibleobject");
     UpdatePreOpPlugin.addObjectClassToAdd(oc);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -316,7 +316,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    ObjectClass oc = DirectoryServer.getObjectClass("extensibleobject", true);
+    ObjectClass oc = DirectoryServer.getObjectClass2("extensibleobject");
     UpdatePreOpPlugin.addObjectClassToRemove(oc);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);

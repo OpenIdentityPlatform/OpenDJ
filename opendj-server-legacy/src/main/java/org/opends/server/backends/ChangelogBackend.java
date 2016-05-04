@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -52,7 +53,6 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.config.Configuration;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.EntryChangelogNotificationControl;
@@ -176,8 +176,8 @@ public class ChangelogBackend extends Backend<Configuration>
     CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<>(2);
   static
   {
-    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_TOP, true), OC_TOP);
-    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass("container", true), "container");
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass2(OC_TOP), OC_TOP);
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass2("container"), "container");
   }
 
   /** The set of objectclasses that will be used in ECL entries. */
@@ -185,8 +185,8 @@ public class ChangelogBackend extends Backend<Configuration>
     CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<>(2);
   static
   {
-    CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_TOP, true), OC_TOP);
-    CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_CHANGELOG_ENTRY, true), OC_CHANGELOG_ENTRY);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass2(OC_TOP), OC_TOP);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass2(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
   }
 
   /** The attribute type for the "creatorsName" attribute. */

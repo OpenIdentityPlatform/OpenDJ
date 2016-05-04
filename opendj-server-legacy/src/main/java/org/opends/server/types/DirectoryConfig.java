@@ -215,28 +215,6 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves the objectclass for the provided lowercase name or OID.
-   * It can optionally return a generated "default" version if the
-   * requested objectclass is not defined in the schema.
-   *
-   * @param  lowerName      The lowercase name or OID for the
-   *                        objectclass to retrieve.
-   * @param  returnDefault  Indicates whether to generate a default
-   *                        version if the requested objectclass is
-   *                        not defined in the server schema.
-   *
-   * @return  The objectclass type, or <CODE>null</CODE> if there is
-   *          no objectclass with the specified name or OID defined in
-   *          the server schema and a default class should not be
-   *          returned.
-   */
-  public static ObjectClass
-       getObjectClass(String lowerName, boolean returnDefault)
-  {
-    return DirectoryServer.getObjectClass(lowerName, returnDefault);
-  }
-
-  /**
    * Retrieves the "top" objectClass, which should be the topmost
    * objectclass in the inheritance chain for most other
    * objectclasses.

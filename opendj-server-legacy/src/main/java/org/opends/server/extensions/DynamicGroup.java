@@ -42,7 +42,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 
 import static org.forgerock.util.Reject.*;
@@ -147,11 +146,8 @@ public class DynamicGroup
   {
     ifNull(entry);
 
-    // FIXME -- This needs to exclude enhanced groups once we have support for
-    //them.
-    ObjectClass groupOfURLsClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_URLS_LC, true);
-    return entry.hasObjectClass(groupOfURLsClass);
+    // FIXME -- This needs to exclude enhanced groups once we have support for them.
+    return entry.hasObjectClass(DirectoryServer.getObjectClass2(OC_GROUP_OF_URLS_LC));
   }
 
   @Override
