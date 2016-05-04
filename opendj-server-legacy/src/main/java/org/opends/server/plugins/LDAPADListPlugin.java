@@ -99,7 +99,7 @@ public final class LDAPADListPlugin
           {
             logger.trace("Replacing objectclass %s", lowerName);
 
-            for (final AttributeType at : oc.getRequiredAttributeChain())
+            for (final AttributeType at : oc.getRequiredAttributes())
             {
               newAttrs.add(at.getNameOrOID());
             }

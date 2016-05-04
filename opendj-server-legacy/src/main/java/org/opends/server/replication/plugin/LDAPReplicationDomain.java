@@ -4443,7 +4443,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
             DirectoryServer.getObjectClass(toLowerCase(ocName));
         if (objectClass != null)
         {
-          for (AttributeType at : objectClass.getRequiredAttributeChain())
+          for (AttributeType at : objectClass.getRequiredAttributes())
           {
             expandedNames.add(at.getNameOrOID());
           }

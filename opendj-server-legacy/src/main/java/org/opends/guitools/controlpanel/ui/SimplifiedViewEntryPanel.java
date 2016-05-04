@@ -722,7 +722,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
           if (objectClass != null)
           {
-            for (AttributeType attr : objectClass.getRequiredAttributeChain())
+            for (AttributeType attr : objectClass.getRequiredAttributes())
             {
               requiredAttributes.add(attr.getNameOrOID());
             }
@@ -1638,7 +1638,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         ObjectClass objectClass = schema.getObjectClass(oc);
         if (objectClass != null)
         {
-          for (AttributeType attr : objectClass.getRequiredAttributeChain())
+          for (AttributeType attr : objectClass.getRequiredAttributes())
           {
             attributes.add(attr.getNameOrOID().toLowerCase());
           }

@@ -159,7 +159,7 @@ public class ModifyAttributeTask extends Task
   private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
   {
     boolean containsAttribute =
-      ocToDelete.getRequiredAttributeChain().contains(oldAttribute) ||
+      ocToDelete.getRequiredAttributes().contains(oldAttribute) ||
       ocToDelete.getOptionalAttributeChain().contains(oldAttribute);
     if (containsAttribute)
     {

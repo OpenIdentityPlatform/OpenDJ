@@ -1278,7 +1278,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean mustAddAttributeName(ObjectClass oc, String f, Object filterType)
   {
-    Set<AttributeType> definedAttrs = FILTER_REQUIRED_ATTRIBUTES.equals(filterType) ? oc.getRequiredAttributeChain()
+    Set<AttributeType> definedAttrs = FILTER_REQUIRED_ATTRIBUTES.equals(filterType) ? oc.getRequiredAttributes()
                                                                                     : oc.getOptionalAttributeChain();
     return mustAddAttributeName(f, definedAttrs);
   }
@@ -1597,7 +1597,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
       for (ObjectClass o : schema.getObjectClasses().values())
       {
-        if (o.getRequiredAttributeChain().contains(attribute))
+        if (o.getRequiredAttributes().contains(attribute))
         {
           dependentClasses.add(o.getNameOrOID());
         }

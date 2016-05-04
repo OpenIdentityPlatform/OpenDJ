@@ -214,7 +214,7 @@ public final class ObjectClass
       Set<AttributeType> tmp = new HashSet<>(this.requiredAttributes);
       for(ObjectClass oc: this.superiorClasses)
       {
-        tmp.addAll(oc.getRequiredAttributeChain());
+        tmp.addAll(oc.getRequiredAttributes());
       }
       this.requiredAttributesChain = Collections.unmodifiableSet(tmp);
     }
@@ -315,7 +315,7 @@ public final class ObjectClass
    *         attributes for this objectclass and any superior
    *         objectclasses that it might have.
    */
-  public Set<AttributeType> getRequiredAttributeChain() {
+  public Set<AttributeType> getRequiredAttributes() {
 
     return requiredAttributesChain;
   }

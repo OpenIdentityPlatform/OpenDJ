@@ -280,7 +280,7 @@ class StandardAttributePanel extends SchemaElementPanel
     SortedSet<String> requiredByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
-      if (oc.getRequiredAttributeChain().contains(attr))
+      if (oc.getRequiredAttributes().contains(attr))
       {
         requiredByOcs.add(oc.getNameOrOID());
       }

@@ -464,7 +464,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
         inheritedRequiredAttributes.clear();
         for (ObjectClass oc : superiors.getSelectedSuperiors())
         {
-          inheritedRequiredAttributes.addAll(oc.getRequiredAttributeChain());
+          inheritedRequiredAttributes.addAll(oc.getRequiredAttributes());
           inheritedOptionalAttributes.addAll(oc.getOptionalAttributeChain());
         }
         for (AttributeType attr : inheritedRequiredAttributes)
