@@ -1933,7 +1933,7 @@ public final class Schema
 
     for (ObjectClass oc : objectClasses.values())
     {
-      if (oc.getRequiredAttributes().contains(type) || oc.getOptionalAttributes().contains(type))
+      if (oc.getDeclaredRequiredAttributes().contains(type) || oc.getOptionalAttributes().contains(type))
       {
         ObjectClass newOC = recreateFromDefinition(oc);
         deregisterObjectClass(oc);

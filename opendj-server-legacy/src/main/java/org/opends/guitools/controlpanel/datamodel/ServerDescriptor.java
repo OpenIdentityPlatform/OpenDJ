@@ -640,7 +640,7 @@ public class ServerDescriptor
         && areEqual(oc1.getDescription(), oc2.getDescription())
         && areEqual(oc1.getObjectClassType(), oc2.getObjectClassType())
         && areEqual(oc1.getOptionalAttributes(), oc2.getOptionalAttributes())
-        && areEqual(oc1.getRequiredAttributes(), oc2.getRequiredAttributes())
+        && areEqual(oc1.getDeclaredRequiredAttributes(), oc2.getDeclaredRequiredAttributes())
         && areEqual(oc1.getSuperiorClasses(), oc2.getSuperiorClasses())
         && areEqual(oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet())
         && areEqual(toSet(oc1.getNormalizedNames()), toSet(oc2.getNormalizedNames()))

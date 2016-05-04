@@ -859,7 +859,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
   /**
-   * Check the {@link ObjectClass#getRequiredAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredRequiredAttributes()} method with
    * no superior and no optional attributes.
    *
    * @throws Exception
@@ -871,13 +871,13 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClassBuilder builder = new ObjectClassBuilder("testType",
         "1.2.3");
     ObjectClass c = builder.getInstance();
-    Assert.assertTrue(c.getRequiredAttributes().isEmpty());
+    Assert.assertTrue(c.getDeclaredRequiredAttributes().isEmpty());
   }
 
 
 
   /**
-   * Check the {@link ObjectClass#getRequiredAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredRequiredAttributes()} method with
    * no superior and some optional attributes.
    *
    * @throws Exception
@@ -890,7 +890,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.addRequiredAttributeTypes(types[0], types[1], types[2]);
     ObjectClass c = builder.getInstance();
 
-    Set<AttributeType> chain = c.getRequiredAttributes();
+    Set<AttributeType> chain = c.getDeclaredRequiredAttributes();
     Assert.assertEquals(chain.size(), 3);
     Assert.assertTrue(chain.contains(types[0]));
     Assert.assertTrue(chain.contains(types[1]));
@@ -900,7 +900,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
   /**
-   * Check the {@link ObjectClass#getRequiredAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredRequiredAttributes()} method with
    * a superior but no optional attributes of its own.
    *
    * @throws Exception
@@ -917,13 +917,13 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
-    Assert.assertTrue(child.getRequiredAttributes().isEmpty());
+    Assert.assertTrue(child.getDeclaredRequiredAttributes().isEmpty());
   }
 
 
 
   /**
-   * Check the {@link ObjectClass#getRequiredAttributes()} method with
+   * Check the {@link ObjectClass#getDeclaredRequiredAttributes()} method with
    * a superior and some optional attributes of its own.
    *
    * @throws Exception
@@ -941,7 +941,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
-    Set<AttributeType> chain = child.getRequiredAttributes();
+    Set<AttributeType> chain = child.getDeclaredRequiredAttributes();
     Assert.assertEquals(chain.size(), 3);
     Assert.assertTrue(chain.contains(types[3]));
     Assert.assertTrue(chain.contains(types[4]));

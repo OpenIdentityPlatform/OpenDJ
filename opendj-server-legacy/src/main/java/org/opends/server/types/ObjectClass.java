@@ -299,7 +299,7 @@ public final class ObjectClass
    * @return Returns an unmodifiable view of the set of required
    *         attributes for this objectclass.
    */
-  public Set<AttributeType> getRequiredAttributes() {
+  public Set<AttributeType> getDeclaredRequiredAttributes() {
 
     return requiredAttributes;
   }

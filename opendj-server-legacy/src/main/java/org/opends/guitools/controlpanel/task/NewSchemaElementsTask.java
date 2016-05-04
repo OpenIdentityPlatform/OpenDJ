@@ -419,7 +419,7 @@ public class NewSchemaElementsTask extends Task
     appendIfTrue(buffer, " OBSOLETE", objectClass.isObsolete());
     appendOIDs(buffer, "SUP", objectClassesToSchemaElements(objectClass.getSuperiorClasses()));
     appendIfNotNull(buffer, " ", objectClass.getObjectClassType());
-    appendOIDs(buffer, "MUST", attributeTypesToSchemaElements(objectClass.getRequiredAttributes()));
+    appendOIDs(buffer, "MUST", attributeTypesToSchemaElements(objectClass.getDeclaredRequiredAttributes()));
     appendOIDs(buffer, "MAY", attributeTypesToSchemaElements(objectClass.getOptionalAttributes()));
     appendExtraProperties(buffer, objectClass.getExtraProperties());
     buffer.append(")");

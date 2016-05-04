@@ -1724,7 +1724,7 @@ public class Entry
         }
       }
 
-      for (AttributeType t : o.getRequiredAttributes())
+      for (AttributeType t : o.getDeclaredRequiredAttributes())
       {
         if (!userAttributes.containsKey(t)
             && !operationalAttributes.containsKey(t)

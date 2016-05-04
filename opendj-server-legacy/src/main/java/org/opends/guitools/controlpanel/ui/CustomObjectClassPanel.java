@@ -477,7 +477,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     updateAttributesWithParent(false);
 
-    for (AttributeType attr : oc.getRequiredAttributes())
+    for (AttributeType attr : oc.getDeclaredRequiredAttributes())
     {
       availableModel.remove(attr);
       modelRequired.add(attr);

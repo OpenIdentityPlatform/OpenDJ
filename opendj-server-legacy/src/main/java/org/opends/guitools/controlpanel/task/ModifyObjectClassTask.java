@@ -166,7 +166,7 @@ public class ModifyObjectClassTask extends Task
           ocToDelete.getOID(),
           ocToDelete.getDescription(),
           newSups,
-          ocToDelete.getRequiredAttributes(),
+          ocToDelete.getDeclaredRequiredAttributes(),
           ocToDelete.getOptionalAttributes(),
           ocToDelete.getObjectClassType(),
           ocToDelete.isObsolete(),
