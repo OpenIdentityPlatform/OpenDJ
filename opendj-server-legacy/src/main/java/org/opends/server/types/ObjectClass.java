@@ -234,7 +234,7 @@ public final class ObjectClass
       Set<AttributeType> tmp = new HashSet<>(this.optionalAttributes);
       for(ObjectClass oc : this.superiorClasses)
       {
-        tmp.addAll(oc.getOptionalAttributeChain());
+        tmp.addAll(oc.getOptionalAttributes());
       }
       this.optionalAttributesChain = Collections.unmodifiableSet(tmp);
     }
@@ -364,7 +364,7 @@ public final class ObjectClass
    *         attributes for this objectclass and any superior
    *         objectclasses that it might have.
    */
-  public Set<AttributeType> getOptionalAttributeChain() {
+  public Set<AttributeType> getOptionalAttributes() {
 
     return optionalAttributesChain;
   }

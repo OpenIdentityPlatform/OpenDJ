@@ -1086,7 +1086,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     for (ObjectClass p : getObjectClassSuperiors())
     {
       inheritedRequiredAttributes.addAll(p.getRequiredAttributes());
-      inheritedOptionalAttributes.addAll(p.getOptionalAttributeChain());
+      inheritedOptionalAttributes.addAll(p.getOptionalAttributes());
     }
     for (AttributeType attr : inheritedRequiredAttributes)
     {

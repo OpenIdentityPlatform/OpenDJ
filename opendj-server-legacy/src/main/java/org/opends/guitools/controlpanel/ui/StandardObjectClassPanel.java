@@ -372,7 +372,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
 
     SortedSet<String> optionalAttrs = new TreeSet<>(lowerCaseComparator);
     inheritedAttrs = new HashSet<>();
-    for (AttributeType attr : oc.getOptionalAttributeChain())
+    for (AttributeType attr : oc.getOptionalAttributes())
     {
       optionalAttrs.add(attr.getNameOrOID());
     }
@@ -380,7 +380,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     {
       for (ObjectClass parent : parents)
       {
-        for (AttributeType attr : parent.getOptionalAttributeChain())
+        for (AttributeType attr : parent.getOptionalAttributes())
         {
           inheritedAttrs.add(attr.getNameOrOID());
         }

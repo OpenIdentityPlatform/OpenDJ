@@ -4447,7 +4447,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
           {
             expandedNames.add(at.getNameOrOID());
           }
-          for (AttributeType at : objectClass.getOptionalAttributeChain())
+          for (AttributeType at : objectClass.getOptionalAttributes())
           {
             expandedNames.add(at.getNameOrOID());
           }

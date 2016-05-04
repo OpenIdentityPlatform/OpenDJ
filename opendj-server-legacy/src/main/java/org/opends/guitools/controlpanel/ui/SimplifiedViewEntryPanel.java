@@ -726,7 +726,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
             {
               requiredAttributes.add(attr.getNameOrOID());
             }
-            for (AttributeType attr : objectClass.getOptionalAttributeChain())
+            for (AttributeType attr : objectClass.getOptionalAttributes())
             {
               allowedAttributes.add(attr.getNameOrOID());
             }
@@ -1642,7 +1642,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           {
             attributes.add(attr.getNameOrOID().toLowerCase());
           }
-          for (AttributeType attr : objectClass.getOptionalAttributeChain())
+          for (AttributeType attr : objectClass.getOptionalAttributes())
           {
             attributes.add(attr.getNameOrOID().toLowerCase());
           }

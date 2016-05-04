@@ -631,7 +631,7 @@ class TableViewEntryPanel extends ViewEntryPanel
               }
               requiredAttrs.add(lowerCase);
             }
-            for (AttributeType attr : objectClass.getOptionalAttributeChain())
+            for (AttributeType attr : objectClass.getOptionalAttributes())
             {
               String attrName = attr.getNameOrOID();
               if (!addedAttrs.contains(attrName.toLowerCase()))
@@ -753,7 +753,7 @@ class TableViewEntryPanel extends ViewEntryPanel
             {
               attributes.add(attr.getNameOrOID().toLowerCase());
             }
-            for (AttributeType attr : objectClass.getOptionalAttributeChain())
+            for (AttributeType attr : objectClass.getOptionalAttributes())
             {
               attributes.add(attr.getNameOrOID().toLowerCase());
             }

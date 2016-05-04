@@ -578,7 +578,7 @@ class CustomAttributePanel extends SchemaElementPanel
     SortedSet<String> optionalByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
-      if (oc.getOptionalAttributeChain().contains(attr))
+      if (oc.getOptionalAttributes().contains(attr))
       {
         optionalByOcs.add(oc.getNameOrOID());
       }
@@ -741,7 +741,7 @@ class CustomAttributePanel extends SchemaElementPanel
         {
           dependentClasses.add(o.getNameOrOID());
         }
-        else if (o.getOptionalAttributeChain().contains(attribute))
+        else if (o.getOptionalAttributes().contains(attribute))
         {
           dependentClasses.add(o.getNameOrOID());
         }

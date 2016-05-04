@@ -497,7 +497,7 @@ public class LDIFSearch
         }
       }
 
-      for (AttributeType t : c.getOptionalAttributeChain())
+      for (AttributeType t : c.getOptionalAttributes())
       {
         if (t.isOperational())
         {

@@ -492,7 +492,7 @@ public class DeleteSchemaElementsTask extends Task
     for (AttributeType attr : providedAttrsToDelete)
     {
       if(ocToDelete.getRequiredAttributes().contains(attr) ||
-      ocToDelete.getOptionalAttributeChain().contains(attr))
+      ocToDelete.getOptionalAttributes().contains(attr))
       {
         containsAttribute = true;
         break;
@@ -637,7 +637,7 @@ public class DeleteSchemaElementsTask extends Task
         {
           dependentClasses.add(oc);
         }
-        else if (oc.getOptionalAttributeChain().contains(attr))
+        else if (oc.getOptionalAttributes().contains(attr))
         {
           dependentClasses.add(oc);
         }

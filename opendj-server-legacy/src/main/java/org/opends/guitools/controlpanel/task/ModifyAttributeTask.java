@@ -160,7 +160,7 @@ public class ModifyAttributeTask extends Task
   {
     boolean containsAttribute =
       ocToDelete.getRequiredAttributes().contains(oldAttribute) ||
-      ocToDelete.getOptionalAttributeChain().contains(oldAttribute);
+      ocToDelete.getOptionalAttributes().contains(oldAttribute);
     if (containsAttribute)
     {
       ArrayList<String> allNames = new ArrayList<>(ocToDelete.getNormalizedNames());

@@ -296,7 +296,7 @@ class StandardAttributePanel extends SchemaElementPanel
     SortedSet<String> optionalByOcs = new TreeSet<>(lowerCaseComparator);
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
-      if (oc.getOptionalAttributeChain().contains(attr))
+      if (oc.getOptionalAttributes().contains(attr))
       {
         optionalByOcs.add(oc.getNameOrOID());
       }

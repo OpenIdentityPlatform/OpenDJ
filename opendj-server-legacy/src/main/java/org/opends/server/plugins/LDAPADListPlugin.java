@@ -104,7 +104,7 @@ public final class LDAPADListPlugin
               newAttrs.add(at.getNameOrOID());
             }
 
-            for (final AttributeType at : oc.getOptionalAttributeChain())
+            for (final AttributeType at : oc.getOptionalAttributes())
             {
               newAttrs.add(at.getNameOrOID());
             }
