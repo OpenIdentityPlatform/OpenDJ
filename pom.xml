@@ -229,6 +229,7 @@
         <module>opendj-server-legacy</module>
         <module>opendj-dsml-servlet</module>
         <module>opendj-openidm-account-change-notification-handler</module>
+        <module>opendj-doc-generated-ref</module>
     </modules>
 
     <build>
@@ -537,13 +538,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>docs</id>
-            <modules>
-                <module>opendj-man-pages</module>
-            </modules>
-        </profile>
-
         <profile>
             <id>packages</id>
             <modules>

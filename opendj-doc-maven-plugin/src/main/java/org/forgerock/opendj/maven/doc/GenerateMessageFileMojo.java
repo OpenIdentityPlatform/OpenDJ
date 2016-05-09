@@ -20,10 +20,11 @@ import static org.apache.maven.plugins.annotations.LifecyclePhase.*;
 import static org.forgerock.opendj.maven.doc.DocsMessages.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.jar.JarFile;
 
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -56,9 +58,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     /** The tag of the locale for which to generate the documentation. */
     @Parameter(defaultValue = "en")
     private String locale;
-    /** The path to the directory containing the message properties files. */
-    @Parameter(required = true)
-    private String messagesDirectory;
 
     /**
      * The path to the directory where the XML file should be written.
@@ -310,8 +309,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         map.put("intro", LOG_REF_INTRO.get());
         List<Map<String, Object>> categories = new LinkedList<>();
         for (String category : messageFileNames) {
-            File source = new File(messagesDirectory, category + ".properties");
-            categories.add(getCategoryMap(source, category.toUpperCase()));
+            categories.add(getCategoryMap(category));
         }
         map.put("categories", categories);
         File file = new File(outputDirectory, "log-message-reference.xml");
@@ -330,10 +328,10 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
     }
 
-    private Map<String, Object> getCategoryMap(File source, String globalCategory) throws MojoExecutionException {
+    private Map<String, Object> getCategoryMap(final String category) throws MojoExecutionException {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(source));
+            properties.load(loadPropertiesFromJar(category));
             Map<MessagePropertyKey, String> errorMessages = loadErrorProperties(properties);
             TreeSet<MessageRefEntry> messageRefEntries = new TreeSet<>();
             Set<Integer> usedOrdinals = new HashSet<>();
@@ -343,7 +341,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
                 Integer ordinal = msgKey.getOrdinal();
                 if (ordinal != null && usedOrdinals.contains(ordinal)) {
                     throw new Exception("The ordinal value \'" + ordinal + "\' in key " + msgKey
-                            + " has been previously defined in " + source + KEY_FORM_MSG);
+                            + " has been previously defined in " + category + KEY_FORM_MSG);
                 }
                 usedOrdinals.add(ordinal);
                 messageRefEntries.add(new MessageRefEntry(msgKey.toString(), ordinal, formatString));
@@ -351,10 +349,17 @@ public class GenerateMessageFileMojo extends AbstractMojo {
 
             return messageRefEntries.isEmpty()
                     ? new HashMap<String, Object>()
-                    : new MessageRefCategory(globalCategory, messageRefEntries).toMap();
+                    : new MessageRefCategory(category.toUpperCase(), messageRefEntries).toMap();
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
+    }
+
+    private InputStream loadPropertiesFromJar(final String category) throws IOException {
+        final JarFile jarFile = new JarFile(
+                Paths.get(project.getBuild().getDirectory(), "opendj", "lib", "opendj.jar").toString());
+        return jarFile.getInputStream(jarFile.getJarEntry(
+                Paths.get("org", "opends", "messages", category + ".properties").toString()));
     }
 
     private Map<MessagePropertyKey, String> loadErrorProperties(Properties properties) throws Exception {

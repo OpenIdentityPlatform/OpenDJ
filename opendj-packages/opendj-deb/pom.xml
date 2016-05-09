@@ -78,7 +78,7 @@
                                 <artifactItems>
                                     <artifactItem>
                                         <groupId>org.forgerock.opendj</groupId>
-                                        <artifactId>opendj-man-pages</artifactId>
+                                        <artifactId>opendj-doc-generated-ref</artifactId>
                                         <version>${project.version}</version>
                                         <outputDirectory>${project.build.directory}/dependency/man</outputDirectory>
                                         <classifier>server-man-pages</classifier>

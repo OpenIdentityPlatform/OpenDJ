@@ -51,7 +51,7 @@ public class GenerateGlobalAcisTableMojo extends AbstractMojo {
     private String locale;
 
     /** The config.ldif file containing default global ACIs. **/
-    @Parameter(defaultValue = "${basedir}/resource/config/config.ldif")
+    @Parameter(defaultValue = "${project.build.directory}/opendj/template/config/config.ldif")
     private File configDotLdif;
 
     /** Output directory for source files. */

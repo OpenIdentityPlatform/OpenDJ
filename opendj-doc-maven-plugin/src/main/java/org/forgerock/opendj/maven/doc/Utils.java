@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -20,29 +20,23 @@ import static org.forgerock.util.Utils.*;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.project.MavenProject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides utility methods for generating documentation.
@@ -133,68 +127,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Returns the classpath for the class loader and its parent.
-     * @param classLoader   Contains the URLs of the class path to return.
-     * @return The classpath for the class loader and its parent.
-     */
-    static String getClassPath(URLClassLoader classLoader) throws URISyntaxException {
-        Set<URL> urls = new LinkedHashSet<>();
-        Collections.addAll(urls, classLoader.getURLs());
-        Collections.addAll(urls, ((URLClassLoader) classLoader.getParent()).getURLs());
-        Set<String> paths = new LinkedHashSet<>();
-        for (URL url: urls) {
-            paths.add(new File(url.toURI()).getPath());
-        }
-        return joinAsString(File.pathSeparator, paths);
-    }
-
-    /**
-     * Returns a ClassLoader including the project's runtime classpath elements.
-     * This is useful when running a Java command from inside a Maven plugin.
-     *
-     * @param project   The Maven project holding runtime classpath elements.
-     * @param log       A plugin log to use for debugging.
-     * @return A ClassLoader including the project's runtime classpath elements.
-     * @throws DependencyResolutionRequiredException    Failed to access the runtime classpath
-     * @throws MalformedURLException                    Failed to add an element to the classpath
-     */
-    static URLClassLoader getRuntimeClassLoader(MavenProject project, Log log)
-            throws DependencyResolutionRequiredException, MalformedURLException {
-        List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
-        Set<URL> runtimeUrls = new LinkedHashSet<>();
-        for (String element : runtimeClasspathElements) {
-            runtimeUrls.add(new File(element).toURI().toURL());
-        }
-
-        final URLClassLoader urlClassLoader = new URLClassLoader(
-                runtimeUrls.toArray(new URL[runtimeClasspathElements.size()]),
-                Thread.currentThread().getContextClassLoader());
-        debugClassPathElements(urlClassLoader, log);
-        return urlClassLoader;
-    }
-
-    /**
-     * Logs what is on the classpath for debugging.
-     * @param classLoader   The ClassLoader with the classpath.
-     * @param log           The Maven plugin log in which to write debug messages.
-     */
-    static void debugClassPathElements(ClassLoader classLoader, Log log) {
-        if (null == classLoader) {
-            return;
-        }
-        log.debug("--------------------");
-        log.debug(classLoader.toString());
-        if (classLoader instanceof URLClassLoader) {
-            final URLClassLoader ucl = (URLClassLoader) classLoader;
-            int i = 0;
-            for (URL url : ucl.getURLs()) {
-                log.debug("url[" + (i++) + "]=" + url);
-            }
-        }
-        debugClassPathElements(classLoader.getParent(), log);
-    }
-
     /** FreeMarker template configuration. */
     static Configuration configuration;
 
@@ -231,6 +163,30 @@ public final class Utils {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    static String getServerClasspath(final String archivePath) {
+        return Paths.get(archivePath, "lib", "bootstrap.jar").toString();
+    }
+
+    static String getToolkitClasspath(final String archivePath) {
+        File folder = Paths.get(archivePath, "lib").toFile();
+        final List<String> jarFiles = Arrays.asList(folder.list(new FilenameFilter() {
+            @Override
+            public boolean accept(final File dir, final String name) {
+                return name.endsWith(".jar");
+            }
+        }));
+
+        final List<String> absoluteJarFilePaths = new ArrayList<>();
+        for (final String fileName : jarFiles) {
+            try {
+                absoluteJarFilePaths.add(new File(folder, fileName).getCanonicalPath());
+            } catch (final IOException ignored) {
+                // Should never append.
+            }
+        }
+        return joinAsString(File.pathSeparator, absoluteJarFilePaths);
     }
 
     private Utils() {

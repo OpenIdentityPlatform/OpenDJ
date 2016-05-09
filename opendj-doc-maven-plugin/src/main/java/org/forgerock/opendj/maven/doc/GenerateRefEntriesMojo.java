@@ -16,6 +16,7 @@
 package org.forgerock.opendj.maven.doc;
 
 import static org.forgerock.opendj.maven.doc.Utils.*;
+import static org.forgerock.util.Utils.joinAsString;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,8 +35,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,9 +48,31 @@ import java.util.regex.Pattern;
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public final class GenerateRefEntriesMojo extends AbstractMojo {
 
+    /**
+     * Represents the execution mode of this plugin.
+     * This Information is needed to compute runtime classpath.
+     */
+    public enum Mode {
+        /** Use OpenDJ Ldap server. */
+        SERVER,
+        /** Use the OpenDJ Ldap toolkit. */
+        TOOLKIT
+    }
+
     /** The Maven Project. */
     @Parameter(property = "project", required = true, readonly = true)
     private MavenProject project;
+
+    /** Archive directory of the artifact (server or toolkit) to use to generate documentation. */
+    @Parameter(property = "docArchiveDir", defaultValue = "${project.build.directory}/opendj", required = true)
+    private String archiveDir;
+
+    /** Whether the plugin should use the server or the toolkit classpath. */
+    @Parameter(required = true)
+    private Mode mode;
+
+    @Parameter(property = "docExtendedClasspath")
+    private String extendedClasspath;
 
     /** Tools for which to generate RefEntry files. */
     @Parameter
@@ -77,17 +98,9 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             throw new MojoFailureException("Output directory " + outputDir.getPath() + " not available");
         }
 
-        // A Maven plugin classpath does not include project files.
-        // Prepare a ClassLoader capable of loading the command-line tools.
-        final URLClassLoader toolsClassLoader;
-        try {
-            toolsClassLoader = getRuntimeClassLoader(project, getLog());
-        } catch (Exception e) {
-            throw new MojoExecutionException("Failed to get class loader.", e);
-        }
         for (CommandLineTool tool : tools) {
             if (tool.isEnabled()) {
-                generateManPageForTool(toolsClassLoader, tool);
+                generateManPageForTool(tool);
             }
         }
     }
@@ -95,26 +108,22 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
     /**
      * Generate a RefEntry file to the output directory for a tool.
      * The files name corresponds to the tool name: {@code man-&lt;name>.xml}.
-     * @param toolsClassLoader          The ClassLoader to run the tool.
      * @param tool                      The tool to run in order to generate the page.
      * @throws MojoExecutionException   Failed to run the tool.
      * @throws MojoFailureException     Tool did not exit successfully.
      */
-    private void generateManPageForTool(final URLClassLoader toolsClassLoader, final CommandLineTool tool)
+    private void generateManPageForTool(final CommandLineTool tool)
             throws MojoExecutionException, MojoFailureException {
         final File   manPage    = new File(outputDir, "man-" + tool.getName() + ".xml");
         final String toolScript = tool.getName();
         final String toolSects  = pathsToXIncludes(tool.getTrailingSectionPaths());
         final String toolClass  = tool.getApplication();
-        List<String> commands   = new LinkedList<>();
+
+        final List<String> commands   = new LinkedList<>();
         commands.add(getJavaCommand());
         commands.addAll(getJavaArgs(toolScript, toolSects));
         commands.add("-classpath");
-        try {
-            commands.add(getClassPath(toolsClassLoader));
-        } catch (URISyntaxException e) {
-            throw new MojoExecutionException("Failed to set the classpath.", e);
-        }
+        commands.add(getClasspath());
         commands.add(toolClass);
         commands.add(getUsageArgument(toolScript));
 
@@ -153,6 +162,20 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         }
     }
 
+    private String getClasspath() {
+        String classpath = "";
+        switch (mode) {
+        case SERVER:
+            classpath += getServerClasspath(archiveDir);
+            break;
+        case TOOLKIT:
+            classpath = getToolkitClasspath(archiveDir);
+            break;
+        }
+
+        return joinAsString(File.pathSeparator, classpath, extendedClasspath);
+    }
+
     /**
      * Returns true if the output directory is available.
      * Attempts to create the directory if it does not exist.
@@ -169,9 +192,11 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      * @return The Java args for running a tool.
      */
     private List<String> getJavaArgs(final String scriptName, final String trailingSections) {
-        List<String> args = new LinkedList<>();
+        final String tmpDir = System.getProperty("java.io.tmpdir");
+        final List<String> args = new LinkedList<>();
         args.add("-Dorg.forgerock.opendj.gendoc=true");
-        args.add("-Dorg.opends.server.ServerRoot=" + System.getProperty("java.io.tmpdir"));
+        args.add("-Dorg.opends.server.ServerRoot=" + tmpDir);
+        args.add("-Dorg.opends.quicksetup.Root=/path/to/opendj");
         args.add("-Dcom.forgerock.opendj.ldap.tools.scriptName=" + scriptName);
         args.add("-Dorg.forgerock.opendj.gendoc.trailing=" + trailingSections + "");
         return args;

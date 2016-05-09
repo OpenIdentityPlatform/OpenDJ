@@ -28,6 +28,7 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,6 +42,10 @@ public class GenerateConfigurationReferenceMojo extends AbstractMojo {
      */
     @Parameter(property = "project", readonly = true, required = true)
     private MavenProject project;
+
+    /** Archive directory of the server to use to generate reference configuration documentation. */
+    @Parameter(property = "docServerArchivePath", defaultValue = "${project.build.directory}/opendj", required = true)
+    private String serverArchiveDirectory;
 
     /**
      * The path to the directory where the configuration reference should be written.
@@ -100,7 +105,7 @@ public class GenerateConfigurationReferenceMojo extends AbstractMojo {
         try {
             commands.add(getJavaCommand());
             commands.add("-classpath");
-            commands.add(getClassPath(getRuntimeClassLoader(project, getLog())));
+            commands.add(Paths.get(serverArchiveDirectory, "lib", "bootstrap.jar").toString());
             commands.add("-DGenerationDir=" + outputDirectory);
             commands.add(generatorClass);
         } catch (Exception e) {
