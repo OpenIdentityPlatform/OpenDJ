@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015 ForgeRock AS.
+-->
+<refsect1 xmlns="http://docbook.org/ns/docbook"
+          version="5.0" xml:lang="en"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <title>Examples</title>
+
+ <screen>
+$ <userinput>status -D "cn=Directory Manager" -w password</userinput>
+<computeroutput>
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                localhost.localdomain
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/opendj
+Version:                  OpenDJ <replaceable>version</replaceable>
+Java Version:             <replaceable>version</replaceable>
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol    : State
+-------------:-------------:---------
+--           : LDIF        : Disabled
+8989         : Replication : Enabled
+0.0.0.0:161  : SNMP        : Disabled
+0.0.0.0:636  : LDAPS       : Disabled
+0.0.0.0:1389 : LDAP        : Enabled
+0.0.0.0:1689 : JMX         : Disabled
+
+          --- Data Sources ---
+Base DN:                      dc=example,dc=com
+Backend ID:                   userRoot
+Entries:                      160
+Replication:                  Enabled
+Missing Changes:              0
+Age of Oldest Missing Change: &lt;not available&gt;
+
+Base DN:     dc=myCompany,dc=com
+Backend ID:  myCompanyRoot
+Entries:     3
+Replication: Disabled
+
+Base DN:     o=myOrg
+Backend ID:  myOrgRoot
+Entries:     3
+Replication: Disabled</computeroutput>
+ </screen>
+</refsect1>
