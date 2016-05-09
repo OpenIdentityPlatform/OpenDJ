@@ -14,10 +14,8 @@
  * Copyright 2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -43,7 +41,7 @@ public final class KeyManagers {
     private static final String KEY_STORE_TYPE = "javax.net.ssl.keyStoreType";
     private static final String KEY_STORE_FILE = "javax.net.ssl.keyStore";
     private static final String KEY_STORE_PASSWORD = "javax.net.ssl.keyStorePassword";
-    private static volatile X509KeyManager jvmKeyManager = null;
+    private static volatile X509KeyManager jvmKeyManager;
 
     /**
      * This class implements an X.509 key manager that will be used to wrap an
@@ -204,7 +202,7 @@ public final class KeyManagers {
      * file for retrieving certificates. It will use the provided key store
      * format and password.
      *
-     * @param file
+     * @param keyStoreFile
      *            The key store file name.
      * @param password
      *            The key store password, which may be {@code null}.
@@ -222,40 +220,20 @@ public final class KeyManagers {
      * @throws NullPointerException
      *            If {@code file} was {@code null}.
      */
-    public static X509KeyManager useKeyStoreFile(final String file, final char[] password,
+    public static X509KeyManager useKeyStoreFile(final String keyStoreFile, final char[] password,
             final String format, String provider) throws GeneralSecurityException, IOException {
-        Reject.ifNull(file);
+        Reject.ifNull(keyStoreFile);
 
-        final File keyStoreFile = new File(file);
         final String keyStoreFormat = format != null ? format : KeyStore.getDefaultType();
-
-        final KeyStore keyStore;
-        if (provider != null) {
-            keyStore = KeyStore.getInstance(keyStoreFormat, provider);
-        } else {
-            keyStore = KeyStore.getInstance(keyStoreFormat);
-        }
+        final KeyStore keyStore = provider != null
+            ? KeyStore.getInstance(keyStoreFormat, provider)
+            : KeyStore.getInstance(keyStoreFormat);
 
         try (FileInputStream fis = new FileInputStream(keyStoreFile)) {
             keyStore.load(fis, password);
         }
 
-        final KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(keyStore, password);
-
-        X509KeyManager x509km = null;
-        for (final KeyManager km : kmf.getKeyManagers()) {
-            if (km instanceof X509KeyManager) {
-                x509km = (X509KeyManager) km;
-                break;
-            }
-        }
-
-        if (x509km == null) {
-            throw new NoSuchAlgorithmException();
-        }
-
-        return x509km;
+        return getX509KeyManager(keyStore, password);
     }
 
     /**
@@ -277,23 +255,20 @@ public final class KeyManagers {
             throws GeneralSecurityException, IOException {
         final KeyStore keyStore = KeyStore.getInstance("PKCS11");
         keyStore.load(null, password);
-        final KeyManagerFactory kmf =
-                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        return getX509KeyManager(keyStore, password);
+    }
+
+    private static X509KeyManager getX509KeyManager(final KeyStore keyStore, final char[] password)
+            throws GeneralSecurityException {
+        final KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(keyStore, password);
 
-        X509KeyManager x509km = null;
         for (final KeyManager km : kmf.getKeyManagers()) {
             if (km instanceof X509KeyManager) {
-                x509km = (X509KeyManager) km;
-                break;
+                return (X509KeyManager) km;
             }
         }
-
-        if (x509km == null) {
-            throw new NoSuchAlgorithmException();
-        }
-
-        return x509km;
+        throw new NoSuchAlgorithmException();
     }
 
     /**
@@ -346,9 +321,8 @@ public final class KeyManagers {
         return new SelectCertificate(keyManager, alias);
     }
 
-    /** Prevent insantiation. */
+    /** Prevent instantiation. */
     private KeyManagers() {
         // Nothing to do.
     }
-
 }
