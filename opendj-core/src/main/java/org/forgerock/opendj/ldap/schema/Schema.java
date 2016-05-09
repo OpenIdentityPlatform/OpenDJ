@@ -17,6 +17,11 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
+import static org.forgerock.opendj.ldap.AttributeDescription.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -44,9 +49,6 @@ import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-
-import static org.forgerock.opendj.ldap.AttributeDescription.*;
-import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class defines a data structure that holds information about the
@@ -418,7 +420,6 @@ public final class Schema {
         private final Map<String, ObjectClass> numericOID2ObjectClasses;
         private final Map<String, Syntax> numericOID2Syntaxes;
         private final Map<String, List<NameForm>> objectClass2NameForms;
-        private final Map<String, String> name2OIDs;
         private final List<LocalizableMessage> warnings;
         private final String schemaName;
         private final Options options;
@@ -448,7 +449,6 @@ public final class Schema {
                 final Map<String, List<DITStructureRule>> name2StructureRules,
                 final Map<String, List<NameForm>> objectClass2NameForms,
                 final Map<String, List<DITStructureRule>> nameForm2StructureRules,
-                final Map<String, String> name2OIDs,
                 final List<LocalizableMessage> warnings) {
             this.schemaName = schemaName;
             this.options = options;
@@ -471,7 +471,6 @@ public final class Schema {
             this.name2StructureRules = Collections.unmodifiableMap(name2StructureRules);
             this.objectClass2NameForms = Collections.unmodifiableMap(objectClass2NameForms);
             this.nameForm2StructureRules = Collections.unmodifiableMap(nameForm2StructureRules);
-            this.name2OIDs = Collections.unmodifiableMap(name2OIDs);
             this.warnings = Collections.unmodifiableList(warnings);
             this.strictSchema = new Schema(this);
             this.nonStrictSchema = new Schema(new NonStrictImpl(this));
@@ -504,11 +503,31 @@ public final class Schema {
 
         @Override
         public String getOIDForName(String lowerCaseName) {
-            final String oid = name2OIDs.get(lowerCaseName);
-            if (SchemaBuilder.AMBIGUOUS_OID.equals(oid)) {
-                throw new UnknownSchemaElementException(WARN_NAME_AMBIGUOUS.get(lowerCaseName));
+            final String oid = getOIDForName0(lowerCaseName);
+            return oid != null ? toLowerCase(oid) : null;
+        }
+
+        private String getOIDForName0(String lowerName) {
+            AttributeType attributeType = getAttributeType0(lowerName);
+            if (attributeType != null) {
+                return attributeType.getOID();
             }
-            return oid;
+            try {
+                return getObjectClass(lowerName).getOID();
+            } catch (UnknownSchemaElementException ignore) {
+                // try next schema element
+            }
+            try {
+                return getMatchingRule(lowerName).getOID();
+            } catch (UnknownSchemaElementException ignore) {
+                // try next schema element
+            }
+            try {
+                return getNameForm(lowerName).getOID();
+            } catch (UnknownSchemaElementException ignore) {
+                // try next schema element
+            }
+            return null;
         }
 
         @Override
