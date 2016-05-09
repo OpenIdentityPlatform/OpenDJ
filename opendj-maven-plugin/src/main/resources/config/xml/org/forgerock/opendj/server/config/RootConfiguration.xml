@@ -262,6 +262,7 @@
       <cli:relation>
         <cli:default-property name="enabled" />
         <cli:default-property name="base-dn" />
+        <cli:default-property name="confidentiality-enabled" />
       </cli:relation>
     </adm:profile>
   </adm:relation>

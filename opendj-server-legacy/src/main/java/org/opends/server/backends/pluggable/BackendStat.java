@@ -1028,6 +1028,7 @@ public class BackendStat
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_NAME.get());
       builder.appendHeading(INFO_LABEL_BACKEND_TOOL_RAW_DB_NAME.get());
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_STATUS.get());
+      builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_INDEX_CONFIDENTIAL.get());
       builder.appendHeading(INFO_LABEL_BACKEND_DEBUG_RECORD_COUNT.get());
       builder.appendHeading(INFO_LABEL_BACKEND_TOOL_INDEX_UNDEFINED_RECORD_COUNT.get());
       builder.appendHeading(LocalizableMessage.raw("95%"));
@@ -1049,6 +1050,7 @@ public class BackendStat
           builder.appendCell(index.getName().getIndexId());
           builder.appendCell(index.getName());
           builder.appendCell(index.isTrusted());
+          builder.appendCell(index.isEncrypted());
           if (index.isTrusted())
           {
             appendIndexStats(builder, ec, index, undefinedKeys);

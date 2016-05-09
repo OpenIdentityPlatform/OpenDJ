@@ -324,4 +324,9 @@ class DefaultIndex extends AbstractTree implements Index
   {
     return trusted;
   }
+
+  final boolean isEncrypted()
+  {
+    return cryptoSuite.isEncrypted();
+  }
 }

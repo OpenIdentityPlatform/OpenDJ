@@ -80,6 +80,7 @@
         <cli:default-property name="index-type" />
         <cli:default-property name="index-entry-limit" />
         <cli:default-property name="index-extensible-matching-rule" />
+        <cli:default-property name="confidentiality-enabled" />
       </cli:relation>
     </adm:profile>
   </adm:relation>
