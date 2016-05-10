@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -121,21 +120,18 @@ public final class LinkedAttribute extends AbstractAttribute {
                 public void remove() {
                     if (attribute.pimpl != expectedImpl) {
                         throw new ConcurrentModificationException();
-                    } else {
-                        iterator.remove();
-
-                        // Resize if we have removed the second to last value.
-                        if (attribute.multipleValues != null
-                                && attribute.multipleValues.size() == 1) {
-                            resize(attribute);
-                            iterator = attribute.pimpl.iterator(attribute);
-                        }
-
-                        // Always update since we may change to single or zero
-                        // value
-                        // impl.
-                        expectedImpl = attribute.pimpl;
                     }
+                    iterator.remove();
+
+                    // Resize if we have removed the second to last value.
+                    if (attribute.multipleValues != null
+                            && attribute.multipleValues.size() == 1) {
+                        resize(attribute);
+                        iterator = attribute.pimpl.iterator(attribute);
+                    }
+
+                    // Always update since we may change to single or zero value impl.
+                    expectedImpl = attribute.pimpl;
                 }
 
             };
@@ -249,9 +245,8 @@ public final class LinkedAttribute extends AbstractAttribute {
         ByteString firstValue(final LinkedAttribute attribute) {
             if (attribute.singleValue != null) {
                 return attribute.singleValue;
-            } else {
-                throw new NoSuchElementException();
             }
+            throw new NoSuchElementException();
         }
 
         @Override
@@ -433,6 +428,7 @@ public final class LinkedAttribute extends AbstractAttribute {
     private static final ZeroValueImpl ZERO_VALUE_IMPL = new ZeroValueImpl();
 
     private final AttributeDescription attributeDescription;
+    /** Map of normalized values to raw values. */
     private Map<ByteString, ByteString> multipleValues;
     private ByteString normalizedSingleValue;
     private Impl pimpl = ZERO_VALUE_IMPL;
