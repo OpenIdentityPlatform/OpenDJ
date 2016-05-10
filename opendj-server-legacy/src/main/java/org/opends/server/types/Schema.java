@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse.Builder;
@@ -62,7 +63,6 @@ import org.forgerock.util.Option;
 import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
@@ -108,13 +108,6 @@ public final class Schema
    * its descendants.
    */
   private Map<AttributeType, List<AttributeType>> subordinateTypes;
-
-  /**
-   * The set of DIT content rules for this schema, mapped between the structural
-   * objectclass for the definition and the DIT content rule itself.
-   */
-  private ConcurrentHashMap<ObjectClass,DITContentRule>
-               ditContentRules;
 
   /**
    * The set of DIT structure rules for this schema, mapped between the name
@@ -175,7 +168,6 @@ public final class Schema
   {
     switchSchema(schemaNG);
 
-    ditContentRules = new ConcurrentHashMap<ObjectClass,DITContentRule>();
     ditStructureRulesByID = new ConcurrentHashMap<Integer,DITStructureRule>();
     ditStructureRulesByNameForm = new ConcurrentHashMap<NameForm,DITStructureRule>();
     ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
@@ -374,6 +366,36 @@ public final class Schema
     catch (UnknownSchemaElementException e)
     {
       LocalizableMessage msg = ERR_NAME_FORM_CANNOT_REGISTER.get(definition);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+  }
+
+  /**
+   * Parses a a DIT content rule from its provided definition.
+   *
+   * @param definition
+   *          The definition of the matching rule use
+   * @return the DIT content rule
+   * @throws DirectoryException
+   *           If an error occurs
+   */
+  public DITContentRule parseDITContentRule(final String definition) throws DirectoryException
+  {
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.addDITContentRule(definition, true);
+      org.forgerock.opendj.ldap.schema.Schema newSchema = builder.toSchema();
+      rejectSchemaWithWarnings(newSchema);
+      return newSchema.getDITContentRule(parseDITContentRuleOID(definition));
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      LocalizableMessage msg = ERR_DIT_CONTENT_RULE_CANNOT_REGISTER.get(definition);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
     }
     catch (LocalizedIllegalArgumentException e)
@@ -589,6 +611,11 @@ public final class Schema
   private String parseNameFormOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_NAME_FORM_OID);
+  }
+
+  private String parseDITContentRuleOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_DIT_CONTENT_RULE_OID);
   }
 
   /**
@@ -1451,20 +1478,14 @@ public final class Schema
 
 
   /**
-   * Retrieves the DIT content rule definitions for this schema, as a
-   * mapping between the objectclass for the rule and the DIT content
-   * rule itself.  Each DIT content rule should only be present once,
-   * since its only key is its objectclass.  The contents of the
-   * returned mapping must not be altered.
+   * Retrieves the DIT content rule definitions for this schema.
    *
    * @return  The DIT content rule definitions for this schema.
    */
-  public ConcurrentHashMap<ObjectClass,DITContentRule>
-              getDITContentRules()
+  public Collection<DITContentRule> getDITContentRules()
   {
-    return ditContentRules;
+    return schemaNG.getDITContentRules();
   }
-
 
 
   /**
@@ -1480,51 +1501,84 @@ public final class Schema
    */
   public DITContentRule getDITContentRule(ObjectClass objectClass)
   {
-    return ditContentRules.get(objectClass);
+    return schemaNG.getDITContentRule(objectClass);
   }
 
 
 
   /**
-   * Registers the provided DIT content rule definition with this
-   * schema.
+   * Registers the provided DIT content rule definition with this schema.
    *
-   * @param  ditContentRule     The DIT content rule to register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another DIT content
-   *                            rule with the same objectclass).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
+   * @param ditContentRule
+   *          The DIT content rule to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another DIT content rule with the same objectclass).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           <CODE>false</CODE>
    */
-  public void registerDITContentRule(DITContentRule ditContentRule,
-                                     boolean overwriteExisting)
-         throws DirectoryException
+  public void registerDITContentRule(DITContentRule ditContentRule, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
   {
-    synchronized (ditContentRules)
+    exclusiveLock.lock();
+    try
     {
-      ObjectClass objectClass = ditContentRule.getStructuralClass();
-
-      if (! overwriteExisting && ditContentRules.containsKey(objectClass))
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      DITContentRule.Builder dcrBuilder = builder.buildDITContentRule(ditContentRule);
+      if (schemaFile != null)
       {
-        DITContentRule conflictingRule =
-                            ditContentRules.get(objectClass);
-
-        LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
-            get(ditContentRule.getNameOrOID(),
-                objectClass.getNameOrOID(),
-                conflictingRule.getNameOrOID());
-        throw new DirectoryException(
-                       ResultCode.CONSTRAINT_VIOLATION, message);
+        dcrBuilder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                  .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
       }
-
-      ditContentRules.put(objectClass, ditContentRule);
+      if (overwriteExisting)
+      {
+        dcrBuilder.addToSchemaOverwrite();
+      }
+      else
+      {
+        dcrBuilder.addToSchema();
+      }
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
-
+  /**
+   * Registers the provided DIT content rule definition with this schema.
+   *
+   * @param definition
+   *          The DIT content rule definition to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another DIT content rule with the same object class).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           <CODE>false</CODE>
+   */
+  public void registerDITContentRule(String definition, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+      switchSchema(new SchemaBuilder(schemaNG)
+        .addDITContentRule(definitionWithFile, overwriteExisting)
+        .toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
 
   /**
    * Deregisters the provided DIT content rule definition with this
@@ -1532,13 +1586,22 @@ public final class Schema
    *
    * @param  ditContentRule  The DIT content rule to deregister with
    *                         this schema.
+   * @throws DirectoryException
+   *            May be thrown if the schema has constraint violations, although
+   *            deregistering a DIT content rule should not break any constraint.
    */
-  public void deregisterDITContentRule(DITContentRule ditContentRule)
+  public void deregisterDITContentRule(DITContentRule ditContentRule) throws DirectoryException
   {
-    synchronized (ditContentRules)
+    exclusiveLock.lock();
+    try
     {
-      ditContentRules.remove(ditContentRule.getStructuralClass(),
-                             ditContentRule);
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeDITContentRule(ditContentRule.getNameOrOID());
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -2041,14 +2104,13 @@ public final class Schema
       }
     }
 
-    for (DITContentRule dcr : ditContentRules.values())
+    for (DITContentRule dcr : getDITContentRules())
     {
       if (dcr.getRequiredAttributes().contains(type) || dcr.getOptionalAttributes().contains(type)
           || dcr.getProhibitedAttributes().contains(type))
       {
-        DITContentRule newDCR = recreateFromDefinition(dcr);
         deregisterDITContentRule(dcr);
-        registerDITContentRule(newDCR, true);
+        registerDITContentRule(dcr.toString(), getSchemaFileName(dcr), true);
       }
     }
 
@@ -2099,13 +2161,12 @@ public final class Schema
       }
     }
 
-    for (DITContentRule dcr : ditContentRules.values())
+    for (DITContentRule dcr : getDITContentRules())
     {
       if (dcr.getStructuralClass().equals(c) || dcr.getAuxiliaryClasses().contains(c))
       {
-        DITContentRule newDCR = recreateFromDefinition(dcr);
         deregisterDITContentRule(dcr);
-        registerDITContentRule(newDCR, true);
+        registerDITContentRule(dcr.toString(), getSchemaFileName(dcr), true);
       }
     }
   }
@@ -2144,15 +2205,6 @@ public final class Schema
     return values != null && ! values.isEmpty() ? values.get(0) : null;
   }
 
-  private DITContentRule recreateFromDefinition(DITContentRule dcr)
-      throws DirectoryException
-  {
-    ByteString value = ByteString.valueOfUtf8(dcr.toString());
-    DITContentRule copy = DITContentRuleSyntax.decodeDITContentRule(value, this, false);
-    setSchemaFile(copy, getSchemaFile(dcr));
-    return copy;
-  }
-
   private DITStructureRule recreateFromDefinition(DITStructureRule dsr)
       throws DirectoryException
   {
@@ -2183,7 +2235,6 @@ public final class Schema
     }
 
     dupSchema.subordinateTypes.putAll(subordinateTypes);
-    dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
     dupSchema.ditStructureRulesByNameForm.putAll(ditStructureRulesByNameForm);
     dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
@@ -2612,12 +2663,6 @@ public final class Schema
     if (schemaNG != null)
     {
       schemaNG = null;
-    }
-
-    if (ditContentRules != null)
-    {
-      ditContentRules.clear();
-      ditContentRules = null;
     }
 
     if (ditStructureRulesByID != null)

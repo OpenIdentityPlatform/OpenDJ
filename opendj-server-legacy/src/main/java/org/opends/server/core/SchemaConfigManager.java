@@ -32,10 +32,8 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -758,39 +756,10 @@ public class SchemaConfigManager
       {
         for (ByteString v : a)
         {
-          // Parse the DIT content rule.
-          DITContentRule dcr;
+          final String definition = v.toString();
           try
           {
-            dcr = DITContentRuleSyntax.decodeDITContentRule(v, schema, false);
-            dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            setSchemaFile(dcr, schemaFile);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
-                    schemaFile, de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
-                    schemaFile, v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
-          // Register it with the schema.  We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          try
-          {
-            schema.registerDITContentRule(dcr, failOnError);
+            schema.registerDITContentRule(definition, schemaFile, failOnError);
           }
           catch (DirectoryException de)
           {
@@ -800,7 +769,7 @@ public class SchemaConfigManager
 
             try
             {
-              schema.registerDITContentRule(dcr, true);
+              schema.registerDITContentRule(definition, schemaFile, true);
             }
             catch (Exception e)
             {

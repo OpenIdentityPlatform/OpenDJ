@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -58,7 +59,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -2593,7 +2593,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2619,7 +2619,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleAuxiliaryOC' NOT description " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2705,7 +2705,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedAuxOC' " +
               "AUX xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2733,7 +2733,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX ( posixAccount $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2759,7 +2759,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleAuxOCNotAuxOC' " +
               "AUX person X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2787,7 +2787,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX ( posixAccount $ person ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2843,7 +2843,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedReqAT' " +
               "MUST xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2871,7 +2871,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2897,7 +2897,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedOptAT' " +
               "MAY xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2925,7 +2925,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2951,7 +2951,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDITContentRuleUndefinedNotAT' " +
               "NOT xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2979,7 +2979,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT ( description $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -3006,7 +3006,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDCRProhibitReqStructuralAT' " +
               "NOT cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -3033,7 +3033,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NAME 'testAddDCRProhibitReqAuxiliaryAT' AUX posixAccount " +
               "NOT uid X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**

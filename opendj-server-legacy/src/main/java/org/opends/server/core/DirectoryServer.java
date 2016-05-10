@@ -17,7 +17,6 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -72,6 +71,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
@@ -150,7 +150,6 @@ import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
 import org.opends.server.types.CryptoManager;
-import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -2615,16 +2614,6 @@ public final class DirectoryServer
   public static DITContentRule getDITContentRule(ObjectClass objectClass)
   {
     return directoryServer.schema.getDITContentRule(objectClass);
-  }
-
-  /**
-   * Deregisters the provided DIT content rule with the Directory Server.
-   *
-   * @param  ditContentRule  The DIT content rule to deregister with the server.
-   */
-  public static void deregisterDITContentRule(DITContentRule ditContentRule)
-  {
-    directoryServer.schema.deregisterDITContentRule(ditContentRule);
   }
 
   /**

@@ -62,11 +62,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
@@ -82,7 +82,6 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.ServerSchemaElement;
@@ -92,7 +91,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -581,7 +579,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         operationalAttrs, ldapSyntaxesType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getNameForms(), userAttrs,
         operationalAttrs, nameFormsType, includeSchemaFile, false, true);
-    buildSchemaAttribute(schema.getDITContentRules().values(), userAttrs,
+    buildSchemaAttribute(schema.getDITContentRules(), userAttrs,
         operationalAttrs, ditContentRulesType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getDITStructureRulesByID().values(), userAttrs,
         operationalAttrs, ditStructureRulesType, includeSchemaFile, false, true);
@@ -776,21 +774,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              DITContentRule dcr;
-              try
-              {
-                dcr = DITContentRuleSyntax.decodeDITContentRule(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              DITContentRule dcr = newSchema.parseDITContentRule(v.toString());
               addDITContentRule(dcr, newSchema, modifiedSchemaFiles);
             }
           }
@@ -886,21 +870,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              DITContentRule dcr;
-              try
-              {
-                dcr = DITContentRuleSyntax.decodeDITContentRule(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              DITContentRule dcr = newSchema.parseDITContentRule(v.toString());
               removeDITContentRule(dcr, newSchema, modifiedSchemaFiles);
             }
           }
@@ -1280,7 +1250,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Make sure that the attribute type isn't used as a required, optional, or
     // prohibited attribute type in any DIT content rule.
-    for (DITContentRule dcr : schema.getDITContentRules().values())
+    for (DITContentRule dcr : schema.getDITContentRules())
     {
       if (dcr.getRequiredAttributes().contains(removeType) ||
           dcr.getOptionalAttributes().contains(removeType) ||
@@ -1540,7 +1510,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Make sure that the objectclass isn't used as a structural or auxiliary
     // class for any DIT content rule.
-    for (DITContentRule dcr : schema.getDITContentRules().values())
+    for (DITContentRule dcr : schema.getDITContentRules())
     {
       if (dcr.getStructuralClass().equals(removeClass) ||
           dcr.getAuxiliaryClasses().contains(removeClass))
@@ -1751,9 +1721,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // all of the names, which means that it's possible there could be more than
     // one match (although if there is, then we'll refuse the operation).
     DITContentRule existingDCR = null;
-    for (DITContentRule dcr : schema.getDITContentRules().values())
+    for (DITContentRule dcr : schema.getDITContentRules())
     {
-      for (String name : ditContentRule.getNames().keySet())
+      for (String name : ditContentRule.getNames())
       {
         if (dcr.hasName(name))
         {
@@ -1774,38 +1744,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Get the structural class for the new DIT content rule and see if there's
-    // already an existing rule that is associated with that class.  If there
-    // is, then it will only be acceptable if it's the DIT content rule that we
-    // are replacing (in which case we really do want to use the "!=" operator).
     ObjectClass structuralClass = ditContentRule.getStructuralClass();
-    DITContentRule existingRuleForClass =
-         schema.getDITContentRule(structuralClass);
-    if (existingRuleForClass != null && existingRuleForClass != existingDCR)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR.
-          get(ditContentRule.getNameOrOID(), structuralClass.getNameOrOID(),
-              existingRuleForClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
 
-    // Make sure that the new DIT content rule doesn't reference an undefined
-    // structural or auxiliary class, or an undefined required, optional, or
-    // prohibited attribute type.
-    if (! schema.hasObjectClass(structuralClass.getOID()))
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC.get(
-          ditContentRule.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL.get(
-          ditContentRule.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
+    // Make sure that the new DIT content rule doesn't reference an obsolete
+    // object class or attribute
     if (structuralClass.isObsolete())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE.get(
@@ -1815,18 +1757,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (ObjectClass oc : ditContentRule.getAuxiliaryClasses())
     {
-      if (! schema.hasObjectClass(oc.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC.get(
-            ditContentRule.getNameOrOID(), oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY.get(
-            ditContentRule.getNameOrOID(), oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
       if (oc.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC.get(
@@ -1837,13 +1767,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (AttributeType at : ditContentRule.getRequiredAttributes())
     {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR.get(
-            ditContentRule.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
+      if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR.get(
             ditContentRule.getNameOrOID(), at.getNameOrOID());
@@ -1853,13 +1777,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (AttributeType at : ditContentRule.getOptionalAttributes())
     {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR.get(
-            ditContentRule.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
+      if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR.get(
             ditContentRule.getNameOrOID(), at.getNameOrOID());
@@ -1869,13 +1787,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (AttributeType at : ditContentRule.getProhibitedAttributes())
     {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR.get(
-            ditContentRule.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
+      if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR.get(
             ditContentRule.getNameOrOID(), at.getNameOrOID());
@@ -1887,16 +1799,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingDCR == null)
     {
-      schema.registerDITContentRule(ditContentRule, false);
-      addNewSchemaElement(modifiedSchemaFiles, ditContentRule);
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditContentRule));
+      schema.registerDITContentRule(ditContentRule, schemaFile, false);
     }
     else
     {
       schema.deregisterDITContentRule(existingDCR);
-      schema.registerDITContentRule(ditContentRule, false);
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditContentRule),
+          new ServerSchemaElement(existingDCR));
+      schema.registerDITContentRule(ditContentRule, schemaFile, false);
       schema.rebuildDependentElements(existingDCR);
-      replaceExistingSchemaElement(modifiedSchemaFiles, ditContentRule,
-          existingDCR);
     }
   }
 
@@ -2540,7 +2452,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // there is no hierarchical relationship between DIT content rules, we don't
     // need to worry about ordering.
     values = new LinkedHashSet<>();
-    for (DITContentRule dcr : schema.getDITContentRules().values())
+    for (DITContentRule dcr : schema.getDITContentRules())
     {
       if (schemaFile.equals(getSchemaFile(dcr)))
       {
