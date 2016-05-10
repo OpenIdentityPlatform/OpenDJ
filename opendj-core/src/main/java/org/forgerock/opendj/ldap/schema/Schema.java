@@ -1676,71 +1676,25 @@ public final class Schema {
      *             If {@code entry} was {@code null}.
      */
     public Entry toEntry(final Entry entry) {
-        Attribute attr = new LinkedAttribute(Schema.ATTR_LDAP_SYNTAXES);
-        for (final Syntax syntax : getSyntaxes()) {
-            attr.add(syntax.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_ATTRIBUTE_TYPES);
-        for (final AttributeType attributeType : getAttributeTypes()) {
-            attr.add(attributeType.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_OBJECT_CLASSES);
-        for (final ObjectClass objectClass : getObjectClasses()) {
-            attr.add(objectClass.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_MATCHING_RULE_USE);
-        for (final MatchingRuleUse matchingRuleUse : getMatchingRuleUses()) {
-            attr.add(matchingRuleUse.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_MATCHING_RULES);
-        for (final MatchingRule matchingRule : getMatchingRules()) {
-            attr.add(matchingRule.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_DIT_CONTENT_RULES);
-        for (final DITContentRule ditContentRule : getDITContentRules()) {
-            attr.add(ditContentRule.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_DIT_STRUCTURE_RULES);
-        for (final DITStructureRule ditStructureRule : getDITStuctureRules()) {
-            attr.add(ditStructureRule.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
-        attr = new LinkedAttribute(Schema.ATTR_NAME_FORMS);
-        for (final NameForm nameForm : getNameForms()) {
-            attr.add(nameForm.toString());
-        }
-        if (!attr.isEmpty()) {
-            entry.addAttribute(attr);
-        }
-
+        addAttribute(entry, Schema.ATTR_LDAP_SYNTAXES, getSyntaxes());
+        addAttribute(entry, Schema.ATTR_ATTRIBUTE_TYPES, getAttributeTypes());
+        addAttribute(entry, Schema.ATTR_OBJECT_CLASSES, getObjectClasses());
+        addAttribute(entry, Schema.ATTR_MATCHING_RULE_USE, getMatchingRuleUses());
+        addAttribute(entry, Schema.ATTR_MATCHING_RULES, getMatchingRules());
+        addAttribute(entry, Schema.ATTR_DIT_CONTENT_RULES, getDITContentRules());
+        addAttribute(entry, Schema.ATTR_DIT_STRUCTURE_RULES, getDITStuctureRules());
+        addAttribute(entry, Schema.ATTR_NAME_FORMS, getNameForms());
         return entry;
+    }
+
+    private void addAttribute(Entry entry, String attrName, Collection<? extends SchemaElement> schemaElements) {
+        Attribute attr = new LinkedAttribute(attrName);
+        for (final Object o : schemaElements) {
+            attr.add(o.toString());
+        }
+        if (!attr.isEmpty()) {
+            entry.addAttribute(attr);
+        }
     }
 
     /**
@@ -2064,26 +2018,16 @@ public final class Schema {
 
                 if (!t.isOperational()
                         && (checkObjectClasses || checkDITContentRule)) {
-                    boolean isAllowed = false;
-                    for (final ObjectClass objectClass : objectClasses) {
-                        if (objectClass.isRequiredOrOptional(t)) {
-                            isAllowed = true;
-                            break;
-                        }
-                    }
+                    boolean isAllowed = isRequiredOrOptional(objectClasses, t);
                     if (!isAllowed && ditContentRule != null && ditContentRule.isRequiredOrOptional(t)) {
                         isAllowed = true;
                     }
                     if (!isAllowed) {
                         if (errorMessages != null) {
-                            final LocalizableMessage message;
-                            if (ditContentRule != null) {
-                                message = ERR_ENTRY_SCHEMA_DCR_DISALLOWED_ATTRIBUTES.get(
-                                        entry.getName(), t.getNameOrOID(), ditContentRule.getNameOrOID());
-                            } else {
-                                message = ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(
-                                        entry.getName(), t.getNameOrOID());
-                            }
+                            final LocalizableMessage message = ditContentRule != null
+                                ? ERR_ENTRY_SCHEMA_DCR_DISALLOWED_ATTRIBUTES.get(
+                                        entry.getName(), t.getNameOrOID(), ditContentRule.getNameOrOID())
+                                : ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(entry.getName(), t.getNameOrOID());
                             errorMessages.add(message);
                         }
                         if (policy.checkAttributesAndObjectClasses().isReject()
@@ -2096,7 +2040,6 @@ public final class Schema {
                 // Check all attributes contain an appropriate number of values.
                 if (checkAttributeValues) {
                     final int sz = attribute.size();
-
                     if (sz == 0) {
                         if (errorMessages != null) {
                             errorMessages.add(ERR_ENTRY_SCHEMA_AT_EMPTY_ATTRIBUTE.get(
@@ -2120,6 +2063,15 @@ public final class Schema {
 
         // If we've gotten here, then things are OK.
         return true;
+    }
+
+    private boolean isRequiredOrOptional(final List<ObjectClass> objectClasses, final AttributeType t) {
+        for (final ObjectClass objectClass : objectClasses) {
+            if (objectClass.isRequiredOrOptional(t)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean checkDITStructureRule(final Entry entry,
