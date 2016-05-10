@@ -53,7 +53,7 @@ class DefaultIndex extends AbstractTree implements Index
   private int indexEntryLimit;
 
   private EntryIDSetCodec codec;
-  protected CryptoSuite cryptoSuite;
+  private CryptoSuite cryptoSuite;
 
   /**
    * A flag to indicate if this index should be trusted to be consistent with the entries tree.

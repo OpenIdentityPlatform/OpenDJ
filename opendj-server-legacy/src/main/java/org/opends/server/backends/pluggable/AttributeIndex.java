@@ -22,23 +22,34 @@ import static org.opends.server.backends.pluggable.EntryIDSet.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
@@ -46,9 +57,12 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.crypto.CryptoSuite;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.FilterType;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -106,10 +120,10 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     private final Indexer indexer;
 
     private MatchingRuleIndex(EntryContainer entryContainer, AttributeType attributeType, State state, Indexer indexer,
-        int indexEntryLimit, boolean encryptValues, CryptoSuite cryptoSuite)
+        int indexEntryLimit, CryptoSuite cryptoSuite)
     {
-      super(getIndexName(entryContainer, attributeType, indexer.getIndexID()), state, indexEntryLimit, entryContainer,
-          cryptoSuite);
+      super(getIndexName(entryContainer, attributeType, indexer.getIndexID()),
+          state, indexEntryLimit, entryContainer, cryptoSuite);
       this.attributeType = attributeType;
       this.indexer = indexer;
     }
@@ -378,7 +392,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       {
         indexes.put(indexID,
             new MatchingRuleIndex(entryContainer, attributeType, state, indexerEntry.getKey(),
-            indexEntryLimit, indexerEntry.getValue(), cryptoSuite));
+                indexEntryLimit, cryptoSuite));
       }
     }
     return indexes;
