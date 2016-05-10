@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.api.CompressedSchema;
@@ -1614,9 +1615,10 @@ public class Entry
          * DITStructureRules corresponding to other non-acceptable
          * nameforms are not applied.
          */
-        List<NameForm> listForms = DirectoryServer.getNameForm(structuralClass);
-        if(listForms != null)
+        Collection<NameForm> forms = DirectoryServer.getNameForm(structuralClass);
+        if (forms != null)
         {
+          List<NameForm> listForms = new ArrayList<NameForm>(forms);
           boolean matchFound = false;
           boolean obsolete = true;
           for(int index=0; index <listForms.size(); index++)
@@ -2158,8 +2160,7 @@ public class Entry
         }
         else
         {
-          List<NameForm> allNFs =
-               DirectoryServer.getNameForm(parentStructuralClass);
+          Collection<NameForm> allNFs = DirectoryServer.getNameForm(parentStructuralClass);
           if(allNFs != null)
           {
             for(NameForm parentNF : allNFs)

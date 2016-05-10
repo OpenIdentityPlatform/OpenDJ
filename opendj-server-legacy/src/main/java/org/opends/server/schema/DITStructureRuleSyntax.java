@@ -27,13 +27,13 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.NameForm;
 import org.opends.server.types.Schema;
 
 /**
@@ -318,12 +318,14 @@ public class DITStructureRuleSyntax
         pos = readWOID(lowerStr, woidBuffer, pos);
 
         nameFormGiven = true;
-        nameForm = schema.getNameForm(woidBuffer.toString());
-        if (nameForm == null && ! allowUnknownElements)
+
+        String nameOrOid = woidBuffer.toString();
+        if (!schema.hasNameForm(nameOrOid) && !allowUnknownElements)
         {
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(valueStr, woidBuffer));
         }
+        nameForm = schema.getNameForm(nameOrOid);
       }
       else if (lowerTokenName.equals("sup"))
       {

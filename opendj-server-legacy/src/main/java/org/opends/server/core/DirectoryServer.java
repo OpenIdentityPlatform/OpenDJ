@@ -74,6 +74,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
@@ -160,7 +161,6 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
-import org.opends.server.types.NameForm;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
@@ -2676,31 +2676,19 @@ public final class DirectoryServer
    * @return  The requested name forms, or {@code null} if no such name
    *           form is defined in the schema.
    */
-  public static List<NameForm> getNameForm(ObjectClass objectClass)
+  public static Collection<NameForm> getNameForm(ObjectClass objectClass)
   {
     return directoryServer.schema.getNameForm(objectClass);
-  }
-
-  /**
-   * Retrieves the name form associated with the specified name or OID.
-   *
-   * @param  lowerName  The name or OID of the name form to retrieve, formatted
-   *                    in all lowercase characters.
-   *
-   * @return  The requested name form, or {@code null} if no such name form
-   *          is defined in the schema.
-   */
-  public static NameForm getNameForm(String lowerName)
-  {
-    return directoryServer.schema.getNameForm(lowerName);
   }
 
   /**
    * Deregisters the provided name form with the Directory Server.
    *
    * @param  nameForm  The name form to deregister with the server.
+   * @throws DirectoryException
+   *            If an error occurs.
    */
-  public static void deregisterNameForm(NameForm nameForm)
+  public static void deregisterNameForm(NameForm nameForm) throws DirectoryException
   {
     directoryServer.schema.deregisterNameForm(nameForm);
   }

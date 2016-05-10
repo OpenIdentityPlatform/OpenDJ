@@ -25,13 +25,13 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.NameForm;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
@@ -318,8 +318,7 @@ public class GenericSchemaTestCase
       {
         for (ByteString v : a)
         {
-          NameForm nf = NameFormSyntax.decodeNameForm(
-              v, DirectoryServer.getSchema(), true);
+          NameForm nf = DirectoryServer.getSchema().parseNameForm(v.toString());
           if (! isNumericOID(nf.getOID()))
           {
             invalidOIDs.add(nf.getNameOrOID());

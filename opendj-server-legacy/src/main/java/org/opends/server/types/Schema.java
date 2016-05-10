@@ -24,7 +24,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +52,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse.Builder;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
@@ -64,7 +64,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
-import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -132,19 +131,6 @@ public final class Schema
                ditStructureRulesByNameForm;
 
   /**
-   * The set of name forms for this schema, mapped between the structural
-   * objectclass for the definition and the list of name forms.
-   */
-  private ConcurrentHashMap<ObjectClass,List<NameForm>>
-          nameFormsByOC;
-
-  /**
-   * The set of name forms for this schema, mapped between the names/OID and the
-   * name form itself.
-   */
-  private ConcurrentHashMap<String,NameForm> nameFormsByName;
-
-  /**
    * The set of ldap syntax descriptions for this schema, mapped the OID and the
    * ldap syntax description itself.
    */
@@ -192,8 +178,6 @@ public final class Schema
     ditContentRules = new ConcurrentHashMap<ObjectClass,DITContentRule>();
     ditStructureRulesByID = new ConcurrentHashMap<Integer,DITStructureRule>();
     ditStructureRulesByNameForm = new ConcurrentHashMap<NameForm,DITStructureRule>();
-    nameFormsByOC = new ConcurrentHashMap<ObjectClass,List<NameForm>>();
-    nameFormsByName = new ConcurrentHashMap<String,NameForm>();
     ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
     subordinateTypes = new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
@@ -360,6 +344,36 @@ public final class Schema
     catch (UnknownSchemaElementException e)
     {
       LocalizableMessage msg = ERR_MATCHING_RULE_USE_CANNOT_REGISTER.get(definition);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+  }
+
+  /**
+   * Parses a name form from its provided definition.
+   *
+   * @param definition
+   *          The definition of the name form
+   * @return the name form
+   * @throws DirectoryException
+   *           If an error occurs
+   */
+  public NameForm parseNameForm(final String definition) throws DirectoryException
+  {
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.addNameForm(definition, true);
+      org.forgerock.opendj.ldap.schema.Schema newSchema = builder.toSchema();
+      rejectSchemaWithWarnings(newSchema);
+      return newSchema.getNameForm(parseNameFormOID(definition));
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      LocalizableMessage msg = ERR_NAME_FORM_CANNOT_REGISTER.get(definition);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
     }
     catch (LocalizedIllegalArgumentException e)
@@ -570,6 +584,11 @@ public final class Schema
   private String parseMatchingRuleUseOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_MATCHING_RULE_USE_OID);
+  }
+
+  private String parseNameFormOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_NAME_FORM_OID);
   }
 
   /**
@@ -832,7 +851,8 @@ public final class Schema
     ObjectClass.Builder b = builder.buildObjectClass(objectClass);
     if (schemaFile != null)
     {
-      b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
     }
     if (overwriteExisting)
     {
@@ -1677,35 +1697,14 @@ public final class Schema
 
 
   /**
-   * Retrieves the name form definitions for this schema, as a mapping
-   * between the objectclass for the name forms and the name forms
-   * themselves.
+   * Retrieves the name form definitions for this schema.
    *
    * @return  The name form definitions for this schema.
    */
-  public ConcurrentHashMap<ObjectClass,List<NameForm>>
-              getNameFormsByObjectClass()
+  public Collection<NameForm> getNameForms()
   {
-    return nameFormsByOC;
+    return schemaNG.getNameForms();
   }
-
-
-
-  /**
-   * Retrieves the name form definitions for this schema, as a mapping
-   * between the names/OID for the name form and the name form itself.
-   * Each name form may be present multiple times with different names
-   * and its OID.  The contents of the returned mapping must not be
-   * altered.
-   *
-   * @return  The name form definitions for this schema.
-   */
-  public ConcurrentHashMap<String,NameForm> getNameFormsByNameOrOID()
-  {
-    return nameFormsByName;
-  }
-
-
 
   /**
    * Indicates whether this schema definition includes a name form
@@ -1720,7 +1719,7 @@ public final class Schema
    */
   public boolean hasNameForm(String lowerName)
   {
-    return nameFormsByName.containsKey(lowerName);
+    return schemaNG.hasNameForm(lowerName);
   }
 
 
@@ -1736,9 +1735,9 @@ public final class Schema
    *           name forms are registered with the provided
    *           objectClass.
    */
-  public List<NameForm> getNameForm(ObjectClass objectClass)
+  public Collection<NameForm> getNameForm(ObjectClass objectClass)
   {
-    return nameFormsByOC.get(objectClass);
+    return schemaNG.getNameForms(objectClass);
   }
 
 
@@ -1754,7 +1753,7 @@ public final class Schema
    */
   public NameForm getNameForm(String lowerName)
   {
-    return nameFormsByName.get(lowerName);
+    return schemaNG.getNameForm(lowerName);
   }
 
 
@@ -1762,116 +1761,95 @@ public final class Schema
   /**
    * Registers the provided name form definition with this schema.
    *
-   * @param  nameForm           The name form definition to register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another name form
-   *                            with the same objectclass).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
+   * @param nameForm
+   *          The name form definition to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another name form with the same objectclass).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           <CODE>false</CODE>
    */
-  public void registerNameForm(NameForm nameForm,
-                               boolean overwriteExisting)
-         throws DirectoryException
+  public void registerNameForm(NameForm nameForm, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
   {
-    synchronized (nameFormsByOC)
+    exclusiveLock.lock();
+    try
     {
-      ObjectClass objectClass = nameForm.getStructuralClass();
-      List<NameForm> mappedForms = nameFormsByOC.get(objectClass);
-      if (! overwriteExisting)
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      NameForm.Builder formBuilder = builder.buildNameForm(nameForm);
+      if (schemaFile != null)
       {
-        if(mappedForms !=null)
-        {
-          //Iterate over the forms to make sure we aren't adding a
-          //duplicate.
-          for(NameForm nf : mappedForms)
-          {
-            if(nf.equals(nameForm))
-            {
-              LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OC.
-                get(nameForm.getNameOrOID(),
-                    objectClass.getNameOrOID(),
-                    nf.getNameOrOID());
-              throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-            }
-          }
-        }
-
-        String oid = toLowerCase(nameForm.getOID());
-        if (nameFormsByName.containsKey(oid))
-        {
-          NameForm conflictingNameForm = nameFormsByName.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID.
-              get(nameForm.getNameOrOID(), oid,
-                  conflictingNameForm.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        for (String name : nameForm.getNames().keySet())
-        {
-          if (nameFormsByName.containsKey(name))
-          {
-            NameForm conflictingNameForm = nameFormsByName.get(name);
-
-            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_NAME.
-                get(nameForm.getNameOrOID(), oid,
-                    conflictingNameForm.getNameOrOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-        }
+        formBuilder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                   .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
       }
-
-      if(mappedForms == null)
+      if (overwriteExisting)
       {
-        mappedForms = new ArrayList<>();
+        formBuilder.addToSchemaOverwrite();
       }
-
-      mappedForms.add(nameForm);
-      nameFormsByOC.put(objectClass, mappedForms);
-      nameFormsByName.put(toLowerCase(nameForm.getOID()), nameForm);
-
-      for (String name : nameForm.getNames().keySet())
+      else
       {
-        nameFormsByName.put(name, nameForm);
+        formBuilder.addToSchema();
       }
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
-
+  /**
+   * Registers the provided name form definition with this schema.
+   *
+   * @param definition
+   *          The name form definition to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           <CODE>false</CODE>
+   */
+  public void registerNameForm(String definition, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+      switchSchema(new SchemaBuilder(schemaNG)
+        .addNameForm(definitionWithFile, overwriteExisting)
+        .toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
 
   /**
    * Deregisters the provided name form definition with this schema.
    *
    * @param  nameForm  The name form definition to deregister.
+   * @throws DirectoryException
+   *            If an error occurs.
    */
-  public void deregisterNameForm(NameForm nameForm)
+  public void deregisterNameForm(NameForm nameForm) throws DirectoryException
   {
-    synchronized (nameFormsByOC)
+    exclusiveLock.lock();
+    try
     {
-      List<NameForm> mappedForms = nameFormsByOC.get(
-              nameForm.getStructuralClass());
-      if(mappedForms != null)
-      {
-        mappedForms.remove(nameForm);
-        if(mappedForms.isEmpty())
-        {
-          nameFormsByOC.remove(nameForm.getStructuralClass());
-        }
-      }
-      nameFormsByOC.remove(nameForm.getStructuralClass());
-      nameFormsByName.remove(toLowerCase(nameForm.getOID()),
-                             nameForm);
-
-      for (String name : nameForm.getNames().keySet())
-      {
-        nameFormsByName.remove(name, nameForm);
-      }
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeNameForm(nameForm.getNameOrOID());
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -2053,17 +2031,13 @@ public final class Schema
       }
     }
 
-    for (List<NameForm> mappedForms : nameFormsByOC.values())
+    for (NameForm nameForm : getNameForms())
     {
-      for (NameForm nf : mappedForms)
+      if (nameForm.getRequiredAttributes().contains(type) || nameForm.getOptionalAttributes().contains(type))
       {
-        if (nf.getRequiredAttributes().contains(type) || nf.getOptionalAttributes().contains(type))
-        {
-          NameForm newNF = recreateFromDefinition(nf);
-          deregisterNameForm(nf);
-          registerNameForm(newNF, true);
-          rebuildDependentElements(nf, depth + 1);
-        }
+        deregisterNameForm(nameForm);
+        registerNameForm(nameForm.toString(), getSchemaFileName(nameForm), true);
+        rebuildDependentElements(nameForm, depth + 1);
       }
     }
 
@@ -2111,16 +2085,15 @@ public final class Schema
   {
     circularityCheck(depth, c);
 
-    List<NameForm> mappedForms = nameFormsByOC.get(c);
+    Collection<NameForm> mappedForms = getNameForm(c);
     if (mappedForms != null)
     {
       for (NameForm nf : mappedForms)
       {
         if (nf != null)
         {
-          NameForm newNF = recreateFromDefinition(nf);
           deregisterNameForm(nf);
-          registerNameForm(newNF, true);
+          registerNameForm(nf.toString(), getSchemaFileName(nf), true);
           rebuildDependentElements(nf, depth + 1);
         }
       }
@@ -2175,8 +2148,7 @@ public final class Schema
       throws DirectoryException
   {
     ByteString value = ByteString.valueOfUtf8(dcr.toString());
-    DITContentRule copy =
-        DITContentRuleSyntax.decodeDITContentRule(value, this, false);
+    DITContentRule copy = DITContentRuleSyntax.decodeDITContentRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dcr));
     return copy;
   }
@@ -2188,15 +2160,6 @@ public final class Schema
     DITStructureRule copy =
         DITStructureRuleSyntax.decodeDITStructureRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dsr));
-    return copy;
-  }
-
-  private NameForm recreateFromDefinition(NameForm nf)
-      throws DirectoryException
-  {
-    ByteString value = ByteString.valueOfUtf8(nf.toString());
-    NameForm copy = NameFormSyntax.decodeNameForm(value, this, false);
-    setSchemaFile(copy, getSchemaFile(nf));
     return copy;
   }
 
@@ -2223,8 +2186,6 @@ public final class Schema
     dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
     dupSchema.ditStructureRulesByNameForm.putAll(ditStructureRulesByNameForm);
-    dupSchema.nameFormsByOC.putAll(nameFormsByOC);
-    dupSchema.nameFormsByName.putAll(nameFormsByName);
     dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
@@ -2669,18 +2630,6 @@ public final class Schema
     {
       ditStructureRulesByNameForm.clear();
       ditStructureRulesByNameForm = null;
-    }
-
-    if (nameFormsByName != null)
-    {
-      nameFormsByName.clear();
-      nameFormsByName = null;
-    }
-
-    if (nameFormsByOC != null)
-    {
-      nameFormsByOC.clear();
-      nameFormsByOC = null;
     }
 
     if (subordinateTypes != null)

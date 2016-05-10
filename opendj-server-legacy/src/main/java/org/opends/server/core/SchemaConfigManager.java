@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
-import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
@@ -43,7 +42,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
-import org.opends.server.types.NameForm;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
@@ -721,39 +719,12 @@ public class SchemaConfigManager
       {
         for (ByteString v : a)
         {
-          // Parse the name form.
-          NameForm nf;
-          try
-          {
-            nf = NameFormSyntax.decodeNameForm(v, schema, false);
-            nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            setSchemaFile(nf, schemaFile);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
-                    schemaFile, de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
-                    schemaFile,  v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
           // Register it with the schema.  We will allow duplicates, with the
           // later definition overriding any earlier definition, but we want
           // to trap them and log a warning.
           try
           {
-            schema.registerNameForm(nf, failOnError);
+            schema.registerNameForm(v.toString(), schemaFile, failOnError);
           }
           catch (DirectoryException de)
           {
@@ -763,7 +734,7 @@ public class SchemaConfigManager
 
             try
             {
-              schema.registerNameForm(nf, true);
+              schema.registerNameForm(v.toString(), schemaFile, true);
             }
             catch (Exception e)
             {

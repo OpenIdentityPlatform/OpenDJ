@@ -64,6 +64,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
@@ -84,7 +85,6 @@ import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Attribute;
@@ -104,7 +104,6 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
-import org.opends.server.types.NameForm;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.Schema;
@@ -580,7 +579,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      */
     buildSchemaAttribute(schema.getSyntaxes(), userAttrs,
         operationalAttrs, ldapSyntaxesType, includeSchemaFile, false, true);
-    buildSchemaAttribute(schema.getNameFormsByNameOrOID().values(), userAttrs,
+    buildSchemaAttribute(schema.getNameForms(), userAttrs,
         operationalAttrs, nameFormsType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getDITContentRules().values(), userAttrs,
         operationalAttrs, ditContentRulesType, includeSchemaFile, false, true);
@@ -769,21 +768,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              NameForm nf;
-              try
-              {
-                nf = NameFormSyntax.decodeNameForm(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              NameForm nf = newSchema.parseNameForm(v.toString());
               addNameForm(nf, newSchema, modifiedSchemaFiles);
             }
           }
@@ -893,21 +878,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              NameForm nf;
-              try
-              {
-                nf = NameFormSyntax.decodeNameForm(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              NameForm nf = newSchema.parseNameForm(v.toString());
               removeNameForm(nf, newSchema, mods, pos, modifiedSchemaFiles);
             }
           }
@@ -1155,13 +1126,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingType.isPlaceHolder())
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new SomeSchemaElement(attributeType));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(attributeType));
       schema.registerAttributeType(attributeType, schemaFile, false);
     }
     else
     {
       String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new SomeSchemaElement(attributeType), new SomeSchemaElement(existingType));
+          modifiedSchemaFiles, new ServerSchemaElement(attributeType), new ServerSchemaElement(existingType));
       schema.replaceAttributeType(attributeType, existingType, schemaFile);
     }
   }
@@ -1184,15 +1155,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       setSchemaFile(elem, schemaFile);
     }
     modifiedSchemaFiles.add(schemaFile);
-  }
-
-  /** Update list of modified files and return the schema file to use for the added element (may be null). */
-  private String addNewSchemaElement(Set<String> modifiedSchemaFiles, SomeSchemaElement elem)
-  {
-    String schemaFile = elem.getSchemaFile();
-    String finalFile = schemaFile != null ? schemaFile : FILE_USER_SCHEMA_ELEMENTS;
-    modifiedSchemaFiles.add(finalFile);
-    return schemaFile == null ? finalFile : null;
   }
 
   /**
@@ -1231,33 +1193,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       modifiedSchemaFiles.add(newSchemaFile);
       modifiedSchemaFiles.add(oldSchemaFile);
     }
-  }
-
-  /** Update list of modified files and return the schema file to use for the new element (may be null). */
-  private String replaceExistingSchemaElement(
-      Set<String> modifiedSchemaFiles, SomeSchemaElement newElem, SomeSchemaElement existingElem)
-  {
-    String newSchemaFile = newElem.getSchemaFile();
-    String oldSchemaFile = existingElem.getSchemaFile();
-    if (newSchemaFile == null)
-    {
-      if (oldSchemaFile == null)
-      {
-        oldSchemaFile = FILE_USER_SCHEMA_ELEMENTS;
-      }
-      modifiedSchemaFiles.add(oldSchemaFile);
-      return oldSchemaFile;
-    }
-    else if (oldSchemaFile == null || oldSchemaFile.equals(newSchemaFile))
-    {
-      modifiedSchemaFiles.add(newSchemaFile);
-    }
-    else
-    {
-      modifiedSchemaFiles.add(newSchemaFile);
-      modifiedSchemaFiles.add(oldSchemaFile);
-    }
-    return null;
   }
 
   /**
@@ -1343,37 +1278,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the attribute type isn't used as a required or optional
-    // attribute type in any objectclass.
-    for (ObjectClass oc : schema.getObjectClasses())
-    {
-      if (oc.getDeclaredRequiredAttributes().contains(removeType) ||
-          (oc.getDeclaredOptionalAttributes().contains(removeType) && !oc.isExtensible()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_OC.get(
-            removeType.getNameOrOID(), oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    // Make sure that the attribute type isn't used as a required or optional
-    // attribute type in any name form.
-    for (List<NameForm> mappedForms :
-                      schema.getNameFormsByObjectClass().values())
-    {
-      for(NameForm nf : mappedForms)
-      {
-        if (nf.getRequiredAttributes().contains(removeType) ||
-            nf.getOptionalAttributes().contains(removeType))
-        {
-          LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_NF.get(
-              removeType.getNameOrOID(), nf.getNameOrOID());
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                  message);
-        }
-      }
-    }
-
     // Make sure that the attribute type isn't used as a required, optional, or
     // prohibited attribute type in any DIT content rule.
     for (DITContentRule dcr : schema.getDITContentRules().values())
@@ -1402,7 +1306,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // If we've gotten here, then it's OK to remove the attribute type from
     // the schema.
     schema.deregisterAttributeType(removeType);
-    String schemaFile = new SomeSchemaElement(removeType).getSchemaFile();
+    String schemaFile = new ServerSchemaElement(removeType).getSchemaFile();
     if (schemaFile != null)
     {
       modifiedSchemaFiles.add(schemaFile);
@@ -1513,13 +1417,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingClass.isPlaceHolder())
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new SomeSchemaElement(objectClass));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(objectClass));
       schema.registerObjectClass(objectClass, schemaFile, false);
     }
     else
     {
       final String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new SomeSchemaElement(objectClass), new SomeSchemaElement(existingClass));
+          modifiedSchemaFiles, new ServerSchemaElement(objectClass), new ServerSchemaElement(existingClass));
       schema.replaceObjectClass(objectClass, existingClass, schemaFile);
     }
   }
@@ -1620,8 +1524,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Make sure that the objectclass isn't used as the structural class for
     // any name form.
-    List<NameForm> mappedForms = schema.getNameForm(removeClass);
-    if (mappedForms != null)
+    Collection<NameForm> mappedForms = schema.getNameForm(removeClass);
+    if (!mappedForms.isEmpty())
     {
       StringBuilder buffer = new StringBuilder();
       for(NameForm nf : mappedForms)
@@ -1677,52 +1581,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                            Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // First, see if the specified name form already exists.  We'll check the
-    // OID and all of the names, which means that it's possible there could be
-    // more than one match (although if there is, then we'll refuse the
-    // operation).
-    NameForm existingNF =
-         schema.getNameForm(nameForm.getOID());
-    for (String name : nameForm.getNames().keySet())
-    {
-      NameForm nf = schema.getNameForm(name);
-      if (nf == null)
-      {
-        continue;
-      }
-      else if (existingNF == null)
-      {
-        existingNF = nf;
-      }
-      else if (existingNF != nf)
-      {
-        // NOTE:  We really do want to use "!=" instead of "! t.equals()"
-        // because we want to check whether it's the same object instance, not
-        // just a logical equivalent.
-        LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_NAME_FORM
-                        .get(nameForm.getNameOrOID(), existingNF.getNameOrOID(),
-                  nf.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    // Make sure that the new name form doesn't reference an undefined
-    // structural class, or an undefined required or optional attribute type, or
-    // that any of them are marked OBSOLETE.
+    // Make sure that the new name form doesn't reference an objectclass
+    // or attributes that are marked OBSOLETE.
     ObjectClass structuralClass = nameForm.getStructuralClass();
-    if (! schema.hasObjectClass(structuralClass.getOID()))
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_STRUCTURAL_OC.get(
-          nameForm.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-    if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OC_NOT_STRUCTURAL.get(
-          nameForm.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
     if (structuralClass.isObsolete())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OC_OBSOLETE.get(
@@ -1732,13 +1593,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (AttributeType at : nameForm.getRequiredAttributes())
     {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_REQUIRED_ATTR.get(
-            nameForm.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
+      if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR.get(
             nameForm.getNameOrOID(), at.getNameOrOID());
@@ -1748,13 +1603,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (AttributeType at : nameForm.getOptionalAttributes())
     {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_UNDEFINED_OPTIONAL_ATTR.get(
-            nameForm.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
+      if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR.get(
             nameForm.getNameOrOID(), at.getNameOrOID());
@@ -1764,17 +1613,19 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // If there is no existing class, then we're adding a new name form.
     // Otherwise, we're replacing an existing one.
-    if (existingNF == null)
+    if (!schema.hasNameForm(nameForm.getNameOrOID()))
     {
-      schema.registerNameForm(nameForm, false);
-      addNewSchemaElement(modifiedSchemaFiles, nameForm);
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(nameForm));
+      schema.registerNameForm(nameForm, schemaFile, false);
     }
     else
     {
+      NameForm existingNF = schema.getNameForm(nameForm.getNameOrOID());
       schema.deregisterNameForm(existingNF);
-      schema.registerNameForm(nameForm, false);
+      String schemaFile = replaceExistingSchemaElement(
+          modifiedSchemaFiles, new ServerSchemaElement(nameForm), new ServerSchemaElement(existingNF));
+      schema.registerNameForm(nameForm, schemaFile, false);
       schema.rebuildDependentElements(existingNF);
-      replaceExistingSchemaElement(modifiedSchemaFiles, nameForm, existingNF);
     }
   }
 
@@ -1809,15 +1660,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // See if the specified name form is actually defined in the server schema.
-    // If not, then fail.
-    NameForm removeNF = schema.getNameForm(nameForm.getOID());
-    if (removeNF == null || !removeNF.equals(nameForm))
+    if (!schema.hasNameForm(nameForm.getOID()))
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(
-          nameForm.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(nameForm.getNameOrOID()));
     }
+
+    NameForm removeNF = schema.getNameForm(nameForm.getOID());
 
     // See if there is another modification later to add the name form back
     // into the schema.  If so, then it's a replace and we should ignore the
@@ -1838,7 +1687,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         NameForm nf;
         try
         {
-          nf = NameFormSyntax.decodeNameForm(v, schema, true);
+          nf = schema.parseNameForm(v.toString());
         }
         catch (DirectoryException de)
         {
@@ -1859,8 +1708,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the name form isn't referenced by any DIT structure
-    // rule.
+    // Make sure that the name form isn't referenced by any DIT structure rule.
     DITStructureRule dsr = schema.getDITStructureRule(removeNF);
     if (dsr != null)
     {
@@ -1869,8 +1717,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    // If we've gotten here, then it's OK to remove the name form from the
-    // schema.
+    // If we've gotten here, then it's OK to remove the name form from the schema.
     schema.deregisterNameForm(removeNF);
     String schemaFile = getSchemaFile(removeNF);
     if (schemaFile != null)
@@ -2635,7 +2482,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     values = new LinkedHashSet<>();
     for (AttributeType at : schema.getAttributeTypes())
     {
-      String atSchemaFile = new SomeSchemaElement(at).getSchemaFile();
+      String atSchemaFile = new ServerSchemaElement(at).getSchemaFile();
       if (schemaFile.equals(atSchemaFile))
       {
         addAttrTypeToSchemaFile(schema, schemaFile, at, values, addedTypes, 0);
@@ -2674,14 +2521,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // is no hierarchical relationship between name forms, we don't need to
     // worry about ordering.
     values = new LinkedHashSet<>();
-    for (List<NameForm> forms : schema.getNameFormsByObjectClass().values())
+    for (NameForm nf : schema.getNameForms())
     {
-      for(NameForm nf : forms)
+      if (schemaFile.equals(getSchemaFile(nf)))
       {
-        if (schemaFile.equals(getSchemaFile(nf)))
-        {
-          values.add(ByteString.valueOfUtf8(nf.toString()));
-        }
+        values.add(ByteString.valueOfUtf8(nf.toString()));
       }
     }
 
@@ -2811,7 +2655,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     AttributeType superiorType = attributeType.getSuperiorType();
     if (superiorType != null &&
-        schemaFile.equals(new SomeSchemaElement(attributeType).getSchemaFile()) &&
+        schemaFile.equals(new ServerSchemaElement(attributeType).getSchemaFile()) &&
         !addedTypes.contains(superiorType))
     {
       addAttrTypeToSchemaFile(schema, schemaFile, superiorType, values,
@@ -3345,7 +3189,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         // Parse the attribute type.
         AttributeType attrType = schema.parseAttributeType(v.toString());
-        String schemaFile = new SomeSchemaElement(attrType).getSchemaFile();
+        String schemaFile = new ServerSchemaElement(attrType).getSchemaFile();
         if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
         {
           // Don't import the file containing the definitions of the

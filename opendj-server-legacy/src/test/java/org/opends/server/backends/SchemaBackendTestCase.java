@@ -1101,7 +1101,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
       runModify(argsNotPermissive(), ldif, SUCCESS);
 
-      runModify(argsNotPermissive(), ldif1, UNWILLING_TO_PERFORM);
+      runModify(argsNotPermissive(), ldif1, CONSTRAINT_VIOLATION);
       assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
     }
     finally
@@ -1928,7 +1928,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -1961,7 +1961,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithmultipleundefinedreqat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -1993,7 +1993,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2026,7 +2026,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithmultipleundefinedoptat";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2051,7 +2051,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithundefinedoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2082,7 +2082,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithauxiliaryoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 

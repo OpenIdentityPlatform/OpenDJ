@@ -17,7 +17,6 @@
 package org.opends.server.types;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -26,6 +25,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AlertGenerator;
@@ -397,33 +397,18 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves the list of name forms associated with the specified
+   * Retrieves the collection of name forms associated with the specified
    * structural objectclass.
    *
    * @param  objectClass  The structural objectclass for which to
    *                      retrieve the  associated name form.
    *
-   * @return  The list of requested name forms, or <CODE>null</CODE>
+   * @return  The collection of requested name forms, or <CODE>null</CODE>
    *           if no such name form is defined in the schema.
    */
-  public static List<NameForm> getNameForm(ObjectClass objectClass)
+  public static Collection<NameForm> getNameForm(ObjectClass objectClass)
   {
     return DirectoryServer.getNameForm(objectClass);
-  }
-
-  /**
-   * Retrieves the name form associated with the specified name or
-   * OID.
-   *
-   * @param  lowerName  The name or OID of the name form to retrieve,
-   *                    formatted in all lowercase characters.
-   *
-   * @return  The requested name form, or <CODE>null</CODE> if no such
-   *          name form is defined in the schema.
-   */
-  public static NameForm getNameForm(String lowerName)
-  {
-    return DirectoryServer.getNameForm(lowerName);
   }
 
   /**
