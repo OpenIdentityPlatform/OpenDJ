@@ -29,6 +29,7 @@ import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
+@SuppressWarnings("javadoc")
 public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
 
     @DataProvider
@@ -39,20 +40,20 @@ public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
         return new Object[][] {
             // Basic object class
             { "1.2.3.4", false, singletonList("MyObjectClass"), emptySet(), singleton("cn"),
-                singleton(TOP_OBJECTCLASS_NAME), STRUCTURAL, "MyObjectClass description.", "New extra property",
-                "New extra value", false },
+                singleton(TOP_OBJECTCLASS_NAME), STRUCTURAL, "MyObjectClass description.",
+                "X-New-extra-property", "New extra value", false },
             // Allowed overrides existing core schema object class groupOfNames
             { "2.5.6.9", false, singletonList("groupOfFirstNames"), emptySet(), singleton("cn"),
-                singleton(TOP_OBJECTCLASS_NAME), AUXILIARY, "MyObjectClass description.", "New extra property",
-                "New extra value", true },
+                singleton(TOP_OBJECTCLASS_NAME), AUXILIARY, "MyObjectClass description.",
+                "X-New-extra-property", "New extra value", true },
             // No name provided, should be validated
             { "1.2.3.4", false, emptyList(), singleton("name"), singleton("cn"),
-                singleton(TOP_OBJECTCLASS_NAME), STRUCTURAL, "MyObjectClass description.", "New extra property",
-                "New extra value", false },
+                singleton(TOP_OBJECTCLASS_NAME), STRUCTURAL, "MyObjectClass description.",
+                "X-New-extra-property", "New extra value", false },
             // Empty description, should be validated
             { "1.2.3.4", false, emptyList(), singleton("name"), singleton("cn"),
-                singleton(TOP_OBJECTCLASS_NAME), STRUCTURAL, "", "New extra property",
-                "New extra value", false },
+                singleton(TOP_OBJECTCLASS_NAME), STRUCTURAL, "",
+                "X-New-extra-property", "New extra value", false },
         };
     }
 
@@ -78,6 +79,40 @@ public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
 
         assertThat(schema.getWarnings()).isEmpty();
         final ObjectClass oc = schema.getObjectClass(oid);
+        validate(oc,
+            oid,
+            isObsolete,
+            names,
+            optionalAttributeOIDs,
+            requiredAttributesOIDs,
+            superiorClassOIDs,
+            type,
+            description,
+            extraPropertyName,
+            extraPropertyValue);
+
+        final ObjectClass copiedOC = new SchemaBuilder(schema)
+            .buildObjectClass(oid + "-oid") // triggers a lazy copy of the original schema
+            .addToSchema()
+            .toSchema()
+            .getObjectClass(oid);
+        validate(copiedOC,
+            oid,
+            isObsolete,
+            names,
+            optionalAttributeOIDs,
+            requiredAttributesOIDs,
+            superiorClassOIDs,
+            type,
+            description,
+            extraPropertyName,
+            extraPropertyValue);
+    }
+
+    private void validate(final ObjectClass oc, final String oid, final boolean isObsolete, final List<String> names,
+            final Set<String> optionalAttributeOIDs, final Set<String> requiredAttributesOIDs,
+            final Set<String> superiorClassOIDs, final ObjectClassType type, final String description,
+            final String extraPropertyName, final String extraPropertyValue) throws Exception {
         assertThat(oc).isNotNull();
         assertThat(oc.getOID()).isEqualTo(oid);
         assertThat(oc.getDescription()).isEqualTo(description);

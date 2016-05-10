@@ -67,7 +67,7 @@ public final class ObjectClass extends AbstractSchemaElement {
             this.type = oc.objectClassType;
             this.superiorClasses.addAll(oc.superiorClassOIDs);
             this.requiredAttributes.addAll(oc.requiredAttributeOIDs);
-            this.optionalAttributes.addAll(optionalAttributes);
+            this.optionalAttributes.addAll(oc.optionalAttributeOIDs);
         }
 
         Builder(final String oid, final SchemaBuilder builder) {
