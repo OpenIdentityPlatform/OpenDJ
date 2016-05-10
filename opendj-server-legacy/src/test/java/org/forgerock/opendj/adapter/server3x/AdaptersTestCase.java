@@ -23,7 +23,6 @@ import java.security.GeneralSecurityException;
 import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.AuthenticationException;
-import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
@@ -40,7 +39,6 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.controls.ADNotificationRequestControl;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.controls.MatchedValuesRequestControl;
 import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
@@ -82,12 +80,6 @@ public class AdaptersTestCase extends DirectoryServerTestCase {
         return TestCaseUtils.getServerLdapPort();
     }
 
-    /**
-     * Provides root connection factories.
-     *
-     * @return Root connection factories.
-     * @throws DirectoryException 
-     */
     @DataProvider
     public Object[][] rootConnectionFactories() throws DirectoryException {
         return new Object[][] {
