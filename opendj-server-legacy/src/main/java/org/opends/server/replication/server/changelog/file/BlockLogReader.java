@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
@@ -530,10 +531,20 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
    *          The position of reader on file.
    * @return the file position of the block start.
    */
+  @VisibleForTesting
   long getClosestBlockStartBeforeOrAtPosition(final long filePosition)
   {
     final int dist = getDistanceToNextBlockStart(filePosition, blockSize);
     return dist == 0 ? filePosition : filePosition + dist - blockSize;
+  }
+
+  @VisibleForTesting
+  long getClosestBlockStartToEndOfFile() throws ChangelogException
+  {
+    final long fileLength = getFileLength();
+    long lastBlockStart = getClosestBlockStartBeforeOrAtPosition(fileLength);
+    // block start is invalid if equal to file length
+    return lastBlockStart < fileLength ? lastBlockStart :  getClosestBlockStartBeforeOrAtPosition(fileLength-1);
   }
 
   /**
@@ -589,8 +600,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
  {
    try
    {
-     final long fileSize = getFileLength();
-     final long lastBlockStart = getClosestBlockStartBeforeOrAtPosition(fileSize);
+     final long lastBlockStart = getClosestBlockStartToEndOfFile();
      positionToRecordFromBlockStart(lastBlockStart);
 
      long lastValidPosition = lastBlockStart;
@@ -599,7 +609,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
        lastValidPosition = reader.getFilePointer();
      }
 
-     final boolean isFileValid = lastValidPosition == fileSize;
+     final boolean isFileValid = lastValidPosition == getFileLength();
      return isFileValid ? -1 : lastValidPosition;
    }
    catch (Exception e)
@@ -613,13 +623,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
 Record<K, V> getNewestRecord() throws ChangelogException
  {
    try {
-     final long fileLength = getFileLength();
-     long lastBlockStart = getClosestBlockStartBeforeOrAtPosition(fileLength);
-     if (lastBlockStart == fileLength)
-     {
-       // this is not a valid block start, find the previous block start
-       lastBlockStart = getClosestBlockStartBeforeOrAtPosition(fileLength-1);
-     }
+     long lastBlockStart = getClosestBlockStartToEndOfFile();
      positionToRecordFromBlockStart(lastBlockStart);
      ByteString candidate = readNextRecord();
      ByteString record = candidate;
