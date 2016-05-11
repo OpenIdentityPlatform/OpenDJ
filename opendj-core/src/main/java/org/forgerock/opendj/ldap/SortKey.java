@@ -515,6 +515,30 @@ public final class SortKey {
         return isReverseOrder;
     }
 
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof SortKey)) {
+            return false;
+        }
+        SortKey s = (SortKey) o;
+        return isReverseOrder == s.isReverseOrder
+            && attributeDescription.equalsIgnoreCase(s.attributeDescription)
+            && equalsIgnoreCase(orderingMatchingRule, s.orderingMatchingRule);
+    }
+
+    private boolean equalsIgnoreCase(String s1, String s2)
+    {
+        return s1 == null ? s2 == null : s1.equalsIgnoreCase(s2);
+    }
+
     /**
      * Returns a string representation of this sort key using the format defined
      * in {@link #valueOf(String)}.
