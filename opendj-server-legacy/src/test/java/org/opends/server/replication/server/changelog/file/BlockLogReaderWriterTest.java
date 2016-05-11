@@ -264,6 +264,37 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     assertThat(reader.getClosestBlockStartBeforeOrAtPosition(20)).isEqualTo(20);
   }
 
+  @DataProvider
+  Object[][] recordsForNewest()
+  {
+    return new Object[][]
+    {
+      // raw size taken by each record is: 4 (record size) + 4 (key) + 4 (value) = 12 bytes
+
+      // size of block, records to write
+      { 12, records(1) }, // zero block marker
+      { 10, records(1) }, // one block marker
+      { 8, records(1) },  // one block marker
+      { 7, records(1) },  // two block markers
+      { 6, records(1) },  // three block markers
+      { 5, records(1) },  // seven block markers
+      { 16, records(1,2) }, // one block marker
+      { 12, records(1,2) }, // two block markers
+      { 10, records(1,2) }, // three block markers
+    };
+  }
+
+  @Test(dataProvider="recordsForNewest")
+  public void testGetNewestRecord(int blockSize, List<Record<Integer, Integer>> records) throws Exception
+  {
+    writeRecords(blockSize, records);
+
+    try(BlockLogReader<Integer, Integer> reader = newReader(blockSize))
+    {
+      assertThat(reader.getNewestRecord()).isEqualTo(records.get(records.size()-1));
+    }
+  }
+
   @Test
   public void testGetClosestMarkerStrictlyAfterPosition() throws Exception
   {
