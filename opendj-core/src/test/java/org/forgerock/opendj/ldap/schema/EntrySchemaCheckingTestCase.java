@@ -29,8 +29,8 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.EntryResolver;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.EntryResolver;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.testng.annotations.Test;
 
@@ -951,6 +951,21 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
             "objectClass: top",
             "objectClass: organization",
             "o: example");
+        // @formatter:on
+
+        assertConformsToSchema(e, defaultPolicy());
+    }
+
+    @Test
+    public void testExtensibleObjectAcceptsAnyAttribute() throws Exception {
+        // @formatter:off
+        final Entry e = newEntry(
+            "dn: dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: organization",
+            "objectClass: extensibleObject",
+            "o: example",
+            "dummy: it works too!!");
         // @formatter:on
 
         assertConformsToSchema(e, defaultPolicy());

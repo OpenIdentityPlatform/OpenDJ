@@ -394,6 +394,8 @@ public final class ObjectClass extends AbstractSchemaElement {
 
     /** The indicates whether or not validation failed. */
     private boolean isValid;
+    /** Whether this is the extensible object class, which allows any attribute types. */
+    private boolean isExtensibleObject;
 
     /**
      * Construct a extensibleObject object class where the set of allowed
@@ -430,6 +432,11 @@ public final class ObjectClass extends AbstractSchemaElement {
         this.objectClassType = builder.type;
         this.requiredAttributeOIDs = unmodifiableCopyOfSet(builder.requiredAttributes);
         this.optionalAttributeOIDs = unmodifiableCopyOfSet(builder.optionalAttributes);
+        this.isExtensibleObject = isExtensible();
+    }
+
+    private boolean isExtensible() {
+        return hasName(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME) || hasNameOrOID(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
     }
 
     /**
@@ -632,7 +639,7 @@ public final class ObjectClass extends AbstractSchemaElement {
      *         <code>false</code> if not.
      */
     public boolean isOptional(final AttributeType attributeType) {
-        return optionalAttributes.contains(attributeType);
+        return isExtensibleObject || optionalAttributes.contains(attributeType);
     }
 
     /**
@@ -646,7 +653,7 @@ public final class ObjectClass extends AbstractSchemaElement {
      *         <code>false</code> if not.
      */
     public boolean isRequired(final AttributeType attributeType) {
-        return requiredAttributes.contains(attributeType);
+        return isExtensibleObject || requiredAttributes.contains(attributeType);
     }
 
     /**
