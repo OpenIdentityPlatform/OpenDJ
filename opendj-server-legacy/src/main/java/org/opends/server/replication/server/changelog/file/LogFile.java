@@ -103,23 +103,24 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     Reject.ifNull(logFilePath, parser);
     this.logfile = logFilePath;
     this.isWriteEnabled = isWriteEnabled;
-
+    final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    exclusiveLock = rwLock.writeLock();
+    sharedLock = rwLock.readLock();
     createLogFileIfNotExists();
+
+    readerPool = new LogReaderPool<>(logfile, parser);
     if (isWriteEnabled)
     {
       ensureLogFileIsValid(parser);
       writer = BlockLogWriter.newWriter(new LogWriter(logfile), parser);
+      initializeNewestRecord();
     }
     else
     {
+      // Newest record is never requested for read-only log files.
+      // It will never be because it is available in the file name.
       writer = null;
     }
-    readerPool = new LogReaderPool<>(logfile, parser);
-
-    final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    exclusiveLock = rwLock.writeLock();
-    sharedLock = rwLock.readLock();
-    initializeNewestRecord();
   }
 
   /**
@@ -408,7 +409,8 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     }
     catch (IOException ioe)
     {
-      throw new ChangelogException(ERR_CHANGELOG_CANNOT_READ_NEWEST_RECORD.get(logfile.getAbsolutePath()), ioe);
+      throw new ChangelogException(ERR_CHANGELOG_CANNOT_READ_NEWEST_RECORD.get(logfile.getAbsolutePath() + "- " +
+          StaticUtils.stackTraceToSingleLineString(ioe) + "-" + Thread.currentThread()), ioe);
     }
   }
 
