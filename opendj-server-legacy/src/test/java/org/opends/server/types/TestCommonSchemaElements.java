@@ -658,40 +658,6 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
     Assert.assertEquals(d.getOID(), "1.2.3");
   }
 
-
-
-  /**
-   * Check that the {@link CommonSchemaElements#getPrimaryName()}
-   * method returns <code>null</code> when there is no primary name.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public final void testGetPrimaryNameDefault() throws Exception {
-    SchemaDefinitionBuilder builder = getBuilder(null, "1.2.3");
-    CommonSchemaElements d = builder.getInstance();
-    Assert.assertNull(d.getNameOrOID());
-  }
-
-
-
-  /**
-   * Check that the {@link CommonSchemaElements#getPrimaryName()}
-   * method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public final void testGetPrimaryName() throws Exception {
-    SchemaDefinitionBuilder builder = getBuilder("testType", "1.2.3");
-    CommonSchemaElements d = builder.getInstance();
-    Assert.assertEquals(d.getNameOrOID(), "testType");
-  }
-
-
-
   /**
    * Check that the {@link CommonSchemaElements#getSchemaFile()}
    * method returns <code>null</code> when there is no schema file.

@@ -16,8 +16,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.schema.AttributeType;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
@@ -371,7 +370,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass type = new ObjectClass(definition, null, null, "1.2.3", null,
         null, null, null, null, false, null);
 
-    Assert.assertNull(type.getNameOrOID());
+    Assert.assertEquals(type.getNameOrOID(), "1.2.3");
   }
 
 
